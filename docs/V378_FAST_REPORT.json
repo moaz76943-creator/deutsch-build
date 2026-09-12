@@ -1,0 +1,43 @@
+{
+  "changed": [
+    "android/app/build.gradle",
+    "pubspec.yaml",
+    "tests/test_v378_architecture_audit_integration.py",
+    "tests/test_v378_architecture_boundary_gate.py",
+    "tool/architecture_audit.py",
+    "tool/architecture_boundary_gate.py"
+  ],
+  "risk": "HIGH",
+  "selected": [
+    "architecture",
+    "full_regression",
+    "security"
+  ],
+  "skipped": [
+    "accessibility: SKIPPED — unaffected",
+    "compiler_parity: SKIPPED — unaffected",
+    "content_quality: SKIPPED — unaffected",
+    "integration: SKIPPED — unaffected",
+    "privacy: SKIPPED — unaffected",
+    "targeted: SKIPPED — unaffected"
+  ],
+  "passed": [
+    "architecture",
+    "full_regression",
+    "security"
+  ],
+  "failed": [],
+  "security": "PASS",
+  "content": "NOT RUN",
+  "compiler": "NOT RUN",
+  "warnings": [],
+  "cached": [],
+  "affected_files": [
+    "android/app/build.gradle",
+    "pubspec.yaml",
+    "tests/test_v378_architecture_audit_integration.py",
+    "tests/test_v378_architecture_boundary_gate.py",
+    "tool/architecture_audit.py",
+    "tool/architecture_boundary_gate.py"
+  ]
+}

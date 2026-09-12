@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Deutsch بالعربي content pack",
+  "type": "object",
+  "required": [
+    "contentItems",
+    "verbConjugations"
+  ],
+  "properties": {
+    "contentItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "german",
+          "arabic",
+          "sentence",
+          "sentenceAr",
+          "topic",
+          "skill",
+          "article",
+          "plural",
+          "accepted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "german": {
+            "type": "string"
+          },
+          "arabic": {
+            "type": "string"
+          },
+          "sentence": {
+            "type": "string"
+          },
+          "sentenceAr": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "article": {
+            "type": "string"
+          },
+          "plural": {
+            "type": "string"
+          },
+          "accepted": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "verbConjugations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "infinitive",
+          "arabic",
+          "group",
+          "person",
+          "personAr",
+          "form",
+          "past",
+          "pastArabic",
+          "example",
+          "exampleAr",
+          "pastExample",
+          "pastExampleAr"
+        ],
+        "properties": {
+          "infinitive": {
+            "type": "string"
+          },
+          "arabic": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "person": {
+            "type": "string"
+          },
+          "personAr": {
+            "type": "string"
+          },
+          "form": {
+            "type": "string"
+          },
+          "past": {
+            "type": "string"
+          },
+          "pastArabic": {
+            "type": "string"
+          },
+          "example": {
+            "type": "string"
+          },
+          "exampleAr": {
+            "type": "string"
+          },
+          "pastExample": {
+            "type": "string"
+          },
+          "pastExampleAr": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

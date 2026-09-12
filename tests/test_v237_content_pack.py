@@ -1,0 +1,54 @@
+from pathlib import Path
+import json
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+TOOL = ROOT / "tool" / "content_pack.py"
+CONTENT = ROOT / "content" / "content_items.json"
+VERBS = ROOT / "content" / "verb_conjugations.json"
+
+
+def test_content_pack_export_preserves_current_catalog_shape():
+    result = subprocess.run(
+        [sys.executable, str(TOOL), "export"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    content = json.loads(CONTENT.read_text(encoding="utf-8"))
+    verbs = json.loads(VERBS.read_text(encoding="utf-8"))
+    assert len(content) == 14813
+    assert len({row["id"] for row in content}) == 14813
+    assert content[0]["id"] == "w0001"
+    assert content[-1]["id"] == "w16149"
+    assert len(verbs) == 11718
+
+
+def test_content_pack_validation_rejects_shape_changes():
+    subprocess.run([sys.executable, str(TOOL), "export"], cwd=ROOT, check=True)
+    original = json.loads(CONTENT.read_text(encoding="utf-8"))
+    try:
+        broken = original[:-1]
+        CONTENT.write_text(json.dumps(broken, ensure_ascii=False), encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "validate"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert result.returncode != 0
+        assert "cardinality" in result.stderr
+    finally:
+        CONTENT.write_text(json.dumps(original, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def test_ci_workflows_validate_editable_content_packs():
+    build_workflow = (ROOT / ".github/workflows/build-apk.yml").read_text(encoding="utf-8")
+    quality_workflow = (ROOT / ".github/workflows/quality.yml").read_text(encoding="utf-8")
+    expected = "python3 tool/content_pack.py validate"
+    assert expected in build_workflow
+    assert expected in quality_workflow

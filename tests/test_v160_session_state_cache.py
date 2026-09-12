@@ -1,0 +1,21 @@
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+P=ROOT/'lib/ui_v35/learning_pages.dart'
+
+def text(): return P.read_text(encoding='utf-8')
+
+def test_core_session_keeps_one_session_state_snapshot():
+    s=text()
+    assert 'late LearnerState sessionState;' in s
+    assert 'sessionState = widget.repo.load();' in s
+    assert '_fallbackMode(pos, sessionState)' in s
+    assert '_fallbackMode(0, sessionState)' in s
+    assert 'widget.repo.load()) : _modeForPlanItem' not in s
+
+def test_smart_assessment_keeps_state_for_question_build_and_history():
+    s=text()
+    assert 'late LearnerState assessmentState;' in s
+    assert 'assessmentState = widget.repo.load();' in s
+    assert 'AssessmentEngine.build(corpus, assessmentState' in s
+    assert 'final corpus = widget.corpus;' in s
+    assert 'history: assessmentState.assessmentHistory' in s

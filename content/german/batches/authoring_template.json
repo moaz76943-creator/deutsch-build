@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "languageCode": "de",
+  "entries": [
+    {
+      "id": "w99999",
+      "word": "lernen",
+      "translation": "يتعلم",
+      "sentence": "Ich lerne Deutsch.",
+      "sentenceTranslation": "أنا أتعلم الألمانية.",
+      "topic": "تعلم",
+      "skill": "recall",
+      "article": "",
+      "plural": "",
+      "accepted": ["lernen"],
+      "audio": {
+        "pronunciation": "w99999.mp3"
+      }
+    }
+  ],
+  "verbs": [
+    {
+      "infinitive": "sein",
+      "arabic": "يكون",
+      "group": "1. الأفعال الأساسية",
+      "forms": [
+        {
+          "person": "ich",
+          "personAr": "أنا",
+          "form": "bin",
+          "past": "bin gewesen",
+          "pastArabic": "كنتُ",
+          "example": "Ich bin müde.",
+          "exampleAr": "أنا متعب.",
+          "pastExample": "Ich bin müde gewesen.",
+          "pastExampleAr": "كنتُ متعبًا."
+        }
+      ]
+    }
+  ]
+}

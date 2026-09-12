@@ -1,0 +1,60 @@
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[1]
+LIB = ROOT / "lib"
+
+
+def read(rel: str) -> str:
+    return (ROOT / rel).read_text(encoding="utf-8")
+
+
+def test_tts_plugin_has_one_service_boundary():
+    service = ROOT / "lib/services/tts_service.dart"
+    assert service.exists(), "TTS adapter service must exist"
+    assert "package:flutter_tts/flutter_tts.dart" in service.read_text(encoding="utf-8")
+    for path in LIB.rglob("*.dart"):
+        if path == service:
+            continue
+        text = path.read_text(encoding="utf-8")
+        assert "package:flutter_tts/flutter_tts.dart" not in text, path
+
+
+def test_tts_compatibility_shim_does_not_expose_plugin_type():
+    text = read("lib/ui_v35/safe_ui.dart")
+    assert "package:flutter_tts/flutter_tts.dart" not in text
+    assert "tts_service.dart" in text
+    assert "FlutterTts" not in text
+
+
+def test_speech_and_preferences_are_the_only_platform_plugin_boundaries():
+    boundaries = {
+        "shared_preferences": {ROOT / "lib/services/preferences_service.dart"},
+        "speech_to_text": {ROOT / "lib/services/speech_service.dart"},
+    }
+    for package, allowed in boundaries.items():
+        needle = f"package:{package}/"
+        for path in LIB.rglob("*.dart"):
+            if needle in path.read_text(encoding="utf-8"):
+                assert path in allowed, f"{package} leaked outside its adapter: {path}"
+
+
+def test_legacy_ui_entrypoint_is_not_runtime_entrypoint_and_is_documented():
+    main = read("lib/main.dart")
+    assert "ui_v35/app.dart" in main
+    assert "ui/app.dart" not in main
+    audit = ROOT / "docs/LEGACY_UI_AUDIT.md"
+    assert audit.exists()
+    text = audit.read_text(encoding="utf-8")
+    assert "lib/ui/app.dart" in text
+    assert "lib/ui_v35" in text
+    assert "keep" in text.lower() or "retain" in text.lower()
+
+
+def test_current_ui_imports_tts_service_boundary_not_plugin():
+    current_ui = ROOT / "lib/ui_v35"
+    for path in current_ui.rglob("*.dart"):
+        text = path.read_text(encoding="utf-8")
+        assert "package:flutter_tts/flutter_tts.dart" not in text, path
+        if "SafeTtsController" in text:
+            assert "safe_ui.dart" in text or "tts_service.dart" in text

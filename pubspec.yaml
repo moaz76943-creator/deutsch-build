@@ -1,0 +1,22 @@
+name: deutsch_bilarabi
+description: Deutsch بالعربي - منصة تعلم الألمانية للعرب.
+publish_to: "none"
+version: 3.3.9+132
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.5.3
+  flutter_tts: ^4.2.3
+  http: ^1.2.2
+  speech_to_text: ^7.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,22 @@
+{
+  "version": "V383",
+  "release": "3.3.9+132",
+  "phase": "Persistence Failure Boundary",
+  "changes": [
+    "typed persistence failure codes",
+    "typed oversized-payload failure",
+    "typed write failure",
+    "verification cache tool version bumped to V383"
+  ],
+  "verification": {
+    "pytest": "675 passed",
+    "architecture": "PASS",
+    "security": "PASS",
+    "privacy": "PASS",
+    "accessibility": "PASS",
+    "content_quality": "PASS",
+    "compiler_parity": "PASS",
+    "release": "7/7 PASS"
+  },
+  "flutter": "UNAVAILABLE"
+}

@@ -1,0 +1,36 @@
+{
+  "version": "3.3.2+125",
+  "phase": "V376 Language Boundary Core Services Phase 3",
+  "architecture_gate": {
+    "findings": 0,
+    "previous_findings": 35
+  },
+  "pytest": {
+    "passed": 641,
+    "failed": 0
+  },
+  "compileall": "PASS",
+  "release_verification": {
+    "failed": [],
+    "passed": [
+      "accessibility",
+      "architecture",
+      "compiler_parity",
+      "content_quality",
+      "full_regression",
+      "privacy",
+      "security"
+    ]
+  },
+  "flutter_build": "UNAVAILABLE — Flutter SDK is not installed in the execution environment",
+  "scope": [
+    "Neutral ContentEngine/ContentSource contract; German source selection moved into German content pack.",
+    "AppDependencies parameterized over LearningContent.",
+    "LearningPath, LearningEngine, VocabularyCoach, MasteryDashboard use LearningContent.",
+    "LearnerRepository.record accepts LearningContent.",
+    "WordProfile and WordProfileService are generic over LearningContent.",
+    "SearchIndex private entry fields no longer expose German-shaped names.",
+    "Compatibility facades quality.dart and text_normalizer.dart are explicitly excluded from the architecture scan and have no shared-service consumers."
+  ],
+  "security_note": "No authentication, authorization, entitlement, persistence security, or network security logic was changed."
+}

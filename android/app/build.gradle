@@ -1,0 +1,40 @@
+plugins { id "com.android.application"; id "org.jetbrains.kotlin.android"; id "dev.flutter.flutter-gradle-plugin" }
+
+android {
+    namespace "com.deutschbilarabi.app"
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.deutschbilarabi.app"
+        minSdk 23
+        targetSdk 36
+        versionCode 132
+        versionName "3.3.9"
+    }
+
+    signingConfigs {
+        secureRelease {
+            if (project.hasProperty('releaseStoreFile')) {
+                storeFile = file(project.property('releaseStoreFile'))
+                storePassword = project.property('releaseStorePassword')
+                keyAlias = project.property('releaseKeyAlias')
+                keyPassword = project.property('releaseKeyPassword')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.secureRelease
+        }
+    }
+}
+
+flutter { source "../.." }
