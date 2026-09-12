@@ -1,0 +1,54 @@
+name: Restore V383 project snapshot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download V383 handoff archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download --repo "${GITHUB_REPOSITORY}" --pattern 'deutsch_bilarabi_v383_codex_handoff.tar.gz' --output /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz --clobber
+          test -s /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz
+          sha256sum /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz
+
+      - name: Restore project files
+        run: |
+          set -euo pipefail
+          tar -xzf /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz -C .
+          rm -rf .github/workflows/restore-v383-project.yml.tmp
+          test -f pubspec.yaml
+          test -d lib
+          test -d tests
+
+      - name: Verify restored snapshot
+        run: |
+          set -euo pipefail
+          test "$(find lib -type f | wc -l)" -gt 0
+          test "$(find tests -type f | wc -l)" -gt 0
+          git diff --check
+
+      - name: Commit restored project
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Restore V383 full project snapshot for Codex'
+          git push origin HEAD:main
