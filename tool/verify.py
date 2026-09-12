@@ -3,7 +3,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
-import argparse, json, subprocess, sys, time
+import argparse, json, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 TOOL_DIR = Path(__file__).resolve().parent
 if str(TOOL_DIR) not in sys.path: sys.path.insert(0, str(TOOL_DIR))
@@ -42,7 +42,7 @@ def build_plan(report: ImpactReport, *, release: bool = False) -> list[CheckSpec
         'privacy': CheckSpec('privacy', root_cmd + ('tool/privacy_audit.py',), ('privacy',)),
         'accessibility': CheckSpec('accessibility', root_cmd + ('tool/accessibility_audit.py',), ('ui',)),
         'architecture': CheckSpec('architecture', root_cmd + ('tool/architecture_audit.py',), ('architecture',)),
-        'integration': CheckSpec('integration', root_cmd + ('-m','pytest','-q','tests/test_core_domain_isolation.py')), 
+        'integration': CheckSpec('integration', root_cmd + ('-m','pytest','-q','tests/test_core_domain_isolation.py')),
         'full_regression': CheckSpec('full_regression', root_cmd + ('-m','pytest','-q','tests')),
     }
     if release:
@@ -72,12 +72,21 @@ def _cache_scope(root: Path, changed_files: list[str], affected_files: list[str]
     return paths
 
 
-def run_plan(root: Path, plan: list[CheckSpec], *, cache_path: Path, changed_files: list[str] | None = None, affected_files: list[str] | None = None) -> VerificationReport:
+def run_plan(
+    root: Path,
+    plan: list[CheckSpec],
+    *,
+    cache_path: Path,
+    changed_files: list[str] | None = None,
+    affected_files: list[str] | None = None,
+    use_cache: bool = True,
+) -> VerificationReport:
+    """Run a verification plan; release callers must disable cache reuse."""
     changed = changed_files or []
     affected = affected_files or changed
     passed=[]; failed=[]; skipped=[]; warnings=[]; cached=[]
     content = compiler = security = 'NOT RUN'
-    cache = load(cache_path)
+    cache = load(cache_path) if use_cache else {}
     runnable: list[tuple[CheckSpec, str, dict]] = []
     for spec in plan:
         if spec.skipped:
@@ -85,7 +94,7 @@ def run_plan(root: Path, plan: list[CheckSpec], *, cache_path: Path, changed_fil
             continue
         paths = _cache_scope(root, changed, affected)
         fp = fingerprint(paths, config={'check':spec.name,'command':spec.command}, tool_version='V383')
-        if is_valid(cache.get(spec.name, {}), fp):
+        if use_cache and is_valid(cache.get(spec.name, {}), fp):
             passed.append(spec.name)
             cached.append(spec.name)
             if spec.name == 'content_quality': content = 'PASS'
@@ -107,7 +116,8 @@ def run_plan(root: Path, plan: list[CheckSpec], *, cache_path: Path, changed_fil
         status, output, ok, _ = results[spec.name]
         if status == 'PASS':
             passed.append(spec.name)
-            store(cache_path, spec.name, fp, {'status':'PASS'})
+            if use_cache:
+                store(cache_path, spec.name, fp, {'status':'PASS'})
         else:
             failed.append(spec.name)
         if spec.name == 'content_quality': content = status
@@ -126,7 +136,7 @@ def main() -> int:
     changed=args.changed or detect_changed_files(root)
     impact=analyze_changes(root, changed)
     plan=build_plan(impact, release=args.mode=='release')
-    report=run_plan(root, plan, cache_path=root/'.verification_cache/cache.json', changed_files=list(impact.changed_files), affected_files=list(impact.affected_files))
+    report=run_plan(root, plan, cache_path=root/'.verification_cache/cache.json', changed_files=list(impact.changed_files), affected_files=list(impact.affected_files), use_cache=args.mode!='release')
     report.changed=list(impact.changed_files); report.affected_files=list(impact.affected_files); report.risk=impact.risk.value
     payload=json.dumps(asdict(report), ensure_ascii=False, indent=2)+'\n'
     if args.report: args.report.parent.mkdir(parents=True, exist_ok=True); args.report.write_text(payload, encoding='utf-8')
