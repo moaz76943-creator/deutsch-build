@@ -15,20 +15,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download V383 handoff archive
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Verify handoff archive
         run: |
           set -euo pipefail
-          gh release download --repo "${GITHUB_REPOSITORY}" --pattern 'deutsch_bilarabi_v383_codex_handoff.tar.gz' --output /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz --clobber
-          test -s /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz
-          sha256sum /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz
+          test -s deutsch_bilarabi_v383_codex_handoff.tar.gz
+          sha256sum deutsch_bilarabi_v383_codex_handoff.tar.gz
 
       - name: Restore project files
         run: |
           set -euo pipefail
-          tar -xzf /tmp/deutsch_bilarabi_v383_codex_handoff.tar.gz -C .
-          rm -rf .github/workflows/restore-v383-project.yml.tmp
+          tar -xzf deutsch_bilarabi_v383_codex_handoff.tar.gz -C .
+          rm -f deutsch_bilarabi_v383_codex_handoff.tar.gz
           test -f pubspec.yaml
           test -d lib
           test -d tests
