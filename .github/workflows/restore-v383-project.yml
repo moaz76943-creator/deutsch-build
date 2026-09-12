@@ -24,7 +24,7 @@ jobs:
       - name: Restore project files
         run: |
           set -euo pipefail
-          tar -xzf deutsch_bilarabi_v383_codex_handoff.tar.gz -C .
+          tar --exclude='./.github/workflows/*' -xzf deutsch_bilarabi_v383_codex_handoff.tar.gz -C .
           rm -f deutsch_bilarabi_v383_codex_handoff.tar.gz
           test -f pubspec.yaml
           test -d lib
