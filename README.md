@@ -38,7 +38,10 @@ The repository includes an automatic GitHub Actions recovery-checkpoint workflow
 
 `.github/workflows/recovery-checkpoint.yml`
 
-It creates a timestamped recovery Git tag pointing to the current `main` commit every **6 hours**, and it can also be started manually.
+It creates a unique recovery Git tag:
+- automatically after every push to `main`;
+- every **6 hours** on the scheduled cadence;
+- or manually through workflow dispatch.
 
 Important distinction:
 - GitHub can only preserve work that has reached the repository as a commit.
