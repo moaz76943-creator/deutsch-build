@@ -33,22 +33,25 @@ No destructive history rewrite is allowed as an automatic recovery method.
 
 ## 4. Automatic recovery checkpoints
 
-`.github/workflows/recovery-checkpoint.yml` runs every **6 hours** and can be started manually.
+`.github/workflows/recovery-checkpoint.yml` creates a recovery reference:
+- automatically on every push to `main`;
+- every **6 hours** on the scheduled cadence;
+- manually through workflow dispatch.
 
 Each run creates a unique timestamped tag:
 
-`recovery/YYYYMMDD-HHMMSS-<short-sha>`
+`recovery/YYYYMMDD-HHMMSS-<short-sha>-<run-id>`
 
-The tag points directly to the then-current `main` commit. The workflow never force-updates, deletes, or reuses a recovery tag.
+The tag points directly to the commit associated with that workflow run. The workflow never force-updates, deletes, or reuses a recovery tag.
 
 Purpose:
-- preserve a recoverable reference even if `main` later moves;
-- provide regular recovery points after committed work;
+- preserve a recoverable reference immediately after pushed work;
+- provide regular recovery points even during quiet periods;
 - reduce the chance of losing the ability to return to a known repository revision.
 
 ## 5. Critical limitation
 
-A scheduled GitHub workflow cannot see uncommitted edits in another local/session worktree.
+A GitHub workflow cannot see uncommitted edits in another local/session worktree.
 
 Therefore:
 
