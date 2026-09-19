@@ -1,6 +1,9 @@
 name: Recovery Checkpoint
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
@@ -21,12 +24,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
 
           timestamp="$(date -u +%Y%m%d-%H%M%S)"
           short_sha="${GITHUB_SHA::12}"
-          tag="recovery/${timestamp}-${short_sha}"
+          tag="recovery/${timestamp}-${short_sha}-${GITHUB_RUN_ID}"
 
           payload="$(printf '{"ref":"refs/tags/%s","sha":"%s"}' "$tag" "$GITHUB_SHA")"
 
