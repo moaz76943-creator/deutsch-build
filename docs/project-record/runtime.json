@@ -7,22 +7,22 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "3a94041f6db64356932fe0c47a0b7d44acd5f689",
-  "last_sync_at": "2026-09-20T22:31:57Z",
+  "last_sync_at": "2026-09-20T22:32:07Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35541961735",
+    "run_id": "35541967317",
     "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35541961735",
-    "timestamp": "2026-09-20T22:31:57Z",
+    "event_key": "workflow:Engineering CI:35541967317",
+    "timestamp": "2026-09-20T22:32:07Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35541961735",
+    "run_id": "35541967317",
     "conclusion": "cancelled",
-    "commit_sha": "31864f5fc03775cd081d1e8a363842dab106c9d2",
+    "commit_sha": "70ce9388c46b1ecca8e63a4edeab9721d71e482d",
     "branch": "verify/flutter-analyzer-root-causes-ci"
   },
   "last_recovery_checkpoint_run": {
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "3c1fc3a2e5c6c65931ffc725499843fe7038a8b4"
+  "last_observed_head": "bf634d398ea2870763a6ef1780e39d8ec8ef2440"
 }
