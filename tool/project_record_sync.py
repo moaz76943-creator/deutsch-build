@@ -67,7 +67,7 @@ def source_commits_since(last_source_commit: str | None, current_sha: str) -> li
     if not last_source_commit or not reachable(last_source_commit, current_sha):
         return []
     fmt = "%H%x1f%an%x1f%aI%x1f%s%x1f%P"
-    out = git("log", "--first-parent", f"--pretty=format:{fmt}", f"{last_source_commit}..{current_sha}", "--", ".", ":(exclude)docs/project-record/")
+    out = git("log", "--first-parent", f"--pretty=format:{fmt}", f"{last_source_commit}..{current_sha}", "--", ".", ":(exclude)docs/project-record/runtime.json", ":(exclude)docs/project-record/events.ndjson")
     rows: list[dict[str, str]] = []
     for line in out.splitlines():
         parts = line.split("\x1f", 4)
