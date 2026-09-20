@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "7901a119cf37156c547df364a339a8875ee43831",
-  "last_sync_at": "2026-09-20T13:48:32Z",
+  "last_sync_at": "2026-09-20T13:49:59Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35514566499",
-    "conclusion": "success"
+    "workflow": "Engineering CI",
+    "run_id": "35514566625",
+    "conclusion": "failure"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35512462231",
-    "timestamp": "2026-09-20T13:07:05Z",
+    "event_key": "workflow:Engineering CI:35514566625",
+    "timestamp": "2026-09-20T13:49:59Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35512462231",
+    "run_id": "35514566625",
     "conclusion": "failure",
-    "commit_sha": "d7bf9c19a111f8ee63ff5616066114a8b3efcab1",
-    "branch": "dependabot/github_actions/actions/setup-python-7"
+    "commit_sha": "7901a119cf37156c547df364a339a8875ee43831",
+    "branch": "main"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35514566499",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "5238dccd61e8883a9cd498fc20a40e6301a28f56"
+  "last_observed_head": "ba4bb5b1aeaae5f007532613a90a3031460efe5f"
 }
