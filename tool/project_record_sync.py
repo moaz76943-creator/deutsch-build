@@ -83,6 +83,8 @@ def main() -> int:
     parser.add_argument("--run-id", default=os.getenv("PROJECT_RECORD_RUN_ID", ""))
     parser.add_argument("--workflow", default=os.getenv("PROJECT_RECORD_WORKFLOW", ""))
     parser.add_argument("--conclusion", default=os.getenv("PROJECT_RECORD_CONCLUSION", ""))
+    parser.add_argument("--workflow-head-sha", default=os.getenv("PROJECT_RECORD_HEAD_SHA", ""))
+    parser.add_argument("--workflow-branch", default=os.getenv("PROJECT_RECORD_BRANCH", ""))
     args = parser.parse_args()
 
     RECORD_DIR.mkdir(parents=True, exist_ok=True)
@@ -130,7 +132,7 @@ def main() -> int:
 
     if args.run_id and args.conclusion:
         wf_key = f"workflow:{args.workflow}:{args.run_id}"
-        wf_event = {"event_key": wf_key, "timestamp": now(), "source": "github_actions", "type": "workflow_run", "workflow": args.workflow, "run_id": args.run_id, "conclusion": args.conclusion, "commit_sha": current_sha}
+        wf_event = {"event_key": wf_key, "timestamp": now(), "source": "github_actions", "type": "workflow_run", "workflow": args.workflow, "run_id": args.run_id, "conclusion": args.conclusion, "commit_sha": args.workflow_head_sha or current_sha, "branch": args.workflow_branch or None}
         append_event(wf_event, keys)
         if args.workflow == "Engineering CI":
             runtime["last_ci"] = wf_event
