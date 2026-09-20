@@ -28,13 +28,17 @@ jobs:
           PROJECT_RECORD_RUN_ID: ${{ github.event.workflow_run.id }}
           PROJECT_RECORD_WORKFLOW: Recovery Checkpoint
           PROJECT_RECORD_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          PROJECT_RECORD_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PROJECT_RECORD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           GITHUB_EVENT_NAME: workflow_run
         run: |
           python3 tool/project_record_sync.py \
             --trigger "$GITHUB_EVENT_NAME" \
             --run-id "$PROJECT_RECORD_RUN_ID" \
             --workflow "$PROJECT_RECORD_WORKFLOW" \
-            --conclusion "$PROJECT_RECORD_CONCLUSION"
+            --conclusion "$PROJECT_RECORD_CONCLUSION" \
+            --workflow-head-sha "$PROJECT_RECORD_HEAD_SHA" \
+            --workflow-branch "$PROJECT_RECORD_BRANCH"
 
       - name: Commit record update
         run: |
