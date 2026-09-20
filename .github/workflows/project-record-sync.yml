@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: project-record-sync-main
+  group: project-record-writer
   cancel-in-progress: false
 
 jobs:
