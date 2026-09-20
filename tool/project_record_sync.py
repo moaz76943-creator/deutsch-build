@@ -80,8 +80,8 @@ def source_commits_since(last_source_commit: str | None, current_sha: str) -> li
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--trigger", default=os.getenv("GITHUB_EVENT_NAME", "manual"))
-    parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", ""))
-    parser.add_argument("--workflow", default=os.getenv("GITHUB_WORKFLOW", ""))
+    parser.add_argument("--run-id", default=os.getenv("PROJECT_RECORD_RUN_ID", ""))
+    parser.add_argument("--workflow", default=os.getenv("PROJECT_RECORD_WORKFLOW", ""))
     parser.add_argument("--conclusion", default=os.getenv("PROJECT_RECORD_CONCLUSION", ""))
     args = parser.parse_args()
 
@@ -93,11 +93,25 @@ def main() -> int:
     gap = bool(previous_source) and not reachable(str(previous_source), current_sha)
     source_rows = source_commits_since(str(previous_source) if previous_source else None, current_sha)
     added_commits = 0
+    source_head = str(previous_source) if previous_source else None
+    if not gap and not previous_source:
+        baseline_event = {
+            "event_key": f"baseline:{current_sha}",
+            "timestamp": now(),
+            "source": "github",
+            "type": "baseline",
+            "commit_sha": current_sha,
+            "message": "Initial project-record baseline; earlier repository history was not replayed into the event ledger.",
+            "evidence": f"https://github.com/sali97m-cpu/deutsch-bilarabi/commit/{current_sha}"
+        }
+        append_event(baseline_event, keys)
+        source_head = current_sha
     if not gap:
         for row in source_rows:
             if row["subject"].startswith("ops: project-record sync"):
                 continue
             commit_sha = row["sha"]
+            source_head = commit_sha
             event = {
                 "event_key": f"commit:{commit_sha}",
                 "timestamp": now(),
@@ -127,7 +141,8 @@ def main() -> int:
         "record_status": "RECONCILIATION_REQUIRED" if gap else "CURRENT",
         "reconciliation_required": gap,
         "reconciliation_reason": "Recorded source commit is not an ancestor of current main; history/lineage changed." if gap else None,
-        "last_source_commit": current_sha,
+        "last_source_commit": source_head,
+        "last_observed_head": current_sha,
         "last_sync_at": now(),
         "last_sync_event": {"trigger": args.trigger, "workflow": args.workflow, "run_id": args.run_id, "conclusion": args.conclusion or None},
         "observed_source_commit_count": len(source_rows)
