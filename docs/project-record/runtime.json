@@ -6,16 +6,17 @@
   "record_status": "CURRENT",
   "reconciliation_required": false,
   "reconciliation_reason": null,
-  "last_source_commit": "abd888fb8fe235075055c06733e650e6bd66f077",
-  "last_sync_at": "2026-09-20T02:41:38Z",
+  "last_source_commit": "6e1cc7f1ed4bb49b4f8ebddf23dac34fe21cd23f",
+  "last_sync_at": "2026-09-20T02:42:40Z",
   "last_sync_event": {
-    "trigger": "workflow_run",
+    "trigger": "push",
     "workflow": "Project Record Sync",
-    "run_id": "35484640520",
-    "conclusion": "success"
+    "run_id": "35484672094",
+    "conclusion": null
   },
   "last_ci": null,
   "last_recovery_checkpoint_run": null,
-  "observed_source_commit_count": 0,
-  "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history."
+  "observed_source_commit_count": 2,
+  "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
+  "last_observed_head": "6e1cc7f1ed4bb49b4f8ebddf23dac34fe21cd23f"
 }
