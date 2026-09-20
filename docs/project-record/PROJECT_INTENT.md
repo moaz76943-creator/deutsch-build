@@ -35,3 +35,22 @@ Establish a reliable project-operating system in which a new chat/session can de
 - No task is considered complete solely because architecture documentation says it is approved.
 - Unknown critical state => STOP / RECONCILE.
 - Correct Progress > Architecture Accumulation.
+
+## Current execution position
+
+**Current phase:** Cross-Chat / Project Record Reliability.
+
+**Current task:** Verify the local OpenCode native hook/runtime capability and, only if supported, connect task start/finish/failure events to the project record.
+
+**Completed in this phase:**
+- GitHub-backed project record is active on the canonical repository.
+- Goal/plan are stored separately from machine-generated runtime evidence.
+- Main-branch commits are recorded automatically.
+- Engineering CI and Recovery Checkpoint outcomes are captured as separate evidence.
+- History/lineage gaps can force RECONCILIATION_REQUIRED instead of silent continuation.
+
+**Still UNVERIFIED:**
+- Native OpenCode automatic event-hook integration.
+- Direct automatic writes from GitHub Actions into the Notion page.
+
+**Next safe step:** Perform the OpenCode native capability audit before changing OpenCode configuration or claiming automatic local event capture.
