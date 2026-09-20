@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "3a94041f6db64356932fe0c47a0b7d44acd5f689",
-  "last_sync_at": "2026-09-20T17:07:06Z",
+  "last_sync_at": "2026-09-20T17:13:30Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35524726357",
-    "conclusion": "failure"
+    "run_id": "35525161494",
+    "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35524726357",
-    "timestamp": "2026-09-20T17:07:06Z",
+    "event_key": "workflow:Engineering CI:35525161494",
+    "timestamp": "2026-09-20T17:13:30Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35524726357",
-    "conclusion": "failure",
-    "commit_sha": "4b35c6a583c24de08c39a2f173aa4b10752f01b9",
-    "branch": "dependabot/github_actions/actions/setup-python-7"
+    "run_id": "35525161494",
+    "conclusion": "cancelled",
+    "commit_sha": "e82f22d70fe9c43157b7b98d4c25b717f1b47054",
+    "branch": "verify/flutter-analyzer-root-causes-ci"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35524609593",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "ff882fef7a886577b2f410eae406cf618803e044"
+  "last_observed_head": "2c1def695c9cc85ce68b94d3921c977bdef935b2"
 }
