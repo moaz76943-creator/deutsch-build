@@ -2,16 +2,9 @@ name: Project Record Sync
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths-ignore:
       - docs/project-record/**
-  workflow_run:
-    workflows:
-      - Engineering CI
-      - Recovery Checkpoint
-    types:
-      - completed
   schedule:
     - cron: "31 */6 * * *"
   workflow_dispatch:
@@ -37,14 +30,14 @@ jobs:
       - name: Synchronize project record from durable evidence
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          PROJECT_RECORD_RUN_ID: ${{ github.event.workflow_run.id || '' }}
-          PROJECT_RECORD_WORKFLOW: ${{ github.event.workflow_run.name || '' }}
-          PROJECT_RECORD_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
+          PROJECT_RECORD_RUN_ID: ""
+          PROJECT_RECORD_WORKFLOW: ""
+          PROJECT_RECORD_CONCLUSION: ""
         run: |
           python3 tool/project_record_sync.py \
             --trigger "$GITHUB_EVENT_NAME" \
-            --run-id "$GITHUB_RUN_ID" \
-            --workflow "$GITHUB_WORKFLOW" \
+            --run-id "$PROJECT_RECORD_RUN_ID" \
+            --workflow "$PROJECT_RECORD_WORKFLOW" \
             --conclusion "$PROJECT_RECORD_CONCLUSION"
 
       - name: Commit record update
