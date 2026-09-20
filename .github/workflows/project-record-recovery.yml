@@ -1,0 +1,47 @@
+name: Project Record — Recovery Checkpoint Capture
+
+on:
+  workflow_run:
+    workflows: [Recovery Checkpoint]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: project-record-recovery-capture
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    name: Capture Recovery Checkpoint result
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Record CI evidence
+        env:
+          PROJECT_RECORD_RUN_ID: ${{ github.event.workflow_run.id }}
+          PROJECT_RECORD_WORKFLOW: Recovery Checkpoint
+          PROJECT_RECORD_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          GITHUB_EVENT_NAME: workflow_run
+        run: |
+          python3 tool/project_record_sync.py \
+            --trigger "$GITHUB_EVENT_NAME" \
+            --run-id "$PROJECT_RECORD_RUN_ID" \
+            --workflow "$PROJECT_RECORD_WORKFLOW" \
+            --conclusion "$PROJECT_RECORD_CONCLUSION"
+
+      - name: Commit record update
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/project-record
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'ops: record Recovery Checkpoint result'
+          git push origin HEAD:main
