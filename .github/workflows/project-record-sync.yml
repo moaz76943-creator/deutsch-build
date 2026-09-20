@@ -1,0 +1,61 @@
+name: Project Record Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - docs/project-record/**
+  workflow_run:
+    workflows:
+      - Engineering CI
+      - Recovery Checkpoint
+    types:
+      - completed
+  schedule:
+    - cron: "31 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: project-record-sync-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Reconcile and update project record
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Synchronize project record from durable evidence
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
+          GITHUB_WORKFLOW: ${{ github.event.workflow_run.name || github.workflow }}
+          PROJECT_RECORD_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
+        run: |
+          python3 tool/project_record_sync.py \
+            --trigger "$GITHUB_EVENT_NAME" \
+            --run-id "$GITHUB_RUN_ID" \
+            --workflow "$GITHUB_WORKFLOW" \
+            --conclusion "$PROJECT_RECORD_CONCLUSION"
+
+      - name: Commit record update
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/project-record
+          if git diff --cached --quiet; then
+            echo 'No project-record changes.'
+            exit 0
+          fi
+          git commit -m 'ops: project-record sync'
+          git push origin HEAD:main

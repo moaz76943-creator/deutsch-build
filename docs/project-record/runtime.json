@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project": "DEUTSCH بالعربي",
+  "canonical_repository": "sali97m-cpu/deutsch-bilarabi",
+  "record_type": "runtime_evidence",
+  "record_status": "INITIALIZED",
+  "reconciliation_required": false,
+  "reconciliation_reason": null,
+  "last_source_commit": null,
+  "last_sync_at": null,
+  "last_sync_event": null,
+  "last_ci": null,
+  "last_recovery_checkpoint_run": null,
+  "observed_source_commit_count": 0,
+  "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history."
+}
