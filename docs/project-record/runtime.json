@@ -7,22 +7,22 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "fde6a1c8522a2dfb7b15316abd8af76afda0059f",
-  "last_sync_at": "2026-09-20T04:40:56Z",
+  "last_sync_at": "2026-09-20T04:41:06Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35489740481",
+    "run_id": "35489733722",
     "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35489740481",
-    "timestamp": "2026-09-20T04:40:56Z",
+    "event_key": "workflow:Engineering CI:35489733722",
+    "timestamp": "2026-09-20T04:41:06Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35489740481",
+    "run_id": "35489733722",
     "conclusion": "cancelled",
-    "commit_sha": "3714c5fadc7e01219a8a050a01cc97e565412f3a",
+    "commit_sha": "ff7e1b4195b58b0f52461a70928761c614d9c028",
     "branch": "ops/universal-failure-control"
   },
   "last_recovery_checkpoint_run": {
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "de57cade907707229abb4f354c11ce08a3e03619"
+  "last_observed_head": "8f749dd036ac51c97f993fb87de5a4b387bacb41"
 }
