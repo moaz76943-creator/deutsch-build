@@ -18,29 +18,31 @@ Establish a reliable project-operating system in which a new chat/session can de
 
 1. Previous-Work Reconciliation FIRST.
 2. Inspect live GitHub/code truth before claims about implementation.
-3. Verify OpenCode native capabilities locally before depending on them.
-4. Implement and verify Mission Mode runtime behavior.
-5. Implement and verify automatic continuation/recovery from durable task state and checkpoints.
-6. Maintain one central human decision surface for decisions that genuinely require the owner.
-7. Verify scheduler/automation telemetry without creating a fourth worker or duplicate architecture.
-8. Run a real end-to-end automation test and record evidence.
-9. Update this intent file whenever an approved goal or plan changes; mark the old decision as superseded rather than silently replacing history.
+3. Preserve the verified OpenCode native hook + project-record bridge evidence; do not repeat that proof unless regression evidence appears.
+4. Finish the active Flutter analyzer root-cause repair and restore a trustworthy Engineering CI baseline.
+5. Reconcile and verify the stacked Universal Failure Control / release-workflow integration without weakening tests or security contracts.
+6. Implement and verify stable task-level STARTED / COMPLETED / FAILED semantics with a durable task_id.
+7. Run the prepared Mission Mode end-to-end interruption/recovery canary.
+8. Verify automatic continuation/recovery from durable task state and checkpoints.
+9. Maintain one central human decision surface for decisions that genuinely require the owner.
+10. Verify scheduler/automation telemetry without creating a fourth worker or duplicate architecture.
+11. Update this intent file whenever an approved goal or plan changes; mark older execution positions as superseded rather than silently reusing them.
 
 ## Planning rules
 
 - A code event is evidence of what happened, not proof of why it happened.
 - A plan change is an explicit decision and must be recorded as such.
 - Historical plans remain historical until explicitly superseded.
-- Unverified runtime capabilities remain UNVERIFIED.
+- Verified runtime capabilities are not reclassified as unverified without regression evidence.
 - No task is considered complete solely because architecture documentation says it is approved.
 - Unknown critical state => STOP / RECONCILE.
 - Correct Progress > Architecture Accumulation.
 
 ## Current execution position
 
-**Current phase:** Cross-Chat / Project Record Reliability.
+**Current phase:** Cross-Chat / Project Record Reliability — integration and verification.
 
-**Current task:** Verify the local OpenCode native hook/runtime capability and, only if supported, connect task start/finish/failure events to the project record.
+**Current task:** Finish Issue #10 / draft PR #13 Flutter root-cause repair, then verify the stacked CI/release/failure-control integration before Mission Mode.
 
 **Completed in this phase:**
 - GitHub-backed project record is active on the canonical repository.
@@ -48,9 +50,17 @@ Establish a reliable project-operating system in which a new chat/session can de
 - Main-branch commits are recorded automatically.
 - Engineering CI and Recovery Checkpoint outcomes are captured as separate evidence.
 - History/lineage gaps can force RECONCILIATION_REQUIRED instead of silent continuation.
+- OpenCode 1.18.31 native hook runtime was verified on the owner device.
+- OpenCode session lifecycle events were bridged into the project record and persisted durably to GitHub.
+- Recovery Checkpoint succeeded after the durable hook-evidence commit.
+- The original Python setup/cache blocker in Engineering CI was fixed; live CI now reaches pytest.
+- Mission Mode canary plan and acceptance checklist are prepared.
 
-**Still UNVERIFIED:**
-- Native OpenCode automatic event-hook integration.
-- Direct automatic writes from GitHub Actions into the Notion page.
+**Still UNVERIFIED / OPEN:**
+- Flutter analyzer/tests and complete Engineering CI green baseline.
+- Final integration/verification of Universal Failure Control and the hardened release-workflow contract.
+- Stable task-level STARTED / COMPLETED / FAILED event semantics with task_id.
+- End-to-end Mission Mode interruption/recovery canary.
+- Direct automatic writes from GitHub Actions into Notion.
 
-**Next safe step:** Perform the OpenCode native capability audit before changing OpenCode configuration or claiming automatic local event capture.
+**Next safe step:** Let the active OpenCode repair finish on `fix/flutter-analyzer-root-causes`; verify its durable commit/evidence, then reconcile the stacked branch with the current main CI/release requirements before any merge.
