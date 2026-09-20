@@ -37,8 +37,8 @@ jobs:
       - name: Synchronize project record from durable evidence
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
-          GITHUB_WORKFLOW: ${{ github.event.workflow_run.name || github.workflow }}
+          PROJECT_RECORD_RUN_ID: ${{ github.event.workflow_run.id || '' }}
+          PROJECT_RECORD_WORKFLOW: ${{ github.event.workflow_run.name || '' }}
           PROJECT_RECORD_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
         run: |
           python3 tool/project_record_sync.py \
