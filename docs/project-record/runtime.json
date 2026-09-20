@@ -6,13 +6,13 @@
   "record_status": "CURRENT",
   "reconciliation_required": false,
   "reconciliation_reason": null,
-  "last_source_commit": "f5be451b54024cd97b7f82e9ec613a7be653131d",
-  "last_sync_at": "2026-09-20T02:41:29Z",
+  "last_source_commit": "abd888fb8fe235075055c06733e650e6bd66f077",
+  "last_sync_at": "2026-09-20T02:41:38Z",
   "last_sync_event": {
-    "trigger": "push",
+    "trigger": "workflow_run",
     "workflow": "Project Record Sync",
-    "run_id": "35484634886",
-    "conclusion": null
+    "run_id": "35484640520",
+    "conclusion": "success"
   },
   "last_ci": null,
   "last_recovery_checkpoint_run": null,
