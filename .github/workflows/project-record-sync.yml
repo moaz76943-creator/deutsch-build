@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - docs/project-record/**
+      - docs/project-record/runtime.json
+      - docs/project-record/events.ndjson
   schedule:
     - cron: "31 */6 * * *"
   workflow_dispatch:
