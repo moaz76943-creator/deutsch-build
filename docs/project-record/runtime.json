@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:56:11Z",
+  "last_sync_at": "2026-09-21T13:59:13Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607882516",
-    "conclusion": "success"
+    "run_id": "35608783181",
+    "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35607882516",
-    "timestamp": "2026-09-21T13:56:11Z",
+    "event_key": "workflow:Engineering CI:35608783181",
+    "timestamp": "2026-09-21T13:59:13Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607882516",
-    "conclusion": "success",
-    "commit_sha": "6006df4fed6117edaa4d6e17c8b67b744b498e80",
-    "branch": "chat-2/search-query-resource-bound"
+    "run_id": "35608783181",
+    "conclusion": "cancelled",
+    "commit_sha": "3e9f5a3ce57f81d4ca5252cd3aa3487640fce75c",
+    "branch": "chat-1/task-event-concurrency-atomicity"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "7fd512b53892f495c58386ea74022260d7d809bf"
+  "last_observed_head": "ef238f3fc70d52859e75517688610eb50896731c"
 }
