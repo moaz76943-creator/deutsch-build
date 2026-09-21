@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "e0a122a43aa6f1dd0498af92b4d23bfa8b69cf7e",
-  "last_sync_at": "2026-09-21T09:15:11Z",
+  "last_sync_at": "2026-09-21T09:15:30Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35581399614",
+    "run_id": "35581365632",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35581399614",
-    "timestamp": "2026-09-21T09:15:11Z",
+    "event_key": "workflow:Engineering CI:35581365632",
+    "timestamp": "2026-09-21T09:15:30Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35581399614",
+    "run_id": "35581365632",
     "conclusion": "success",
-    "commit_sha": "6940200d523d65437d87b22ecb9bc6ec82036330",
-    "branch": "chat-parallel/mission-mode-preflight-contract"
+    "commit_sha": "dac70baff3230e8ae0324e954e3bba03f9205517",
+    "branch": "governance/canonical-v4-reconciliation-20260921"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35581789134",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "1c56b36da18a59d939a7a087cd4cd55ea362e4e2"
+  "last_observed_head": "5ccefe1bc45885fb5598ebc9982da2a3f91f4062"
 }
