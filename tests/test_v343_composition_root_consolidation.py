@@ -19,8 +19,9 @@ def test_modern_ui_does_not_construct_app_wide_dependencies():
 def test_main_is_the_content_and_index_composition_root():
     text = MAIN.read_text(encoding='utf-8')
     assert 'final contentPack = languagePack.contentPack;' in text
-    assert 'final corpus = contentPack.items.toList(growable: false);' in text
-    assert 'final searchIndex = SearchIndex(corpus, contentPack.verbIndex, languagePack.textNormalizer);' in text
+    assert 'final corpus = contentPack.items;' in text
+    assert 'final verbIndex = contentPack.verbIndex;' in text
+    assert 'final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);' in text
     assert 'final dependencies = AppDependencies<ContentItem>(' in text
 
 
