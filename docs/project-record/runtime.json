@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T14:25:34Z",
+  "last_sync_at": "2026-09-21T14:26:11Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35611870906",
-    "conclusion": "cancelled"
+    "run_id": "35610951700",
+    "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35611870906",
-    "timestamp": "2026-09-21T14:25:34Z",
+    "event_key": "workflow:Engineering CI:35610951700",
+    "timestamp": "2026-09-21T14:26:11Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35611870906",
-    "conclusion": "cancelled",
-    "commit_sha": "e9c4acd7ca412dcfa49b9909444a7b7f79f4f27e",
-    "branch": "chat-7/startup-resource-reuse"
+    "run_id": "35610951700",
+    "conclusion": "success",
+    "commit_sha": "5a278208a7972104fa0226c7ae5bc479015168af",
+    "branch": "chat-1/failure-control-security-precedence"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "c838c381e28787f35053c02c3e8a8fe2ee2046ca"
+  "last_observed_head": "4647f96eb63dc17b9fc02a663185aacf28d51d26"
 }
