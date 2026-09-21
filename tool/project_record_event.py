@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -40,7 +42,7 @@ def load_task_events(task_id: str, path: Path = EVENTS) -> list[dict[str, Any]]:
     return matches
 
 
-def validate_task_transition(
+def _validate_task_transition_unlocked(
     event_type: str,
     status: str | None,
     task_id: str | None,
@@ -48,12 +50,6 @@ def validate_task_transition(
     *,
     path: Path = EVENTS,
 ) -> None:
-    """Fail closed on duplicate or invalid task lifecycle transitions.
-
-    Generic local-runner events remain backward compatible. The stricter
-    checks apply only to the approved task_started/task_completed/task_failed
-    contract.
-    """
     if event_type not in TASK_EVENT_STATUS:
         return
 
@@ -96,6 +92,49 @@ def validate_task_transition(
         )
 
 
+def validate_task_transition(
+    event_type: str,
+    status: str | None,
+    task_id: str | None,
+    evidence: str | None,
+    *,
+    path: Path = EVENTS,
+) -> None:
+    """Fail closed on duplicate or invalid task lifecycle transitions.
+
+    Generic local-runner events remain backward compatible. The stricter
+    checks apply only to the approved task_started/task_completed/task_failed
+    contract.
+    """
+    _validate_task_transition_unlocked(
+        event_type,
+        status,
+        task_id,
+        evidence,
+        path=path,
+    )
+
+
+def append_event_atomically(event: dict[str, Any], *, path: Path = EVENTS) -> None:
+    """Revalidate and append one event while holding the ledger's process lock."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+", encoding="utf-8") as ledger:
+        fcntl.flock(ledger.fileno(), fcntl.LOCK_EX)
+        try:
+            _validate_task_transition_unlocked(
+                str(event.get("type") or ""),
+                event.get("status"),
+                event.get("task_id"),
+                event.get("evidence"),
+                path=path,
+            )
+            ledger.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+            ledger.flush()
+            os.fsync(ledger.fileno())
+        finally:
+            fcntl.flock(ledger.fileno(), fcntl.LOCK_UN)
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--type", required=True)
@@ -108,6 +147,8 @@ def main() -> int:
     EVENTS.parent.mkdir(parents=True, exist_ok=True)
 
     try:
+        # Keep the public preflight validation for immediate caller feedback,
+        # then revalidate under the ledger lock before the actual append.
         validate_task_transition(
             args.type,
             args.status,
@@ -115,6 +156,20 @@ def main() -> int:
             args.evidence,
             path=EVENTS,
         )
+
+        ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        task_key = args.task_id or ""
+        event = {
+            "event_key": f"local:{ts}:{args.type}:{task_key}",
+            "timestamp": ts,
+            "source": "local_runner",
+            "type": args.type,
+            "status": args.status,
+            "task_id": args.task_id,
+            "message": args.message,
+            "evidence": args.evidence,
+        }
+        append_event_atomically(event, path=EVENTS)
     except ValueError as exc:
         print(
             json.dumps(
@@ -132,20 +187,6 @@ def main() -> int:
         )
         return 2
 
-    ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    task_key = args.task_id or ""
-    event = {
-        "event_key": f"local:{ts}:{args.type}:{task_key}",
-        "timestamp": ts,
-        "source": "local_runner",
-        "type": args.type,
-        "status": args.status,
-        "task_id": args.task_id,
-        "message": args.message,
-        "evidence": args.evidence,
-    }
-    with EVENTS.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
     if args.commit:
         subprocess.run(["git", "add", str(EVENTS.relative_to(ROOT))], cwd=ROOT, check=True)
         subprocess.run(
