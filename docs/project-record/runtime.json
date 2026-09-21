@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "c678a9b1def5a7d2c2bac28a6912bb4d0297d8c6",
-  "last_sync_at": "2026-09-21T09:33:45Z",
+  "last_sync_at": "2026-09-21T10:23:32Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35583086934",
-    "conclusion": "success"
+    "run_id": "35588304290",
+    "conclusion": "failure"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35583086934",
-    "timestamp": "2026-09-21T09:33:45Z",
+    "event_key": "workflow:Engineering CI:35588304290",
+    "timestamp": "2026-09-21T10:23:32Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35583086934",
-    "conclusion": "success",
-    "commit_sha": "c678a9b1def5a7d2c2bac28a6912bb4d0297d8c6",
-    "branch": "main"
+    "run_id": "35588304290",
+    "conclusion": "failure",
+    "commit_sha": "473bfa7cff0e010ca86da2f7b0665549b57d2305",
+    "branch": "executor-a/auth-corrupted-credential-self-recovery"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35583087044",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "5a3a7fdea0ebd03895176ddef26ec5ddf370e66c"
+  "last_observed_head": "e233629889bec9e27da779c216eb0256547de758"
 }
