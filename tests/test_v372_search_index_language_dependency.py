@@ -16,4 +16,5 @@ def test_search_index_does_not_import_legacy_text_normalizer():
 
 def test_composition_root_injects_language_normalizer():
     text = (ROOT / "lib/main.dart").read_text()
-    assert "SearchIndex(corpus, contentPack.verbIndex, languagePack.textNormalizer)" in text
+    assert "final verbIndex = contentPack.verbIndex;" in text
+    assert "SearchIndex(corpus, verbIndex, languagePack.textNormalizer)" in text
