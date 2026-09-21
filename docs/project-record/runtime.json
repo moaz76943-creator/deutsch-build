@@ -6,13 +6,13 @@
   "record_status": "CURRENT",
   "reconciliation_required": false,
   "reconciliation_reason": null,
-  "last_source_commit": "d52ee5bdabca4c630bc627c0dc03a3e518936296",
-  "last_sync_at": "2026-09-21T06:55:14Z",
+  "last_source_commit": "bbed48695790870117811a3dfd6764822a7c98e4",
+  "last_sync_at": "2026-09-21T06:58:22Z",
   "last_sync_event": {
-    "trigger": "workflow_run",
-    "workflow": "Engineering CI",
-    "run_id": "35569874778",
-    "conclusion": "success"
+    "trigger": "push",
+    "workflow": "",
+    "run_id": "",
+    "conclusion": null
   },
   "last_ci": {
     "event_key": "workflow:Engineering CI:35569874778",
@@ -36,7 +36,7 @@
     "commit_sha": "d52ee5bdabca4c630bc627c0dc03a3e518936296",
     "branch": "main"
   },
-  "observed_source_commit_count": 0,
+  "observed_source_commit_count": 1,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "06e26e7d316c0f3d1b707ec1a7c4b35963680dcf"
+  "last_observed_head": "bbed48695790870117811a3dfd6764822a7c98e4"
 }
