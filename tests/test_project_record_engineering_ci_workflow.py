@@ -9,11 +9,23 @@ def _capture_job_header(text: str) -> str:
     return capture.split("    steps:\n", 1)[0]
 
 
-def test_project_record_capture_only_runs_for_main_engineering_ci():
+def test_project_record_capture_requires_canonical_main_push_source():
     text = WORKFLOW.read_text(encoding="utf-8")
     header = _capture_job_header(text)
 
-    assert "if: ${{ github.event.workflow_run.head_branch == 'main' }}" in header
+    assert "github.event.workflow_run.event == 'push'" in header
+    assert "github.event.workflow_run.head_branch == 'main'" in header
+    assert (
+        "github.event.workflow_run.head_repository.full_name == github.repository"
+        in header
+    )
+
+
+def test_branch_name_only_gate_cannot_regress():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    header = _capture_job_header(text)
+
+    assert "if: ${{ github.event.workflow_run.head_branch == 'main' }}" not in header
 
 
 def test_main_project_record_writer_is_still_present():
