@@ -7,12 +7,12 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "aba5ce7d044cf7374c4d218f5106a9023466762c",
-  "last_sync_at": "2026-09-21T07:01:27Z",
+  "last_sync_at": "2026-09-21T07:01:38Z",
   "last_sync_event": {
-    "trigger": "push",
-    "workflow": "",
-    "run_id": "",
-    "conclusion": null
+    "trigger": "workflow_run",
+    "workflow": "Recovery Checkpoint",
+    "run_id": "35570984670",
+    "conclusion": "success"
   },
   "last_ci": {
     "event_key": "workflow:Engineering CI:35569874778",
@@ -26,17 +26,17 @@
     "branch": "verify/flutter-analyzer-root-causes-ci"
   },
   "last_recovery_checkpoint_run": {
-    "event_key": "workflow:Recovery Checkpoint:35570748621",
-    "timestamp": "2026-09-21T06:59:08Z",
+    "event_key": "workflow:Recovery Checkpoint:35570984670",
+    "timestamp": "2026-09-21T07:01:38Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Recovery Checkpoint",
-    "run_id": "35570748621",
+    "run_id": "35570984670",
     "conclusion": "success",
-    "commit_sha": "bbed48695790870117811a3dfd6764822a7c98e4",
+    "commit_sha": "aba5ce7d044cf7374c4d218f5106a9023466762c",
     "branch": "main"
   },
-  "observed_source_commit_count": 1,
+  "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "aba5ce7d044cf7374c4d218f5106a9023466762c"
+  "last_observed_head": "fa3694b1b937b0b2862cabfd1975a8d44d5929b9"
 }
