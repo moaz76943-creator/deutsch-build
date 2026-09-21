@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "6f38c2b1cd393d4062946b903191872be87efb0f",
-  "last_sync_at": "2026-09-21T07:04:45Z",
+  "last_sync_at": "2026-09-21T07:08:04Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35571042917",
-    "conclusion": "cancelled"
+    "run_id": "35570867624",
+    "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35571042917",
-    "timestamp": "2026-09-21T07:04:45Z",
+    "event_key": "workflow:Engineering CI:35570867624",
+    "timestamp": "2026-09-21T07:08:04Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35571042917",
-    "conclusion": "cancelled",
-    "commit_sha": "e8dda650166df34aaf56a785acfb6bf54188acb1",
-    "branch": "main"
+    "run_id": "35570867624",
+    "conclusion": "success",
+    "commit_sha": "fa6ba4b169d765189878189f3b2d6173e35cd074",
+    "branch": "chat-parallel/v383-restore-hardening-refresh"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35571208331",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "68f1b9ef385130ce7fe99f91313cfeec627261bc"
+  "last_observed_head": "dd5133029228af231bb9ac8af9499f287e045505"
 }
