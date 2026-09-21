@@ -7,12 +7,12 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "e0a122a43aa6f1dd0498af92b4d23bfa8b69cf7e",
-  "last_sync_at": "2026-09-21T09:10:42Z",
+  "last_sync_at": "2026-09-21T09:10:53Z",
   "last_sync_event": {
-    "trigger": "push",
-    "workflow": "",
-    "run_id": "",
-    "conclusion": null
+    "trigger": "workflow_run",
+    "workflow": "Recovery Checkpoint",
+    "run_id": "35581789134",
+    "conclusion": "success"
   },
   "last_ci": {
     "event_key": "workflow:Engineering CI:35580859232",
@@ -26,17 +26,17 @@
     "branch": "executor-a/android-secure-storage-clear-fail-closed"
   },
   "last_recovery_checkpoint_run": {
-    "event_key": "workflow:Recovery Checkpoint:35580864903",
-    "timestamp": "2026-09-21T09:00:37Z",
+    "event_key": "workflow:Recovery Checkpoint:35581789134",
+    "timestamp": "2026-09-21T09:10:53Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Recovery Checkpoint",
-    "run_id": "35580864903",
+    "run_id": "35581789134",
     "conclusion": "success",
-    "commit_sha": "2ac3c5a5ac29884bc9122aa5e7602d870c113dab",
+    "commit_sha": "e0a122a43aa6f1dd0498af92b4d23bfa8b69cf7e",
     "branch": "main"
   },
-  "observed_source_commit_count": 1,
+  "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "e0a122a43aa6f1dd0498af92b4d23bfa8b69cf7e"
+  "last_observed_head": "8cc577359f56c3c65039aeb2d888f47e317e8d97"
 }
