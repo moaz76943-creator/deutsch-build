@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:50:17Z",
+  "last_sync_at": "2026-09-21T13:52:03Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607963767",
-    "conclusion": "failure"
+    "run_id": "35607376879",
+    "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35607963767",
-    "timestamp": "2026-09-21T13:50:17Z",
+    "event_key": "workflow:Engineering CI:35607376879",
+    "timestamp": "2026-09-21T13:52:03Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607963767",
-    "conclusion": "failure",
-    "commit_sha": "cd3510e720905f7cfa112bb6e08ae9eebc08df75",
-    "branch": "chat-3/conversation-srs-handoff"
+    "run_id": "35607376879",
+    "conclusion": "success",
+    "commit_sha": "95f584d0eeb2e89028898fb213dfc4c137999db4",
+    "branch": "chat-4/project-record-canonical-ci-scope"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "456578eb9a58f8025103e1b90fe945cf0030a9a6"
+  "last_observed_head": "6d287583d84dcdef08901f3f209841e04e733158"
 }
