@@ -7,11 +7,11 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T17:28:12Z",
+  "last_sync_at": "2026-09-21T18:29:30Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Engineering CI",
-    "run_id": "35631215608",
+    "workflow": "Recovery Checkpoint",
+    "run_id": "35638682672",
     "conclusion": "success"
   },
   "last_ci": {
@@ -26,17 +26,17 @@
     "branch": "chat-review/project-record-branch-ci-churn-rootfix"
   },
   "last_recovery_checkpoint_run": {
-    "event_key": "workflow:Recovery Checkpoint:35599868225",
-    "timestamp": "2026-09-21T12:30:08Z",
+    "event_key": "workflow:Recovery Checkpoint:35638682672",
+    "timestamp": "2026-09-21T18:29:30Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Recovery Checkpoint",
-    "run_id": "35599868225",
+    "run_id": "35638682672",
     "conclusion": "success",
-    "commit_sha": "ef2efe6662f581a7c6d5a8d292718de2f4d36969",
+    "commit_sha": "7c185ed7e48f51adf923f2570d882dfff8bff7b6",
     "branch": "main"
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "b71d9d189507baf8391a24331ab4a577bcdae211"
+  "last_observed_head": "7c185ed7e48f51adf923f2570d882dfff8bff7b6"
 }
