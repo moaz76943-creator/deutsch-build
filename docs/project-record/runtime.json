@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:59:13Z",
+  "last_sync_at": "2026-09-21T14:02:46Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35608783181",
+    "run_id": "35609035513",
     "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35608783181",
-    "timestamp": "2026-09-21T13:59:13Z",
+    "event_key": "workflow:Engineering CI:35609035513",
+    "timestamp": "2026-09-21T14:02:46Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35608783181",
+    "run_id": "35609035513",
     "conclusion": "cancelled",
-    "commit_sha": "3e9f5a3ce57f81d4ca5252cd3aa3487640fce75c",
-    "branch": "chat-1/task-event-concurrency-atomicity"
+    "commit_sha": "3ab505a6539c536d2391d0170a54130553aff0c0",
+    "branch": "chat-5/german-reference-conformance-audit"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "ef238f3fc70d52859e75517688610eb50896731c"
+  "last_observed_head": "9f2defc87e590c777dd303f04b0588c2d4d754d0"
 }
