@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "ccf3bb7aafe381da2d966df1495dd12b30242c71",
-  "last_sync_at": "2026-09-21T08:29:11Z",
+  "last_sync_at": "2026-09-21T08:37:31Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35578119688",
+    "workflow": "Engineering CI",
+    "run_id": "35578119820",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35577166290",
-    "timestamp": "2026-09-21T08:26:49Z",
+    "event_key": "workflow:Engineering CI:35578119820",
+    "timestamp": "2026-09-21T08:37:31Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35577166290",
+    "run_id": "35578119820",
     "conclusion": "success",
-    "commit_sha": "61b871bae65764485fbc5f6a7e02829d18e074f2",
-    "branch": "executor-a/auth-signout-storage-read-failure"
+    "commit_sha": "ccf3bb7aafe381da2d966df1495dd12b30242c71",
+    "branch": "main"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35578119688",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "823476374e3680e24a386fbae2f6fd966247a280"
+  "last_observed_head": "912ae70d64b5885f5a35ac6d34eba22157518432"
 }
