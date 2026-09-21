@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T14:35:22Z",
+  "last_sync_at": "2026-09-21T14:39:55Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35612263207",
+    "run_id": "35612428676",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35612263207",
-    "timestamp": "2026-09-21T14:35:22Z",
+    "event_key": "workflow:Engineering CI:35612428676",
+    "timestamp": "2026-09-21T14:39:55Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35612263207",
+    "run_id": "35612428676",
     "conclusion": "success",
-    "commit_sha": "79e1048c5f536520f0f178ed59b2fd28aa6a1733",
-    "branch": "chat-6/ui-mixed-bidi-isolation-001"
+    "commit_sha": "a8e4ea1f2ea6b3949ca7963c8dbe37376f860a93",
+    "branch": "chat-9/subscription-entitlement-readiness"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "1821b5b66929fe2432b89b16c482a74c3c715d65"
+  "last_observed_head": "1f1103b9609fde283eb39471cdf6f4d5e01bdfc2"
 }
