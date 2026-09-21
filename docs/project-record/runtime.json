@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:47:50Z",
+  "last_sync_at": "2026-09-21T13:50:17Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607745983",
-    "conclusion": "cancelled"
+    "run_id": "35607963767",
+    "conclusion": "failure"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35607745983",
-    "timestamp": "2026-09-21T13:47:50Z",
+    "event_key": "workflow:Engineering CI:35607963767",
+    "timestamp": "2026-09-21T13:50:17Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607745983",
-    "conclusion": "cancelled",
-    "commit_sha": "6123002527f145c450d517911a8f763925c67764",
-    "branch": "chat-2/search-query-resource-bound"
+    "run_id": "35607963767",
+    "conclusion": "failure",
+    "commit_sha": "cd3510e720905f7cfa112bb6e08ae9eebc08df75",
+    "branch": "chat-3/conversation-srs-handoff"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "1ee99290db446c7e4537f34048cc42b786ee5efb"
+  "last_observed_head": "456578eb9a58f8025103e1b90fe945cf0030a9a6"
 }
