@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T14:17:15Z",
+  "last_sync_at": "2026-09-21T14:22:28Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35610793562",
+    "run_id": "35611662261",
     "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35610793562",
-    "timestamp": "2026-09-21T14:17:15Z",
+    "event_key": "workflow:Engineering CI:35611662261",
+    "timestamp": "2026-09-21T14:22:28Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35610793562",
+    "run_id": "35611662261",
     "conclusion": "cancelled",
-    "commit_sha": "75f70cffc027de305ce149f80ebf029ef3ab1e82",
-    "branch": "chat-1/failure-control-security-precedence"
+    "commit_sha": "9e0b761aa21bf80a1e5afef3979126d3c38f6828",
+    "branch": "chat-10/ai-streamed-response-bound"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "ab73ed33eb480eca0add298b5dab316e4728fc96"
+  "last_observed_head": "f1a27deb7d3ef372a35f58461686fdfe735046f7"
 }
