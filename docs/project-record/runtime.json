@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T14:28:26Z",
+  "last_sync_at": "2026-09-21T14:29:15Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35611921223",
-    "conclusion": "cancelled"
+    "run_id": "35611682380",
+    "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35611921223",
-    "timestamp": "2026-09-21T14:28:26Z",
+    "event_key": "workflow:Engineering CI:35611682380",
+    "timestamp": "2026-09-21T14:29:15Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35611921223",
-    "conclusion": "cancelled",
-    "commit_sha": "95ef0e40a499b07232ad6b95c454f0ae51c300b5",
-    "branch": "chat-7/startup-resource-reuse"
+    "run_id": "35611682380",
+    "conclusion": "success",
+    "commit_sha": "4499db68c315b55dfa2753e013cb341ad3ab9c6b",
+    "branch": "chat-8/fresh-start-attempt-review-restart"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "266736d56b30f74a70eef6ac5bea53accbd38ced"
+  "last_observed_head": "6adb2edb2d81ac5df8469b91bcc9830f96ffc1f9"
 }
