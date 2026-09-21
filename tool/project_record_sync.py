@@ -25,6 +25,24 @@ def git(*args: str) -> str:
 def now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
+CANONICAL_BRANCH = "main"
+CANONICAL_RUNTIME_WORKFLOWS = frozenset({"Engineering CI", "Recovery Checkpoint"})
+
+def should_promote_to_canonical_runtime(
+    workflow: str,
+    branch: str | None,
+    workflow_head_sha: str,
+    current_sha: str,
+) -> bool:
+    """Return whether workflow evidence can update canonical runtime pointers."""
+    if (
+        workflow not in CANONICAL_RUNTIME_WORKFLOWS
+        or branch != CANONICAL_BRANCH
+        or not workflow_head_sha
+    ):
+        return False
+    return reachable(workflow_head_sha, current_sha)
+
 def load_runtime() -> dict[str, Any]:
     if not RUNTIME_PATH.exists():
         return {}
@@ -134,10 +152,16 @@ def main() -> int:
         wf_key = f"workflow:{args.workflow}:{args.run_id}"
         wf_event = {"event_key": wf_key, "timestamp": now(), "source": "github_actions", "type": "workflow_run", "workflow": args.workflow, "run_id": args.run_id, "conclusion": args.conclusion, "commit_sha": args.workflow_head_sha or current_sha, "branch": args.workflow_branch or None}
         append_event(wf_event, keys)
-        if args.workflow == "Engineering CI":
-            runtime["last_ci"] = wf_event
-        elif args.workflow == "Recovery Checkpoint":
-            runtime["last_recovery_checkpoint_run"] = wf_event
+        if should_promote_to_canonical_runtime(
+            args.workflow,
+            args.workflow_branch,
+            args.workflow_head_sha,
+            current_sha,
+        ):
+            if args.workflow == "Engineering CI":
+                runtime["last_ci"] = wf_event
+            elif args.workflow == "Recovery Checkpoint":
+                runtime["last_recovery_checkpoint_run"] = wf_event
 
     runtime.update({
         "record_status": "RECONCILIATION_REQUIRED" if gap else "CURRENT",
