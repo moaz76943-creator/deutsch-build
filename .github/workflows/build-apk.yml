@@ -3,6 +3,8 @@ name: Build Release APK
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/project-record/**'
   workflow_dispatch:
 
 permissions:
