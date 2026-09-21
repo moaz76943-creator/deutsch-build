@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:43:59Z",
+  "last_sync_at": "2026-09-21T13:44:37Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35606502932",
-    "conclusion": "failure"
+    "run_id": "35606608957",
+    "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35606502932",
-    "timestamp": "2026-09-21T13:43:59Z",
+    "event_key": "workflow:Engineering CI:35606608957",
+    "timestamp": "2026-09-21T13:44:37Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35606502932",
-    "conclusion": "failure",
-    "commit_sha": "96133a838b6abd08da6b0bd66e660189f33a8915",
-    "branch": "chat-3/content-generator-dollar-escape"
+    "run_id": "35606608957",
+    "conclusion": "success",
+    "commit_sha": "a96e6995098f63d531c7d180ddc8e830d08d0a54",
+    "branch": "chat-5/multilingual-expansion-readiness-spec"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "79345e6099721ad95510a5540f9443dfa492be03"
+  "last_observed_head": "73613ac8e7a7d383e94cc7d22feabb063543eaba"
 }
