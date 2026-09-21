@@ -7,22 +7,22 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T14:22:28Z",
+  "last_sync_at": "2026-09-21T14:22:50Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35611662261",
+    "run_id": "35611565742",
     "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35611662261",
-    "timestamp": "2026-09-21T14:22:28Z",
+    "event_key": "workflow:Engineering CI:35611565742",
+    "timestamp": "2026-09-21T14:22:50Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35611662261",
+    "run_id": "35611565742",
     "conclusion": "cancelled",
-    "commit_sha": "9e0b761aa21bf80a1e5afef3979126d3c38f6828",
+    "commit_sha": "31795122519c4c60e3d411801d934bc2fce65cd3",
     "branch": "chat-10/ai-streamed-response-bound"
   },
   "last_recovery_checkpoint_run": {
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "f1a27deb7d3ef372a35f58461686fdfe735046f7"
+  "last_observed_head": "05ba838765756d33124d65b667721ebc770741ba"
 }
