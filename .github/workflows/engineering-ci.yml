@@ -3,6 +3,8 @@ name: Engineering CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/project-record/**'
   pull_request:
     branches: [main]
 
