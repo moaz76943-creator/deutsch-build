@@ -5,7 +5,7 @@ import '../../lib/services/secure_session_storage.dart';
 
 void main() {
   test('credentials remain opaque', () {
-    const credentials = SecureSessionCredentials('ephemeral');
+    final credentials = SecureSessionCredentials('ephemeral');
     expect(credentials.value, 'ephemeral');
   });
 
@@ -18,8 +18,14 @@ void main() {
   test('unavailable storage rejects save', () async {
     const storage = UnavailableSecureSessionStorage();
     expect(
-      storage.save(const SecureSessionCredentials('ephemeral')),
-      throwsA(isA<StateError>()),
+      storage.save(SecureSessionCredentials('ephemeral')),
+      throwsA(
+        isA<SecureSessionStorageFailure>().having(
+          (error) => error.code,
+          'code',
+          SecureSessionStorageFailureCode.unavailable,
+        ),
+      ),
     );
   });
 }

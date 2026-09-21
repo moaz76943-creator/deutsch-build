@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk014 = <VerbConjugation>[
 VerbConjugation(infinitive:'vereinigen',arabic:'يوحّد / يجمع',group:'11. أفعال إضافية مهمة',person:'er',personAr:'هو',form:'vereinigt',past:'hat vereinigt',pastArabic:'هو وحّد',example:'Er vereinigt vereinigt die Aufgabe.',exampleAr:'هو يوحّد / يجمع المهمة.',pastExample:'Er hat vereinigt die Aufgabe vereinigt.',pastExampleAr:'هو وحّد / يجمع المهمة.'),

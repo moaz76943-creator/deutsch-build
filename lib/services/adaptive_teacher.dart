@@ -169,6 +169,22 @@ class AdaptiveTeacher {
     return due;
   }
 
+  static double _reviewPressure(LearnerState state, DateTime now, int dueCount) {
+    final total = state.reviewCards.length;
+    if (total == 0) return 0;
+    final dueRatio = dueCount / total;
+    var recentFailureCount = 0;
+    var recentAttemptCount = 0;
+    for (final a in state.attempts) {
+      if (now.difference(a.at).inDays <= 14) {
+        recentAttemptCount++;
+        if (!a.correct) recentFailureCount++;
+      }
+    }
+    final failureRatio = recentAttemptCount == 0 ? 0.0 : recentFailureCount / recentAttemptCount;
+    return (dueRatio * .6 + failureRatio * .4).clamp(0.0, 1.0);
+  }
+
   static double _newContentReadiness(double recentFailureRate, double reviewPressure) {
     if (recentFailureRate >= .60 || reviewPressure >= .85) return 0;
     if (recentFailureRate >= .40 || reviewPressure >= .65) return .35;

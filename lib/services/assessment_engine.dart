@@ -6,7 +6,7 @@ import '../models/learner.dart';
 class AssessmentEngine {
   static const skills = ['recall','listening','production','transfer'];
 
-  static List<T> build<T extends LearningContent>(List<T> items, LearnerState state, {
+  static List<AssessmentQuestion> build<T extends LearningContent>(List<T> items, LearnerState state, {
     required LanguageExerciseStrategy exerciseStrategy,
     DateTime? now,
     int questionCount=10,
@@ -71,7 +71,7 @@ class AssessmentEngine {
     final errors=attempts.where((a)=>!a.correct).length;
     final weakBoost=x.skill==weak?100:0;
     final unseen=attempts.isEmpty?30:0;
-    return weakBoost + errors*15 + unseen + ((seed + x.id.hashCode) & 7);
+    return (weakBoost + errors * 15 + unseen + ((seed + x.id.hashCode) & 7)).toDouble();
   }
   static String _weakSkill(LearnerState s) {
     final keys = <String>{...skills, ...s.attempts.map((x) => x.skill)};

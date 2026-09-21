@@ -21,7 +21,7 @@ class WritingAnalyzer {
     }
     final tokens = textNormalizer.answer(text).split(' ').where((x) => x.isNotEmpty).toList();
     if (tokens.length >= 2) {
-      const subjects = {'ich', 'du', 'er', 'sie', 'es', 'wir', 'ihr', 'sie'};
+      const subjects = {'ich', 'du', 'er', 'sie', 'es', 'wir', 'ihr'};
       if (subjects.contains(tokens.first)) {
         final second = tokens[1];
         const commonVerbs = {

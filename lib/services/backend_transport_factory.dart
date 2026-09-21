@@ -1,5 +1,4 @@
 import '../models/backend_runtime_config.dart';
-import '../models/backend_transport.dart';
 import 'backend_http_transport.dart';
 import 'backend_transport.dart';
 

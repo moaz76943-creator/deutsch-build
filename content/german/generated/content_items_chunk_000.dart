@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk000 = <ContentItem>[
 ContentItem(id:'w0001',german:'Hallo',arabic:'مرحبًا',sentence:'Hallo! Wie geht es dir?',sentenceAr:'مرحبًا! كيف حالك؟',topic:'التحية',skill:'recall',article:'',plural:'',accepted:['Hallo']),

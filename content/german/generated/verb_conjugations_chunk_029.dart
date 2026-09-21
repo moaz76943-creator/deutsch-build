@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk029 = <VerbConjugation>[
 VerbConjugation(infinitive:'feiern',arabic:'يحتفل',group:'10. المناسبات',person:'Sie',personAr:'حضرتك / حضراتكم',form:'feiern',past:'haben gefeiert',pastArabic:'احتفلتم',example:'Sie feiern den Jahreswechsel.',exampleAr:'حضرتك / حضراتكم تحتفلون بـ انتقال السنة إلى سنة جديدة.',pastExample:'Sie haben den Jahreswechsel gefeiert.',pastExampleAr:'احتفلتم بـ انتقال السنة إلى سنة جديدة.'),

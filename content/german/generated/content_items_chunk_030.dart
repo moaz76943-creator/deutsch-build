@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk030 = <ContentItem>[
 ContentItem(id:'w12129',german:'Reisekostenplan',arabic:'خطة تكاليف السفر',sentence:'Das ist Reisekostenplan.',sentenceAr:'هذا خطة تكاليف السفر.',topic:'إضافات عملية',skill:'production',article:'die',plural:'Reisekostenplans',accepted:[]),

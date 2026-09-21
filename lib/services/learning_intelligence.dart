@@ -63,7 +63,7 @@ class LearningIntelligence {
     required LearningContent item,
     required LearnerState state,
     required List<Attempt> attempts,
-    required AdaptiveTeacher teacher,
+    required TeacherAction teacher,
     MistakeRecord? mistake,
     required LanguageContentIntelligence contentIntelligence,
     DateTime? now,

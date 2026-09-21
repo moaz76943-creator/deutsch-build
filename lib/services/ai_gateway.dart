@@ -62,7 +62,6 @@ class HttpsAiGateway implements AiGateway {
     return _requestTail;
   }
 
-  @override
   static final RegExp _sensitivePayload = RegExp(
     r'(?:\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b)|'
     r'(?:\b(?:\+?\d[\d .()\-]{7,}\d)\b)|'

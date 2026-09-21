@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../lib/models/account_session.dart';
 import '../../lib/models/backend_authentication_contract.dart';
+import '../../lib/models/secure_session_credentials.dart';
 import '../../lib/services/authentication.dart';
 import '../../lib/services/authentication_providers.dart';
 
@@ -78,6 +79,15 @@ class FakeBackendAuthenticationGateway
 
   @override
   Future<AccountSession> getCurrentSession() async => current;
+
+  @override
+  Future<AccountSession> renewSession(
+    SecureSessionCredentials credentials,
+  ) async =>
+      current;
+
+  @override
+  Future<void> revokeSession(SecureSessionCredentials? credentials) async {}
 
   @override
   Future<void> signOut() async {}

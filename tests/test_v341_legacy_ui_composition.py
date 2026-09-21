@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / 'lib/ui/app.dart'
@@ -28,4 +29,4 @@ def test_legacy_verb_and_mastery_pages_receive_dependencies():
     assert 'required this.corpus' in text
     assert 'final LanguageContentIntelligence contentIntelligence;' in text
     assert 'required this.contentIntelligence' in text
-    assert 'MasteryDashboard.build(repo.load(), corpus: corpus, contentIntelligence: contentIntelligence)' in text
+    assert re.search(r'MasteryDashboard\.build\(\s*repo\.load\(\),\s*corpus:\s*corpus,\s*contentIntelligence:\s*contentIntelligence,?\s*\)', text)

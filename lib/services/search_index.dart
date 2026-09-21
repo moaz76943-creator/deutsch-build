@@ -17,7 +17,7 @@ class SearchIndex<T extends LearningContent> {
   late final Map<String, List<T>> _skillGroups = _buildGroups(_items, (x) => x.skill);
   final Map<String, _Entry<T>> _entryCache = <String, _Entry<T>>{};
   late final Map<String, List<_Entry<T>>> _trigramIndex =
-      _buildTrigrams(_items.map(_Entry<T>.new).toList(growable: false));
+      _buildTrigrams(_items.map((item) => _Entry<T>(item, _textNormalizer)).toList(growable: false));
 
   SearchIndex(this._items, this._verbIndex, this._textNormalizer);
 
@@ -44,10 +44,10 @@ class SearchIndex<T extends LearningContent> {
     }
 
     final exactResults = <SearchResult<T>>[];
-    for (final item in _sourceExact[q] ?? const <T>[]) {
+    for (final item in _sourceExact[q] ?? <T>[]) {
       if (eligible(item)) exactResults.add(SearchResult(item, 1000, 'exactGerman', 'مطابقة ألمانية كاملة'));
     }
-    for (final item in _translationExact[q] ?? const <T>[]) {
+    for (final item in _translationExact[q] ?? <T>[]) {
       if (eligible(item)) exactResults.add(SearchResult(item, 940, 'exactArabic', 'مطابقة عربية كاملة'));
     }
     if (exactResults.length >= cap) return exactResults.take(cap).toList(growable: false);
@@ -58,7 +58,7 @@ class SearchIndex<T extends LearningContent> {
 
     final verbInfinitives = _verbIndex.infinitivesFor(q);
     for (final infinitive in verbInfinitives) {
-      for (final item in _sourceExact[_textNormalizer.answer(infinitive)] ?? const <T>[]) {
+      for (final item in _sourceExact[_textNormalizer.answer(infinitive)] ?? <T>[]) {
         add(item, 920, 'verbForm', 'صيغة فعل → المصدر');
       }
     }
@@ -71,7 +71,7 @@ class SearchIndex<T extends LearningContent> {
     final queryTokens = _tokens(q);
     final candidates = <T>{};
     for (final token in queryTokens) {
-      candidates.addAll(_tokenIndex[token] ?? const <T>[]);
+      candidates.addAll(_tokenIndex[token] ?? <T>[]);
     }
     // Do not fall back to the full corpus here: a miss should move to the
     // bounded fuzzy stage instead of materializing thousands of _Entry objects.
@@ -152,7 +152,7 @@ class SearchIndex<T extends LearningContent> {
 
     final candidates = <_Entry<T>>{};
     for (final gram in grams) {
-      for (final entry in _trigramIndex[gram] ?? const <_Entry<T>>[]) {
+      for (final entry in _trigramIndex[gram] ?? <_Entry<T>>[]) {
         candidates.add(entry);
         if (candidates.length >= maxCandidates) break;
       }

@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk004 = <ContentItem>[
 ContentItem(id:'w1601',german:'Schlafteppich',arabic:'سجادة النوم',sentence:'Ich kaufe den lafteppich.',sentenceAr:'أشتري سجادة النوم.',topic:'Schlaf / النوم',skill:'production',article:'der',plural:'teppiche',accepted:[]),

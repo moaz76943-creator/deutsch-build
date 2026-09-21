@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk022 = <ContentItem>[
 ContentItem(id:'w9930',german:'der Dienst',arabic:'الخدمة',sentence:'Der Dienst ist wichtig.',sentenceAr:'الخدمة مهم.',topic:'13. مفردات متنوعة',skill:'recall',article:'der',plural:'',accepted:[]),

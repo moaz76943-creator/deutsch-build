@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk019 = <VerbConjugation>[
 VerbConjugation(infinitive:'anklicken',arabic:'ينقر',group:'12. أفعال جديدة ومتنوعة',person:'es',personAr:'هو/هي/ذلك',form:'klickt an',past:'hat angeklickt',pastArabic:'هو/هي/ذلك نقر',example:'Es klickt den Termin an.',exampleAr:'هو/هي/ذلك : ينقر — الموعد.',pastExample:'Es hat den Termin angeklickt.',pastExampleAr:'هو/هي/ذلك نقر ينقر — الموعد.'),

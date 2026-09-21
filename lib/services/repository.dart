@@ -4,7 +4,6 @@ import 'learner_persistence.dart';
 import '../models/learner.dart';
 import 'srs.dart';
 import '../models/assessment.dart';
-import '../models/mistake.dart';
 
 /// Local learner-state storage. This app deliberately has no network trust boundary.
 /// Persisted values are treated as untrusted input and are bounded before use.
@@ -87,7 +86,6 @@ class LearnerRepository {
   Future<void> recordWritingMistake({required String issue, DateTime? at}) => _enqueue(() async {
     final s = load();
     final key = 'writing:${issue.trim().toLowerCase()}';
-    final existing = s.attempts.where((a) => a.itemId == key).length;
     final now = at ?? DateTime.now();
     final attempt = Attempt(id: 'w_${now.microsecondsSinceEpoch}', itemId: key, skill: 'writing', answer: issue.trim(), correct: false, hinted: false, seconds: 5, at: now);
     final attempts = [...s.attempts, attempt];
@@ -166,26 +164,4 @@ class LearnerRepository {
     await _saveNow(s.copyWith(xp:(s.xp+(correct?10:2)).clamp(0,maxXp), attempts:kept));
   });
 
-  static int _boundedInt(Object? value, int min, int max) {
-    final n = value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
-    return (n ?? min).clamp(min, max);
-  }
-
-  static Set<String> _boundedStringSet(Iterable<String> values) {
-    return values
-        .map((x) => x.trim())
-        .where((x) => x.isNotEmpty && x.length <= 160)
-        .take(maxCollectionItems)
-        .toSet();
-  }
-
-  static Set<String> _boundedStrings(Object? value) {
-    if (value is! List) return <String>{};
-    return value
-        .whereType<String>()
-        .map((x) => x.trim())
-        .where((x) => x.isNotEmpty && x.length <= 160)
-        .take(maxCollectionItems)
-        .toSet();
-  }
 }

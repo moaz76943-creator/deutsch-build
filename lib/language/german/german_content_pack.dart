@@ -1,12 +1,12 @@
 import '../language_content_pack.dart';
 import '../../services/content_engine.dart';
 import '../../models/content.dart';
-import '../../content/german/content_a1.dart';
-import '../../content/german/generated/content_items_generated.dart';
+import '../../data/content_a1.dart';
 import '../../services/verb_index.dart';
 import 'german_text_normalizer.dart';
 
-/// German content adapter. It owns the concrete German runtime source selection.
+/// German content adapter. Editable sources are compiled into the package-local
+/// runtime facade before Flutter analysis/build.
 abstract interface class GermanContentSource implements ContentSource<ContentItem> {}
 
 final class LegacyGermanContentSource implements GermanContentSource {
@@ -34,12 +34,9 @@ final class GermanContentPack implements LanguageContentPack {
       );
 
   @override
-  List<ContentItem> get items =>
-      _engine.items.toList(growable: false);
+  List<ContentItem> get items => _engine.items.toList(growable: false);
 
   @override
-  VerbIndex get verbIndex {
-    final index = VerbIndex(textNormalizer: const GermanTextNormalizer());
-    return index;
-  }
+  VerbIndex get verbIndex =>
+      VerbIndex(textNormalizer: const GermanTextNormalizer());
 }

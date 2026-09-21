@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk004 = <VerbConjugation>[
 VerbConjugation(infinitive:'zusammenarbeiten',arabic:'يتعاون',group:'6. أفعال العمل',person:'sie',personAr:'هم',form:'arbeiten zusammen',past:'haben zusammengearbeitet',pastArabic:'هم تعاونوا',example:'Sie arbeiten zusammen heute.',exampleAr:'هم يتعاونون اليوم.',pastExample:'Sie haben zusammen heute zusammengearbeitet.',pastExampleAr:'هم تعاونوا اليوم.'),

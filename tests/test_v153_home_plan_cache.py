@@ -13,7 +13,7 @@ def test_v153_home_does_not_construct_all_tabs_on_every_build():
 
 def test_v153_personal_path_card_is_stateful_and_plan_is_cached():
     text = PROGRESS.read_text()
-    start = text.index('class _PersonalPathCard')
+    start = text.index('class PersonalPathCard')
     end = text.index('class PersonalizedPathPage')
     card = text[start:end]
     assert 'extends StatefulWidget' in card
@@ -27,7 +27,7 @@ def test_v153_home_passes_state_revision_to_personal_path_card():
     text = APP.read_text()
     assert 'int _stateRevision = 0;' in text
     assert 'setState(() { state = widget.repo.load(); _stateRevision++; });' in text
-    assert '_PersonalPathCard(repo: widget.repo, onDone: refresh, revision: _stateRevision, corpus: widget.dependencies.corpus' in text
+    assert 'PersonalPathCard(repo: widget.repo, onDone: refresh, revision: _stateRevision, corpus: widget.dependencies.corpus' in text
 
 
 def test_v153_learning_engine_groups_attempts_once_for_item_priority_and_history():

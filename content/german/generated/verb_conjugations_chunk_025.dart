@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk025 = <VerbConjugation>[
 VerbConjugation(infinitive:'strukturieren',arabic:'ينظم',group:'5. الدراسة والتعلم',person:'du',personAr:'أنتَ / أنتِ',form:'strukturierst',past:'hast strukturieiert',pastArabic:'أنتَ/أنتِ نظمت',example:'Du strukturierst den Text.',exampleAr:'أنتَ/أنتِ تنظم النص.',pastExample:'Du hast den Text strukturieiert.',pastExampleAr:'أنتَ/أنتِ نظمت النص.'),

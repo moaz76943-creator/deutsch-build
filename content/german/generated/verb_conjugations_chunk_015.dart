@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk015 = <VerbConjugation>[
 VerbConjugation(infinitive:'faszinieren',arabic:'يسحر / يثير الاهتمام',group:'11. أفعال إضافية مهمة',person:'ihr',personAr:'أنتم',form:'fasziniert',past:'habt faszinieiert',pastArabic:'أنتم سحرتم',example:'Ihr fasziniert die Aufgabe.',exampleAr:'أنتم يسحر / يثير الاهتمام المهمة.',pastExample:'Ihr habt die Aufgabe faszinieiert.',pastExampleAr:'أنتم سحرتم / يثير الاهتمام المهمة.'),

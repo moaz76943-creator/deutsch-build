@@ -1,4 +1,5 @@
 import '../models/account_session.dart';
+import '../models/backend_authentication_contract.dart';
 import '../models/secure_session_credentials.dart';
 import 'authentication_contract.dart';
 import 'authentication_failures.dart';
@@ -153,7 +154,7 @@ final class ProviderAuthenticationService implements AuthenticationService {
       }
       _session = canonical;
       return canonical;
-    } on AuthenticationFailure catch (error) {
+    } on AuthenticationFailure catch (_) {
       if (operationGeneration == _storageOperationGeneration) {
         _session = const AccountSession.unauthenticated();
       }

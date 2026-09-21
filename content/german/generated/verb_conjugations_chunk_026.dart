@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk026 = <VerbConjugation>[
 VerbConjugation(infinitive:'zurücknehmen',arabic:'يسحب/يأخذ مجددًا',group:'1. الحياة اليومية',person:'wir',personAr:'نحن',form:'nehmen zurück',past:'haben zurückgenommen',pastArabic:'نحن سحبنا',example:'Wir nehmen zurück zurück heute.',exampleAr:'نحن نسحب/يأخذ مجددًا اليوم.',pastExample:'Wir haben zurück zurück heute zurückgenommen.',pastExampleAr:'نحن سحبنا مجددًا اليوم.'),

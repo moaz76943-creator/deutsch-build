@@ -1,36 +1,7 @@
 import 'package:flutter/material.dart';
-import '../core/learning_core.dart';
-import '../core/safe_runtime.dart';
-import '../models/content.dart';
-import '../models/conversation.dart';
-import '../models/learner.dart';
-import '../models/assessment.dart';
-import '../services/ai_contract.dart';
-import '../services/release.dart';
+import '../models/verb_conjugation.dart';
 import '../services/repository.dart';
-import '../services/features.dart';
-import '../services/subscription.dart';
-import '../services/adaptive_teacher.dart';
-import '../services/daily_plan.dart';
-import '../services/mastery.dart';
-import '../services/mastery_dashboard.dart';
-import '../services/mistake_analysis.dart';
-import '../services/search_index.dart';
 import '../services/verb_index.dart';
-import '../services/speech_service.dart';
-import '../services/ai_gateway.dart';
-import '../services/assessment_engine.dart';
-import '../services/learning_engine.dart';
-import '../services/conversation_engine.dart';
-import '../services/mistake_coach.dart';
-import '../services/reading_practice.dart';
-import '../models/learning_path.dart';
-import '../models/word_profile.dart';
-import '../services/word_profile_service.dart';
-import '../models/mistake.dart';
-import '../services/mistake_engine.dart';
-import '../services/repair_engine.dart';
-import 'pages/core_pages.dart';
 import 'safe_ui.dart';
 
 class VerbConjugationPage extends StatefulWidget {
@@ -43,7 +14,6 @@ class VerbConjugationPage extends StatefulWidget {
 class _VerbConjugationPageState extends State<VerbConjugationPage> {
   final SafeTtsController _tts=SafeTtsController();
   final Set<String> _favorites=<String>{};
-  static const _persons=['ich','du','er','sie','es','wir','ihr','sie','Sie'];
 
   @override
   void initState(){super.initState();_loadFavorites();}
@@ -142,7 +112,7 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
         Card(child:Padding(padding:const EdgeInsets.all(14),child:Text('كل ضمير مستقل: ich، du، er، sie (هي)، es، wir، ihr، sie (هم)، Sie. لكل تصريف نطق مستقل، ماضٍ، ومثال حاضر ومثال ماضٍ مع الترجمة. عدد الأفعال: $uniqueVerbs'))),
         for(final g in ks)...[
           Padding(padding:const EdgeInsets.fromLTRB(4,14,4,8),child:Text(g,style:Theme.of(c).textTheme.titleLarge?.copyWith(fontWeight:FontWeight.w900))),
-          for(final v in groups[g] ?? const <VerbConjugation>[]) _verbCard(c,v),
+          for(final infinitive in groups[g] ?? const <String>[]) ...widget.verbIndex.rowsFor(infinitive).map((v)=>_verbCard(c,v)),
         ],
       ]),
     );

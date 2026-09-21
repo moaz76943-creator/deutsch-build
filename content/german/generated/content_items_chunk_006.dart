@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk006 = <ContentItem>[
 ContentItem(id:'w2401',german:'Ukraine',arabic:'أوكرانيا',sentence:'Ich reise in die Ukraine.',sentenceAr:'أسافر إلى أوكرانيا.',topic:'الدول والبلدان',skill:'production',article:'die',plural:'',accepted:[]),

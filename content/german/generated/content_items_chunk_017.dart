@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk017 = <ContentItem>[
 ContentItem(id:'w7929',german:'die Chefin begrüßen',arabic:'يحيي المديرة',sentence:'Ich begrüße die Chefin.',sentenceAr:'أنا أحيّي المديرة.',topic:'تراكيب فعلية',skill:'production',article:'',plural:'',accepted:['die Chefin begrüßen']),

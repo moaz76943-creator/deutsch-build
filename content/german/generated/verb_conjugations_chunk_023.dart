@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk023 = <VerbConjugation>[
 VerbConjugation(infinitive:'richten',arabic:'يوجّه/يرتّب',group:'1. الحياة اليومية',person:'er',personAr:'هو',form:'richtet',past:'hat gerichtet',pastArabic:'هو وجّه',example:'Er richtet heute.',exampleAr:'هو يوجّه/يرتّب اليوم.',pastExample:'Er hat heute gerichtet.',pastExampleAr:'هو وجّه اليوم.'),

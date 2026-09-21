@@ -26,6 +26,12 @@ class FakeAuthenticationService implements AuthenticationService {
   Future<AccountSession> signInWithApple() async => session;
 
   @override
+  Future<void> requestEmailOtp({required String email}) async {}
+
+  @override
+  Future<AccountSession> renewSession() async => session;
+
+  @override
   Future<void> signOut() async {
     signOutCalls++;
     session = const AccountSession.unauthenticated();
@@ -123,6 +129,16 @@ class _ThrowingAuthenticationService implements AuthenticationService {
 
   @override
   Future<AccountSession> signInWithApple() async {
+    throw const AuthenticationFailure(AuthenticationFailureCode.unavailable);
+  }
+
+  @override
+  Future<void> requestEmailOtp({required String email}) async {
+    throw const AuthenticationFailure(AuthenticationFailureCode.unavailable);
+  }
+
+  @override
+  Future<AccountSession> renewSession() async {
     throw const AuthenticationFailure(AuthenticationFailureCode.unavailable);
   }
 

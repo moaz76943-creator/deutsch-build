@@ -55,7 +55,7 @@ class SafeTtsController {
     } catch (_) {}
     await _tail;
     try {
-      await engine.shutdown();
+      await engine.stop();
     } catch (_) {}
   }
 
@@ -67,7 +67,7 @@ class SafeTtsController {
     Future<void>(() async {
       try { await engine.stop(); } catch (_) {}
       await _tail;
-      try { await engine.shutdown(); } catch (_) {}
+      try { await engine.stop(); } catch (_) {}
     });
   }
 

@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk011 = <VerbConjugation>[
 VerbConjugation(infinitive:'nachlassen',arabic:'/',group:'الحياة اليومية',person:'Sie',personAr:'حضرتك / حضراتكم',form:'lassen nach',past:'haben nachgelasst',pastArabic:'حضرتك / حضراتكم تم',example:'Sie lassen nach das Problem.',exampleAr:'حضرتك / المشكلة.',pastExample:'Sie haben nach das Problem nachgelasst.',pastExampleAr:'حضرتك / حضراتكم تم المشكلة.'),

@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk024 = <VerbConjugation>[
 VerbConjugation(infinitive:'bücken',arabic:'ينحني',group:'1. الحياة اليومية',person:'ihr',personAr:'أنتم',form:'bückt',past:'habt gebückt',pastArabic:'أنتم نحنىتم',example:'Ihr bückt heute.',exampleAr:'أنتم تنحنيون اليوم.',pastExample:'Ihr habt heute gebückt.',pastExampleAr:'أنتم نحنىتم اليوم.'),

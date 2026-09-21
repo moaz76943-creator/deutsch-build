@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk025 = <ContentItem>[
 ContentItem(id:'w11129',german:'die Garantiebedingungen vergleichen',arabic:'أقارن شروط الضمان',sentence:'Ich vergleiche die Garantiebedingungen.',sentenceAr:'أنا أقارن شروط الضمان.',topic:'تراكيب فعلية — التسوق والمال',skill:'production',article:'',plural:'',accepted:[]),

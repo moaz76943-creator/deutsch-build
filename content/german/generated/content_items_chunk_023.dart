@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk023 = <ContentItem>[
 ContentItem(id:'w10330',german:'den Koffer kontrollieren',arabic:'فحص الحقيبة الكبيرة',sentence:'Ich muss den Koffer kontrollieren.',sentenceAr:'يجب عليّ فحص الحقيبة الكبيرة.',topic:'تراكيب فعلية — السفر',skill:'production',article:'',plural:'',accepted:[]),

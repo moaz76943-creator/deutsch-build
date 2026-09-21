@@ -38,3 +38,15 @@ String mistakeCategoryLabel(MistakeCategory x) => const {
   MistakeCategory.translation:'ترجمة', MistakeCategory.wordOrder:'ترتيب الجملة', MistakeCategory.writing:'كتابة',
   MistakeCategory.production:'إنتاج', MistakeCategory.listening:'استماع',
 }[x] ?? 'تدريب';
+
+
+bool repairStepAccepts(
+  RepairStep step,
+  String answer,
+  String Function(String value) normalize,
+) {
+  final normalized = normalize(answer);
+  if (normalized.isEmpty) return false;
+  if (normalize(step.expected) == normalized) return true;
+  return step.accepted.any((value) => normalize(value) == normalized);
+}

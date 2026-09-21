@@ -1,40 +1,15 @@
 import 'package:flutter/material.dart';
-import '../core/learning_core.dart';
 import '../language/language_exercise_strategy.dart';
 import '../language/language_presentation.dart';
 import '../core/safe_runtime.dart';
-import '../models/content.dart';
 import '../models/conversation.dart';
-import '../models/learner.dart';
-import '../models/assessment.dart';
 import '../services/writing_analyzer.dart';
-import '../services/ai_contract.dart';
-import '../services/release.dart';
 import '../services/repository.dart';
-import '../services/features.dart';
-import '../services/subscription.dart';
 import '../language/language_text_normalizer.dart';
-import '../services/adaptive_teacher.dart';
-import '../services/daily_plan.dart';
-import '../services/mastery.dart';
-import '../services/mastery_dashboard.dart';
-import '../services/mistake_analysis.dart';
-import '../services/search_index.dart';
 import '../services/speech_service.dart';
 import '../services/ai_gateway.dart';
 import '../services/privacy_settings.dart';
-import '../services/assessment_engine.dart';
-import '../services/learning_engine.dart';
 import '../services/conversation_engine.dart';
-import '../services/mistake_coach.dart';
-import '../services/reading_practice.dart';
-import '../models/learning_path.dart';
-import '../models/word_profile.dart';
-import '../services/word_profile_service.dart';
-import '../models/mistake.dart';
-import '../services/mistake_engine.dart';
-import '../services/repair_engine.dart';
-import 'pages/core_pages.dart';
 import 'safe_ui.dart';
 
 class WritingCoachPage extends StatefulWidget { final LearnerRepository repo; final VoidCallback onDone; final LanguageTextNormalizer textNormalizer; final AiGateway aiGateway; final PrivacySettingsStore privacySettings; const WritingCoachPage({super.key,required this.repo,required this.onDone,required this.textNormalizer,required this.aiGateway,required this.privacySettings}); @override State<WritingCoachPage> createState()=>_WritingCoachState(); }
@@ -50,14 +25,14 @@ class ConversationPage extends StatelessWidget {
   Widget build(BuildContext c) => Scaffold(
     appBar:AppBar(title:const Text('المحادثة')),
     body:ListView(padding:const EdgeInsets.all(12),children:[
-      const Card(child:ListTile(leading:Icon(Icons.record_voice_over_outlined),title:Text('محادثة صوتية واقعية'),subtitle:Text(presentation.conversation.targetLanguageInstruction))),
+      Card(child:ListTile(leading:const Icon(Icons.record_voice_over_outlined),title:const Text('محادثة صوتية واقعية'),subtitle:Text(presentation.conversation.targetLanguageInstruction))),
       const SizedBox(height:8),
       ...ConversationEngine(exerciseStrategy: exerciseStrategy, textNormalizer: textNormalizer).scenarios.map((x)=>Card(child:ListTile(
         leading:const Icon(Icons.forum_outlined),
         title:Text(x.title),
         subtitle:Text('${x.situation}\n${x.turns.length} جولات'),
         isThreeLine:true,
-        onTap:()=>Navigator.push(c,MaterialPageRoute(builder:(_)=>VoiceConversationPage(repo:repo,onDone:onDone,scenario:x,exerciseStrategy:exerciseStrategy,presentation:presentation))),
+        onTap:()=>Navigator.push(c,MaterialPageRoute(builder:(_)=>VoiceConversationPage(repo:repo,onDone:onDone,scenario:x,exerciseStrategy:exerciseStrategy,presentation:presentation,textNormalizer:textNormalizer))),
       ))),
       const SizedBox(height:8),
       OutlinedButton.icon(onPressed:()=>Navigator.push(c,MaterialPageRoute(builder:(_)=>AiConversationPage(scenario:'محادثة عامة', aiGateway: aiGateway, privacySettings: privacySettings))),icon:const Icon(Icons.auto_awesome_outlined),label:const Text('المحادثة النصية مع AI الاختياري')),
@@ -154,7 +129,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
     _speakPrompt();
   }
 
-  @override void dispose(){speech.dispose();tts.dispose();super.dispose();
+  @override void dispose(){speech.dispose();tts.dispose();super.dispose();}
 
   @override Widget build(BuildContext c){
     final currentScore = score;
@@ -179,6 +154,12 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
         const SizedBox(height:7),Text(status),
         const SizedBox(height:12),
         FilledButton.icon(onPressed:scored?null:_toggleListening,icon:Icon(listening?Icons.stop:Icons.mic),label:Text(listening?'إيقاف التسجيل':'تحدث ${widget.presentation.conversation.targetLanguageName}')),
+        const SizedBox(height:8),
+        OutlinedButton.icon(
+          onPressed:(!listening && heard.trim().isNotEmpty && !scored && !saving)?_score:null,
+          icon:const Icon(Icons.check_circle_outline),
+          label:const Text('قيّم الإجابة'),
+        ),
       ]))),
       if(scored&&currentScore!=null)...[
         const SizedBox(height:14),
@@ -201,6 +182,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
       const Text('التقييم محلي: لا يتم إرسال تسجيلك أو النص إلى خادم AI. جودة التعرف تعتمد على محرك الكلام في الجهاز.',style:TextStyle(fontSize:12)),
     ]),
   );
+}
 }
 
 class VoiceConversationResultPage extends StatelessWidget {

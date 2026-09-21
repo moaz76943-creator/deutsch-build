@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk037 = <ContentItem>[
 ContentItem(id:'w16137',german:'eine Datei beifügen',arabic:'يرفق ملفًا',sentence:'Ich füge die Datei der E-Mail bei.',sentenceAr:'أرفق الملف بالبريد الإلكتروني.',topic:'المستوى A2 — التقنية',skill:'production',article:'',plural:'',accepted:['eine Datei beifügen']),

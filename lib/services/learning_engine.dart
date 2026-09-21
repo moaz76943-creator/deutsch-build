@@ -11,6 +11,7 @@ import '../models/mistake.dart';
 import 'vocabulary_coach.dart';
 import 'mastery.dart';
 import 'adaptive_focus.dart';
+import 'learning_intelligence.dart';
 import 'production_engine.dart';
 
 class LearningEngine {
@@ -85,14 +86,6 @@ class LearningEngine {
     }
   }
   static int _itemPriority(LearningContent item,Map<String,List<Attempt>> attemptsByItem,String weak){final a=attemptsByItem[item.id] ?? const <Attempt>[];final e=a.where((x)=>!x.correct).length;return(item.skill==weak?80:0)+e*8+(a.isEmpty?25:0)+item.id.hashCode.abs()%7;}
-  static String _modeForItem(LearningContent item,LearnerState state){
-    final evidence=Mastery.forItem(item.id,state.attempts,reviewCard:state.reviewCards[item.id]);
-    if(evidence.skillScores.isEmpty) return item.skill=='listening'?'listening':item.skill=='production'?'production':item.skill=='transfer'?'transfer':'recall';
-    final weakest=evidence.skillScores.entries.reduce((a,b)=>a.value<=b.value?a:b).key;
-    return weakest=='listening'?'listening':weakest=='production'?'production':weakest=='transfer'?'transfer':'recall';
-  }
-
-  static String _masteryMode(LearningContent item,LearnerState state)=>_modeForItem(item,state);
   static int _balancedCount(List<LearningPathItem> items,String mode)=>items.where((x)=>_sessionMode(x)==mode).length.clamp(0,items.length).toInt();
   static String _sessionMode(LearningPathItem item){
     if(item.item.skill=='listening') return 'listening';

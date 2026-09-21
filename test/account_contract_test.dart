@@ -29,6 +29,13 @@ class FakeAuthenticationService implements AuthenticationService {
   }
 
   @override
+  Future<void> requestEmailOtp({required String email}) async {}
+
+  @override
+  Future<AccountSession> renewSession() async =>
+      const AccountSession.unauthenticated();
+
+  @override
   Future<void> signOut() async {}
 }
 
@@ -71,8 +78,8 @@ void main() {
       ),
       isA<AccountSession>(),
     );
-    expect(await service.signInWithGoogle, isA<AccountSession>());
-    expect(await service.signInWithApple, isA<AccountSession>());
+    expect(await service.signInWithGoogle(), isA<AccountSession>());
+    expect(await service.signInWithApple(), isA<AccountSession>());
     await service.signOut();
   });
 }

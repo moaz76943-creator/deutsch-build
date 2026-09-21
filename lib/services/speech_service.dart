@@ -1,4 +1,3 @@
-import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 
@@ -46,7 +45,7 @@ class SpeechService {
       }
       if (_disposed || !initialized) return false;
       await engine.listen(
-        localeId: localeId,
+        listenOptions: stt.SpeechListenOptions(localeId: localeId),
         onResult: (result) {
           if (_disposed || generation != _generation) return;
           try {

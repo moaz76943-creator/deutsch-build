@@ -7,6 +7,7 @@ import 'services/backend_transport.dart';
 import 'services/backend_transport_factory.dart';
 import 'services/ai_gateway_factory.dart';
 import 'models/backend_runtime_config.dart';
+import 'models/account_session.dart';
 import 'models/ai_runtime_config.dart';
 import 'services/authentication_providers.dart';
 import 'services/auth_session_controller.dart';

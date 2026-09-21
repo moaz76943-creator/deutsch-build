@@ -1,3 +1,6 @@
+import '../models/learner.dart';
+import 'mastery.dart';
+
 class AdaptiveFocus {
   static String dimensionForItem(String itemId, List<Attempt> attempts, {ReviewCard? reviewCard, DateTime? now}) {
     final rows = attempts.where((a) => a.itemId == itemId).toList(growable: false);

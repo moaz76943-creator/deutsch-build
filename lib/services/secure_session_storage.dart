@@ -52,4 +52,11 @@ final class UnavailableSecureSessionStorage implements SecureSessionStorage {
 
   @override
   Future<void> clear() async {}
+
+  @override
+  Future<void> replace(SecureSessionCredentials credentials) async {
+    throw const SecureSessionStorageFailure(
+      SecureSessionStorageFailureCode.unavailable,
+    );
+  }
 }

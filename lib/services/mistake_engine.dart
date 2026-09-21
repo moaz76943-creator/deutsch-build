@@ -48,7 +48,7 @@ class MistakeEngine {
     if(item!=null && item.grammaticalMarker.isNotEmpty) {
       final expected=item.grammaticalMarker.toLowerCase();
       final wrong=all.any((a)=>!a.correct && a.answer.toLowerCase().contains(RegExp(r'^(der|die|das|ein|eine)\b')) && !a.answer.toLowerCase().startsWith(expected));
-      if(wrong) return MistakeCategory.grammaticalMarker;
+      if(wrong) return MistakeCategory.article;
     }
     return MistakeCategory.vocabulary;
   }
@@ -69,7 +69,7 @@ class MistakeEngine {
     if(recentRate>=.60) return 'خطأ نشط ومتكرر؛ نحتاج إصلاحه الآن بتدريب قصير ومتدرّج.';
     if(recurrent) return 'خطأ متكرر؛ المشكلة تحتاج تثبيتًا إضافيًا بدل إعادة السؤال نفسه.';
     switch(category){
-      case MistakeCategory.grammaticalMarker: return 'تشخيص: Artikel؛ ركّز على جنس الاسم ثم استخدمه داخل جملة.';
+      case MistakeCategory.article: return 'تشخيص: Artikel؛ ركّز على جنس الاسم ثم استخدمه داخل جملة.';
       case MistakeCategory.grammar: return 'تشخيص: قاعدة؛ صحّح النمط ثم طبّقه في سياق جديد.';
       case MistakeCategory.translation: return 'تشخيص: نقل المعنى؛ اربط المعنى العربي بالبنية الألمانية.';
       case MistakeCategory.wordOrder: return 'تشخيص: ترتيب الجملة؛ ثبّت موقع الفعل ثم أعد بناء الجملة.';

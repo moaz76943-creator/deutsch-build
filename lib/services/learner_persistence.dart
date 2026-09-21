@@ -1,9 +1,6 @@
 import 'dart:convert';
 
-import '../models/assessment.dart';
-import '../models/content.dart';
 import '../models/learner.dart';
-import '../models/mistake.dart';
 import 'preferences_service.dart';
 
 enum LearnerPersistenceFailureCode {
@@ -161,7 +158,6 @@ class LearnerPersistence {
   static Attempt _normalizeAttempt(Attempt a) {
     final now = DateTime.now();
     final safeAt = a.at.isAfter(now.add(const Duration(days: 1))) ? now : a.at;
-    String bounded(String value, int max) => value.length > max ? value.substring(0, max) : value;
     return Attempt(id: a.id.toString().trim().length > 160 ? a.id.toString().trim().substring(0, 160) : a.id.toString().trim(), itemId: a.itemId.toString().trim().length > 160 ? a.itemId.toString().trim().substring(0, 160) : a.itemId.toString().trim(), skill: a.skill.toString().trim().length > 160 ? a.skill.toString().trim().substring(0, 160) : a.skill.toString().trim(),
       answer: a.answer.length > 1000 ? a.answer.substring(0, 1000) : a.answer, correct: a.correct, hinted: a.hinted, seconds: a.seconds.clamp(0, 3600), at: safeAt);
   }

@@ -1,4 +1,3 @@
-import '../core/content_contract.dart';
 import '../models/content.dart';
 import '../language/german/german_content_quality.dart';
 

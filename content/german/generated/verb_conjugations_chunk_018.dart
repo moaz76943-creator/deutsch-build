@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk018 = <VerbConjugation>[
 VerbConjugation(infinitive:'kontaktieren',arabic:'يتواصل مع',group:'12. أفعال جديدة ومتنوعة',person:'ich',personAr:'أنا',form:'kontaktiere',past:'habe kontaktieiert',pastArabic:'أنا تواصل معت',example:'Ich kontaktiere den Kunden.',exampleAr:'أنا : يتواصل مع — الزبون.',pastExample:'Ich habe den Kunden kontaktieiert.',pastExampleAr:'أنا تواصل معت يتواصل مع — الزبون.'),

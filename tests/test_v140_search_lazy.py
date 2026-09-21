@@ -10,7 +10,7 @@ def test_search_indexes_are_lazy_individual_stages():
     assert 'late final Map<String, List<T>> _tokenIndex =' in src
     assert 'late final Map<String, List<_Entry<T>>> _trigramIndex =' in src
     assert 'late final Map<String, List<_Entry<T>>> _trigramIndex =' in src
-    assert '_buildTrigrams(_items.map(_Entry<T>.new).toList(growable: false))' in src
+    assert '_buildTrigrams(_items.map((item) => _Entry<T>(item, _textNormalizer)).toList(growable: false))' in src
 
 def test_exact_search_can_return_without_token_and_fuzzy_index_builds():
     src = read('lib/services/search_index.dart')

@@ -1,3 +1,4 @@
+import '../../../lib/models/verb_conjugation.dart';
 import 'verb_conjugations_chunk_000.dart';
 import 'verb_conjugations_chunk_001.dart';
 import 'verb_conjugations_chunk_002.dart';

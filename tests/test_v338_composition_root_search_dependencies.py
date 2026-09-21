@@ -28,7 +28,7 @@ def test_core_pages_receive_explicit_search_dependencies():
     text = CORE.read_text(encoding="utf-8")
     assert "search_index_legacy.dart" not in text
     assert "LegacySearchIndex" not in text
-    assert "final SearchIndex searchIndex;" in text
+    assert "final SearchIndex searchIndex;" in text or "final SearchIndex<ContentItem> searchIndex;" in text
     assert "final VerbIndex verbIndex;" in text
 
 
@@ -36,5 +36,5 @@ def test_progress_pages_receive_explicit_search_dependencies():
     text = PROGRESS.read_text(encoding="utf-8")
     assert "search_index_legacy.dart" not in text
     assert "LegacySearchIndex" not in text
-    assert "final SearchIndex searchIndex;" in text
+    assert "final SearchIndex searchIndex;" in text or "final SearchIndex<ContentItem> searchIndex;" in text
     assert "final VerbIndex verbIndex;" in text

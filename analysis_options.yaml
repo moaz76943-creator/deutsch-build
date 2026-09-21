@@ -1,0 +1,9 @@
+# Authoring-only compatibility shims under lib/data still point to the
+# canonical content/german source tree. Runtime Flutter code consumes the
+# compiler-materialized package-local generated mirror instead.
+analyzer:
+  exclude:
+    - lib/data/content_a1_part_*.dart
+    - lib/data/content_expansion_*.dart
+    - lib/data/verb_conjugations_part_*.dart
+    - lib/data/verb_conjugations_v180.dart

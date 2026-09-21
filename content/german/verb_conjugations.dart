@@ -1,4 +1,5 @@
 export '../../lib/models/verb_conjugation.dart';
+import '../../lib/models/verb_conjugation.dart';
 import 'verb_conjugations_part_01.dart';
 import 'verb_conjugations_part_02.dart';
 import 'verb_conjugations_part_03.dart';

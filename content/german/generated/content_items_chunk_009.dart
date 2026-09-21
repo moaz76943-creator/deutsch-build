@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk009 = <ContentItem>[
 ContentItem(id:'w3601',german:'der Sicherheitsgurt',arabic:'حزام الأمان',sentence:'Das ist der der Sicherheitsgurt.',sentenceAr:'هذا هو حزام الأمان.',topic:'المواصلات والسيارات',skill:'production',article:'der',plural:'Sicherheitsgurte',accepted:[]),

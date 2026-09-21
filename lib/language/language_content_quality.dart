@@ -1,4 +1,4 @@
-import 'content_contract.dart';
+import '../core/content_contract.dart';
 
 /// Language-specific content quality contract.
 ///

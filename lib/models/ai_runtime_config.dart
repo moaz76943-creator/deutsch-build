@@ -4,7 +4,10 @@
 /// values produce an unconfigured state so the composition root can fail
 /// closed to the offline gateway.
 final class AiRuntimeConfig {
-  const AiRuntimeConfig._({required this.baseUri, required this.allowedHosts});
+  const AiRuntimeConfig._(
+      {required this.baseUri,
+      required this.allowedHosts,
+      required this.allowedHostsValid});
 
   static const String baseUrlDefine = 'DEUTSCH_AI_BASE_URL';
   static const String allowedHostsDefine = 'DEUTSCH_AI_ALLOWED_HOSTS';

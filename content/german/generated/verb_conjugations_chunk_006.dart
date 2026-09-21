@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk006 = <VerbConjugation>[
 VerbConjugation(infinitive:'befinden',arabic:'يكون موجودًا / يقع',group:'V58 — التواصل والمحادثة',person:'ihr',personAr:'أنتم',form:'befindet',past:'habt befindet',pastArabic:'أنتم كون موجودًاتم',example:'Ihr befindet heute.',exampleAr:'أنتم تكون موجودًا / يقعون اليوم.',pastExample:'Ihr habt heute befindet.',pastExampleAr:'أنتم كون موجودًاتم موجودًا / يقعون اليوم.'),

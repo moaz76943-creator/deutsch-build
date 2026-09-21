@@ -1,4 +1,5 @@
 # Flutter / Dart generated state
+lib/data/generated/
 .dart_tool/
 build/
 .gradle/

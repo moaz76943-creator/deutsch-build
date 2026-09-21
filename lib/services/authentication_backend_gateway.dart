@@ -9,7 +9,7 @@ import 'secure_session_storage.dart';
 
 final class TransportBackendAuthenticationGateway
     implements BackendAuthenticationGateway {
-  const TransportBackendAuthenticationGateway(
+  TransportBackendAuthenticationGateway(
     this.transport, {
     SecureSessionStorage? secureSessionStorage,
   }) : _secureSessionStorage =

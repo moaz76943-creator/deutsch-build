@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -12,7 +13,7 @@ def test_verb_page_does_not_rebuild_full_catalog_maps_in_build():
     assert 'final byGroup=<String,List<String>>{}' not in page
     assert 'final VerbIndex verbIndex;' in text
     assert 'required this.verbIndex' in text
-    assert 'final catalog=widget.verbIndex;' in page
+    assert re.search(r'final\s+catalog\s*=\s*widget\.verbIndex\s*;', page)
 
 
 def test_verb_index_exposes_cached_group_and_infinitive_catalog():

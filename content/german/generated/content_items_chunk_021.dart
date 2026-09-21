@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk021 = <ContentItem>[
 ContentItem(id:'w9527',german:'die Lernverbindung',arabic:'تعلم اتصال/وصلة',sentence:'Die ist hier.',sentenceAr:'تعلم اتصال/وصلة موجود هنا.',topic:'المفردات',skill:'recall',article:'die',plural:'',accepted:[]),

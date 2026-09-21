@@ -23,11 +23,11 @@ class WordProfileService {
       examples.add(v.example);
       examples.add(v.pastExample);
     }
-    final topicItems = searchIndex.topicGroups[item.topic] ?? const <T>[];
+    final topicItems = searchIndex.topicGroups[item.topic] ?? <T>[];
     for (final x in topicItems) {
       if (x.id != item.id && words.length < 8) words.add(x.sourceText);
     }
-    final sameSkillItems = searchIndex.skillGroups[item.skill] ?? const <T>[];
+    final sameSkillItems = searchIndex.skillGroups[item.skill] ?? <T>[];
     for (final x in sameSkillItems) {
       if (x.id == item.id || examples.length >= 8) continue;
       if (textNormalizer.answer(x.exampleText).contains(key)) examples.add(x.exampleText);

@@ -25,7 +25,7 @@ def test_dictionary_card_has_no_repository_load_or_corpus_scan():
     block = src[src.index('class _DictionaryWordCard'):]
     assert 'repo.load()' not in block
     assert 'corpus: a1' not in block
-    assert 'WordProfile profile' in block
+    assert 'WordProfile<ContentItem> profile' in block
 
 
 def test_word_profile_uses_indexes_and_pre_grouped_attempts():

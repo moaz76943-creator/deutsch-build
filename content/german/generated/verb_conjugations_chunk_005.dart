@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk005 = <VerbConjugation>[
 VerbConjugation(infinitive:'aufgeben',arabic:'يستسلم / يسلّم',group:'V56 — الحياة',person:'er',personAr:'هو',form:'gebt auf',past:'hat aufgegeben',pastArabic:'هو استسلم',example:'Er gebt auf heute.',exampleAr:'هو يستسلم / يسلّم اليوم.',pastExample:'Er hat auf heute aufgegeben.',pastExampleAr:'هو استسلم / يسلّم اليوم.'),

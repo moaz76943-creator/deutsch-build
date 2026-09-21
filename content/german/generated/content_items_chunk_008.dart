@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk008 = <ContentItem>[
 ContentItem(id:'w3201',german:'die Spätschicht',arabic:'الوردية المسائية',sentence:'Das ist die Spätschicht.',sentenceAr:'هذه هي الوردية المسائية.',topic:'العمل',skill:'production',article:'die',plural:'',accepted:[]),

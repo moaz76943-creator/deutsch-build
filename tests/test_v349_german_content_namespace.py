@@ -3,7 +3,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 GERMAN = ROOT / 'content' / 'german'
-LEGACY = ROOT / 'lib' / 'data'
+RUNTIME = ROOT / 'lib' / 'data'
 
 
 def test_german_content_namespace_contains_canonical_dart_sources():
@@ -16,13 +16,13 @@ def test_german_content_namespace_contains_canonical_dart_sources():
     assert (GERMAN / 'verb_conjugations.dart').exists()
 
 
-def test_legacy_data_files_are_compatibility_exports_not_canonical_tables():
-    text = (LEGACY / 'content_a1.dart').read_text(encoding='utf-8')
-    verb_text = (LEGACY / 'verb_conjugations.dart').read_text(encoding='utf-8')
-    assert 'export ' in text or 'part of ' in text
-    assert 'export ' in verb_text or 'part of ' in verb_text
+def test_runtime_data_facades_are_not_canonical_tables():
+    text = (RUNTIME / 'content_a1.dart').read_text(encoding='utf-8')
+    verb_text = (RUNTIME / 'verb_conjugations.dart').read_text(encoding='utf-8')
+    assert 'generated/content_items_generated.dart' in text
+    assert 'generated/verb_conjugations_generated.dart' in verb_text
     assert not re.search(r'ContentItem\(id\s*:', text)
-    assert not re.search(r'VerbConjugation\(', verb_text)
+    assert not re.search(r'VerbConjugation\(infinitive\s*:', verb_text)
 
 
 def _content_ids(path: Path):
@@ -38,7 +38,12 @@ def test_canonical_german_content_preserves_entry_identity_and_corpus_cardinalit
     assert 'w15776' in ids
 
 
-def test_legacy_import_surface_points_to_german_namespace():
-    for name in ('content_a1.dart', 'verb_conjugations.dart'):
-        text = (LEGACY / name).read_text(encoding='utf-8')
-        assert '../../content/german/' in text
+def test_runtime_facades_keep_authoring_and_flutter_runtime_separate():
+    content_facade = (RUNTIME / 'content_a1.dart').read_text(encoding='utf-8')
+    verb_facade = (RUNTIME / 'verb_conjugations.dart').read_text(encoding='utf-8')
+    assert '../../content/german/' not in content_facade
+    assert '../../content/german/' not in verb_facade
+    assert 'generated/content_items_generated.dart' in content_facade
+    assert 'generated/verb_conjugations_generated.dart' in verb_facade
+    assert (GERMAN / 'content_a1.dart').exists()
+    assert (GERMAN / 'verb_conjugations.dart').exists()

@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk020 = <ContentItem>[
 ContentItem(id:'w9127',german:'das Musikbuch',arabic:'الموسيقى كتاب',sentence:'Ich sehe das Musikbuch.',sentenceAr:'أنا أرى الموسيقى كتاب.',topic:'مفردات مركبة',skill:'recall',article:'das',plural:'Bücher',accepted:['das Musikbuch']),

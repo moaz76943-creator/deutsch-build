@@ -1,3 +1,4 @@
+export 'verb_index.dart' show VerbIndex;
 import '../core/content_contract.dart';
 import '../language/language_pack.dart';
 import 'search_index.dart';

@@ -55,7 +55,6 @@ void main() {
   test('returns transport session without changing its shape', () async {
     const session = AccountSession.authenticated(
       identity: AccountIdentity(userId: 'u1'),
-      provider: AccountProvider.google,
     );
     final transport = _SessionTransport(session);
 

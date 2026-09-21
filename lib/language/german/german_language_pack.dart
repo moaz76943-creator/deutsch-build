@@ -1,5 +1,10 @@
 import '../language_pack.dart';
 import '../language_content_pack.dart';
+import '../language_content_intelligence.dart';
+import '../language_content_quality.dart';
+import '../language_exercise_strategy.dart';
+import '../language_presentation.dart';
+import '../language_text_normalizer.dart';
 import 'german_content_pack.dart';
 import 'german_content_quality.dart';
 import 'german_content_intelligence.dart';

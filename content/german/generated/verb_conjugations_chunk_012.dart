@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk012 = <VerbConjugation>[
 VerbConjugation(infinitive:'bewirken',arabic:'يجدّد',group:'الحياة اليومية',person:'sie',personAr:'هي',form:'bewirkt',past:'hat bewirkt',pastArabic:'هي جدّدت',example:'Sie bewirkt das Problem.',exampleAr:'هي تجدّد المشكلة.',pastExample:'Sie hat das Problem bewirkt.',pastExampleAr:'هي جدّدت المشكلة.'),

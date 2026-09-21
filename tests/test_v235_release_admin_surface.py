@@ -20,5 +20,6 @@ def test_v35_settings_gates_quality_center():
 
 def test_legacy_settings_gates_quality_center():
     text = APP.read_text(encoding='utf-8')
-    assert "if(adminToolsEnabled) FilledButton.icon" in text
-    assert "QualityPage()" in text
+    assert 'if (adminToolsEnabled)' in text
+    assert 'FilledButton.icon' in text
+    assert 'QualityPage()' in text

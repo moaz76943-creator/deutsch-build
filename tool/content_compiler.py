@@ -11,6 +11,7 @@ import argparse
 import ast
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -99,8 +100,12 @@ def _remove_stale_chunks(output_dir: Path, prefix: str, expected: set[Path]) -> 
             path.unlink()
 
 
-def _write_aggregate(path: Path, imports: list[str], declaration: str, spreads: list[str]) -> bool:
-    text = "\n".join(imports) + "\n\nconst " + declaration + "[\n" + ",\n".join(spreads) + "\n];\n"
+def _rel_uri(base: Path, target: Path) -> str:
+    return os.path.relpath(str(target), str(base)).replace(os.sep, "/")
+
+
+def _write_aggregate(path: Path, model_import: str, imports: list[str], declaration: str, spreads: list[str]) -> bool:
+    text = "\n".join([model_import, *imports]) + "\n\nconst " + declaration + "[\n" + ",\n".join(spreads) + "\n];\n"
     return _write_if_changed(path, text)
 
 
@@ -113,8 +118,12 @@ def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: P
         cached = load_cache(cache_path)
         if cache_valid(cached.get(cache_key, {}), fp) and (output_dir / "content_items_generated.dart").exists() and (output_dir / "verb_conjugations_generated.dart").exists():
             return output_dir / "content_items_generated.dart", output_dir / "verb_conjugations_generated.dart"
-    content_chunks, content_hashes = _write_chunks(output_dir, content, content_row, "content_items", "generatedContentItemsChunk", "../../models/content.dart")
-    verb_chunks, verb_hashes = _write_chunks(output_dir, verbs, verb_row, "verb_conjugations", "generatedVerbConjugationsChunk", "../../models/verb_conjugation.dart")
+    content_model = ROOT / "lib" / "models" / "content.dart"
+    verb_model = ROOT / "lib" / "models" / "verb_conjugation.dart"
+    content_model_uri = _rel_uri(output_dir, content_model)
+    verb_model_uri = _rel_uri(output_dir, verb_model)
+    content_chunks, content_hashes = _write_chunks(output_dir, content, content_row, "content_items", "generatedContentItemsChunk", content_model_uri)
+    verb_chunks, verb_hashes = _write_chunks(output_dir, verbs, verb_row, "verb_conjugations", "generatedVerbConjugationsChunk", verb_model_uri)
     _remove_stale_chunks(output_dir, "content_items", set(content_chunks))
     _remove_stale_chunks(output_dir, "verb_conjugations", set(verb_chunks))
     content_out = output_dir / "content_items_generated.dart"
@@ -123,8 +132,8 @@ def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: P
     verb_imports = [f"import 'verb_conjugations_chunk_{i:03d}.dart';" for i in range(len(verb_chunks))]
     content_spread = [f"  ...generatedContentItemsChunk{i:03d}" for i in range(len(content_chunks))]
     verb_spread = [f"  ...generatedVerbConjugationsChunk{i:03d}" for i in range(len(verb_chunks))]
-    _write_aggregate(content_out, content_imports, "generatedContentItems = <ContentItem>", content_spread)
-    _write_aggregate(verbs_out, verb_imports, "generatedVerbConjugations = <VerbConjugation>", verb_spread)
+    _write_aggregate(content_out, f"import '{content_model_uri}';", content_imports, "generatedContentItems = <ContentItem>", content_spread)
+    _write_aggregate(verbs_out, f"import '{verb_model_uri}';", verb_imports, "generatedVerbConjugations = <VerbConjugation>", verb_spread)
     if cache_path is not None:
         fp = fingerprint([content_path, verb_path], config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
         store_cache(cache_path, "content_compilation", fp, {"status": "PASS", "content_chunk_hashes": content_hashes, "verb_chunk_hashes": verb_hashes})

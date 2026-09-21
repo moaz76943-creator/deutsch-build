@@ -13,33 +13,403 @@ import '../../services/word_profile_service.dart';
 import '../../language/language_presentation.dart';
 import '../../models/word_profile.dart';
 import '../safe_ui.dart';
-import '../../../content/german/content_a1.dart';
 
 /// Independent, low-coupling pages extracted from the root UI composition file.
 ///
 /// Public widget names and constructor contracts intentionally remain unchanged
 /// so existing navigation code does not need behavioral changes.
 
-class WeeklyPage extends StatelessWidget { final LearnerState state; const WeeklyPage({super.key, required this.state}); @override Widget build(BuildContext c) { final r = WeeklyReport.from(state); return Scaffold(appBar: AppBar(title: const Text('تقرير الأسبوع')), body: ListView(padding: const EdgeInsets.all(18), children: [Text('آخر 7 أيام', style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), const SizedBox(height: 14), _box('المحاولات', '${r.attempts}'), _box('الدقة', r.attempts == 0 ? 'لا توجد بيانات' : '${(r.accuracy * 100).round()}%'), _box('الكلمات المكتسبة', '${r.learned}'), _box('للمراجعة', '${r.reviews}'), const SizedBox(height: 10), Text(r.attempts == 0 ? 'ابدأ جلسة حتى يصبح التقرير مبنيًا على بيانات حقيقية.' : r.accuracy >= .8 ? 'أداء جيد. الآن نركز على النقل والاحتفاظ.' : 'نحتاج مزيدًا من المحاولات المتنوعة.')]); } Widget _box(String a, String b) => Card(child: ListTile(title: Text(a), trailing: Text(b, style: const TextStyle(fontWeight: FontWeight.w900)))); }
+class WeeklyPage extends StatelessWidget {
+  final LearnerState state;
+  const WeeklyPage({super.key, required this.state});
 
-class GermanyRealityPage extends StatelessWidget { final LearnerRepository repo; final VoidCallback onDone; final LanguagePresentation presentation; const GermanyRealityPage({super.key, required this.repo, required this.onDone, required this.presentation}); @override Widget build(BuildContext c) { final realWorld = presentation.realWorld; return Scaffold(appBar: AppBar(title: Text(realWorld.title)), body: ListView(padding: const EdgeInsets.all(12), children: [Text(realWorld.subtitle), const SizedBox(height: 8), ...realWorld.scenarios.map((x) => Card(child: ListTile(title: Text(x.title), subtitle: Text('${x.targetText}\n${x.sourceText}'), isThreeLine: true, onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => RealityPractice(repo: repo, title: x.title, targetText: x.targetText, sourceText: x.sourceText, onDone: onDone, presentation: presentation)))))])); } }
+  @override
+  Widget build(BuildContext context) {
+    final report = WeeklyReport.from(state);
+    return Scaffold(
+      appBar: AppBar(title: const Text('تقرير الأسبوع')),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Text(
+            'آخر 7 أيام',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 14),
+          _box('المحاولات', '${report.attempts}'),
+          _box(
+            'الدقة',
+            report.attempts == 0
+                ? 'لا توجد بيانات'
+                : '${(report.accuracy * 100).round()}%',
+          ),
+          _box('الكلمات المكتسبة', '${report.learned}'),
+          _box('للمراجعة', '${report.reviews}'),
+          const SizedBox(height: 10),
+          Text(
+            report.attempts == 0
+                ? 'ابدأ جلسة حتى يصبح التقرير مبنيًا على بيانات حقيقية.'
+                : report.accuracy >= .8
+                    ? 'أداء جيد. الآن نركز على النقل والاحتفاظ.'
+                    : 'نحتاج مزيدًا من المحاولات المتنوعة.',
+          ),
+        ],
+      ),
+    );
+  }
 
-class RealityPractice extends StatefulWidget { final LearnerRepository repo; final String title, targetText, sourceText; final VoidCallback onDone; final LanguagePresentation presentation; const RealityPractice({super.key, required this.repo, required this.title, required this.targetText, required this.sourceText, required this.onDone, required this.presentation}); @override State<RealityPractice> createState() => _RealityState(); }
+  Widget _box(String label, String value) => Card(
+        child: ListTile(
+          title: Text(label),
+          trailing: Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ),
+      );
+}
 
-class _RealityState extends State<RealityPractice> { String answer = ''; bool done = false, correct = false; late DateTime start; @override void initState() { super.initState(); start = DateTime.now(); } Future<void> submit() async { String norm(String x) => x.toLowerCase().replaceAll(RegExp(r'[.!?,]'), '').replaceAll(RegExp(r'\s+'), ' ').trim(); correct = norm(answer) == norm(widget.targetText); await widget.repo.record(item: ContentItem(id: 'reality_${widget.title}', german: widget.targetText, arabic: widget.sourceText, sentence: widget.targetText, sentenceAr: widget.sourceText, topic: widget.title, skill: 'transfer', accepted: [widget.targetText]), answer: answer, correct: correct, seconds: DateTime.now().difference(start).inSeconds.clamp(1, 999).toInt(), hinted: false, skillOverride: 'transfer'); if (!mounted) return; setState(() => done = true); } @override Widget build(BuildContext c) => Scaffold(appBar: AppBar(title: Text(widget.title)), body: ListView(padding: const EdgeInsets.all(18), children: [Text(widget.sourceText, style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), const SizedBox(height: 8), Text(widget.presentation.realWorld.targetLanguageInstruction), const SizedBox(height: 15), TextField(enabled: !done, onChanged: (x) => answer = x, textDirection: TextDirection.ltr, decoration: InputDecoration(border: const OutlineInputBorder(), labelText: widget.presentation.realWorld.title)), const SizedBox(height: 12), if (!done) FilledButton(onPressed: submit, child: const Text('تحقق')) else Card(child: ListTile(title: Text(correct ? 'صحيح' : 'راجع الصياغة'), subtitle: Text(widget.targetText))), if (done) FilledButton(onPressed: () { widget.onDone(); Navigator.pop(c); }, child: const Text('إنهاء'))])); }
+class GermanyRealityPage extends StatelessWidget {
+  final LearnerRepository repo;
+  final VoidCallback onDone;
+  final LanguagePresentation presentation;
 
-class PlacementPage extends StatefulWidget { final LearnerRepository repo; final VoidCallback onDone; final LanguagePresentation presentation; const PlacementPage({super.key, required this.repo, required this.onDone, required this.presentation}); @override State<PlacementPage> createState() => _PlacementState(); }
+  const GermanyRealityPage({
+    super.key,
+    required this.repo,
+    required this.onDone,
+    required this.presentation,
+  });
 
-class _PlacementState extends State<PlacementPage> { int i = 0, score = 0; String answer = ''; void submit() { final questions = widget.presentation.placement.questions; if (answer.trim().toLowerCase() == questions[i].answer.toLowerCase()) score++; if (i + 1 == questions.length) { widget.onDone(); showDialog(context: context, builder: (_) => AlertDialog(title: Text(widget.presentation.placement.resultTitle), content: Text(widget.presentation.placement.resultMessage(score, questions.length)), actions: [TextButton(onPressed: () => Navigator.pop(_), child: const Text('حسنًا'))])); } else { setState(() { i++; answer = ''; }); } } @override Widget build(BuildContext c) { final placement = widget.presentation.placement; final questions = placement.questions; final question = questions[i]; return Scaffold(appBar: AppBar(title: Text('${placement.title} ${i + 1}/${questions.length}')), body: ListView(padding: const EdgeInsets.all(18), children: [Text(question.prompt, style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), const SizedBox(height: 16), TextField(onChanged: (x) => answer = x, textDirection: TextDirection.ltr, decoration: InputDecoration(border: const OutlineInputBorder(), labelText: placement.answerLabel)), const SizedBox(height: 12), FilledButton(onPressed: submit, child: Text(i + 1 == questions.length ? placement.finishLabel : placement.nextLabel))])); } }
+  @override
+  Widget build(BuildContext context) {
+    final realWorld = presentation.realWorld;
+    return Scaffold(
+      appBar: AppBar(title: Text(realWorld.title)),
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: [
+          Text(realWorld.subtitle),
+          const SizedBox(height: 8),
+          ...realWorld.scenarios.map(
+            (scenario) => Card(
+              child: ListTile(
+                title: Text(scenario.title),
+                subtitle: Text(
+                  '${scenario.targetText}\n${scenario.sourceText}',
+                ),
+                isThreeLine: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => RealityPractice(
+                      repo: repo,
+                      title: scenario.title,
+                      targetText: scenario.targetText,
+                      sourceText: scenario.sourceText,
+                      onDone: onDone,
+                      presentation: presentation,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-class QualityV35 extends StatelessWidget { const QualityV35({super.key}); @override Widget build(BuildContext c) { final failed = releaseGates.where((x) => !x.passed).length; return Scaffold(appBar: AppBar(title: const Text('Quality Center')), body: ListView(padding: const EdgeInsets.all(18), children: [Text('$failed بوابات غير مكتملة', style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), const SizedBox(height: 10), ...releaseGates.map((g) => Card(child: ListTile(leading: Icon(g.passed ? Icons.check_circle : Icons.lock_outline), title: Text(g.name), subtitle: Text(g.note)))), const SizedBox(height: 10), const Text('لا نعلن عن ميزة كأنها مكتملة إذا كانت مجرد Prototype.', style: TextStyle(fontWeight: FontWeight.w700))])); } }
+class RealityPractice extends StatefulWidget {
+  final LearnerRepository repo;
+  final String title;
+  final String targetText;
+  final String sourceText;
+  final VoidCallback onDone;
+  final LanguagePresentation presentation;
 
-class FeatureStatusPage extends StatelessWidget { const FeatureStatusPage({super.key}); @override Widget build(BuildContext c)=>Scaffold(appBar:AppBar(title:const Text('حالة أدوات التطبيق')),body:ListView(padding:const EdgeInsets.all(12),children:featureRegistry.map((f)=>Card(child:ListTile(leading:Icon(f.active?Icons.check_circle:Icons.pending_outlined),title:Text(f.name),subtitle:Text(f.note),trailing:Text(f.active?'مفعّل':'قيد التطوير')))).toList()); }
+  const RealityPractice({
+    super.key,
+    required this.repo,
+    required this.title,
+    required this.targetText,
+    required this.sourceText,
+    required this.onDone,
+    required this.presentation,
+  });
 
+  @override
+  State<RealityPractice> createState() => _RealityState();
+}
+
+class _RealityState extends State<RealityPractice> {
+  String answer = '';
+  bool done = false;
+  bool correct = false;
+  late DateTime start;
+
+  @override
+  void initState() {
+    super.initState();
+    start = DateTime.now();
+  }
+
+  Future<void> submit() async {
+    String norm(String value) => value
+        .toLowerCase()
+        .replaceAll(RegExp(r'[.!?,]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    correct = norm(answer) == norm(widget.targetText);
+    await widget.repo.record(
+      item: ContentItem(
+        id: 'reality_${widget.title}',
+        german: widget.targetText,
+        arabic: widget.sourceText,
+        sentence: widget.targetText,
+        sentenceAr: widget.sourceText,
+        topic: widget.title,
+        skill: 'transfer',
+        accepted: [widget.targetText],
+      ),
+      answer: answer,
+      correct: correct,
+      seconds: DateTime.now().difference(start).inSeconds.clamp(1, 999).toInt(),
+      hinted: false,
+      skillOverride: 'transfer',
+    );
+    if (!mounted) return;
+    setState(() => done = true);
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: Text(widget.title)),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            Text(
+              widget.sourceText,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text(widget.presentation.realWorld.targetLanguageInstruction),
+            const SizedBox(height: 15),
+            TextField(
+              enabled: !done,
+              onChanged: (value) => answer = value,
+              textDirection: TextDirection.ltr,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: widget.presentation.realWorld.title,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (!done)
+              FilledButton(
+                onPressed: submit,
+                child: const Text('تحقق'),
+              )
+            else
+              Card(
+                child: ListTile(
+                  title: Text(correct ? 'صحيح' : 'راجع الصياغة'),
+                  subtitle: Text(widget.targetText),
+                ),
+              ),
+            if (done)
+              FilledButton(
+                onPressed: () {
+                  widget.onDone();
+                  Navigator.pop(context);
+                },
+                child: const Text('إنهاء'),
+              ),
+          ],
+        ),
+      );
+}
+
+class PlacementPage extends StatefulWidget {
+  final LearnerRepository repo;
+  final VoidCallback onDone;
+  final LanguagePresentation presentation;
+
+  const PlacementPage({
+    super.key,
+    required this.repo,
+    required this.onDone,
+    required this.presentation,
+  });
+
+  @override
+  State<PlacementPage> createState() => _PlacementState();
+}
+
+class _PlacementState extends State<PlacementPage> {
+  int i = 0;
+  int score = 0;
+  String answer = '';
+
+  void submit() {
+    final questions = widget.presentation.placement.questions;
+    if (questions.isEmpty) return;
+    if (answer.trim().toLowerCase() == questions[i].answer.toLowerCase()) {
+      score++;
+    }
+    if (i + 1 == questions.length) {
+      widget.onDone();
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(widget.presentation.placement.resultTitle),
+          content: Text(
+            widget.presentation.placement.resultMessage(score, questions.length),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('حسنًا'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      setState(() {
+        i++;
+        answer = '';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final placement = widget.presentation.placement;
+    final questions = placement.questions;
+    if (questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text(placement.title)),
+        body: const Center(child: Text('لا توجد أسئلة تحديد مستوى متاحة حاليًا.')),
+      );
+    }
+    final question = questions[i];
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${placement.title} ${i + 1}/${questions.length}'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Text(
+            question.prompt,
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            onChanged: (value) => answer = value,
+            textDirection: TextDirection.ltr,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: placement.answerLabel,
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: submit,
+            child: Text(
+              i + 1 == questions.length
+                  ? placement.finishLabel
+                  : placement.nextLabel,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class QualityV35 extends StatelessWidget {
+  const QualityV35({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final failed = releaseGates.where((gate) => !gate.passed).length;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Quality Center')),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Text(
+            '$failed بوابات غير مكتملة',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          ...releaseGates.map(
+            (gate) => Card(
+              child: ListTile(
+                leading: Icon(
+                  gate.passed ? Icons.check_circle : Icons.lock_outline,
+                ),
+                title: Text(gate.name),
+                subtitle: Text(gate.note),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'لا نعلن عن ميزة كأنها مكتملة إذا كانت مجرد Prototype.',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FeatureStatusPage extends StatelessWidget {
+  const FeatureStatusPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('حالة أدوات التطبيق')),
+        body: ListView(
+          padding: const EdgeInsets.all(12),
+          children: featureRegistry
+              .map(
+                (feature) => Card(
+                  child: ListTile(
+                    leading: Icon(
+                      feature.active
+                          ? Icons.check_circle
+                          : Icons.pending_outlined,
+                    ),
+                    title: Text(feature.name),
+                    subtitle: Text(feature.note),
+                    trailing: Text(feature.active ? 'مفعّل' : 'قيد التطوير'),
+                  ),
+                ),
+              )
+              .toList(growable: false),
+        ),
+      );
+}
 
 class CategoriesPage extends StatelessWidget {
   final LearnerRepository repo;
-  final SearchIndex searchIndex;
+  final SearchIndex<ContentItem> searchIndex;
   final LanguagePresentation presentation;
   const CategoriesPage({super.key, required this.repo, required this.searchIndex, required this.presentation});
   @override
@@ -94,7 +464,7 @@ class _CategoryWordsPageState extends State<CategoryWordsPage> {
             child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
               Row(children:[
                 Expanded(child:Text(x.sourceText,style:const TextStyle(fontSize:19,fontWeight:FontWeight.w900),textDirection:TextDirection.ltr)),
-                IconButton(tooltip:presentation.pronunciationTooltip,onPressed:()=>_speak(x.sourceText),icon:const Icon(Icons.volume_up_outlined)),
+                IconButton(tooltip:widget.presentation.pronunciationTooltip,onPressed:()=>_speak(x.sourceText),icon:const Icon(Icons.volume_up_outlined)),
               ]),
               Text(x.translationText,style:const TextStyle(fontSize:16)),
               const Divider(height:20),
@@ -104,8 +474,8 @@ class _CategoryWordsPageState extends State<CategoryWordsPage> {
               if(x.grammaticalMarker.isNotEmpty||x.pluralForm.isNotEmpty) ...[
                 const SizedBox(height:8),
                 Wrap(spacing:8,runSpacing:6,children:[
-                  if(x.grammaticalMarker.isNotEmpty)Chip(label:Text('${presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}')),
-                  if(x.pluralForm.isNotEmpty)Chip(label:Text('${presentation.pluralLabel}: ${x.pluralForm}')),
+                  if(x.grammaticalMarker.isNotEmpty)Chip(label:Text('${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}')),
+                  if(x.pluralForm.isNotEmpty)Chip(label:Text('${widget.presentation.pluralLabel}: ${x.pluralForm}')),
                 ]),
               ],
             ]),
@@ -118,7 +488,7 @@ class _CategoryWordsPageState extends State<CategoryWordsPage> {
 
 class SearchDictionaryPage extends StatefulWidget {
   final LearnerRepository repo;
-  final SearchIndex searchIndex;
+  final SearchIndex<ContentItem> searchIndex;
   final VerbIndex verbIndex;
   final LanguagePresentation presentation;
   final LanguageTextNormalizer textNormalizer;
@@ -158,14 +528,14 @@ class _SearchDictionaryState extends State<SearchDictionaryPage> {
         : ListView.builder(padding:const EdgeInsets.symmetric(horizontal:12),itemCount:results.length,itemBuilder:(c,i){
         final x=results[i];
         return _DictionaryWordCard(item:x, profile:_profileFor(x), speak:_speak, presentation:widget.presentation);
-      }));
+      })),
     ]));
   }
 }
 
 class _DictionaryWordCard extends StatelessWidget {
   final ContentItem item;
-  final WordProfile profile;
+  final WordProfile<ContentItem> profile;
   final Future<void> Function(String) speak;
   final LanguagePresentation presentation;
   const _DictionaryWordCard({required this.item, required this.profile, required this.speak, required this.presentation});

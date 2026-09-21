@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk027 = <ContentItem>[
 ContentItem(id:'v68_0298',german:'den Fehler korrigieren am Morgen',arabic:'يصحح الخطأ في الصباح',sentence:'Ich korrigiere den Fehler am Morgen.',sentenceAr:'أنا أقوم بـيصحح الخطأ في الصباح.',topic:'تراكيب فعلية — التعلم',skill:'production',article:'',plural:'',accepted:['den Fehler korrigieren am Morgen']),

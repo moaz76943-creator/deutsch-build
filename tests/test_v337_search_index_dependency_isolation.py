@@ -21,5 +21,6 @@ def test_search_index_requires_explicit_dependencies():
 def test_legacy_facade_owns_singleton_composition():
     text = LEGACY.read_text(encoding="utf-8")
     assert 'GermanContentPack' in text
-    assert "VerbIndex.instance" in text
+    assert "VerbIndex.instance" not in text
+    assert "VerbIndex(textNormalizer: const GermanTextNormalizer())" in text
     assert "SearchIndex(" in text

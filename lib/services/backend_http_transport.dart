@@ -5,6 +5,7 @@ import 'dart:io';
 import '../models/account_session.dart';
 import '../models/backend_transport.dart';
 import '../models/secure_session_credentials.dart';
+import 'backend_transport.dart';
 
 /// HTTPS transport implementation for the provider-neutral backend contract.
 ///
@@ -12,7 +13,7 @@ import '../models/secure_session_credentials.dart';
 /// never persists credentials, interprets credential contents, or decides
 /// authentication/entitlement policy.
 final class HttpBackendTransport implements BackendTransport {
-  const HttpBackendTransport(
+  HttpBackendTransport(
     this.baseUri, {
     Duration timeout = const Duration(seconds: 15),
   }) : timeout = _validateTimeout(timeout);
@@ -110,7 +111,7 @@ final class HttpBackendTransport implements BackendTransport {
   static Duration _remainingUntil(DateTime deadline) {
     final remaining = deadline.difference(DateTime.now());
     if (remaining <= Duration.zero) {
-      throw const TimeoutException('Backend response deadline exceeded');
+      throw TimeoutException('Backend response deadline exceeded');
     }
     return remaining;
   }

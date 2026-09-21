@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk031 = <ContentItem>[
 ContentItem(id:'w13530',german:'der Kunde bestätigt den Termin',arabic:'العميل يؤكد الموعد',sentence:'Der Kunde bestätigt den Termin.',sentenceAr:'العميل يؤكد الموعد.',topic:'تراكيب عملية — العمل والخدمات',skill:'production',article:'',plural:'',accepted:[]),

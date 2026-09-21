@@ -79,6 +79,9 @@ jobs:
       - name: Fetch Flutter dependencies
         run: flutter pub get
 
+      - name: Materialize Flutter runtime content
+        run: python3 tool/content_compiler.py compile --output-dir lib/data/generated
+
       - name: Analyze Flutter project
         run: flutter analyze
 

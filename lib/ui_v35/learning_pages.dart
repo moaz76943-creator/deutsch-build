@@ -1,41 +1,20 @@
 import 'package:flutter/material.dart';
 import '../core/learning_core.dart';
+import '../core/content_contract.dart';
 import '../language/language_exercise_strategy.dart';
 import '../language/language_presentation.dart';
 import '../language/language_content_quality.dart';
-import '../core/safe_runtime.dart';
-import '../../content/german/verb_conjugations.dart';
 import '../models/content.dart';
-import '../models/conversation.dart';
 import '../models/learner.dart';
 import '../models/assessment.dart';
-import '../services/ai_contract.dart';
-import '../services/release.dart';
 import '../services/repository.dart';
-import '../services/features.dart';
 import '../services/subscription.dart';
 import '../language/language_text_normalizer.dart';
-import '../services/adaptive_teacher.dart';
-import '../services/daily_plan.dart';
-import '../services/mastery.dart';
-import '../services/mastery_dashboard.dart';
 import '../language/language_content_intelligence.dart';
-import '../services/mistake_analysis.dart';
-import '../services/search_index.dart';
-import '../services/speech_service.dart';
-import '../services/ai_gateway.dart';
 import '../services/assessment_engine.dart';
 import '../services/learning_engine.dart';
-import '../services/conversation_engine.dart';
-import '../services/mistake_coach.dart';
-import '../services/reading_practice.dart';
 import '../models/learning_path.dart';
-import '../models/word_profile.dart';
-import '../services/word_profile_service.dart';
-import '../models/mistake.dart';
-import '../services/mistake_engine.dart';
-import '../services/repair_engine.dart';
-import 'pages/core_pages.dart';
+import 'account_pages.dart';
 import 'safe_ui.dart';
 import '../services/content_depth.dart';
 
@@ -74,37 +53,37 @@ class _CoreState extends State<CoreSession> {
   }
   String get prompt { final d = depthFor(item); switch (mode) { case 'recall': return 'ما الكلمة بـ${widget.presentation.targetLanguageName}؟ ${item.translationText}'; case 'listening': return 'استمع ثم اكتب الجملة التي تسمعها.'; case 'transfer': return d.transferPrompt.isNotEmpty ? d.transferPrompt : item.exampleTranslationText; default: return d.transferPrompt.isNotEmpty ? d.transferPrompt : item.exampleTranslationText; } }
   String get expected { final d = depthFor(item); switch (mode) { case 'recall': return item.sourceText; case 'listening': return item.exampleText; case 'transfer': return d.transferAnswer.isNotEmpty ? d.transferAnswer : item.exampleText; default: return d.transferAnswer.isNotEmpty ? d.transferAnswer : (item.acceptedForms.isNotEmpty ? item.acceptedForms.first : item.sourceText); } }
-  Future<void> submit() async { if (submitted) return; final a = widget.textNormalizer.answer(answer); final e = widget.textNormalizer.answer(expected); correct = a == e || item.acceptedForms.map(norm).contains(a); await widget.repo.record(item: item, answer: answer, correct: correct, seconds: DateTime.now().difference(started).inSeconds.clamp(1, 999).toInt(), hinted: false, skillOverride: mode); if (!mounted) return; setState(() => submitted = true); }
+  Future<void> submit() async { if (submitted) return; final a = widget.textNormalizer.answer(answer); final e = widget.textNormalizer.answer(expected); correct = a == e || item.acceptedForms.any((value) => widget.textNormalizer.answer(value) == a); await widget.repo.record(item: item, answer: answer, correct: correct, seconds: DateTime.now().difference(started).inSeconds.clamp(1, 999).toInt(), hinted: false, skillOverride: mode); if (!mounted) return; setState(() => submitted = true); }
   Future<void> speak() => tts.speak( item.exampleText, rate: .42);
   @override void dispose() { tts.stop(); super.dispose(); }
   @override Widget build(BuildContext c) => Scaffold(appBar: AppBar(title: Text('جلسة ${pos + 1}/${items.length}')), body: ListView(padding: const EdgeInsets.all(18), children: [
     Chip(label: Text(mode == 'listening' ? 'Listening' : mode == 'transfer' ? 'Transfer' : mode == 'recall' ? 'Recognition' : 'Production')),
     const SizedBox(height: 12), Text(item.topic, style: Theme.of(c).textTheme.labelLarge), const SizedBox(height: 7), Text(prompt, style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
     if (mode == 'listening') Padding(padding: const EdgeInsets.only(top: 14), child: FilledButton.icon(onPressed: speak, icon: const Icon(Icons.volume_up), label: const Text('استمع'))),
-    const SizedBox(height: 14), TextField(enabled: !submitted, onChanged: (x) => answer = x, textDirection: TextDirection.ltr, minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'إجابتك بـ${widget.presentation.targetLanguageName}', border: OutlineInputBorder())), const SizedBox(height: 12),
+    const SizedBox(height: 14), TextField(enabled: !submitted, onChanged: (x) => answer = x, textDirection: TextDirection.ltr, minLines: 1, maxLines: 3, decoration: InputDecoration(labelText: 'إجابتك بـ${widget.presentation.targetLanguageName}', border: const OutlineInputBorder())), const SizedBox(height: 12),
     if (!submitted) FilledButton(onPressed: submit, child: const Text('تحقق')) else Card(child: Padding(padding: const EdgeInsets.all(15), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(correct ? '✓ إجابة صحيحة' : '✗ نحتاج تدريبًا إضافيًا', style: Theme.of(c).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)), const SizedBox(height: 5), Text('الإجابة المستهدفة: $expected'), if (depthFor(item).grammar.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text('قاعدة: ${depthFor(item).grammar}')), if (depthFor(item).collocation.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text('تركيب مهم: ${depthFor(item).collocation}'))]))),
     const SizedBox(height: 12), if (submitted) FilledButton(onPressed: () { if (pos + 1 >= items.length) { widget.onDone(); Navigator.pop(c); } else { setState(() { pos++; submitted = false; answer = ''; started = DateTime.now(); mode = plannedItems.isEmpty ? _fallbackMode(pos, sessionState) : _modeForPlanItem(plannedItems[pos]); }); } }, child: Text(pos + 1 >= items.length ? 'إنهاء الجلسة' : 'التالي')),
   ]));
 }
 
 class VocabularyV35 extends StatelessWidget {
-  final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageContentQuality contentQuality;
-  const VocabularyV35({super.key, required this.repo, required this.corpus, required this.onDone, required this.presentation, required this.contentQuality});
+  final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer;
+  const VocabularyV35({super.key, required this.repo, required this.corpus, required this.onDone, required this.presentation, required this.contentQuality, required this.textNormalizer});
   @override Widget build(BuildContext c) {
-    return Scaffold(appBar: AppBar(title: Text('A1 • ${corpus.length} وحدات تعلم')), body: ListView.builder(padding: const EdgeInsets.all(12), itemCount: corpus.length, itemBuilder: (c, i) { final x = corpus[i]; final d = depthFor(x); final issues = contentQuality.issues(x); return Card(child: ExpansionTile(title: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${x.translationText} • ${x.topic}'), children: [ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText)), if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${presentation.pluralLabel}: ${x.pluralForm}')), if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)), if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)), if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')), ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: repo, item: x, onDone: onDone, presentation: presentation))))])); }));
+    return Scaffold(appBar: AppBar(title: Text('A1 • ${corpus.length} وحدات تعلم')), body: ListView.builder(padding: const EdgeInsets.all(12), itemCount: corpus.length, itemBuilder: (c, i) { final x = corpus[i]; final d = depthFor(x); final issues = contentQuality.issues(x); return Card(child: ExpansionTile(title: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${x.translationText} • ${x.topic}'), children: [ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText)), if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${presentation.pluralLabel}: ${x.pluralForm}')), if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)), if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)), if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')), ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: repo, item: x, onDone: onDone, presentation: presentation, textNormalizer: textNormalizer))))])); }));
   }
 }
 
-class SingleItemSession extends StatefulWidget { final LearnerRepository repo; final ContentItem item; final VoidCallback onDone; final LanguagePresentation presentation; const SingleItemSession({super.key, required this.repo, required this.item, required this.onDone, required this.presentation}); @override State<SingleItemSession> createState() => _SingleState(); }
+class SingleItemSession extends StatefulWidget { final LearnerRepository repo; final ContentItem item; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageTextNormalizer textNormalizer; const SingleItemSession({super.key, required this.repo, required this.item, required this.onDone, required this.presentation, required this.textNormalizer}); @override State<SingleItemSession> createState() => _SingleState(); }
 class _SingleState extends State<SingleItemSession> {
   final SafeTtsController tts = SafeTtsController(); int step = 0; String answer = ''; bool done = false, correct = false; late DateTime start;
   final labels = const ['Recognize','Understand','Listen','Produce','Transfer','Retain'];
   @override void initState() { super.initState(); start = DateTime.now(); }
   String get expected { final d = depthFor(widget.item); if (step == 0) return widget.item.sourceText; if (step == 2) return widget.item.exampleText; if (step == 4 && d.transferAnswer.isNotEmpty) return d.transferAnswer; return widget.item.exampleText; }
   String get question { final d = depthFor(widget.item); switch (step) { case 0: return 'ما الكلمة بـ${widget.presentation.targetLanguageName}؟ ${widget.item.translationText}'; case 1: return 'اربط الكلمة بمعناها ثم اكتبها بـ${widget.presentation.targetLanguageName}.'; case 2: return 'استمع ثم اكتب الجملة.'; case 3: return d.transferPrompt.isNotEmpty ? d.transferPrompt : widget.item.exampleTranslationText; case 4: return d.transferPrompt.isNotEmpty ? d.transferPrompt : 'استخدم الكلمة في موقف جديد.'; default: return 'مراجعة متأخرة: اكتب ما تتذكره.'; } }
-  Future<void> submit() async { final a = widget.textNormalizer.answer(answer); final e = widget.textNormalizer.answer(expected); correct = a == e || widget.item.acceptedForms.map(norm).contains(a); final skills = ['recall','recall','listening','production','transfer','recall']; await widget.repo.record(item: widget.item, answer: answer, correct: correct, seconds: DateTime.now().difference(start).inSeconds.clamp(1, 999).toInt(), hinted: false, skillOverride: skills[step]); if (!mounted) return; setState(() => done = true); }
+  Future<void> submit() async { final a = widget.textNormalizer.answer(answer); final e = widget.textNormalizer.answer(expected); correct = a == e || widget.item.acceptedForms.any((value) => widget.textNormalizer.answer(value) == a); final skills = ['recall','recall','listening','production','transfer','recall']; await widget.repo.record(item: widget.item, answer: answer, correct: correct, seconds: DateTime.now().difference(start).inSeconds.clamp(1, 999).toInt(), hinted: false, skillOverride: skills[step]); if (!mounted) return; setState(() => done = true); }
   Future<void> speak() => tts.speak( widget.item.exampleText);
-  @override Widget build(BuildContext c) => Scaffold(appBar: AppBar(title: Text('${labels[step]} • ${widget.item.sourceText}')), body: ListView(padding: const EdgeInsets.all(18), children: [LinearProgressIndicator(value: (step + 1) / labels.length), const SizedBox(height: 22), Text(question, style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), if (step == 2) Padding(padding: const EdgeInsets.only(top: 12), child: FilledButton.icon(onPressed: speak, icon: const Icon(Icons.volume_up), label: const Text('استمع'))), if (step == 1) Padding(padding: const EdgeInsets.only(top: 12), child: Text('المعنى: ${widget.item.translationText}')), const SizedBox(height: 15), TextField(enabled: !done, onChanged: (x) => answer = x, textDirection: TextDirection.ltr, decoration: const InputDecoration(labelText: 'اكتب بـ${widget.presentation.targetLanguageName}', border: OutlineInputBorder())), const SizedBox(height: 12), if (!done) FilledButton(onPressed: submit, child: const Text('تحقق')) else Card(child: ListTile(leading: Icon(correct ? Icons.check_circle : Icons.close), title: Text(correct ? 'أحسنت' : 'نحتاج دليلًا إضافيًا'), subtitle: Text('الإجابة: $expected'))), if (done) FilledButton(onPressed: () { if (step + 1 >= labels.length) { widget.onDone(); Navigator.pop(c); } else { setState(() { step++; done = false; answer = ''; start = DateTime.now(); }); } }, child: Text(step + 1 >= labels.length ? 'إنهاء' : 'التالي'))]));
+  @override Widget build(BuildContext c) => Scaffold(appBar: AppBar(title: Text('${labels[step]} • ${widget.item.sourceText}')), body: ListView(padding: const EdgeInsets.all(18), children: [LinearProgressIndicator(value: (step + 1) / labels.length), const SizedBox(height: 22), Text(question, style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), if (step == 2) Padding(padding: const EdgeInsets.only(top: 12), child: FilledButton.icon(onPressed: speak, icon: const Icon(Icons.volume_up), label: const Text('استمع'))), if (step == 1) Padding(padding: const EdgeInsets.only(top: 12), child: Text('المعنى: ${widget.item.translationText}')), const SizedBox(height: 15), TextField(enabled: !done, onChanged: (x) => answer = x, textDirection: TextDirection.ltr, decoration: InputDecoration(labelText: 'اكتب بـ${widget.presentation.targetLanguageName}', border: const OutlineInputBorder())), const SizedBox(height: 12), if (!done) FilledButton(onPressed: submit, child: const Text('تحقق')) else Card(child: ListTile(leading: Icon(correct ? Icons.check_circle : Icons.close), title: Text(correct ? 'أحسنت' : 'نحتاج دليلًا إضافيًا'), subtitle: Text('الإجابة: $expected'))), if (done) FilledButton(onPressed: () { if (step + 1 >= labels.length) { widget.onDone(); Navigator.pop(c); } else { setState(() { step++; done = false; answer = ''; start = DateTime.now(); }); } }, child: Text(step + 1 >= labels.length ? 'إنهاء' : 'التالي'))]));
 }
 
 
@@ -119,12 +98,13 @@ class _SingleState extends State<SingleItemSession> {
 
 class SmartAssessmentPage extends StatefulWidget {
   final LearnerRepository repo;
-  final List<ContentItem> corpus; final LanguageExerciseStrategy exerciseStrategy;
-  const SmartAssessmentPage({super.key, required this.repo, required this.corpus, required this.exerciseStrategy});
+  final List<ContentItem> corpus; final LanguageExerciseStrategy exerciseStrategy; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer; final LanguageContentIntelligence contentIntelligence;
+  const SmartAssessmentPage({super.key, required this.repo, required this.corpus, required this.exerciseStrategy, required this.presentation, required this.contentQuality, required this.textNormalizer, required this.contentIntelligence});
   @override State<SmartAssessmentPage> createState() => _SmartAssessmentState();
 }
 
 class _SmartAssessmentState extends State<SmartAssessmentPage> {
+  final SafeTtsController tts = SafeTtsController();
   late LearnerState assessmentState;
   late List<AssessmentQuestion> questions;
   final answers = <String,String>{};
@@ -153,7 +133,7 @@ class _SmartAssessmentState extends State<SmartAssessmentPage> {
   bool _matches(String value) {
     final a = assessmentNormalize(value);
     if (a.isEmpty) return false;
-    return {assessmentNormalize(q.expected), ...q.acceptedForms.map(assessmentNormalize)}.contains(a);
+    return assessmentAnswerMatches(AssessmentResponse(questionId:q.id,itemId:q.itemId,answer:value,correct:true,hinted:false),q);
   }
 
   Future<void> _speak() => tts.speak(q.expected, rate: .42);
@@ -198,12 +178,14 @@ class _SmartAssessmentState extends State<SmartAssessmentPage> {
       Chip(label:Text(_typeLabel(q.type))), const SizedBox(height:12),
       Text(q.prompt,style:Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
       if(q.type==AssessmentQuestionType.listening) Padding(padding:const EdgeInsets.only(top:12),child:FilledButton.icon(onPressed:_speak,icon:const Icon(Icons.volume_up),label:const Text('استمع'))),
-      const SizedBox(height:14), TextField(enabled:!submitted,onChanged:(v)=>answers[q.id]=v,textDirection:TextDirection.ltr,minLines:1,maxLines:3,decoration:const InputDecoration(border:OutlineInputBorder(),labelText:'إجابتك بـ${widget.presentation.targetLanguageName}')),
+      const SizedBox(height:14), TextField(enabled:!submitted,onChanged:(v)=>answers[q.id]=v,textDirection:TextDirection.ltr,minLines:1,maxLines:3,decoration:InputDecoration(border:const OutlineInputBorder(),labelText:'إجابتك بـ${widget.presentation.targetLanguageName}')),
       const SizedBox(height:12),
       if(!submitted) FilledButton(onPressed:_submit,child:const Text('تحقق')) else Card(child:Padding(padding:const EdgeInsets.all(15),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(correct?'✓ إجابة صحيحة':'✗ تحتاج مراجعة',style:Theme.of(c).textTheme.titleMedium?.copyWith(fontWeight:FontWeight.w900)),const SizedBox(height:5),Text('الإجابة المستهدفة: $_expected')]))),
       if(submitted) Padding(padding:const EdgeInsets.only(top:12),child:FilledButton(onPressed:_next,child:Text(index+1>=questions.length?'عرض النتيجة':'التالي'))),
     ]));
   }
+
+  @override void dispose(){tts.dispose();super.dispose();}
 
   static String _typeLabel(AssessmentQuestionType t) => const {AssessmentQuestionType.recall:'التعرّف',AssessmentQuestionType.grammar:'القواعد',AssessmentQuestionType.translation:'الترجمة',AssessmentQuestionType.listening:'الاستماع',AssessmentQuestionType.production:'الإنتاج'}[t] ?? 'غير معروف';
 }

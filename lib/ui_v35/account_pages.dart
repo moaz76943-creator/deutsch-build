@@ -1,39 +1,10 @@
 import 'package:flutter/material.dart';
-import '../core/learning_core.dart';
-import '../core/safe_runtime.dart';
-import '../../content/german/content_a1.dart';
-import '../../content/german/verb_conjugations.dart';
-import '../models/content.dart';
-import '../models/conversation.dart';
-import '../models/learner.dart';
-import '../models/assessment.dart';
 import '../services/ai_contract.dart';
 import '../services/release.dart';
 import '../services/repository.dart';
-import '../services/features.dart';
 import '../services/subscription.dart';
-import '../services/adaptive_teacher.dart';
-import '../services/daily_plan.dart';
-import '../services/mastery.dart';
-import '../services/mastery_dashboard.dart';
-import '../services/mistake_analysis.dart';
-import '../services/search_index.dart';
 import '../services/privacy_settings.dart';
-import '../services/speech_service.dart';
-import '../services/ai_gateway.dart';
-import '../services/assessment_engine.dart';
-import '../services/learning_engine.dart';
-import '../services/conversation_engine.dart';
-import '../services/mistake_coach.dart';
-import '../services/reading_practice.dart';
-import '../models/learning_path.dart';
-import '../models/word_profile.dart';
-import '../services/word_profile_service.dart';
-import '../models/mistake.dart';
-import '../services/mistake_engine.dart';
-import '../services/repair_engine.dart';
 import 'pages/core_pages.dart';
-import 'safe_ui.dart';
 
 class PremiumButton extends StatelessWidget {
   final LearnerRepository repo; final String label; final IconData icon; final VoidCallback onOpen;
@@ -54,13 +25,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   bool premium=false;
   @override void initState(){super.initState();_load();}
   Future<void> _load() async {final x=await SubscriptionService.isPremium();if(mounted)setState(()=>premium=x);}
-  Future<void> _showPurchaseInfo(String plan) async {
-    await showDialog(context:context,builder:(d)=>AlertDialog(
-      title:const Text('الدفع الحقيقي'),
-      content:Text('الباقة المختارة: $plan\n\nواجهة الباقات جاهزة، لكن تفعيل الدفع الحقيقي يحتاج ربط Google Play Billing/App Store وإضافة معرّفات المنتجات من حساب المطوّر. لن يتم اعتبار الاشتراك مدفوعًا من هذا الزر.'),
-      actions:[TextButton(onPressed:()=>Navigator.pop(d),child:const Text('حسنًا'))],
-    ));
-  }
   @override Widget build(BuildContext c)=>Scaffold(
     appBar:AppBar(title:const Text('الباقات والاشتراك')),
     body:ListView(padding:const EdgeInsets.all(16),children:[
@@ -70,9 +34,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         const Text('الأساسيات مجانية، بينما المزايا التي تختصر وقت التعلم وتزيد التخصيص تكون ضمن Premium.'),
       ]))),
       const SizedBox(height:12),
-      const _PlanCard(title:'شهري',price:'$5',period:'شهريًا',badge:'مرن',features:['كل المحتوى التعليمي المتقدم','المراجعة الذكية','الاختبارات المتقدمة','إحصائيات التعلم المتقدمة','بدون إعلانات'],plan:'monthly'),
-      const _PlanCard(title:'3 أشهر',price:'$10',period:'كل 3 أشهر',badge:'الأفضل قيمة',features:['كل مزايا Premium','مراجعة ذكية مستمرة','مسار تعلم شخصي','قائمة أفعال دراسية غير محدودة','بدون إعلانات'],plan:'quarterly'),
-      const _PlanCard(title:'سنة',price:'$25',period:'سنويًا',badge:'الأوفر',features:['كل مزايا Premium','أفضل سعر للاستخدام الطويل','مسار تعلم شخصي وإحصائيات متقدمة','مراجعات واختبارات متقدمة','بدون إعلانات'],plan:'yearly'),
+      const _PlanCard(title:'شهري',price:'\$5',period:'شهريًا',badge:'مرن',features:['كل المحتوى التعليمي المتقدم','المراجعة الذكية','الاختبارات المتقدمة','إحصائيات التعلم المتقدمة','بدون إعلانات'],plan:'monthly'),
+      const _PlanCard(title:'3 أشهر',price:'\$10',period:'كل 3 أشهر',badge:'الأفضل قيمة',features:['كل مزايا Premium','مراجعة ذكية مستمرة','مسار تعلم شخصي','قائمة أفعال دراسية غير محدودة','بدون إعلانات'],plan:'quarterly'),
+      const _PlanCard(title:'سنة',price:'\$25',period:'سنويًا',badge:'الأوفر',features:['كل مزايا Premium','أفضل سعر للاستخدام الطويل','مسار تعلم شخصي وإحصائيات متقدمة','مراجعات واختبارات متقدمة','بدون إعلانات'],plan:'yearly'),
       const SizedBox(height:8),
       Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         const Text('🆓 ماذا يبقى مجانيًا؟',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),
@@ -126,8 +90,7 @@ class SettingsV35 extends StatelessWidget {
     body: ListView(padding: const EdgeInsets.all(18), children: [
       const Card(child: ListTile(leading: Icon(Icons.lock_outline), title: Text('الخصوصية'), subtitle: Text('التقدم والمحاولات محفوظة محليًا. لا توجد مزامنة سحابية ولا اتصال شبكي للتطبيق.'))),
       const Card(child: ListTile(leading: Icon(Icons.offline_bolt_outlined), title: Text('Offline'), subtitle: Text('المحتوى والجلسات والتقدم وTTS تعمل محليًا.'))),
-      Card(child: ListTile(leading: const Icon(Icons.auto_awesome), title: const Text('AI Teacher'), subtitle: Text(AiTeacherContract.rules.join('
-')))),
+      Card(child: ListTile(leading: const Icon(Icons.auto_awesome), title: const Text('AI Teacher'), subtitle: Text(AiTeacherContract.rules.join('\\n')))),
       const SizedBox(height: 10),
       OutlinedButton.icon(onPressed:()=>_reset(c), icon:const Icon(Icons.delete_outline), label:const Text('مسح بيانات التعلم من الجهاز')),
       const SizedBox(height: 10),

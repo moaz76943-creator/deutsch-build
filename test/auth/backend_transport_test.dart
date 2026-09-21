@@ -37,10 +37,12 @@ void main() {
   test('transport gateway maps backend failure categories', () async {
     final transport = FakeTransport()
       ..failure = BackendTransportFailureCode.rateLimited;
-    const gateway = TransportBackendAuthenticationGateway(transport);
+    final gateway = TransportBackendAuthenticationGateway(transport);
 
     expect(
-      gateway.getCurrentSession(),
+      gateway.requestEmailOtp(
+        const EmailOtpRequest(email: 'a@example.com'),
+      ),
       throwsA(
         isA<AuthenticationFailure>().having(
           (error) => error.code,
@@ -53,7 +55,7 @@ void main() {
 
   test('provider authentication response must contain a session', () async {
     final transport = FakeTransport();
-    const gateway = TransportBackendAuthenticationGateway(transport);
+    final gateway = TransportBackendAuthenticationGateway(transport);
 
     expect(
       gateway.authenticateProvider(

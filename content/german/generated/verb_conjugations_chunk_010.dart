@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk010 = <VerbConjugation>[
 VerbConjugation(infinitive:'auswerten',arabic:'البوق',group:'الحياة اليومية',person:'es',personAr:'هو/هي/ذلك',form:'wertet aus',past:'hat ausgewertet',pastArabic:'هو/هي/ذلك البوق',example:'Es wertet aus das Problem.',exampleAr:'هو/هي/ذلك البوق المشكلة.',pastExample:'Es hat aus das Problem ausgewertet.',pastExampleAr:'هو/هي/ذلك البوق المشكلة.'),

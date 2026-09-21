@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk010 = <ContentItem>[
 ContentItem(id:'w4001',german:'der Trainingsanzug',arabic:'البدلة الرياضية',sentence:'Ich sehe den Trainingsanzug.',sentenceAr:'أرى البدلة الرياضية.',topic:'الملابس والإكسسوارات',skill:'production',article:'der',plural:'Trainingsanzüge',accepted:[]),

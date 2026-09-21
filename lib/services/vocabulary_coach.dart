@@ -1,7 +1,6 @@
 import '../core/content_contract.dart';
 import '../models/learner.dart';
 import '../language/language_content_quality.dart';
-import 'srs.dart';
 
 class VocabularyCoach {
   static List<LearningContent> recommend(List<LearningContent> items, LearnerState state, {required LanguageContentQuality contentQuality, int limit = 8, DateTime? now}) {

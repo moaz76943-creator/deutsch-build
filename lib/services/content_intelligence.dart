@@ -10,7 +10,7 @@ final class ContentIntelligence {
   List<LearningContent>? _cachedCorpus;
   ContentIntelligenceReport? _cachedReport;
 
-  const ContentIntelligence(this.delegate);
+  ContentIntelligence(this.delegate);
 
   ContentProfile profile(LearningContent item) => delegate.profile(item);
 

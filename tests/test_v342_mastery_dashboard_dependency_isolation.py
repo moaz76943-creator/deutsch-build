@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 DASH = ROOT / 'lib/services/mastery_dashboard.dart'
@@ -16,5 +17,6 @@ def test_mastery_dashboard_has_no_content_engine_fallback():
 def test_all_dashboard_callers_pass_corpus():
     progress = PROGRESS.read_text(encoding='utf-8')
     legacy = LEGACY.read_text(encoding='utf-8')
-    assert 'MasteryDashboard.build(repo.load(), corpus: corpus, contentIntelligence: contentIntelligence)' in progress
-    assert 'MasteryDashboard.build(repo.load(), corpus: corpus, contentIntelligence: contentIntelligence)' in legacy
+    pattern = r'MasteryDashboard\.build\(\s*repo\.load\(\),\s*corpus:\s*corpus,\s*contentIntelligence:\s*contentIntelligence,?\s*\)'
+    assert re.search(pattern, progress)
+    assert re.search(pattern, legacy)

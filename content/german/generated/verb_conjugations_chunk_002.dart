@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk002 = <VerbConjugation>[
 VerbConjugation(infinitive:'kontrollieren',arabic:'يفحص/يراقب',group:'11. أفعال إضافية مهمة',person:'Sie',personAr:'حضرتك / حضراتكم',form:'kontrollieren',past:'haben kontrollieiert',pastArabic:'حضرتك / حضراتكم فحصتم',example:'Sie kontrollieren die Rechnung.',exampleAr:'حضرتك /حضرتك يفحصون الفاتورة.',pastExample:'Sie haben die Rechnung kontrollieiert.',pastExampleAr:'حضرتك / حضراتكم فحصتم يفحصون الفاتورة.'),

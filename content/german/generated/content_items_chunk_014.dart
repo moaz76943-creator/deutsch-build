@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk014 = <ContentItem>[
 ContentItem(id:'w6725',german:'sich interessieren',arabic:'يهتم بـ',sentence:'sich interessieren.',sentenceAr:'يهتم بـ.',topic:'الأفعال الجديدة',skill:'production',article:'',plural:'',accepted:['sich interessieren']),

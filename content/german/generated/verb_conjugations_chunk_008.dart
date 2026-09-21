@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk008 = <VerbConjugation>[
 VerbConjugation(infinitive:'schreien',arabic:'يقول',group:'الحياة اليومية',person:'wir',personAr:'نحن',form:'schreien',past:'haben geschreit',pastArabic:'نحن قالنا',example:'Wir schreien das Problem.',exampleAr:'نحن نقول المشكلة.',pastExample:'Wir haben das Problem geschreit.',pastExampleAr:'نحن قالنا المشكلة.'),

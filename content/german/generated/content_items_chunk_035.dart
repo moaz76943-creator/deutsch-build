@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk035 = <ContentItem>[
 ContentItem(id:'w15263',german:'eine Regel üben',arabic:'يتدرب على قاعدة',sentence:'Wir üben die neue Regel.',sentenceAr:'نتدرب على القاعدة الجديدة.',topic:'التعلم والتواصل',skill:'transfer',article:'',plural:'',accepted:['eine Regel üben']),

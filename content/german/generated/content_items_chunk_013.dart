@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk013 = <ContentItem>[
 ContentItem(id:'w6325',german:'die Heftklammer',arabic:'مشبك ورق',sentence:'Ich sehe die Heftklammer.',sentenceAr:'أنا أرى مشبك ورق.',topic:'المكتب',skill:'recall',article:'die',plural:'Heftklammern',accepted:[]),

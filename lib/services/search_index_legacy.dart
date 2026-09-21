@@ -11,7 +11,7 @@ final class LegacySearchIndex {
 
   static SearchIndex get instance => _instance ??= SearchIndex(
         const GermanContentPack().items,
-        VerbIndex.instance,
+        VerbIndex(textNormalizer: const GermanTextNormalizer()),
         const GermanTextNormalizer(),
       );
 }

@@ -4,32 +4,69 @@
 
 ## Change
 
-German runtime content sources were moved to the canonical language-specific namespace:
+German language-owned authoring sources remain organized under:
 
 ```text
 content/german/
 content/german/generated/
 ```
 
-The legacy `lib/data` paths remain as compatibility-only export shims so existing package consumers do not break during the staged migration.
+Flutter runtime code must remain inside the Dart package boundary under `lib/`.
+Therefore editable/authoring sources outside `lib/` are **not imported directly by
+Flutter libraries**. The verified runtime path is materialized before
+analysis/build into:
 
-All runtime imports were migrated to the canonical German namespace. Build-time content tooling now reads the canonical source location.
+```text
+lib/data/generated/
+```
+
+The small `lib/data/content_a1.dart` and
+`lib/data/verb_conjugations.dart` files are package-local compatibility/runtime
+facades over that generated output. They contain no canonical content tables.
+
+Engineering CI makes this boundary explicit with:
+
+```text
+python3 tool/content_compiler.py compile --output-dir lib/data/generated
+```
+
+before `flutter analyze`, tests, and Android build.
 
 ## Integrity
 
 - 14,813 content entries preserved.
 - 14,813 unique IDs preserved.
 - 14,813 unique German entries preserved.
-- No content values or IDs were intentionally changed.
-- SRS, Mastery, search behavior, and learning behavior were not changed.
+- No content values or IDs are intentionally changed by the namespace boundary.
+- SRS, Mastery, search behavior, and learning behavior are not changed.
+
+## Source / runtime separation
+
+- Editable JSON packs remain under `content/`.
+- The German language-owned manifest remains under `content/german/`.
+- Legacy German Dart authoring/source material remains outside the Flutter package boundary.
+- Flutter runtime generated Dart lives under `lib/data/generated/`.
+- Runtime libraries under `lib/` must not import/export `content/german/` directly.
+
+This separation avoids a false compatibility state where Python/source checks
+pass while Flutter analyzer cannot resolve imports outside its package runtime
+surface.
 
 ## Verification
 
-- Focused V349 tests: PASS.
-- Full pytest regression: **505 passed**.
-- Content quality audit: **PASS** (14,813 entries / IDs / German entries).
-- Flutter/Dart analyze and APK build: not run because Flutter/Dart is unavailable in the execution environment.
+Required verification is:
+
+1. content/schema and ingestion validation;
+2. compiler parity against editable JSON packs;
+3. Python regression and architecture/security/quality gates;
+4. runtime materialization into `lib/data/generated/`;
+5. `flutter analyze`;
+6. Flutter tests;
+7. Android build where the release gate requires it.
 
 ## Compatibility
 
-The move is deliberately staged. Legacy exports are retained until downstream consumers no longer require the old path. They contain no canonical content tables.
+The migration remains staged. `lib/data` facade names are retained for
+package consumers, but they are no longer canonical content tables. Their
+purpose is to expose verified generated runtime content without duplicating the
+editable authoring source.

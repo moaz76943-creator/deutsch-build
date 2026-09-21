@@ -3,7 +3,10 @@
 /// Values come from Dart compile-time defines. Missing or invalid configuration
 /// is represented as an unconfigured state so boot can fail closed.
 final class BackendRuntimeConfig {
-  const BackendRuntimeConfig._({required this.baseUri, required this.allowedHosts});
+  const BackendRuntimeConfig._(
+      {required this.baseUri,
+      required this.allowedHosts,
+      required this.allowedHostsValid});
 
   static const String baseUrlDefine = 'DEUTSCH_AUTH_BASE_URL';
   static const String allowedHostsDefine = 'DEUTSCH_AUTH_ALLOWED_HOSTS';

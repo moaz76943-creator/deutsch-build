@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk020 = <VerbConjugation>[
 VerbConjugation(infinitive:'bemühen',arabic:'يبذل جهدًا',group:'12. أفعال جديدة ومتنوعة',person:'Sie',personAr:'حضرتك / حضراتكم',form:'bemühen',past:'haben bemüht',pastArabic:'حضرتك / حضراتكم بذل جهدًاتم',example:'Sie bemühen den Termin.',exampleAr:'حضرتك /حضرتك: يبذل جهدًا — الموعد.',pastExample:'Sie haben den Termin bemüht.',pastExampleAr:'حضرتك / حضراتكم بذل جهدًاتم يبذل جهدًا — الموعد.'),

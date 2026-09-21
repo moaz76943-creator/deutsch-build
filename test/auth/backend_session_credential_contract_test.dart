@@ -6,8 +6,8 @@ import '../../lib/models/secure_session_credentials.dart';
 
 void main() {
   test('backend response can carry only an opaque session credential', () {
-    const credentials = SecureSessionCredentials('opaque');
-    const response = BackendAuthenticationApiResponse(
+    final credentials = SecureSessionCredentials('opaque');
+    final response = BackendAuthenticationApiResponse(
       session: AccountSession.authenticated(
         identity: AccountIdentity(userId: 'u1'),
       ),

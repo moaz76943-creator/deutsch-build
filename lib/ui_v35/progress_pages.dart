@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
+import '../core/content_contract.dart';
 import '../core/learning_core.dart';
 import '../language/language_exercise_strategy.dart';
 import '../language/language_presentation.dart';
 import '../language/language_content_quality.dart';
 import '../language/language_text_normalizer.dart';
 import '../core/safe_runtime.dart';
-import '../../content/german/verb_conjugations.dart';
 import '../models/content.dart';
-import '../models/conversation.dart';
 import '../models/learner.dart';
-import '../models/assessment.dart';
-import '../services/ai_contract.dart';
-import '../services/release.dart';
 import '../services/repository.dart';
-import '../services/features.dart';
-import '../services/subscription.dart';
 import '../services/adaptive_teacher.dart';
 import '../services/daily_plan.dart';
-import '../services/mastery.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/mastery_dashboard.dart';
 import '../language/language_content_intelligence.dart';
@@ -26,22 +19,17 @@ import '../services/search_index.dart';
 import '../services/verb_index.dart';
 import '../services/speech_service.dart';
 import '../services/privacy_settings.dart';
-import '../services/ai_gateway.dart';
-import '../services/assessment_engine.dart';
 import '../services/learning_engine.dart';
-import '../services/conversation_engine.dart';
-import '../services/mistake_coach.dart';
 import '../services/reading_practice.dart';
 import '../models/learning_path.dart';
-import '../models/word_profile.dart';
 import '../services/word_profile_service.dart';
 import '../models/mistake.dart';
 import '../services/mistake_engine.dart';
 import '../services/repair_engine.dart';
-import 'pages/core_pages.dart';
 import 'safe_ui.dart';
+import 'learning_pages.dart';
 
-class _PersonalPathCard extends StatefulWidget {
+class PersonalPathCard extends StatefulWidget {
   final LearnerRepository repo;
   final VoidCallback onDone;
   final int revision;
@@ -53,11 +41,11 @@ class _PersonalPathCard extends StatefulWidget {
   final LanguageContentQuality contentQuality;
   final LanguageTextNormalizer textNormalizer;
   final LanguageContentIntelligence contentIntelligence;
-  const _PersonalPathCard({required this.repo, required this.onDone, required this.revision, required this.corpus, required this.searchIndex, required this.verbIndex, required this.exerciseStrategy, required this.presentation, required this.contentQuality, required this.textNormalizer, required this.contentIntelligence});
-  @override State<_PersonalPathCard> createState() => _PersonalPathCardState();
+  const PersonalPathCard({required this.repo, required this.onDone, required this.revision, required this.corpus, required this.searchIndex, required this.verbIndex, required this.exerciseStrategy, required this.presentation, required this.contentQuality, required this.textNormalizer, required this.contentIntelligence});
+  @override State<PersonalPathCard> createState() => _PersonalPathCardState();
 }
 
-class _PersonalPathCardState extends State<_PersonalPathCard> {
+class _PersonalPathCardState extends State<PersonalPathCard> {
   late LearnerState _state;
   late LearningPath _path;
 
@@ -68,7 +56,7 @@ class _PersonalPathCardState extends State<_PersonalPathCard> {
   }
 
   @override
-  void didUpdateWidget(covariant _PersonalPathCard oldWidget) {
+  void didUpdateWidget(covariant PersonalPathCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.revision != widget.revision) _rebuildPlan();
   }
@@ -110,7 +98,7 @@ class PersonalizedPathPage extends StatelessWidget {
     return Scaffold(appBar: AppBar(title: const Text('مسارك الشخصي')), body: ListView(padding: const EdgeInsets.all(18), children: [
       Card(child: ListTile(leading: const Icon(Icons.flag_outlined), title: Text('تركيز اليوم: ${path.focusSkill}'), subtitle: Text('الخطة: ${path.reviewCount} مراجعة • ${path.repairCount} علاج • ${path.newCount} جديد'))),
       const SizedBox(height: 12),
-      ...path.items.asMap().entries.map((e) { final x=e.value; return Card(child: ListTile(leading: CircleAvatar(child: Text('${e.key+1}')), title: Text(x.item.sourceText, textDirection: TextDirection.ltr), subtitle: Text('${x.item.translationText}\n${x.reason}'), isThreeLine: true, trailing: Text(x.mode)); }); }),
+      ...path.items.asMap().entries.map((e) { final x=e.value; return Card(child: ListTile(leading: CircleAvatar(child: Text('${e.key+1}')), title: Text(x.item.sourceText, textDirection: TextDirection.ltr), subtitle: Text('${x.item.translationText}\n${x.reason}'), isThreeLine: true, trailing: Text(x.mode))); }),
       const SizedBox(height: 12),
       FilledButton.icon(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => CoreSession(repo: repo, corpus: corpus, onDone: onDone, exerciseStrategy: exerciseStrategy, presentation: presentation, contentQuality: contentQuality, textNormalizer: textNormalizer, contentIntelligence: contentIntelligence))), icon: const Icon(Icons.play_arrow), label: const Text('ابدأ جلسة التدريب')),
       const SizedBox(height: 8),
@@ -124,7 +112,10 @@ class ProgressPage extends StatelessWidget {
   final List<ContentItem> corpus;
   final LanguageExerciseStrategy exerciseStrategy;
   final LanguagePresentation presentation;
-  const ProgressPage({super.key, required this.repo, required this.corpus, required this.exerciseStrategy, required this.presentation, required this.contentQuality});
+  final LanguageContentQuality contentQuality;
+  final LanguageTextNormalizer textNormalizer;
+  final LanguageContentIntelligence contentIntelligence;
+  const ProgressPage({super.key, required this.repo, required this.corpus, required this.exerciseStrategy, required this.presentation, required this.contentQuality, required this.textNormalizer, required this.contentIntelligence});
   @override
   Widget build(BuildContext c) {
     final state=repo.load();
@@ -146,25 +137,46 @@ class MistakeCoachPage extends StatelessWidget {
   final LearnerRepository repo;
   final List<ContentItem> corpus;
   final LanguageExerciseStrategy exerciseStrategy;
-  const MistakeCoachPage({super.key,required this.repo, required this.corpus, required this.exerciseStrategy, required this.presentation});
+  final LanguageContentQuality contentQuality;
+  const MistakeCoachPage({super.key,required this.repo, required this.corpus, required this.exerciseStrategy, required this.contentQuality});
   @override Widget build(BuildContext c){
     final state=repo.load(); final report=MistakeEngine.from(state.attempts,corpus); 
     return Scaffold(appBar:AppBar(title:const Text('مدرب الأخطاء الذكي')),body:ListView(padding:const EdgeInsets.all(18),children:[
       Card(child:ListTile(leading:const Icon(Icons.auto_fix_high_outlined),title:const Text('من الأخطاء إلى تدريب علاجي'),subtitle:Text(report.headline))),const SizedBox(height:10),
       if(report.items.isEmpty) const Card(child:ListTile(title:Text('لا توجد أخطاء متكررة بعد.'),subtitle:Text('أكمل اختبارات أو محادثات أو فحص كتابة ليبني التطبيق نمطًا عن أخطائك.'))),
-      ...report.items.take(8).map((m)=>Card(child:ListTile(leading:CircleAvatar(child:Text('${m.errorCount}')),title:Text('${m.itemId} • ${mistakeCategoryLabel(m.category)}'),subtitle:Text('${m.errorCount} أخطاء من ${m.attemptCount} محاولات • شدة ${m.severity}%\n${m.correctiveStreak} إجابات صحيحة متتالية'),isThreeLine:true,trailing:const Icon(Icons.arrow_forward_ios,size:16),onTap:()=>Navigator.push(c,MaterialPageRoute(builder:(_)=>MistakeRepairPage(repo:repo,mistake:m,corpus:corpus,exerciseStrategy:exerciseStrategy))))),
+      ...report.items.take(8).map((m) => Card(
+        child: ListTile(
+          leading: CircleAvatar(child: Text('${m.errorCount}')),
+          title: Text('${m.itemId} • ${mistakeCategoryLabel(m.category)}'),
+          subtitle: Text('${m.errorCount} أخطاء من ${m.attemptCount} محاولات • شدة ${m.severity}%\n${m.correctiveStreak} إجابات صحيحة متتالية'),
+          isThreeLine: true,
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => MistakeRepairPage(
+                repo: repo,
+                mistake: m,
+                corpus: corpus,
+                exerciseStrategy: exerciseStrategy,
+                contentQuality: contentQuality,
+              ),
+            ),
+          ),
+        ),
+      )),
     ]));
   }
 }
 
 class MistakeRepairPage extends StatefulWidget {
-  final LearnerRepository repo; final MistakeRecord mistake; final List<ContentItem> corpus; final LanguageExerciseStrategy exerciseStrategy;
-  const MistakeRepairPage({super.key,required this.repo,required this.mistake,required this.corpus,required this.exerciseStrategy});
+  final LearnerRepository repo; final MistakeRecord mistake; final List<ContentItem> corpus; final LanguageExerciseStrategy exerciseStrategy; final LanguageContentQuality contentQuality;
+  const MistakeRepairPage({super.key,required this.repo,required this.mistake,required this.corpus,required this.exerciseStrategy,required this.contentQuality});
   @override State<MistakeRepairPage> createState()=>_MistakeRepairState();
 }
 class _MistakeRepairState extends State<MistakeRepairPage>{late final RepairDrill? drill;int step=0;String answer='';bool checked=false,correct=false;late DateTime started;
-  @override void initState(){super.initState();drill=RepairEngine.build(widget.mistake,widget.corpus, exerciseStrategy: widget.exerciseStrategy, isLearnable: contentQuality.isLearnable);started=DateTime.now();}
-  Future<void> submit() async {if(drill==null||checked||safeIndex(step,drill!.steps.length)<0)return;final s=drill!.steps[safeIndex(step,drill!.steps.length)];final norm(String x)=>x.toLowerCase().replaceAll(RegExp(r'[.!?,]'),'').replaceAll(RegExp(r'\s+'),' ').trim();correct=s.acceptedForms.isNotEmpty?s.acceptedForms.any((x)=>norm(x)==norm(answer)):answer.trim().isNotEmpty;setState(()=>checked=true);if(widget.mistake.itemId.startsWith('writing:')){if(!correct)await widget.repo.recordWritingMistake(issue:widget.mistake.normalizedKey,at:DateTime.now());}else{ContentItem? item; for(final x in widget.corpus){if(x.id==widget.mistake.itemId){item=x;break;}}if(item!=null)await widget.repo.record(item:item,answer:answer,correct:correct,seconds:DateTime.now().difference(started).inSeconds.clamp(1,999).toInt(),hinted:false,skillOverride:item.skill);}if(!mounted)return;}
+  @override void initState(){super.initState();drill=RepairEngine.build(widget.mistake,widget.corpus, exerciseStrategy: widget.exerciseStrategy, isLearnable: widget.contentQuality.isLearnable);started=DateTime.now();}
+  Future<void> submit() async {if(drill==null||checked||safeIndex(step,drill!.steps.length)<0)return;final s=drill!.steps[safeIndex(step,drill!.steps.length)];String norm(String x)=>x.toLowerCase().replaceAll(RegExp(r'[.!?,]'),'').replaceAll(RegExp(r'\s+'),' ').trim();correct=repairStepAccepts(s,answer,norm);setState(()=>checked=true);if(widget.mistake.itemId.startsWith('writing:')){if(!correct)await widget.repo.recordWritingMistake(issue:widget.mistake.normalizedKey,at:DateTime.now());}else{ContentItem? item; for(final x in widget.corpus){if(x.id==widget.mistake.itemId){item=x;break;}}if(item!=null)await widget.repo.record(item:item,answer:answer,correct:correct,seconds:DateTime.now().difference(started).inSeconds.clamp(1,999).toInt(),hinted:false,skillOverride:item.skill);}if(!mounted)return;}
   void next(){if(drill==null||safeIndex(step,drill!.steps.length)<0)return;if(!correct){setState(() { answer=''; checked=false; started=DateTime.now(); });return;}if(step+1>=drill!.steps.length){Navigator.pop(context);}else{setState(() { step++; answer=''; checked=false; started=DateTime.now(); });}}
   @override Widget build(BuildContext c){if(drill==null||drill!.steps.isEmpty)return const Scaffold(body:Center(child:Text('لا يوجد تدريب آمن لهذا الخطأ.')));final safeStep=safeIndex(step,drill!.steps.length);if(safeStep<0)return const Scaffold(body:Center(child:Text('انتهى هذا التدريب بأمان.')));final s=drill!.steps[safeStep];return Scaffold(appBar:AppBar(title:const Text('علاج الخطأ')),body:ListView(padding:const EdgeInsets.all(18),children:[LinearProgressIndicator(value:(step+1)/3),const SizedBox(height:18),Text('الخطوة ${step+1} من 3',style:Theme.of(c).textTheme.labelLarge),const SizedBox(height:8),Text(mistakeCategoryLabel(widget.mistake.category),style:Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),const SizedBox(height:16),Card(child:Padding(padding:const EdgeInsets.all(16),child:Text(s.prompt,style:Theme.of(c).textTheme.titleLarge))),const SizedBox(height:14),TextField(enabled:!checked,onChanged:(v)=>answer=v,textDirection:TextDirection.ltr,decoration:const InputDecoration(border:OutlineInputBorder(),labelText:'إجابتك بالألمانية')),const SizedBox(height:12),if(!checked)FilledButton(onPressed:submit,child:const Text('تحقق')) else Card(child:ListTile(leading:Icon(correct?Icons.check_circle:Icons.refresh),title:Text(correct?'إجابة صحيحة — نرفع الإتقان تدريجيًا':'ما زالت تحتاج تدريبًا'),subtitle:Text(s.expected))),if(checked)FilledButton(onPressed:next,child:Text(correct?(step+1>=3?'إنهاء':'الخطوة التالية'):'أعد المحاولة'))]));}
 }
@@ -184,7 +196,7 @@ class ReadingPracticePage extends StatelessWidget {
     return Scaffold(appBar: AppBar(title: const Text('القراءة التفاعلية')), body: ListView(padding: const EdgeInsets.all(18), children: [
       Card(child: ListTile(leading: const Icon(Icons.menu_book_outlined), title: Text(passage.title), subtitle: const Text('اقرأ، اضغط على الكلمات، ثم تدرب على الجمل التي ظهرت لك.'))),
       const SizedBox(height: 12),
-      ...passage.exampleTexts.map((x)=>Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      ...passage.sentences.map((x)=>Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(x.exampleText, textDirection: TextDirection.ltr, style: Theme.of(c).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
         const SizedBox(height: 5), Text(x.exampleTranslationText),
         const SizedBox(height: 8), Wrap(spacing: 6, runSpacing: 6, children: x.exampleText.split(RegExp(r'\s+')).map((word)=>ActionChip(label: Text(word, textDirection: TextDirection.ltr), onPressed: ()=>_showWord(c, word, x))).toList()),
@@ -193,7 +205,7 @@ class ReadingPracticePage extends StatelessWidget {
       Text('كلمات التركيز: ${passage.targetWords.join(' • ')}', textDirection: TextDirection.ltr),
     ]));
   }
-  void _showWord(BuildContext c, String raw, ContentItem source) {
+  void _showWord(BuildContext c, String raw, LearningContent source) {
     final word=raw.replaceAll(RegExp(r'[^A-Za-zÄÖÜäöüß-]'), '').toLowerCase();
     final matches=searchIndex.search(word, limit:3);
     showModalBottomSheet(context:c,builder:(_)=>SafeArea(child: Padding(padding:const EdgeInsets.all(20),child: Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -224,7 +236,7 @@ class LearningDashboardPage extends StatelessWidget {
     return Scaffold(appBar: AppBar(title: const Text('المدرس الذكي')), body: ListView(padding: const EdgeInsets.all(18), children: [
       Card(child: ListTile(leading: const Icon(Icons.psychology_outlined), title: Text(action.title, style: const TextStyle(fontWeight: FontWeight.w900)), subtitle: Text(action.reason), trailing: Text('${action.itemCount}'))),
       const SizedBox(height: 12),
-      _NextStepCard(repo: repo, corpus: corpus, focusSkill: action.skill, searchIndex: searchIndex, verbIndex: verbIndex, contentQuality: contentQuality),
+      _NextStepCard(repo: repo, corpus: corpus, focusSkill: action.skill, searchIndex: searchIndex, verbIndex: verbIndex, contentQuality: contentQuality, textNormalizer: textNormalizer),
       const SizedBox(height: 12),
       Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('خطة اليوم', style: Theme.of(c).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
@@ -248,7 +260,8 @@ class _NextStepCard extends StatelessWidget {
   final SearchIndex searchIndex;
   final VerbIndex verbIndex;
   final LanguageContentQuality contentQuality;
-  const _NextStepCard({required this.repo, required this.corpus, required this.focusSkill, required this.searchIndex, required this.verbIndex, required this.contentQuality});
+  final LanguageTextNormalizer textNormalizer;
+  const _NextStepCard({required this.repo, required this.corpus, required this.focusSkill, required this.searchIndex, required this.verbIndex, required this.contentQuality, required this.textNormalizer});
   @override
   Widget build(BuildContext c) {
     final state = repo.load();
@@ -263,7 +276,7 @@ class _NextStepCard extends StatelessWidget {
           if (item != null) ...[
             const SizedBox(height: 10),
             Text(item.grammaticalMarker.isEmpty ? item.sourceText : '${item.grammaticalMarker} ${item.sourceText}', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            Text('${item.translationText} • ${WordProfileService.build(item, state, searchIndex: searchIndex, verbIndex: verbIndex, corpus: corpus).masteryPercent}% إتقان'),
+            Text('${item.translationText} • ${WordProfileService.build(item, state, searchIndex: searchIndex, verbIndex: verbIndex, textNormalizer: textNormalizer, corpus: corpus).masteryPercent}% إتقان'),
           ],
         ]),
       ),
@@ -322,7 +335,7 @@ class _SpeechPracticeState extends State<SpeechPracticePage> {
       speechBusy = false;
     }
   }
-  @override void dispose(){speech.dispose();tts.dispose();super.dispose();
+  @override void dispose(){speech.dispose();tts.dispose();super.dispose();}
   @override Widget build(BuildContext c) => Scaffold(appBar: AppBar(title: const Text('مختبر النطق')), body: ListView(padding: const EdgeInsets.all(18), children: [
     const Text('Shadowing: اسمع، كرر، ثم قارن النص الذي التقطه الجهاز.'), const SizedBox(height: 12),
     Card(child: ListTile(title: const Text('الجملة المستهدفة'), subtitle: Text(target, textDirection: TextDirection.ltr), trailing: IconButton(tooltip: 'استمع للجملة المستهدفة', onPressed: speakTarget, icon: const Icon(Icons.volume_up_outlined)))),

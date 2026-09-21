@@ -1,4 +1,4 @@
-import '../../../../lib/models/verb_conjugation.dart';
+import '../../../lib/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk003 = <VerbConjugation>[
 VerbConjugation(infinitive:'unterschreiben',arabic:'يوقّع',group:'9. العمل والمال والإدارة',person:'sie',personAr:'هي',form:'unterschreibt unter',past:'hat geunterschreibt',pastArabic:'هي وقّعت',example:'Sie unterschreibt den Vertrag unter.',exampleAr:'هي توقّع العقد.',pastExample:'Sie hat den Vertrag unter geunterschreibt.',pastExampleAr:'هي وقّعت العقد.'),

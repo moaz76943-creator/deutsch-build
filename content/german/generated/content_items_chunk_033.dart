@@ -1,4 +1,4 @@
-import '../../../../lib/models/content.dart';
+import '../../../lib/models/content.dart';
 
 const generatedContentItemsChunk033 = <ContentItem>[
 ContentItem(id:'w14332',german:'den Unterricht organisieren',arabic:'الدرس ينظم',sentence:'Ich organisiere den Unterricht.',sentenceAr:'أنا أنظم الدرس.',topic:'العمل والمناسبات',skill:'transfer',article:'',plural:'',accepted:['den Unterricht organisieren']),
