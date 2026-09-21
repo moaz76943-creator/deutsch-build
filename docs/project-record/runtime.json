@@ -7,22 +7,22 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "405cf559a17691a4e7d0e9b1ccca66b1811eede1",
-  "last_sync_at": "2026-09-21T06:44:11Z",
+  "last_sync_at": "2026-09-21T06:44:38Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35569727276",
-    "conclusion": "success"
+    "workflow": "Engineering CI",
+    "run_id": "35569463126",
+    "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35569447647",
-    "timestamp": "2026-09-21T06:40:31Z",
+    "event_key": "workflow:Engineering CI:35569463126",
+    "timestamp": "2026-09-21T06:44:38Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35569447647",
+    "run_id": "35569463126",
     "conclusion": "cancelled",
-    "commit_sha": "8227bd6aedd061996bb330c583f53b5b83e09727",
+    "commit_sha": "3dc1dacbae84de97a2c573b16f3f89f2729d2e72",
     "branch": "verify/flutter-analyzer-root-causes-ci"
   },
   "last_recovery_checkpoint_run": {
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "be3fdd7de7a9cba5702dadd42c24174b7b3fa2e0"
+  "last_observed_head": "1a9082def6029f78386ec93a37c087a9224f40ee"
 }
