@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T14:34:49Z",
+  "last_sync_at": "2026-09-21T14:35:22Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35612223589",
+    "run_id": "35612263207",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35612223589",
-    "timestamp": "2026-09-21T14:34:49Z",
+    "event_key": "workflow:Engineering CI:35612263207",
+    "timestamp": "2026-09-21T14:35:22Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35612223589",
+    "run_id": "35612263207",
     "conclusion": "success",
-    "commit_sha": "5590b9172b802f19f0911a20f9f2b8a556d4ca5e",
-    "branch": "chat-7/startup-resource-reuse"
+    "commit_sha": "79e1048c5f536520f0f178ed59b2fd28aa6a1733",
+    "branch": "chat-6/ui-mixed-bidi-isolation-001"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "9ea1c811b99403f4aa51bfd84df92ba5320ba961"
+  "last_observed_head": "1821b5b66929fe2432b89b16c482a74c3c715d65"
 }
