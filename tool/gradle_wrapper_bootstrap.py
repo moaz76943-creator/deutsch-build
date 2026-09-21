@@ -8,7 +8,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 WRAPPER_PATH = ROOT / 'android' / 'gradle' / 'wrapper' / 'gradle-wrapper.jar'
-WRAPPER_URL = 'https://services.gradle.org/distributions/gradle-8.13-wrapper.jar'
+WRAPPER_URL = 'https://raw.githubusercontent.com/gradle/gradle/v8.13.0/gradle/wrapper/gradle-wrapper.jar'
 EXPECTED_SHA256 = '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f'
 
 
