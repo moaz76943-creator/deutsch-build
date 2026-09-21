@@ -5,6 +5,7 @@ import '../../lib/models/backend_authentication_contract.dart';
 import '../../lib/models/secure_session_credentials.dart';
 import '../../lib/services/authentication.dart';
 import '../../lib/services/authentication_providers.dart';
+import '../../lib/services/secure_session_storage.dart';
 
 class FakeOtpProvider implements EmailOtpProvider {
   FakeOtpProvider({this.session, this.error});
@@ -59,6 +60,8 @@ class FakeBackendAuthenticationGateway
   final Object? emailError;
   final List<ProviderAuthenticationAssertion> providerAssertions =
       <ProviderAuthenticationAssertion>[];
+  int revokeCalls = 0;
+  SecureSessionCredentials? revokedCredentials;
 
   @override
   Future<void> requestEmailOtp(EmailOtpRequest request) async {}
@@ -87,10 +90,33 @@ class FakeBackendAuthenticationGateway
       current;
 
   @override
-  Future<void> revokeSession(SecureSessionCredentials? credentials) async {}
+  Future<void> revokeSession(SecureSessionCredentials? credentials) async {
+    revokeCalls++;
+    revokedCredentials = credentials;
+  }
 
   @override
   Future<void> signOut() async {}
+}
+
+class FailingReadSecureSessionStorage implements SecureSessionStorage {
+  const FailingReadSecureSessionStorage();
+
+  @override
+  Future<void> save(SecureSessionCredentials credentials) async {}
+
+  @override
+  Future<SecureSessionCredentials?> read() async {
+    throw const SecureSessionStorageFailure(
+      SecureSessionStorageFailureCode.unreadable,
+    );
+  }
+
+  @override
+  Future<void> clear() async {}
+
+  @override
+  Future<void> replace(SecureSessionCredentials credentials) async {}
 }
 
 ProviderAuthenticationService serviceWith({
@@ -98,6 +124,7 @@ ProviderAuthenticationService serviceWith({
   AccountSession? google,
   AccountSession? apple,
   BackendAuthenticationGateway? backend,
+  SecureSessionStorage? secureSessionStorage,
 }) {
   final emailProvider = email ?? FakeOtpProvider();
   final resolvedBackend = backend ??
@@ -119,6 +146,7 @@ ProviderAuthenticationService serviceWith({
       apple ?? const AccountSession.unauthenticated(),
     ),
     backendGateway: resolvedBackend,
+    secureSessionStorage: secureSessionStorage,
   );
 }
 
@@ -252,6 +280,29 @@ void main() {
     await service.signInWithGoogle();
     await service.signOut();
 
+    expect(
+      await service.currentSession,
+      const AccountSession.unauthenticated(),
+    );
+  });
+
+  test('sign out still revokes when secure credential storage is unreadable',
+      () async {
+    const authenticated = AccountSession.authenticated(
+      identity: AccountIdentity(userId: 'user-8'),
+    );
+    final backend = FakeBackendAuthenticationGateway(google: authenticated);
+    final service = serviceWith(
+      google: authenticated,
+      backend: backend,
+      secureSessionStorage: const FailingReadSecureSessionStorage(),
+    );
+
+    await service.signInWithGoogle();
+    await service.signOut();
+
+    expect(backend.revokeCalls, 1);
+    expect(backend.revokedCredentials, isNull);
     expect(
       await service.currentSession,
       const AccountSession.unauthenticated(),

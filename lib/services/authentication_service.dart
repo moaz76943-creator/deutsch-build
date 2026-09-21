@@ -171,7 +171,12 @@ final class ProviderAuthenticationService implements AuthenticationService {
   Future<void> signOut() async {
     final operationGeneration = ++_storageOperationGeneration;
     try {
-      final credentials = await _secureSessionStorage.read();
+      SecureSessionCredentials? credentials;
+      try {
+        credentials = await _secureSessionStorage.read();
+      } on SecureSessionStorageFailure {
+        credentials = null;
+      }
       await _backendGateway.revokeSession(credentials);
     } finally {
       if (operationGeneration == _storageOperationGeneration) {
