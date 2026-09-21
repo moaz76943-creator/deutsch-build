@@ -7,12 +7,12 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "d52ee5bdabca4c630bc627c0dc03a3e518936296",
-  "last_sync_at": "2026-09-21T06:45:52Z",
+  "last_sync_at": "2026-09-21T06:46:02Z",
   "last_sync_event": {
-    "trigger": "push",
-    "workflow": "",
-    "run_id": "",
-    "conclusion": null
+    "trigger": "workflow_run",
+    "workflow": "Recovery Checkpoint",
+    "run_id": "35569869331",
+    "conclusion": "success"
   },
   "last_ci": {
     "event_key": "workflow:Engineering CI:35569463126",
@@ -26,17 +26,17 @@
     "branch": "verify/flutter-analyzer-root-causes-ci"
   },
   "last_recovery_checkpoint_run": {
-    "event_key": "workflow:Recovery Checkpoint:35569727276",
-    "timestamp": "2026-09-21T06:44:11Z",
+    "event_key": "workflow:Recovery Checkpoint:35569869331",
+    "timestamp": "2026-09-21T06:46:02Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Recovery Checkpoint",
-    "run_id": "35569727276",
+    "run_id": "35569869331",
     "conclusion": "success",
-    "commit_sha": "405cf559a17691a4e7d0e9b1ccca66b1811eede1",
+    "commit_sha": "d52ee5bdabca4c630bc627c0dc03a3e518936296",
     "branch": "main"
   },
-  "observed_source_commit_count": 1,
+  "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "d52ee5bdabca4c630bc627c0dc03a3e518936296"
+  "last_observed_head": "0ca79cee4f3401466debc5dc06a5a9b69df5f570"
 }
