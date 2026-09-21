@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:36:02Z",
+  "last_sync_at": "2026-09-21T13:37:30Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35606461684",
+    "run_id": "35606626538",
     "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35606461684",
-    "timestamp": "2026-09-21T13:36:02Z",
+    "event_key": "workflow:Engineering CI:35606626538",
+    "timestamp": "2026-09-21T13:37:30Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35606461684",
+    "run_id": "35606626538",
     "conclusion": "cancelled",
-    "commit_sha": "b48e7c6a3a6881c2b3a3d56dc09cc20e22ffb5ea",
-    "branch": "chat-4/project-record-canonical-ci-scope"
+    "commit_sha": "101ec61ed18493a5eea249e1226cc76b967b0b8f",
+    "branch": "chat-3/content-generator-dollar-escape-r2"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "4adfc8c78c16aa9c3f0ba1b5a598e1d7bbf00195"
+  "last_observed_head": "333679b143d3d52e290794492765e236bda2944c"
 }
