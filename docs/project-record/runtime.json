@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "0a286bb556588a448deeb891b062735bac4f3474",
-  "last_sync_at": "2026-09-21T13:52:03Z",
+  "last_sync_at": "2026-09-21T13:56:11Z",
   "last_sync_event": {
     "trigger": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607376879",
+    "run_id": "35607882516",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35607376879",
-    "timestamp": "2026-09-21T13:52:03Z",
+    "event_key": "workflow:Engineering CI:35607882516",
+    "timestamp": "2026-09-21T13:56:11Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35607376879",
+    "run_id": "35607882516",
     "conclusion": "success",
-    "commit_sha": "95f584d0eeb2e89028898fb213dfc4c137999db4",
-    "branch": "chat-4/project-record-canonical-ci-scope"
+    "commit_sha": "6006df4fed6117edaa4d6e17c8b67b744b498e80",
+    "branch": "chat-2/search-query-resource-bound"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35599868225",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "6d287583d84dcdef08901f3f209841e04e733158"
+  "last_observed_head": "7fd512b53892f495c58386ea74022260d7d809bf"
 }
