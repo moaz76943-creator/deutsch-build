@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "3d2dd6751c5126fccb9daca95057a60bbc60621c",
-  "last_sync_at": "2026-09-21T18:53:42Z",
+  "last_sync_at": "2026-09-21T18:54:06Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35641309347",
-    "conclusion": "success"
+    "workflow": "Engineering CI",
+    "run_id": "35640515039",
+    "conclusion": "cancelled"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35631215608",
-    "timestamp": "2026-09-21T17:28:12Z",
+    "event_key": "workflow:Engineering CI:35640515039",
+    "timestamp": "2026-09-21T18:54:06Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35631215608",
-    "conclusion": "success",
-    "commit_sha": "106f3d0cd2421c04fd34e48bf93e81b06c378564",
-    "branch": "chat-review/project-record-branch-ci-churn-rootfix"
+    "run_id": "35640515039",
+    "conclusion": "cancelled",
+    "commit_sha": "6550cb63969d659a7c9ea6278ac44ce451c82df5",
+    "branch": "main"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35641309347",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "1ad23016cfcc4e26445d11d0989d1c7982eab30d"
+  "last_observed_head": "88117f1560c893e28379533796a8e6b2c0d375cf"
 }
