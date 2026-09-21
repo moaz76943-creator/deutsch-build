@@ -28,3 +28,15 @@ def test_platform_channel_exposes_only_expected_storage_operations():
         assert f'"{method}"' in kotlin
         assert f"_{method}Method" in dart
     assert 'deleteKey' not in kotlin
+
+def test_clear_fails_closed_if_temporary_credential_cannot_be_deleted():
+    text = KOTLIN.read_text(encoding='utf-8')
+    clear_start = text.index('private fun clear(')
+    clear_end = text.index('private fun encrypt(', clear_start)
+    clear = text[clear_start:clear_end]
+
+    checked_delete = 'if (temporary.exists() && !temporary.delete())'
+    assert checked_delete in clear
+    assert 'result.error("unreadable", null, null)' in clear
+    assert clear.index(checked_delete) < clear.index('result.success(null)')
+

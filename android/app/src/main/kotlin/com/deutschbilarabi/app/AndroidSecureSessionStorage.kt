@@ -132,8 +132,9 @@ class AndroidSecureSessionStorage(private val context: Context) :
                 return
             }
             val temporary = File(context.filesDir, "$FILE_NAME.tmp")
-            if (temporary.exists()) {
-                temporary.delete()
+            if (temporary.exists() && !temporary.delete()) {
+                result.error("unreadable", null, null)
+                return
             }
             result.success(null)
         } catch (_: SecurityException) {
