@@ -7,23 +7,23 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "c678a9b1def5a7d2c2bac28a6912bb4d0297d8c6",
-  "last_sync_at": "2026-09-21T09:24:36Z",
+  "last_sync_at": "2026-09-21T09:28:10Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35583087044",
+    "workflow": "Engineering CI",
+    "run_id": "35582563751",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35581967221",
-    "timestamp": "2026-09-21T09:20:46Z",
+    "event_key": "workflow:Engineering CI:35582563751",
+    "timestamp": "2026-09-21T09:28:10Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35581967221",
+    "run_id": "35582563751",
     "conclusion": "success",
-    "commit_sha": "d37b299b109d60182453d4345426a2f8c0e16e1f",
-    "branch": "governance/canonical-v4-reconciliation-final"
+    "commit_sha": "3e255375e8c381eaffc656d9ee394c79a4cb5e0a",
+    "branch": "executor-a/learner-persistence-utf8-payload-bound"
   },
   "last_recovery_checkpoint_run": {
     "event_key": "workflow:Recovery Checkpoint:35583087044",
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "3a3fa5366df66d6180c4b4eade18f335a86620a1"
+  "last_observed_head": "c0578d1e4c885bf37558e7c0acacfde8509468ee"
 }
