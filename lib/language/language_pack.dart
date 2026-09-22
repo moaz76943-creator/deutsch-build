@@ -2,6 +2,7 @@ import 'language_content_pack.dart';
 import 'language_content_quality.dart';
 import 'language_content_intelligence.dart';
 import 'language_exercise_strategy.dart';
+import 'language_identity.dart';
 import 'language_presentation.dart';
 import 'language_text_normalizer.dart';
 
@@ -11,6 +12,7 @@ import 'language_text_normalizer.dart';
 /// own learner state, authentication, subscription authority, secure storage,
 /// or other application-wide mutable state.
 abstract interface class LanguagePack {
+  LanguageIdentity get identity;
   String get languageCode;
   String get displayName;
   String get targetLocale;
