@@ -7,22 +7,22 @@
   "reconciliation_required": false,
   "reconciliation_reason": null,
   "last_source_commit": "a49a38ac80d61ecaf30a04f3ea79906eb10ebdf6",
-  "last_sync_at": "2026-09-22T10:27:16Z",
+  "last_sync_at": "2026-09-22T10:36:03Z",
   "last_sync_event": {
     "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35716032090",
+    "workflow": "Engineering CI",
+    "run_id": "35716032045",
     "conclusion": "success"
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35694933335",
-    "timestamp": "2026-09-22T06:36:05Z",
+    "event_key": "workflow:Engineering CI:35716032045",
+    "timestamp": "2026-09-22T10:36:03Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35694933335",
+    "run_id": "35716032045",
     "conclusion": "success",
-    "commit_sha": "0df922c56011e567a40f84cb5bf3502cd79ee646",
+    "commit_sha": "a49a38ac80d61ecaf30a04f3ea79906eb10ebdf6",
     "branch": "main"
   },
   "last_recovery_checkpoint_run": {
@@ -38,5 +38,5 @@
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "730f9f306cbdfc208a33887518ae9938bd11d43e"
+  "last_observed_head": "99b83eb856cfbc3abbe01f7c763ec6f79c4eba0b"
 }
