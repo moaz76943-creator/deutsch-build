@@ -6,10 +6,10 @@
   "record_status": "CURRENT",
   "reconciliation_required": false,
   "reconciliation_reason": null,
-  "last_source_commit": "0df922c56011e567a40f84cb5bf3502cd79ee646",
-  "last_sync_at": "2026-09-22T06:49:09Z",
+  "last_source_commit": "a49a38ac80d61ecaf30a04f3ea79906eb10ebdf6",
+  "last_sync_at": "2026-09-22T10:27:05Z",
   "last_sync_event": {
-    "trigger": "schedule",
+    "trigger": "push",
     "workflow": "",
     "run_id": "",
     "conclusion": null
@@ -36,7 +36,7 @@
     "commit_sha": "fa9712d1aaa12529a68cc674ac9062dd168c0acb",
     "branch": "main"
   },
-  "observed_source_commit_count": 0,
+  "observed_source_commit_count": 1,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "4fc1240005e69802fb97336ef51d5d2d2e11c16e"
+  "last_observed_head": "a49a38ac80d61ecaf30a04f3ea79906eb10ebdf6"
 }
