@@ -56,6 +56,12 @@ final class QualityGateRequirement {
     if (languageId != null) {
       _requireNonEmpty(languageId!, 'languageId');
     }
+    if ((languageId == null) != (role == null)) {
+      throw ArgumentError('languageId and role must be declared together');
+    }
+    if (capability != null && role == null) {
+      throw ArgumentError('capability requirements must be role-scoped');
+    }
   }
 }
 
@@ -216,11 +222,18 @@ abstract final class QualityGateReducer {
     }
 
     final capabilityEvaluation = _evaluateCapability(requirement, evidence);
-    if (capabilityEvaluation != null) {
-      if (!capabilityEvaluation.satisfied ||
-          capabilityEvaluation.acceptedNotApplicable) {
-        return capabilityEvaluation;
-      }
+    final acceptedCapabilityNotApplicable =
+        capabilityEvaluation?.acceptedNotApplicable ?? false;
+    if (capabilityEvaluation != null && !capabilityEvaluation.satisfied) {
+      return capabilityEvaluation;
+    }
+    if (acceptedCapabilityNotApplicable &&
+        evidence.disposition != QualityGateDisposition.notApplicable) {
+      return _failure(
+        requirement,
+        QualityGateDisposition.fail,
+        'NOT_APPLICABLE capability must use NOT_APPLICABLE evidence',
+      );
     }
 
     switch (evidence.disposition) {
@@ -251,6 +264,9 @@ abstract final class QualityGateReducer {
           'evidence reported QUARANTINED',
         );
       case QualityGateDisposition.notApplicable:
+        if (acceptedCapabilityNotApplicable) {
+          return capabilityEvaluation!;
+        }
         final status = evidence.capabilityStatus;
         final justified = status != null &&
             status.state == LanguageCapabilityState.notApplicable &&
@@ -289,6 +305,10 @@ abstract final class QualityGateReducer {
     final expectedRole = requirement.role ?? evidence.role;
 
     final eligibility = evidence.eligibility;
+    if ((requirement.languageId != null || requirement.role != null) &&
+        eligibility == null) {
+      return 'scoped gate requires explicit role eligibility';
+    }
     if (eligibility != null) {
       if (expectedLanguage == null ||
           expectedRole == null ||
@@ -317,6 +337,14 @@ abstract final class QualityGateReducer {
             binding.languageId != expectedLanguage ||
             binding.role != expectedRole)) {
       return 'role evidence binding scope mismatch';
+    }
+
+    final capabilityStatus = evidence.capabilityStatus;
+    if (binding != null &&
+        capabilityStatus != null &&
+        (binding.capabilitySnapshotVersion != capabilityStatus.snapshotVersion ||
+            binding.capabilitySnapshotHash != capabilityStatus.snapshotHash)) {
+      return 'capability snapshot does not match role evidence binding';
     }
 
     return null;
