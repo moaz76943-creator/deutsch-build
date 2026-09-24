@@ -243,6 +243,36 @@ void main() {
       expect(result.mandatorySatisfied, isTrue);
       expect(result.disposition, QualityGateDisposition.pass);
       expect(result.results.single.acceptedNotApplicable, isTrue);
+
+      final explicitFailure = QualityGateReducer.reduce(
+        requirements: <QualityGateRequirement>[
+          _requirement(
+            gateId: 'na-fail',
+            languageId: 'syn',
+            role: LanguageRole.target,
+            capability: LanguageCapability.transliteration,
+            allowNotApplicable: true,
+          ),
+        ],
+        evidence: <QualityGateEvidence>[
+          _evidence(
+            gateId: 'na-fail',
+            disposition: QualityGateDisposition.fail,
+            languageId: 'syn',
+            role: LanguageRole.target,
+            eligibility: _eligible('syn', LanguageRole.target),
+            capabilityStatus: _capability(
+              role: LanguageRole.target,
+              capability: LanguageCapability.transliteration,
+              state: LanguageCapabilityState.notApplicable,
+              justification: 'synthetic capability does not apply',
+            ),
+          ),
+        ],
+      );
+
+      expect(explicitFailure.mandatorySatisfied, isFalse);
+      expect(explicitFailure.disposition, QualityGateDisposition.fail);
     });
 
     test('RR-A1-06 ROLE_EVIDENCE_MISMATCH_REJECTED', () {
