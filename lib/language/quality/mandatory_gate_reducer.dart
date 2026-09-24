@@ -340,6 +340,23 @@ abstract final class QualityGateReducer {
     }
 
     final capabilityStatus = evidence.capabilityStatus;
+    final nestedBinding = roleStatus?.evidenceBinding;
+    if (nestedBinding != null) {
+      if (binding == null) {
+        return 'nested role evidence binding requires consumed role evidence binding';
+      }
+      if (!_sameRoleEvidenceBinding(nestedBinding, binding)) {
+        return 'nested role evidence binding does not match consumed role evidence binding';
+      }
+      if (capabilityStatus != null &&
+          (nestedBinding.capabilitySnapshotVersion !=
+                  capabilityStatus.snapshotVersion ||
+              nestedBinding.capabilitySnapshotHash !=
+                  capabilityStatus.snapshotHash)) {
+        return 'nested role evidence binding capability snapshot mismatch';
+      }
+    }
+
     if (binding != null &&
         capabilityStatus != null &&
         (binding.capabilitySnapshotVersion != capabilityStatus.snapshotVersion ||
@@ -348,6 +365,43 @@ abstract final class QualityGateReducer {
     }
 
     return null;
+  }
+
+  static bool _sameRoleEvidenceBinding(
+    LanguageRoleEvidenceBinding left,
+    LanguageRoleEvidenceBinding right,
+  ) {
+    if (left.languageId != right.languageId ||
+        left.role != right.role ||
+        left.universalContractVersion != right.universalContractVersion ||
+        left.universalContractHash != right.universalContractHash ||
+        left.manifestStaticFingerprint != right.manifestStaticFingerprint ||
+        left.capabilitySnapshotVersion != right.capabilitySnapshotVersion ||
+        left.capabilitySnapshotHash != right.capabilitySnapshotHash ||
+        left.compatibilityPolicyVersion != right.compatibilityPolicyVersion ||
+        left.compatibilityPolicyHash != right.compatibilityPolicyHash ||
+        left.readinessValidatorFingerprint !=
+            right.readinessValidatorFingerprint ||
+        left.readinessEvidenceRef != right.readinessEvidenceRef ||
+        left.consumedArtifactCoordinates.length !=
+            right.consumedArtifactCoordinates.length) {
+      return false;
+    }
+
+    for (var index = 0;
+        index < left.consumedArtifactCoordinates.length;
+        index++) {
+      final leftCoordinate = left.consumedArtifactCoordinates[index];
+      final rightCoordinate = right.consumedArtifactCoordinates[index];
+      if (leftCoordinate.artifactType != rightCoordinate.artifactType ||
+          leftCoordinate.version != rightCoordinate.version ||
+          leftCoordinate.hash != rightCoordinate.hash ||
+          leftCoordinate.reference != rightCoordinate.reference) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   static QualityGateEvaluation? _evaluateRoleStatus(
