@@ -116,6 +116,11 @@ void main() {
       expect(record.intentId, 'ASK_PRICE');
       expect(record.semanticId, isNot(record.conceptId));
       expect(record.semanticId, isNot(record.intentId));
+
+      final serialized = record.toMap();
+      expect(serialized.containsKey('surface'), isFalse);
+      expect(serialized.containsKey('translation'), isFalse);
+      expect(serialized.containsKey('translationText'), isFalse);
     });
   });
 
