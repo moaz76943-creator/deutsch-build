@@ -369,6 +369,76 @@ void main() {
       expect(result.disposition, QualityGateDisposition.unknown);
     });
 
+    test('P1 NESTED_ROLE_BINDING_SNAPSHOT_DIVERGENCE_FAILS_CLOSED', () {
+      final eligibility = _eligible('syn', LanguageRole.target);
+      final nestedSnapshotA = LanguageRoleEvidenceBinding(
+        languageId: 'syn',
+        role: LanguageRole.target,
+        universalContractVersion: 'f1-a1',
+        universalContractHash: 'contract-hash',
+        manifestStaticFingerprint: 'synthetic-static-fingerprint',
+        capabilitySnapshotVersion: 'snapshot-a',
+        capabilitySnapshotHash: 'snapshot-hash-a',
+        compatibilityPolicyVersion: 'synthetic-policy-v1',
+        compatibilityPolicyHash: 'synthetic-policy-hash',
+        readinessValidatorFingerprint: 'synthetic-validator',
+        readinessEvidenceRef: 'synthetic-evidence-ref-a',
+      );
+      final consumedSnapshotB = LanguageRoleEvidenceBinding(
+        languageId: 'syn',
+        role: LanguageRole.target,
+        universalContractVersion: 'f1-a1',
+        universalContractHash: 'contract-hash',
+        manifestStaticFingerprint: 'synthetic-static-fingerprint',
+        capabilitySnapshotVersion: 'snapshot-b',
+        capabilitySnapshotHash: 'snapshot-hash-b',
+        compatibilityPolicyVersion: 'synthetic-policy-v1',
+        compatibilityPolicyHash: 'synthetic-policy-hash',
+        readinessValidatorFingerprint: 'synthetic-validator',
+        readinessEvidenceRef: 'synthetic-evidence-ref-b',
+      );
+      final productionReadyOnA = LanguageRoleStatusRecord(
+        languageId: 'syn',
+        role: LanguageRole.target,
+        eligibility: eligibility,
+        state: LanguageRoleStatusState.productionReady,
+        evidenceBinding: nestedSnapshotA,
+      );
+      final capabilityOnB = LanguageCapabilityStatus(
+        role: LanguageRole.target,
+        capability: LanguageCapability.assessment,
+        state: LanguageCapabilityState.supported,
+        snapshotVersion: 'snapshot-b',
+        snapshotHash: 'snapshot-hash-b',
+      );
+
+      final result = QualityGateReducer.reduce(
+        requirements: <QualityGateRequirement>[
+          _requirement(
+            gateId: 'nested-binding-consistency',
+            languageId: 'syn',
+            role: LanguageRole.target,
+            capability: LanguageCapability.assessment,
+          ),
+        ],
+        evidence: <QualityGateEvidence>[
+          _evidence(
+            gateId: 'nested-binding-consistency',
+            languageId: 'syn',
+            role: LanguageRole.target,
+            eligibility: eligibility,
+            roleStatus: productionReadyOnA,
+            roleEvidenceBinding: consumedSnapshotB,
+            capabilityStatus: capabilityOnB,
+          ),
+        ],
+      );
+
+      expect(result.mandatorySatisfied, isFalse);
+      expect(result.disposition, QualityGateDisposition.fail);
+      expect(result.results.single.reason, contains('nested'));
+    });
+
     test('RR-A1-10 OPTIONAL_PASS_CANNOT_MASK_MANDATORY_NONPASS', () {
       final result = QualityGateReducer.reduce(
         requirements: <QualityGateRequirement>[
