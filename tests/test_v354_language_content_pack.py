@@ -18,8 +18,9 @@ def test_language_pack_exposes_a_language_owned_content_pack():
 def test_composition_root_builds_runtime_dependencies_from_selected_content_pack():
     main = read('lib/main.dart')
     assert 'final contentPack = languagePack.contentPack;' in main
-    assert 'final corpus = contentPack.items.toList(growable: false);' in main
-    assert 'verbIndex: contentPack.verbIndex,' in main
+    assert 'final corpus = contentPack.items;' in main
+    assert 'final verbIndex = contentPack.verbIndex;' in main
+    assert 'verbIndex: verbIndex,' in main
 
 
 def test_german_content_pack_is_the_only_place_that_binds_current_german_runtime_sources():

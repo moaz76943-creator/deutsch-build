@@ -46,11 +46,12 @@ Future<void> main() async {
       final repo = LearnerRepository(prefs, persistence: persistence);
       final languagePack = const GermanLanguagePack();
       final contentPack = languagePack.contentPack;
-      final corpus = contentPack.items.toList(growable: false);
-      final searchIndex = SearchIndex(corpus, contentPack.verbIndex, languagePack.textNormalizer);
+      final corpus = contentPack.items;
+      final verbIndex = contentPack.verbIndex;
+      final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);
       final dependencies = AppDependencies<ContentItem>(
         searchIndex: searchIndex,
-        verbIndex: contentPack.verbIndex,
+        verbIndex: verbIndex,
         corpus: corpus,
         languagePack: languagePack,
         aiGateway: AiGatewayFactory.fromRuntimeConfig(AiRuntimeConfig.fromEnvironment()),
