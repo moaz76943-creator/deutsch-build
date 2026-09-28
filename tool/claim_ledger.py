@@ -1,0 +1,359 @@
+#!/usr/bin/env python3
+"""Fail-closed, machine-readable DEUTSCH claim ledger core.
+
+This module is deliberately transport-agnostic. The durable ledger lives in GitHub;
+callers MUST use GitHub's current file/blob SHA as the compare-and-swap precondition
+when writing the returned JSON. A successful local transition is not write authority.
+
+The core never steals expired claims: expiration becomes RECONCILIATION_REQUIRED.
+It also refuses stale main/branch observations, conflicting task/branch writers, and
+future-dated heartbeats. Fencing epochs increase monotonically across all claims.
+"""
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from pathlib import PurePosixPath
+import argparse
+import hashlib
+import json
+import re
+import sys
+from typing import Any
+
+REPO = "sali97m-cpu/deutsch-bilarabi"
+SCHEMA_VERSION = 1
+SHA = re.compile(r"[0-9a-f]{40}\Z")
+ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
+ALLOWED_STATES = {"ACTIVE", "RELEASED", "RECONCILIATION_REQUIRED"}
+BLOCKED_DISPATCH = {
+    "BLOCKED_ACTIVE_CLAIM",
+    "UNKNOWN_CLAIM_COVERAGE",
+    "STALE_GIT_SNAPSHOT",
+    "RECONCILIATION_REQUIRED",
+    "CONFLICTING_LEDGER",
+}
+MAX_FUTURE_SKEW = timedelta(seconds=30)
+
+
+class LedgerError(ValueError):
+    """Invalid or unsafe ledger transition."""
+
+
+class ClaimConflict(LedgerError):
+    """A live claim conflicts with the proposed writer."""
+
+
+def _instant(value: Any, label: str) -> datetime:
+    if not isinstance(value, str):
+        raise LedgerError(f"invalid {label}")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise LedgerError(f"invalid {label}") from exc
+    if parsed.tzinfo is None:
+        raise LedgerError(f"timezone required for {label}")
+    return parsed.astimezone(timezone.utc)
+
+
+def _stamp(value: datetime) -> str:
+    if not isinstance(value, datetime) or value.tzinfo is None:
+        raise LedgerError("timestamp must be timezone-aware")
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _id(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not ID.fullmatch(value):
+        raise LedgerError(f"invalid {label}")
+    return value
+
+
+def _sha(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not SHA.fullmatch(value):
+        raise LedgerError(f"invalid {label}")
+    return value
+
+
+def _paths(value: Any) -> list[str]:
+    if not isinstance(value, list) or not value:
+        raise LedgerError("paths must be a non-empty list")
+    out: list[str] = []
+    for path in value:
+        if not isinstance(path, str) or not path or len(path) > 250:
+            raise LedgerError("invalid path")
+        bits = path.split("/")
+        if (path.startswith("/") or "\\" in path or any(b in ("", ".", "..") for b in bits)
+                or any(ch in path for ch in "*?[") or str(PurePosixPath(path)) != path):
+            raise LedgerError("path must be canonical and exact")
+        if path in out:
+            raise LedgerError("duplicate path")
+        out.append(path)
+    return out
+
+
+def empty_ledger(main_sha: str) -> dict[str, Any]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "repo": REPO,
+        "generation": 0,
+        "main_sha": _sha(main_sha, "main_sha"),
+        "claims_complete": True,
+        "claims": [],
+    }
+
+
+def _normalize_claim(raw: Any, now: datetime) -> dict[str, Any]:
+    if not isinstance(raw, dict):
+        raise LedgerError("invalid claim")
+    claim_id = _id(raw.get("claim_id"), "claim_id")
+    task_id = _id(raw.get("task_id"), "task_id")
+    owner_role = _id(raw.get("owner_role"), "owner_role")
+    branch = _id(raw.get("branch"), "branch")
+    head_sha = _sha(raw.get("head_sha"), "head_sha")
+    paths = _paths(raw.get("paths"))
+    epoch = raw.get("epoch")
+    if type(epoch) is not int or epoch < 1:
+        raise LedgerError("epoch must be a positive integer")
+    state = raw.get("state")
+    if state not in ALLOWED_STATES:
+        raise LedgerError("unknown claim state")
+    issued = _instant(raw.get("issued_at"), "issued_at")
+    heartbeat = _instant(raw.get("heartbeat_at"), "heartbeat_at")
+    expires = _instant(raw.get("expires_at"), "expires_at")
+    if heartbeat > now + MAX_FUTURE_SKEW:
+        raise LedgerError("future heartbeat exceeds server-observation skew")
+    if not issued <= heartbeat <= expires:
+        raise LedgerError("inconsistent claim timestamps")
+    effective = state
+    if state == "ACTIVE" and expires <= now:
+        effective = "RECONCILIATION_REQUIRED"
+    result = dict(raw)
+    result.update({
+        "claim_id": claim_id,
+        "task_id": task_id,
+        "owner_role": owner_role,
+        "branch": branch,
+        "head_sha": head_sha,
+        "paths": paths,
+        "epoch": epoch,
+        "effective_state": effective,
+    })
+    return result
+
+
+def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
+    if not isinstance(ledger, dict):
+        raise LedgerError("ledger must be an object")
+    if ledger.get("schema_version") != SCHEMA_VERSION or ledger.get("repo") != REPO:
+        raise LedgerError("wrong ledger schema/repository")
+    generation = ledger.get("generation")
+    if type(generation) is not int or generation < 0:
+        raise LedgerError("generation must be a non-negative integer")
+    main_sha = _sha(ledger.get("main_sha"), "main_sha")
+    if ledger.get("claims_complete") is not True:
+        raise LedgerError("claim inventory is incomplete")
+    raw = ledger.get("claims")
+    if not isinstance(raw, list):
+        raise LedgerError("claims must be a list")
+    claims = [_normalize_claim(item, now) for item in raw]
+    ids = [c["claim_id"] for c in claims]
+    if len(ids) != len(set(ids)):
+        raise LedgerError("duplicate claim_id")
+    active_epochs = [c["epoch"] for c in claims]
+    if len(active_epochs) != len(set(active_epochs)):
+        raise LedgerError("fencing epochs must be globally unique")
+    normalized = dict(ledger)
+    normalized.update({"generation": generation, "main_sha": main_sha, "claims": claims})
+    return normalized
+
+
+def _next_epoch(claims: list[dict[str, Any]]) -> int:
+    return max((c["epoch"] for c in claims), default=0) + 1
+
+
+def _claim_id(task_id: str, owner_role: str, epoch: int, head_sha: str) -> str:
+    digest = hashlib.sha256(f"{task_id}\0{owner_role}\0{epoch}\0{head_sha}".encode()).hexdigest()[:12]
+    return f"{task_id}/{epoch}/{digest}"
+
+
+def acquire(
+    ledger: Any,
+    request: Any,
+    *,
+    now: datetime,
+    observed_main_sha: str,
+    observed_branch_head: str,
+    expected_generation: int,
+    ttl_minutes: int = 90,
+) -> dict[str, Any]:
+    """Return the next ledger state or fail closed.
+
+    The caller MUST persist the returned state with GitHub Contents API using the
+    previously-read ledger blob SHA. If that CAS fails, this transition is void.
+    """
+    normalized = validate_ledger(ledger, now=now)
+    if normalized["generation"] != expected_generation:
+        raise LedgerError("stale ledger generation")
+    current_main = _sha(observed_main_sha, "observed_main_sha")
+    current_head = _sha(observed_branch_head, "observed_branch_head")
+    if normalized["main_sha"] != current_main:
+        raise LedgerError("stale main snapshot")
+    if not isinstance(request, dict):
+        raise LedgerError("request must be an object")
+    task_id = _id(request.get("task_id"), "task_id")
+    owner_role = _id(request.get("owner_role"), "owner_role")
+    branch = _id(request.get("branch"), "branch")
+    expected_head = _sha(request.get("expected_head_sha"), "expected_head_sha")
+    paths = _paths(request.get("paths"))
+    if expected_head != current_head:
+        raise LedgerError("stale branch head")
+    if type(ttl_minutes) is not int or ttl_minutes < 5 or ttl_minutes > 180:
+        raise LedgerError("ttl_minutes must be between 5 and 180")
+
+    unresolved = [c for c in normalized["claims"] if c["effective_state"] != "RELEASED"]
+    for claim in unresolved:
+        if claim["effective_state"] == "RECONCILIATION_REQUIRED":
+            if (claim["task_id"] == task_id or claim["branch"] == branch
+                    or set(claim["paths"]).intersection(paths)):
+                raise ClaimConflict("expired claim requires reconciliation; automatic theft forbidden")
+        if claim["effective_state"] == "ACTIVE":
+            if claim["task_id"] == task_id and claim["owner_role"] != owner_role:
+                raise ClaimConflict("same task already owned by another role")
+            if claim["branch"] == branch and claim["owner_role"] != owner_role:
+                raise ClaimConflict("same branch already has another writer")
+            if set(claim["paths"]).intersection(paths):
+                raise ClaimConflict("requested files overlap an active claim")
+
+    epoch = _next_epoch(normalized["claims"])
+    expires = now.astimezone(timezone.utc) + timedelta(minutes=ttl_minutes)
+    claim = {
+        "claim_id": _claim_id(task_id, owner_role, epoch, current_head),
+        "task_id": task_id,
+        "owner_role": owner_role,
+        "branch": branch,
+        "head_sha": current_head,
+        "paths": paths,
+        "epoch": epoch,
+        "state": "ACTIVE",
+        "issued_at": _stamp(now),
+        "heartbeat_at": _stamp(now),
+        "expires_at": _stamp(expires),
+    }
+    result = {k: v for k, v in normalized.items() if k != "claims"}
+    result["generation"] = normalized["generation"] + 1
+    result["claims"] = [{k: v for k, v in c.items() if k != "effective_state"}
+                        for c in normalized["claims"]] + [claim]
+    return result
+
+
+def release(
+    ledger: Any,
+    *,
+    claim_id: str,
+    owner_role: str,
+    epoch: int,
+    now: datetime,
+    expected_generation: int,
+) -> dict[str, Any]:
+    normalized = validate_ledger(ledger, now=now)
+    if normalized["generation"] != expected_generation:
+        raise LedgerError("stale ledger generation")
+    cid = _id(claim_id, "claim_id")
+    owner = _id(owner_role, "owner_role")
+    if type(epoch) is not int or epoch < 1:
+        raise LedgerError("invalid epoch")
+    found = None
+    claims = []
+    for c in normalized["claims"]:
+        plain = {k: v for k, v in c.items() if k != "effective_state"}
+        if c["claim_id"] == cid:
+            found = c
+            if c["owner_role"] != owner or c["epoch"] != epoch:
+                raise ClaimConflict("fencing token/owner mismatch")
+            if c["effective_state"] == "RECONCILIATION_REQUIRED":
+                raise ClaimConflict("expired claim requires explicit reconciliation, not release")
+            plain["state"] = "RELEASED"
+            plain["heartbeat_at"] = _stamp(now)
+        claims.append(plain)
+    if found is None:
+        raise LedgerError("claim not found")
+    result = {k: v for k, v in normalized.items() if k != "claims"}
+    result["generation"] += 1
+    result["claims"] = claims
+    return result
+
+
+def reconcile_expired(
+    ledger: Any,
+    *,
+    claim_id: str,
+    expected_epoch: int,
+    reconciler_role: str,
+    now: datetime,
+    expected_generation: int,
+) -> dict[str, Any]:
+    """Explicitly close one expired claim after external owner/branch reconciliation."""
+    normalized = validate_ledger(ledger, now=now)
+    if normalized["generation"] != expected_generation:
+        raise LedgerError("stale ledger generation")
+    cid = _id(claim_id, "claim_id")
+    _id(reconciler_role, "reconciler_role")
+    if type(expected_epoch) is not int or expected_epoch < 1:
+        raise LedgerError("invalid expected_epoch")
+    found = None
+    claims = []
+    for c in normalized["claims"]:
+        plain = {k: v for k, v in c.items() if k != "effective_state"}
+        if c["claim_id"] == cid:
+            found = c
+            if c["epoch"] != expected_epoch:
+                raise ClaimConflict("stale fencing epoch")
+            if c["effective_state"] != "RECONCILIATION_REQUIRED":
+                raise ClaimConflict("only expired reconciliation-required claims may be reconciled")
+            plain["state"] = "RELEASED"
+            plain["heartbeat_at"] = _stamp(now)
+            plain["reconciled_by"] = reconciler_role
+            plain["reconciled_at"] = _stamp(now)
+        claims.append(plain)
+    if found is None:
+        raise LedgerError("claim not found")
+    result = {k: v for k, v in normalized.items() if k != "claims"}
+    result["generation"] += 1
+    result["claims"] = claims
+    return result
+
+
+def dispatch_allowed(status: str, *, claim: dict[str, Any] | None, branch_head: str) -> bool:
+    """Consequential dispatch is allowed only for one still-active exact-head claim."""
+    if status in BLOCKED_DISPATCH or status != "CLAIM_GRANTED":
+        return False
+    if not isinstance(claim, dict) or claim.get("state") != "ACTIVE":
+        return False
+    try:
+        return _sha(claim.get("head_sha"), "claim head") == _sha(branch_head, "branch head")
+    except LedgerError:
+        return False
+
+
+def _load(path: str) -> Any:
+    with open(path, "r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(description="DEUTSCH claim-ledger pure transition core")
+    p.add_argument("ledger")
+    p.add_argument("--validate-at", required=True, help="trusted observation time, ISO-8601")
+    args = p.parse_args(argv)
+    try:
+        value = validate_ledger(_load(args.ledger), now=_instant(args.validate_at, "validate-at"))
+        value["claims"] = [{k: v for k, v in c.items() if k != "effective_state"}
+                           for c in value["claims"]]
+        print(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2))
+        return 0
+    except (OSError, json.JSONDecodeError, LedgerError) as exc:
+        print(f"claim ledger invalid: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
