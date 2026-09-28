@@ -191,6 +191,17 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
                     or first["branch"] == second["branch"]
                     or _scope_overlaps(first["paths"], second["paths"])):
                 raise LedgerError("conflicting unresolved claims in persisted ledger")
+    # Released NEW epochs also fence OLD writes. In a corrupted/imported ledger,
+    # reviving an older claim after a newer overlapping epoch has finished must
+    # NEVER regain write authorization merely because pairwise ACTIVE checks pass.
+    for old_claim in unresolved:
+        for later_claim in claims:
+            if later_claim["epoch"] <= old_claim["epoch"]:
+                continue
+            if (old_claim["task_id"] == later_claim["task_id"]
+                    or old_claim["branch"] == later_claim["branch"]
+                    or _scope_overlaps(old_claim["paths"], later_claim["paths"])):
+                raise LedgerError("unresolved claim superseded by later fencing epoch")
     normalized = dict(ledger)
     normalized.update({"generation": generation, "last_epoch": highwater,
                        "main_sha": main_sha, "claims": claims})

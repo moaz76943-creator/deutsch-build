@@ -611,3 +611,33 @@ def test_corrupt_extreme_highwater_fails_without_allocating_unbounded_epoch_rang
     bad["last_epoch"] = 1_000_000_000
     with pytest.raises(LedgerError, match="truncated claim history"):
         validate_ledger(bad, now=NOW)
+
+
+@pytest.mark.parametrize("reuse", ["task", "branch", "ancestor_path"])
+def test_later_released_epoch_cannot_resurrect_earlier_claim(reuse):
+    first = acquire_one()
+    early = first["claims"][0]
+    closed = release(first, claim_id=early["claim_id"], owner_role="CENTRAL",
+                     epoch=1, now=NOW + timedelta(minutes=1), expected_generation=1)
+    overrides = {"owner_role": "NEW"}
+    if reuse == "branch":
+        overrides.update(task_id="SECOND", paths=["docs/new.py"])
+    elif reuse == "ancestor_path":
+        overrides.update(task_id="SECOND", branch="another/branch", paths=["tool"])
+    newer = acquire(
+        closed, req(**overrides), now=NOW + timedelta(minutes=2),
+        observed_main_sha=MAIN, observed_branch_head=HEAD,
+        expected_generation=2)
+    later = newer["claims"][1]
+    finished = release(
+        newer, claim_id=later["claim_id"], owner_role="NEW",
+        epoch=2, now=NOW + timedelta(minutes=3), expected_generation=3)
+    assert validate_ledger(finished, now=NOW + timedelta(minutes=4))["last_epoch"] == 2
+    tampered = deepcopy(finished)
+    tampered["claims"][0]["state"] = "ACTIVE"
+    with pytest.raises(LedgerError, match="superseded"):
+        validate_ledger(tampered, now=NOW + timedelta(minutes=4))
+    assert not fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=tampered, claim_id=early["claim_id"],
+        owner_role="CENTRAL", epoch=1, expected_generation=4,
+        observed_main_sha=MAIN, branch_head=HEAD, now=NOW + timedelta(minutes=4))
