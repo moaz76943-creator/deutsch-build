@@ -155,7 +155,9 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
     now = now.astimezone(timezone.utc)
     if not isinstance(ledger, dict):
         raise LedgerError("ledger must be an object")
-    if ledger.get("schema_version") != SCHEMA_VERSION or ledger.get("repo") != REPO:
+    if (type(ledger.get("schema_version")) is not int
+            or ledger.get("schema_version") != SCHEMA_VERSION
+            or ledger.get("repo") != REPO):
         raise LedgerError("wrong ledger schema/repository")
     generation = ledger.get("generation")
     if type(generation) is not int or generation < 0:
@@ -506,6 +508,10 @@ def fenced_dispatch_allowed(
     durable ledger and re-check this predicate immediately before every write.
     """
     try:
+        if (type(epoch) is not int or epoch < 1
+                or type(expected_generation) is not int
+                or expected_generation < 0):
+            return False
         current = validate_ledger(ledger, now=now)
         if (current["generation"] != expected_generation
                 or current["main_sha"] != _sha(observed_main_sha, "observed_main_sha")):

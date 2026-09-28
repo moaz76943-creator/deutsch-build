@@ -670,3 +670,45 @@ def test_persisted_far_future_expiry_does_not_authorize_stale_dispatch():
         expected_generation=ledger["generation"], observed_main_sha=MAIN,
         branch_head=HEAD, now=NOW + timedelta(days=1),
     )
+
+
+@pytest.mark.parametrize("bad", [True, 1.0])
+def test_composed_wire_schema_version_rejects_noninteger(bad):
+    data = empty_ledger(MAIN)
+    data["schema_version"] = bad
+    with pytest.raises(LedgerError, match="schema"):
+        validate_ledger(data, now=NOW)
+
+
+@pytest.mark.parametrize("bad", [True, 1.0])
+def test_composed_fence_rejects_noninteger_epoch(bad):
+    data = acquire_one()
+    claim = data["claims"][0]
+    assert not fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=data, claim_id=claim["claim_id"],
+        owner_role=claim["owner_role"], epoch=bad,
+        expected_generation=data["generation"], observed_main_sha=MAIN,
+        branch_head=HEAD, now=NOW)
+
+
+@pytest.mark.parametrize("bad", [True, 1.0])
+def test_composed_fence_rejects_noninteger_generation(bad):
+    data = acquire_one()
+    claim = data["claims"][0]
+    assert not fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=data, claim_id=claim["claim_id"],
+        owner_role=claim["owner_role"], epoch=claim["epoch"],
+        expected_generation=bad, observed_main_sha=MAIN,
+        branch_head=HEAD, now=NOW)
+
+
+def test_composed_valid_integer_fence_and_staged_ttl_boundary():
+    data = acquire_one()
+    claim = data["claims"][0]
+    assert fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=data, claim_id=claim["claim_id"],
+        owner_role=claim["owner_role"], epoch=1,
+        expected_generation=1, observed_main_sha=MAIN,
+        branch_head=HEAD, now=NOW)
+    claim["expires_at"] = (NOW + timedelta(minutes=180)).isoformat()
+    assert validate_ledger(data, now=NOW)["claims"][0]["effective_state"] == "ACTIVE"
