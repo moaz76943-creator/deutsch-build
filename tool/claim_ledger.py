@@ -171,8 +171,10 @@ def _next_epoch(claims: list[dict[str, Any]]) -> int:
 
 
 def _claim_id(task_id: str, owner_role: str, epoch: int, head_sha: str) -> str:
-    digest = hashlib.sha256(f"{task_id}\0{owner_role}\0{epoch}\0{head_sha}".encode()).hexdigest()[:12]
-    return f"{task_id}/{epoch}/{digest}"
+    # Fixed-length identity: valid maximum-length task IDs must not make the
+    # generated claim_id violate this module's own 128-character ID contract.
+    digest = hashlib.sha256(f"{task_id}\0{owner_role}\0{epoch}\0{head_sha}".encode()).hexdigest()[:24]
+    return f"claim/{epoch}/{digest}"
 
 
 def acquire(
@@ -269,6 +271,8 @@ def release(
             found = c
             if c["owner_role"] != owner or c["epoch"] != epoch:
                 raise ClaimConflict("fencing token/owner mismatch")
+            if c["effective_state"] == "RELEASED":
+                raise ClaimConflict("claim is already released")
             if c["effective_state"] == "RECONCILIATION_REQUIRED":
                 raise ClaimConflict("expired claim requires explicit reconciliation, not release")
             plain["state"] = "RELEASED"
@@ -351,15 +355,23 @@ def refresh_main(
     return result
 
 
-def dispatch_allowed(status: str, *, claim: dict[str, Any] | None, branch_head: str) -> bool:
-    """Consequential dispatch is allowed only for one still-active exact-head claim."""
+def dispatch_allowed(
+    status: str,
+    *,
+    claim: dict[str, Any] | None,
+    branch_head: str,
+    now: datetime,
+) -> bool:
+    """Final dispatch gate: re-evaluate expiry with trusted current time."""
     if status in BLOCKED_DISPATCH or status != "CLAIM_GRANTED":
         return False
-    if not isinstance(claim, dict) or claim.get("state") != "ACTIVE":
+    if not isinstance(claim, dict):
         return False
     try:
-        return _sha(claim.get("head_sha"), "claim head") == _sha(branch_head, "branch head")
-    except LedgerError:
+        current = _normalize_claim(claim, now.astimezone(timezone.utc))
+        return (current["effective_state"] == "ACTIVE"
+                and current["head_sha"] == _sha(branch_head, "branch head"))
+    except (LedgerError, AttributeError):
         return False
 
 

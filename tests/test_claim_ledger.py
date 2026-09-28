@@ -188,16 +188,19 @@ def test_dispatch_fails_closed_for_all_known_non_granted_statuses():
         "CONFLICTING_LEDGER",
         "PREFLIGHT_CLEAR_NOT_A_LOCK",
     ):
-        assert dispatch_allowed(status, claim=claim, branch_head=HEAD) is False
+        assert dispatch_allowed(status, claim=claim, branch_head=HEAD, now=NOW) is False
 
 
 def test_dispatch_requires_active_exact_head_claim():
     claim = acquire_one()["claims"][0]
-    assert dispatch_allowed("CLAIM_GRANTED", claim=claim, branch_head=HEAD) is True
-    assert dispatch_allowed("CLAIM_GRANTED", claim=claim, branch_head=OTHER_HEAD) is False
+    assert dispatch_allowed("CLAIM_GRANTED", claim=claim, branch_head=HEAD, now=NOW) is True
+    assert dispatch_allowed("CLAIM_GRANTED", claim=claim, branch_head=OTHER_HEAD, now=NOW) is False
+    assert dispatch_allowed(
+        "CLAIM_GRANTED", claim=claim, branch_head=HEAD, now=NOW + timedelta(minutes=91)
+    ) is False
     released = deepcopy(claim)
     released["state"] = "RELEASED"
-    assert dispatch_allowed("CLAIM_GRANTED", claim=released, branch_head=HEAD) is False
+    assert dispatch_allowed("CLAIM_GRANTED", claim=released, branch_head=HEAD, now=NOW) is False
 
 
 def test_invalid_paths_duplicate_epochs_and_incomplete_inventory_fail_closed():
@@ -250,3 +253,33 @@ def test_refresh_main_rejects_stale_old_baseline():
             ledger, expected_old_main_sha=OTHER_HEAD, new_main_sha="d" * 40,
             now=NOW, expected_generation=0,
         )
+
+
+def test_repeat_release_is_rejected_without_corrupting_timestamp_invariants():
+    ledger = acquire_one()
+    claim = ledger["claims"][0]
+    released = release(
+        ledger, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+        now=NOW + timedelta(minutes=1), expected_generation=1,
+    )
+    with pytest.raises(ClaimConflict, match="already released"):
+        release(
+            released, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+            now=NOW + timedelta(minutes=2), expected_generation=2,
+        )
+    assert validate_ledger(released, now=NOW + timedelta(minutes=120))["claims"][0]["effective_state"] == "RELEASED"
+
+
+def test_maximum_length_task_id_generates_valid_roundtrip_claim_id():
+    long_task = "T" * 128
+    ledger = acquire(
+        empty_ledger(MAIN),
+        req(task_id=long_task),
+        now=NOW,
+        observed_main_sha=MAIN,
+        observed_branch_head=HEAD,
+        expected_generation=0,
+    )
+    claim = ledger["claims"][0]
+    assert len(claim["claim_id"]) <= 128
+    assert validate_ledger(ledger, now=NOW)["claims"][0]["task_id"] == long_task
