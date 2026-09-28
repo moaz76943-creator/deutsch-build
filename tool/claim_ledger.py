@@ -216,10 +216,10 @@ def acquire(
                     or set(claim["paths"]).intersection(paths)):
                 raise ClaimConflict("expired claim requires reconciliation; automatic theft forbidden")
         if claim["effective_state"] == "ACTIVE":
-            if claim["task_id"] == task_id and claim["owner_role"] != owner_role:
-                raise ClaimConflict("same task already owned by another role")
-            if claim["branch"] == branch and claim["owner_role"] != owner_role:
-                raise ClaimConflict("same branch already has another writer")
+            if claim["task_id"] == task_id:
+                raise ClaimConflict("same task already has an active claim")
+            if claim["branch"] == branch:
+                raise ClaimConflict("same branch already has an active writer")
             if set(claim["paths"]).intersection(paths):
                 raise ClaimConflict("requested files overlap an active claim")
 
@@ -310,7 +310,9 @@ def reconcile_expired(
             if c["effective_state"] != "RECONCILIATION_REQUIRED":
                 raise ClaimConflict("only expired reconciliation-required claims may be reconciled")
             plain["state"] = "RELEASED"
-            plain["heartbeat_at"] = _stamp(now)
+            # Preserve the last valid heartbeat: an expired claim's reconciliation
+            # occurs after expires_at, so writing now into heartbeat_at would make
+            # the released ledger invalid on its next read.
             plain["reconciled_by"] = reconciler_role
             plain["reconciled_at"] = _stamp(now)
         claims.append(plain)
@@ -319,6 +321,33 @@ def reconcile_expired(
     result = {k: v for k, v in normalized.items() if k != "claims"}
     result["generation"] += 1
     result["claims"] = claims
+    return result
+
+
+def refresh_main(
+    ledger: Any,
+    *,
+    expected_old_main_sha: str,
+    new_main_sha: str,
+    now: datetime,
+    expected_generation: int,
+) -> dict[str, Any]:
+    """Advance the ledger's main baseline only while no unresolved claim exists."""
+    normalized = validate_ledger(ledger, now=now)
+    if normalized["generation"] != expected_generation:
+        raise LedgerError("stale ledger generation")
+    old = _sha(expected_old_main_sha, "expected_old_main_sha")
+    new = _sha(new_main_sha, "new_main_sha")
+    if normalized["main_sha"] != old:
+        raise LedgerError("stale main baseline")
+    unresolved = [c for c in normalized["claims"] if c["effective_state"] != "RELEASED"]
+    if unresolved:
+        raise ClaimConflict("cannot advance main while claims are unresolved")
+    result = {k: v for k, v in normalized.items() if k != "claims"}
+    result["generation"] += 1
+    result["main_sha"] = new
+    result["claims"] = [{k: v for k, v in c.items() if k != "effective_state"}
+                        for c in normalized["claims"]]
     return result
 
 
