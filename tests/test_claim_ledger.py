@@ -10,6 +10,7 @@ from tool.claim_ledger import (
     dispatch_allowed,
     empty_ledger,
     reconcile_expired,
+    refresh_main,
     release,
     validate_ledger,
 )
@@ -52,12 +53,12 @@ def test_acquire_creates_monotonic_fenced_active_claim():
     assert claim["head_sha"] == HEAD
 
 
-def test_same_task_different_owner_is_rejected():
+def test_same_task_duplicate_is_rejected_even_for_same_owner():
     ledger = acquire_one()
     with pytest.raises(ClaimConflict, match="same task"):
         acquire(
             ledger,
-            req(owner_role="OTHER", branch="other/branch", paths=["tool/other.py"]),
+            req(branch="other/branch", paths=["tool/other.py"]),
             now=NOW + timedelta(minutes=1),
             observed_main_sha=MAIN,
             observed_branch_head=HEAD,
@@ -65,12 +66,12 @@ def test_same_task_different_owner_is_rejected():
         )
 
 
-def test_same_branch_different_writer_is_rejected_even_for_disjoint_files():
+def test_same_branch_duplicate_is_rejected_even_for_same_owner_and_disjoint_files():
     ledger = acquire_one()
     with pytest.raises(ClaimConflict, match="same branch"):
         acquire(
             ledger,
-            req(task_id="OTHER-TASK", owner_role="OTHER", paths=["tool/disjoint.py"]),
+            req(task_id="OTHER-TASK", paths=["tool/disjoint.py"]),
             now=NOW + timedelta(minutes=1),
             observed_main_sha=MAIN,
             observed_branch_head=HEAD,
@@ -128,6 +129,7 @@ def test_expired_claim_cannot_be_normal_release_then_reconcile_closes_it():
     assert closed["generation"] == 2
     assert closed["claims"][0]["state"] == "RELEASED"
     assert closed["claims"][0]["reconciled_by"] == "CENTRAL-RECONCILER"
+    assert validate_ledger(closed, now=later)["claims"][0]["effective_state"] == "RELEASED"
 
 
 def test_stale_main_branch_and_generation_all_fail_closed():
@@ -219,3 +221,32 @@ def test_invalid_paths_duplicate_epochs_and_incomplete_inventory_fail_closed():
 def test_ledger_is_json_roundtrip_machine_readable():
     value = acquire_one()
     assert json.loads(json.dumps(value, sort_keys=True))["claims"][0]["task_id"] == req()["task_id"]
+
+
+def test_refresh_main_requires_zero_unresolved_claims_and_monotonic_generation():
+    active = acquire_one()
+    with pytest.raises(ClaimConflict, match="unresolved"):
+        refresh_main(
+            active, expected_old_main_sha=MAIN, new_main_sha=OTHER_HEAD,
+            now=NOW + timedelta(minutes=1), expected_generation=1,
+        )
+    claim = active["claims"][0]
+    released = release(
+        active, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+        now=NOW + timedelta(minutes=1), expected_generation=1,
+    )
+    advanced = refresh_main(
+        released, expected_old_main_sha=MAIN, new_main_sha=OTHER_HEAD,
+        now=NOW + timedelta(minutes=2), expected_generation=2,
+    )
+    assert advanced["generation"] == 3
+    assert advanced["main_sha"] == OTHER_HEAD
+
+
+def test_refresh_main_rejects_stale_old_baseline():
+    ledger = empty_ledger(MAIN)
+    with pytest.raises(LedgerError, match="stale main baseline"):
+        refresh_main(
+            ledger, expected_old_main_sha=OTHER_HEAD, new_main_sha="d" * 40,
+            now=NOW, expected_generation=0,
+        )
