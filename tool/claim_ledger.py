@@ -130,6 +130,8 @@ def _normalize_claim(raw: Any, now: datetime) -> dict[str, Any]:
         raise LedgerError("future heartbeat exceeds server-observation skew")
     if not issued <= heartbeat <= expires:
         raise LedgerError("inconsistent claim timestamps")
+    if expires - heartbeat > timedelta(minutes=180):
+        raise LedgerError("persisted claim TTL exceeds 180 minutes")
     effective = state
     if state == "ACTIVE" and expires <= now:
         effective = "RECONCILIATION_REQUIRED"

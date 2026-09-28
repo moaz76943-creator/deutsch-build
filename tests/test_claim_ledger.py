@@ -641,3 +641,32 @@ def test_later_released_epoch_cannot_resurrect_earlier_claim(reuse):
         "CLAIM_GRANTED", ledger=tampered, claim_id=early["claim_id"],
         owner_role="CENTRAL", epoch=1, expected_generation=4,
         observed_main_sha=MAIN, branch_head=HEAD, now=NOW + timedelta(minutes=4))
+
+def test_persisted_exact_maximum_ttl_is_valid_at_180_minutes():
+    ledger = acquire_one()
+    ledger["claims"][0]["expires_at"] = (NOW + timedelta(minutes=180)).isoformat()
+    valid = validate_ledger(ledger, now=NOW)
+    assert valid["claims"][0]["effective_state"] == "ACTIVE"
+
+
+def test_persisted_ttl_just_above_180_minutes_fails_closed():
+    ledger = acquire_one()
+    ledger["claims"][0]["expires_at"] = (
+        NOW + timedelta(minutes=180, seconds=1)
+    ).isoformat()
+    with pytest.raises(LedgerError, match="TTL"):
+        validate_ledger(ledger, now=NOW)
+
+
+def test_persisted_far_future_expiry_does_not_authorize_stale_dispatch():
+    ledger = acquire_one()
+    claim = ledger["claims"][0]
+    claim["expires_at"] = "2099-01-01T00:00:00Z"
+    with pytest.raises(LedgerError, match="TTL"):
+        validate_ledger(ledger, now=NOW + timedelta(days=1))
+    assert not fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=ledger, claim_id=claim["claim_id"],
+        owner_role=claim["owner_role"], epoch=claim["epoch"],
+        expected_generation=ledger["generation"], observed_main_sha=MAIN,
+        branch_head=HEAD, now=NOW + timedelta(days=1),
+    )
