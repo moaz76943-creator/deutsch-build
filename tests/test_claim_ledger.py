@@ -1,6 +1,9 @@
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import json
+import multiprocessing
+import os
+import sqlite3
 import pytest
 
 from tool.claim_ledger import (
@@ -448,3 +451,151 @@ def test_old_fencing_token_cannot_pass_against_newly_persisted_generation():
 def test_time_arguments_must_be_aware_for_sensitive_transitions():
     with pytest.raises(LedgerError, match="timezone-aware"):
         validate_ledger(empty_ledger(MAIN), now=datetime(2026, 9, 28, 6, 0))
+
+
+
+def test_truncated_persisted_history_never_reuses_original_epoch():
+    original = acquire_one()
+    broken = deepcopy(original)
+    broken["claims"] = []
+    with pytest.raises(LedgerError, match="truncated claim history"):
+        validate_ledger(broken, now=NOW)
+    claim = original["claims"][0]
+    released = release(original, claim_id=claim["claim_id"], owner_role="CENTRAL",
+                       epoch=1, now=NOW + timedelta(minutes=1), expected_generation=1)
+    broken = deepcopy(released)
+    broken["claims"] = []
+    with pytest.raises(LedgerError, match="truncated claim history"):
+        validate_ledger(broken, now=NOW + timedelta(minutes=2))
+    next_ledger = acquire(
+        released, req(task_id="SECOND", branch="other/branch", paths=["other/file.py"]),
+        now=NOW + timedelta(minutes=2), observed_main_sha=MAIN,
+        observed_branch_head=HEAD, expected_generation=2)
+    assert next_ledger["last_epoch"] == next_ledger["claims"][-1]["epoch"] == 2
+
+
+def test_highwater_must_be_integral_complete_and_durable():
+    ledger = acquire_one()
+    for value in (None, -1, 0, 2, True, "1"):
+        bad = deepcopy(ledger)
+        bad["last_epoch"] = value
+        with pytest.raises(LedgerError):
+            validate_ledger(bad, now=NOW)
+    genesis = empty_ledger(MAIN)
+    del genesis["last_epoch"]
+    assert validate_ledger(genesis, now=NOW)["last_epoch"] == 0
+    first = acquire(genesis, req(), now=NOW, observed_main_sha=MAIN,
+                    observed_branch_head=HEAD, expected_generation=0)
+    assert first["last_epoch"] == 1
+    del first["last_epoch"]
+    with pytest.raises(LedgerError, match="missing fencing epoch"):
+        validate_ledger(first, now=NOW)
+
+
+def _separate_process_acquirer(path, ready, go, results, role, crash=False):
+    """Independent OS process; isolated SQLite test transport != GitHub CAS."""
+    ready.put(os.getpid())
+    if not go.wait(20):
+        results.put(("BARRIER_TIMEOUT", os.getpid()))
+        return
+    connection = sqlite3.connect(path, timeout=15, isolation_level=None)
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        ledger = json.loads(connection.execute("SELECT payload FROM state").fetchone()[0])
+        try:
+            next_state = acquire(ledger, req(owner_role=role), now=NOW,
+                                 observed_main_sha=MAIN,
+                                 observed_branch_head=HEAD,
+                                 expected_generation=ledger["generation"])
+        except ClaimConflict:
+            connection.execute("ROLLBACK")
+            results.put(("DENIED", os.getpid()))
+            return
+        connection.execute("UPDATE state SET payload=?", (json.dumps(next_state),))
+        connection.execute("COMMIT")
+        if crash:
+            os._exit(71)
+        results.put(("GRANTED", os.getpid()))
+    finally:
+        connection.close()
+
+
+def _init_sqlite_transport(path):
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE state(payload TEXT NOT NULL)")
+        connection.execute("INSERT INTO state VALUES(?)", (json.dumps(empty_ledger(MAIN)),))
+
+
+@pytest.mark.skipif(os.name != "posix", reason="fork-backed process isolation uses Linux CI")
+def test_two_independent_os_processes_cannot_win_same_sqlite_durable_claim(tmp_path):
+    path = str(tmp_path / "claim.db")
+    _init_sqlite_transport(path)
+    ctx = multiprocessing.get_context("fork")
+    ready, go, results = ctx.Queue(), ctx.Event(), ctx.Queue()
+    children = [ctx.Process(target=_separate_process_acquirer,
+                            args=(path, ready, go, results, role))
+                for role in ("WORKER-1", "WORKER-2")]
+    try:
+        for child in children:
+            child.start()
+        arrivals = [ready.get(timeout=15) for _ in children]
+        assert len(set(arrivals)) == 2
+        go.set()
+        for child in children:
+            child.join(timeout=30)
+            assert child.exitcode == 0
+        observed = [results.get(timeout=5) for _ in children]
+        assert sorted(label for label, _ in observed) == ["DENIED", "GRANTED"]
+        assert len({pid for _, pid in observed}) == 2
+        with sqlite3.connect(path) as db:
+            state = json.loads(db.execute("SELECT payload FROM state").fetchone()[0])
+        assert validate_ledger(state, now=NOW)["last_epoch"] == 1
+    finally:
+        go.set()
+        for child in children:
+            if child.is_alive():
+                child.terminate()
+                child.join(timeout=5)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="fork-backed process isolation uses Linux CI")
+def test_real_crashed_process_leaves_expired_claim_locked_until_verified_stop(tmp_path):
+    path = str(tmp_path / "crash.db")
+    _init_sqlite_transport(path)
+    ctx = multiprocessing.get_context("fork")
+    ready, go, results = ctx.Queue(), ctx.Event(), ctx.Queue()
+    child = ctx.Process(target=_separate_process_acquirer,
+                        args=(path, ready, go, results, "CRASHED", True))
+    try:
+        child.start()
+        pid = ready.get(timeout=15)
+        assert pid != os.getpid()
+        go.set()
+        child.join(timeout=30)
+        assert child.exitcode == 71
+        with sqlite3.connect(path) as db:
+            state = json.loads(db.execute("SELECT payload FROM state").fetchone()[0])
+        claim = state["claims"][0]
+        later = NOW + timedelta(minutes=91)
+        with pytest.raises(ClaimConflict, match="reconciliation"):
+            acquire(state, req(owner_role="NEW"), now=later,
+                    observed_main_sha=MAIN, observed_branch_head=HEAD,
+                    expected_generation=1)
+        with pytest.raises(ClaimConflict, match="quiescence"):
+            reconcile_expired(state, claim_id=claim["claim_id"], expected_epoch=1,
+                              reconciler_role="LAB-RECONCILER", now=later,
+                              expected_generation=1)
+        receipt = {"claim_id": claim["claim_id"], "epoch": 1,
+                   "head_sha": HEAD, "pid": pid, "exitcode": 71}
+        reconciled = reconcile_expired(
+            state, claim_id=claim["claim_id"], expected_epoch=1,
+            reconciler_role="LAB-RECONCILER", now=later,
+            expected_generation=1, evidence=receipt,
+            verify_quiescence=lambda existing, evidence:
+                evidence["pid"] == pid and child.exitcode == evidence["exitcode"])
+        assert validate_ledger(reconciled, now=later)["claims"][0]["state"] == "RELEASED"
+    finally:
+        go.set()
+        if child.is_alive():
+            child.terminate()
+            child.join(timeout=5)

@@ -101,6 +101,7 @@ def empty_ledger(main_sha: str) -> dict[str, Any]:
         "schema_version": SCHEMA_VERSION,
         "repo": REPO,
         "generation": 0,
+        "last_epoch": 0,
         "main_sha": _sha(main_sha, "main_sha"),
         "claims_complete": True,
         "claims": [],
@@ -170,6 +171,15 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
     active_epochs = [c["epoch"] for c in claims]
     if len(active_epochs) != len(set(active_epochs)):
         raise LedgerError("fencing epochs must be globally unique")
+    # Append-only epoch history detects corrupt remote snapshots with truncated
+    # claims; independently authenticated Git ancestry remains a transport gate.
+    highwater = ledger.get("last_epoch")
+    if highwater is None and generation == 0 and not claims:
+        highwater = 0  # pristine legacy bootstrap manifest only
+    if type(highwater) is not int or not 0 <= highwater <= generation:
+        raise LedgerError("invalid or missing fencing epoch high-water")
+    if sorted(active_epochs) != list(range(1, highwater + 1)):
+        raise LedgerError("truncated claim history or fencing epoch gap")
     # This also validates persisted remote JSON; only checking at acquire time
     # would let a faulty transport/import bypass the exclusivity invariant.
     unresolved = [c for c in claims if c["effective_state"] != "RELEASED"]
@@ -180,12 +190,13 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
                     or _scope_overlaps(first["paths"], second["paths"])):
                 raise LedgerError("conflicting unresolved claims in persisted ledger")
     normalized = dict(ledger)
-    normalized.update({"generation": generation, "main_sha": main_sha, "claims": claims})
+    normalized.update({"generation": generation, "last_epoch": highwater,
+                       "main_sha": main_sha, "claims": claims})
     return normalized
 
 
-def _next_epoch(claims: list[dict[str, Any]]) -> int:
-    return max((c["epoch"] for c in claims), default=0) + 1
+def _next_epoch(ledger: dict[str, Any]) -> int:
+    return ledger["last_epoch"] + 1
 
 
 def _claim_id(task_id: str, owner_role: str, epoch: int, head_sha: str) -> str:
@@ -243,7 +254,7 @@ def acquire(
             if _scope_overlaps(claim["paths"], paths):
                 raise ClaimConflict("requested files overlap an active claim")
 
-    epoch = _next_epoch(normalized["claims"])
+    epoch = _next_epoch(normalized)
     expires = now.astimezone(timezone.utc) + timedelta(minutes=ttl_minutes)
     claim = {
         "claim_id": _claim_id(task_id, owner_role, epoch, current_head),
@@ -260,6 +271,7 @@ def acquire(
     }
     result = {k: v for k, v in normalized.items() if k != "claims"}
     result["generation"] = normalized["generation"] + 1
+    result["last_epoch"] = epoch
     result["claims"] = [{k: v for k, v in c.items() if k != "effective_state"}
                         for c in normalized["claims"]] + [claim]
     return result
