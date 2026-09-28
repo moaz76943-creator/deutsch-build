@@ -9,6 +9,8 @@ from tool.claim_ledger import (
     acquire,
     dispatch_allowed,
     empty_ledger,
+    fenced_dispatch_allowed,
+    renew,
     reconcile_expired,
     refresh_main,
     release,
@@ -122,9 +124,20 @@ def test_expired_claim_cannot_be_normal_release_then_reconcile_closes_it():
             ledger, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
             now=later, expected_generation=1,
         )
+    # TTL alone is insufficient even when expiry is already observed.
+    with pytest.raises(ClaimConflict, match="quiescence"):
+        reconcile_expired(
+            ledger, claim_id=claim["claim_id"], expected_epoch=1,
+            reconciler_role="CENTRAL-RECONCILER", now=later, expected_generation=1,
+        )
+    evidence = {"claim_id": claim["claim_id"], "epoch": 1, "head_sha": HEAD,
+                "verified_stop_receipt": "external-authenticated-owner-stop"}
     closed = reconcile_expired(
         ledger, claim_id=claim["claim_id"], expected_epoch=1,
         reconciler_role="CENTRAL-RECONCILER", now=later, expected_generation=1,
+        evidence=evidence,
+        verify_quiescence=lambda current, receipt:
+            receipt["verified_stop_receipt"] == "external-authenticated-owner-stop",
     )
     assert closed["generation"] == 2
     assert closed["claims"][0]["state"] == "RELEASED"
@@ -283,3 +296,155 @@ def test_maximum_length_task_id_generates_valid_roundtrip_claim_id():
     claim = ledger["claims"][0]
     assert len(claim["claim_id"]) <= 128
     assert validate_ledger(ledger, now=NOW)["claims"][0]["task_id"] == long_task
+
+
+def test_directory_and_child_file_claims_conflict_in_both_directions():
+    for owned, requested in (("tool", "tool/x.py"), ("tool/x.py", "tool")):
+        current = acquire_one(paths=[owned])
+        with pytest.raises(ClaimConflict, match="overlap"):
+            acquire(
+                current,
+                req(task_id="OTHER", owner_role="OTHER", branch="other/branch",
+                    paths=[requested]),
+                now=NOW + timedelta(minutes=1),
+                observed_main_sha=MAIN,
+                observed_branch_head=HEAD,
+                expected_generation=1,
+            )
+
+
+@pytest.mark.parametrize("collision", ["task_id", "branch", "paths"])
+def test_persisted_conflicting_unresolved_claims_fail_closed(collision):
+    first = acquire_one()
+    second = deepcopy(first["claims"][0])
+    second.update({"claim_id": "other/2", "epoch": 2, "task_id": "OTHER",
+                   "branch": "other/branch", "paths": ["docs/other.py"]})
+    if collision == "task_id":
+        second["task_id"] = first["claims"][0]["task_id"]
+    elif collision == "branch":
+        second["branch"] = first["claims"][0]["branch"]
+    else:
+        second["paths"] = ["tool"]
+    first["claims"].append(second)
+    with pytest.raises(LedgerError, match="conflicting unresolved"):
+        validate_ledger(first, now=NOW)
+
+
+def test_persisted_released_claim_does_not_poison_nonoverlapping_new_owner():
+    original = acquire_one()
+    claim = original["claims"][0]
+    released = release(
+        original, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+        now=NOW + timedelta(minutes=1), expected_generation=1,
+    )
+    next_state = acquire(
+        released, req(task_id="OTHER", owner_role="OTHER"),
+        now=NOW + timedelta(minutes=2),
+        observed_main_sha=MAIN,
+        observed_branch_head=HEAD,
+        expected_generation=2,
+    )
+    assert len(validate_ledger(next_state, now=NOW + timedelta(minutes=2))["claims"]) == 2
+
+
+def test_release_rejects_clock_regression_within_allowed_read_skew():
+    original = acquire_one()
+    claim = original["claims"][0]
+    with pytest.raises(LedgerError, match="regressing"):
+        release(
+            original, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+            now=NOW - timedelta(seconds=10), expected_generation=1,
+        )
+    assert validate_ledger(original, now=NOW)["claims"][0]["state"] == "ACTIVE"
+
+
+def test_renew_validates_exact_token_branch_and_extends_heartbeat_without_new_epoch():
+    original = acquire_one()
+    claim = original["claims"][0]
+    later = NOW + timedelta(minutes=40)
+    for owner, epoch, head in (("OTHER", 1, HEAD), ("CENTRAL", 2, HEAD),
+                               ("CENTRAL", 1, OTHER_HEAD)):
+        with pytest.raises((ClaimConflict, LedgerError)):
+            renew(
+                original, claim_id=claim["claim_id"], owner_role=owner, epoch=epoch,
+                now=later, observed_main_sha=MAIN, observed_branch_head=head,
+                expected_generation=1,
+            )
+    renewed = renew(
+        original, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+        now=later, observed_main_sha=MAIN, observed_branch_head=HEAD,
+        expected_generation=1,
+    )
+    refreshed = validate_ledger(renewed, now=later)
+    assert refreshed["generation"] == 2
+    assert refreshed["claims"][0]["epoch"] == 1
+    assert refreshed["claims"][0]["effective_state"] == "ACTIVE"
+    assert refreshed["claims"][0]["expires_at"] == (later + timedelta(minutes=90)).isoformat().replace("+00:00", "Z")
+    with pytest.raises(ClaimConflict, match="expired"):
+        renew(
+            original, claim_id=claim["claim_id"], owner_role="CENTRAL", epoch=1,
+            now=NOW + timedelta(minutes=91), observed_main_sha=MAIN,
+            observed_branch_head=HEAD, expected_generation=1,
+        )
+
+
+def test_reconcile_rejects_unverified_or_mismatched_expired_worker_evidence():
+    original = acquire_one()
+    claim = original["claims"][0]
+    later = NOW + timedelta(minutes=91)
+    for evidence, verifier in (
+        (None, None),
+        ({"claim_id": claim["claim_id"], "epoch": 1, "head_sha": HEAD}, None),
+        ({"claim_id": claim["claim_id"], "epoch": 2, "head_sha": HEAD},
+         lambda c, e: True),
+        ({"claim_id": claim["claim_id"], "epoch": 1, "head_sha": HEAD},
+         lambda c, e: False),
+    ):
+        with pytest.raises(ClaimConflict, match="quiescence"):
+            reconcile_expired(
+                original, claim_id=claim["claim_id"], expected_epoch=1,
+                reconciler_role="CENTRAL-RECONCILER", now=later,
+                expected_generation=1, evidence=evidence,
+                verify_quiescence=verifier,
+            )
+    assert original["claims"][0]["state"] == "ACTIVE"
+
+
+def test_old_fencing_token_cannot_pass_against_newly_persisted_generation():
+    first = acquire_one()
+    old = first["claims"][0]
+    released = release(
+        first, claim_id=old["claim_id"], owner_role="CENTRAL", epoch=1,
+        now=NOW + timedelta(minutes=1), expected_generation=1,
+    )
+    assert fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=first, claim_id=old["claim_id"],
+        owner_role="CENTRAL", epoch=1, expected_generation=2,
+        observed_main_sha=MAIN, branch_head=HEAD, now=NOW + timedelta(minutes=2),
+    ) is False
+    assert fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=released, claim_id=old["claim_id"],
+        owner_role="CENTRAL", epoch=1, expected_generation=2,
+        observed_main_sha=MAIN, branch_head=HEAD, now=NOW + timedelta(minutes=2),
+    ) is False
+    successor = acquire(
+        released, req(owner_role="OTHER"), now=NOW + timedelta(minutes=2),
+        observed_main_sha=MAIN, observed_branch_head=HEAD,
+        expected_generation=2,
+    )
+    latest = successor["claims"][-1]
+    assert fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=successor, claim_id=old["claim_id"],
+        owner_role="CENTRAL", epoch=1, expected_generation=3,
+        observed_main_sha=MAIN, branch_head=HEAD, now=NOW + timedelta(minutes=2),
+    ) is False
+    assert fenced_dispatch_allowed(
+        "CLAIM_GRANTED", ledger=successor, claim_id=latest["claim_id"],
+        owner_role="OTHER", epoch=2, expected_generation=3,
+        observed_main_sha=MAIN, branch_head=HEAD, now=NOW + timedelta(minutes=2),
+    ) is True
+
+
+def test_time_arguments_must_be_aware_for_sensitive_transitions():
+    with pytest.raises(LedgerError, match="timezone-aware"):
+        validate_ledger(empty_ledger(MAIN), now=datetime(2026, 9, 28, 6, 0))

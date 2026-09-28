@@ -18,7 +18,7 @@ import hashlib
 import json
 import re
 import sys
-from typing import Any
+from typing import Any, Callable
 
 REPO = "sali97m-cpu/deutsch-bilarabi"
 SCHEMA_VERSION = 1
@@ -90,6 +90,12 @@ def _paths(value: Any) -> list[str]:
     return out
 
 
+def _scope_overlaps(left: list[str], right: list[str]) -> bool:
+    """Component-aware exact and ancestor/descendant mutable-path collisions."""
+    return any(a == b or a.startswith(b + "/") or b.startswith(a + "/")
+               for a in left for b in right)
+
+
 def empty_ledger(main_sha: str) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
@@ -141,6 +147,9 @@ def _normalize_claim(raw: Any, now: datetime) -> dict[str, Any]:
 
 
 def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
+    if not isinstance(now, datetime) or now.tzinfo is None:
+        raise LedgerError("trusted now must be timezone-aware")
+    now = now.astimezone(timezone.utc)
     if not isinstance(ledger, dict):
         raise LedgerError("ledger must be an object")
     if ledger.get("schema_version") != SCHEMA_VERSION or ledger.get("repo") != REPO:
@@ -161,6 +170,15 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
     active_epochs = [c["epoch"] for c in claims]
     if len(active_epochs) != len(set(active_epochs)):
         raise LedgerError("fencing epochs must be globally unique")
+    # This also validates persisted remote JSON; only checking at acquire time
+    # would let a faulty transport/import bypass the exclusivity invariant.
+    unresolved = [c for c in claims if c["effective_state"] != "RELEASED"]
+    for i, first in enumerate(unresolved):
+        for second in unresolved[i + 1:]:
+            if (first["task_id"] == second["task_id"]
+                    or first["branch"] == second["branch"]
+                    or _scope_overlaps(first["paths"], second["paths"])):
+                raise LedgerError("conflicting unresolved claims in persisted ledger")
     normalized = dict(ledger)
     normalized.update({"generation": generation, "main_sha": main_sha, "claims": claims})
     return normalized
@@ -215,14 +233,14 @@ def acquire(
     for claim in unresolved:
         if claim["effective_state"] == "RECONCILIATION_REQUIRED":
             if (claim["task_id"] == task_id or claim["branch"] == branch
-                    or set(claim["paths"]).intersection(paths)):
+                    or _scope_overlaps(claim["paths"], paths)):
                 raise ClaimConflict("expired claim requires reconciliation; automatic theft forbidden")
         if claim["effective_state"] == "ACTIVE":
             if claim["task_id"] == task_id:
                 raise ClaimConflict("same task already has an active claim")
             if claim["branch"] == branch:
                 raise ClaimConflict("same branch already has an active writer")
-            if set(claim["paths"]).intersection(paths):
+            if _scope_overlaps(claim["paths"], paths):
                 raise ClaimConflict("requested files overlap an active claim")
 
     epoch = _next_epoch(normalized["claims"])
@@ -275,6 +293,10 @@ def release(
                 raise ClaimConflict("claim is already released")
             if c["effective_state"] == "RECONCILIATION_REQUIRED":
                 raise ClaimConflict("expired claim requires explicit reconciliation, not release")
+            # Hosts within the allowed observation skew can still disagree on
+            # ordering. Never emit an invalid issued/heartbeat chronology.
+            if now.astimezone(timezone.utc) < _instant(c["heartbeat_at"], "heartbeat_at"):
+                raise LedgerError("regressing release timestamp")
             plain["state"] = "RELEASED"
             plain["heartbeat_at"] = _stamp(now)
         claims.append(plain)
@@ -286,6 +308,56 @@ def release(
     return result
 
 
+def renew(
+    ledger: Any,
+    *,
+    claim_id: str,
+    owner_role: str,
+    epoch: int,
+    now: datetime,
+    observed_main_sha: str,
+    observed_branch_head: str,
+    expected_generation: int,
+    ttl_minutes: int = 90,
+) -> dict[str, Any]:
+    """Renew a still-active exact fencing token; transport must CAS this state."""
+    normalized = validate_ledger(ledger, now=now)
+    if normalized["generation"] != expected_generation:
+        raise LedgerError("stale ledger generation")
+    if normalized["main_sha"] != _sha(observed_main_sha, "observed_main_sha"):
+        raise LedgerError("stale main snapshot")
+    head = _sha(observed_branch_head, "observed_branch_head")
+    cid, owner = _id(claim_id, "claim_id"), _id(owner_role, "owner_role")
+    if type(epoch) is not int or epoch < 1:
+        raise LedgerError("invalid epoch")
+    if type(ttl_minutes) is not int or not 5 <= ttl_minutes <= 180:
+        raise LedgerError("ttl_minutes must be between 5 and 180")
+    found = False
+    claims = []
+    for c in normalized["claims"]:
+        plain = {k: v for k, v in c.items() if k != "effective_state"}
+        if c["claim_id"] == cid:
+            found = True
+            if c["owner_role"] != owner or c["epoch"] != epoch:
+                raise ClaimConflict("fencing token/owner mismatch")
+            if c["effective_state"] != "ACTIVE":
+                raise ClaimConflict("cannot renew inactive/expired claim")
+            if c["head_sha"] != head:
+                raise LedgerError("stale branch head")
+            if now.astimezone(timezone.utc) < _instant(c["heartbeat_at"], "heartbeat_at"):
+                raise LedgerError("regressing renewal timestamp")
+            plain["heartbeat_at"] = _stamp(now)
+            plain["expires_at"] = _stamp(max(
+                _instant(c["expires_at"], "expires_at"),
+                now.astimezone(timezone.utc) + timedelta(minutes=ttl_minutes),
+            ))
+        claims.append(plain)
+    if not found:
+        raise LedgerError("claim not found")
+    return {**{k: v for k, v in normalized.items() if k != "claims"},
+            "generation": expected_generation + 1, "claims": claims}
+
+
 def reconcile_expired(
     ledger: Any,
     *,
@@ -294,8 +366,15 @@ def reconcile_expired(
     reconciler_role: str,
     now: datetime,
     expected_generation: int,
+    evidence: dict[str, Any] | None = None,
+    verify_quiescence: Callable[[dict[str, Any], dict[str, Any]], bool] | None = None,
 ) -> dict[str, Any]:
-    """Explicitly close one expired claim after external owner/branch reconciliation."""
+    """Close expiry only with externally VERIFIED owner-stop/branch evidence.
+
+    The pure core deliberately has NO default verifier. The trusted transport
+    must inject an authenticated verifier; caller-supplied booleans or TTL alone
+    are NEVER evidence. No automatic reconciliation after a crashed writer.
+    """
     normalized = validate_ledger(ledger, now=now)
     if normalized["generation"] != expected_generation:
         raise LedgerError("stale ledger generation")
@@ -313,6 +392,13 @@ def reconcile_expired(
                 raise ClaimConflict("stale fencing epoch")
             if c["effective_state"] != "RECONCILIATION_REQUIRED":
                 raise ClaimConflict("only expired reconciliation-required claims may be reconciled")
+            if (not isinstance(evidence, dict)
+                    or evidence.get("claim_id") != c["claim_id"]
+                    or evidence.get("epoch") != c["epoch"]
+                    or evidence.get("head_sha") != c["head_sha"]
+                    or not callable(verify_quiescence)
+                    or verify_quiescence(c, evidence) is not True):
+                raise ClaimConflict("independently verified quiescence evidence required")
             plain["state"] = "RELEASED"
             # Preserve the last valid heartbeat: an expired claim's reconciliation
             # occurs after expires_at, so writing now into heartbeat_at would make
@@ -373,6 +459,38 @@ def dispatch_allowed(
                 and current["head_sha"] == _sha(branch_head, "branch head"))
     except (LedgerError, AttributeError):
         return False
+
+
+def fenced_dispatch_allowed(
+    status: str,
+    *,
+    ledger: Any,
+    claim_id: str,
+    owner_role: str,
+    epoch: int,
+    expected_generation: int,
+    observed_main_sha: str,
+    branch_head: str,
+    now: datetime,
+) -> bool:
+    """Pure fresh-ledger fencing check; caller MUST fetch authoritative state.
+
+    Not a server lock: the authenticated transport must fetch/CAS the actual
+    durable ledger and re-check this predicate immediately before every write.
+    """
+    try:
+        current = validate_ledger(ledger, now=now)
+        if (current["generation"] != expected_generation
+                or current["main_sha"] != _sha(observed_main_sha, "observed_main_sha")):
+            return False
+        for claim in current["claims"]:
+            if (claim["claim_id"] == claim_id
+                    and claim["owner_role"] == owner_role
+                    and claim["epoch"] == epoch):
+                return dispatch_allowed(status, claim=claim, branch_head=branch_head, now=now)
+    except (LedgerError, AttributeError, TypeError):
+        return False
+    return False
 
 
 def _load(path: str) -> Any:
