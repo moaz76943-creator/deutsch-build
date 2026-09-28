@@ -178,7 +178,9 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
         highwater = 0  # pristine legacy bootstrap manifest only
     if type(highwater) is not int or not 0 <= highwater <= generation:
         raise LedgerError("invalid or missing fencing epoch high-water")
-    if sorted(active_epochs) != list(range(1, highwater + 1)):
+    # Length first avoids allocating attacker-sized ranges for a corrupt JSON
+    # high-water mark while preserving append-only consecutive epoch checks.
+    if len(active_epochs) != highwater or sorted(active_epochs) != list(range(1, highwater + 1)):
         raise LedgerError("truncated claim history or fencing epoch gap")
     # This also validates persisted remote JSON; only checking at acquire time
     # would let a faulty transport/import bypass the exclusivity invariant.

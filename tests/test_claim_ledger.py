@@ -329,6 +329,10 @@ def test_persisted_conflicting_unresolved_claims_fail_closed(collision):
     else:
         second["paths"] = ["tool"]
     first["claims"].append(second)
+    # Keep the synthetic ledger's new epoch/generation internally coherent;
+    # otherwise the integrity guard rightly reports truncated lineage first.
+    first["last_epoch"] = 2
+    first["generation"] = 2
     with pytest.raises(LedgerError, match="conflicting unresolved"):
         validate_ledger(first, now=NOW)
 
@@ -599,3 +603,11 @@ def test_real_crashed_process_leaves_expired_claim_locked_until_verified_stop(tm
         if child.is_alive():
             child.terminate()
             child.join(timeout=5)
+
+
+def test_corrupt_extreme_highwater_fails_without_allocating_unbounded_epoch_range():
+    bad = acquire_one()
+    bad["generation"] = 1_000_000_000
+    bad["last_epoch"] = 1_000_000_000
+    with pytest.raises(LedgerError, match="truncated claim history"):
+        validate_ledger(bad, now=NOW)
