@@ -239,6 +239,8 @@ def acquire(
     previously-read ledger blob SHA. If that CAS fails, this transition is void.
     """
     normalized = validate_ledger(ledger, now=now)
+    if type(expected_generation) is not int or expected_generation < 0:
+        raise LedgerError("invalid expected_generation")
     if normalized["generation"] != expected_generation:
         raise LedgerError("stale ledger generation")
     current_main = _sha(observed_main_sha, "observed_main_sha")
@@ -304,6 +306,8 @@ def release(
     expected_generation: int,
 ) -> dict[str, Any]:
     normalized = validate_ledger(ledger, now=now)
+    if type(expected_generation) is not int or expected_generation < 0:
+        raise LedgerError("invalid expected_generation")
     if normalized["generation"] != expected_generation:
         raise LedgerError("stale ledger generation")
     cid = _id(claim_id, "claim_id")
@@ -351,6 +355,8 @@ def renew(
 ) -> dict[str, Any]:
     """Renew a still-active exact fencing token; transport must CAS this state."""
     normalized = validate_ledger(ledger, now=now)
+    if type(expected_generation) is not int or expected_generation < 0:
+        raise LedgerError("invalid expected_generation")
     if normalized["generation"] != expected_generation:
         raise LedgerError("stale ledger generation")
     if normalized["main_sha"] != _sha(observed_main_sha, "observed_main_sha"):
@@ -384,7 +390,7 @@ def renew(
     if not found:
         raise LedgerError("claim not found")
     return {**{k: v for k, v in normalized.items() if k != "claims"},
-            "generation": expected_generation + 1, "claims": claims}
+            "generation": normalized["generation"] + 1, "claims": claims}
 
 
 def reconcile_expired(
@@ -405,6 +411,8 @@ def reconcile_expired(
     are NEVER evidence. No automatic reconciliation after a crashed writer.
     """
     normalized = validate_ledger(ledger, now=now)
+    if type(expected_generation) is not int or expected_generation < 0:
+        raise LedgerError("invalid expected_generation")
     if normalized["generation"] != expected_generation:
         raise LedgerError("stale ledger generation")
     cid = _id(claim_id, "claim_id")
@@ -423,6 +431,7 @@ def reconcile_expired(
                 raise ClaimConflict("only expired reconciliation-required claims may be reconciled")
             if (not isinstance(evidence, dict)
                     or evidence.get("claim_id") != c["claim_id"]
+                    or type(evidence.get("epoch")) is not int
                     or evidence.get("epoch") != c["epoch"]
                     or evidence.get("head_sha") != c["head_sha"]
                     or not callable(verify_quiescence)
@@ -453,6 +462,8 @@ def refresh_main(
 ) -> dict[str, Any]:
     """Advance the ledger's main baseline only while no unresolved claim exists."""
     normalized = validate_ledger(ledger, now=now)
+    if type(expected_generation) is not int or expected_generation < 0:
+        raise LedgerError("invalid expected_generation")
     if normalized["generation"] != expected_generation:
         raise LedgerError("stale ledger generation")
     old = _sha(expected_old_main_sha, "expected_old_main_sha")

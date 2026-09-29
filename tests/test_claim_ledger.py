@@ -712,3 +712,55 @@ def test_composed_valid_integer_fence_and_staged_ttl_boundary():
         branch_head=HEAD, now=NOW)
     claim["expires_at"] = (NOW + timedelta(minutes=180)).isoformat()
     assert validate_ledger(data, now=NOW)["claims"][0]["effective_state"] == "ACTIVE"
+
+
+@pytest.mark.parametrize("bad", [True, 1.0])
+def test_c2_transition_expected_generation_rejects_bool_float_all_mutators(bad):
+    old = acquire_one()
+    c = old["claims"][0]
+    later = NOW + timedelta(minutes=91)
+    tests = [
+        lambda: acquire(old, req(task_id="OTHER-TASK", branch="other/pr94", paths=["tests/disjoint.py"]),
+                        now=NOW+timedelta(minutes=1), observed_main_sha=MAIN,
+                        observed_branch_head=HEAD, expected_generation=bad),
+        lambda: release(old, claim_id=c["claim_id"], owner_role="CENTRAL", epoch=1,
+                        now=NOW+timedelta(minutes=1), expected_generation=bad),
+        lambda: renew(old, claim_id=c["claim_id"], owner_role="CENTRAL", epoch=1,
+                      now=NOW+timedelta(minutes=1), observed_main_sha=MAIN,
+                      observed_branch_head=HEAD, expected_generation=bad),
+        lambda: reconcile_expired(old, claim_id=c["claim_id"], expected_epoch=1,
+                      reconciler_role="CENTRAL-RECONCILER", now=later,
+                      expected_generation=bad),
+        lambda: refresh_main(old, expected_old_main_sha=MAIN, new_main_sha=OTHER_HEAD,
+                      now=NOW+timedelta(minutes=1), expected_generation=bad),
+    ]
+    for transition in tests:
+        with pytest.raises(LedgerError, match="expected_generation"):
+            transition()
+
+@pytest.mark.parametrize("bad", [True, 1.0])
+def test_c2_reconciliation_receipt_epoch_requires_strict_int(bad):
+    old = acquire_one()
+    c = old["claims"][0]
+    receipt = {"claim_id": c["claim_id"], "epoch": bad,
+               "head_sha": HEAD, "verified_stop_receipt": "external-authenticated-owner-stop"}
+    with pytest.raises(ClaimConflict, match="quiescence"):
+        reconcile_expired(old, claim_id=c["claim_id"], expected_epoch=1,
+             reconciler_role="CENTRAL-RECONCILER", now=NOW+timedelta(minutes=91),
+             expected_generation=1, evidence=receipt,
+             verify_quiescence=lambda current, evidence: True)
+
+def test_c2_valid_integer_generations_and_receipts_still_work():
+    old = acquire_one()
+    c = old["claims"][0]
+    renewed = renew(old, claim_id=c["claim_id"], owner_role="CENTRAL", epoch=1,
+                    now=NOW+timedelta(minutes=1), observed_main_sha=MAIN,
+                    observed_branch_head=HEAD, expected_generation=1)
+    assert type(renewed["generation"]) is int and renewed["generation"] == 2
+    receipt = {"claim_id": c["claim_id"], "epoch": 1, "head_sha": HEAD,
+               "verified_stop_receipt": "external-authenticated-owner-stop"}
+    closed = reconcile_expired(old, claim_id=c["claim_id"], expected_epoch=1,
+             reconciler_role="CENTRAL-RECONCILER", now=NOW+timedelta(minutes=91),
+             expected_generation=1, evidence=receipt,
+             verify_quiescence=lambda current, evidence: True)
+    assert type(closed["generation"]) is int and closed["claims"][0]["state"] == "RELEASED"
