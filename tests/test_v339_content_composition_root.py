@@ -18,7 +18,8 @@ def test_app_dependencies_owns_explicit_content_corpus():
 def test_main_composes_content_once():
     text = MAIN.read_text(encoding="utf-8")
     assert "final contentPack = languagePack.contentPack;" in text
-    assert "final corpus = contentPack.items.toList(growable: false);" in text
+    assert "final corpus = contentPack.items;" in text
+    assert "contentPack.items.toList(growable: false)" not in text
     assert "corpus: corpus," in text
 
 

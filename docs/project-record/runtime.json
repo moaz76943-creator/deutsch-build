@@ -6,37 +6,37 @@
   "record_status": "CURRENT",
   "reconciliation_required": false,
   "reconciliation_reason": null,
-  "last_source_commit": "bbed48695790870117811a3dfd6764822a7c98e4",
-  "last_sync_at": "2026-09-21T06:59:08Z",
+  "last_source_commit": "792c75ee0ed5c4917aeeea744fcf21af94d84232",
+  "last_sync_at": "2026-09-29T13:15:51Z",
   "last_sync_event": {
-    "trigger": "workflow_run",
-    "workflow": "Recovery Checkpoint",
-    "run_id": "35570748621",
-    "conclusion": "success"
+    "trigger": "schedule",
+    "workflow": "",
+    "run_id": "",
+    "conclusion": null
   },
   "last_ci": {
-    "event_key": "workflow:Engineering CI:35569874778",
-    "timestamp": "2026-09-21T06:55:14Z",
+    "event_key": "workflow:Engineering CI:36094482183",
+    "timestamp": "2026-09-25T04:35:56Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Engineering CI",
-    "run_id": "35569874778",
+    "run_id": "36094482183",
     "conclusion": "success",
-    "commit_sha": "e95cdc7e770cf167adf036c318df658f3ae7b097",
-    "branch": "verify/flutter-analyzer-root-causes-ci"
+    "commit_sha": "792c75ee0ed5c4917aeeea744fcf21af94d84232",
+    "branch": "main"
   },
   "last_recovery_checkpoint_run": {
-    "event_key": "workflow:Recovery Checkpoint:35570748621",
-    "timestamp": "2026-09-21T06:59:08Z",
+    "event_key": "workflow:Recovery Checkpoint:36571038187",
+    "timestamp": "2026-09-29T12:52:34Z",
     "source": "github_actions",
     "type": "workflow_run",
     "workflow": "Recovery Checkpoint",
-    "run_id": "35570748621",
+    "run_id": "36571038187",
     "conclusion": "success",
-    "commit_sha": "bbed48695790870117811a3dfd6764822a7c98e4",
+    "commit_sha": "e07d919fe3499fa0050c8d6b1843b6db1895a33d",
     "branch": "main"
   },
   "observed_source_commit_count": 0,
   "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
-  "last_observed_head": "34f2cb064225b7dbab924f309cba12ed9561e9fe"
+  "last_observed_head": "ad283b692d85fc3c5ddea737ca2fe6c5114e4811"
 }

@@ -3,6 +3,7 @@ import '../language_content_pack.dart';
 import '../language_content_intelligence.dart';
 import '../language_content_quality.dart';
 import '../language_exercise_strategy.dart';
+import '../language_identity.dart';
 import '../language_presentation.dart';
 import '../language_text_normalizer.dart';
 import 'german_content_pack.dart';
@@ -17,13 +18,20 @@ final class GermanLanguagePack implements LanguagePack {
   const GermanLanguagePack();
 
   @override
-  String get languageCode => 'de';
+  LanguageIdentity get identity => LanguageIdentity(
+        languageId: 'de',
+        displayName: 'German',
+        primaryLocale: 'de-DE',
+      );
 
   @override
-  String get displayName => 'German';
+  String get languageCode => identity.languageId;
 
   @override
-  String get targetLocale => 'de-DE';
+  String get displayName => identity.displayName;
+
+  @override
+  String get targetLocale => identity.primaryLocale;
 
   @override
   String get sourceLocale => 'ar';

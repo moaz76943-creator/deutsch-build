@@ -14,6 +14,11 @@ import 'verb_pages.dart';
 import 'conversation_pages.dart';
 import 'progress_pages.dart';
 
+Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
+  textDirection: TextDirection.rtl,
+  child: child ?? const SizedBox.shrink(),
+);
+
 class DeutschAppV35 extends StatefulWidget {
   final LearnerRepository repo;
   final AuthSessionController auth;
@@ -28,7 +33,8 @@ class _AppState extends State<DeutschAppV35> {
     themeMode: dark ? ThemeMode.dark : ThemeMode.light,
     theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
     darkTheme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
-    home: Directionality(textDirection: TextDirection.rtl, child: HomeV35(repo: widget.repo, auth: widget.auth, dependencies: widget.dependencies, onTheme: () => setState(() => dark = !dark))),
+    builder: rtlAppBuilder,
+    home: HomeV35(repo: widget.repo, auth: widget.auth, dependencies: widget.dependencies, onTheme: () => setState(() => dark = !dark)),
   );
 }
 

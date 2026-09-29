@@ -28,6 +28,16 @@ Establish a reliable project-operating system in which a new chat/session can de
 10. Verify scheduler/automation telemetry without creating a fourth worker or duplicate architecture.
 11. Update this intent file whenever an approved goal or plan changes; mark older execution positions as superseded rather than silently reusing them.
 
+## Universal session contract
+
+Every chat, scheduled worker, OpenCode process, and coding agent that performs project mutation must follow:
+
+`docs/project-record/SESSION_OPERATING_CONTRACT.md`
+
+Repository agents also receive the root `AGENTS.md` pointer.
+
+The session is never the source of truth. Meaningful movement must become durable through CLAIM / DELTA / BLOCKER / HANDOFF / COMPLETE / FAILED / SUPERSEDE evidence before the session stops or hands off.
+
 ## Planning rules
 
 - A code event is evidence of what happened, not proof of why it happened.

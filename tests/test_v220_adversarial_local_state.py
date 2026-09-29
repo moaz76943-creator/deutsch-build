@@ -12,6 +12,7 @@ def test_review_cards_reject_mismatched_storage_and_payload_ids():
 def test_review_card_numeric_fields_are_bounded():
     assert "_boundInt(_int(j['repetitions']), 0, 1000)" in CARD
 def test_persistence_refuses_oversized_serialized_state():
-    assert 'payload.length > maxPayloadBytes' in SRC and 'LearnerPersistenceFailureCode.payloadTooLarge' in SRC
+    assert 'utf8.encode(payload)' in SRC and 'encodedPayloadBytes.length > maxPayloadBytes' in SRC
+    assert 'LearnerPersistenceFailureCode.payloadTooLarge' in SRC
 def test_corrupt_nested_records_are_isolated_instead_of_aborting_all_state():
     assert 'try {' in SRC and 'catch (_) {}' in SRC

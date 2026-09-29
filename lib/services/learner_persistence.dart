@@ -103,7 +103,8 @@ class LearnerPersistence {
 
   Future<void> save(LearnerState s) async {
     final payload = jsonEncode(_toJson(s));
-    if (payload.length > maxPayloadBytes) {
+    final encodedPayloadBytes = utf8.encode(payload);
+    if (encodedPayloadBytes.length > maxPayloadBytes) {
       throw const LearnerPersistenceFailure(LearnerPersistenceFailureCode.payloadTooLarge);
     }
     if (!await prefs.setString(storageKey, payload)) {
