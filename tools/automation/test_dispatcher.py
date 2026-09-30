@@ -28,6 +28,10 @@ def test_backlog_contains_complete_lifecycle_in_required_order():
         "SRS_SCHEDULER_WIRING",
         "MULTILINGUAL_PACK_INGESTION",
         "APP_PAYMENTS_BILLING",
+        "TASK-INT-001",
+        "TASK-INT-002",
+        "TASK-INT-003",
+        "TASK-UI-001",
     ]
     assert [task["status"] for task in backlog["tasks"][:3]] == ["IN_PROGRESS"] * 3
     assert all(task["status"] == "PENDING" for task in backlog["tasks"][3:])
@@ -47,10 +51,60 @@ def test_dependencies_reference_existing_tasks_and_graph_is_acyclic():
     Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty()).validate()
 
 
+def test_post_merge_sequence_has_strict_direct_dependencies():
+    backlog = load_backlog(BACKLOG)
+    by_id = {task["task_id"]: task for task in backlog["tasks"]}
+
+    assert by_id["TASK-INT-002"]["prerequisites"] == ["TASK-INT-001"]
+    assert by_id["TASK-INT-003"]["prerequisites"] == ["TASK-INT-002"]
+    assert by_id["TASK-UI-001"]["prerequisites"] == ["TASK-INT-002", "TASK-INT-003"]
+
+
+def test_post_merge_sequence_cycle_is_rejected():
+    backlog = load_backlog(BACKLOG)
+    by_id = {task["task_id"]: task for task in backlog["tasks"]}
+    by_id["TASK-INT-001"]["prerequisites"] = ["TASK-UI-001"]
+
+    with pytest.raises(BacklogValidationError, match="dependency cycle"):
+        Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty()).validate()
+
+
+def test_post_merge_sequence_resolves_topologically():
+    backlog = load_backlog(BACKLOG)
+    by_id = {task["task_id"]: task for task in backlog["tasks"]}
+
+    for task in backlog["tasks"]:
+        if task["task_id"] not in {
+            "TASK-INT-001",
+            "TASK-INT-002",
+            "TASK-INT-003",
+            "TASK-UI-001",
+        }:
+            task["status"] = "VERIFIED"
+
+    dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty())
+
+    assert dispatcher.next_executable()["task_id"] == "TASK-INT-001"
+    by_id["TASK-INT-001"]["status"] = "VERIFIED"
+    assert dispatcher.next_executable()["task_id"] == "TASK-INT-002"
+    by_id["TASK-INT-002"]["status"] = "VERIFIED"
+    assert dispatcher.next_executable()["task_id"] == "TASK-INT-003"
+    by_id["TASK-INT-003"]["status"] = "VERIFIED"
+    assert dispatcher.next_executable()["task_id"] == "TASK-UI-001"
+    by_id["TASK-UI-001"]["status"] = "VERIFIED"
+    assert dispatcher.next_executable() is None
+
+
 def test_in_progress_tasks_are_not_selected_as_new_work():
     backlog = load_backlog(BACKLOG)
     dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty())
-    assert dispatcher.next_executable() is None
+    selected = dispatcher.next_executable()
+    assert selected["task_id"] == "TASK-INT-001"
+    assert selected["task_id"] not in {
+        "PHASE2_WIRING",
+        "AUDIO_ENGINE_DOMAIN",
+        "MATRIX_A1_CORE",
+    }
 
 
 def test_next_pending_task_unlocks_only_when_dependencies_are_verified_or_merged():
