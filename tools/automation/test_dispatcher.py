@@ -6,148 +6,134 @@ import pytest
 
 from tools.automation.dispatcher import (
     BacklogValidationError,
-    allocate_tasks,
+    ClaimSnapshot,
+    Dispatcher,
+    GitBranchSnapshot,
     load_backlog,
-    resolve_ready_tasks,
-    validate_backlog,
 )
 
 HERE = Path(__file__).resolve().parent
-BACKLOG_PATH = HERE / "backlog.json"
+BACKLOG = HERE / "backlog.json"
 
 
-def load_seed():
-    return json.loads(BACKLOG_PATH.read_text(encoding="utf-8"))
-
-
-def test_seed_backlog_contains_six_verified_components_and_pending_integration_chain():
-    backlog = load_backlog(BACKLOG_PATH)
-    components = [item for item in backlog["items"] if item["kind"] == "component"]
-    pending = [item for item in backlog["items"] if item["kind"] == "integration_stage"]
-
-    assert len(components) == 6
-    assert all(item["status"] == "verified" for item in components)
-    assert [item["stage"] for item in pending] == [
-        "ci",
-        "merge",
-        "post_merge_regression",
-        "checkpoint",
+def test_backlog_contains_complete_lifecycle_in_required_order():
+    backlog = load_backlog(BACKLOG)
+    ids = [task["task_id"] for task in backlog["tasks"]]
+    assert ids == [
+        "PHASE2_WIRING",
+        "AUDIO_ENGINE_DOMAIN",
+        "MATRIX_A1_CORE",
+        "LOCAL_PERSISTENCE_DRIFT",
+        "AUDIO_UI_INTEGRATION",
+        "SRS_SCHEDULER_WIRING",
+        "MULTILINGUAL_PACK_INGESTION",
+        "APP_PAYMENTS_BILLING",
     ]
-    assert all(item["status"] == "pending" for item in pending)
+    assert [task["status"] for task in backlog["tasks"][:3]] == ["IN_PROGRESS"] * 3
+    assert all(task["status"] == "PENDING" for task in backlog["tasks"][3:])
 
 
-def test_only_ci_stage_is_initially_ready():
-    backlog = load_backlog(BACKLOG_PATH)
-    ready = resolve_ready_tasks(backlog)
-    assert [item["id"] for item in ready] == ["integration.pr107.ci"]
+def test_backlog_tasks_have_isolated_boundaries_and_valid_domains():
+    backlog = load_backlog(BACKLOG)
+    allowed_domains = {"UI", "Audio", "DataMatrix", "Database", "Payments"}
+    for task in backlog["tasks"]:
+        assert task["domain"] in allowed_domains
+        assert task["allowed_paths"]
+        assert all(pattern and not pattern.startswith("/") for pattern in task["allowed_paths"])
 
 
-def test_dependency_completion_unlocks_next_stage():
-    backlog = load_seed()
-    by_id = {item["id"]: item for item in backlog["items"]}
-    by_id["integration.pr107.ci"]["status"] = "verified"
-    ready = resolve_ready_tasks(backlog)
-    assert [item["id"] for item in ready] == ["integration.pr107.merge"]
+def test_dependencies_reference_existing_tasks_and_graph_is_acyclic():
+    backlog = load_backlog(BACKLOG)
+    Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty()).validate()
 
 
-def test_unknown_dependency_is_rejected():
-    backlog = load_seed()
-    backlog["items"][-1]["dependencies"] = ["missing.task"]
-    with pytest.raises(BacklogValidationError, match="unknown dependency"):
-        validate_backlog(backlog)
+def test_in_progress_tasks_are_not_selected_as_new_work():
+    backlog = load_backlog(BACKLOG)
+    dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty())
+    assert dispatcher.next_executable() is None
 
 
-def test_duplicate_item_ids_are_rejected():
-    backlog = load_seed()
-    backlog["items"].append(copy.deepcopy(backlog["items"][0]))
-    with pytest.raises(BacklogValidationError, match="duplicate item id"):
-        validate_backlog(backlog)
+def test_next_pending_task_unlocks_only_when_dependencies_are_verified_or_merged():
+    backlog = load_backlog(BACKLOG)
+    states = {task["task_id"]: task for task in backlog["tasks"]}
+    states["PHASE2_WIRING"]["status"] = "VERIFIED"
+    states["AUDIO_ENGINE_DOMAIN"]["status"] = "VERIFIED"
+    states["MATRIX_A1_CORE"]["status"] = "VERIFIED"
+
+    dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty())
+    selected = dispatcher.next_executable()
+    assert selected["task_id"] == "LOCAL_PERSISTENCE_DRIFT"
 
 
-def test_dependency_cycle_is_rejected():
-    backlog = load_seed()
-    by_id = {item["id"]: item for item in backlog["items"]}
-    by_id["integration.pr107.ci"]["dependencies"] = ["integration.pr107.checkpoint"]
-    with pytest.raises(BacklogValidationError, match="dependency cycle"):
-        validate_backlog(backlog)
+def test_active_branch_or_claim_blocks_duplicate_dispatch():
+    backlog = load_backlog(BACKLOG)
+    for task in backlog["tasks"][:3]:
+        task["status"] = "VERIFIED"
 
-
-def test_allocation_requires_worker_capabilities():
-    backlog = load_backlog(BACKLOG_PATH)
-    workers = [
-        {"id": "docs-only", "capabilities": ["docs"], "capacity": 1},
-        {"id": "python-ci", "capabilities": ["python", "ci"], "capacity": 1},
-    ]
-    result = allocate_tasks(backlog, workers)
-    assert result["assignments"] == [
-        {"task_id": "integration.pr107.ci", "worker_id": "python-ci"}
-    ]
-    assert result["unassigned"] == []
-
-
-def test_allocation_never_assigns_two_ready_tasks_with_same_mutable_scope():
-    backlog = load_seed()
-    backlog["items"].extend(
-        [
-            {
-                "id": "integration.extra.a",
-                "kind": "integration_stage",
-                "stage": "ci",
-                "status": "pending",
-                "priority": 50,
-                "dependencies": [],
-                "required_capabilities": ["python"],
-                "mutable_scope": "shared/scope",
-                "evidence": [],
-            },
-            {
-                "id": "integration.extra.b",
-                "kind": "integration_stage",
-                "stage": "ci",
-                "status": "pending",
-                "priority": 40,
-                "dependencies": [],
-                "required_capabilities": ["python"],
-                "mutable_scope": "shared/scope",
-                "evidence": [],
-            },
-        ]
-    )
-    workers = [
-        {"id": "w1", "capabilities": ["python", "ci"], "capacity": 2},
-        {"id": "w2", "capabilities": ["python", "ci"], "capacity": 2},
-    ]
-    result = allocate_tasks(backlog, workers)
-    assigned_ids = {item["task_id"] for item in result["assignments"]}
-    assert "integration.extra.a" in assigned_ids
-    assert "integration.extra.b" not in assigned_ids
-    assert any(
-        item["task_id"] == "integration.extra.b" and item["reason"] == "mutable_scope_claimed"
-        for item in result["unassigned"]
-    )
-
-
-def test_worker_capacity_is_respected_deterministically():
-    backlog = load_seed()
-    backlog["items"].append(
+    branches = GitBranchSnapshot.from_names(["feature/local-persistence-drift"])
+    claims = ClaimSnapshot.from_records([
         {
-            "id": "integration.independent",
-            "kind": "integration_stage",
-            "stage": "ci",
-            "status": "pending",
-            "priority": 200,
-            "dependencies": [],
-            "required_capabilities": ["python"],
-            "mutable_scope": "independent/scope",
-            "evidence": [],
+            "claim_id": "OTHER-WORKER",
+            "task_id": "LOCAL_PERSISTENCE_DRIFT",
+            "status": "ACTIVE",
+            "allowed_paths": ["lib/core/persistence/**"],
         }
-    )
-    workers = [{"id": "w1", "capabilities": ["python", "ci"], "capacity": 1}]
-    result = allocate_tasks(backlog, workers)
-    assert result["assignments"] == [
-        {"task_id": "integration.independent", "worker_id": "w1"}
-    ]
-    assert any(
-        item["task_id"] == "integration.pr107.ci" and item["reason"] == "no_eligible_worker_capacity"
-        for item in result["unassigned"]
-    )
+    ])
+    dispatcher = Dispatcher(backlog, branches, claims)
+    assert dispatcher.blocked_by_live_work(next(t for t in backlog["tasks"] if t["task_id"] == "LOCAL_PERSISTENCE_DRIFT"))
+    assert dispatcher.next_executable()["task_id"] == "AUDIO_UI_INTEGRATION"
+
+
+def test_parallel_ready_tasks_are_ranked_by_roadmap_order_without_skipping_dependencies():
+    backlog = load_backlog(BACKLOG)
+    by_id = {task["task_id"]: task for task in backlog["tasks"]}
+    for task_id in ["PHASE2_WIRING", "AUDIO_ENGINE_DOMAIN", "MATRIX_A1_CORE", "LOCAL_PERSISTENCE_DRIFT"]:
+        by_id[task_id]["status"] = "VERIFIED"
+    by_id["AUDIO_UI_INTEGRATION"]["status"] = "PENDING"
+    by_id["SRS_SCHEDULER_WIRING"]["status"] = "PENDING"
+
+    dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty())
+    assert dispatcher.next_executable()["task_id"] == "AUDIO_UI_INTEGRATION"
+
+
+def test_generated_spec_contains_exact_scope_dependencies_and_claim():
+    backlog = load_backlog(BACKLOG)
+    for task in backlog["tasks"][:3]:
+        task["status"] = "VERIFIED"
+    dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty())
+    task = dispatcher.next_executable()
+    spec = dispatcher.generate_spec(task, claim_id="TOOLING-DISPATCHER-001")
+
+    assert "Task: LOCAL_PERSISTENCE_DRIFT" in spec
+    assert "Claim: TOOLING-DISPATCHER-001" in spec
+    assert "Allowed paths:" in spec
+    for pattern in task["allowed_paths"]:
+        assert pattern in spec
+    for dependency in task["prerequisites"]:
+        assert dependency in spec
+    assert "Do not modify files outside these boundaries." in spec
+
+
+def test_conflicting_claim_scope_is_fail_closed_even_for_different_task():
+    backlog = load_backlog(BACKLOG)
+    for task in backlog["tasks"][:3]:
+        task["status"] = "VERIFIED"
+    candidate = next(t for t in backlog["tasks"] if t["task_id"] == "LOCAL_PERSISTENCE_DRIFT")
+    claims = ClaimSnapshot.from_records([
+        {
+            "claim_id": "DB-OTHER",
+            "task_id": "UNRELATED_LABEL",
+            "status": "ACTIVE",
+            "allowed_paths": candidate["allowed_paths"],
+        }
+    ])
+    dispatcher = Dispatcher(backlog, GitBranchSnapshot.empty(), claims)
+    assert dispatcher.blocked_by_live_work(candidate)
+    assert dispatcher.next_executable()["task_id"] == "AUDIO_UI_INTEGRATION"
+
+
+def test_invalid_status_fails_closed():
+    backlog = load_backlog(BACKLOG)
+    backlog["tasks"][0]["status"] = "DONE"
+    with pytest.raises(BacklogValidationError, match="invalid status"):
+        Dispatcher(backlog, GitBranchSnapshot.empty(), ClaimSnapshot.empty()).validate()

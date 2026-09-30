@@ -1,179 +1,88 @@
 {
   "schema_version": 1,
-  "program_id": "AUTONOMOUS-BACKLOG-001",
-  "repo": "sali97m-cpu/deutsch-bilarabi",
-  "base_main_sha": "e3208766bcd742250852a32bbaf01dd62949fe49",
-  "items": [
+  "claim_id": "TOOLING-DISPATCHER-001",
+  "status_values": ["PENDING", "IN_PROGRESS", "VERIFIED", "MERGED"],
+  "dependency_complete_statuses": ["VERIFIED", "MERGED"],
+  "tasks": [
     {
-      "id": "component.pr107.schema",
-      "kind": "component",
-      "stage": "verification",
-      "status": "verified",
-      "priority": 0,
-      "dependencies": [],
-      "required_capabilities": [],
-      "mutable_scope": "tools/data_generator/schema.json",
-      "evidence": [
-        "PR #107 draft head 476f2953c18a66fa65524977429068a1df139839",
-        "Local pytest: 18 passed in 0.07s"
-      ]
+      "task_id": "PHASE2_WIRING",
+      "domain": "UI",
+      "status": "IN_PROGRESS",
+      "branch": "phase2/core-wiring",
+      "prerequisites": [],
+      "external_prerequisites": ["UI_V35_PHASE1"],
+      "allowed_paths": ["lib/ui_v35/phase2/**", "test/ui_v35/phase2/**"],
+      "goal": "Wire the verified UI v35 Phase 1 presentation layer to core/domain services without crossing ownership boundaries."
     },
     {
-      "id": "component.pr107.matrix_builder",
-      "kind": "component",
-      "stage": "verification",
-      "status": "verified",
-      "priority": 0,
-      "dependencies": [
-        "component.pr107.schema"
-      ],
-      "required_capabilities": [],
-      "mutable_scope": "tools/data_generator/matrix_builder.py",
-      "evidence": [
-        "20-language directed matrix: 380 directed pairs / 190 bidirectional sets",
-        "Local pytest: 18 passed in 0.07s"
-      ]
+      "task_id": "AUDIO_ENGINE_DOMAIN",
+      "domain": "Audio",
+      "status": "IN_PROGRESS",
+      "branch": "feature/offline-audio-engine",
+      "prerequisites": [],
+      "external_prerequisites": [],
+      "allowed_paths": ["lib/core/audio/**", "test/core/audio/**"],
+      "goal": "Implement the offline audio/TTS domain contracts and deterministic local driver behavior."
     },
     {
-      "id": "component.pr107.sample_fixture",
-      "kind": "component",
-      "stage": "verification",
-      "status": "verified",
-      "priority": 0,
-      "dependencies": [
-        "component.pr107.schema",
-        "component.pr107.matrix_builder"
-      ],
-      "required_capabilities": [],
-      "mutable_scope": "tools/data_generator/fixtures/sample_de_ar_a1.json",
-      "evidence": [
-        "Explicit de->ar and ar->de A1 reciprocal sample",
-        "Local pytest: 18 passed in 0.07s"
-      ]
+      "task_id": "MATRIX_A1_CORE",
+      "domain": "DataMatrix",
+      "status": "IN_PROGRESS",
+      "branch": "tools/language-matrix-builder",
+      "prerequisites": [],
+      "external_prerequisites": [],
+      "allowed_paths": ["tools/data_generator/**"],
+      "goal": "Produce and validate the first canonical A1 multilingual matrix seed with explicit directed-pair semantics."
     },
     {
-      "id": "component.pr107.core_generator",
-      "kind": "component",
-      "stage": "verification",
-      "status": "verified",
-      "priority": 0,
-      "dependencies": [
-        "component.pr107.schema",
-        "component.pr107.matrix_builder"
-      ],
-      "required_capabilities": [],
-      "mutable_scope": "tools/data_generator/de_ar_a1_core_generator.py",
-      "evidence": [
-        "Deterministic curated Arabic<->German A1 core generator",
-        "Local pytest: 18 passed in 0.07s"
-      ]
+      "task_id": "LOCAL_PERSISTENCE_DRIFT",
+      "domain": "Database",
+      "status": "PENDING",
+      "branch": "feature/local-persistence-drift",
+      "prerequisites": ["PHASE2_WIRING"],
+      "external_prerequisites": [],
+      "allowed_paths": ["lib/core/persistence/**", "test/core/persistence/**"],
+      "goal": "Detect and repair local persistence contract drift against the Phase 2 wiring boundary."
     },
     {
-      "id": "component.pr107.core_fixture",
-      "kind": "component",
-      "stage": "verification",
-      "status": "verified",
-      "priority": 0,
-      "dependencies": [
-        "component.pr107.core_generator"
-      ],
-      "required_capabilities": [],
-      "mutable_scope": "tools/data_generator/fixtures/de_ar_a1_core.json",
-      "evidence": [
-        "Canonical fixture size 101515 bytes",
-        "Git blob SHA 212d76f11bd51ff4bc0b4de7fa8c2bb09f07ddf3"
-      ]
+      "task_id": "AUDIO_UI_INTEGRATION",
+      "domain": "Audio",
+      "status": "PENDING",
+      "branch": "feature/audio-ui-integration",
+      "prerequisites": ["PHASE2_WIRING", "AUDIO_ENGINE_DOMAIN"],
+      "external_prerequisites": [],
+      "allowed_paths": ["lib/ui_v35/audio/**", "test/ui_v35/audio/**"],
+      "goal": "Integrate verified offline audio capabilities into the Phase 2 UI surface without modifying the audio domain implementation."
     },
     {
-      "id": "component.pr107.pytest_suite",
-      "kind": "component",
-      "stage": "verification",
-      "status": "verified",
-      "priority": 0,
-      "dependencies": [
-        "component.pr107.schema",
-        "component.pr107.matrix_builder",
-        "component.pr107.sample_fixture",
-        "component.pr107.core_generator",
-        "component.pr107.core_fixture"
-      ],
-      "required_capabilities": [],
-      "mutable_scope": "tools/data_generator/test_matrix_builder.py",
-      "evidence": [
-        "Regex whitespace correction commit 476f2953c18a66fa65524977429068a1df139839",
-        "Local pytest: 18 passed in 0.07s"
-      ]
+      "task_id": "SRS_SCHEDULER_WIRING",
+      "domain": "Database",
+      "status": "PENDING",
+      "branch": "feature/srs-scheduler-wiring",
+      "prerequisites": ["PHASE2_WIRING", "LOCAL_PERSISTENCE_DRIFT"],
+      "external_prerequisites": [],
+      "allowed_paths": ["lib/core/srs/**", "test/core/srs/**"],
+      "goal": "Wire spaced-repetition scheduling to the verified persistence contract with deterministic offline behavior."
     },
     {
-      "id": "integration.pr107.ci",
-      "kind": "integration_stage",
-      "stage": "ci",
-      "status": "pending",
-      "priority": 100,
-      "dependencies": [
-        "component.pr107.schema",
-        "component.pr107.matrix_builder",
-        "component.pr107.sample_fixture",
-        "component.pr107.core_generator",
-        "component.pr107.core_fixture",
-        "component.pr107.pytest_suite"
-      ],
-      "required_capabilities": [
-        "python",
-        "ci"
-      ],
-      "mutable_scope": "integration/pr107",
-      "evidence": [
-        "Awaiting admitted CI/integration window"
-      ]
+      "task_id": "MULTILINGUAL_PACK_INGESTION",
+      "domain": "DataMatrix",
+      "status": "PENDING",
+      "branch": "feature/multilingual-pack-ingestion",
+      "prerequisites": ["MATRIX_A1_CORE", "LOCAL_PERSISTENCE_DRIFT"],
+      "external_prerequisites": [],
+      "allowed_paths": ["lib/core/language_packs/**", "test/core/language_packs/**", "assets/language_packs/**"],
+      "goal": "Ingest verified directed language-pack data into the offline runtime without implicit pivots or reverse-pair inference."
     },
     {
-      "id": "integration.pr107.merge",
-      "kind": "integration_stage",
-      "stage": "merge",
-      "status": "pending",
-      "priority": 90,
-      "dependencies": [
-        "integration.pr107.ci"
-      ],
-      "required_capabilities": [
-        "github",
-        "merge"
-      ],
-      "mutable_scope": "integration/pr107",
-      "evidence": []
-    },
-    {
-      "id": "integration.pr107.post_merge_regression",
-      "kind": "integration_stage",
-      "stage": "post_merge_regression",
-      "status": "pending",
-      "priority": 80,
-      "dependencies": [
-        "integration.pr107.merge"
-      ],
-      "required_capabilities": [
-        "python",
-        "regression"
-      ],
-      "mutable_scope": "integration/pr107",
-      "evidence": []
-    },
-    {
-      "id": "integration.pr107.checkpoint",
-      "kind": "integration_stage",
-      "stage": "checkpoint",
-      "status": "pending",
-      "priority": 70,
-      "dependencies": [
-        "integration.pr107.post_merge_regression"
-      ],
-      "required_capabilities": [
-        "control",
-        "checkpoint"
-      ],
-      "mutable_scope": "integration/pr107",
-      "evidence": []
+      "task_id": "APP_PAYMENTS_BILLING",
+      "domain": "Payments",
+      "status": "PENDING",
+      "branch": "feature/app-payments-billing",
+      "prerequisites": ["PHASE2_WIRING", "LOCAL_PERSISTENCE_DRIFT"],
+      "external_prerequisites": ["ENTITLEMENT_SECURITY_CONTRACT"],
+      "allowed_paths": ["lib/core/payments/**", "test/core/payments/**"],
+      "goal": "Implement the app billing/entitlement boundary after persistence and core wiring are verified; production credentials remain outside automation."
     }
   ]
 }
