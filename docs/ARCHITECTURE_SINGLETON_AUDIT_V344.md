@@ -7,6 +7,10 @@ All `.instance` references under `lib/` were inspected. This document classifies
 | Location | Reference | Classification | Decision |
 |---|---|---|---|
 | `lib/main.dart` | `PreferencesService.instance` | COMPOSITION_ROOT | Allowed. Storage gateway is initialized at the composition boundary before repository creation. Future injection may replace it if multiple storage implementations are introduced. |
+| `lib/main.dart` | `UserVocabularyService.instance` | STORAGE_GATEWAY | Allowed. SQLite persistence for user vocabulary initialized at composition root. |
+| `lib/main.dart` | `FavoritesRepository.instance` | STORAGE_GATEWAY | Allowed. SQLite persistence for vocabulary favorites initialized at composition root. |
+| `lib/services/user_vocabulary_service.dart` | `UserVocabularyService.instance` | STORAGE_GATEWAY | Allowed. Internal database instantiation within service. |
+| `lib/services/user_vocabulary_service.dart` | `FavoritesRepository.instance` | STORAGE_GATEWAY | Allowed. Internal singleton pattern within service. |
 | `lib/main.dart` | `ContentEngine.instance` | COMPOSITION_ROOT | Allowed. Canonical content is materialized once into the explicit immutable corpus dependency. |
 | `lib/main.dart` | `VerbIndex.instance` | COMPOSITION_ROOT | Allowed. Canonical verb index is created once and injected. |
 | `lib/services/privacy_settings.dart` | `PreferencesService.instance` | MIGRATION_CANDIDATE | Hidden storage dependency inside a service. Safe next migration target: inject the storage gateway explicitly without changing persistence semantics. |

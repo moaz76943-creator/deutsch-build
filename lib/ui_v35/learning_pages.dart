@@ -1,3 +1,5 @@
+import '../services/app_dependencies.dart';
+import '../services/user_vocabulary_service.dart';
 import 'package:flutter/material.dart';
 import '../core/learning_core.dart';
 import '../core/content_contract.dart';
@@ -66,11 +68,214 @@ class _CoreState extends State<CoreSession> {
   ]));
 }
 
-class VocabularyV35 extends StatelessWidget {
-  final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer;
-  const VocabularyV35({super.key, required this.repo, required this.corpus, required this.onDone, required this.presentation, required this.contentQuality, required this.textNormalizer});
+class VocabularyV35 extends StatefulWidget {
+  final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer; final AppDependencies dependencies;
+  const VocabularyV35({super.key, required this.repo, required this.corpus, required this.onDone, required this.presentation, required this.contentQuality, required this.textNormalizer, required this.dependencies});
+
+  @override State<VocabularyV35> createState() => _VocabularyV35State();
+}
+
+class _VocabularyV35State extends State<VocabularyV35> {
+  Set<String> _favorites = {};
+  List<Map<String, dynamic>> _customEntries = [];
+  String _filter = 'all';
+
+  @override void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final favs = await widget.dependencies.favoritesRepository.getFavorites();
+    final custom = await widget.dependencies.userVocabularyService.getCustomEntries();
+    if (mounted) {
+      setState(() {
+        _favorites = favs;
+        _customEntries = custom;
+      });
+    }
+  }
+
+  void _showAddCustomDialog() {
+    final germanController = TextEditingController();
+    final arabicController = TextEditingController();
+    final articleController = TextEditingController();
+    final notesController = TextEditingController();
+    final exampleController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (c) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(c).viewInsets.bottom, left: 16, right: 16, top: 24),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('إضافة مفردة مخصصة', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: germanController,
+                decoration: const InputDecoration(labelText: 'الكلمة بالألمانية', border: OutlineInputBorder()),
+                validator: (v) => v == null || v.isEmpty ? 'مطلوب' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: arabicController,
+                decoration: const InputDecoration(labelText: 'الترجمة العربية', border: OutlineInputBorder()),
+                validator: (v) => v == null || v.isEmpty ? 'مطلوب' : null,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: 'none',
+                decoration: const InputDecoration(labelText: 'الأداة (اختياري)', border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 'none', child: Text('بدون أداة')),
+                  DropdownMenuItem(value: 'der', child: Text('der')),
+                  DropdownMenuItem(value: 'die', child: Text('die')),
+                  DropdownMenuItem(value: 'das', child: Text('das')),
+                ],
+                onChanged: (v) => articleController.text = v == 'none' ? '' : v!,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: exampleController,
+                decoration: const InputDecoration(labelText: 'مثال (اختياري)', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: notesController,
+                decoration: const InputDecoration(labelText: 'ملاحظات (اختياري)', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () async {
+                  if (formKey.currentState!.validate()) {
+                    await widget.dependencies.userVocabularyService.addCustomEntry({
+                      'id': 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                      'german_text': germanController.text,
+                      'arabic_translation': arabicController.text,
+                      'article': articleController.text,
+                      'notes': notesController.text,
+                      'example_sentence': exampleController.text,
+                      'created_at': DateTime.now().toIso8601String(),
+                      'is_custom': 1,
+                    });
+                    if (mounted) {
+                      Navigator.pop(c);
+                      _loadData();
+                    }
+                  }
+                },
+                child: const Text('حفظ'),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override Widget build(BuildContext c) {
-    return Scaffold(appBar: AppBar(title: Text('A1 • ${corpus.length} وحدات تعلم')), body: ListView.builder(padding: const EdgeInsets.all(12), itemCount: corpus.length, itemBuilder: (c, i) { final x = corpus[i]; final d = depthFor(x); final issues = contentQuality.issues(x); return Card(child: ExpansionTile(title: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${x.translationText} • ${x.topic}'), children: [ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText)), if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${presentation.pluralLabel}: ${x.pluralForm}')), if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)), if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)), if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')), ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: repo, item: x, onDone: onDone, presentation: presentation, textNormalizer: textNormalizer))))])); }));
+    return Scaffold(
+      appBar: AppBar(title: Text('A1 • ${widget.corpus.length} وحدات تعلم')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddCustomDialog,
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'all', label: Text('الكل')),
+                ButtonSegment(value: 'favorites', label: Text('المفضلة')),
+                ButtonSegment(value: 'custom', label: Text('مخصص')),
+              ],
+              selected: {_filter},
+              onSelectionChanged: (Set<String> newSelection) {
+                setState(() => _filter = newSelection.first);
+              },
+            ),
+          ),
+          Expanded(
+            child: Builder(builder: (c) {
+              if (_filter == 'custom') {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _customEntries.length,
+                  itemBuilder: (c, i) {
+                    final e = _customEntries[i];
+                    return Card(
+                      child: ListTile(
+                        title: Text(e['german_text'] as String, style: const TextStyle(fontWeight: FontWeight.w800)),
+                        subtitle: Text(e['arabic_translation'] as String),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () async {
+                            await widget.dependencies.userVocabularyService.deleteCustomEntry(e['id'] as String);
+                            _loadData();
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }
+
+              final displayList = _filter == 'favorites'
+                  ? widget.corpus.where((x) => _favorites.contains(x.id)).toList()
+                  : widget.corpus;
+
+              if (displayList.isEmpty) {
+                return const Center(child: Text('القائمة فارغة.'));
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: displayList.length,
+                itemBuilder: (c, i) {
+                  final x = displayList[i];
+                  final d = depthFor(x);
+                  final issues = widget.contentQuality.issues(x);
+                  final isFav = _favorites.contains(x.id);
+
+                  return Card(
+                    child: ExpansionTile(
+                      title: Row(
+                        children: [
+                          Expanded(child: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800))),
+                          IconButton(
+                            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
+                            onPressed: () async {
+                              await widget.dependencies.favoritesRepository.toggleFavorite(x.id);
+                              _loadData();
+                            },
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('${x.translationText} • ${x.topic}'),
+                      children: [
+                        ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText)),
+                        if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${widget.presentation.pluralLabel}: ${x.pluralForm}')),
+                        if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)),
+                        if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)),
+                        if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')),
+                        ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: widget.repo, item: x, onDone: widget.onDone, presentation: widget.presentation, textNormalizer: widget.textNormalizer))))
+                      ]
+                    )
+                  );
+                },
+              );
+            }),
+          ),
+        ],
+      ),
+    );
   }
 }
 
