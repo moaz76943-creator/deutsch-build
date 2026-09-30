@@ -3076,6 +3076,372 @@
       }
     },
     {
+      "canonical_key": "de-ar.a1.daily_essentials.zug.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "القطار",
+      "target_text": "der Zug",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.zug",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.zug"
+      },
+      "phonetics": {
+        "source": "al-qitar",
+        "target": "tsug"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.zug",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "القطار في المحطة.",
+        "target": "Der Zug ist am Bahnhof."
+      },
+      "plural_form": "die Züge"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.zug.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Zug",
+      "target_text": "القطار",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.zug",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.zug"
+      },
+      "phonetics": {
+        "source": "tsug",
+        "target": "al-qitar"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.zug",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Der Zug ist am Bahnhof.",
+        "target": "القطار في المحطة."
+      },
+      "plural_form": "die Züge"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.ticket.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "التذكرة",
+      "target_text": "das Ticket",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.ticket",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.ticket"
+      },
+      "phonetics": {
+        "source": "at-tathkira",
+        "target": "ti-ket"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.ticket",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أحتاج إلى تذكرة.",
+        "target": "Ich brauche ein Ticket."
+      },
+      "plural_form": "die Tickets"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.ticket.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Ticket",
+      "target_text": "التذكرة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.ticket",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.ticket"
+      },
+      "phonetics": {
+        "source": "ti-ket",
+        "target": "at-tathkira"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.ticket",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich brauche ein Ticket.",
+        "target": "أحتاج إلى تذكرة."
+      },
+      "plural_form": "die Tickets"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.fahren.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يذهب بوسيلة نقل",
+      "target_text": "fahren",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.fahren",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.fahren"
+      },
+      "phonetics": {
+        "source": "yath-hab bi-wasilat naql",
+        "target": "fa-ren"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.fahren",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أذهب إلى العمل بالحافلة.",
+        "target": "Ich fahre mit dem Bus zur Arbeit."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.fahren.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "fahren",
+      "target_text": "يذهب بوسيلة نقل",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.fahren",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.fahren"
+      },
+      "phonetics": {
+        "source": "fa-ren",
+        "target": "yath-hab bi-wasilat naql"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.fahren",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich fahre mit dem Bus zur Arbeit.",
+        "target": "أذهب إلى العمل بالحافلة."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.geschlossen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "مغلق",
+      "target_text": "geschlossen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.geschlossen",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.geschlossen"
+      },
+      "phonetics": {
+        "source": "mughlaq",
+        "target": "ge-shlos-sen"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.geschlossen",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "البنك مغلق اليوم.",
+        "target": "Die Bank ist heute geschlossen."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.geschlossen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "geschlossen",
+      "target_text": "مغلق",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.geschlossen",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.geschlossen"
+      },
+      "phonetics": {
+        "source": "ge-shlos-sen",
+        "target": "mughlaq"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.geschlossen",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Bank ist heute geschlossen.",
+        "target": "البنك مغلق اليوم."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.telefonnummer.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "رقم الهاتف",
+      "target_text": "die Telefonnummer",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.telefonnummer",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.telefonnummer"
+      },
+      "phonetics": {
+        "source": "raqam al-hatif",
+        "target": "te-le-fon-num-mer"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.telefonnummer",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هذا رقم هاتفي.",
+        "target": "Das ist meine Telefonnummer."
+      },
+      "plural_form": "die Telefonnummern"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.telefonnummer.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Telefonnummer",
+      "target_text": "رقم الهاتف",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.telefonnummer",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.telefonnummer"
+      },
+      "phonetics": {
+        "source": "te-le-fon-num-mer",
+        "target": "raqam al-hatif"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.telefonnummer",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Das ist meine Telefonnummer.",
+        "target": "هذا رقم هاتفي."
+      },
+      "plural_form": "die Telefonnummern"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.krank.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "مريض",
+      "target_text": "krank",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.krank",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.krank"
+      },
+      "phonetics": {
+        "source": "marid",
+        "target": "krank"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.krank",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أنا مريض اليوم.",
+        "target": "Ich bin heute krank."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.krank.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "krank",
+      "target_text": "مريض",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.krank",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.krank"
+      },
+      "phonetics": {
+        "source": "krank",
+        "target": "marid"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.krank",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich bin heute krank.",
+        "target": "أنا مريض اليوم."
+      }
+    },
+    {
       "canonical_key": "de-ar.a1.healthcare_pharmacy.tablette.ar_to_de",
       "cefr_level": "A1",
       "source_text": "حبّة دواء",
