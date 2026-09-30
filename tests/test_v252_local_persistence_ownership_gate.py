@@ -7,6 +7,8 @@ ALLOWED = {
     'services/learner_persistence.dart',
     'services/preferences_service.dart',
     'services/privacy_settings.dart',
+    'services/neuro_accessibility_service.dart',
+    'services/neuro_accessibility_settings.dart',
     'main.dart',
 }
 PERSISTENCE_MARKERS = (
