@@ -6,6 +6,7 @@ import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
 import '../services/app_dependencies.dart';
 import '../services/daily_plan.dart';
+import 'theme/neuro_accessibility_mode.dart';
 import 'pages/core_pages.dart';
 import 'learning_pages.dart';
 import 'account_pages.dart';
@@ -28,13 +29,30 @@ class DeutschAppV35 extends StatefulWidget {
 }
 class _AppState extends State<DeutschAppV35> {
   bool dark = false;
-  @override Widget build(BuildContext c) => MaterialApp(
-    debugShowCheckedModeBanner: false, title: 'Deutsch بالعربي',
-    themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-    theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
-    darkTheme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
-    builder: rtlAppBuilder,
-    home: HomeV35(repo: widget.repo, auth: widget.auth, dependencies: widget.dependencies, onTheme: () => setState(() => dark = !dark)),
+  @override Widget build(BuildContext c) => ListenableBuilder(
+    listenable: widget.dependencies.neuroSettings,
+    builder: (context, child) {
+      final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
+      ThemeData lightTheme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo);
+      ThemeData darkTheme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark);
+
+      if (isNeuroMode) {
+        lightTheme = lightTheme.applyNeuroAccessibility();
+        darkTheme = darkTheme.applyNeuroAccessibility();
+      }
+
+      return NeuroAccessibilityMode(
+        isEnabled: isNeuroMode,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false, title: 'Deutsch بالعربي',
+          themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          builder: rtlAppBuilder,
+          home: HomeV35(repo: widget.repo, auth: widget.auth, dependencies: widget.dependencies, onTheme: () => setState(() => dark = !dark)),
+        ),
+      );
+    },
   );
 }
 
@@ -74,7 +92,7 @@ class _HomeState extends State<HomeV35> {
           IconButton(tooltip: 'تغيير المظهر', onPressed: widget.onTheme, icon: const Icon(Icons.dark_mode_outlined)),
           IconButton(tooltip: 'الحساب', onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => AccountPage(auth: widget.auth))), icon: const Icon(Icons.account_circle_outlined)),
           IconButton(tooltip: 'الاشتراك والباقات', onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SubscriptionPage(repo: widget.repo))), icon: const Icon(Icons.workspace_premium_outlined)),
-          IconButton(tooltip: 'الإعدادات', onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SettingsV35(repo: widget.repo, privacySettings: widget.dependencies.privacySettings, onCleared: refresh))), icon: const Icon(Icons.settings_outlined)),
+    IconButton(tooltip: 'الإعدادات', onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SettingsV35(repo: widget.repo, privacySettings: widget.dependencies.privacySettings, neuroSettings: widget.dependencies.neuroSettings, onCleared: refresh))), icon: const Icon(Icons.settings_outlined)),
         ],
       ),
       body: Semantics(label: 'محتوى الصفحة الرئيسية', child: _tabForIndex(c, tab)),

@@ -4,6 +4,7 @@ import '../services/release.dart';
 import '../services/repository.dart';
 import '../services/subscription.dart';
 import '../services/privacy_settings.dart';
+import '../services/neuro_accessibility_settings.dart';
 import 'pages/core_pages.dart';
 
 class PremiumButton extends StatelessWidget {
@@ -67,8 +68,9 @@ class _PlanCard extends StatelessWidget {
 class SettingsV35 extends StatelessWidget {
   final LearnerRepository repo;
   final PrivacySettingsStore privacySettings;
+  final NeuroAccessibilitySettings? neuroSettings;
   final VoidCallback? onCleared;
-  const SettingsV35({super.key, required this.repo, required this.privacySettings, this.onCleared});
+  const SettingsV35({super.key, required this.repo, required this.privacySettings, this.neuroSettings, this.onCleared});
   Future<void> _reset(BuildContext context) async {
     final ok = await showDialog<bool>(context: context, builder: (d)=>AlertDialog(
       title: const Text('مسح التقدم؟'),
@@ -88,6 +90,19 @@ class SettingsV35 extends StatelessWidget {
   @override Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(title: const Text('الإعدادات والخصوصية')),
     body: ListView(padding: const EdgeInsets.all(18), children: [
+      if (neuroSettings != null)
+        Card(
+          child: ListenableBuilder(
+            listenable: neuroSettings!,
+            builder: (context, _) => SwitchListTile(
+              title: const Text('وضعية التيسير المعرفي'),
+              subtitle: const Text('تحسين تباعد الأحرف وتبسيط الواجهة لتقليل الإجهاد البصري.'),
+              value: neuroSettings!.isEnabled,
+              onChanged: (val) => neuroSettings!.setEnabled(val),
+              secondary: const Icon(Icons.accessibility_new_outlined),
+            ),
+          ),
+        ),
       const Card(child: ListTile(leading: Icon(Icons.lock_outline), title: Text('الخصوصية'), subtitle: Text('التقدم والمحاولات محفوظة محليًا. لا توجد مزامنة سحابية ولا اتصال شبكي للتطبيق.'))),
       const Card(child: ListTile(leading: Icon(Icons.offline_bolt_outlined), title: Text('Offline'), subtitle: Text('المحتوى والجلسات والتقدم وTTS تعمل محليًا.'))),
       Card(child: ListTile(leading: const Icon(Icons.auto_awesome), title: const Text('AI Teacher'), subtitle: Text(AiTeacherContract.rules.join('\\n')))),

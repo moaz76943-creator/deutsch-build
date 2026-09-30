@@ -162,3 +162,4 @@ No production content, IDs, learning semantics, persistence schema, authenticati
 - **V349:** German content namespace migration with corpus/ID identity tests.
 - **V350:** assessment/production/repair/conversation language strategies.
 - **V351+:** presentation split and retirement of compatibility coupling only after regression.
+lib/core/language/app_text_direction.dart
