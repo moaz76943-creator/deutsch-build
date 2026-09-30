@@ -240,6 +240,20 @@
                 "minLength": 1
               }
             }
+          },
+          "sourceLanguageDirection": {
+            "type": "string",
+            "enum": [
+              "ltr",
+              "rtl"
+            ]
+          },
+          "targetLanguageDirection": {
+            "type": "string",
+            "enum": [
+              "ltr",
+              "rtl"
+            ]
           }
         }
       }
