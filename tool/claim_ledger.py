@@ -393,6 +393,56 @@ def renew(
             "generation": normalized["generation"] + 1, "claims": claims}
 
 
+
+def persist_expiry_observation(
+    ledger: Any,
+    *,
+    claim_id: str,
+    expected_epoch: int,
+    now: datetime,
+    expected_generation: int,
+) -> dict[str, Any]:
+    """Durably fence an observed expiry; caller MUST CAS the returned ledger.
+
+    Expiry derived only from a reader's wall clock is reversible if a later
+    reader's clock regresses. Once an authoritative reader observes expiry,
+    this transition persists RECONCILIATION_REQUIRED in the ledger itself.
+    The transport must write it with the previously-read GitHub blob SHA.
+    """
+    normalized = validate_ledger(ledger, now=now)
+    if type(expected_generation) is not int or expected_generation < 0:
+        raise LedgerError("invalid expected_generation")
+    if normalized["generation"] != expected_generation:
+        raise LedgerError("stale ledger generation")
+    cid = _id(claim_id, "claim_id")
+    if type(expected_epoch) is not int or expected_epoch < 1:
+        raise LedgerError("invalid expected_epoch")
+
+    found = None
+    claims = []
+    for c in normalized["claims"]:
+        plain = {k: v for k, v in c.items() if k != "effective_state"}
+        if c["claim_id"] == cid:
+            found = c
+            if c["epoch"] != expected_epoch:
+                raise ClaimConflict("stale fencing epoch")
+            if c["state"] == "RELEASED":
+                raise ClaimConflict("released claim cannot observe expiry")
+            if c["state"] == "RECONCILIATION_REQUIRED":
+                raise ClaimConflict("expiry observation already persisted")
+            if c["effective_state"] != "RECONCILIATION_REQUIRED":
+                raise ClaimConflict("claim has not expired")
+            plain["state"] = "RECONCILIATION_REQUIRED"
+            plain["expiry_observed_at"] = _stamp(now)
+        claims.append(plain)
+
+    if found is None:
+        raise LedgerError("claim not found")
+    result = {k: v for k, v in normalized.items() if k != "claims"}
+    result["generation"] += 1
+    result["claims"] = claims
+    return result
+
 def reconcile_expired(
     ledger: Any,
     *,

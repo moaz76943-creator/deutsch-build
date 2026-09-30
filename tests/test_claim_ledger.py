@@ -13,6 +13,7 @@ from tool.claim_ledger import (
     dispatch_allowed,
     empty_ledger,
     fenced_dispatch_allowed,
+    persist_expiry_observation,
     renew,
     reconcile_expired,
     refresh_main,
@@ -764,3 +765,71 @@ def test_c2_valid_integer_generations_and_receipts_still_work():
              expected_generation=1, evidence=receipt,
              verify_quiescence=lambda current, evidence: True)
     assert type(closed["generation"]) is int and closed["claims"][0]["state"] == "RELEASED"
+
+
+def test_p1_expiry_observation_is_durable_across_clock_rollback():
+    ledger = acquire_one()
+    claim = ledger["claims"][0]
+    after_expiry = NOW + timedelta(minutes=91)
+
+    observed = persist_expiry_observation(
+        ledger,
+        claim_id=claim["claim_id"],
+        expected_epoch=claim["epoch"],
+        now=after_expiry,
+        expected_generation=ledger["generation"],
+    )
+    assert observed["generation"] == 2
+    assert observed["claims"][0]["state"] == "RECONCILIATION_REQUIRED"
+    assert observed["claims"][0]["expiry_observed_at"] == after_expiry.isoformat().replace("+00:00", "Z")
+
+    rolled_back = NOW + timedelta(minutes=60)
+    replay = validate_ledger(observed, now=rolled_back)
+    assert replay["claims"][0]["effective_state"] == "RECONCILIATION_REQUIRED"
+    assert dispatch_allowed(
+        "CLAIM_GRANTED",
+        claim=observed["claims"][0],
+        branch_head=HEAD,
+        now=rolled_back,
+    ) is False
+    assert fenced_dispatch_allowed(
+        "CLAIM_GRANTED",
+        ledger=observed,
+        claim_id=claim["claim_id"],
+        owner_role=claim["owner_role"],
+        epoch=claim["epoch"],
+        expected_generation=observed["generation"],
+        observed_main_sha=MAIN,
+        branch_head=HEAD,
+        now=rolled_back,
+    ) is False
+
+
+def test_p1_expiry_observation_rejects_preexpiry_stale_epoch_and_stale_generation():
+    ledger = acquire_one()
+    claim = ledger["claims"][0]
+
+    with pytest.raises(ClaimConflict, match="not expired"):
+        persist_expiry_observation(
+            ledger,
+            claim_id=claim["claim_id"],
+            expected_epoch=claim["epoch"],
+            now=NOW + timedelta(minutes=89),
+            expected_generation=ledger["generation"],
+        )
+    with pytest.raises(ClaimConflict, match="stale fencing epoch"):
+        persist_expiry_observation(
+            ledger,
+            claim_id=claim["claim_id"],
+            expected_epoch=claim["epoch"] + 1,
+            now=NOW + timedelta(minutes=91),
+            expected_generation=ledger["generation"],
+        )
+    with pytest.raises(LedgerError, match="stale ledger generation"):
+        persist_expiry_observation(
+            ledger,
+            claim_id=claim["claim_id"],
+            expected_epoch=claim["epoch"],
+            now=NOW + timedelta(minutes=91),
+            expected_generation=ledger["generation"] + 1,
+        )
