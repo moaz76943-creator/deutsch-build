@@ -67,6 +67,12 @@ CONCEPTS = [
     ("daily_essentials", "brauchen", "verb", "يحتاج", "brauchen", None, "yah-taj", "brau-khen", "أحتاج إلى مساعدة.", "Ich brauche Hilfe."),
     ("daily_essentials", "offen", "adjective", "مفتوح", "offen", None, "maf-tuh", "o-fen", "المتجر مفتوح.", "Der Laden ist offen."),
     ("daily_essentials", "wie-viel-kostet-das", "phrase", "كم سعر هذا؟", "Wie viel kostet das?", None, "kam si-r hatha", "vi fil kos-tet das", "كم سعر هذا؟", "Wie viel kostet das?"),
+    ("daily_essentials", "zug", "noun", "القطار", "der Zug", "die Züge", "al-qitar", "tsug", "القطار في المحطة.", "Der Zug ist am Bahnhof."),
+    ("daily_essentials", "ticket", "noun", "التذكرة", "das Ticket", "die Tickets", "at-tathkira", "ti-ket", "أحتاج إلى تذكرة.", "Ich brauche ein Ticket."),
+    ("daily_essentials", "fahren", "verb", "يذهب بوسيلة نقل", "fahren", None, "yath-hab bi-wasilat naql", "fa-ren", "أذهب إلى العمل بالحافلة.", "Ich fahre mit dem Bus zur Arbeit."),
+    ("daily_essentials", "geschlossen", "adjective", "مغلق", "geschlossen", None, "mughlaq", "ge-shlos-sen", "البنك مغلق اليوم.", "Die Bank ist heute geschlossen."),
+    ("bureaucracy_registration", "telefonnummer", "noun", "رقم الهاتف", "die Telefonnummer", "die Telefonnummern", "raqam al-hatif", "te-le-fon-num-mer", "هذا رقم هاتفي.", "Das ist meine Telefonnummer."),
+    ("workplace_healthcare", "krank", "adjective", "مريض", "krank", None, "marid", "krank", "أنا مريض اليوم.", "Ich bin heute krank."),
 ]
 
 
