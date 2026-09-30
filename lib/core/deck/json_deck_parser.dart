@@ -62,19 +62,6 @@ final class JsonDeckParser implements DeckParserContract {
     'bureaucracy_registration',
     'daily_essentials',
   };
-  static const Set<String> _rtlLanguages = <String>{
-    'ar',
-    'ckb',
-    'dv',
-    'fa',
-    'he',
-    'ps',
-    'sd',
-    'ug',
-    'ur',
-    'yi',
-  };
-
   static final RegExp _canonicalKeyPattern =
       RegExp(r'^[A-Za-z0-9][A-Za-z0-9._:-]*$');
   static final RegExp _languagePattern =
@@ -273,7 +260,7 @@ final class JsonDeckParser implements DeckParserContract {
         '$itemPath.bidirectional_flag',
         errors,
       );
-      final rtlFlag = _requiredBool(
+      _requiredBool(
         entry,
         'rtl_flag',
         '$itemPath.rtl_flag',
@@ -297,19 +284,6 @@ final class JsonDeckParser implements DeckParserContract {
               expectedTarget,
               errors,
             );
-
-      if (pairData != null && rtlFlag != null) {
-        final expectedRtl =
-            _directionForLanguage(pairData.sourceLanguage) == 'rtl' ||
-            _directionForLanguage(pairData.targetLanguage) == 'rtl';
-        if (rtlFlag != expectedRtl) {
-          errors.add(DeckValidationError(
-            code: DeckValidationErrorCode.invalidValue,
-            path: '$itemPath.rtl_flag',
-            message: 'rtl_flag does not match directed pair languages',
-          ));
-        }
-      }
 
       final phonetics = _requiredMap(
         entry,
@@ -555,27 +529,6 @@ final class JsonDeckParser implements DeckParserContract {
         ));
       }
 
-      final expectedSourceDirection = _directionForLanguage(source);
-      final expectedTargetDirection = _directionForLanguage(target);
-
-      if (sourceDirection != null &&
-          sourceDirection != expectedSourceDirection) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$path.source_direction',
-          message:
-              'expected $expectedSourceDirection for language $source',
-        ));
-      }
-      if (targetDirection != null &&
-          targetDirection != expectedTargetDirection) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$path.target_direction',
-          message:
-              'expected $expectedTargetDirection for language $target',
-        ));
-      }
     }
 
     if (sourceDirection != null &&
@@ -618,11 +571,6 @@ final class JsonDeckParser implements DeckParserContract {
       return null;
     }
     return normalized;
-  }
-
-  String _directionForLanguage(String language) {
-    final primary = language.split('-').first;
-    return _rtlLanguages.contains(primary) ? 'rtl' : 'ltr';
   }
 
   void _rejectUnexpectedKeys(
