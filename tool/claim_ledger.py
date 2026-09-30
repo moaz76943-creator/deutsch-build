@@ -73,6 +73,20 @@ def _sha(value: Any, label: str) -> str:
     return value
 
 
+def require_blob_cas_match(*, expected_blob_sha: str, observed_blob_sha: str) -> str:
+    """Fail closed when a durable-ledger CAS snapshot is stale.
+
+    This is a transport-boundary preflight. The authoritative GitHub Contents
+    API write must still include the previously-read blob SHA; an API conflict
+    (for example HTTP 409) is a failed CAS and must never be retried as success.
+    """
+    expected = _sha(expected_blob_sha, "expected_blob_sha")
+    observed = _sha(observed_blob_sha, "observed_blob_sha")
+    if expected != observed:
+        raise ClaimConflict("stale ledger blob SHA; concurrent writer won CAS")
+    return observed
+
+
 def _paths(value: Any) -> list[str]:
     if not isinstance(value, list) or not value:
         raise LedgerError("paths must be a non-empty list")

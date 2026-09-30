@@ -14,6 +14,7 @@ from tool.claim_ledger import (
     empty_ledger,
     fenced_dispatch_allowed,
     persist_expiry_observation,
+    require_blob_cas_match,
     renew,
     reconcile_expired,
     refresh_main,
@@ -832,4 +833,21 @@ def test_p1_expiry_observation_rejects_preexpiry_stale_epoch_and_stale_generatio
             expected_epoch=claim["epoch"],
             now=NOW + timedelta(minutes=91),
             expected_generation=ledger["generation"] + 1,
+        )
+
+
+def test_blob_sha_cas_rejects_second_concurrent_writer():
+    """Writer 2 must fail closed after writer 1 advances the durable blob."""
+    original_blob = "d" * 40
+    writer_1_new_blob = "e" * 40
+
+    assert require_blob_cas_match(
+        expected_blob_sha=original_blob,
+        observed_blob_sha=original_blob,
+    ) == original_blob
+
+    with pytest.raises(ClaimConflict, match="stale ledger blob SHA"):
+        require_blob_cas_match(
+            expected_blob_sha=original_blob,
+            observed_blob_sha=writer_1_new_blob,
         )
