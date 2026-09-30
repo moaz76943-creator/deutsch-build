@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/learning_core.dart';
+import 'pages/grammar_hub_page.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
 import '../services/repository.dart';
@@ -157,6 +158,7 @@ class _HomeState extends State<HomeV35> {
     _featureCard(c, 'القراءة التفاعلية', 'نصوص وأسئلة مرتبطة بالمفردات', Icons.menu_book_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => ReadingPracticePage(repo: widget.repo, corpus: widget.dependencies.corpus, searchIndex: widget.dependencies.searchIndex, verbIndex: widget.dependencies.verbIndex, contentQuality: widget.dependencies.languagePack.contentQuality)))),
     _featureCard(c, 'البحث والقاموس', 'ابحث بالألمانية أو العربية', Icons.search, () => Navigator.push(c, MaterialPageRoute(builder: (_) => SearchDictionaryPage(repo: widget.repo, searchIndex: widget.dependencies.searchIndex, verbIndex: widget.dependencies.verbIndex, presentation: widget.dependencies.languagePack.presentation, textNormalizer: widget.dependencies.languagePack.textNormalizer)))),
     _featureCard(c, 'ألمانيا الحقيقية', 'مواقف عملية خارج الكتاب', Icons.location_city_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => GermanyRealityPage(repo: widget.repo, onDone: refresh, presentation: widget.dependencies.languagePack.presentation)))),
+    _featureCard(c, 'مركز القواعد', 'القواعد النحوية من A1 إلى C2', Icons.rule_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => GrammarHubPage()))),
   ]);
 
   Widget _practiceTab(BuildContext c) => ListView(padding: const EdgeInsets.fromLTRB(18, 12, 18, 30), children: [
