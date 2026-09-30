@@ -1,0 +1,3079 @@
+{
+  "schema_version": "1.0.0",
+  "entries": [
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.krankenhaus.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "المستشفى",
+      "target_text": "das Krankenhaus",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.krankenhaus",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.krankenhaus"
+      },
+      "phonetics": {
+        "source": "al-mustashfa",
+        "target": "kranken-haus"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.krankenhaus",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أين المستشفى؟",
+        "target": "Wo ist das Krankenhaus?"
+      },
+      "plural_form": "die Krankenhäuser"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.krankenhaus.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Krankenhaus",
+      "target_text": "المستشفى",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.krankenhaus",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.krankenhaus"
+      },
+      "phonetics": {
+        "source": "kranken-haus",
+        "target": "al-mustashfa"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.krankenhaus",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Wo ist das Krankenhaus?",
+        "target": "أين المستشفى؟"
+      },
+      "plural_form": "die Krankenhäuser"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.arzt.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الطبيب",
+      "target_text": "der Arzt",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.arzt",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.arzt"
+      },
+      "phonetics": {
+        "source": "at-tabib",
+        "target": "arts"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.arzt",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أحتاج إلى طبيب.",
+        "target": "Ich brauche einen Arzt."
+      },
+      "plural_form": "die Ärzte"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.arzt.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Arzt",
+      "target_text": "الطبيب",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.arzt",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.arzt"
+      },
+      "phonetics": {
+        "source": "arts",
+        "target": "at-tabib"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.arzt",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich brauche einen Arzt.",
+        "target": "أحتاج إلى طبيب."
+      },
+      "plural_form": "die Ärzte"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.aerztin.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الطبيبة",
+      "target_text": "die Ärztin",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.aerztin",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.aerztin"
+      },
+      "phonetics": {
+        "source": "at-tabiba",
+        "target": "aerts-tin"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.aerztin",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "الطبيبة هنا.",
+        "target": "Die Ärztin ist hier."
+      },
+      "plural_form": "die Ärztinnen"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.aerztin.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Ärztin",
+      "target_text": "الطبيبة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.aerztin",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.aerztin"
+      },
+      "phonetics": {
+        "source": "aerts-tin",
+        "target": "at-tabiba"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.aerztin",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Ärztin ist hier.",
+        "target": "الطبيبة هنا."
+      },
+      "plural_form": "die Ärztinnen"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.pflegekraft.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الممرّض/الممرّضة",
+      "target_text": "die Pflegekraft",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.pflegekraft",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.pflegekraft"
+      },
+      "phonetics": {
+        "source": "al-mumarrid",
+        "target": "pfle-ge-kraft"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.pflegekraft",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "الممرّض يساعدني.",
+        "target": "Die Pflegekraft hilft mir."
+      },
+      "plural_form": "die Pflegekräfte"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.pflegekraft.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Pflegekraft",
+      "target_text": "الممرّض/الممرّضة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.pflegekraft",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.pflegekraft"
+      },
+      "phonetics": {
+        "source": "pfle-ge-kraft",
+        "target": "al-mumarrid"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.pflegekraft",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Pflegekraft hilft mir.",
+        "target": "الممرّض يساعدني."
+      },
+      "plural_form": "die Pflegekräfte"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.patient.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "المريض",
+      "target_text": "der Patient",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.patient",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.patient"
+      },
+      "phonetics": {
+        "source": "al-marid",
+        "target": "pa-tsi-ent"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.patient",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "المريض ينتظر.",
+        "target": "Der Patient wartet."
+      },
+      "plural_form": "die Patienten"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.patient.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Patient",
+      "target_text": "المريض",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.patient",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.patient"
+      },
+      "phonetics": {
+        "source": "pa-tsi-ent",
+        "target": "al-marid"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.patient",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Der Patient wartet.",
+        "target": "المريض ينتظر."
+      },
+      "plural_form": "die Patienten"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.termin.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الموعد",
+      "target_text": "der Termin",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.termin",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.termin"
+      },
+      "phonetics": {
+        "source": "al-mawid",
+        "target": "ter-min"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.termin",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "لدي موعد اليوم.",
+        "target": "Ich habe heute einen Termin."
+      },
+      "plural_form": "die Termine"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.termin.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Termin",
+      "target_text": "الموعد",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.termin",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.termin"
+      },
+      "phonetics": {
+        "source": "ter-min",
+        "target": "al-mawid"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.termin",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich habe heute einen Termin.",
+        "target": "لدي موعد اليوم."
+      },
+      "plural_form": "die Termine"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.arbeitsplatz.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "مكان العمل",
+      "target_text": "der Arbeitsplatz",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.arbeitsplatz",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.arbeitsplatz"
+      },
+      "phonetics": {
+        "source": "makan al-amal",
+        "target": "ar-baits-plats"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.arbeitsplatz",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "مكان عملي في المستشفى.",
+        "target": "Mein Arbeitsplatz ist im Krankenhaus."
+      },
+      "plural_form": "die Arbeitsplätze"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.arbeitsplatz.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Arbeitsplatz",
+      "target_text": "مكان العمل",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.arbeitsplatz",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.arbeitsplatz"
+      },
+      "phonetics": {
+        "source": "ar-baits-plats",
+        "target": "makan al-amal"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.arbeitsplatz",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Mein Arbeitsplatz ist im Krankenhaus.",
+        "target": "مكان عملي في المستشفى."
+      },
+      "plural_form": "die Arbeitsplätze"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.kollege.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الزميل",
+      "target_text": "der Kollege",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.kollege",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.kollege"
+      },
+      "phonetics": {
+        "source": "az-zamil",
+        "target": "ko-le-ge"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.kollege",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "زميلي يعمل اليوم.",
+        "target": "Mein Kollege arbeitet heute."
+      },
+      "plural_form": "die Kollegen"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.kollege.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Kollege",
+      "target_text": "الزميل",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.kollege",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.kollege"
+      },
+      "phonetics": {
+        "source": "ko-le-ge",
+        "target": "az-zamil"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.kollege",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Mein Kollege arbeitet heute.",
+        "target": "زميلي يعمل اليوم."
+      },
+      "plural_form": "die Kollegen"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.kollegin.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الزميلة",
+      "target_text": "die Kollegin",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.kollegin",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.kollegin"
+      },
+      "phonetics": {
+        "source": "az-zamila",
+        "target": "ko-le-gin"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.kollegin",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "زميلتي تساعدني.",
+        "target": "Meine Kollegin hilft mir."
+      },
+      "plural_form": "die Kolleginnen"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.kollegin.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Kollegin",
+      "target_text": "الزميلة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.kollegin",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.kollegin"
+      },
+      "phonetics": {
+        "source": "ko-le-gin",
+        "target": "az-zamila"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.kollegin",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Meine Kollegin hilft mir.",
+        "target": "زميلتي تساعدني."
+      },
+      "plural_form": "die Kolleginnen"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.medikament.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الدواء",
+      "target_text": "das Medikament",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.medikament",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.medikament"
+      },
+      "phonetics": {
+        "source": "ad-dawa",
+        "target": "me-di-ka-ment"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.medikament",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "آخذ الدواء صباحاً.",
+        "target": "Ich nehme das Medikament morgens."
+      },
+      "plural_form": "die Medikamente"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.medikament.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Medikament",
+      "target_text": "الدواء",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.medikament",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.medikament"
+      },
+      "phonetics": {
+        "source": "me-di-ka-ment",
+        "target": "ad-dawa"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.medikament",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich nehme das Medikament morgens.",
+        "target": "آخذ الدواء صباحاً."
+      },
+      "plural_form": "die Medikamente"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.rezept.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الوصفة الطبية",
+      "target_text": "das Rezept",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.rezept",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.rezept"
+      },
+      "phonetics": {
+        "source": "al-wasfa at-tibbiya",
+        "target": "re-tsept"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.rezept",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "لدي وصفة طبية.",
+        "target": "Ich habe ein Rezept."
+      },
+      "plural_form": "die Rezepte"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.rezept.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Rezept",
+      "target_text": "الوصفة الطبية",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.rezept",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.rezept"
+      },
+      "phonetics": {
+        "source": "re-tsept",
+        "target": "al-wasfa at-tibbiya"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.rezept",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich habe ein Rezept.",
+        "target": "لدي وصفة طبية."
+      },
+      "plural_form": "die Rezepte"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.apotheke.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الصيدلية",
+      "target_text": "die Apotheke",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.apotheke",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.apotheke"
+      },
+      "phonetics": {
+        "source": "as-saydaliyya",
+        "target": "a-po-te-ke"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.apotheke",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "الصيدلية مفتوحة.",
+        "target": "Die Apotheke ist offen."
+      },
+      "plural_form": "die Apotheken"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.apotheke.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Apotheke",
+      "target_text": "الصيدلية",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.apotheke",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.apotheke"
+      },
+      "phonetics": {
+        "source": "a-po-te-ke",
+        "target": "as-saydaliyya"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.apotheke",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Apotheke ist offen.",
+        "target": "الصيدلية مفتوحة."
+      },
+      "plural_form": "die Apotheken"
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.arbeiten.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يعمل",
+      "target_text": "arbeiten",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.arbeiten",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.arbeiten"
+      },
+      "phonetics": {
+        "source": "ya-mal",
+        "target": "ar-bai-ten"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.arbeiten",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أنا أعمل في مستشفى.",
+        "target": "Ich arbeite in einem Krankenhaus."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.arbeiten.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "arbeiten",
+      "target_text": "يعمل",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.arbeiten",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.arbeiten"
+      },
+      "phonetics": {
+        "source": "ar-bai-ten",
+        "target": "ya-mal"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.arbeiten",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich arbeite in einem Krankenhaus.",
+        "target": "أنا أعمل في مستشفى."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.helfen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يساعد",
+      "target_text": "helfen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.workplace_healthcare.helfen",
+        "reverse_record_id": "de->ar:de-ar.a1.workplace_healthcare.helfen"
+      },
+      "phonetics": {
+        "source": "yu-sa-id",
+        "target": "hel-fen"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.helfen",
+      "domain": "workplace_healthcare",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هل يمكنك مساعدتي؟",
+        "target": "Kannst du mir helfen?"
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.workplace_healthcare.helfen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "helfen",
+      "target_text": "يساعد",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.workplace_healthcare.helfen",
+        "reverse_record_id": "ar->de:de-ar.a1.workplace_healthcare.helfen"
+      },
+      "phonetics": {
+        "source": "hel-fen",
+        "target": "yu-sa-id"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.workplace_healthcare.helfen",
+      "domain": "workplace_healthcare",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Kannst du mir helfen?",
+        "target": "هل يمكنك مساعدتي؟"
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.notfall.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "حالة طارئة",
+      "target_text": "der Notfall",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.notfall",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.notfall"
+      },
+      "phonetics": {
+        "source": "hala tari-a",
+        "target": "not-fal"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.notfall",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هذه حالة طارئة.",
+        "target": "Das ist ein Notfall."
+      },
+      "plural_form": "die Notfälle"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.notfall.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Notfall",
+      "target_text": "حالة طارئة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.notfall",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.notfall"
+      },
+      "phonetics": {
+        "source": "not-fal",
+        "target": "hala tari-a"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.notfall",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Das ist ein Notfall.",
+        "target": "هذه حالة طارئة."
+      },
+      "plural_form": "die Notfälle"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.krankenwagen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "سيارة الإسعاف",
+      "target_text": "der Krankenwagen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.krankenwagen",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.krankenwagen"
+      },
+      "phonetics": {
+        "source": "sayyarat al-isaf",
+        "target": "kranken-va-gen"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.krankenwagen",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أحتاج إلى سيارة إسعاف.",
+        "target": "Ich brauche einen Krankenwagen."
+      },
+      "plural_form": "die Krankenwagen"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.krankenwagen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Krankenwagen",
+      "target_text": "سيارة الإسعاف",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.krankenwagen",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.krankenwagen"
+      },
+      "phonetics": {
+        "source": "kranken-va-gen",
+        "target": "sayyarat al-isaf"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.krankenwagen",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich brauche einen Krankenwagen.",
+        "target": "أحتاج إلى سيارة إسعاف."
+      },
+      "plural_form": "die Krankenwagen"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.feuerwehr.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الإطفاء",
+      "target_text": "die Feuerwehr",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.feuerwehr",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.feuerwehr"
+      },
+      "phonetics": {
+        "source": "al-itfa",
+        "target": "foi-er-ver"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.feuerwehr",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "اتصل بالمطافئ!",
+        "target": "Rufen Sie die Feuerwehr!"
+      },
+      "plural_form": "die Feuerwehren"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.feuerwehr.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Feuerwehr",
+      "target_text": "الإطفاء",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.feuerwehr",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.feuerwehr"
+      },
+      "phonetics": {
+        "source": "foi-er-ver",
+        "target": "al-itfa"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.feuerwehr",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Rufen Sie die Feuerwehr!",
+        "target": "اتصل بالمطافئ!"
+      },
+      "plural_form": "die Feuerwehren"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.schmerz.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الألم",
+      "target_text": "der Schmerz",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.schmerz",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.schmerz"
+      },
+      "phonetics": {
+        "source": "al-alam",
+        "target": "shmerts"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.schmerz",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "لدي ألم هنا.",
+        "target": "Ich habe hier Schmerzen."
+      },
+      "plural_form": "die Schmerzen"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.schmerz.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Schmerz",
+      "target_text": "الألم",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.schmerz",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.schmerz"
+      },
+      "phonetics": {
+        "source": "shmerts",
+        "target": "al-alam"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.schmerz",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich habe hier Schmerzen.",
+        "target": "لدي ألم هنا."
+      },
+      "plural_form": "die Schmerzen"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.wunde.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الجرح",
+      "target_text": "die Wunde",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.wunde",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.wunde"
+      },
+      "phonetics": {
+        "source": "al-jurh",
+        "target": "vun-de"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.wunde",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "الجرح يؤلمني.",
+        "target": "Die Wunde tut weh."
+      },
+      "plural_form": "die Wunden"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.wunde.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Wunde",
+      "target_text": "الجرح",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.wunde",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.wunde"
+      },
+      "phonetics": {
+        "source": "vun-de",
+        "target": "al-jurh"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.wunde",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Wunde tut weh.",
+        "target": "الجرح يؤلمني."
+      },
+      "plural_form": "die Wunden"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.unfall.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الحادث",
+      "target_text": "der Unfall",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.unfall",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.unfall"
+      },
+      "phonetics": {
+        "source": "al-hadith",
+        "target": "un-fal"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.unfall",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هذا حادث.",
+        "target": "Das ist ein Unfall."
+      },
+      "plural_form": "die Unfälle"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.unfall.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Unfall",
+      "target_text": "الحادث",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.unfall",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.unfall"
+      },
+      "phonetics": {
+        "source": "un-fal",
+        "target": "al-hadith"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.unfall",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Das ist ein Unfall.",
+        "target": "هذا حادث."
+      },
+      "plural_form": "die Unfälle"
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.hilfe.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "النجدة!",
+      "target_text": "Hilfe!",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.hilfe",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.hilfe"
+      },
+      "phonetics": {
+        "source": "an-najda",
+        "target": "hil-fe"
+      },
+      "part_of_speech": "phrase",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.hilfe",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "النجدة!",
+        "target": "Hilfe!"
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.hilfe.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "Hilfe!",
+      "target_text": "النجدة!",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.hilfe",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.hilfe"
+      },
+      "phonetics": {
+        "source": "hil-fe",
+        "target": "an-najda"
+      },
+      "part_of_speech": "phrase",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.hilfe",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Hilfe!",
+        "target": "النجدة!"
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.anrufen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يتصل",
+      "target_text": "anrufen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.anrufen",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.anrufen"
+      },
+      "phonetics": {
+        "source": "yat-ta-sil",
+        "target": "an-ru-fen"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.anrufen",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أتصل بالرقم 112.",
+        "target": "Ich rufe 112 an."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.anrufen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "anrufen",
+      "target_text": "يتصل",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.anrufen",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.anrufen"
+      },
+      "phonetics": {
+        "source": "an-ru-fen",
+        "target": "yat-ta-sil"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.anrufen",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich rufe 112 an.",
+        "target": "أتصل بالرقم 112."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.warten.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "ينتظر",
+      "target_text": "warten",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.warten",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.warten"
+      },
+      "phonetics": {
+        "source": "yan-ta-zir",
+        "target": "var-ten"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.warten",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "انتظر هنا من فضلك.",
+        "target": "Bitte warten Sie hier."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.warten.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "warten",
+      "target_text": "ينتظر",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.warten",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.warten"
+      },
+      "phonetics": {
+        "source": "var-ten",
+        "target": "yan-ta-zir"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.warten",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Bitte warten Sie hier.",
+        "target": "انتظر هنا من فضلك."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.gefaehrlich.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "خطير",
+      "target_text": "gefährlich",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.emergency.gefaehrlich",
+        "reverse_record_id": "de->ar:de-ar.a1.emergency.gefaehrlich"
+      },
+      "phonetics": {
+        "source": "kha-tir",
+        "target": "ge-faehr-likh"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.gefaehrlich",
+      "domain": "emergency",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هذا خطير.",
+        "target": "Das ist gefährlich."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.emergency.gefaehrlich.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "gefährlich",
+      "target_text": "خطير",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.emergency.gefaehrlich",
+        "reverse_record_id": "ar->de:de-ar.a1.emergency.gefaehrlich"
+      },
+      "phonetics": {
+        "source": "ge-faehr-likh",
+        "target": "kha-tir"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.emergency.gefaehrlich",
+      "domain": "emergency",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Das ist gefährlich.",
+        "target": "هذا خطير."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.anmeldung.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "التسجيل",
+      "target_text": "die Anmeldung",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.anmeldung",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.anmeldung"
+      },
+      "phonetics": {
+        "source": "at-tasjil",
+        "target": "an-mel-dung"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.anmeldung",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "التسجيل اليوم.",
+        "target": "Die Anmeldung ist heute."
+      },
+      "plural_form": "die Anmeldungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.anmeldung.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Anmeldung",
+      "target_text": "التسجيل",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.anmeldung",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.anmeldung"
+      },
+      "phonetics": {
+        "source": "an-mel-dung",
+        "target": "at-tasjil"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.anmeldung",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Anmeldung ist heute.",
+        "target": "التسجيل اليوم."
+      },
+      "plural_form": "die Anmeldungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.ausweis.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "بطاقة الهوية",
+      "target_text": "der Ausweis",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.ausweis",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.ausweis"
+      },
+      "phonetics": {
+        "source": "bitaqat al-huwiyya",
+        "target": "aus-vais"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.ausweis",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هذه بطاقة هويتي.",
+        "target": "Das ist mein Ausweis."
+      },
+      "plural_form": "die Ausweise"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.ausweis.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Ausweis",
+      "target_text": "بطاقة الهوية",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.ausweis",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.ausweis"
+      },
+      "phonetics": {
+        "source": "aus-vais",
+        "target": "bitaqat al-huwiyya"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.ausweis",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Das ist mein Ausweis.",
+        "target": "هذه بطاقة هويتي."
+      },
+      "plural_form": "die Ausweise"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.pass.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "جواز السفر",
+      "target_text": "der Pass",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.pass",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.pass"
+      },
+      "phonetics": {
+        "source": "jawaz as-safar",
+        "target": "pas"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.pass",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "جواز سفري هنا.",
+        "target": "Mein Pass ist hier."
+      },
+      "plural_form": "die Pässe"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.pass.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Pass",
+      "target_text": "جواز السفر",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.pass",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.pass"
+      },
+      "phonetics": {
+        "source": "pas",
+        "target": "jawaz as-safar"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.pass",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Mein Pass ist hier.",
+        "target": "جواز سفري هنا."
+      },
+      "plural_form": "die Pässe"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.adresse.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "العنوان",
+      "target_text": "die Adresse",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.adresse",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.adresse"
+      },
+      "phonetics": {
+        "source": "al-unwan",
+        "target": "a-dres-se"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.adresse",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هذا عنواني.",
+        "target": "Das ist meine Adresse."
+      },
+      "plural_form": "die Adressen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.adresse.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Adresse",
+      "target_text": "العنوان",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.adresse",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.adresse"
+      },
+      "phonetics": {
+        "source": "a-dres-se",
+        "target": "al-unwan"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.adresse",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Das ist meine Adresse.",
+        "target": "هذا عنواني."
+      },
+      "plural_form": "die Adressen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.wohnung.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الشقة",
+      "target_text": "die Wohnung",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.wohnung",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.wohnung"
+      },
+      "phonetics": {
+        "source": "ash-shaqqa",
+        "target": "vo-nung"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.wohnung",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أسكن في هذه الشقة.",
+        "target": "Ich wohne in dieser Wohnung."
+      },
+      "plural_form": "die Wohnungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.wohnung.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Wohnung",
+      "target_text": "الشقة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.wohnung",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.wohnung"
+      },
+      "phonetics": {
+        "source": "vo-nung",
+        "target": "ash-shaqqa"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.wohnung",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich wohne in dieser Wohnung.",
+        "target": "أسكن في هذه الشقة."
+      },
+      "plural_form": "die Wohnungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.mietvertrag.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "عقد الإيجار",
+      "target_text": "der Mietvertrag",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.mietvertrag",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.mietvertrag"
+      },
+      "phonetics": {
+        "source": "aqd al-ijar",
+        "target": "mit-fer-trag"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.mietvertrag",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "لدي عقد إيجار.",
+        "target": "Ich habe einen Mietvertrag."
+      },
+      "plural_form": "die Mietverträge"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.mietvertrag.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Mietvertrag",
+      "target_text": "عقد الإيجار",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.mietvertrag",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.mietvertrag"
+      },
+      "phonetics": {
+        "source": "mit-fer-trag",
+        "target": "aqd al-ijar"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.mietvertrag",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich habe einen Mietvertrag.",
+        "target": "لدي عقد إيجار."
+      },
+      "plural_form": "die Mietverträge"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.formular.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الاستمارة",
+      "target_text": "das Formular",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.formular",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.formular"
+      },
+      "phonetics": {
+        "source": "al-istimara",
+        "target": "for-mu-lar"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.formular",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أملأ الاستمارة.",
+        "target": "Ich fülle das Formular aus."
+      },
+      "plural_form": "die Formulare"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.formular.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Formular",
+      "target_text": "الاستمارة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.formular",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.formular"
+      },
+      "phonetics": {
+        "source": "for-mu-lar",
+        "target": "al-istimara"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.formular",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich fülle das Formular aus.",
+        "target": "أملأ الاستمارة."
+      },
+      "plural_form": "die Formulare"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.unterschrift.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "التوقيع",
+      "target_text": "die Unterschrift",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.unterschrift",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.unterschrift"
+      },
+      "phonetics": {
+        "source": "at-tawqi",
+        "target": "un-ter-shrift"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.unterschrift",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "توقيعي هنا.",
+        "target": "Meine Unterschrift ist hier."
+      },
+      "plural_form": "die Unterschriften"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.unterschrift.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Unterschrift",
+      "target_text": "التوقيع",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.unterschrift",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.unterschrift"
+      },
+      "phonetics": {
+        "source": "un-ter-shrift",
+        "target": "at-tawqi"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.unterschrift",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Meine Unterschrift ist hier.",
+        "target": "توقيعي هنا."
+      },
+      "plural_form": "die Unterschriften"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.behoerde.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الجهة الرسمية",
+      "target_text": "die Behörde",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.behoerde",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.behoerde"
+      },
+      "phonetics": {
+        "source": "al-jiha ar-rasmiyya",
+        "target": "be-hoer-de"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.behoerde",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "الجهة الرسمية مغلقة اليوم.",
+        "target": "Die Behörde ist heute geschlossen."
+      },
+      "plural_form": "die Behörden"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.behoerde.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Behörde",
+      "target_text": "الجهة الرسمية",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.behoerde",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.behoerde"
+      },
+      "phonetics": {
+        "source": "be-hoer-de",
+        "target": "al-jiha ar-rasmiyya"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.behoerde",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Behörde ist heute geschlossen.",
+        "target": "الجهة الرسمية مغلقة اليوم."
+      },
+      "plural_form": "die Behörden"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.brief.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الرسالة",
+      "target_text": "der Brief",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.brief",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.brief"
+      },
+      "phonetics": {
+        "source": "ar-risala",
+        "target": "brif"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.brief",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "لدي رسالة من الجهة الرسمية.",
+        "target": "Ich habe einen Brief von der Behörde."
+      },
+      "plural_form": "die Briefe"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.brief.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Brief",
+      "target_text": "الرسالة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.brief",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.brief"
+      },
+      "phonetics": {
+        "source": "brif",
+        "target": "ar-risala"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.brief",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich habe einen Brief von der Behörde.",
+        "target": "لدي رسالة من الجهة الرسمية."
+      },
+      "plural_form": "die Briefe"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.versicherung.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "التأمين",
+      "target_text": "die Versicherung",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.versicherung",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.versicherung"
+      },
+      "phonetics": {
+        "source": "at-tamin",
+        "target": "fer-zi-khe-rung"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.versicherung",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "لدي تأمين.",
+        "target": "Ich habe eine Versicherung."
+      },
+      "plural_form": "die Versicherungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.versicherung.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Versicherung",
+      "target_text": "التأمين",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.versicherung",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.versicherung"
+      },
+      "phonetics": {
+        "source": "fer-zi-khe-rung",
+        "target": "at-tamin"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.versicherung",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich habe eine Versicherung.",
+        "target": "لدي تأمين."
+      },
+      "plural_form": "die Versicherungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.anmelden.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يسجّل نفسه",
+      "target_text": "anmelden",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.anmelden",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.anmelden"
+      },
+      "phonetics": {
+        "source": "yu-saj-jil nafsahu",
+        "target": "an-mel-den"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.anmelden",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أريد أن أسجل نفسي.",
+        "target": "Ich möchte mich anmelden."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.anmelden.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "anmelden",
+      "target_text": "يسجّل نفسه",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.anmelden",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.anmelden"
+      },
+      "phonetics": {
+        "source": "an-mel-den",
+        "target": "yu-saj-jil nafsahu"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.anmelden",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich möchte mich anmelden.",
+        "target": "أريد أن أسجل نفسي."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.unterschreiben.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يوقّع",
+      "target_text": "unterschreiben",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.bureaucracy_registration.unterschreiben",
+        "reverse_record_id": "de->ar:de-ar.a1.bureaucracy_registration.unterschreiben"
+      },
+      "phonetics": {
+        "source": "yu-waqqi",
+        "target": "un-ter-shrai-ben"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.unterschreiben",
+      "domain": "bureaucracy_registration",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أوقّع هنا.",
+        "target": "Ich unterschreibe hier."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.bureaucracy_registration.unterschreiben.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "unterschreiben",
+      "target_text": "يوقّع",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.bureaucracy_registration.unterschreiben",
+        "reverse_record_id": "ar->de:de-ar.a1.bureaucracy_registration.unterschreiben"
+      },
+      "phonetics": {
+        "source": "un-ter-shrai-ben",
+        "target": "yu-waqqi"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.bureaucracy_registration.unterschreiben",
+      "domain": "bureaucracy_registration",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich unterschreibe hier.",
+        "target": "أوقّع هنا."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.supermarkt.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "السوبرماركت",
+      "target_text": "der Supermarkt",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.supermarkt",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.supermarkt"
+      },
+      "phonetics": {
+        "source": "as-supermarket",
+        "target": "zu-per-markt"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.supermarkt",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "السوبرماركت قريب.",
+        "target": "Der Supermarkt ist nah."
+      },
+      "plural_form": "die Supermärkte"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.supermarkt.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Supermarkt",
+      "target_text": "السوبرماركت",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.supermarkt",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.supermarkt"
+      },
+      "phonetics": {
+        "source": "zu-per-markt",
+        "target": "as-supermarket"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.supermarkt",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Der Supermarkt ist nah.",
+        "target": "السوبرماركت قريب."
+      },
+      "plural_form": "die Supermärkte"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.brot.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الخبز",
+      "target_text": "das Brot",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.brot",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.brot"
+      },
+      "phonetics": {
+        "source": "al-khubz",
+        "target": "brot"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.brot",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أشتري خبزاً.",
+        "target": "Ich kaufe Brot."
+      },
+      "plural_form": "die Brote"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.brot.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Brot",
+      "target_text": "الخبز",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.brot",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.brot"
+      },
+      "phonetics": {
+        "source": "brot",
+        "target": "al-khubz"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.brot",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich kaufe Brot.",
+        "target": "أشتري خبزاً."
+      },
+      "plural_form": "die Brote"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bus.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الحافلة",
+      "target_text": "der Bus",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.bus",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.bus"
+      },
+      "phonetics": {
+        "source": "al-hafila",
+        "target": "bus"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bus",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "الحافلة تأتي الآن.",
+        "target": "Der Bus kommt jetzt."
+      },
+      "plural_form": "die Busse"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bus.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Bus",
+      "target_text": "الحافلة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.bus",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.bus"
+      },
+      "phonetics": {
+        "source": "bus",
+        "target": "al-hafila"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bus",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Der Bus kommt jetzt.",
+        "target": "الحافلة تأتي الآن."
+      },
+      "plural_form": "die Busse"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.haltestelle.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "موقف الحافلة",
+      "target_text": "die Haltestelle",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.haltestelle",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.haltestelle"
+      },
+      "phonetics": {
+        "source": "mawqif al-hafila",
+        "target": "hal-te-shtel-le"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.haltestelle",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "موقف الحافلة هناك.",
+        "target": "Die Haltestelle ist dort."
+      },
+      "plural_form": "die Haltestellen"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.haltestelle.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Haltestelle",
+      "target_text": "موقف الحافلة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.haltestelle",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.haltestelle"
+      },
+      "phonetics": {
+        "source": "hal-te-shtel-le",
+        "target": "mawqif al-hafila"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.haltestelle",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Haltestelle ist dort.",
+        "target": "موقف الحافلة هناك."
+      },
+      "plural_form": "die Haltestellen"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bahnhof.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "محطة القطار",
+      "target_text": "der Bahnhof",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.bahnhof",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.bahnhof"
+      },
+      "phonetics": {
+        "source": "mahattat al-qitar",
+        "target": "ban-hof"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bahnhof",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أين محطة القطار؟",
+        "target": "Wo ist der Bahnhof?"
+      },
+      "plural_form": "die Bahnhöfe"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bahnhof.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "der Bahnhof",
+      "target_text": "محطة القطار",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.bahnhof",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.bahnhof"
+      },
+      "phonetics": {
+        "source": "ban-hof",
+        "target": "mahattat al-qitar"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bahnhof",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Wo ist der Bahnhof?",
+        "target": "أين محطة القطار؟"
+      },
+      "plural_form": "die Bahnhöfe"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bank.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "البنك",
+      "target_text": "die Bank",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.bank",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.bank"
+      },
+      "phonetics": {
+        "source": "al-bank",
+        "target": "bank"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bank",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "البنك مفتوح.",
+        "target": "Die Bank ist offen."
+      },
+      "plural_form": "die Banken"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bank.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Bank",
+      "target_text": "البنك",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.bank",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.bank"
+      },
+      "phonetics": {
+        "source": "bank",
+        "target": "al-bank"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bank",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Die Bank ist offen.",
+        "target": "البنك مفتوح."
+      },
+      "plural_form": "die Banken"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.handy.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الهاتف المحمول",
+      "target_text": "das Handy",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.handy",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.handy"
+      },
+      "phonetics": {
+        "source": "al-hatif al-mahmul",
+        "target": "hen-di"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.handy",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "هاتفي هنا.",
+        "target": "Mein Handy ist hier."
+      },
+      "plural_form": "die Handys"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.handy.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "das Handy",
+      "target_text": "الهاتف المحمول",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.handy",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.handy"
+      },
+      "phonetics": {
+        "source": "hen-di",
+        "target": "al-hatif al-mahmul"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.handy",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Mein Handy ist hier.",
+        "target": "هاتفي هنا."
+      },
+      "plural_form": "die Handys"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.rechnung.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "الفاتورة",
+      "target_text": "die Rechnung",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.rechnung",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.rechnung"
+      },
+      "phonetics": {
+        "source": "al-fatura",
+        "target": "rekh-nung"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.rechnung",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أدفع الفاتورة.",
+        "target": "Ich bezahle die Rechnung."
+      },
+      "plural_form": "die Rechnungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.rechnung.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "die Rechnung",
+      "target_text": "الفاتورة",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.rechnung",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.rechnung"
+      },
+      "phonetics": {
+        "source": "rekh-nung",
+        "target": "al-fatura"
+      },
+      "part_of_speech": "noun",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.rechnung",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich bezahle die Rechnung.",
+        "target": "أدفع الفاتورة."
+      },
+      "plural_form": "die Rechnungen"
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.kaufen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يشتري",
+      "target_text": "kaufen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.kaufen",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.kaufen"
+      },
+      "phonetics": {
+        "source": "yash-tari",
+        "target": "kau-fen"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.kaufen",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أشتري طعاماً.",
+        "target": "Ich kaufe Essen."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.kaufen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "kaufen",
+      "target_text": "يشتري",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.kaufen",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.kaufen"
+      },
+      "phonetics": {
+        "source": "kau-fen",
+        "target": "yash-tari"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.kaufen",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich kaufe Essen.",
+        "target": "أشتري طعاماً."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bezahlen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يدفع",
+      "target_text": "bezahlen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.bezahlen",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.bezahlen"
+      },
+      "phonetics": {
+        "source": "yad-fa",
+        "target": "be-tsa-len"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bezahlen",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أدفع بالبطاقة.",
+        "target": "Ich bezahle mit der Karte."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.bezahlen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "bezahlen",
+      "target_text": "يدفع",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.bezahlen",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.bezahlen"
+      },
+      "phonetics": {
+        "source": "be-tsa-len",
+        "target": "yad-fa"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.bezahlen",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich bezahle mit der Karte.",
+        "target": "أدفع بالبطاقة."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.brauchen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "يحتاج",
+      "target_text": "brauchen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.brauchen",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.brauchen"
+      },
+      "phonetics": {
+        "source": "yah-taj",
+        "target": "brau-khen"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.brauchen",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "أحتاج إلى مساعدة.",
+        "target": "Ich brauche Hilfe."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.brauchen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "brauchen",
+      "target_text": "يحتاج",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.brauchen",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.brauchen"
+      },
+      "phonetics": {
+        "source": "brau-khen",
+        "target": "yah-taj"
+      },
+      "part_of_speech": "verb",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.brauchen",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Ich brauche Hilfe.",
+        "target": "أحتاج إلى مساعدة."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.offen.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "مفتوح",
+      "target_text": "offen",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.offen",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.offen"
+      },
+      "phonetics": {
+        "source": "maf-tuh",
+        "target": "o-fen"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.offen",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "المتجر مفتوح.",
+        "target": "Der Laden ist offen."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.offen.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "offen",
+      "target_text": "مفتوح",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.offen",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.offen"
+      },
+      "phonetics": {
+        "source": "o-fen",
+        "target": "maf-tuh"
+      },
+      "part_of_speech": "adjective",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.offen",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Der Laden ist offen.",
+        "target": "المتجر مفتوح."
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.wie-viel-kostet-das.ar_to_de",
+      "cefr_level": "A1",
+      "source_text": "كم سعر هذا؟",
+      "target_text": "Wie viel kostet das?",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr",
+        "record_id": "ar->de:de-ar.a1.daily_essentials.wie-viel-kostet-das",
+        "reverse_record_id": "de->ar:de-ar.a1.daily_essentials.wie-viel-kostet-das"
+      },
+      "phonetics": {
+        "source": "kam si-r hatha",
+        "target": "vi fil kos-tet das"
+      },
+      "part_of_speech": "phrase",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.wie-viel-kostet-das",
+      "domain": "daily_essentials",
+      "source_rtl": true,
+      "target_rtl": false,
+      "example_sentence": {
+        "source": "كم سعر هذا؟",
+        "target": "Wie viel kostet das?"
+      }
+    },
+    {
+      "canonical_key": "de-ar.a1.daily_essentials.wie-viel-kostet-das.de_to_ar",
+      "cefr_level": "A1",
+      "source_text": "Wie viel kostet das?",
+      "target_text": "كم سعر هذا؟",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl",
+        "record_id": "de->ar:de-ar.a1.daily_essentials.wie-viel-kostet-das",
+        "reverse_record_id": "ar->de:de-ar.a1.daily_essentials.wie-viel-kostet-das"
+      },
+      "phonetics": {
+        "source": "vi fil kos-tet das",
+        "target": "kam si-r hatha"
+      },
+      "part_of_speech": "phrase",
+      "bidirectional_flag": true,
+      "rtl_flag": true,
+      "concept_id": "de-ar.a1.daily_essentials.wie-viel-kostet-das",
+      "domain": "daily_essentials",
+      "source_rtl": false,
+      "target_rtl": true,
+      "example_sentence": {
+        "source": "Wie viel kostet das?",
+        "target": "كم سعر هذا؟"
+      }
+    }
+  ]
+}

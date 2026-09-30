@@ -4,7 +4,10 @@
   "title": "DEUTSCH 20-language matrix canonical dataset",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "entries"],
+  "required": [
+    "schema_version",
+    "entries"
+  ],
   "properties": {
     "schema_version": {
       "type": "string",
@@ -35,7 +38,12 @@
           },
           "cefr_level": {
             "type": "string",
-            "enum": ["A1", "A2", "B1", "B2"]
+            "enum": [
+              "A1",
+              "A2",
+              "B1",
+              "B2"
+            ]
           },
           "source_text": {
             "type": "string",
@@ -70,21 +78,42 @@
               },
               "source_direction": {
                 "type": "string",
-                "enum": ["ltr", "rtl"]
+                "enum": [
+                  "ltr",
+                  "rtl"
+                ]
               },
               "target_direction": {
                 "type": "string",
-                "enum": ["ltr", "rtl"]
+                "enum": [
+                  "ltr",
+                  "rtl"
+                ]
+              },
+              "record_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reverse_record_id": {
+                "type": "string",
+                "minLength": 1
               }
             }
           },
           "phonetics": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["source", "target"],
+            "required": [
+              "source",
+              "target"
+            ],
             "properties": {
-              "source": {"type": "string"},
-              "target": {"type": "string"}
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
             }
           },
           "part_of_speech": {
@@ -109,6 +138,48 @@
           },
           "rtl_flag": {
             "type": "boolean"
+          },
+          "concept_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          },
+          "domain": {
+            "type": "string",
+            "enum": [
+              "workplace_healthcare",
+              "emergency",
+              "bureaucracy_registration",
+              "daily_essentials"
+            ]
+          },
+          "plural_form": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_rtl": {
+            "type": "boolean"
+          },
+          "target_rtl": {
+            "type": "boolean"
+          },
+          "example_sentence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
       }

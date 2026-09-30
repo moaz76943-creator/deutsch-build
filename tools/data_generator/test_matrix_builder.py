@@ -169,3 +169,62 @@ def test_ingest_datasets_revalidates_duplicates_across_files(tmp_path):
     second.write_text(json.dumps(fixture, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(MatrixValidationError, match="duplicate canonical_key"):
         ingest_datasets([first, second], schema_path=SCHEMA_PATH)
+
+def test_de_ar_a1_core_fixture_is_curated_unique_and_bidirectionally_consistent():
+    import re
+    from collections import Counter
+    from tools.data_generator.de_ar_a1_core_generator import CONCEPTS, build_core_dataset
+
+    core_path = HERE / "fixtures" / "de_ar_a1_core.json"
+    dataset = load_and_validate(core_path, schema_path=SCHEMA_PATH)
+    assert dataset == build_core_dataset()
+    entries = dataset["entries"]
+    assert len(CONCEPTS) == 50
+    assert len(entries) == 100
+
+    forward = [entry for entry in entries if entry["pair_identity"]["id"] == "ar->de"]
+    reverse = [entry for entry in entries if entry["pair_identity"]["id"] == "de->ar"]
+    assert len(forward) == 50
+    assert len(reverse) == 50
+    assert len({entry["concept_id"] for entry in entries}) == 50
+    assert all(entry["cefr_level"] == "A1" for entry in entries)
+    assert {entry["part_of_speech"] for entry in entries} <= {"noun", "verb", "adjective", "phrase"}
+
+    assert Counter(entry["domain"] for entry in forward) == {
+        "workplace_healthcare": 14,
+        "emergency": 10,
+        "bureaucracy_registration": 13,
+        "daily_essentials": 13,
+    }
+
+    assert all(entry["source_rtl"] is True and entry["target_rtl"] is False for entry in forward)
+    assert all(entry["source_rtl"] is False and entry["target_rtl"] is True for entry in reverse)
+    assert all(entry["pair_identity"]["source_direction"] == "rtl" for entry in forward)
+    assert all(entry["pair_identity"]["target_direction"] == "ltr" for entry in forward)
+    assert all(entry["bidirectional_flag"] is True for entry in entries)
+
+    canonical_keys = [entry["canonical_key"] for entry in entries]
+    record_ids = [entry["pair_identity"]["record_id"] for entry in entries]
+    assert len(set(canonical_keys)) == len(canonical_keys) == 100
+    assert len(set(record_ids)) == len(record_ids) == 100
+
+    forward_nouns = [entry for entry in forward if entry["part_of_speech"] == "noun"]
+    assert len(forward_nouns) == 37
+    assert all(entry["plural_form"].strip() for entry in forward_nouns)
+    assert all(re.match(r"^(der|die|das)\\s+", entry["target_text"]) for entry in forward_nouns)
+    assert all(
+        entry.get("plural_form", "").strip()
+        for entry in entries
+        if entry["part_of_speech"] == "noun"
+    )
+
+    by_record_id = {entry["pair_identity"]["record_id"]: entry for entry in entries}
+    for entry in entries:
+        reverse_entry = by_record_id[entry["pair_identity"]["reverse_record_id"]]
+        assert reverse_entry["pair_identity"]["reverse_record_id"] == entry["pair_identity"]["record_id"]
+        assert reverse_entry["concept_id"] == entry["concept_id"]
+        assert reverse_entry["source_text"] == entry["target_text"]
+        assert reverse_entry["target_text"] == entry["source_text"]
+        assert reverse_entry["example_sentence"]["source"] == entry["example_sentence"]["target"]
+        assert reverse_entry["example_sentence"]["target"] == entry["example_sentence"]["source"]
+
