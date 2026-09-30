@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deutsch-bilarabi.local/tools/data_generator/schema.json",
+  "title": "DEUTSCH bilingual 20-language matrix canonical vocabulary dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "entries"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonical_key",
+          "cefr_level",
+          "source_text",
+          "target_text",
+          "pair_identity",
+          "phonetics",
+          "part_of_speech",
+          "bidirectional_flag",
+          "example_context"
+        ],
+        "properties": {
+          "canonical_key": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          },
+          "cefr_level": {
+            "type": "string",
+            "enum": ["A1", "A2", "B1", "B2"]
+          },
+          "source_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pair_identity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "source_language",
+              "target_language",
+              "source_direction",
+              "target_direction"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(?:-[a-z0-9]{2,8})*->[a-z]{2,3}(?:-[a-z0-9]{2,8})*$"
+              },
+              "source_language": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$"
+              },
+              "target_language": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$"
+              },
+              "source_direction": {
+                "type": "string",
+                "enum": ["ltr", "rtl"]
+              },
+              "target_direction": {
+                "type": "string",
+                "enum": ["ltr", "rtl"]
+              }
+            }
+          },
+          "phonetics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "target"],
+            "properties": {
+              "source": {"type": "string"},
+              "target": {"type": "string"}
+            }
+          },
+          "part_of_speech": {
+            "type": "string",
+            "enum": [
+              "noun",
+              "verb",
+              "adjective",
+              "adverb",
+              "pronoun",
+              "preposition",
+              "conjunction",
+              "interjection",
+              "determiner",
+              "numeral",
+              "phrase",
+              "other"
+            ]
+          },
+          "bidirectional_flag": {
+            "type": "boolean"
+          },
+          "example_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "target"],
+            "properties": {
+              "source": {"type": "string", "minLength": 1},
+              "target": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}
