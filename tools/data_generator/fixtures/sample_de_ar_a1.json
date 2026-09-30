@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "entries": [
+    {
+      "canonical_key": "de-ar.a1.greeting.hallo.forward",
+      "cefr_level": "A1",
+      "source_text": "Hallo",
+      "target_text": "مرحباً",
+      "pair_identity": {
+        "id": "de->ar",
+        "source_language": "de",
+        "target_language": "ar",
+        "source_direction": "ltr",
+        "target_direction": "rtl"
+      },
+      "phonetics": {
+        "source": "haˈloː",
+        "target": "mar.ħa.ban"
+      },
+      "part_of_speech": "interjection",
+      "bidirectional_flag": true,
+      "rtl_flag": true
+    },
+    {
+      "canonical_key": "de-ar.a1.greeting.hallo.reverse",
+      "cefr_level": "A1",
+      "source_text": "مرحباً",
+      "target_text": "Hallo",
+      "pair_identity": {
+        "id": "ar->de",
+        "source_language": "ar",
+        "target_language": "de",
+        "source_direction": "rtl",
+        "target_direction": "ltr"
+      },
+      "phonetics": {
+        "source": "mar.ħa.ban",
+        "target": "haˈloː"
+      },
+      "part_of_speech": "interjection",
+      "bidirectional_flag": true,
+      "rtl_flag": true
+    }
+  ]
+}
