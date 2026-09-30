@@ -211,7 +211,7 @@ def test_de_ar_a1_core_fixture_is_curated_unique_and_bidirectionally_consistent(
     forward_nouns = [entry for entry in forward if entry["part_of_speech"] == "noun"]
     assert len(forward_nouns) == 37
     assert all(entry["plural_form"].strip() for entry in forward_nouns)
-    assert all(re.match(r"^(der|die|das)\\s+", entry["target_text"]) for entry in forward_nouns)
+    assert all(re.match(r"^(der|die|das)\s+", entry["target_text"]) for entry in forward_nouns)
     assert all(
         entry.get("plural_form", "").strip()
         for entry in entries
