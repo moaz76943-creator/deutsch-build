@@ -11,6 +11,7 @@ void main() {
   _rejectsDirectionalLanguageMismatch();
   _preservesRtlAndLtrTextIntegrity();
   _usesSchemaDirectionTagsWithoutLanguageGuessing();
+  _rejectsConceptIdThatViolatesSchemaPattern();
 }
 
 void _parsesCanonicalMatrixFixture() {
@@ -225,6 +226,43 @@ void _usesSchemaDirectionTagsWithoutLanguageGuessing() {
     deck.cards.single.definitions['en'],
     target,
     'schema-provided LTR target must parse',
+  );
+}
+
+
+void _rejectsConceptIdThatViolatesSchemaPattern() {
+  final parser = JsonDeckParser();
+  final decoded = jsonDecode(
+    _validFixture(
+      sourceText: 'Hallo',
+      targetText: 'مرحباً',
+      sourcePhonetics: 'haˈloː',
+      targetPhonetics: 'mar.ħa.ban',
+    ),
+  ) as Map<String, Object?>;
+  final entries = decoded['entries'] as List<Object?>;
+  final entry = entries.single as Map<String, Object?>;
+  entry['concept_id'] = 'bad concept id';
+
+  _expectValidationException(
+    () => parser.parse(
+      jsonEncode(decoded),
+      deckId: 'de-ar-a1-core',
+      sourceLanguage: 'de',
+      targetLanguage: 'ar',
+    ),
+    (error) {
+      _expect(
+        error.errors.any(
+          (item) =>
+              item.code == DeckValidationErrorCode.invalidValue &&
+              item.path.endsWith('.concept_id'),
+        ),
+        true,
+        'concept_id outside schema pattern must be rejected',
+      );
+    },
+    'invalid concept_id pattern',
   );
 }
 
