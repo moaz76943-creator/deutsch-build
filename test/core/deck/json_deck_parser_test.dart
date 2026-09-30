@@ -10,6 +10,7 @@ void main() {
   _collectsMissingAndMalformedItemErrors();
   _rejectsDirectionalLanguageMismatch();
   _preservesRtlAndLtrTextIntegrity();
+  _usesSchemaDirectionTagsWithoutLanguageGuessing();
 }
 
 void _parsesCanonicalMatrixFixture() {
@@ -178,6 +179,52 @@ void _preservesRtlAndLtrTextIntegrity() {
     deck.cards.single.definitions['ar'],
     target,
     'RTL target text must round-trip exactly',
+  );
+}
+
+void _usesSchemaDirectionTagsWithoutLanguageGuessing() {
+  final parser = JsonDeckParser();
+  const source = 'سڵاو';
+  const target = 'hello';
+
+  final fixture = jsonEncode(<String, Object?>{
+    'schema_version': '1.0.0',
+    'entries': <Object?>[
+      <String, Object?>{
+        'canonical_key': 'ku-en.a1.greeting.hello.forward',
+        'cefr_level': 'A1',
+        'source_text': source,
+        'target_text': target,
+        'pair_identity': <String, Object?>{
+          'id': 'ku->en',
+          'source_language': 'ku',
+          'target_language': 'en',
+          'source_direction': 'rtl',
+          'target_direction': 'ltr',
+        },
+        'phonetics': <String, String>{
+          'source': 'slaw',
+          'target': 'həˈloʊ',
+        },
+        'part_of_speech': 'interjection',
+        'bidirectional_flag': false,
+        'rtl_flag': true,
+      },
+    ],
+  });
+
+  final deck = parser.parse(
+    fixture,
+    deckId: 'ku-en-a1',
+    sourceLanguage: 'ku',
+    targetLanguage: 'en',
+  );
+
+  _expect(deck.cards.single.term, source, 'schema-provided RTL source must parse');
+  _expect(
+    deck.cards.single.definitions['en'],
+    target,
+    'schema-provided LTR target must parse',
   );
 }
 
