@@ -11,7 +11,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  actions: none
+  checks: none
+  id-token: none
+  pull-requests: none
 
 concurrency:
   group: project-record-writer
@@ -52,4 +56,4 @@ jobs:
             exit 0
           fi
           git commit -m 'ops: project-record sync'
-          git push origin HEAD:main
+          # removed git push to prevent unauthenticated direct write

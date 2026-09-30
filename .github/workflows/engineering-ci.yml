@@ -10,6 +10,10 @@ on:
 
 permissions:
   contents: read
+  actions: none
+  checks: none
+  id-token: none
+  pull-requests: none
 
 concurrency:
   group: engineering-ci-${{ github.workflow }}-${{ github.ref }}
