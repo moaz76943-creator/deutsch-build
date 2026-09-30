@@ -410,10 +410,29 @@ final class JsonDeckParser implements DeckParserContract {
     String path,
     List<DeckValidationError> errors,
   ) {
-    for (final key in <String>['concept_id', 'plural_form']) {
-      if (entry.containsKey(key)) {
-        _optionalNonEmptyString(entry, key, '$path.$key', errors);
+    if (entry.containsKey('concept_id')) {
+      final conceptId = _optionalNonEmptyString(
+        entry,
+        'concept_id',
+        '$path.concept_id',
+        errors,
+      );
+      if (conceptId != null && !_canonicalKeyPattern.hasMatch(conceptId)) {
+        errors.add(DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: '$path.concept_id',
+          message: 'concept_id does not match matrix schema pattern',
+        ));
       }
+    }
+
+    if (entry.containsKey('plural_form')) {
+      _optionalNonEmptyString(
+        entry,
+        'plural_form',
+        '$path.plural_form',
+        errors,
+      );
     }
 
     if (entry.containsKey('domain')) {
