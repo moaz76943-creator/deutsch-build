@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "program_id": "AUTONOMOUS-BACKLOG-001",
+  "repo": "sali97m-cpu/deutsch-bilarabi",
+  "base_main_sha": "e3208766bcd742250852a32bbaf01dd62949fe49",
+  "items": [
+    {
+      "id": "component.pr107.schema",
+      "kind": "component",
+      "stage": "verification",
+      "status": "verified",
+      "priority": 0,
+      "dependencies": [],
+      "required_capabilities": [],
+      "mutable_scope": "tools/data_generator/schema.json",
+      "evidence": [
+        "PR #107 draft head 476f2953c18a66fa65524977429068a1df139839",
+        "Local pytest: 18 passed in 0.07s"
+      ]
+    },
+    {
+      "id": "component.pr107.matrix_builder",
+      "kind": "component",
+      "stage": "verification",
+      "status": "verified",
+      "priority": 0,
+      "dependencies": [
+        "component.pr107.schema"
+      ],
+      "required_capabilities": [],
+      "mutable_scope": "tools/data_generator/matrix_builder.py",
+      "evidence": [
+        "20-language directed matrix: 380 directed pairs / 190 bidirectional sets",
+        "Local pytest: 18 passed in 0.07s"
+      ]
+    },
+    {
+      "id": "component.pr107.sample_fixture",
+      "kind": "component",
+      "stage": "verification",
+      "status": "verified",
+      "priority": 0,
+      "dependencies": [
+        "component.pr107.schema",
+        "component.pr107.matrix_builder"
+      ],
+      "required_capabilities": [],
+      "mutable_scope": "tools/data_generator/fixtures/sample_de_ar_a1.json",
+      "evidence": [
+        "Explicit de->ar and ar->de A1 reciprocal sample",
+        "Local pytest: 18 passed in 0.07s"
+      ]
+    },
+    {
+      "id": "component.pr107.core_generator",
+      "kind": "component",
+      "stage": "verification",
+      "status": "verified",
+      "priority": 0,
+      "dependencies": [
+        "component.pr107.schema",
+        "component.pr107.matrix_builder"
+      ],
+      "required_capabilities": [],
+      "mutable_scope": "tools/data_generator/de_ar_a1_core_generator.py",
+      "evidence": [
+        "Deterministic curated Arabic<->German A1 core generator",
+        "Local pytest: 18 passed in 0.07s"
+      ]
+    },
+    {
+      "id": "component.pr107.core_fixture",
+      "kind": "component",
+      "stage": "verification",
+      "status": "verified",
+      "priority": 0,
+      "dependencies": [
+        "component.pr107.core_generator"
+      ],
+      "required_capabilities": [],
+      "mutable_scope": "tools/data_generator/fixtures/de_ar_a1_core.json",
+      "evidence": [
+        "Canonical fixture size 101515 bytes",
+        "Git blob SHA 212d76f11bd51ff4bc0b4de7fa8c2bb09f07ddf3"
+      ]
+    },
+    {
+      "id": "component.pr107.pytest_suite",
+      "kind": "component",
+      "stage": "verification",
+      "status": "verified",
+      "priority": 0,
+      "dependencies": [
+        "component.pr107.schema",
+        "component.pr107.matrix_builder",
+        "component.pr107.sample_fixture",
+        "component.pr107.core_generator",
+        "component.pr107.core_fixture"
+      ],
+      "required_capabilities": [],
+      "mutable_scope": "tools/data_generator/test_matrix_builder.py",
+      "evidence": [
+        "Regex whitespace correction commit 476f2953c18a66fa65524977429068a1df139839",
+        "Local pytest: 18 passed in 0.07s"
+      ]
+    },
+    {
+      "id": "integration.pr107.ci",
+      "kind": "integration_stage",
+      "stage": "ci",
+      "status": "pending",
+      "priority": 100,
+      "dependencies": [
+        "component.pr107.schema",
+        "component.pr107.matrix_builder",
+        "component.pr107.sample_fixture",
+        "component.pr107.core_generator",
+        "component.pr107.core_fixture",
+        "component.pr107.pytest_suite"
+      ],
+      "required_capabilities": [
+        "python",
+        "ci"
+      ],
+      "mutable_scope": "integration/pr107",
+      "evidence": [
+        "Awaiting admitted CI/integration window"
+      ]
+    },
+    {
+      "id": "integration.pr107.merge",
+      "kind": "integration_stage",
+      "stage": "merge",
+      "status": "pending",
+      "priority": 90,
+      "dependencies": [
+        "integration.pr107.ci"
+      ],
+      "required_capabilities": [
+        "github",
+        "merge"
+      ],
+      "mutable_scope": "integration/pr107",
+      "evidence": []
+    },
+    {
+      "id": "integration.pr107.post_merge_regression",
+      "kind": "integration_stage",
+      "stage": "post_merge_regression",
+      "status": "pending",
+      "priority": 80,
+      "dependencies": [
+        "integration.pr107.merge"
+      ],
+      "required_capabilities": [
+        "python",
+        "regression"
+      ],
+      "mutable_scope": "integration/pr107",
+      "evidence": []
+    },
+    {
+      "id": "integration.pr107.checkpoint",
+      "kind": "integration_stage",
+      "stage": "checkpoint",
+      "status": "pending",
+      "priority": 70,
+      "dependencies": [
+        "integration.pr107.post_merge_regression"
+      ],
+      "required_capabilities": [
+        "control",
+        "checkpoint"
+      ],
+      "mutable_scope": "integration/pr107",
+      "evidence": []
+    }
+  ]
+}
