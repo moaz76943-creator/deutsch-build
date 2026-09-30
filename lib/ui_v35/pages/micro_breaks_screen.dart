@@ -138,9 +138,9 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                     height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(opacity * 0.2),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: opacity * 0.2),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(opacity),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: opacity),
                         width: 2.0,
                       ),
                     ),
@@ -152,7 +152,7 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                           height: 160,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Theme.of(context).colorScheme.primary.withOpacity(opacity * 0.5),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: opacity * 0.5),
                           ),
                           child: Center(
                             child: Icon(
