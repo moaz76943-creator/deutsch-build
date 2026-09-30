@@ -28,8 +28,8 @@ def test_branch_name_only_gate_cannot_regress():
     assert "if: ${{ github.event.workflow_run.head_branch == 'main' }}" not in header
 
 
-def test_main_project_record_writer_is_still_present():
+def test_main_project_record_writer_has_no_direct_main_push():
     text = WORKFLOW.read_text(encoding="utf-8")
 
-    assert "git push origin HEAD:main" in text
+    assert "git push origin HEAD:main" not in text
     assert "PROJECT_RECORD_BRANCH: ${{ github.event.workflow_run.head_branch }}" in text
