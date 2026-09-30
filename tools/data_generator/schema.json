@@ -150,7 +150,10 @@
               "workplace_healthcare",
               "emergency",
               "bureaucracy_registration",
-              "daily_essentials"
+              "daily_essentials",
+              "healthcare_pharmacy",
+              "directions_transport",
+              "emergency_basic"
             ]
           },
           "plural_form": {
@@ -164,6 +167,63 @@
             "type": "boolean"
           },
           "example_sentence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "contextNote": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "partOfSpeech": {
+            "type": "string",
+            "enum": [
+              "noun",
+              "verb",
+              "adjective",
+              "adverb",
+              "pronoun",
+              "preposition",
+              "conjunction",
+              "interjection",
+              "determiner",
+              "numeral",
+              "phrase",
+              "other"
+            ]
+          },
+          "transliteration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "audioMarker": {
             "type": "object",
             "additionalProperties": false,
             "required": [

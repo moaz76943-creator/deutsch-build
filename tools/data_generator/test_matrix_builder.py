@@ -179,22 +179,25 @@ def test_de_ar_a1_core_fixture_is_curated_unique_and_bidirectionally_consistent(
     dataset = load_and_validate(core_path, schema_path=SCHEMA_PATH)
     assert dataset == build_core_dataset()
     entries = dataset["entries"]
-    assert len(CONCEPTS) == 50
-    assert len(entries) == 100
+    assert len(CONCEPTS) == 100
+    assert len(entries) == 200
 
     forward = [entry for entry in entries if entry["pair_identity"]["id"] == "ar->de"]
     reverse = [entry for entry in entries if entry["pair_identity"]["id"] == "de->ar"]
-    assert len(forward) == 50
-    assert len(reverse) == 50
-    assert len({entry["concept_id"] for entry in entries}) == 50
+    assert len(forward) == 100
+    assert len(reverse) == 100
+    assert len({entry["concept_id"] for entry in entries}) == 100
     assert all(entry["cefr_level"] == "A1" for entry in entries)
-    assert {entry["part_of_speech"] for entry in entries} <= {"noun", "verb", "adjective", "phrase"}
+    assert {entry["part_of_speech"] for entry in entries} <= {"noun", "verb", "adjective", "adverb", "phrase"}
 
     assert Counter(entry["domain"] for entry in forward) == {
         "workplace_healthcare": 14,
         "emergency": 10,
         "bureaucracy_registration": 13,
-        "daily_essentials": 13,
+        "daily_essentials": 26,
+        "healthcare_pharmacy": 13,
+        "directions_transport": 12,
+        "emergency_basic": 12,
     }
 
     assert all(entry["source_rtl"] is True and entry["target_rtl"] is False for entry in forward)
@@ -205,11 +208,11 @@ def test_de_ar_a1_core_fixture_is_curated_unique_and_bidirectionally_consistent(
 
     canonical_keys = [entry["canonical_key"] for entry in entries]
     record_ids = [entry["pair_identity"]["record_id"] for entry in entries]
-    assert len(set(canonical_keys)) == len(canonical_keys) == 100
-    assert len(set(record_ids)) == len(record_ids) == 100
+    assert len(set(canonical_keys)) == len(canonical_keys) == 200
+    assert len(set(record_ids)) == len(record_ids) == 200
 
     forward_nouns = [entry for entry in forward if entry["part_of_speech"] == "noun"]
-    assert len(forward_nouns) == 37
+    assert len(forward_nouns) == 74
     assert all(entry["plural_form"].strip() for entry in forward_nouns)
     assert all(re.match(r"^(der|die|das)\s+", entry["target_text"]) for entry in forward_nouns)
     assert all(
