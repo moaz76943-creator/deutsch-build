@@ -271,7 +271,7 @@ def simulate_integration(
         raise PreflightError(f"repository does not exist: {repository}")
     normalized_boundaries = tuple(pattern.strip() for pattern in boundaries if pattern.strip())
     if not normalized_boundaries:
-        raise PreflightError "at least one declared task boundary is required")
+        raise PreflightError("at least one declared task boundary is required")
 
     candidate_commit = _resolve_ref(repository, candidate_ref)
     target_commit = _resolve_ref(repository, target_ref)

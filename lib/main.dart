@@ -17,6 +17,7 @@ import 'services/search_index.dart';
 import 'services/preferences_service.dart';
 import 'services/learner_persistence.dart';
 import 'services/privacy_settings.dart';
+import 'services/neuro_accessibility_settings.dart';
 import 'ui_v35/app.dart';
 import 'language/german/german_language_pack.dart';
 
@@ -56,6 +57,7 @@ Future<void> main() async {
         languagePack: languagePack,
         aiGateway: AiGatewayFactory.fromRuntimeConfig(AiRuntimeConfig.fromEnvironment()),
         privacySettings: LocalPrivacySettingsStore(prefs),
+        neuroSettings: NeuroAccessibilitySettings(prefs),
       );
       final config = BackendRuntimeConfig.fromEnvironment();
       final BackendTransport transport =
