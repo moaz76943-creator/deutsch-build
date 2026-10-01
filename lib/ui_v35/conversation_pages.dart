@@ -9,6 +9,7 @@ import '../services/repository.dart';
 import '../language/language_text_normalizer.dart';
 import '../services/speech_service.dart';
 import '../services/ai_gateway.dart';
+import '../data/generated/conversation_scenarios_generated.dart';
 import '../services/privacy_settings.dart';
 import '../services/conversation_engine.dart';
 import 'safe_ui.dart';
@@ -72,7 +73,7 @@ class _WritingCoachState extends State<WritingCoachPage> {
     }
     if (!mounted) return;
     for (final issue in issues.where((x) => !x.startsWith('اكتب جملة'))) {
-      await widget.repo.recordWritingMistake(issue: issue);
+      await widget.widget.repo.recordWritingMistake(issue: issue);
     }
     setState(() {
       checked = true;
@@ -81,7 +82,7 @@ class _WritingCoachState extends State<WritingCoachPage> {
           : issues.join('\n');
       loading = false;
     });
-    widget.onDone();
+    widget.widget.onDone();
   }
 
   @override
@@ -123,7 +124,14 @@ class _WritingCoachState extends State<WritingCoachPage> {
   );
 }
 
-class ConversationPage extends StatelessWidget {
+class ConversationPage extends StatefulWidget {
+
+
+  @override
+  State<ConversationPage> createState() => _ConversationPageState();
+}
+
+class _ConversationPageState extends State<ConversationPage> {
   final LearnerRepository repo;
   final VoidCallback onDone;
   final LanguageExerciseStrategy exerciseStrategy;
@@ -308,7 +316,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
           ? 'إجابة جيدة. انتقل للجولة التالية.'
           : 'اقتربت. راجع الكلمات الناقصة ثم أعد المحاولة أو تابع.';
     });
-    await widget.repo.recordConversationAttempt(
+    await widget.widget.repo.recordConversationAttempt(
       itemId: turn.id,
       skill: turn.skill,
       answer: heard,
@@ -317,7 +325,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
       hinted: false,
     );
     if (!mounted) return;
-    widget.onDone();
+    widget.widget.onDone();
   }
 
   void _retry() {
