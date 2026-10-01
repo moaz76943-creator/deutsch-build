@@ -16,6 +16,7 @@ import 'package:deutsch_bilarabi/services/privacy_settings.dart';
 import 'package:deutsch_bilarabi/services/neuro_accessibility_settings.dart';
 import 'package:deutsch_bilarabi/language/german/german_language_pack.dart';
 import 'package:deutsch_bilarabi/services/ai_contract.dart';
+import 'package:deutsch_bilarabi/services/user_vocabulary_service.dart';
 
 class MockPreferences implements PreferencesService {
   final Map<String, dynamic> _data = {};
@@ -48,10 +49,42 @@ class MockPreferences implements PreferencesService {
   }
 
   @override
+  int? getInt(String key) => _data[key] as int?;
+
+  @override
+  Future<bool> setInt(String key, int value) async {
+    _data[key] = value;
+    return true;
+  }
+
+  @override
   Future<bool> remove(String key) async {
     _data.remove(key);
     return true;
   }
+}
+
+
+class FakeUserVocabularyService implements UserVocabularyService {
+  @override
+  Future<void> addCustomEntry(Map<String, dynamic> entry) async {}
+  @override
+  Future<void> close() async {}
+  @override
+  get database => throw UnimplementedError();
+  @override
+  Future<void> deleteCustomEntry(String id) async {}
+  @override
+  Future<List<Map<String, dynamic>>> getCustomEntries({String? targetLanguage}) async => [];
+}
+
+class FakeFavoritesRepository implements FavoritesRepository {
+  @override
+  Future<Set<String>> getFavorites() async => {};
+  @override
+  Future<bool> isFavorite(String id) async => false;
+  @override
+  Future<void> toggleFavorite(String id) async {}
 }
 
 class TestItem implements LearningContent {
@@ -186,6 +219,9 @@ void main() {
       aiGateway: MockAiGateway(),
       privacySettings: MockPrivacySettings(),
       neuroSettings: NeuroAccessibilitySettings(prefs),
+      userVocabularyService: FakeUserVocabularyService(),
+      favoritesRepository: FakeFavoritesRepository(),
+      preferencesService: prefs,
     );
 
     await tester.pumpWidget(
