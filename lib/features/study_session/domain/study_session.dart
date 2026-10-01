@@ -12,6 +12,8 @@ class StudySession {
   int currentCardIndex = 0;
   int _correctAnswers = 0;
 
+  int get correctAnswers => _correctAnswers;
+
   StudySession({
     required this.sessionId,
     required this.startTime,
