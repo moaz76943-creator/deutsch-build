@@ -15,7 +15,9 @@ import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/services/user_vocabulary_service.dart';
 import '../../lib/services/grammar_hub_service.dart';
+
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import '../../lib/language/german/german_language_pack.dart';
 import '../../lib/language/german/german_text_normalizer.dart';
 import '../../lib/models/content.dart';
@@ -51,7 +53,8 @@ class FakeLearnerRepository implements LearnerRepository {
   @override
   LearnerState reload() => LearnerState(updatedAt: DateTime.now());
   @override
-  Future<LearnerState> reloadPersisted() async => LearnerState(updatedAt: DateTime.now());
+  Future<LearnerState> reloadPersisted() async =>
+      LearnerState(updatedAt: DateTime.now());
   @override
   Future<Set<String>> loadAndMigrateFavoriteVerbs() async => {};
   @override
@@ -79,7 +82,10 @@ class FakeLearnerRepository implements LearnerRepository {
     required bool hinted,
   }) async {}
   @override
-  Future<void> recordWritingMistake({required String issue, DateTime? at}) async {}
+  Future<void> recordWritingMistake({
+    required String issue,
+    DateTime? at,
+  }) async {}
   @override
   Future<void> toggleFavoriteVerb(String infinitive) async {}
   @override
@@ -108,7 +114,9 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  testWidgets('Smoke test for Conversation & Grammar Screens', (WidgetTester tester) async {
+  testWidgets('Smoke test for Conversation & Grammar Screens', (
+    WidgetTester tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     await SharedPreferences.getInstance();
     final prefs = await PreferencesService.instance();
@@ -140,28 +148,34 @@ void main() {
     );
 
     // Test GrammarHubPage
-    await tester.pumpWidget(MaterialApp(
-      home: ScaffoldMessenger(child: GrammarHubPage(dependencies: deps)),
-    ));
-    for(int i = 0; i < 50; i++) await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ScaffoldMessenger(child: GrammarHubPage(dependencies: deps)),
+      ),
+    );
+    for (int i = 0; i < 50; i++)
+      await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(GrammarHubPage), findsOneWidget);
 
     // Test ConversationPage
-    await tester.pumpWidget(MaterialApp(
-      home: ScaffoldMessenger(
-        child: ConversationPage(
-          repo: repo,
-          onDone: () {},
-          exerciseStrategy: GermanLanguageExerciseStrategy(),
-          presentation: GermanLanguagePresentation(),
-          textNormalizer: GermanTextNormalizer(),
-          aiGateway: _MockAiGateway(),
-          privacySettings: LocalPrivacySettingsStore(prefs),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ScaffoldMessenger(
+          child: ConversationPage(
+            repo: repo,
+            onDone: () {},
+            exerciseStrategy: GermanLanguageExerciseStrategy(),
+            presentation: GermanLanguagePresentation(),
+            textNormalizer: GermanTextNormalizer(),
+            aiGateway: _MockAiGateway(),
+            privacySettings: LocalPrivacySettingsStore(prefs),
+          ),
         ),
       ),
-    ));
-    for(int i = 0; i < 50; i++) await tester.pump(const Duration(milliseconds: 100));
+    );
+    for (int i = 0; i < 50; i++)
+      await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(ConversationPage), findsOneWidget);
 

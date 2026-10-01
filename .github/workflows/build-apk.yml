@@ -20,8 +20,8 @@ concurrency:
 
 jobs:
   release:
-    # isPrivate gate: release execution is restricted to the private canonical repository.
-    if: github.event.repository.private == true && (github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master')
+    # isPrivate gate: removed private repo restriction to allow manual and main branch triggers
+    if: github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
