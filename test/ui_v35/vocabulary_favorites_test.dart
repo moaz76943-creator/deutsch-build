@@ -66,6 +66,7 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
+      preferencesService: prefs,
     );
 
     final corpus = [
@@ -110,5 +111,9 @@ void main() {
     // Verify BottomSheet opens with title
     expect(find.text('إضافة مفردة مخصصة'), findsOneWidget);
     expect(find.byType(TextFormField), findsWidgets);
+
+    // Dispose the widget tree to avoid leaking timers
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
   });
 }

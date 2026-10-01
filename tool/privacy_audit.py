@@ -18,6 +18,7 @@ _LOCAL_KEY_OWNERS = {
     'verb_favorites_v1': 'lib/services/repository.dart',
     'privacy_cloud_ai_v1': 'lib/services/privacy_settings.dart',
     'privacy_speech_v1': 'lib/services/privacy_settings.dart',
+    'vocabulary_view_mode': 'lib/ui_v35/learning_pages.dart',
 }
 _ALLOWED_LOCAL_KEYS = set(_LOCAL_KEY_OWNERS)
 _SENSITIVE = re.compile(r'(?i)(password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|cookie|session[_-]?token|email|phone|payment|card[_-]?number|billing)')
