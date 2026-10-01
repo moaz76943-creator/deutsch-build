@@ -43,8 +43,7 @@ class FakeSocialProvider implements SocialAuthenticationProvider {
       );
 }
 
-class FakeBackendAuthenticationGateway
-    implements BackendAuthenticationGateway {
+class FakeBackendAuthenticationGateway implements BackendAuthenticationGateway {
   FakeBackendAuthenticationGateway({
     this.google = const AccountSession.unauthenticated(),
     this.apple = const AccountSession.unauthenticated(),
@@ -86,8 +85,7 @@ class FakeBackendAuthenticationGateway
   @override
   Future<AccountSession> renewSession(
     SecureSessionCredentials credentials,
-  ) async =>
-      current;
+  ) async => current;
 
   @override
   Future<void> revokeSession(SecureSessionCredentials? credentials) async {
@@ -127,7 +125,8 @@ ProviderAuthenticationService serviceWith({
   SecureSessionStorage? secureSessionStorage,
 }) {
   final emailProvider = email ?? FakeOtpProvider();
-  final resolvedBackend = backend ??
+  final resolvedBackend =
+      backend ??
       FakeBackendAuthenticationGateway(
         email: emailProvider is FakeOtpProvider
             ? emailProvider.session ?? const AccountSession.unauthenticated()
@@ -167,10 +166,7 @@ void main() {
     );
 
     expect(
-      () => service.signInWithEmailOtp(
-        email: 'a@example.com',
-        otp: '123456',
-      ),
+      () => service.signInWithEmailOtp(email: 'a@example.com', otp: '123456'),
       throwsA(isA<AuthenticationFailure>()),
     );
     expect(
@@ -286,26 +282,28 @@ void main() {
     );
   });
 
-  test('sign out still revokes when secure credential storage is unreadable',
-      () async {
-    const authenticated = AccountSession.authenticated(
-      identity: AccountIdentity(userId: 'user-8'),
-    );
-    final backend = FakeBackendAuthenticationGateway(google: authenticated);
-    final service = serviceWith(
-      google: authenticated,
-      backend: backend,
-      secureSessionStorage: const FailingReadSecureSessionStorage(),
-    );
+  test(
+    'sign out still revokes when secure credential storage is unreadable',
+    () async {
+      const authenticated = AccountSession.authenticated(
+        identity: AccountIdentity(userId: 'user-8'),
+      );
+      final backend = FakeBackendAuthenticationGateway(google: authenticated);
+      final service = serviceWith(
+        google: authenticated,
+        backend: backend,
+        secureSessionStorage: const FailingReadSecureSessionStorage(),
+      );
 
-    await service.signInWithGoogle();
-    await service.signOut();
+      await service.signInWithGoogle();
+      await service.signOut();
 
-    expect(backend.revokeCalls, 1);
-    expect(backend.revokedCredentials, isNull);
-    expect(
-      await service.currentSession,
-      const AccountSession.unauthenticated(),
-    );
-  });
+      expect(backend.revokeCalls, 1);
+      expect(backend.revokedCredentials, isNull);
+      expect(
+        await service.currentSession,
+        const AccountSession.unauthenticated(),
+      );
+    },
+  );
 }

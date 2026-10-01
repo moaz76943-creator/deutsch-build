@@ -72,13 +72,6 @@ class VerbChallengeAttempt {
 
   @override
   int get hashCode {
-    return Object.hash(
-      id,
-      infinitive,
-      person,
-      isCorrect,
-      timestamp,
-      timeTaken,
-    );
+    return Object.hash(id, infinitive, person, isCorrect, timestamp, timeTaken);
   }
 }

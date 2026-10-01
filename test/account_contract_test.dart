@@ -69,13 +69,12 @@ void main() {
   test('authentication service is provider-neutral', () async {
     final AuthenticationService service = FakeAuthenticationService();
 
-    expect(await service.currentSession,
-        const AccountSession.unauthenticated());
     expect(
-      await service.signInWithEmailOtp(
-        email: 'a@example.com',
-        otp: '123456',
-      ),
+      await service.currentSession,
+      const AccountSession.unauthenticated(),
+    );
+    expect(
+      await service.signInWithEmailOtp(email: 'a@example.com', otp: '123456'),
       isA<AccountSession>(),
     );
     expect(await service.signInWithGoogle(), isA<AccountSession>());

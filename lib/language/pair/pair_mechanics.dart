@@ -60,9 +60,7 @@ final class PairEndpoint {
       );
     }
     if (!eligibility.allowsRole) {
-      throw StateError(
-        'pair endpoint requires explicit ELIGIBLE role',
-      );
+      throw StateError('pair endpoint requires explicit ELIGIBLE role');
     }
   }
 
@@ -94,10 +92,7 @@ final class DirectedPairOverrideRef {
   final String overrideId;
   final PairIdentity pair;
 
-  DirectedPairOverrideRef({
-    required this.overrideId,
-    required this.pair,
-  }) {
+  DirectedPairOverrideRef({required this.overrideId, required this.pair}) {
     _requireNonEmpty(overrideId, 'overrideId');
   }
 
@@ -116,8 +111,8 @@ final class PairRuleInputRequirement {
     required this.role,
     this.acceptsLimited = false,
     this.acceptsNotApplicable = false,
-  })  : assert(inputKey != ''),
-        assert(role != LanguageRole.user);
+  }) : assert(inputKey != ''),
+       assert(role != LanguageRole.user);
 }
 
 /// Mechanics-only rule metadata.
@@ -134,8 +129,9 @@ final class PairRule {
     required this.ruleVersion,
     required this.candidateKind,
     required List<PairRuleInputRequirement> requiredInputs,
-  }) : requiredInputs =
-            List<PairRuleInputRequirement>.unmodifiable(requiredInputs) {
+  }) : requiredInputs = List<PairRuleInputRequirement>.unmodifiable(
+         requiredInputs,
+       ) {
     _requireNonEmpty(ruleId, 'ruleId');
     _requireNonEmpty(ruleVersion, 'ruleVersion');
     _requireNonEmpty(candidateKind, 'candidateKind');
@@ -144,9 +140,7 @@ final class PairRule {
     for (final requirement in this.requiredInputs) {
       _requireNonEmpty(requirement.inputKey, 'inputKey');
       if (requirement.role == LanguageRole.user) {
-        throw ArgumentError(
-          'pair rules may require SOURCE/TARGET inputs only',
-        );
+        throw ArgumentError('pair rules may require SOURCE/TARGET inputs only');
       }
       final key = '${requirement.role.wireName}|${requirement.inputKey}';
       if (!seen.add(key)) {
@@ -181,11 +175,7 @@ final class PairInputFact {
 }
 
 /// Candidate-only lifecycle. Verified/readiness states deliberately do not exist.
-enum PairCandidateState {
-  derivedCandidate,
-  reviewNeeded,
-  conflict,
-}
+enum PairCandidateState { derivedCandidate, reviewNeeded, conflict }
 
 /// Immutable mechanics candidate. No method can promote it to readiness.
 final class PairCandidate {
@@ -262,9 +252,9 @@ abstract final class PairMechanics {
       );
     }
 
-    final requirements =
-        List<PairRuleInputRequirement>.from(rule.requiredInputs)
-          ..sort((a, b) => _requirementKey(a).compareTo(_requirementKey(b)));
+    final requirements = List<PairRuleInputRequirement>.from(
+      rule.requiredInputs,
+    )..sort((a, b) => _requirementKey(a).compareTo(_requirementKey(b)));
 
     final selected = <PairInputFact>[];
 
@@ -323,8 +313,7 @@ abstract final class PairMechanics {
         ].join('|'),
     ];
 
-    final fingerprint =
-        'hex-v1:${_hexUtf8(canonicalParts.join('\u001f'))}';
+    final fingerprint = 'hex-v1:${_hexUtf8(canonicalParts.join('\u001f'))}';
     final candidateId = [
       'pair-candidate-v1',
       _hexUtf8(pair.stableId),

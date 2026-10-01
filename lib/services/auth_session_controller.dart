@@ -66,10 +66,7 @@ final class AuthSessionController extends ChangeNotifier {
     required String otp,
   }) async {
     await _runAuthentication(() {
-      return _authenticationService.signInWithEmailOtp(
-        email: email,
-        otp: otp,
-      );
+      return _authenticationService.signInWithEmailOtp(email: email, otp: otp);
     });
   }
 
@@ -149,10 +146,10 @@ final class AuthSessionController extends ChangeNotifier {
   void _setSession(AccountSession session) {
     _session =
         session.isAuthenticated &&
-                session.identity != null &&
-                !session.requiresReauthentication
-            ? session
-            : const AccountSession.unauthenticated();
+            session.identity != null &&
+            !session.requiresReauthentication
+        ? session
+        : const AccountSession.unauthenticated();
   }
 
   void _setFailure(AuthenticationFailure failure) {

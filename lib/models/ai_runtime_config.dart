@@ -4,10 +4,11 @@
 /// values produce an unconfigured state so the composition root can fail
 /// closed to the offline gateway.
 final class AiRuntimeConfig {
-  const AiRuntimeConfig._(
-      {required this.baseUri,
-      required this.allowedHosts,
-      required this.allowedHostsValid});
+  const AiRuntimeConfig._({
+    required this.baseUri,
+    required this.allowedHosts,
+    required this.allowedHostsValid,
+  });
 
   static const String baseUrlDefine = 'DEUTSCH_AI_BASE_URL';
   static const String allowedHostsDefine = 'DEUTSCH_AI_ALLOWED_HOSTS';
@@ -25,8 +26,10 @@ final class AiRuntimeConfig {
 
   static AiRuntimeConfig fromEnvironment() {
     const rawBaseUrl = String.fromEnvironment(baseUrlDefine, defaultValue: '');
-    const rawAllowedHosts =
-        String.fromEnvironment(allowedHostsDefine, defaultValue: '');
+    const rawAllowedHosts = String.fromEnvironment(
+      allowedHostsDefine,
+      defaultValue: '',
+    );
     final baseUri = _parseBaseUri(rawBaseUrl);
     final parsed = _parseAllowedHosts(rawAllowedHosts);
     return AiRuntimeConfig._(
@@ -46,7 +49,9 @@ final class AiRuntimeConfig {
       return null;
     }
     if (uri.scheme.toLowerCase() != 'https' || uri.host.isEmpty) return null;
-    if (uri.userInfo.isNotEmpty || uri.query.isNotEmpty || uri.fragment.isNotEmpty) {
+    if (uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty) {
       return null;
     }
     if (uri.host.length > maxHostLength) return null;

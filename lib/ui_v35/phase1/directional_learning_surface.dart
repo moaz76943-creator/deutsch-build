@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 final class DirectionalLearningSurface extends StatelessWidget {
   final Widget child;
 
-  const DirectionalLearningSurface({
-    super.key,
-    required this.child,
-  });
+  const DirectionalLearningSurface({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

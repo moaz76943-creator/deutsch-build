@@ -90,19 +90,33 @@ class MockAiGateway implements AiGateway {
   bool get enabled => false;
 
   @override
-  Future<Map<String, dynamic>> evaluate({required String expected, required String prompt, required String answer, required Map<String, dynamic> schema}) async => {};
+  Future<Map<String, dynamic>> evaluate({
+    required String expected,
+    required String prompt,
+    required String answer,
+    required Map<String, dynamic> schema,
+  }) async => {};
 
   @override
-  Future<String> generate({required String prompt, required Map<String, dynamic> schema, String? contextData}) async => '';
+  Future<String> generate({
+    required String prompt,
+    required Map<String, dynamic> schema,
+    String? contextData,
+  }) async => '';
 
   @override
   Future<bool> get isAvailable async => false;
 
   @override
-  Future<AiReview> reviewWriting(String text, {String level = 'A1'}) async => const AiReview(corrected: '', issues: [], explanation: '');
+  Future<AiReview> reviewWriting(String text, {String level = 'A1'}) async =>
+      const AiReview(corrected: '', issues: [], explanation: '');
 
   @override
-  Future<String> continueConversation({required String scenario, required String message, String level = 'A1'}) async => '';
+  Future<String> continueConversation({
+    required String scenario,
+    required String message,
+    String level = 'A1',
+  }) async => '';
 }
 
 class MockPrivacySettings implements PrivacySettingsStore {
@@ -137,18 +151,21 @@ class MockPrivacySettings implements PrivacySettingsStore {
   Future<bool> setSpeech(bool value) async => true;
 }
 
-
 void main() {
-  testWidgets('ZenContextReader displays mastered vocabulary in paragraphs', (tester) async {
+  testWidgets('ZenContextReader displays mastered vocabulary in paragraphs', (
+    tester,
+  ) async {
     final prefs = MockPreferences();
     final persistence = LearnerPersistence(prefs, 'test_key', 'test_legacy');
     final repo = LearnerRepository(prefs, persistence: persistence);
 
     // Seed some mastered vocabulary
-    await repo.save(LearnerState(
-      learned: {'word1', 'word2', 'word3', 'word4'},
-      updatedAt: DateTime.now(),
-    ));
+    await repo.save(
+      LearnerState(
+        learned: {'word1', 'word2', 'word3', 'word4'},
+        updatedAt: DateTime.now(),
+      ),
+    );
 
     final corpus = [
       const TestItem('word1', 'Ich esse einen Apfel.'),
@@ -171,13 +188,20 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
     );
 
-    await tester.pumpWidget(MaterialApp(
-      home: ZenContextReader(repo: repo, dependencies: deps),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ZenContextReader(repo: repo, dependencies: deps),
+      ),
+    );
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Ich esse einen Apfel. Der Hund läuft schnell. Wir lernen Deutsch.'), findsOneWidget);
+    expect(
+      find.text(
+        'Ich esse einen Apfel. Der Hund läuft schnell. Wir lernen Deutsch.',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Das Haus ist groß.'), findsOneWidget);
   });
 }

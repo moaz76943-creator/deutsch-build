@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 enum BreathingPhase { inhale, holdIn, exhale, holdOut }
@@ -40,7 +41,9 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
         _timer = Timer(const Duration(seconds: 4), () {
           if (!mounted) return;
           setState(() => _currentPhase = BreathingPhase.exhale);
-          _controller.duration = const Duration(seconds: 4); // 4 seconds for exhale
+          _controller.duration = const Duration(
+            seconds: 4,
+          ); // 4 seconds for exhale
           _controller.reverse();
         });
       }
@@ -58,7 +61,9 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
             }
           } else {
             setState(() => _currentPhase = BreathingPhase.inhale);
-            _controller.duration = const Duration(seconds: 4); // 4 seconds for inhale
+            _controller.duration = const Duration(
+              seconds: 4,
+            ); // 4 seconds for inhale
             _controller.forward();
           }
         });
@@ -111,17 +116,15 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
             children: [
               Text(
                 'Micro-Break',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 2.0,
-                    ),
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w300, letterSpacing: 2.0),
               ),
               const SizedBox(height: 16),
               Text(
                 'Relax your eyes. Follow the rhythm.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 64),
               AnimatedBuilder(
@@ -138,9 +141,11 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                     height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: opacity * 0.2),
+                      color: Theme.of(context).colorScheme.primary
+                          .withValues(alpha: opacity * 0.2),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: opacity),
+                        color: Theme.of(context).colorScheme.primary
+                            .withValues(alpha: opacity),
                         width: 2.0,
                       ),
                     ),
@@ -152,7 +157,8 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                           height: 160,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: opacity * 0.5),
+                            color: Theme.of(context).colorScheme.primary
+                                .withValues(alpha: opacity * 0.5),
                           ),
                           child: Center(
                             child: Icon(
@@ -173,17 +179,15 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                 child: Text(
                   _promptText,
                   key: ValueKey<BreathingPhase>(_currentPhase),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(height: 32),
               Text(
                 'Cycle ${_cycleCount + 1} of $_maxCycles',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                style: Theme.of(context).textTheme.labelLarge
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
               const SizedBox(height: 48),
               TextButton(
@@ -195,7 +199,10 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                   }
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),

@@ -28,6 +28,7 @@ import 'content_a1_part_13.dart';
 import 'content_a1_part_14.dart';
 import 'content_a1_part_15.dart';
 import 'content_a1_part_16.dart';
+
 const a1 = <ContentItem>[
   ...a1Part01,
   ...a1Part02,
@@ -57,5 +58,4 @@ const a1 = <ContentItem>[
   ...a1ExpansionV180,
   ...a1ExpansionV123,
   ...a1ExpansionV125,
-
 ];

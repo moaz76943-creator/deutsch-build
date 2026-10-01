@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+
 import 'database_migration_helper.dart';
 
 class LocalHeatmapStore {

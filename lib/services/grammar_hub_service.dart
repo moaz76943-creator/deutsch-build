@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -73,7 +74,8 @@ class GrammarHubService {
   final String? _inMemoryPath;
 
   GrammarHubService({DatabaseFactory? factory, String? path})
-      : _dbFactory = factory, _inMemoryPath = path;
+    : _dbFactory = factory,
+      _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -84,7 +86,7 @@ class GrammarHubService {
   Future<Database> _initDB() async {
     String path;
     if (_inMemoryPath != null) {
-      path = _inMemoryPath!;
+      path = _inMemoryPath;
     } else {
       final dbPath = await getDatabasesPath();
       path = join(dbPath, _dbName);
@@ -93,18 +95,11 @@ class GrammarHubService {
     if (_dbFactory != null) {
       return await _dbFactory!.openDatabase(
         path,
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: _createDB,
-        ),
+        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
       );
     }
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -178,7 +173,8 @@ class GrammarHubService {
       'level': 'A2',
       'title_de': 'Perfekt',
       'title_ar': 'الماضي التام',
-      'explanation_markdown': 'Das Perfekt wird mit haben/sein + Partizip II gebildet.',
+      'explanation_markdown':
+          'Das Perfekt wird mit haben/sein + Partizip II gebildet.',
       'formula_pattern': 'haben/sein + ... + Partizip II',
       'order_index': 1,
       'is_mastered': 0,
@@ -197,7 +193,8 @@ class GrammarHubService {
       'question': 'Welches Hilfsverb wird für "gehen" im Perfekt verwendet?',
       'options_json': json.encode(['haben', 'werden', 'sein', 'wollen']),
       'correct_index': 2,
-      'explanation': 'Verben der Bewegung wie "gehen" bilden das Perfekt mit "sein".',
+      'explanation':
+          'Verben der Bewegung wie "gehen" bilden das Perfekt mit "sein".',
     });
     await db.insert('grammar_quizzes', {
       'topic_id': 'a2_perfekt',
@@ -207,14 +204,14 @@ class GrammarHubService {
       'explanation': 'Das Partizip II von "machen" ist "gemacht".',
     });
 
-
     // Seed B1
     await db.insert('grammar_topics', {
       'id': 'b1_passiv',
       'level': 'B1',
       'title_de': 'Passiv',
       'title_ar': 'المبني للمجهول',
-      'explanation_markdown': 'Das Passiv betont die Handlung, nicht den Täter.',
+      'explanation_markdown':
+          'Das Passiv betont die Handlung, nicht den Täter.',
       'formula_pattern': 'werden + Partizip II',
       'order_index': 1,
       'is_mastered': 0,
@@ -226,11 +223,13 @@ class GrammarHubService {
       'question': 'Welches Hilfsverb bildet das Vorgangspassiv?',
       'options_json': json.encode(['haben', 'werden', 'sein', 'können']),
       'correct_index': 1,
-      'explanation': 'Das Vorgangspassiv wird mit "werden" + Partizip II gebildet.',
+      'explanation':
+          'Das Vorgangspassiv wird mit "werden" + Partizip II gebildet.',
     });
     await db.insert('grammar_quizzes', {
       'topic_id': 'b1_passiv',
-      'question': 'Wie lautet das Partizip II im Passiv-Satz "Das Haus wird ___"?',
+      'question':
+          'Wie lautet das Partizip II im Passiv-Satz "Das Haus wird ___"?',
       'options_json': json.encode(['gebaut', 'bauen', 'baut', 'baute']),
       'correct_index': 0,
       'explanation': 'Das Partizip II von "bauen" ist "gebaut".',
@@ -238,9 +237,15 @@ class GrammarHubService {
     await db.insert('grammar_quizzes', {
       'topic_id': 'b1_passiv',
       'question': 'Was ist das Zustandspassiv von "Die Tür wird geschlossen"?',
-      'options_json': json.encode(['Die Tür wurde geschlossen', 'Die Tür ist geschlossen', 'Die Tür schließt', 'Die Tür hatte geschlossen']),
+      'options_json': json.encode([
+        'Die Tür wurde geschlossen',
+        'Die Tür ist geschlossen',
+        'Die Tür schließt',
+        'Die Tür hatte geschlossen',
+      ]),
       'correct_index': 1,
-      'explanation': 'Das Zustandspassiv wird mit "sein" + Partizip II gebildet.',
+      'explanation':
+          'Das Zustandspassiv wird mit "sein" + Partizip II gebildet.',
     });
 
     // Seed B2
@@ -273,7 +278,12 @@ class GrammarHubService {
     await db.insert('grammar_quizzes', {
       'topic_id': 'b2_konjunktiv2',
       'question': 'Welche Form wird oft als Ersatzform für den Konjunktiv II verwendet?',
-      'options_json': json.encode(['wäre + Partizip II', 'würde + Infinitiv', 'hätte + Infinitiv', 'wurde + Partizip II']),
+      'options_json': json.encode([
+        'wäre + Partizip II',
+        'würde + Infinitiv',
+        'hätte + Infinitiv',
+        'wurde + Partizip II',
+      ]),
       'correct_index': 1,
       'explanation': 'Die "würde + Infinitiv" Form wird als Ersatzform für schwache Verben und oft im Gesprochenen verwendet.',
     });
@@ -294,21 +304,36 @@ class GrammarHubService {
     await db.insert('grammar_quizzes', {
       'topic_id': 'c1_partizipialattribute',
       'question': 'Welches Partizip drückt Gleichzeitigkeit/Aktiv aus?',
-      'options_json': json.encode(['Partizip II', 'Partizip I', 'Infinitiv', 'Konjunktiv']),
+      'options_json': json.encode([
+        'Partizip II',
+        'Partizip I',
+        'Infinitiv',
+        'Konjunktiv',
+      ]),
       'correct_index': 1,
       'explanation': 'Das Partizip I (z.B. lesend) drückt aus, dass eine Handlung gerade stattfindet (aktiv).',
     });
     await db.insert('grammar_quizzes', {
       'topic_id': 'c1_partizipialattribute',
       'question': 'Welches Partizip drückt Vorzeitigkeit/Passiv aus?',
-      'options_json': json.encode(['Partizip I', 'Partizip II', 'Gerundium', 'Supinum']),
+      'options_json': json.encode([
+        'Partizip I',
+        'Partizip II',
+        'Gerundium',
+        'Supinum',
+      ]),
       'correct_index': 1,
       'explanation': 'Das Partizip II (z.B. gelesen) drückt eine abgeschlossene Handlung aus (oft passivisch).',
     });
     await db.insert('grammar_quizzes', {
       'topic_id': 'c1_partizipialattribute',
       'question': 'Wie lautet das Partizip I von "schreiben"?',
-      'options_json': json.encode(['geschrieben', 'schreibend', 'schrieb', 'schreiben']),
+      'options_json': json.encode([
+        'geschrieben',
+        'schreibend',
+        'schrieb',
+        'schreiben',
+      ]),
       'correct_index': 1,
       'explanation': 'Das Partizip I wird durch Anhängen von "d" an den Infinitiv gebildet: schreibend.',
     });

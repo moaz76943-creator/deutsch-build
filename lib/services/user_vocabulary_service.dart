@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+
 import 'database_migration_helper.dart';
 
 class UserVocabularyService {
@@ -39,20 +40,13 @@ class UserVocabularyService {
 
   Future<List<Map<String, dynamic>>> getCustomEntries() async {
     final db = await instance.database;
-    return await db.query(
-      'user_vocabulary',
-      orderBy: 'created_at DESC',
-    );
+    return await db.query('user_vocabulary', orderBy: 'created_at DESC');
   }
 
   Future<void> deleteCustomEntry(String id) async {
     final db = await instance.database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.delete(
-        'user_vocabulary',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await txn.delete('user_vocabulary', where: 'id = ?', whereArgs: [id]);
     });
   }
 
@@ -101,10 +95,7 @@ class FavoritesRepository {
       );
 
       if (maps.isEmpty) {
-        await txn.insert('vocabulary_favorites', {
-          'id': id,
-          'is_favorite': 1,
-        });
+        await txn.insert('vocabulary_favorites', {'id': id, 'is_favorite': 1});
       } else {
         final current = maps.first['is_favorite'] as int;
         await txn.update(

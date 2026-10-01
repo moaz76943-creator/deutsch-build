@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../ui_v35/safe_ui.dart';
 
 import '../models/content.dart';
@@ -28,25 +29,25 @@ class _AppState extends State<DeutschApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Deutsch بالعربي',
-        themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.indigo,
-          brightness: Brightness.light,
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.indigo,
-          brightness: Brightness.dark,
-        ),
-        home: Home(
-          repo: widget.repo,
-          dependencies: widget.dependencies,
-          onTheme: () => setState(() => dark = !dark),
-        ),
-      );
+    debugShowCheckedModeBanner: false,
+    title: 'Deutsch بالعربي',
+    themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+    theme: ThemeData(
+      useMaterial3: true,
+      colorSchemeSeed: Colors.indigo,
+      brightness: Brightness.light,
+    ),
+    darkTheme: ThemeData(
+      useMaterial3: true,
+      colorSchemeSeed: Colors.indigo,
+      brightness: Brightness.dark,
+    ),
+    home: Home(
+      repo: widget.repo,
+      dependencies: widget.dependencies,
+      onTheme: () => setState(() => dark = !dark),
+    ),
+  );
 }
 
 class Home extends StatefulWidget {
@@ -106,9 +107,7 @@ class _HomeState extends State<Home> {
         children: [
           Text(
             'مرحبًا 👋',
-            style: Theme.of(context)
-                .textTheme
-                .headlineMedium
+            style: Theme.of(context).textTheme.headlineMedium
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
@@ -127,9 +126,7 @@ class _HomeState extends State<Home> {
                   const SizedBox(height: 8),
                   Text(
                     decision.title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
+                    style: Theme.of(context).textTheme.headlineSmall
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 6),
@@ -141,7 +138,11 @@ class _HomeState extends State<Home> {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => LearningSession(repo:widget.repo,dependencies:widget.dependencies,onDone:refresh),
+                          builder: (_) => LearningSession(
+                            repo: widget.repo,
+                            dependencies: widget.dependencies,
+                            onDone: refresh,
+                          ),
                         ),
                       ),
                       icon: const Icon(Icons.play_arrow),
@@ -155,9 +156,7 @@ class _HomeState extends State<Home> {
           const SizedBox(height: 14),
           Text(
             'دليل التعلم',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
+            style: Theme.of(context).textTheme.titleLarge
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
@@ -190,7 +189,11 @@ class _HomeState extends State<Home> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => VocabularyPage(repo:widget.repo,dependencies:widget.dependencies,onDone:refresh),
+                builder: (_) => VocabularyPage(
+                  repo: widget.repo,
+                  dependencies: widget.dependencies,
+                  onDone: refresh,
+                ),
               ),
             ),
             icon: const Icon(Icons.menu_book_outlined),
@@ -201,7 +204,8 @@ class _HomeState extends State<Home> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => VerbPage(verbIndex:widget.dependencies.verbIndex),
+                builder: (_) =>
+                    VerbPage(verbIndex: widget.dependencies.verbIndex),
               ),
             ),
             icon: const Icon(Icons.spellcheck_outlined),
@@ -213,16 +217,16 @@ class _HomeState extends State<Home> {
   }
 
   Widget _proofRow(BuildContext context, String name, double value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          children: [
-            SizedBox(width: 92, child: Text(name)),
-            Expanded(child: LinearProgressIndicator(value: value)),
-            const SizedBox(width: 10),
-            Text('${(value * 100).round()}%'),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(
+      children: [
+        SizedBox(width: 92, child: Text(name)),
+        Expanded(child: LinearProgressIndicator(value: value)),
+        const SizedBox(width: 10),
+        Text('${(value * 100).round()}%'),
+      ],
+    ),
+  );
 }
 
 class LearningSession extends StatefulWidget {
@@ -256,9 +260,10 @@ class _SessionState extends State<LearningSession> {
     content = widget.dependencies.corpus;
     started = DateTime.now();
     final learned = widget.repo.load().learned;
-    order = List.generate(content.length, (x) => x)
-        .where((x) => !learned.contains(content[x].id))
-        .toList();
+    order = List.generate(
+      content.length,
+      (x) => x,
+    ).where((x) => !learned.contains(content[x].id)).toList();
     if (order.isEmpty) {
       order = List.generate(content.length, (x) => x);
     }
@@ -278,7 +283,11 @@ class _SessionState extends State<LearningSession> {
       item: item,
       answer: answer,
       correct: correct,
-      seconds: DateTime.now().difference(started).inSeconds.clamp(1, 999).toInt(),
+      seconds: DateTime.now()
+          .difference(started)
+          .inSeconds
+          .clamp(1, 999)
+          .toInt(),
       hinted: false,
     );
     if (!mounted) return;
@@ -287,71 +296,66 @@ class _SessionState extends State<LearningSession> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text('جلسة ${i + 1}/${order.length}')),
-        body: ListView(
-          padding: const EdgeInsets.all(18),
-          children: [
-            Text(item.topic, style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            Text(
-              item.translationText,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 10),
-            Text(item.exampleText, style: Theme.of(context).textTheme.titleLarge),
-            Text(item.exampleTranslationText),
-            const SizedBox(height: 18),
-            TextField(
-              enabled: !submitted,
-              onChanged: (x) => answer = x,
-              textDirection: TextDirection.ltr,
-              decoration: InputDecoration(
-                labelText:
-                    'اكتب بـ${widget.dependencies.languagePack.presentation.targetLanguageName}',
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (!submitted)
-              FilledButton(
-                onPressed: submit,
-                child: const Text('تحقق'),
-              )
-            else
-              Card(
-                child: ListTile(
-                  leading: Icon(correct ? Icons.check_circle : Icons.close),
-                  title: Text(correct ? 'أحسنت!' : 'ليس بعد'),
-                  subtitle: Text(
-                    correct
-                        ? 'إجابة صحيحة.'
-                        : 'الإجابة المستهدفة: ${item.sourceText}',
-                  ),
-                ),
-              ),
-            if (submitted)
-              FilledButton(
-                onPressed: () {
-                  if (i + 1 >= order.length) {
-                    widget.onDone();
-                    Navigator.pop(context);
-                  } else {
-                    setState(() {
-                      i++;
-                      submitted = false;
-                      answer = '';
-                      started = DateTime.now();
-                    });
-                  }
-                },
-                child: Text(i + 1 >= order.length ? 'إنهاء الجلسة' : 'التالي'),
-              ),
-          ],
+    appBar: AppBar(title: Text('جلسة ${i + 1}/${order.length}')),
+    body: ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        Text(item.topic, style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 8),
+        Text(
+          item.translationText,
+          style: Theme.of(context).textTheme.headlineMedium
+              ?.copyWith(fontWeight: FontWeight.w900),
         ),
-      );
+        const SizedBox(height: 10),
+        Text(item.exampleText, style: Theme.of(context).textTheme.titleLarge),
+        Text(item.exampleTranslationText),
+        const SizedBox(height: 18),
+        TextField(
+          enabled: !submitted,
+          onChanged: (x) => answer = x,
+          textDirection: TextDirection.ltr,
+          decoration: InputDecoration(
+            labelText:
+                'اكتب بـ${widget.dependencies.languagePack.presentation.targetLanguageName}',
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (!submitted)
+          FilledButton(onPressed: submit, child: const Text('تحقق'))
+        else
+          Card(
+            child: ListTile(
+              leading: Icon(correct ? Icons.check_circle : Icons.close),
+              title: Text(correct ? 'أحسنت!' : 'ليس بعد'),
+              subtitle: Text(
+                correct
+                    ? 'إجابة صحيحة.'
+                    : 'الإجابة المستهدفة: ${item.sourceText}',
+              ),
+            ),
+          ),
+        if (submitted)
+          FilledButton(
+            onPressed: () {
+              if (i + 1 >= order.length) {
+                widget.onDone();
+                Navigator.pop(context);
+              } else {
+                setState(() {
+                  i++;
+                  submitted = false;
+                  answer = '';
+                  started = DateTime.now();
+                });
+              }
+            },
+            child: Text(i + 1 >= order.length ? 'إنهاء الجلسة' : 'التالي'),
+          ),
+      ],
+    ),
+  );
 }
 
 class VocabularyPage extends StatefulWidget {
@@ -390,93 +394,97 @@ class _VocabState extends State<VocabularyPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text('A1 • ${content.length} مدخلًا')),
-        body: ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: content.length,
-          itemBuilder: (context, i) {
-            final item = content[i];
-            final issues =
-                widget.dependencies.languagePack.contentQuality.issues(item);
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    appBar: AppBar(title: Text('A1 • ${content.length} مدخلًا')),
+    body: ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: content.length,
+      itemBuilder: (context, i) {
+        final item = content[i];
+        final issues = widget.dependencies.languagePack.contentQuality.issues(
+          item,
+        );
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.sourceText,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 19,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: widget.dependencies.languagePack.presentation
-                              .pronunciationTooltip,
-                          onPressed: () => speak(item.sourceText),
-                          icon: const Icon(Icons.volume_up_outlined),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      item.translationText,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    if (item.grammaticalMarker.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          '${widget.dependencies.languagePack.presentation.grammaticalMarkerLabel}: '
-                          '${item.grammaticalMarker}'
-                          '${item.pluralForm.isEmpty ? '' : ' • ${widget.dependencies.languagePack.presentation.pluralLabel}: ${item.pluralForm}'}',
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                    Expanded(
+                      child: Text(
+                        item.sourceText,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 19,
                         ),
                       ),
-                    const Divider(),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.exampleText,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'نطق الجملة',
-                          onPressed: () => speak(item.exampleText),
-                          icon: const Icon(Icons.volume_up_outlined),
-                        ),
-                      ],
                     ),
-                    Text(item.exampleTranslationText),
-                    if (issues.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          'مراجعة: ${issues.join(' • ')}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
+                    IconButton(
+                      tooltip: widget
+                          .dependencies
+                          .languagePack
+                          .presentation
+                          .pronunciationTooltip,
+                      onPressed: () => speak(item.sourceText),
+                      icon: const Icon(Icons.volume_up_outlined),
+                    ),
                   ],
                 ),
-              ),
-            );
-          },
-        ),
-      );
+                Text(
+                  item.translationText,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                if (item.grammaticalMarker.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '${widget.dependencies.languagePack.presentation.grammaticalMarkerLabel}: '
+                      '${item.grammaticalMarker}'
+                      '${item.pluralForm.isEmpty ? '' : ' • ${widget.dependencies.languagePack.presentation.pluralLabel}: ${item.pluralForm}'}',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                const Divider(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.exampleText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'نطق الجملة',
+                      onPressed: () => speak(item.exampleText),
+                      icon: const Icon(Icons.volume_up_outlined),
+                    ),
+                  ],
+                ),
+                Text(item.exampleTranslationText),
+                if (issues.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      'مراجعة: ${issues.join(' • ')}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
 }
 
 class VerbPage extends StatefulWidget {
@@ -528,77 +536,75 @@ class _VerbPageState extends State<VerbPage> {
 
   @override
   Widget build(BuildContext context) => FutureBuilder<LearnerState>(
-        future: _stateFuture,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          state = snapshot.data!;
-          final catalog = widget.verbIndex;
-          final byGroup = catalog.groups;
-          final favorites = state.favoriteVerbs;
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('الأفعال • ${catalog.infinitives.length} فعل'),
-              actions: [
-                IconButton(
-                  tooltip: 'أفعالي المفضلة',
-                  onPressed: () => showModalBottomSheet(
-                    context: context,
-                    builder: (_) => Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: ListView(
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          Text(
-                            '⭐ أفعال أريد دراستها',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 10),
-                          ...favorites.map(
-                            (favorite) => ListTile(
-                              title: Text(favorite),
-                              trailing: IconButton(
-                                onPressed: () =>
-                                    _toggleFavorite(favorite, close: true),
-                                icon: const Icon(Icons.star, color: Colors.amber),
-                              ),
-                            ),
-                          ),
-                        ],
+    future: _stateFuture,
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      state = snapshot.data!;
+      final catalog = widget.verbIndex;
+      final byGroup = catalog.groups;
+      final favorites = state.favoriteVerbs;
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('الأفعال • ${catalog.infinitives.length} فعل'),
+          actions: [
+            IconButton(
+              tooltip: 'أفعالي المفضلة',
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                builder: (_) => Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      Text(
+                        '⭐ أفعال أريد دراستها',
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900),
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      ...favorites.map(
+                        (favorite) => ListTile(
+                          title: Text(favorite),
+                          trailing: IconButton(
+                            onPressed: () =>
+                                _toggleFavorite(favorite, close: true),
+                            icon: const Icon(Icons.star, color: Colors.amber),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  icon: const Icon(Icons.star_border),
                 ),
-              ],
+              ),
+              icon: const Icon(Icons.star_border),
             ),
-            body: ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(14),
-                    child: Text(
-                      'كل ضمير مستقل: ich، du، er، sie (هي)، es، wir، ihr، sie (هم)، Sie. '
-                      'كل تصريف يحتوي على الحاضر + الماضي + مثالين مترجمين.',
-                    ),
-                  ),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(12),
+          children: [
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(14),
+                child: Text(
+                  'كل ضمير مستقل: ich، du، er، sie (هي)، es، wir، ihr، sie (هم)، Sie. '
+                  'كل تصريف يحتوي على الحاضر + الماضي + مثالين مترجمين.',
                 ),
-                ...byGroup.entries.map(
-                  (group) => Card(
-                    child: ExpansionTile(
-                      title: Text(
-                        group.key,
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      subtitle: Text('${group.value.toSet().length} أفعال'),
-                      children: group.value.toSet().map((infinitive) {
+              ),
+            ),
+            ...byGroup.entries.map(
+              (group) => Card(
+                child: ExpansionTile(
+                  title: Text(
+                    group.key,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  subtitle: Text('${group.value.toSet().length} أفعال'),
+                  children: group.value
+                      .toSet()
+                      .map((infinitive) {
                         final rows = catalog.rowsFor(infinitive);
                         final favorite = favorites.contains(infinitive);
                         if (rows.isEmpty) {
@@ -632,15 +638,15 @@ class _VerbPageState extends State<VerbPage> {
                                         favorite
                                             ? Icons.star
                                             : Icons.star_border,
-                                        color:
-                                            favorite ? Colors.amber : null,
+                                        color: favorite ? Colors.amber : null,
                                       ),
                                     ),
                                     IconButton(
                                       tooltip: 'نطق الفعل',
                                       onPressed: () => speak(infinitive),
-                                      icon:
-                                          const Icon(Icons.volume_up_outlined),
+                                      icon: const Icon(
+                                        Icons.volume_up_outlined,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -721,15 +727,16 @@ class _VerbPageState extends State<VerbPage> {
                             ),
                           ),
                         );
-                      }).toList(growable: false),
-                    ),
-                  ),
+                      })
+                      .toList(growable: false),
                 ),
-              ],
+              ),
             ),
-          );
-        },
+          ],
+        ),
       );
+    },
+  );
 }
 
 class ProgressPage extends StatelessWidget {
@@ -738,57 +745,53 @@ class ProgressPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('تقدمك')),
-        body: ListView(
-          padding: const EdgeInsets.all(18),
-          children: [
-            Text(
-              'Skill Passport',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 12),
-            _row('Vocabulary', state.learned.length / 50),
-            _row('Grammar / Recall', Stats.score(state, 'recall')),
-            _row('Listening', Stats.score(state, 'listening')),
-            _row('Production', Stats.score(state, 'production')),
-            _row('Transfer', Stats.score(state, 'transfer')),
-            const SizedBox(height: 14),
-            Card(
-              child: ListTile(
-                title: Text(
-                  state.learned.length >= 40
-                      ? 'إنجاز قوي'
-                      : 'الملف ما زال قيد البناء',
-                ),
-                subtitle: Text(
-                  state.learned.length >= 40
-                      ? 'لديك دليل تعلم متنوع.'
-                      : 'نحتاج مزيدًا من الأدلة قبل إصدار شهادة إتقان.',
-                ),
-              ),
-            ),
-          ],
+    appBar: AppBar(title: const Text('تقدمك')),
+    body: ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        Text(
+          'Skill Passport',
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w900),
         ),
-      );
+        const SizedBox(height: 12),
+        _row('Vocabulary', state.learned.length / 50),
+        _row('Grammar / Recall', Stats.score(state, 'recall')),
+        _row('Listening', Stats.score(state, 'listening')),
+        _row('Production', Stats.score(state, 'production')),
+        _row('Transfer', Stats.score(state, 'transfer')),
+        const SizedBox(height: 14),
+        Card(
+          child: ListTile(
+            title: Text(
+              state.learned.length >= 40
+                  ? 'إنجاز قوي'
+                  : 'الملف ما زال قيد البناء',
+            ),
+            subtitle: Text(
+              state.learned.length >= 40
+                  ? 'لديك دليل تعلم متنوع.'
+                  : 'نحتاج مزيدًا من الأدلة قبل إصدار شهادة إتقان.',
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _row(String name, double value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7),
-        child: Row(
-          children: [
-            SizedBox(width: 130, child: Text(name)),
-            Expanded(
-              child: LinearProgressIndicator(
-                value: value.clamp(0, 1).toDouble(),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text('${(value.clamp(0, 1).toDouble() * 100).round()}%'),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 7),
+    child: Row(
+      children: [
+        SizedBox(width: 130, child: Text(name)),
+        Expanded(
+          child: LinearProgressIndicator(value: value.clamp(0, 1).toDouble()),
         ),
-      );
+        const SizedBox(width: 8),
+        Text('${(value.clamp(0, 1).toDouble() * 100).round()}%'),
+      ],
+    ),
+  );
 }
 
 class SettingsPage extends StatelessWidget {
@@ -797,49 +800,49 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('الإعدادات والخصوصية')),
-        body: ListView(
-          padding: const EdgeInsets.all(18),
-          children: [
-            const Card(
-              child: ListTile(
-                leading: Icon(Icons.lock_outline),
-                title: Text('الخصوصية أولًا'),
-                subtitle: Text(
-                  'التقدم والمحاولات محفوظة محليًا في هذا الإصدار. '
-                  'لا يوجد AI سحابي أو مزامنة سحابية مفعلة.',
-                ),
-              ),
+    appBar: AppBar(title: const Text('الإعدادات والخصوصية')),
+    body: ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        const Card(
+          child: ListTile(
+            leading: Icon(Icons.lock_outline),
+            title: Text('الخصوصية أولًا'),
+            subtitle: Text(
+              'التقدم والمحاولات محفوظة محليًا في هذا الإصدار. '
+              'لا يوجد AI سحابي أو مزامنة سحابية مفعلة.',
             ),
-            const Card(
-              child: ListTile(
-                leading: Icon(Icons.cloud_off_outlined),
-                title: Text('Offline'),
-                subtitle: Text(
-                  'المفردات، الجلسات، التقدم وTTS تعمل دون حساب سحابي.',
-                ),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.auto_awesome),
-                title: const Text('AI Teacher'),
-                subtitle: Text(AiTeacherContract.rules.join('\n')),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (adminToolsEnabled)
-              FilledButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const QualityPage()),
-                ),
-                icon: const Icon(Icons.admin_panel_settings_outlined),
-                label: const Text('مركز الجودة والإصدار'),
-              ),
-          ],
+          ),
         ),
-      );
+        const Card(
+          child: ListTile(
+            leading: Icon(Icons.cloud_off_outlined),
+            title: Text('Offline'),
+            subtitle: Text(
+              'المفردات، الجلسات، التقدم وTTS تعمل دون حساب سحابي.',
+            ),
+          ),
+        ),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.auto_awesome),
+            title: const Text('AI Teacher'),
+            subtitle: Text(AiTeacherContract.rules.join('\n')),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (adminToolsEnabled)
+          FilledButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QualityPage()),
+            ),
+            icon: const Icon(Icons.admin_panel_settings_outlined),
+            label: const Text('مركز الجودة والإصدار'),
+          ),
+      ],
+    ),
+  );
 }
 
 class QualityPage extends StatelessWidget {
@@ -855,9 +858,7 @@ class QualityPage extends StatelessWidget {
         children: [
           Text(
             'حالة المنتج',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
+            style: Theme.of(context).textTheme.headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           Text('$failed بوابات ما زالت غير مكتملة.'),
@@ -910,18 +911,20 @@ class MasteryDashboardPage extends StatelessWidget {
         children: [
           Text(
             'جاهزية الإتقان',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
+            style: Theme.of(context).textTheme.headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           LinearProgressIndicator(value: summary.readiness),
           const SizedBox(height: 12),
-          Text('${(summary.readiness * 100).round()}% • ${summary.readinessLabel}'),
+          Text(
+            '${(summary.readiness * 100).round()}% • ${summary.readinessLabel}',
+          ),
           Text('الخطوة التالية: ${summary.actionLabel}'),
           Text('قابلية الاسترجاع: ${(summary.retrievability * 100).round()}%'),
           Text('خطر النسيان: ${(summary.retentionRisk * 100).round()}%'),
-          Text('مستحق للمراجعة: ${summary.dueItems} • متأخر: ${summary.overdueItems}'),
+          Text(
+            'مستحق للمراجعة: ${summary.dueItems} • متأخر: ${summary.overdueItems}',
+          ),
         ],
       ),
     );

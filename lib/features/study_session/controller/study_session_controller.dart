@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../domain/study_session.dart';
 import '../domain/models.dart';
 import '../domain/cognitive_overload_shield.dart';
@@ -18,7 +19,8 @@ class StudySessionController extends ChangeNotifier {
   bool get isPaused => _isPaused;
   String? get interventionPrompt => _interventionPrompt;
   Flashcard? get currentCard {
-    if (session.activeQueue.isEmpty || session.currentCardIndex >= session.activeQueue.length) {
+    if (session.activeQueue.isEmpty ||
+        session.currentCardIndex >= session.activeQueue.length) {
       return null;
     }
     return session.activeQueue[session.currentCardIndex];

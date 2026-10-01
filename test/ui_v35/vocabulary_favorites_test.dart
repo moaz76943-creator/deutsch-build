@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import '../../lib/services/user_vocabulary_service.dart';
 import '../../lib/ui_v35/learning_pages.dart';
 import '../../lib/models/content.dart';
@@ -16,8 +17,11 @@ import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/language/german/german_language_pack.dart';
 import '../../lib/services/grammar_hub_service.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:io';
+
 import 'package:path/path.dart';
 
 class _MockAiGateway implements AiGateway {
@@ -30,7 +34,11 @@ class _MockAiGateway implements AiGateway {
   }
 
   @override
-  Future<String> continueConversation({required String scenario, required String message, String level = 'A1'}) async {
+  Future<String> continueConversation({
+    required String scenario,
+    required String message,
+    String level = 'A1',
+  }) async {
     return '';
   }
 }
@@ -50,15 +58,25 @@ void main() {
     }
   });
 
-  testWidgets('VocabularyV35 shows add custom word dialog', (WidgetTester tester) async {
+  testWidgets('VocabularyV35 shows add custom word dialog', (
+    WidgetTester tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     await SharedPreferences.getInstance();
     final prefs = await PreferencesService.instance();
-    final persistence = LearnerPersistence(prefs, LearnerRepository.key, LearnerRepository.legacyFavoriteKey);
+    final persistence = LearnerPersistence(
+      prefs,
+      LearnerRepository.key,
+      LearnerRepository.legacyFavoriteKey,
+    );
     final repo = LearnerRepository(prefs, persistence: persistence);
 
     final deps = AppDependencies<ContentItem>(
-      searchIndex: SearchIndex<ContentItem>(const [], VerbIndex(textNormalizer: const GermanTextNormalizer()), const GermanTextNormalizer()),
+      searchIndex: SearchIndex<ContentItem>(
+        const [],
+        VerbIndex(textNormalizer: const GermanTextNormalizer()),
+        const GermanTextNormalizer(),
+      ),
       verbIndex: VerbIndex(textNormalizer: const GermanTextNormalizer()),
       corpus: const [],
       languagePack: const GermanLanguagePack(),
@@ -81,22 +99,24 @@ void main() {
         skill: 'vocab',
         article: 'der',
         plural: 'Hunde',
-      )
+      ),
     ];
 
-    await tester.pumpWidget(MaterialApp(
-      home: ScaffoldMessenger(
-        child: VocabularyV35(
-          repo: repo,
-          corpus: corpus,
-          onDone: () {},
-          presentation: const GermanLanguagePresentation(),
-          contentQuality: const GermanContentQuality(),
-          textNormalizer: const GermanTextNormalizer(),
-          dependencies: deps,
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ScaffoldMessenger(
+          child: VocabularyV35(
+            repo: repo,
+            corpus: corpus,
+            onDone: () {},
+            presentation: const GermanLanguagePresentation(),
+            contentQuality: const GermanContentQuality(),
+            textNormalizer: const GermanTextNormalizer(),
+            dependencies: deps,
+          ),
         ),
       ),
-    ));
+    );
 
     // Wait for async initialization
     await tester.pumpAndSettle();

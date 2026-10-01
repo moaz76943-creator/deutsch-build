@@ -38,20 +38,33 @@ class MasteryDashboardSnapshot {
     required this.contentReport,
   });
 
-  String get readinessLabel => readiness >= .85 ? 'جاهز' : readiness >= .65 ? 'قريب' : readiness >= .45 ? 'يحتاج تثبيتًا' : 'يحتاج علاجًا';
-  String get actionLabel => const {
-    'review': 'راجع العناصر المعرضة للنسيان',
-    'learn': 'ابدأ بناء الدليل',
-    'recall': 'قوِّ التعرّف',
-    'listening': 'قوِّ الاستماع',
-    'production': 'قوِّ الإنتاج',
-    'transfer': 'قوِّ النقل إلى سياقات جديدة',
-    'consolidate': 'ثبّت ما تعلمته قبل التوسع',
-  }[nextAction] ?? nextAction;
+  String get readinessLabel => readiness >= .85
+      ? 'جاهز'
+      : readiness >= .65
+      ? 'قريب'
+      : readiness >= .45
+      ? 'يحتاج تثبيتًا'
+      : 'يحتاج علاجًا';
+  String get actionLabel =>
+      const {
+        'review': 'راجع العناصر المعرضة للنسيان',
+        'learn': 'ابدأ بناء الدليل',
+        'recall': 'قوِّ التعرّف',
+        'listening': 'قوِّ الاستماع',
+        'production': 'قوِّ الإنتاج',
+        'transfer': 'قوِّ النقل إلى سياقات جديدة',
+        'consolidate': 'ثبّت ما تعلمته قبل التوسع',
+      }[nextAction] ??
+      nextAction;
 }
 
 class MasteryDashboard {
-  static MasteryDashboardSnapshot build(LearnerState state, {required List<LearningContent> corpus, required LanguageContentIntelligence contentIntelligence, DateTime? now}) {
+  static MasteryDashboardSnapshot build(
+    LearnerState state, {
+    required List<LearningContent> corpus,
+    required LanguageContentIntelligence contentIntelligence,
+    DateTime? now,
+  }) {
     final at = now ?? DateTime.now();
     final items = corpus;
     final report = contentIntelligence.analyze(items);
@@ -72,11 +85,19 @@ class MasteryDashboard {
       (attemptsByItem[attempt.itemId] ??= <Attempt>[]).add(attempt);
     }
 
-    final activeItemIds = <String>{...attemptsByItem.keys, ...state.reviewCards.keys};
+    final activeItemIds = <String>{
+      ...attemptsByItem.keys,
+      ...state.reviewCards.keys,
+    };
     for (final itemId in activeItemIds) {
       final itemAttempts = attemptsByItem[itemId] ?? const <Attempt>[];
       final card = state.reviewCards[itemId];
-      final evidence = Mastery.forItemRows(itemId, itemAttempts, reviewCard: card, now: at);
+      final evidence = Mastery.forItemRows(
+        itemId,
+        itemAttempts,
+        reviewCard: card,
+        now: at,
+      );
       if (evidence.skillScores.isNotEmpty) {
         measured++;
         if (evidence.isMastered) mastered++;
@@ -99,24 +120,56 @@ class MasteryDashboard {
     }
 
     final cardCount = cards.length;
-    final retrievability = cardCount == 0 ? (state.learned.isEmpty ? 0.0 : .82) : retrievabilitySum / cardCount;
-    final retention = cardCount == 0 ? (state.learned.isEmpty ? 0.0 : .55) : retentionSum / cardCount;
+    final retrievability = cardCount == 0
+        ? (state.learned.isEmpty ? 0.0 : .82)
+        : retrievabilitySum / cardCount;
+    final retention = cardCount == 0
+        ? (state.learned.isEmpty ? 0.0 : .55)
+        : retentionSum / cardCount;
     final skillScores = <String, double>{};
-    for (final skill in const ['recall', 'listening', 'production', 'transfer']) {
+    for (final skill in const [
+      'recall',
+      'listening',
+      'production',
+      'transfer',
+    ]) {
       final n = skillCounts[skill] ?? 0;
       if (n > 0) skillScores[skill] = (skillTotals[skill] ?? 0) / n;
     }
     final weakest = _weakest(skillScores);
     final evidenceStrength = _evidenceStrength(state, measured);
-    final readiness = (skillScores.isEmpty
-            ? evidenceStrength * .55 + retrievability * .45
-            : skillScores.values.reduce((a, b) => a + b) / skillScores.length * .55 + retrievability * .25 + retention * .20)
-        .clamp(0.0, 1.0)
-        .toDouble();
-    final retentionRisk = (1 - retrievability) * .72 + (due == 0 ? 0 : (due / (cardCount == 0 ? due : cardCount)) * .28);
-    final nextAction = _nextAction(skillScores, retrievability, retention, state.attempts);
-    final nextReviewDays = retrievability <= 0 ? 0 : retrievability < .45 ? 0 : retrievability < .60 ? 1 : retrievability < .75 ? 2 : retrievability < .85 ? 4 : 7;
-    final ordered = priorities.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final readiness =
+        (skillScores.isEmpty
+                ? evidenceStrength * .55 + retrievability * .45
+                : skillScores.values.reduce((a, b) => a + b) /
+                          skillScores.length *
+                          .55 +
+                      retrievability * .25 +
+                      retention * .20)
+            .clamp(0.0, 1.0)
+            .toDouble();
+    final retentionRisk =
+        (1 - retrievability) * .72 +
+        (due == 0 ? 0 : (due / (cardCount == 0 ? due : cardCount)) * .28);
+    final nextAction = _nextAction(
+      skillScores,
+      retrievability,
+      retention,
+      state.attempts,
+    );
+    final nextReviewDays = retrievability <= 0
+        ? 0
+        : retrievability < .45
+        ? 0
+        : retrievability < .60
+        ? 1
+        : retrievability < .75
+        ? 2
+        : retrievability < .85
+        ? 4
+        : 7;
+    final ordered = priorities.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return MasteryDashboardSnapshot(
       readiness: readiness,
@@ -131,14 +184,19 @@ class MasteryDashboard {
       dueItems: due,
       overdueItems: overdue,
       activeErrorItems: activeErrors,
-      priorityItemIds: ordered.take(8).map((x) => x.key).toList(growable: false),
+      priorityItemIds: ordered
+          .take(8)
+          .map((x) => x.key)
+          .toList(growable: false),
       contentReport: report,
     );
   }
 
   static double _evidenceStrength(LearnerState state, int measuredItems) {
     final attempts = state.attempts.length;
-    return ((attempts / 60) * .55 + (measuredItems / 40) * .45).clamp(0.0, 1.0).toDouble();
+    return ((attempts / 60) * .55 + (measuredItems / 40) * .45)
+        .clamp(0.0, 1.0)
+        .toDouble();
   }
 
   static String _weakest(Map<String, double> scores) {
@@ -146,7 +204,12 @@ class MasteryDashboard {
     return scores.entries.reduce((a, b) => a.value <= b.value ? a : b).key;
   }
 
-  static String _nextAction(Map<String, double> scores, double retrievability, double retention, List<Attempt> attempts) {
+  static String _nextAction(
+    Map<String, double> scores,
+    double retrievability,
+    double retention,
+    List<Attempt> attempts,
+  ) {
     if (retrievability < .45) return 'review';
     if (scores.isEmpty) return attempts.isEmpty ? 'learn' : 'recall';
     final weak = _weakest(scores);

@@ -1,5 +1,1 @@
-enum ViewMode {
-  flashcard,
-  list,
-  grid
-}
+enum ViewMode { flashcard, list, grid }

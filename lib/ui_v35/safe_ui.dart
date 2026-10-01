@@ -6,8 +6,11 @@ export '../services/tts_service.dart';
 
 import '../services/tts_service.dart';
 
-Future<void> safeSpeak(SafeTtsController tts, String text, {double rate = .46}) =>
-    tts.speak(text, rate: rate);
+Future<void> safeSpeak(
+  SafeTtsController tts,
+  String text, {
+  double rate = .46,
+}) => tts.speak(text, rate: rate);
 
 Future<void> safeTtsStop(SafeTtsController tts) => tts.stop();
 

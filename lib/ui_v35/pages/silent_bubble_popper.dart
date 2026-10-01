@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 class BubbleItem {
@@ -90,14 +91,14 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
         });
       }
     } catch (e) {
-       // Fallback on error
-       final selectedEntries = [
-          {'id': 'e1', 'german_text': 'Apfel', 'arabic_translation': 'تفاحة'},
-          {'id': 'e2', 'german_text': 'Buch', 'arabic_translation': 'كتاب'},
-          {'id': 'e3', 'german_text': 'Wasser', 'arabic_translation': 'ماء'},
-       ];
-       _generateBubbles(selectedEntries);
-       if (mounted) {
+      // Fallback on error
+      final selectedEntries = [
+        {'id': 'e1', 'german_text': 'Apfel', 'arabic_translation': 'تفاحة'},
+        {'id': 'e2', 'german_text': 'Buch', 'arabic_translation': 'كتاب'},
+        {'id': 'e3', 'german_text': 'Wasser', 'arabic_translation': 'ماء'},
+      ];
+      _generateBubbles(selectedEntries);
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -112,29 +113,33 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
     for (var entry in entries) {
       final id = entry['id'] as String;
 
-      newBubbles.add(BubbleState(
-        item: BubbleItem(
-          id: '${id}_de',
-          text: entry['german_text'] as String,
-          isGerman: true,
-          matchingId: '${id}_ar',
+      newBubbles.add(
+        BubbleState(
+          item: BubbleItem(
+            id: '${id}_de',
+            text: entry['german_text'] as String,
+            isGerman: true,
+            matchingId: '${id}_ar',
+          ),
+          x: random.nextDouble(),
+          y: random.nextDouble(),
+          phase: random.nextDouble() * 2 * pi,
         ),
-        x: random.nextDouble(),
-        y: random.nextDouble(),
-        phase: random.nextDouble() * 2 * pi,
-      ));
+      );
 
-      newBubbles.add(BubbleState(
-        item: BubbleItem(
-          id: '${id}_ar',
-          text: entry['arabic_translation'] as String,
-          isGerman: false,
-          matchingId: '${id}_de',
+      newBubbles.add(
+        BubbleState(
+          item: BubbleItem(
+            id: '${id}_ar',
+            text: entry['arabic_translation'] as String,
+            isGerman: false,
+            matchingId: '${id}_de',
+          ),
+          x: random.nextDouble(),
+          y: random.nextDouble(),
+          phase: random.nextDouble() * 2 * pi,
         ),
-        x: random.nextDouble(),
-        y: random.nextDouble(),
-        phase: random.nextDouble() * 2 * pi,
-      ));
+      );
     }
 
     newBubbles.shuffle();
@@ -208,17 +213,15 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Silent Popper',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1.5,
-                    ),
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w300, letterSpacing: 1.5),
               ),
             ),
             Text(
               'Match the words to pop the bubbles.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             Expanded(
               child: LayoutBuilder(
@@ -227,11 +230,19 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
                     animation: _floatController,
                     builder: (context, child) {
                       return Stack(
-                        children: _bubbles.where((b) => !b.isMatched).map((bubble) {
+                        children: _bubbles.where((b) => !b.isMatched).map((
+                          bubble,
+                        ) {
                           // Calculate position with float
-                          final floatOffset = sin(bubble.phase + _floatController.value * 2 * pi) * 20;
+                          final floatOffset =
+                              sin(
+                                bubble.phase + _floatController.value * 2 * pi,
+                              ) *
+                              20;
                           final xPos = bubble.x * (constraints.maxWidth - 100);
-                          final yPos = bubble.y * (constraints.maxHeight - 100) + floatOffset;
+                          final yPos =
+                              bubble.y * (constraints.maxHeight - 100) +
+                              floatOffset;
 
                           return Positioned(
                             left: xPos.clamp(0.0, constraints.maxWidth - 100),
@@ -244,35 +255,52 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: bubble.isSelected
-                                      ? Theme.of(context).colorScheme.primaryContainer
-                                      : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+                                      ? Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                      : Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest
+                                            .withValues(alpha: 0.8),
                                   border: Border.all(
                                     color: bubble.isSelected
                                         ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                        : Theme.of(context).colorScheme.outline
+                                              .withValues(alpha: 0.3),
                                     width: bubble.isSelected ? 2.0 : 1.0,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .shadow
+                                          .withValues(alpha: 0.1),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
-                                    )
+                                    ),
                                   ],
                                 ),
                                 child: Center(
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Directionality(
-                                      textDirection: bubble.item.isGerman ? TextDirection.ltr : TextDirection.rtl,
+                                      textDirection: bubble.item.isGerman
+                                          ? TextDirection.ltr
+                                          : TextDirection.rtl,
                                       child: Text(
                                         bubble.item.text,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           color: bubble.isSelected
-                                              ? Theme.of(context).colorScheme.onPrimaryContainer
-                                              : Theme.of(context).colorScheme.onSurface,
-                                          fontWeight: bubble.isSelected ? FontWeight.bold : FontWeight.normal,
+                                              ? Theme.of(context)
+                                                    .colorScheme
+                                                    .onPrimaryContainer
+                                              : Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                          fontWeight: bubble.isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
                                         ),
                                       ),
                                     ),

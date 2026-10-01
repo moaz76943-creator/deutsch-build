@@ -16,7 +16,6 @@ import 'package:deutsch_bilarabi/models/content.dart';
 import 'package:deutsch_bilarabi/services/preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 void main() {
   late GrammarHubService service;
   late AppDependencies<ContentItem> dependencies;
@@ -40,36 +39,44 @@ void main() {
     final contentPack = languagePack.contentPack;
     final corpus = contentPack.items;
     final verbIndex = contentPack.verbIndex;
-    final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);
+    final searchIndex = SearchIndex(
+      corpus,
+      verbIndex,
+      languagePack.textNormalizer,
+    );
 
     dependencies = AppDependencies<ContentItem>(
-        searchIndex: searchIndex,
-        verbIndex: verbIndex,
-        corpus: corpus,
-        languagePack: languagePack,
-        aiGateway: AiGatewayFactory.fromRuntimeConfig(AiRuntimeConfig.fromEnvironment()),
-        privacySettings: LocalPrivacySettingsStore(prefs),
-        neuroSettings: NeuroAccessibilitySettings(prefs),
-        userVocabularyService: UserVocabularyService.instance,
-        favoritesRepository: FavoritesRepository.instance,
-        grammarHubService: service,
-      );
+      searchIndex: searchIndex,
+      verbIndex: verbIndex,
+      corpus: corpus,
+      languagePack: languagePack,
+      aiGateway: AiGatewayFactory.fromRuntimeConfig(
+        AiRuntimeConfig.fromEnvironment(),
+      ),
+      privacySettings: LocalPrivacySettingsStore(prefs),
+      neuroSettings: NeuroAccessibilitySettings(prefs),
+      userVocabularyService: UserVocabularyService.instance,
+      favoritesRepository: FavoritesRepository.instance,
+      grammarHubService: service,
+    );
   });
 
   tearDown(() async {
     await service.close();
   });
 
-  testWidgets('GrammarQuizPage loads and displays quiz questions', (WidgetTester tester) async {
+  testWidgets('GrammarQuizPage loads and displays quiz questions', (
+    WidgetTester tester,
+  ) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
         MaterialApp(
           home: ScaffoldMessenger(
-             child: GrammarQuizPage(
-               topicId: 'a1_nominativ',
-               dependencies: dependencies
-             ),
-          )
+            child: GrammarQuizPage(
+              topicId: 'a1_nominativ',
+              dependencies: dependencies,
+            ),
+          ),
         ),
       );
 
@@ -78,23 +85,28 @@ void main() {
       await tester.pumpAndSettle();
 
       // The question should be rendered
-      expect(find.text('Welcher Artikel steht im Nominativ für maskulin?'), findsOneWidget);
+      expect(
+        find.text('Welcher Artikel steht im Nominativ für maskulin?'),
+        findsOneWidget,
+      );
       // Verify options exist
       expect(find.text('der'), findsOneWidget);
       expect(find.text('den'), findsOneWidget);
     });
   });
 
-  testWidgets('GrammarQuizPage allows answering and gives feedback', (WidgetTester tester) async {
+  testWidgets('GrammarQuizPage allows answering and gives feedback', (
+    WidgetTester tester,
+  ) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
         MaterialApp(
           home: ScaffoldMessenger(
-             child: GrammarQuizPage(
-               topicId: 'a1_nominativ',
-               dependencies: dependencies
-             ),
-          )
+            child: GrammarQuizPage(
+              topicId: 'a1_nominativ',
+              dependencies: dependencies,
+            ),
+          ),
         ),
       );
 
@@ -106,7 +118,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Feedback and next button should appear
-      expect(find.text('"der" ist der maskuline Artikel im Nominativ.'), findsOneWidget);
+      expect(
+        find.text('"der" ist der maskuline Artikel im Nominativ.'),
+        findsOneWidget,
+      );
       expect(find.text('Next Question'), findsOneWidget);
     });
   });

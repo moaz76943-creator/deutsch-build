@@ -60,5 +60,5 @@ const generatedVerbConjugations = <VerbConjugation>[
   ...generatedVerbConjugationsChunk026,
   ...generatedVerbConjugationsChunk027,
   ...generatedVerbConjugationsChunk028,
-  ...generatedVerbConjugationsChunk029
+  ...generatedVerbConjugationsChunk029,
 ];

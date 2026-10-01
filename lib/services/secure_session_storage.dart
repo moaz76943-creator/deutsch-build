@@ -2,11 +2,7 @@ import '../models/secure_session_credentials.dart';
 
 /// Storage failures are deliberately non-semantic: callers must fail closed
 /// rather than inspect or recover credential contents.
-enum SecureSessionStorageFailureCode {
-  unavailable,
-  corrupted,
-  unreadable,
-}
+enum SecureSessionStorageFailureCode { unavailable, corrupted, unreadable }
 
 final class SecureSessionStorageFailure implements Exception {
   const SecureSessionStorageFailure(this.code);

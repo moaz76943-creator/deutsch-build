@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/database_migration_helper.dart';
@@ -33,7 +34,9 @@ void main() {
         path: dbPath,
         version: 1,
         onCreate: (db, version) async {
-          await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+          );
         },
         migrationScripts: {},
       );
@@ -52,7 +55,9 @@ void main() {
         path: dbPath,
         version: 1,
         onCreate: (db, version) async {
-          await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+          );
         },
         migrationScripts: {},
       );
@@ -66,9 +71,7 @@ void main() {
         version: 2,
         onCreate: (db, version) async {},
         migrationScripts: {
-          2: [
-            'ALTER TABLE Test ADD COLUMN age INTEGER',
-          ]
+          2: ['ALTER TABLE Test ADD COLUMN age INTEGER'],
         },
       );
 
@@ -102,7 +105,9 @@ void main() {
         path: dbPath,
         version: 1,
         onCreate: (db, version) async {
-          await db.execute('CREATE TABLE MigrationTest (id INTEGER PRIMARY KEY)');
+          await db.execute(
+            'CREATE TABLE MigrationTest (id INTEGER PRIMARY KEY)',
+          );
         },
         migrationScripts: {},
       );
@@ -114,12 +119,8 @@ void main() {
         version: 3,
         onCreate: (db, version) async {},
         migrationScripts: {
-          2: [
-            'ALTER TABLE MigrationTest ADD COLUMN col2 TEXT',
-          ],
-          3: [
-            'ALTER TABLE MigrationTest ADD COLUMN col3 TEXT',
-          ]
+          2: ['ALTER TABLE MigrationTest ADD COLUMN col2 TEXT'],
+          3: ['ALTER TABLE MigrationTest ADD COLUMN col3 TEXT'],
         },
       );
 

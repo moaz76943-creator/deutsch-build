@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../models/verb_conjugation.dart';
 import '../../services/verb_index.dart';
 import 'data/database.dart';
@@ -15,7 +16,8 @@ class VerbMatrixChallengePage extends StatefulWidget {
   });
 
   @override
-  State<VerbMatrixChallengePage> createState() => _VerbMatrixChallengePageState();
+  State<VerbMatrixChallengePage> createState() =>
+      _VerbMatrixChallengePageState();
 }
 
 class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
@@ -25,11 +27,21 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
   DateTime? _startTime;
   bool _isSubmitted = false;
 
-  final List<String> _pronouns = ['ich', 'du', 'er/sie/es', 'wir', 'ihr', 'sie/Sie'];
+  final List<String> _pronouns = [
+    'ich',
+    'du',
+    'er/sie/es',
+    'wir',
+    'ihr',
+    'sie/Sie',
+  ];
 
   // A mapping to simplify pronouns from the data model to the UI display
   String _normalizePronoun(String person) {
-    if (person == 'ich' || person == 'du' || person == 'wir' || person == 'ihr') {
+    if (person == 'ich' ||
+        person == 'du' ||
+        person == 'wir' ||
+        person == 'ihr') {
       return person;
     } else if (person == 'er' || person == 'sie (هي)' || person == 'es') {
       return 'er/sie/es';
@@ -93,9 +105,7 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
   @override
   Widget build(BuildContext context) {
     if (_selectedInfinitive == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Filter out verbs to just get one representative for each pronoun group
@@ -105,7 +115,8 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
     }
 
     // Get all possible forms for draggable items, specifically one for each pronoun slot
-    final forms = representativeVerbs.values.map((v) => v.form).toList()..shuffle();
+    final forms = representativeVerbs.values.map((v) => v.form).toList()
+      ..shuffle();
 
     return Scaffold(
       appBar: AppBar(
@@ -115,7 +126,7 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
             icon: const Icon(Icons.refresh),
             onPressed: _startNewRound,
             tooltip: 'تحدي جديد',
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -159,13 +170,19 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                       }
                     },
                     builder: (context, candidateData, rejectedData) {
-                      Color bgColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+                      Color bgColor = Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest;
                       if (candidateData.isNotEmpty) {
-                        bgColor = Theme.of(context).colorScheme.primaryContainer;
+                        bgColor = Theme.of(context)
+                            .colorScheme
+                            .primaryContainer;
                       } else if (isCorrect == true) {
-                        bgColor = const Color(0xFF0D9488).withValues(alpha: 0.3); // Deep Teal for success
+                        bgColor = const Color(0xFF0D9488)
+                            .withValues(alpha: 0.3); // Deep Teal for success
                       } else if (isCorrect == false) {
-                        bgColor = const Color(0xFFE11D48).withValues(alpha: 0.3); // Soft Crimson for error
+                        bgColor = const Color(0xFFE11D48)
+                            .withValues(alpha: 0.3); // Soft Crimson for error
                       }
 
                       return Container(
@@ -173,22 +190,31 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                           color: bgColor,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isCorrect == false ? const Color(0xFFE11D48) : Colors.transparent,
+                            color: isCorrect == false
+                                ? const Color(0xFFE11D48)
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                                borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
+                                color: Theme.of(context).colorScheme.primary
+                                    .withValues(alpha: 0.1),
+                                borderRadius: const BorderRadius.horizontal(
+                                  left: Radius.circular(14),
+                                ),
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 pronoun,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 textDirection: TextDirection.ltr,
                               ),
                             ),
@@ -198,7 +224,9 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                                   _userAnswers[pronoun] ?? '...',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: isAnswered ? null : Theme.of(context).disabledColor,
+                                    color: isAnswered
+                                        ? null
+                                        : Theme.of(context).disabledColor,
                                   ),
                                   textDirection: TextDirection.ltr,
                                 ),
@@ -209,7 +237,11 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                                 padding: const EdgeInsets.only(right: 8.0),
                                 child: Tooltip(
                                   message: 'الصحيح: ${expectedVerb.form}',
-                                  child: const Icon(Icons.help_outline, color: Color(0xFFE11D48), size: 20),
+                                  child: const Icon(
+                                    Icons.help_outline,
+                                    color: Color(0xFFE11D48),
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                             if (isAnswered && !_isSubmitted)
@@ -220,7 +252,7 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                                     _userAnswers.remove(pronoun);
                                   });
                                 },
-                              )
+                              ),
                           ],
                         ),
                       );
@@ -268,24 +300,46 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                         elevation: 4,
                         borderRadius: BorderRadius.circular(16),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Text(form, style: const TextStyle(fontSize: 18)),
+                          child: Text(
+                            form,
+                            style: const TextStyle(fontSize: 18),
+                          ),
                         ),
                       ),
                       childWhenDragging: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Text(form, style: TextStyle(color: Theme.of(context).disabledColor)),
+                        child: Text(
+                          form,
+                          style: TextStyle(
+                            color: Theme.of(context).disabledColor,
+                          ),
+                        ),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(16),
@@ -308,7 +362,9 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
               )
             else
               ElevatedButton(
-                onPressed: _userAnswers.length == _pronouns.length ? _submitAnswers : null,
+                onPressed: _userAnswers.length == _pronouns.length
+                    ? _submitAnswers
+                    : null,
                 child: const Text('تحقق من الإجابات'),
               ),
           ],

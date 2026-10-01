@@ -27,21 +27,19 @@ class ResponsiveNeuroLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget content = scrollable
-      ? SingleChildScrollView(
-          child: Padding(
-            // Ensure thumb-zone padding at the bottom (ergonomic reach).
-            padding: const EdgeInsets.only(bottom: 80.0),
-            child: child,
-          ),
-        )
-      : child;
+        ? SingleChildScrollView(
+            child: Padding(
+              // Ensure thumb-zone padding at the bottom (ergonomic reach).
+              padding: const EdgeInsets.only(bottom: 80.0),
+              child: child,
+            ),
+          )
+        : child;
 
     return SafeArea(
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: maxWidth,
-          ),
+          constraints: BoxConstraints(maxWidth: maxWidth),
           child: content,
         ),
       ),

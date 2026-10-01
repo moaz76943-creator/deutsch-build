@@ -7,11 +7,36 @@ void main() {
     const searchService = VocabularySearchService();
 
     final testCards = [
-      const Flashcard(id: '1', conceptId: 'apple_concept', german: 'Apfel', arabic: 'تفاحة'),
-      const Flashcard(id: '2', conceptId: 'bear_concept', german: 'Bär', arabic: 'دب'),
-      const Flashcard(id: '3', conceptId: 'lion_concept', german: 'Löwe', arabic: 'أسد'),
-      const Flashcard(id: '4', conceptId: 'sweet_concept', german: 'Süß', arabic: 'حلو'),
-      const Flashcard(id: '5', conceptId: 'greetings_concept', german: 'Guten Morgen!', arabic: 'صباح الخير، صديقي؟'),
+      const Flashcard(
+        id: '1',
+        conceptId: 'apple_concept',
+        german: 'Apfel',
+        arabic: 'تفاحة',
+      ),
+      const Flashcard(
+        id: '2',
+        conceptId: 'bear_concept',
+        german: 'Bär',
+        arabic: 'دب',
+      ),
+      const Flashcard(
+        id: '3',
+        conceptId: 'lion_concept',
+        german: 'Löwe',
+        arabic: 'أسد',
+      ),
+      const Flashcard(
+        id: '4',
+        conceptId: 'sweet_concept',
+        german: 'Süß',
+        arabic: 'حلو',
+      ),
+      const Flashcard(
+        id: '5',
+        conceptId: 'greetings_concept',
+        german: 'Guten Morgen!',
+        arabic: 'صباح الخير، صديقي؟',
+      ),
     ];
 
     test('Search filtering - matches concept_id', () {

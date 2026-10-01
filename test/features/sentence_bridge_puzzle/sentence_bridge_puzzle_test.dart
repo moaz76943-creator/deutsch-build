@@ -7,7 +7,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Mock database to avoid timeout issues during widget testing
 class MockSentenceBridgeDatabase extends SentenceBridgeDatabase {
-  MockSentenceBridgeDatabase() : super(factory: databaseFactoryFfi, path: inMemoryDatabasePath);
+  MockSentenceBridgeDatabase()
+    : super(factory: databaseFactoryFfi, path: inMemoryDatabasePath);
 
   @override
   Future<List<Map<String, dynamic>>> getRandomPuzzles(int count) async {
@@ -17,7 +18,7 @@ class MockSentenceBridgeDatabase extends SentenceBridgeDatabase {
         conceptId: 'c_test',
         germanSentence: 'Ich lerne Deutsch',
         arabicSentence: 'أنا أتعلم الألمانية',
-      ).toMap()
+      ).toMap(),
     ];
   }
 
@@ -34,40 +35,41 @@ void main() {
 
   Widget buildTestableWidget(SentenceBridgeDatabase db) {
     return MaterialApp(
-      home: Scaffold(
-        body: SentenceBridgePuzzleWidget(database: db),
-      ),
+      home: Scaffold(body: SentenceBridgePuzzleWidget(database: db)),
     );
   }
 
-  testWidgets('Renders puzzle, correctly assembles sentence, and verifies result', (WidgetTester tester) async {
-    final db = MockSentenceBridgeDatabase();
-    await tester.pumpWidget(buildTestableWidget(db));
+  testWidgets(
+    'Renders puzzle, correctly assembles sentence, and verifies result',
+    (WidgetTester tester) async {
+      final db = MockSentenceBridgeDatabase();
+      await tester.pumpWidget(buildTestableWidget(db));
 
-    // Wait for async load to finish
-    await tester.pumpAndSettle();
+      // Wait for async load to finish
+      await tester.pumpAndSettle();
 
-    // Verify hint exists
-    expect(find.text('أنا أتعلم الألمانية'), findsOneWidget);
+      // Verify hint exists
+      expect(find.text('أنا أتعلم الألمانية'), findsOneWidget);
 
-    // Verify scrambled words exist
-    expect(find.text('Ich'), findsOneWidget);
-    expect(find.text('lerne'), findsOneWidget);
-    expect(find.text('Deutsch'), findsOneWidget);
+      // Verify scrambled words exist
+      expect(find.text('Ich'), findsOneWidget);
+      expect(find.text('lerne'), findsOneWidget);
+      expect(find.text('Deutsch'), findsOneWidget);
 
-    // Tap words to assemble
-    await tester.tap(find.text('Ich'));
-    await tester.pump();
-    await tester.tap(find.text('lerne'));
-    await tester.pump();
-    await tester.tap(find.text('Deutsch'));
-    await tester.pump();
+      // Tap words to assemble
+      await tester.tap(find.text('Ich'));
+      await tester.pump();
+      await tester.tap(find.text('lerne'));
+      await tester.pump();
+      await tester.tap(find.text('Deutsch'));
+      await tester.pump();
 
-    // Check Answer
-    await tester.tap(find.text('Check'));
-    await tester.pumpAndSettle();
+      // Check Answer
+      await tester.tap(find.text('Check'));
+      await tester.pumpAndSettle();
 
-    // Verify success message
-    expect(find.text('Correct!'), findsOneWidget);
-  });
+      // Verify success message
+      expect(find.text('Correct!'), findsOneWidget);
+    },
+  );
 }

@@ -20,12 +20,7 @@ enum QualityGateDisposition {
 /// In particular, a candidate cannot satisfy a Golden requirement and a
 /// self-test result is only one evidence class among potentially many required
 /// quality gates.
-enum QualityEvidenceKind {
-  generic,
-  candidate,
-  golden,
-  selfTest,
-}
+enum QualityEvidenceKind { generic, candidate, golden, selfTest }
 
 /// One declared quality-gate requirement.
 ///
@@ -142,8 +137,8 @@ abstract final class QualityGateReducer {
 
     final evaluations = <QualityGateEvaluation>[];
     for (final requirement in requirements) {
-      final matching = evidenceByGate[requirement.gateId] ??
-          const <QualityGateEvidence>[];
+      final matching =
+          evidenceByGate[requirement.gateId] ?? const <QualityGateEvidence>[];
 
       if (matching.isEmpty) {
         evaluations.add(
@@ -174,8 +169,9 @@ abstract final class QualityGateReducer {
       evaluations.add(_evaluate(requirement, matching.single));
     }
 
-    final mandatory =
-        evaluations.where((item) => item.requirement.mandatory).toList();
+    final mandatory = evaluations
+        .where((item) => item.requirement.mandatory)
+        .toList();
     final mandatorySatisfied = mandatory.every((item) => item.satisfied);
 
     if (mandatorySatisfied) {
@@ -199,11 +195,7 @@ abstract final class QualityGateReducer {
   ) {
     final scopeFailure = _validateScope(requirement, evidence);
     if (scopeFailure != null) {
-      return _failure(
-        requirement,
-        QualityGateDisposition.fail,
-        scopeFailure,
-      );
+      return _failure(requirement, QualityGateDisposition.fail, scopeFailure);
     }
 
     if (requirement.requiredEvidenceKind != null &&
@@ -268,7 +260,8 @@ abstract final class QualityGateReducer {
           return capabilityEvaluation!;
         }
         final status = evidence.capabilityStatus;
-        final justified = status != null &&
+        final justified =
+            status != null &&
             status.state == LanguageCapabilityState.notApplicable &&
             status.justification != null &&
             status.justification!.trim().isNotEmpty;
@@ -359,7 +352,8 @@ abstract final class QualityGateReducer {
 
     if (binding != null &&
         capabilityStatus != null &&
-        (binding.capabilitySnapshotVersion != capabilityStatus.snapshotVersion ||
+        (binding.capabilitySnapshotVersion !=
+                capabilityStatus.snapshotVersion ||
             binding.capabilitySnapshotHash != capabilityStatus.snapshotHash)) {
       return 'capability snapshot does not match role evidence binding';
     }
@@ -388,9 +382,11 @@ abstract final class QualityGateReducer {
       return false;
     }
 
-    for (var index = 0;
-        index < left.consumedArtifactCoordinates.length;
-        index++) {
+    for (
+      var index = 0;
+      index < left.consumedArtifactCoordinates.length;
+      index++
+    ) {
       final leftCoordinate = left.consumedArtifactCoordinates[index];
       final rightCoordinate = right.consumedArtifactCoordinates[index];
       if (leftCoordinate.artifactType != rightCoordinate.artifactType ||
@@ -496,7 +492,8 @@ abstract final class QualityGateReducer {
           'required capability is UNSUPPORTED',
         );
       case LanguageCapabilityState.notApplicable:
-        final justified = status.justification != null &&
+        final justified =
+            status.justification != null &&
             status.justification!.trim().isNotEmpty;
         if (requirement.allowNotApplicable && justified) {
           return QualityGateEvaluation(
@@ -527,9 +524,7 @@ abstract final class QualityGateReducer {
     }
   }
 
-  static QualityGateEvaluation _pass(
-    QualityGateRequirement requirement,
-  ) {
+  static QualityGateEvaluation _pass(QualityGateRequirement requirement) {
     return QualityGateEvaluation(
       requirement: requirement,
       disposition: QualityGateDisposition.pass,

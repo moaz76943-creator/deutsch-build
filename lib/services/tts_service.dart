@@ -65,9 +65,13 @@ class SafeTtsController {
     ++_generation;
     // Do not await from a synchronous Flutter dispose callback.
     Future<void>(() async {
-      try { await engine.stop(); } catch (_) {}
+      try {
+        await engine.stop();
+      } catch (_) {}
       await _tail;
-      try { await engine.stop(); } catch (_) {}
+      try {
+        await engine.stop();
+      } catch (_) {}
     });
   }
 
@@ -93,7 +97,10 @@ class SafeTtsController {
           .toList();
       final locale = supported.contains('de-de')
           ? 'de-DE'
-          : supported.firstWhere((value) => value == 'de' || value.startsWith('de-'), orElse: () => '');
+          : supported.firstWhere(
+              (value) => value == 'de' || value.startsWith('de-'),
+              orElse: () => '',
+            );
       if (locale.isEmpty) {
         _voiceError = 'German TTS voice unavailable';
         _germanVoiceReady = false;
@@ -105,7 +112,9 @@ class SafeTtsController {
         dynamic germanVoice;
         for (final raw in voices) {
           if (raw is! Map) continue;
-          final voiceLocale = raw['locale']?.toString().replaceAll('_', '-').toLowerCase() ?? '';
+          final voiceLocale =
+              raw['locale']?.toString().replaceAll('_', '-').toLowerCase() ??
+              '';
           if (voiceLocale == 'de-de' || voiceLocale == locale.toLowerCase()) {
             germanVoice = raw;
             break;
@@ -116,9 +125,13 @@ class SafeTtsController {
           _germanVoiceReady = false;
           return false;
         }
-        await engine.setVoice(Map<String, String>.from(germanVoice.map(
-          (key, value) => MapEntry(key.toString(), value.toString()),
-        )));
+        await engine.setVoice(
+          Map<String, String>.from(
+            germanVoice.map(
+              (key, value) => MapEntry(key.toString(), value.toString()),
+            ),
+          ),
+        );
       }
       await engine.setLanguage(locale);
       _voiceError = null;
@@ -131,7 +144,6 @@ class SafeTtsController {
     }
   }
 }
-
 
 /// Backward-compatible helpers use the same per-controller serialization gate.
 class _TtsGate {
@@ -150,11 +162,17 @@ Future<void> _enqueueTts(
 ) {
   final gate = _gateFor(tts);
   final generation = gate.generation;
-  gate.tail = gate.tail.then<void>((_) => action(gate, generation)).catchError((_) {});
+  gate.tail = gate.tail
+      .then<void>((_) => action(gate, generation))
+      .catchError((_) {});
   return gate.tail;
 }
 
-Future<void> safeSpeak(SafeTtsController tts, String text, {double rate = .46}) async {
+Future<void> safeSpeak(
+  SafeTtsController tts,
+  String text, {
+  double rate = .46,
+}) async {
   if (text.trim().isEmpty) return;
   final gate = _gateFor(tts);
   if (gate.closed) return;

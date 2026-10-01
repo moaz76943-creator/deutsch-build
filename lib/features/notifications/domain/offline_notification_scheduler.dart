@@ -7,7 +7,7 @@ class OfflineNotificationScheduler {
   final FlutterLocalNotificationsPlugin _plugin;
 
   OfflineNotificationScheduler({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
     tz.initializeTimeZones();
@@ -17,16 +17,17 @@ class OfflineNotificationScheduler {
 
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-      macOS: initializationSettingsDarwin,
-    );
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+          macOS: initializationSettingsDarwin,
+        );
 
     await _plugin.initialize(settings: initializationSettings);
   }
@@ -48,15 +49,16 @@ class OfflineNotificationScheduler {
 
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
-      'daily_study_reminder_channel',
-      'Daily Study Reminder',
-      channelDescription: 'Reminds you to study German daily',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+          'daily_study_reminder_channel',
+          'Daily Study Reminder',
+          channelDescription: 'Reminds you to study German daily',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
 
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidNotificationDetails,
+    );
 
     await _plugin.zonedSchedule(
       id: 0,

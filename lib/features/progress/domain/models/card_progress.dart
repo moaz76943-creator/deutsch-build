@@ -44,23 +44,23 @@ class CardProgress {
     if (identical(this, other)) return true;
 
     return other is CardProgress &&
-      other.cardId == cardId &&
-      other.srsItemState == srsItemState &&
-      other.totalViews == totalViews &&
-      other.successCount == successCount &&
-      other.failureCount == failureCount &&
-      other.firstReviewedAt == firstReviewedAt &&
-      other.lastReviewedAt == lastReviewedAt;
+        other.cardId == cardId &&
+        other.srsItemState == srsItemState &&
+        other.totalViews == totalViews &&
+        other.successCount == successCount &&
+        other.failureCount == failureCount &&
+        other.firstReviewedAt == firstReviewedAt &&
+        other.lastReviewedAt == lastReviewedAt;
   }
 
   @override
   int get hashCode {
     return cardId.hashCode ^
-      srsItemState.hashCode ^
-      totalViews.hashCode ^
-      successCount.hashCode ^
-      failureCount.hashCode ^
-      firstReviewedAt.hashCode ^
-      lastReviewedAt.hashCode;
+        srsItemState.hashCode ^
+        totalViews.hashCode ^
+        successCount.hashCode ^
+        failureCount.hashCode ^
+        firstReviewedAt.hashCode ^
+        lastReviewedAt.hashCode;
   }
 }

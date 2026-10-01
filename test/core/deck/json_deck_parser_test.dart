@@ -36,11 +36,23 @@ void _parsesCanonicalMatrixFixture() {
   _expect(deck.metadata.totalCards, 1, 'card count');
 
   final card = deck.cards.single;
-  _expect(card.id, 'de-ar.a1.greeting.hallo.forward', 'canonical key maps to id');
+  _expect(
+    card.id,
+    'de-ar.a1.greeting.hallo.forward',
+    'canonical key maps to id',
+  );
   _expect(card.term, 'Hallo', 'source_text maps to term');
-  _expect(card.transliteration, 'haˈloː', 'source phonetics map to transliteration');
+  _expect(
+    card.transliteration,
+    'haˈloː',
+    'source phonetics map to transliteration',
+  );
   _expect(card.partOfSpeech, 'interjection', 'part of speech');
-  _expect(card.definitions['ar'], 'مرحباً', 'target text maps to target-language definition');
+  _expect(
+    card.definitions['ar'],
+    'مرحباً',
+    'target text maps to target-language definition',
+  );
   _expect(card.audioMarker, null, 'matrix schema has no audio marker field');
 
   final example = card.exampleSentences.single;
@@ -107,7 +119,11 @@ void _collectsMissingAndMalformedItemErrors() {
       targetLanguage: 'ar',
     ),
     (error) {
-      _expect(error.errors.length >= 5, true, 'multiple item errors must be collected');
+      _expect(
+        error.errors.length >= 5,
+        true,
+        'multiple item errors must be collected',
+      );
       _expect(
         error.errors.any((item) => item.path.endsWith('.target_text')),
         true,
@@ -148,7 +164,9 @@ void _rejectsDirectionalLanguageMismatch() {
     ),
     (error) {
       _expect(
-        error.errors.any((item) => item.code == DeckValidationErrorCode.directionMismatch),
+        error.errors.any(
+          (item) => item.code == DeckValidationErrorCode.directionMismatch,
+        ),
         true,
         'reverse direction must be rejected explicitly',
       );
@@ -174,7 +192,11 @@ void _preservesRtlAndLtrTextIntegrity() {
     targetLanguage: 'ar',
   );
 
-  _expect(deck.cards.single.term, source, 'LTR source text must round-trip exactly');
+  _expect(
+    deck.cards.single.term,
+    source,
+    'LTR source text must round-trip exactly',
+  );
   _expect(
     deck.cards.single.definitions['ar'],
     target,
@@ -202,10 +224,7 @@ void _usesSchemaDirectionTagsWithoutLanguageGuessing() {
           'source_direction': 'rtl',
           'target_direction': 'ltr',
         },
-        'phonetics': <String, String>{
-          'source': 'slaw',
-          'target': 'həˈloʊ',
-        },
+        'phonetics': <String, String>{'source': 'slaw', 'target': 'həˈloʊ'},
         'part_of_speech': 'interjection',
         'bidirectional_flag': false,
         'rtl_flag': true,
@@ -220,14 +239,17 @@ void _usesSchemaDirectionTagsWithoutLanguageGuessing() {
     targetLanguage: 'en',
   );
 
-  _expect(deck.cards.single.term, source, 'schema-provided RTL source must parse');
+  _expect(
+    deck.cards.single.term,
+    source,
+    'schema-provided RTL source must parse',
+  );
   _expect(
     deck.cards.single.definitions['en'],
     target,
     'schema-provided LTR target must parse',
   );
 }
-
 
 void _rejectsConceptIdThatViolatesSchemaPattern() {
   final parser = JsonDeckParser();

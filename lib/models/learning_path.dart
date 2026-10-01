@@ -5,7 +5,12 @@ class LearningPathItem {
   final String mode;
   final String reason;
   final int priority;
-  const LearningPathItem({required this.item, required this.mode, required this.reason, required this.priority});
+  const LearningPathItem({
+    required this.item,
+    required this.mode,
+    required this.reason,
+    required this.priority,
+  });
 }
 
 class LearningPath {
@@ -16,5 +21,13 @@ class LearningPath {
   final int newCount;
   final int listeningCount;
   final int productionCount;
-  const LearningPath({required this.items, required this.focusSkill, required this.reviewCount, required this.repairCount, required this.newCount, required this.listeningCount, required this.productionCount});
+  const LearningPath({
+    required this.items,
+    required this.focusSkill,
+    required this.reviewCount,
+    required this.repairCount,
+    required this.newCount,
+    required this.listeningCount,
+    required this.productionCount,
+  });
 }

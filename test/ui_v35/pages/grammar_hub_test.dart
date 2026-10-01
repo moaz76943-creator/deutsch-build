@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import '../../../lib/models/grammar.dart';
 import '../../../lib/ui_v35/pages/grammar_hub_page.dart';
 import '../../../lib/ui_v35/pages/grammar_topic_detail_page.dart';
 
 void main() {
   group('Grammar Hub UI', () {
-    testWidgets('GrammarHubPage renders tabs and topics', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: GrammarHubPage(),
-        ),
-      );
+    testWidgets('GrammarHubPage renders tabs and topics', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: GrammarHubPage()));
 
       expect(find.text('مركز القواعد'), findsOneWidget);
       expect(find.text('A1'), findsWidgets);
@@ -26,12 +25,10 @@ void main() {
       expect(find.text('الضمائر الشخصية'), findsWidgets);
     });
 
-    testWidgets('Tapping a topic navigates to details', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: GrammarHubPage(),
-        ),
-      );
+    testWidgets('Tapping a topic navigates to details', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: GrammarHubPage()));
 
       await tester.pumpAndSettle();
 
@@ -59,14 +56,12 @@ void main() {
             options: ['A', 'B', 'C'],
             correctAnswerIndex: 1,
             explanationAr: 'Explanation Text',
-          )
+          ),
         ],
       );
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: GrammarTopicDetailPage(topic: topic),
-        ),
+        const MaterialApp(home: GrammarTopicDetailPage(topic: topic)),
       );
 
       expect(find.text('Test Question'), findsOneWidget);

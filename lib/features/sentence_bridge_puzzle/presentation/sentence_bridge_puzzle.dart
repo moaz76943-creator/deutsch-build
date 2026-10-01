@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../domain/models.dart';
 import '../data/database.dart';
 
@@ -66,10 +67,13 @@ class _SentenceBridgePuzzleWidgetState
   Future<void> _checkAnswer() async {
     if (_currentPuzzle == null || _startTime == null) return;
 
-    final originalSentence = _currentPuzzle!.germanSentence.replaceAll(RegExp(r'[^\wäöüßÄÖÜ\s]'), '').trim();
+    final originalSentence = _currentPuzzle!.germanSentence
+        .replaceAll(RegExp(r'[^\wäöüßÄÖÜ\s]'), '')
+        .trim();
     final assembledSentence = _assembledWords.join(' ').trim();
 
-    final isCorrect = originalSentence.toLowerCase() == assembledSentence.toLowerCase();
+    final isCorrect =
+        originalSentence.toLowerCase() == assembledSentence.toLowerCase();
 
     final timeTakenMs = DateTime.now().difference(_startTime!).inMilliseconds;
 
@@ -99,9 +103,7 @@ class _SentenceBridgePuzzleWidgetState
     }
 
     if (_currentPuzzle == null) {
-      return Center(
-        child: Text(_feedbackMessage ?? "Unknown error"),
-      );
+      return Center(child: Text(_feedbackMessage ?? "Unknown error"));
     }
 
     return Padding(
@@ -159,7 +161,9 @@ class _SentenceBridgePuzzleWidgetState
               _feedbackMessage!,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _feedbackMessage == "Correct!" ? Colors.green : Colors.red,
+                color: _feedbackMessage == "Correct!"
+                    ? Colors.green
+                    : Colors.red,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),

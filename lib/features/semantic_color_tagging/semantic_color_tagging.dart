@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -9,7 +10,7 @@ enum GrammaticalClass {
   pluralNoun,
   verb,
   adjective,
-  other
+  other,
 }
 
 class SemanticColorTagging {
@@ -27,8 +28,8 @@ class SemanticColorTagging {
   final String? _inMemoryPath;
 
   SemanticColorTagging({DatabaseFactory? factory, String? path})
-      : _dbFactory = factory,
-        _inMemoryPath = path;
+    : _dbFactory = factory,
+      _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -39,7 +40,7 @@ class SemanticColorTagging {
   Future<Database> _initDB() async {
     String path;
     if (_inMemoryPath != null) {
-      path = _inMemoryPath!;
+      path = _inMemoryPath;
     } else {
       final dbPath = await getDatabasesPath();
       path = join(dbPath, _dbName);
@@ -48,18 +49,11 @@ class SemanticColorTagging {
     if (_dbFactory != null) {
       return await _dbFactory!.openDatabase(
         path,
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: _createDB,
-        ),
+        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
       );
     }
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -100,21 +94,24 @@ class SemanticColorTagging {
     }
   }
 
-  Future<void> tagAndSaveWord(String id, String word, String article, {bool isPlural = false}) async {
-    final gClass = isPlural ? GrammaticalClass.pluralNoun : determineClass(article, word);
+  Future<void> tagAndSaveWord(
+    String id,
+    String word,
+    String article, {
+    bool isPlural = false,
+  }) async {
+    final gClass = isPlural
+        ? GrammaticalClass.pluralNoun
+        : determineClass(article, word);
     final color = getColorForClass(gClass);
 
     final db = await database;
-    await db.insert(
-      _tableName,
-      {
-        'id': id,
-        'word': word,
-        'grammaticalClass': gClass.name,
-        'colorHex': color.value,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(_tableName, {
+      'id': id,
+      'word': word,
+      'grammaticalClass': gClass.name,
+      'colorHex': color.value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Color> getColorForWord(String id) async {

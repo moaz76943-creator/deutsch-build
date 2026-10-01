@@ -9,13 +9,16 @@ void main() {
       resolver = AudioPathResolver();
     });
 
-    test('should resolve valid canonical concept IDs to expected asset URIs', () {
-      final path = resolver.resolvePath('zug', 'de');
-      expect(path, 'assets/audio/de/zug.mp3');
+    test(
+      'should resolve valid canonical concept IDs to expected asset URIs',
+      () {
+        final path = resolver.resolvePath('zug', 'de');
+        expect(path, 'assets/audio/de/zug.mp3');
 
-      final path2 = resolver.resolvePath('auto', 'ar');
-      expect(path2, 'assets/audio/ar/auto.mp3');
-    });
+        final path2 = resolver.resolvePath('auto', 'ar');
+        expect(path2, 'assets/audio/ar/auto.mp3');
+      },
+    );
 
     test('should sanitize path against irregular characters', () {
       final path = resolver.resolvePath('z\u00FCg/test', 'de');

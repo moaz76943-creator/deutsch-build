@@ -5,7 +5,9 @@ import 'package:deutsch_bilarabi/services/neuro_accessibility_settings.dart';
 
 void main() {
   test('NeuroAccessibilitySettings loads and updates preference', () async {
-    SharedPreferences.setMockInitialValues({'neuro_accessibility_enabled': false});
+    SharedPreferences.setMockInitialValues({
+      'neuro_accessibility_enabled': false,
+    });
     final prefs = await PreferencesService.instance();
     final settings = NeuroAccessibilitySettings(prefs);
 

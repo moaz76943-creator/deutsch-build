@@ -1,5 +1,1 @@
-enum SrsItemState {
-  learning,
-  review,
-  mastered,
-}
+enum SrsItemState { learning, review, mastered }

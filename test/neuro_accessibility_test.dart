@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/ui_v35/theme/neuro_accessibility_mode.dart';
 
 void main() {
-  testWidgets('NeuroAccessibilityMode provides value to descendants', (tester) async {
+  testWidgets('NeuroAccessibilityMode provides value to descendants', (
+    tester,
+  ) async {
     bool value = false;
 
     await tester.pumpWidget(
@@ -21,7 +23,9 @@ void main() {
     expect(value, isTrue);
   });
 
-  testWidgets('NeuroAccessibilityMode fallback to false if not found', (tester) async {
+  testWidgets('NeuroAccessibilityMode fallback to false if not found', (
+    tester,
+  ) async {
     bool value = true;
 
     await tester.pumpWidget(

@@ -62,10 +62,12 @@ final class JsonDeckParser implements DeckParserContract {
     'bureaucracy_registration',
     'daily_essentials',
   };
-  static final RegExp _canonicalKeyPattern =
-      RegExp(r'^[A-Za-z0-9][A-Za-z0-9._:-]*$');
-  static final RegExp _languagePattern =
-      RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$');
+  static final RegExp _canonicalKeyPattern = RegExp(
+    r'^[A-Za-z0-9][A-Za-z0-9._:-]*$',
+  );
+  static final RegExp _languagePattern = RegExp(
+    r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$',
+  );
 
   @override
   ParsedDeck parse(
@@ -78,26 +80,36 @@ final class JsonDeckParser implements DeckParserContract {
 
     final normalizedDeckId = deckId.trim();
     if (normalizedDeckId.isEmpty) {
-      errors.add(const DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: r'$.deckId',
-        message: 'deckId must not be empty',
-      ));
+      errors.add(
+        const DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: r'$.deckId',
+          message: 'deckId must not be empty',
+        ),
+      );
     }
 
-    final expectedSource =
-        _normalizeLanguage(sourceLanguage, r'$.sourceLanguage', errors);
-    final expectedTarget =
-        _normalizeLanguage(targetLanguage, r'$.targetLanguage', errors);
+    final expectedSource = _normalizeLanguage(
+      sourceLanguage,
+      r'$.sourceLanguage',
+      errors,
+    );
+    final expectedTarget = _normalizeLanguage(
+      targetLanguage,
+      r'$.targetLanguage',
+      errors,
+    );
 
     if (expectedSource != null &&
         expectedTarget != null &&
         expectedSource == expectedTarget) {
-      errors.add(const DeckValidationError(
-        code: DeckValidationErrorCode.directionMismatch,
-        path: r'$.pair',
-        message: 'source and target languages must differ',
-      ));
+      errors.add(
+        const DeckValidationError(
+          code: DeckValidationErrorCode.directionMismatch,
+          path: r'$.pair',
+          message: 'source and target languages must differ',
+        ),
+      );
     }
 
     Object? decoded;
@@ -115,11 +127,13 @@ final class JsonDeckParser implements DeckParserContract {
 
     final root = _stringMap(decoded);
     if (root == null) {
-      errors.add(const DeckValidationError(
-        code: DeckValidationErrorCode.invalidRoot,
-        path: r'$',
-        message: 'dataset root must be an object',
-      ));
+      errors.add(
+        const DeckValidationError(
+          code: DeckValidationErrorCode.invalidRoot,
+          path: r'$',
+          message: 'dataset root must be an object',
+        ),
+      );
       throw DeckValidationException(errors);
     }
 
@@ -132,32 +146,41 @@ final class JsonDeckParser implements DeckParserContract {
       errors,
     );
     if (version != null && version != supportedSchemaVersion) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: r'$.schema_version',
-        message: 'expected schema version $supportedSchemaVersion, got $version',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: r'$.schema_version',
+          message:
+              'expected schema version $supportedSchemaVersion, got $version',
+        ),
+      );
     }
 
     final entriesValue = root['entries'];
     if (!root.containsKey('entries')) {
-      errors.add(const DeckValidationError(
-        code: DeckValidationErrorCode.missingRequiredField,
-        path: r'$.entries',
-        message: 'required property missing',
-      ));
+      errors.add(
+        const DeckValidationError(
+          code: DeckValidationErrorCode.missingRequiredField,
+          path: r'$.entries',
+          message: 'required property missing',
+        ),
+      );
     } else if (entriesValue is! List) {
-      errors.add(const DeckValidationError(
-        code: DeckValidationErrorCode.invalidFieldType,
-        path: r'$.entries',
-        message: 'expected array',
-      ));
+      errors.add(
+        const DeckValidationError(
+          code: DeckValidationErrorCode.invalidFieldType,
+          path: r'$.entries',
+          message: 'expected array',
+        ),
+      );
     } else if (entriesValue.isEmpty) {
-      errors.add(const DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: r'$.entries',
-        message: 'entries must contain at least one item',
-      ));
+      errors.add(
+        const DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: r'$.entries',
+          message: 'entries must contain at least one item',
+        ),
+      );
     }
 
     if (entriesValue is! List || entriesValue.isEmpty) {
@@ -173,11 +196,13 @@ final class JsonDeckParser implements DeckParserContract {
       final entry = _stringMap(entriesValue[index]);
 
       if (entry == null) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidFieldType,
-          path: itemPath,
-          message: 'entry must be an object',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidFieldType,
+            path: itemPath,
+            message: 'entry must be an object',
+          ),
+        );
         continue;
       }
 
@@ -192,11 +217,13 @@ final class JsonDeckParser implements DeckParserContract {
       );
       if (canonicalKey != null &&
           !_canonicalKeyPattern.hasMatch(canonicalKey)) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$itemPath.canonical_key',
-          message: 'canonical key does not match matrix schema pattern',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidValue,
+            path: '$itemPath.canonical_key',
+            message: 'canonical key does not match matrix schema pattern',
+          ),
+        );
       }
 
       final cefrLevel = _requiredString(
@@ -207,20 +234,24 @@ final class JsonDeckParser implements DeckParserContract {
         nonEmpty: true,
       );
       if (cefrLevel != null && !_cefrLevels.contains(cefrLevel)) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$itemPath.cefr_level',
-          message: 'unsupported CEFR level: $cefrLevel',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidValue,
+            path: '$itemPath.cefr_level',
+            message: 'unsupported CEFR level: $cefrLevel',
+          ),
+        );
       } else if (cefrLevel != null) {
         if (deckLevel == null) {
           deckLevel = cefrLevel;
         } else if (deckLevel != cefrLevel) {
-          errors.add(DeckValidationError(
-            code: DeckValidationErrorCode.inconsistentMetadata,
-            path: '$itemPath.cefr_level',
-            message: 'all entries in a deck must share one CEFR level',
-          ));
+          errors.add(
+            DeckValidationError(
+              code: DeckValidationErrorCode.inconsistentMetadata,
+              path: '$itemPath.cefr_level',
+              message: 'all entries in a deck must share one CEFR level',
+            ),
+          );
         }
       }
 
@@ -247,11 +278,13 @@ final class JsonDeckParser implements DeckParserContract {
         nonEmpty: true,
       );
       if (partOfSpeech != null && !_partsOfSpeech.contains(partOfSpeech)) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$itemPath.part_of_speech',
-          message: 'unsupported part_of_speech: $partOfSpeech',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidValue,
+            path: '$itemPath.part_of_speech',
+            message: 'unsupported part_of_speech: $partOfSpeech',
+          ),
+        );
       }
 
       _requiredBool(
@@ -260,12 +293,7 @@ final class JsonDeckParser implements DeckParserContract {
         '$itemPath.bidirectional_flag',
         errors,
       );
-      _requiredBool(
-        entry,
-        'rtl_flag',
-        '$itemPath.rtl_flag',
-        errors,
-      );
+      _requiredBool(entry, 'rtl_flag', '$itemPath.rtl_flag', errors);
 
       _validateOptionalEntryFields(entry, itemPath, errors);
 
@@ -317,11 +345,13 @@ final class JsonDeckParser implements DeckParserContract {
       if (entry.containsKey('example_sentence')) {
         final example = _stringMap(entry['example_sentence']);
         if (example == null) {
-          errors.add(DeckValidationError(
-            code: DeckValidationErrorCode.invalidFieldType,
-            path: '$itemPath.example_sentence',
-            message: 'expected object',
-          ));
+          errors.add(
+            DeckValidationError(
+              code: DeckValidationErrorCode.invalidFieldType,
+              path: '$itemPath.example_sentence',
+              message: 'expected object',
+            ),
+          );
         } else {
           _rejectUnexpectedKeys(
             example,
@@ -344,11 +374,13 @@ final class JsonDeckParser implements DeckParserContract {
             nonEmpty: true,
           );
           if (exampleSource != null && exampleTarget != null) {
-            exampleSentences.add(ExampleSentence(
-              textSource: exampleSource,
-              textTarget: exampleTarget,
-              contextNote: null,
-            ));
+            exampleSentences.add(
+              ExampleSentence(
+                textSource: exampleSource,
+                textTarget: exampleTarget,
+                contextNote: null,
+              ),
+            );
           }
         }
       }
@@ -360,18 +392,21 @@ final class JsonDeckParser implements DeckParserContract {
           partOfSpeech != null &&
           sourcePhonetics != null &&
           pairData != null) {
-        cards.add(VocabularyCard(
-          id: canonicalKey,
-          term: sourceText,
-          transliteration: sourcePhonetics,
-          partOfSpeech: partOfSpeech,
-          definitions: Map<String, String>.unmodifiable(
-            <String, String>{pairData.targetLanguage: targetText},
+        cards.add(
+          VocabularyCard(
+            id: canonicalKey,
+            term: sourceText,
+            transliteration: sourcePhonetics,
+            partOfSpeech: partOfSpeech,
+            definitions: Map<String, String>.unmodifiable(<String, String>{
+              pairData.targetLanguage: targetText,
+            }),
+            exampleSentences: List<ExampleSentence>.unmodifiable(
+              exampleSentences,
+            ),
+            audioMarker: null,
           ),
-          exampleSentences:
-              List<ExampleSentence>.unmodifiable(exampleSentences),
-          audioMarker: null,
-        ));
+        );
       }
     }
 
@@ -418,11 +453,13 @@ final class JsonDeckParser implements DeckParserContract {
         errors,
       );
       if (conceptId != null && !_canonicalKeyPattern.hasMatch(conceptId)) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$path.concept_id',
-          message: 'concept_id does not match matrix schema pattern',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidValue,
+            path: '$path.concept_id',
+            message: 'concept_id does not match matrix schema pattern',
+          ),
+        );
       }
     }
 
@@ -436,24 +473,32 @@ final class JsonDeckParser implements DeckParserContract {
     }
 
     if (entry.containsKey('domain')) {
-      final domain =
-          _optionalNonEmptyString(entry, 'domain', '$path.domain', errors);
+      final domain = _optionalNonEmptyString(
+        entry,
+        'domain',
+        '$path.domain',
+        errors,
+      );
       if (domain != null && !_domains.contains(domain)) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$path.domain',
-          message: 'unsupported domain: $domain',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidValue,
+            path: '$path.domain',
+            message: 'unsupported domain: $domain',
+          ),
+        );
       }
     }
 
     for (final key in <String>['source_rtl', 'target_rtl']) {
       if (entry.containsKey(key) && entry[key] is! bool) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidFieldType,
-          path: '$path.$key',
-          message: 'expected boolean',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidFieldType,
+            path: '$path.$key',
+            message: 'expected boolean',
+          ),
+        );
       }
     }
   }
@@ -505,68 +550,81 @@ final class JsonDeckParser implements DeckParserContract {
     }
 
     if (source != null && !_languagePattern.hasMatch(source)) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: '$path.source_language',
-        message: 'invalid language code',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: '$path.source_language',
+          message: 'invalid language code',
+        ),
+      );
     }
     if (target != null && !_languagePattern.hasMatch(target)) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: '$path.target_language',
-        message: 'invalid language code',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: '$path.target_language',
+          message: 'invalid language code',
+        ),
+      );
     }
 
     if (source != null && target != null) {
       if (source == target) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.directionMismatch,
-          path: path,
-          message: 'source and target language must differ',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.directionMismatch,
+            path: path,
+            message: 'source and target language must differ',
+          ),
+        );
       }
 
       if (expectedSource != null &&
           expectedTarget != null &&
           (source != expectedSource || target != expectedTarget)) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.directionMismatch,
-          path: path,
-          message:
-              'expected directed pair $expectedSource->$expectedTarget, got $source->$target',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.directionMismatch,
+            path: path,
+            message:
+                'expected directed pair $expectedSource->$expectedTarget, got $source->$target',
+          ),
+        );
       }
 
       final expectedId = '$source->$target';
       if (id != null && id != expectedId) {
-        errors.add(DeckValidationError(
-          code: DeckValidationErrorCode.invalidValue,
-          path: '$path.id',
-          message: 'expected directed pair id $expectedId',
-        ));
+        errors.add(
+          DeckValidationError(
+            code: DeckValidationErrorCode.invalidValue,
+            path: '$path.id',
+            message: 'expected directed pair id $expectedId',
+          ),
+        );
       }
-
     }
 
     if (sourceDirection != null &&
         sourceDirection != 'ltr' &&
         sourceDirection != 'rtl') {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: '$path.source_direction',
-        message: 'direction must be ltr or rtl',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: '$path.source_direction',
+          message: 'direction must be ltr or rtl',
+        ),
+      );
     }
     if (targetDirection != null &&
         targetDirection != 'ltr' &&
         targetDirection != 'rtl') {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: '$path.target_direction',
-        message: 'direction must be ltr or rtl',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: '$path.target_direction',
+          message: 'direction must be ltr or rtl',
+        ),
+      );
     }
 
     if (errors.length != before || source == null || target == null) {
@@ -582,11 +640,13 @@ final class JsonDeckParser implements DeckParserContract {
   ) {
     final normalized = value.trim().toLowerCase();
     if (!_languagePattern.hasMatch(normalized)) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: path,
-        message: 'invalid language code: $value',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: path,
+          message: 'invalid language code: $value',
+        ),
+      );
       return null;
     }
     return normalized;
@@ -598,14 +658,16 @@ final class JsonDeckParser implements DeckParserContract {
     String path,
     List<DeckValidationError> errors,
   ) {
-    final unexpected = object.keys.where((key) => !allowed.contains(key)).toList()
-      ..sort();
+    final unexpected =
+        object.keys.where((key) => !allowed.contains(key)).toList()..sort();
     for (final key in unexpected) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: '$path.$key',
-        message: 'unexpected property',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: '$path.$key',
+          message: 'unexpected property',
+        ),
+      );
     }
   }
 
@@ -617,28 +679,34 @@ final class JsonDeckParser implements DeckParserContract {
     bool nonEmpty = false,
   }) {
     if (!object.containsKey(key)) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.missingRequiredField,
-        path: path,
-        message: 'required property missing',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.missingRequiredField,
+          path: path,
+          message: 'required property missing',
+        ),
+      );
       return null;
     }
     final value = object[key];
     if (value is! String) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidFieldType,
-        path: path,
-        message: 'expected string',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidFieldType,
+          path: path,
+          message: 'expected string',
+        ),
+      );
       return null;
     }
     if (nonEmpty && value.isEmpty) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: path,
-        message: 'string must not be empty',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: path,
+          message: 'string must not be empty',
+        ),
+      );
       return null;
     }
     return value;
@@ -652,19 +720,23 @@ final class JsonDeckParser implements DeckParserContract {
   ) {
     final value = object[key];
     if (value is! String) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidFieldType,
-        path: path,
-        message: 'expected string',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidFieldType,
+          path: path,
+          message: 'expected string',
+        ),
+      );
       return null;
     }
     if (value.isEmpty) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidValue,
-        path: path,
-        message: 'string must not be empty',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidValue,
+          path: path,
+          message: 'string must not be empty',
+        ),
+      );
       return null;
     }
     return value;
@@ -677,20 +749,24 @@ final class JsonDeckParser implements DeckParserContract {
     List<DeckValidationError> errors,
   ) {
     if (!object.containsKey(key)) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.missingRequiredField,
-        path: path,
-        message: 'required property missing',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.missingRequiredField,
+          path: path,
+          message: 'required property missing',
+        ),
+      );
       return null;
     }
     final value = object[key];
     if (value is! bool) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidFieldType,
-        path: path,
-        message: 'expected boolean',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidFieldType,
+          path: path,
+          message: 'expected boolean',
+        ),
+      );
       return null;
     }
     return value;
@@ -703,20 +779,24 @@ final class JsonDeckParser implements DeckParserContract {
     List<DeckValidationError> errors,
   ) {
     if (!object.containsKey(key)) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.missingRequiredField,
-        path: path,
-        message: 'required property missing',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.missingRequiredField,
+          path: path,
+          message: 'required property missing',
+        ),
+      );
       return null;
     }
     final value = _stringMap(object[key]);
     if (value == null) {
-      errors.add(DeckValidationError(
-        code: DeckValidationErrorCode.invalidFieldType,
-        path: path,
-        message: 'expected object',
-      ));
+      errors.add(
+        DeckValidationError(
+          code: DeckValidationErrorCode.invalidFieldType,
+          path: path,
+          message: 'expected object',
+        ),
+      );
     }
     return value;
   }
@@ -738,10 +818,7 @@ final class JsonDeckParser implements DeckParserContract {
 }
 
 final class _PairData {
-  const _PairData({
-    required this.sourceLanguage,
-    required this.targetLanguage,
-  });
+  const _PairData({required this.sourceLanguage, required this.targetLanguage});
 
   final String sourceLanguage;
   final String targetLanguage;

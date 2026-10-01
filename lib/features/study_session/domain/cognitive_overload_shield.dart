@@ -7,10 +7,7 @@ class CognitiveOverloadShield {
     this.minimumAnswersBeforeCheck = 10,
   });
 
-  bool isOverloaded({
-    required int totalAnswers,
-    required int correctAnswers,
-  }) {
+  bool isOverloaded({required int totalAnswers, required int correctAnswers}) {
     if (totalAnswers < minimumAnswersBeforeCheck) {
       return false;
     }

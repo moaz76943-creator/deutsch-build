@@ -9,7 +9,7 @@ import 'secure_session_storage.dart';
 /// The Dart layer never handles keys, ciphertext, or storage files.
 final class AndroidSecureSessionStorage implements SecureSessionStorage {
   AndroidSecureSessionStorage({MethodChannel? channel})
-      : _channel = channel ?? const MethodChannel(_channelName);
+    : _channel = channel ?? const MethodChannel(_channelName);
 
   static const String _channelName =
       'com.deutschbilarabi.app/secure_session_storage';
@@ -41,7 +41,10 @@ final class AndroidSecureSessionStorage implements SecureSessionStorage {
   Future<void> replace(SecureSessionCredentials credentials) =>
       save(credentials);
 
-  Future<T?> _invoke<T>(String method, [Map<String, Object?>? arguments]) async {
+  Future<T?> _invoke<T>(
+    String method, [
+    Map<String, Object?>? arguments,
+  ]) async {
     try {
       return await _channel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (error) {

@@ -48,10 +48,7 @@ final class EmailOtpRequest {
 ///
 /// The OTP is transient input and is never copied into AccountSession.
 final class EmailOtpVerification {
-  const EmailOtpVerification({
-    required this.email,
-    required this.otp,
-  });
+  const EmailOtpVerification({required this.email, required this.otp});
 
   final String email;
   final String otp;

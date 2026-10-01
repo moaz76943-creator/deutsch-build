@@ -23,11 +23,7 @@ class SmartMistakesLedger {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -41,7 +37,11 @@ class SmartMistakesLedger {
     ''');
   }
 
-  Future<void> logMistake(String wordId, String rating, DateTime timestamp) async {
+  Future<void> logMistake(
+    String wordId,
+    String rating,
+    DateTime timestamp,
+  ) async {
     final db = await instance.database;
     final timestampString = timestamp.toIso8601String();
 

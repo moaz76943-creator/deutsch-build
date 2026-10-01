@@ -11,7 +11,9 @@ void main() {
     sqfliteFfiInit();
   });
 
-  testWidgets('VerbMatrixChallengePage renders and allows interaction', (WidgetTester tester) async {
+  testWidgets('VerbMatrixChallengePage renders and allows interaction', (
+    WidgetTester tester,
+  ) async {
     final normalizer = GermanTextNormalizer();
     final verbIndex = VerbIndex(textNormalizer: normalizer);
 
@@ -19,14 +21,16 @@ void main() {
     // However, if we construct VerbMatrixChallengePage and it renders CircularProgressIndicator
     // because infinitives is empty, that is fine for the first frame. We will test the UI renders successfully without crashing.
 
-    final database = VerbMatrixDatabase(factory: databaseFactoryFfi, path: inMemoryDatabasePath);
+    final database = VerbMatrixDatabase(
+      factory: databaseFactoryFfi,
+      path: inMemoryDatabasePath,
+    );
 
-    await tester.pumpWidget(MaterialApp(
-      home: VerbMatrixChallengePage(
-        verbIndex: verbIndex,
-        database: database,
+    await tester.pumpWidget(
+      MaterialApp(
+        home: VerbMatrixChallengePage(verbIndex: verbIndex, database: database),
       ),
-    ));
+    );
 
     await tester.pumpAndSettle();
 

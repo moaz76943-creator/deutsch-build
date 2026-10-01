@@ -12,7 +12,8 @@ class GrammarTopicsData {
         GrammarRule(
           id: 'a1_pronouns_nominative',
           title: 'الضمائر في حالة الرفع (Nominativ)',
-          explanationAr: 'تُستخدم الضمائر الشخصية كفاعل في الجملة وتحل محل الاسم.',
+          explanationAr:
+              'تُستخدم الضمائر الشخصية كفاعل في الجملة وتحل محل الاسم.',
           table: [
             ['ich', 'أنا'],
             ['du', 'أنت (مفرد)'],
@@ -25,7 +26,10 @@ class GrammarTopicsData {
             ['Sie', 'حضرتك (للاحترام)'],
           ],
           examples: [
-            GrammarExample(german: 'Ich lerne Deutsch.', arabic: 'أنا أتعلم الألمانية.'),
+            GrammarExample(
+              german: 'Ich lerne Deutsch.',
+              arabic: 'أنا أتعلم الألمانية.',
+            ),
             GrammarExample(german: 'Er ist Lehrer.', arabic: 'هو معلم.'),
           ],
         ),
@@ -36,7 +40,8 @@ class GrammarTopicsData {
           questionText: 'أي ضمير نستخدمه للاحترام؟',
           options: ['sie', 'Sie', 'ihr'],
           correctAnswerIndex: 1,
-          explanationAr: 'الضمير "Sie" المكتوب بحرف كبير يُستخدم لصيغة الاحترام.',
+          explanationAr:
+              'الضمير "Sie" المكتوب بحرف كبير يُستخدم لصيغة الاحترام.',
         ),
         MiniCheckQuestion(
           id: 'q_a1_pronouns_2',
@@ -59,7 +64,8 @@ class GrammarTopicsData {
       level: 'A2',
       titleDe: 'Das Perfekt',
       titleAr: 'الماضي التام',
-      summaryAr: 'كيف تتحدث عن الماضي في المحادثات اليومية باستخدام الماضي التام.',
+      summaryAr:
+          'كيف تتحدث عن الماضي في المحادثات اليومية باستخدام الماضي التام.',
       rules: [
         GrammarRule(
           id: 'a2_perfect_formation',
@@ -71,8 +77,14 @@ class GrammarTopicsData {
             ['Er', 'ist', 'nach Hause', 'gegangen.'],
           ],
           examples: [
-            GrammarExample(german: 'Wir haben gestern Fußball gespielt.', arabic: 'لقد لعبنا كرة القدم أمس.'),
-            GrammarExample(german: 'Sie ist nach Berlin gefahren.', arabic: 'لقد سافرت إلى برلين.'),
+            GrammarExample(
+              german: 'Wir haben gestern Fußball gespielt.',
+              arabic: 'لقد لعبنا كرة القدم أمس.',
+            ),
+            GrammarExample(
+              german: 'Sie ist nach Berlin gefahren.',
+              arabic: 'لقد سافرت إلى برلين.',
+            ),
           ],
         ),
       ],
@@ -104,8 +116,14 @@ class GrammarTopicsData {
             ['Plural', 'die'],
           ],
           examples: [
-            GrammarExample(german: 'Das ist der Mann, der hier arbeitet.', arabic: 'هذا هو الرجل الذي يعمل هنا.'),
-            GrammarExample(german: 'Die Frau, die dort steht, ist meine Mutter.', arabic: 'المرأة التي تقف هناك هي أمي.'),
+            GrammarExample(
+              german: 'Das ist der Mann, der hier arbeitet.',
+              arabic: 'هذا هو الرجل الذي يعمل هنا.',
+            ),
+            GrammarExample(
+              german: 'Die Frau, die dort steht, ist meine Mutter.',
+              arabic: 'المرأة التي تقف هناك هي أمي.',
+            ),
           ],
         ),
       ],
@@ -135,7 +153,10 @@ class GrammarTopicsData {
             ['Das Auto', 'wird', 'heute', 'repariert.'],
           ],
           examples: [
-            GrammarExample(german: 'Der Brief wird geschrieben.', arabic: 'الرسالة تُكتب.'),
+            GrammarExample(
+              german: 'Der Brief wird geschrieben.',
+              arabic: 'الرسالة تُكتب.',
+            ),
           ],
         ),
       ],
@@ -154,7 +175,8 @@ class GrammarTopicsData {
       level: 'C1',
       titleDe: 'Konjunktiv I',
       titleAr: 'صيغة الاحتمال الأولى',
-      summaryAr: 'استخدام Konjunktiv I لنقل الكلام غير المباشر بأسلوب أكاديمي وصحفي.',
+      summaryAr:
+          'استخدام Konjunktiv I لنقل الكلام غير المباشر بأسلوب أكاديمي وصحفي.',
       rules: [
         GrammarRule(
           id: 'c1_konjunktiv1_formation',
@@ -169,7 +191,11 @@ class GrammarTopicsData {
             ['sie/Sie', 'gehen'],
           ],
           examples: [
-            GrammarExample(german: 'Der Sprecher sagte, der Präsident besuche morgen die Stadt.', arabic: 'قال المتحدث إن الرئيس سيزور المدينة غداً.'),
+            GrammarExample(
+              german:
+                  'Der Sprecher sagte, der Präsident besuche morgen die Stadt.',
+              arabic: 'قال المتحدث إن الرئيس سيزور المدينة غداً.',
+            ),
           ],
         ),
       ],
@@ -200,7 +226,11 @@ class GrammarTopicsData {
             ['lesen', 'das Lesen'],
           ],
           examples: [
-            GrammarExample(german: 'Die schnelle Entwicklung der Technologie ist faszinierend.', arabic: 'التطور السريع للتكنولوجيا مذهل.'),
+            GrammarExample(
+              german:
+                  'Die schnelle Entwicklung der Technologie ist faszinierend.',
+              arabic: 'التطور السريع للتكنولوجيا مذهل.',
+            ),
           ],
         ),
       ],

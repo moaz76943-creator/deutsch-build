@@ -1,9 +1,4 @@
-enum Rating {
-  again,
-  hard,
-  good,
-  easy,
-}
+enum Rating { again, hard, good, easy }
 
 class Flashcard {
   final String id;

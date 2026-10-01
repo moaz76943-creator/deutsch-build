@@ -40,9 +40,7 @@ void main() {
     final gateway = TransportBackendAuthenticationGateway(transport);
 
     expect(
-      gateway.requestEmailOtp(
-        const EmailOtpRequest(email: 'a@example.com'),
-      ),
+      gateway.requestEmailOtp(const EmailOtpRequest(email: 'a@example.com')),
       throwsA(
         isA<AuthenticationFailure>().having(
           (error) => error.code,

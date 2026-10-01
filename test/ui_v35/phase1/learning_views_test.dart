@@ -27,8 +27,9 @@ void main() {
     expect(find.textContaining('3'), findsWidgets);
   });
 
-  testWidgets('Study Card keeps Arabic source RTL and German target LTR',
-      (tester) async {
+  testWidgets('Study Card keeps Arabic source RTL and German target LTR', (
+    tester,
+  ) async {
     const model = StudyCardViewModel(
       sourceText: 'أنا أتعلم الألمانية.',
       targetText: 'Ich lerne Deutsch.',
@@ -55,8 +56,9 @@ void main() {
     expect(target.textDirection, TextDirection.ltr);
   });
 
-  testWidgets('Review Queue renders mock items from neutral view models',
-      (tester) async {
+  testWidgets('Review Queue renders mock items from neutral view models', (
+    tester,
+  ) async {
     const model = ReviewQueueViewModel(
       items: <ReviewQueueItemViewModel>[
         ReviewQueueItemViewModel(

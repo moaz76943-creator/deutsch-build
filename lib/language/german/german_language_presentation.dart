@@ -18,10 +18,12 @@ final class GermanLanguagePresentation implements LanguagePresentation {
   String get pluralLabel => 'Plural';
 
   @override
-  ConversationPresentation get conversation => const GermanConversationPresentation();
+  ConversationPresentation get conversation =>
+      const GermanConversationPresentation();
 
   @override
-  RealWorldLearningPresentation get realWorld => const GermanRealWorldLearningPresentation();
+  RealWorldLearningPresentation get realWorld =>
+      const GermanRealWorldLearningPresentation();
 
   @override
   PlacementPresentation get placement => const GermanPlacementPresentation();
@@ -47,21 +49,20 @@ final class GermanConversationPresentation implements ConversationPresentation {
 
   @override
   ConversationScenario get fallbackScenario => const ConversationScenario(
-        id: 'safe_fallback',
-        title: 'تدريب آمن',
-        situation: 'تدريب محلي احتياطي عند تعذر تحميل موقف آخر.',
-        turns: [
-          ConversationTurn(
-            id: 'safe_fallback_1',
-            promptGerman: 'Wie geht es Ihnen?',
-            promptArabic: 'كيف حالك؟',
-            expected: ['Mir geht es gut.'],
-            keywords: ['geht', 'gut'],
-          ),
-        ],
-      );
+    id: 'safe_fallback',
+    title: 'تدريب آمن',
+    situation: 'تدريب محلي احتياطي عند تعذر تحميل موقف آخر.',
+    turns: [
+      ConversationTurn(
+        id: 'safe_fallback_1',
+        promptGerman: 'Wie geht es Ihnen?',
+        promptArabic: 'كيف حالك؟',
+        expected: ['Mir geht es gut.'],
+        keywords: ['geht', 'gut'],
+      ),
+    ],
+  );
 }
-
 
 final class GermanRealWorldLearningPresentation
     implements RealWorldLearningPresentation {
@@ -74,21 +75,53 @@ final class GermanRealWorldLearningPresentation
   String get subtitle => 'مواقف ستقابلها خارج الكتاب.';
 
   @override
-  String get targetLanguageInstruction => 'اكتب العبارة الألمانية المناسبة للموقف.';
+  String get targetLanguageInstruction =>
+      'اكتب العبارة الألمانية المناسبة للموقف.';
 
   @override
   List<RealWorldScenario> get scenarios => const [
-        RealWorldScenario(title: 'محطة القطار', targetText: 'Gleis 4', sourceText: 'المنصة 4'),
-        RealWorldScenario(title: 'المواصلات', targetText: 'Der Zug hat Verspätung.', sourceText: 'القطار متأخر.'),
-        RealWorldScenario(title: 'السوبرماركت', targetText: 'Wie viel kostet das?', sourceText: 'كم سعر هذا؟'),
-        RealWorldScenario(title: 'الطبيب', targetText: 'Was fehlt Ihnen?', sourceText: 'ما الذي يؤلمك؟'),
-        RealWorldScenario(title: 'العمل', targetText: 'Wir haben um neun Uhr einen Termin.', sourceText: 'لدينا موعد الساعة التاسعة.'),
-        RealWorldScenario(title: 'السكن', targetText: 'Die Wohnung ist frei.', sourceText: 'الشقة متاحة.'),
-        RealWorldScenario(title: 'الهاتف', targetText: 'Können Sie das bitte wiederholen?', sourceText: 'هل يمكنك تكرار ذلك من فضلك؟'),
-        RealWorldScenario(title: 'رسالة', targetText: 'Kannst du heute kommen?', sourceText: 'هل تستطيع المجيء اليوم؟'),
-      ];
+    RealWorldScenario(
+      title: 'محطة القطار',
+      targetText: 'Gleis 4',
+      sourceText: 'المنصة 4',
+    ),
+    RealWorldScenario(
+      title: 'المواصلات',
+      targetText: 'Der Zug hat Verspätung.',
+      sourceText: 'القطار متأخر.',
+    ),
+    RealWorldScenario(
+      title: 'السوبرماركت',
+      targetText: 'Wie viel kostet das?',
+      sourceText: 'كم سعر هذا؟',
+    ),
+    RealWorldScenario(
+      title: 'الطبيب',
+      targetText: 'Was fehlt Ihnen?',
+      sourceText: 'ما الذي يؤلمك؟',
+    ),
+    RealWorldScenario(
+      title: 'العمل',
+      targetText: 'Wir haben um neun Uhr einen Termin.',
+      sourceText: 'لدينا موعد الساعة التاسعة.',
+    ),
+    RealWorldScenario(
+      title: 'السكن',
+      targetText: 'Die Wohnung ist frei.',
+      sourceText: 'الشقة متاحة.',
+    ),
+    RealWorldScenario(
+      title: 'الهاتف',
+      targetText: 'Können Sie das bitte wiederholen?',
+      sourceText: 'هل يمكنك تكرار ذلك من فضلك؟',
+    ),
+    RealWorldScenario(
+      title: 'رسالة',
+      targetText: 'Kannst du heute kommen?',
+      sourceText: 'هل تستطيع المجيء اليوم؟',
+    ),
+  ];
 }
-
 
 final class GermanPlacementPresentation implements PlacementPresentation {
   const GermanPlacementPresentation();
@@ -114,11 +147,14 @@ final class GermanPlacementPresentation implements PlacementPresentation {
 
   @override
   List<PlacementQuestion> get questions => const [
-        PlacementQuestion(prompt: 'ما ترجمة: Haus؟', answer: 'بيت'),
-        PlacementQuestion(prompt: 'ما الكلمة الصحيحة: ___ Arzt', answer: 'der'),
-        PlacementQuestion(prompt: 'أكمل: Ich ___ Deutsch.', answer: 'lerne'),
-        PlacementQuestion(prompt: 'ما ترجمة: Wasser؟', answer: 'ماء'),
-        PlacementQuestion(prompt: 'أكمل: Ich fahre mit ___ Bus.', answer: 'dem'),
-        PlacementQuestion(prompt: 'ما الصحيح: Ich habe ___ Problem.', answer: 'ein'),
-      ];
+    PlacementQuestion(prompt: 'ما ترجمة: Haus؟', answer: 'بيت'),
+    PlacementQuestion(prompt: 'ما الكلمة الصحيحة: ___ Arzt', answer: 'der'),
+    PlacementQuestion(prompt: 'أكمل: Ich ___ Deutsch.', answer: 'lerne'),
+    PlacementQuestion(prompt: 'ما ترجمة: Wasser؟', answer: 'ماء'),
+    PlacementQuestion(prompt: 'أكمل: Ich fahre mit ___ Bus.', answer: 'dem'),
+    PlacementQuestion(
+      prompt: 'ما الصحيح: Ich habe ___ Problem.',
+      answer: 'ein',
+    ),
+  ];
 }

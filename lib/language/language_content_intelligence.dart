@@ -7,7 +7,9 @@ import '../core/content_contract.dart';
 abstract interface class LanguageContentIntelligence {
   ContentProfile profile(LearningContent item);
   ContentIntelligenceReport analyze(List<LearningContent> items);
-  Map<ContentLevel, List<LearningContent>> curriculum(List<LearningContent> items);
+  Map<ContentLevel, List<LearningContent>> curriculum(
+    List<LearningContent> items,
+  );
 }
 
 enum ContentLevel { a1, a2, b1, unknown }
@@ -22,7 +24,17 @@ class ContentProfile {
   final bool hasPlural;
   final bool hasExample;
   final double qualityScore;
-  const ContentProfile({required this.itemId, required this.inferredLevel, required this.difficulty, required this.wordFamily, required this.lexicalClass, required this.hasArticle, required this.hasPlural, required this.hasExample, required this.qualityScore});
+  const ContentProfile({
+    required this.itemId,
+    required this.inferredLevel,
+    required this.difficulty,
+    required this.wordFamily,
+    required this.lexicalClass,
+    required this.hasArticle,
+    required this.hasPlural,
+    required this.hasExample,
+    required this.qualityScore,
+  });
 }
 
 class CurriculumGap {
@@ -30,7 +42,12 @@ class CurriculumGap {
   final String value;
   final int count;
   final String recommendation;
-  const CurriculumGap(this.dimension, this.value, this.count, this.recommendation);
+  const CurriculumGap(
+    this.dimension,
+    this.value,
+    this.count,
+    this.recommendation,
+  );
 }
 
 class ContentIntelligenceReport {
@@ -45,7 +62,19 @@ class ContentIntelligenceReport {
   final int nearDuplicatePairCount;
   final int wordFamilyCount;
   final List<CurriculumGap> gaps;
-  const ContentIntelligenceReport({required this.total, required this.levelCounts, required this.topicCounts, required this.skillCounts, required this.articleCoverage, required this.pluralCoverage, required this.exampleCoverage, required this.duplicateGermanCount, required this.nearDuplicatePairCount, required this.wordFamilyCount, required this.gaps});
+  const ContentIntelligenceReport({
+    required this.total,
+    required this.levelCounts,
+    required this.topicCounts,
+    required this.skillCounts,
+    required this.articleCoverage,
+    required this.pluralCoverage,
+    required this.exampleCoverage,
+    required this.duplicateGermanCount,
+    required this.nearDuplicatePairCount,
+    required this.wordFamilyCount,
+    required this.gaps,
+  });
   int get a1Count => levelCounts[ContentLevel.a1] ?? 0;
   int get a2Count => levelCounts[ContentLevel.a2] ?? 0;
   int get b1Count => levelCounts[ContentLevel.b1] ?? 0;

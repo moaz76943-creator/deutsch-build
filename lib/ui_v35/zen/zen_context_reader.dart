@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../services/repository.dart';
 import '../../core/content_contract.dart';
 import '../../services/app_dependencies.dart';
@@ -45,14 +46,17 @@ class _ZenContextReaderState extends State<ZenContextReader> {
         return;
       }
 
-      final learnedContent = widget.dependencies.corpus.where((c) => learnedIds.contains(c.id)).toList();
-      final sentences = learnedContent.map((c) => c.exampleText).where((s) => s.isNotEmpty).toList();
+      final learnedContent = widget.dependencies.corpus
+          .where((c) => learnedIds.contains(c.id))
+          .toList();
+      final sentences = learnedContent
+          .map((c) => c.exampleText)
+          .where((s) => s.isNotEmpty)
+          .toList();
 
       if (sentences.isEmpty) {
-         setState(() {
-          _paragraphs = [
-            'Nicht genug Vokabeln für einen Text.',
-          ];
+        setState(() {
+          _paragraphs = ['Nicht genug Vokabeln für einen Text.'];
           _isLoading = false;
         });
         return;
@@ -69,7 +73,6 @@ class _ZenContextReaderState extends State<ZenContextReader> {
         _paragraphs = paragraphs;
         _isLoading = false;
       });
-
     } catch (e) {
       setState(() {
         _paragraphs = ['Fehler beim Laden des Textes.'];

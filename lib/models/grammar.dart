@@ -140,15 +140,9 @@ class GrammarExample {
   final String german;
   final String arabic;
 
-  const GrammarExample({
-    required this.german,
-    required this.arabic,
-  });
+  const GrammarExample({required this.german, required this.arabic});
 
-  GrammarExample copyWith({
-    String? german,
-    String? arabic,
-  }) {
+  GrammarExample copyWith({String? german, String? arabic}) {
     return GrammarExample(
       german: german ?? this.german,
       arabic: arabic ?? this.arabic,

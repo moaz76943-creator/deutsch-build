@@ -14,14 +14,18 @@ final class ContentIntelligence {
 
   ContentProfile profile(LearningContent item) => delegate.profile(item);
 
-  ContentIntelligenceReport analyze(List<LearningContent> items) => delegate.analyze(items);
+  ContentIntelligenceReport analyze(List<LearningContent> items) =>
+      delegate.analyze(items);
 
   ContentIntelligenceReport cachedReport(List<LearningContent> items) {
-    if (identical(_cachedCorpus, items) && _cachedReport != null) return _cachedReport!;
+    if (identical(_cachedCorpus, items) && _cachedReport != null)
+      return _cachedReport!;
     _cachedCorpus = items;
     _cachedReport = delegate.analyze(items);
     return _cachedReport!;
   }
 
-  Map<ContentLevel, List<LearningContent>> curriculum(List<LearningContent> items) => delegate.curriculum(items);
+  Map<ContentLevel, List<LearningContent>> curriculum(
+    List<LearningContent> items,
+  ) => delegate.curriculum(items);
 }

@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+
 import '../models/milestone_badge.dart';
 
 class StreakMilestonesEngine {
@@ -28,11 +29,7 @@ class StreakMilestonesEngine {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -61,11 +58,9 @@ class StreakMilestonesEngine {
     final db = await database;
     final dateString = _formatDate(date);
 
-    await db.insert(
-      _studyDaysTable,
-      {_columnDate: dateString},
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    await db.insert(_studyDaysTable, {
+      _columnDate: dateString,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
     final streak = await calculateCurrentStreak();
     await checkAndUnlockMilestones(streak);
@@ -73,10 +68,7 @@ class StreakMilestonesEngine {
 
   Future<int> calculateCurrentStreak() async {
     final db = await database;
-    final maps = await db.query(
-      _studyDaysTable,
-      orderBy: '$_columnDate DESC',
-    );
+    final maps = await db.query(_studyDaysTable, orderBy: '$_columnDate DESC');
 
     if (maps.isEmpty) return 0;
 
@@ -94,10 +86,19 @@ class StreakMilestonesEngine {
         expectedDate = yesterday;
       } else if (streak == 0 && loggedDateStr == _formatDate(yesterday)) {
         streak++;
-        expectedDate = DateTime(yesterday.year, yesterday.month, yesterday.day - 1);
-      } else if (expectedDate != null && loggedDateStr == _formatDate(expectedDate)) {
+        expectedDate = DateTime(
+          yesterday.year,
+          yesterday.month,
+          yesterday.day - 1,
+        );
+      } else if (expectedDate != null &&
+          loggedDateStr == _formatDate(expectedDate)) {
         streak++;
-        expectedDate = DateTime(expectedDate.year, expectedDate.month, expectedDate.day - 1);
+        expectedDate = DateTime(
+          expectedDate.year,
+          expectedDate.month,
+          expectedDate.day - 1,
+        );
       } else {
         break;
       }
@@ -108,23 +109,30 @@ class StreakMilestonesEngine {
 
   Future<List<MilestoneBadge>> getUnlockedBadges() async {
     final db = await database;
-    final maps = await db.query(_milestonesTable, orderBy: '$_columnRequiredDays ASC');
+    final maps = await db.query(
+      _milestonesTable,
+      orderBy: '$_columnRequiredDays ASC',
+    );
 
-    return maps.map((map) => MilestoneBadge(
-      id: map[_columnId] as String,
-      title: map[_columnTitle] as String,
-      description: map[_columnDescription] as String,
-      requiredStreakDays: map[_columnRequiredDays] as int,
-      unlockedAt: DateTime.parse(map[_columnUnlockedAt] as String),
-    )).toList();
+    return maps
+        .map(
+          (map) => MilestoneBadge(
+            id: map[_columnId] as String,
+            title: map[_columnTitle] as String,
+            description: map[_columnDescription] as String,
+            requiredStreakDays: map[_columnRequiredDays] as int,
+            unlockedAt: DateTime.parse(map[_columnUnlockedAt] as String),
+          ),
+        )
+        .toList();
   }
 
   Future<void> checkAndUnlockMilestones(int currentStreakDays) async {
     final db = await database;
 
     final milestonesToUnlock = _getAvailableMilestones()
-      .where((m) => m.requiredStreakDays <= currentStreakDays)
-      .toList();
+        .where((m) => m.requiredStreakDays <= currentStreakDays)
+        .toList();
 
     await db.transaction((txn) async {
       for (final milestone in milestonesToUnlock) {

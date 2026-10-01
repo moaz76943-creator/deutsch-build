@@ -25,45 +25,67 @@ void main() {
 
   group('OfflineNotificationScheduler', () {
     test('initialize calls plugin initialize', () async {
-      when(mockPlugin.initialize(
-        settings: anyNamed('settings'),
-        onDidReceiveNotificationResponse: anyNamed('onDidReceiveNotificationResponse'),
-        onDidReceiveBackgroundNotificationResponse: anyNamed('onDidReceiveBackgroundNotificationResponse'),
-      )).thenAnswer((_) async => true);
+      when(
+        mockPlugin.initialize(
+          settings: anyNamed('settings'),
+          onDidReceiveNotificationResponse: anyNamed(
+            'onDidReceiveNotificationResponse',
+          ),
+          onDidReceiveBackgroundNotificationResponse: anyNamed(
+            'onDidReceiveBackgroundNotificationResponse',
+          ),
+        ),
+      ).thenAnswer((_) async => true);
 
       await scheduler.initialize();
 
-      verify(mockPlugin.initialize(
-        settings: anyNamed('settings'),
-        onDidReceiveNotificationResponse: anyNamed('onDidReceiveNotificationResponse'),
-        onDidReceiveBackgroundNotificationResponse: anyNamed('onDidReceiveBackgroundNotificationResponse'),
-      )).called(1);
+      verify(
+        mockPlugin.initialize(
+          settings: anyNamed('settings'),
+          onDidReceiveNotificationResponse: anyNamed(
+            'onDidReceiveNotificationResponse',
+          ),
+          onDidReceiveBackgroundNotificationResponse: anyNamed(
+            'onDidReceiveBackgroundNotificationResponse',
+          ),
+        ),
+      ).called(1);
     });
 
-    test('scheduleDailyReminder calls zonedSchedule with correct parameters', () async {
-      when(mockPlugin.zonedSchedule(
-        id: anyNamed('id'),
-        title: anyNamed('title'),
-        body: anyNamed('body'),
-        scheduledDate: anyNamed('scheduledDate'),
-        notificationDetails: anyNamed('notificationDetails'),
-        androidScheduleMode: anyNamed('androidScheduleMode'),
-        matchDateTimeComponents: anyNamed('matchDateTimeComponents'),
-      )).thenAnswer((_) async {});
+    test(
+      'scheduleDailyReminder calls zonedSchedule with correct parameters',
+      () async {
+        when(
+          mockPlugin.zonedSchedule(
+            id: anyNamed('id'),
+            title: anyNamed('title'),
+            body: anyNamed('body'),
+            scheduledDate: anyNamed('scheduledDate'),
+            notificationDetails: anyNamed('notificationDetails'),
+            androidScheduleMode: anyNamed('androidScheduleMode'),
+            matchDateTimeComponents: anyNamed('matchDateTimeComponents'),
+          ),
+        ).thenAnswer((_) async {});
 
-      const timeOfDay = TimeOfDay(hour: 14, minute: 30);
-      await scheduler.scheduleDailyReminder(timeOfDay);
+        const timeOfDay = TimeOfDay(hour: 14, minute: 30);
+        await scheduler.scheduleDailyReminder(timeOfDay);
 
-      verify(mockPlugin.zonedSchedule(
-        id: 0,
-        title: 'وقت الدراسة',
-        body: 'حان وقت مراجعة مفرداتك الألمانية!',
-        scheduledDate: argThat(isA<tz.TZDateTime>(), named: 'scheduledDate'),
-        notificationDetails: anyNamed('notificationDetails'),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
-      )).called(1);
-    });
+        verify(
+          mockPlugin.zonedSchedule(
+            id: 0,
+            title: 'وقت الدراسة',
+            body: 'حان وقت مراجعة مفرداتك الألمانية!',
+            scheduledDate: argThat(
+              isA<tz.TZDateTime>(),
+              named: 'scheduledDate',
+            ),
+            notificationDetails: anyNamed('notificationDetails'),
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            matchDateTimeComponents: DateTimeComponents.time,
+          ),
+        ).called(1);
+      },
+    );
 
     test('cancelAllReminders calls cancelAll', () async {
       when(mockPlugin.cancelAll()).thenAnswer((_) async {});

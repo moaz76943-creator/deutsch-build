@@ -28,21 +28,23 @@ final class _MemoryOfflineRepository implements OfflineLearnerRepository {
 }
 
 void main() {
-  test('offline repository contract is explicitly local-authority only',
-      () async {
-    final initial = LearnerState(updatedAt: DateTime.utc(2026, 9, 30));
-    final repo = _MemoryOfflineRepository(initial);
+  test(
+    'offline repository contract is explicitly local-authority only',
+    () async {
+      final initial = LearnerState(updatedAt: DateTime.utc(2026, 9, 30));
+      final repo = _MemoryOfflineRepository(initial);
 
-    expect(repo.authority, OfflineRepositoryAuthority.localOnly);
-    expect(repo.load(), same(initial));
+      expect(repo.authority, OfflineRepositoryAuthority.localOnly);
+      expect(repo.load(), same(initial));
 
-    final next = LearnerState(
-      xp: 10,
-      updatedAt: DateTime.utc(2026, 9, 30, 10),
-    );
-    await repo.save(next);
+      final next = LearnerState(
+        xp: 10,
+        updatedAt: DateTime.utc(2026, 9, 30, 10),
+      );
+      await repo.save(next);
 
-    expect(repo.reload(), same(next));
-    expect(await repo.reloadPersisted(), same(next));
-  });
+      expect(repo.reload(), same(next));
+      expect(await repo.reloadPersisted(), same(next));
+    },
+  );
 }

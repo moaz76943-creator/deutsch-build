@@ -80,10 +80,8 @@ void main() {
 
     test('same-language pair is rejected', () {
       expect(
-        () => PairIdentity(
-          sourceLanguageId: 'syn-a',
-          targetLanguageId: 'syn-a',
-        ),
+        () =>
+            PairIdentity(sourceLanguageId: 'syn-a', targetLanguageId: 'syn-a'),
         throwsArgumentError,
       );
     });
@@ -109,8 +107,7 @@ void main() {
 
   group('SOURCE/TARGET eligibility', () {
     test('USER-only eligibility cannot satisfy SOURCE requirement', () {
-      final userEligibility =
-          _eligible('syn-a', LanguageRole.user);
+      final userEligibility = _eligible('syn-a', LanguageRole.user);
 
       expect(
         () => PairEndpoint.source(
@@ -130,10 +127,7 @@ void main() {
       );
 
       expect(
-        () => PairEndpoint.source(
-          languageId: 'syn-a',
-          eligibility: ineligible,
-        ),
+        () => PairEndpoint.source(languageId: 'syn-a', eligibility: ineligible),
         throwsStateError,
       );
     });
@@ -166,10 +160,7 @@ void main() {
       expect(
         result.candidate!.pair,
         isNot(
-          PairIdentity(
-            sourceLanguageId: 'syn-b',
-            targetLanguageId: 'syn-a',
-          ),
+          PairIdentity(sourceLanguageId: 'syn-b', targetLanguageId: 'syn-a'),
         ),
       );
     });
@@ -242,57 +233,59 @@ void main() {
       expect(result.candidate, isNull);
     });
 
-    test('deterministic ID/fingerprint ignores undeclared input order and values',
-        () {
-      final rule = _rule();
-      final baseFacts = <PairInputFact>[
-        _fact(
-          languageId: 'syn-a',
-          role: LanguageRole.source,
-          value: 'source-v1',
-        ),
-        _fact(
-          languageId: 'syn-b',
-          role: LanguageRole.target,
-          value: 'target-v1',
-        ),
-      ];
-
-      final first = PairMechanics.evaluate(
-        source: _source('syn-a'),
-        target: _target('syn-b'),
-        rule: rule,
-        facts: <PairInputFact>[
-          ...baseFacts,
+    test(
+      'deterministic ID/fingerprint ignores undeclared input order and values',
+      () {
+        final rule = _rule();
+        final baseFacts = <PairInputFact>[
           _fact(
             languageId: 'syn-a',
             role: LanguageRole.source,
-            inputKey: 'runtime.offlineContent',
-            value: 'supported',
+            value: 'source-v1',
           ),
-        ],
-      );
-      final second = PairMechanics.evaluate(
-        source: _source('syn-a'),
-        target: _target('syn-b'),
-        rule: rule,
-        facts: <PairInputFact>[
           _fact(
-            languageId: 'syn-a',
-            role: LanguageRole.source,
-            inputKey: 'runtime.offlineContent',
-            value: 'different-unrelated-value',
+            languageId: 'syn-b',
+            role: LanguageRole.target,
+            value: 'target-v1',
           ),
-          baseFacts[1],
-          baseFacts[0],
-        ],
-      );
+        ];
 
-      expect(first.isBlocked, isFalse);
-      expect(second.isBlocked, isFalse);
-      expect(first.candidate!.fingerprint, second.candidate!.fingerprint);
-      expect(first.candidate!.candidateId, second.candidate!.candidateId);
-    });
+        final first = PairMechanics.evaluate(
+          source: _source('syn-a'),
+          target: _target('syn-b'),
+          rule: rule,
+          facts: <PairInputFact>[
+            ...baseFacts,
+            _fact(
+              languageId: 'syn-a',
+              role: LanguageRole.source,
+              inputKey: 'runtime.offlineContent',
+              value: 'supported',
+            ),
+          ],
+        );
+        final second = PairMechanics.evaluate(
+          source: _source('syn-a'),
+          target: _target('syn-b'),
+          rule: rule,
+          facts: <PairInputFact>[
+            _fact(
+              languageId: 'syn-a',
+              role: LanguageRole.source,
+              inputKey: 'runtime.offlineContent',
+              value: 'different-unrelated-value',
+            ),
+            baseFacts[1],
+            baseFacts[0],
+          ],
+        );
+
+        expect(first.isBlocked, isFalse);
+        expect(second.isBlocked, isFalse);
+        expect(first.candidate!.fingerprint, second.candidate!.fingerprint);
+        expect(first.candidate!.candidateId, second.candidate!.candidateId);
+      },
+    );
 
     test('declared input change changes deterministic fingerprint and ID', () {
       final first = PairMechanics.evaluate(
@@ -330,54 +323,64 @@ void main() {
         ],
       );
 
-      expect(first.candidate!.fingerprint,
-          isNot(second.candidate!.fingerprint));
-      expect(first.candidate!.candidateId,
-          isNot(second.candidate!.candidateId));
-    });
-
-    test('non-pair capability differences do not create linguistic candidates',
-        () {
-      final noLinguisticInputs = PairRule(
-        ruleId: 'synthetic.no-input-rule',
-        ruleVersion: '1',
-        candidateKind: 'synthetic-noop',
-        requiredInputs: const <PairRuleInputRequirement>[],
+      expect(
+        first.candidate!.fingerprint,
+        isNot(second.candidate!.fingerprint),
       );
-
-      final result = PairMechanics.evaluate(
-        source: _source('syn-a'),
-        target: _target('syn-b'),
-        rule: noLinguisticInputs,
-        facts: <PairInputFact>[
-          _fact(
-            languageId: 'syn-a',
-            role: LanguageRole.source,
-            inputKey: 'runtime.offlineContent',
-            value: 'supported',
-          ),
-          _fact(
-            languageId: 'syn-b',
-            role: LanguageRole.target,
-            inputKey: 'runtime.offlineContent',
-            value: 'unsupported',
-          ),
-        ],
+      expect(
+        first.candidate!.candidateId,
+        isNot(second.candidate!.candidateId),
       );
-
-      expect(result.isBlocked, isTrue);
-      expect(result.candidate, isNull);
-      expect(result.blockedReason, contains('no declared pair inputs'));
     });
 
-    test('candidate state cannot self-promote to verified/readiness states', () {
-      final stateNames =
-          PairCandidateState.values.map((state) => state.name).toSet();
+    test(
+      'non-pair capability differences do not create linguistic candidates',
+      () {
+        final noLinguisticInputs = PairRule(
+          ruleId: 'synthetic.no-input-rule',
+          ruleVersion: '1',
+          candidateKind: 'synthetic-noop',
+          requiredInputs: const <PairRuleInputRequirement>[],
+        );
 
-      expect(stateNames, contains('derivedCandidate'));
-      expect(stateNames, isNot(contains('verified')));
-      expect(stateNames, isNot(contains('ready')));
-      expect(stateNames, isNot(contains('productionReady')));
-    });
+        final result = PairMechanics.evaluate(
+          source: _source('syn-a'),
+          target: _target('syn-b'),
+          rule: noLinguisticInputs,
+          facts: <PairInputFact>[
+            _fact(
+              languageId: 'syn-a',
+              role: LanguageRole.source,
+              inputKey: 'runtime.offlineContent',
+              value: 'supported',
+            ),
+            _fact(
+              languageId: 'syn-b',
+              role: LanguageRole.target,
+              inputKey: 'runtime.offlineContent',
+              value: 'unsupported',
+            ),
+          ],
+        );
+
+        expect(result.isBlocked, isTrue);
+        expect(result.candidate, isNull);
+        expect(result.blockedReason, contains('no declared pair inputs'));
+      },
+    );
+
+    test(
+      'candidate state cannot self-promote to verified/readiness states',
+      () {
+        final stateNames = PairCandidateState.values
+            .map((state) => state.name)
+            .toSet();
+
+        expect(stateNames, contains('derivedCandidate'));
+        expect(stateNames, isNot(contains('verified')));
+        expect(stateNames, isNot(contains('ready')));
+        expect(stateNames, isNot(contains('productionReady')));
+      },
+    );
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+
 import '../../services/user_vocabulary_service.dart';
 
 class MicroContextStory {
@@ -129,9 +130,9 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
               Text(
                 germanWord,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -156,9 +157,7 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_story == null) {
@@ -186,9 +185,8 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
           children: [
             Text(
               _story!.title,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             _buildInteractiveStoryText(context),
@@ -224,26 +222,21 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
           TextSpan(
             text: part,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                  decoration: TextDecoration.underline,
-                ),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+              decoration: TextDecoration.underline,
+            ),
             recognizer: TapGestureRecognizer()
               ..onTap = () => _showTranslationDrawer(cleanWord, translation!),
           ),
         );
       } else {
         spans.add(
-          TextSpan(
-            text: part,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          TextSpan(text: part, style: Theme.of(context).textTheme.bodyLarge),
         );
       }
     }
 
-    return RichText(
-      text: TextSpan(children: spans),
-    );
+    return RichText(text: TextSpan(children: spans));
   }
 }

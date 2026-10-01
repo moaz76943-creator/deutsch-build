@@ -13,7 +13,7 @@ final class TransportBackendAuthenticationGateway
     this.transport, {
     SecureSessionStorage? secureSessionStorage,
   }) : _secureSessionStorage =
-            secureSessionStorage ?? const UnavailableSecureSessionStorage();
+           secureSessionStorage ?? const UnavailableSecureSessionStorage();
 
   final BackendTransport transport;
   final SecureSessionStorage _secureSessionStorage;
@@ -158,7 +158,9 @@ final class TransportBackendAuthenticationGateway
     await _send(const BackendTransportRequest.signOut());
   }
 
-  Future<BackendTransportResponse> _send(BackendTransportRequest request) async {
+  Future<BackendTransportResponse> _send(
+    BackendTransportRequest request,
+  ) async {
     try {
       return await transport.send(request);
     } on BackendTransportFailure catch (error) {
@@ -207,7 +209,9 @@ final class TransportBackendAuthenticationGateway
     return current;
   }
 
-  static AccountSession _sessionFromResponse(BackendTransportResponse response) {
+  static AccountSession _sessionFromResponse(
+    BackendTransportResponse response,
+  ) {
     final session = response.session;
     if (session == null ||
         !session.isAuthenticated ||

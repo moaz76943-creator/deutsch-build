@@ -15,9 +15,9 @@ final class VocabularyEntry {
     required Map<String, Object?> rawJson,
     required bool hadSourceDirection,
     required bool hadTargetDirection,
-  })  : _rawJson = rawJson,
-        _hadSourceDirection = hadSourceDirection,
-        _hadTargetDirection = hadTargetDirection;
+  }) : _rawJson = rawJson,
+       _hadSourceDirection = hadSourceDirection,
+       _hadTargetDirection = hadTargetDirection;
 
   final String canonicalKey;
   final String sourceText;

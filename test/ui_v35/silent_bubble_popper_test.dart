@@ -19,28 +19,33 @@ void main() {
     );
   }
 
-  testWidgets('SilentBubblePopper renders correctly and uses fallback data if no DB entries', (WidgetTester tester) async {
-    await tester.pumpWidget(createTestWidget());
+  testWidgets(
+    'SilentBubblePopper renders correctly and uses fallback data if no DB entries',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
 
-    // Pump repeatedly to wait for future to resolve
-    for (int i = 0; i < 50; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
+      // Pump repeatedly to wait for future to resolve
+      for (int i = 0; i < 50; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-    // Verify static texts
-    expect(find.text('Silent Popper'), findsOneWidget);
-    expect(find.text('Match the words to pop the bubbles.'), findsOneWidget);
-    expect(find.text('Skip'), findsOneWidget);
+      // Verify static texts
+      expect(find.text('Silent Popper'), findsOneWidget);
+      expect(find.text('Match the words to pop the bubbles.'), findsOneWidget);
+      expect(find.text('Skip'), findsOneWidget);
 
-    // Verify fallback data is rendered.
-    // Fallback data includes Apfel, Buch, Wasser, Haus and their translations.
-    expect(find.text('Apfel'), findsOneWidget);
-    expect(find.text('Buch'), findsOneWidget);
-    expect(find.text('تفاحة'), findsOneWidget);
-    expect(find.text('كتاب'), findsOneWidget);
-  });
+      // Verify fallback data is rendered.
+      // Fallback data includes Apfel, Buch, Wasser, Haus and their translations.
+      expect(find.text('Apfel'), findsOneWidget);
+      expect(find.text('Buch'), findsOneWidget);
+      expect(find.text('تفاحة'), findsOneWidget);
+      expect(find.text('كتاب'), findsOneWidget);
+    },
+  );
 
-  testWidgets('Matching logic works and bubbles disappear', (WidgetTester tester) async {
+  testWidgets('Matching logic works and bubbles disappear', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(createTestWidget());
 
     for (int i = 0; i < 50; i++) {
@@ -49,7 +54,9 @@ void main() {
 
     // Tap first word
     await tester.tap(find.text('Apfel'));
-    await tester.pump(const Duration(milliseconds: 100)); // trigger animation frame
+    await tester.pump(
+      const Duration(milliseconds: 100),
+    ); // trigger animation frame
 
     // Tap matching word
     await tester.tap(find.text('تفاحة'));
@@ -62,11 +69,13 @@ void main() {
 
   testWidgets('Skip button calls onComplete', (WidgetTester tester) async {
     bool onCompleteCalled = false;
-    await tester.pumpWidget(createTestWidget(
-      onComplete: () {
-        onCompleteCalled = true;
-      },
-    ));
+    await tester.pumpWidget(
+      createTestWidget(
+        onComplete: () {
+          onCompleteCalled = true;
+        },
+      ),
+    );
 
     for (int i = 0; i < 50; i++) {
       await tester.pump(const Duration(milliseconds: 100));

@@ -39,21 +39,24 @@ class FakeAuthenticationService implements AuthenticationService {
 }
 
 void main() {
-  test('controller starts unauthenticated and restores a valid session', () async {
-    final service = FakeAuthenticationService(
-      const AccountSession.authenticated(
-        identity: AccountIdentity(userId: 'user-1'),
-      ),
-    );
-    final controller = AuthSessionController(service);
+  test(
+    'controller starts unauthenticated and restores a valid session',
+    () async {
+      final service = FakeAuthenticationService(
+        const AccountSession.authenticated(
+          identity: AccountIdentity(userId: 'user-1'),
+        ),
+      );
+      final controller = AuthSessionController(service);
 
-    expect(controller.session, const AccountSession.unauthenticated());
-    await controller.initialize();
+      expect(controller.session, const AccountSession.unauthenticated());
+      await controller.initialize();
 
-    expect(controller.session.isAuthenticated, isTrue);
-    expect(controller.session.identity!.userId, 'user-1');
-    expect(controller.isInitialized, isTrue);
-  });
+      expect(controller.session.isAuthenticated, isTrue);
+      expect(controller.session.identity!.userId, 'user-1');
+      expect(controller.isInitialized, isTrue);
+    },
+  );
 
   test('session restoration failure stays unauthenticated', () async {
     final service = _ThrowingAuthenticationService();
@@ -92,20 +95,23 @@ void main() {
     expect(controller.lastFailure?.code, AuthenticationFailureCode.unavailable);
   });
 
-  test('successful sign-in updates session without learner-state access', () async {
-    final service = FakeAuthenticationService(
-      const AccountSession.authenticated(
-        identity: AccountIdentity(userId: 'user-3'),
-      ),
-    );
-    final controller = AuthSessionController(service);
-    await controller.initialize();
+  test(
+    'successful sign-in updates session without learner-state access',
+    () async {
+      final service = FakeAuthenticationService(
+        const AccountSession.authenticated(
+          identity: AccountIdentity(userId: 'user-3'),
+        ),
+      );
+      final controller = AuthSessionController(service);
+      await controller.initialize();
 
-    await controller.signInWithGoogle();
+      await controller.signInWithGoogle();
 
-    expect(controller.session.identity!.userId, 'user-3');
-    expect(controller.lastFailure, isNull);
-  });
+      expect(controller.session.identity!.userId, 'user-3');
+      expect(controller.lastFailure, isNull);
+    },
+  );
 }
 
 class _ThrowingAuthenticationService implements AuthenticationService {

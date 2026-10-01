@@ -53,10 +53,7 @@ final class VocabularyCard {
 
 /// Parsed, validated directed deck.
 final class ParsedDeck {
-  const ParsedDeck({
-    required this.metadata,
-    required this.cards,
-  });
+  const ParsedDeck({required this.metadata, required this.cards});
 
   final DeckMetadata metadata;
   final List<VocabularyCard> cards;

@@ -29,10 +29,10 @@ final class LearnerContentKey {
       );
 
   Map<String, String> toMap() => <String, String>{
-        'languageId': languageId,
-        'contentNamespaceId': contentNamespaceId,
-        'localItemId': localItemId,
-      };
+    'languageId': languageId,
+    'contentNamespaceId': contentNamespaceId,
+    'localItemId': localItemId,
+  };
 
   @override
   bool operator ==(Object other) =>

@@ -22,13 +22,17 @@ void main() {
     final transport = FakeTransport();
     final api = BackendAuthenticationApi(transport);
 
-    await api.send(const BackendAuthenticationApiRequest.verifyEmailOtp(
-      email: 'a@example.com',
-      otp: '123456',
-    ));
+    await api.send(
+      const BackendAuthenticationApiRequest.verifyEmailOtp(
+        email: 'a@example.com',
+        otp: '123456',
+      ),
+    );
 
-    expect(transport.request?.operation,
-        BackendTransportOperation.verifyEmailOtp);
+    expect(
+      transport.request?.operation,
+      BackendTransportOperation.verifyEmailOtp,
+    );
     expect(transport.request?.email, 'a@example.com');
     expect(transport.request?.otp, '123456');
   });
@@ -47,8 +51,10 @@ void main() {
       ),
     );
 
-    expect(transport.request?.operation,
-        BackendTransportOperation.authenticateProvider);
+    expect(
+      transport.request?.operation,
+      BackendTransportOperation.authenticateProvider,
+    );
     expect(transport.request?.assertion, assertion);
   });
 
@@ -58,9 +64,8 @@ void main() {
     );
     final transport = _SessionTransport(session);
 
-    final response = await BackendAuthenticationApi(transport).send(
-      const BackendAuthenticationApiRequest.currentSession(),
-    );
+    final response = await BackendAuthenticationApi(transport)
+        .send(const BackendAuthenticationApiRequest.currentSession());
 
     expect(response.session, session);
   });
@@ -72,6 +77,7 @@ class _SessionTransport implements BackendTransport {
   final AccountSession session;
 
   @override
-  Future<BackendTransportResponse> send(BackendTransportRequest request) async =>
-      BackendTransportResponse(session: session);
+  Future<BackendTransportResponse> send(
+    BackendTransportRequest request,
+  ) async => BackendTransportResponse(session: session);
 }

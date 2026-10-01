@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../services/grammar_hub_service.dart';
 import '../../services/app_dependencies.dart';
 import 'grammar_quiz_page.dart';
@@ -29,7 +30,10 @@ class GrammarTopicDetailPage extends StatelessWidget {
             children: [
               Text(
                 topic.titleAr,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontFamily: 'Tajawal', fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontFamily: 'Tajawal',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
               if (topic.formulaPattern != null)
@@ -45,12 +49,20 @@ class GrammarTopicDetailPage extends StatelessWidget {
                     children: [
                       const Text(
                         'القاعدة (الصيغة):',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Tajawal', fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Tajawal',
+                          fontSize: 16,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         topic.formulaPattern!,
-                        style: const TextStyle(fontFamily: 'Inter', fontSize: 16, color: Colors.black87),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
                         textDirection: TextDirection.ltr,
                       ),
                     ],
@@ -59,7 +71,11 @@ class GrammarTopicDetailPage extends StatelessWidget {
               const SizedBox(height: 24),
               const Text(
                 'الشرح:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Tajawal', fontSize: 18),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Tajawal',
+                  fontSize: 18,
+                ),
               ),
               const SizedBox(height: 8),
               Container(
@@ -87,10 +103,15 @@ class GrammarTopicDetailPage extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.quiz),
-                label: const Text('Start Micro-Quiz', style: TextStyle(fontFamily: 'Inter')),
+                label: const Text(
+                  'Start Micro-Quiz',
+                  style: TextStyle(fontFamily: 'Inter'),
+                ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   backgroundColor: Colors.indigo.shade50,
                   foregroundColor: Colors.indigo.shade700,
                 ),

@@ -15,7 +15,10 @@ void main() {
     late ReverseQuizMode reverseQuizMode;
 
     setUp(() async {
-      database = ReverseQuizDatabase(factory: databaseFactoryFfi, path: inMemoryDatabasePath);
+      database = ReverseQuizDatabase(
+        factory: databaseFactoryFfi,
+        path: inMemoryDatabasePath,
+      );
       reverseQuizMode = ReverseQuizMode(database);
     });
 
@@ -25,9 +28,24 @@ void main() {
 
     test('should insert and randomly fetch flashcards', () async {
       final items = [
-        const ReverseQuizItem(id: '1', conceptId: 'c1', german: 'Hallo', arabic: 'مرحبا'),
-        const ReverseQuizItem(id: '2', conceptId: 'c2', german: 'Welt', arabic: 'عالم'),
-        const ReverseQuizItem(id: '3', conceptId: 'c3', german: 'Buch', arabic: 'كتاب'),
+        const ReverseQuizItem(
+          id: '1',
+          conceptId: 'c1',
+          german: 'Hallo',
+          arabic: 'مرحبا',
+        ),
+        const ReverseQuizItem(
+          id: '2',
+          conceptId: 'c2',
+          german: 'Welt',
+          arabic: 'عالم',
+        ),
+        const ReverseQuizItem(
+          id: '3',
+          conceptId: 'c3',
+          german: 'Buch',
+          arabic: 'كتاب',
+        ),
       ];
 
       await reverseQuizMode.initialize(items);
@@ -41,7 +59,12 @@ void main() {
 
     test('should record attempts correctly', () async {
       final items = [
-        const ReverseQuizItem(id: '1', conceptId: 'c1', german: 'Hallo', arabic: 'مرحبا'),
+        const ReverseQuizItem(
+          id: '1',
+          conceptId: 'c1',
+          german: 'Hallo',
+          arabic: 'مرحبا',
+        ),
       ];
 
       await reverseQuizMode.initialize(items);

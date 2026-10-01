@@ -13,11 +13,7 @@ final class AccountIdentity {
   int get hashCode => userId.hashCode;
 }
 
-enum AccountProvider {
-  emailOtp,
-  google,
-  apple,
-}
+enum AccountProvider { emailOtp, google, apple }
 
 /// Immutable authentication state exposed to the application.
 final class AccountSession {
@@ -27,17 +23,12 @@ final class AccountSession {
     this.expiresAt,
   });
 
-  const AccountSession.unauthenticated()
-      : this._(isAuthenticated: false);
+  const AccountSession.unauthenticated() : this._(isAuthenticated: false);
 
   const AccountSession.authenticated({
     required AccountIdentity identity,
     DateTime? expiresAt,
-  }) : this._(
-          isAuthenticated: true,
-          identity: identity,
-          expiresAt: expiresAt,
-        );
+  }) : this._(isAuthenticated: true, identity: identity, expiresAt: expiresAt);
 
   final bool isAuthenticated;
   final AccountIdentity? identity;

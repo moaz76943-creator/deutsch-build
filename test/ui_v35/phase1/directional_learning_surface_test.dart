@@ -21,11 +21,7 @@ void main() {
                 textDirection: direction,
                 child: const DirectionalLearningSurface(
                   key: surfaceKey,
-                  child: SizedBox(
-                    key: contentKey,
-                    width: 40,
-                    height: 40,
-                  ),
+                  child: SizedBox(key: contentKey, width: 40, height: 40),
                 ),
               ),
             ),
@@ -40,8 +36,9 @@ void main() {
     );
   }
 
-  testWidgets('start padding and start alignment mirror between LTR and RTL',
-      (tester) async {
+  testWidgets('start padding and start alignment mirror between LTR and RTL', (
+    tester,
+  ) async {
     final ltr = await pumpSurface(tester, TextDirection.ltr);
     final rtl = await pumpSurface(tester, TextDirection.rtl);
 
@@ -51,8 +48,9 @@ void main() {
     expect(rtl.content.center.dx, greaterThan(rtl.surface.center.dx));
   });
 
-  testWidgets('surface exposes directional padding and alignment geometry',
-      (tester) async {
+  testWidgets('surface exposes directional padding and alignment geometry', (
+    tester,
+  ) async {
     await pumpSurface(tester, TextDirection.rtl);
 
     final padding = tester.widget<Padding>(

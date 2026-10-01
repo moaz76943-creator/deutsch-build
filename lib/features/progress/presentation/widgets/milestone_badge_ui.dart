@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/models/milestone_badge.dart';
 
 class MilestoneBadgeWidget extends StatelessWidget {

@@ -69,18 +69,18 @@ class UserCustomizationService {
     );
   }
 
-  Future<void> saveTranslationOverride(String wordId, String customArabic, String? notes) async {
+  Future<void> saveTranslationOverride(
+    String wordId,
+    String customArabic,
+    String? notes,
+  ) async {
     final database = await db;
-    await database.insert(
-      'user_vocab_customizations',
-      {
-        'word_id': wordId,
-        'custom_arabic_translation': customArabic,
-        'custom_notes': notes,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await database.insert('user_vocab_customizations', {
+      'word_id': wordId,
+      'custom_arabic_translation': customArabic,
+      'custom_notes': notes,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> resetTranslationOverride(String wordId) async {
@@ -92,17 +92,18 @@ class UserCustomizationService {
     );
   }
 
-  Future<void> addCustomExample(String wordId, String germanSentence, String arabicSentence) async {
+  Future<void> addCustomExample(
+    String wordId,
+    String germanSentence,
+    String arabicSentence,
+  ) async {
     final database = await db;
-    await database.insert(
-      'user_custom_examples',
-      {
-        'word_id': wordId,
-        'german_sentence': germanSentence,
-        'arabic_sentence': arabicSentence,
-        'created_at': DateTime.now().toIso8601String(),
-      },
-    );
+    await database.insert('user_custom_examples', {
+      'word_id': wordId,
+      'german_sentence': germanSentence,
+      'arabic_sentence': arabicSentence,
+      'created_at': DateTime.now().toIso8601String(),
+    });
   }
 
   Future<void> deleteCustomExample(int exampleId) async {

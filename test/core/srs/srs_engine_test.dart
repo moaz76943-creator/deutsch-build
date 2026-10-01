@@ -21,7 +21,11 @@ void main() {
       );
 
       expect(
-        () => engine.calculateNextState(initialState, Rating.good, DateTime.now()),
+        () => engine.calculateNextState(
+          initialState,
+          Rating.good,
+          DateTime.now(),
+        ),
         throwsArgumentError,
       );
     });
@@ -45,7 +49,11 @@ void main() {
 
       // 3. Second review: Good (assume 1 day passed)
       final reviewTime2 = now.add(Duration(days: 1));
-      final state2 = engine.calculateNextState(state1, Rating.good, reviewTime2);
+      final state2 = engine.calculateNextState(
+        state1,
+        Rating.good,
+        reviewTime2,
+      );
       expect(state2.repetitions, 2);
       expect(state2.intervalDays, 6);
       expect(state2.easeFactor, 2.5);
@@ -54,7 +62,11 @@ void main() {
 
       // 4. Third review: Easy (assume 6 days passed)
       final reviewTime3 = reviewTime2.add(Duration(days: 6));
-      final state3 = engine.calculateNextState(state2, Rating.easy, reviewTime3);
+      final state3 = engine.calculateNextState(
+        state2,
+        Rating.easy,
+        reviewTime3,
+      );
       expect(state3.repetitions, 3);
       // Interval = 6 * 2.5 * 1.3 = 19.5 -> rounded = 20
       expect(state3.intervalDays, 20);
@@ -72,7 +84,11 @@ void main() {
         state: CardState.reviewing,
       );
 
-      final stateAfterAgain = engine.calculateNextState(initialState, Rating.again, now);
+      final stateAfterAgain = engine.calculateNextState(
+        initialState,
+        Rating.again,
+        now,
+      );
 
       expect(stateAfterAgain.repetitions, 0);
       expect(stateAfterAgain.intervalDays, 1);
@@ -81,37 +97,51 @@ void main() {
       expect(stateAfterAgain.state, CardState.learning);
     });
 
-    test('Boundary condition for easeFactor minimum threshold (floor at 1.3)', () {
-      final initialState = SrsItemState(
-        intervalDays: 1,
-        repetitions: 1,
-        easeFactor: 1.4, // close to min
-        dueDate: now,
-        state: CardState.reviewing,
-      );
+    test(
+      'Boundary condition for easeFactor minimum threshold (floor at 1.3)',
+      () {
+        final initialState = SrsItemState(
+          intervalDays: 1,
+          repetitions: 1,
+          easeFactor: 1.4, // close to min
+          dueDate: now,
+          state: CardState.reviewing,
+        );
 
-      // Rating again decreases ease factor by 0.20, so 1.4 - 0.20 = 1.2. Should floor to 1.3.
-      final stateAfterAgain = engine.calculateNextState(initialState, Rating.again, now);
+        // Rating again decreases ease factor by 0.20, so 1.4 - 0.20 = 1.2. Should floor to 1.3.
+        final stateAfterAgain = engine.calculateNextState(
+          initialState,
+          Rating.again,
+          now,
+        );
 
-      expect(stateAfterAgain.easeFactor, 1.3);
-    });
+        expect(stateAfterAgain.easeFactor, 1.3);
+      },
+    );
 
-    test('Hard rating slightly increases interval and penalizes ease factor', () {
-      final initialState = SrsItemState(
-        intervalDays: 10,
-        repetitions: 3,
-        easeFactor: 2.5,
-        dueDate: now,
-        state: CardState.reviewing,
-      );
+    test(
+      'Hard rating slightly increases interval and penalizes ease factor',
+      () {
+        final initialState = SrsItemState(
+          intervalDays: 10,
+          repetitions: 3,
+          easeFactor: 2.5,
+          dueDate: now,
+          state: CardState.reviewing,
+        );
 
-      final stateAfterHard = engine.calculateNextState(initialState, Rating.hard, now);
+        final stateAfterHard = engine.calculateNextState(
+          initialState,
+          Rating.hard,
+          now,
+        );
 
-      expect(stateAfterHard.repetitions, 4);
-      expect(stateAfterHard.intervalDays, 12); // 10 * 1.2 = 12
-      expect(stateAfterHard.easeFactor, 2.35); // 2.5 - 0.15
-      expect(stateAfterHard.dueDate, now.add(Duration(days: 12)));
-      expect(stateAfterHard.state, CardState.reviewing);
-    });
+        expect(stateAfterHard.repetitions, 4);
+        expect(stateAfterHard.intervalDays, 12); // 10 * 1.2 = 12
+        expect(stateAfterHard.easeFactor, 2.35); // 2.5 - 0.15
+        expect(stateAfterHard.dueDate, now.add(Duration(days: 12)));
+        expect(stateAfterHard.state, CardState.reviewing);
+      },
+    );
   });
 }

@@ -16,9 +16,7 @@ void main() {
             body: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const Scaffold(
-                    body: SizedBox(key: routeKey),
-                  ),
+                  builder: (_) => const Scaffold(body: SizedBox(key: routeKey)),
                 ),
               ),
               child: const Text('افتح الصفحة'),

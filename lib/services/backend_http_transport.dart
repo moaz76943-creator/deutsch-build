@@ -27,9 +27,7 @@ final class HttpBackendTransport implements BackendTransport {
   final Duration timeout;
 
   @override
-  Future<BackendTransportResponse> send(
-    BackendTransportRequest request,
-  ) async {
+  Future<BackendTransportResponse> send(BackendTransportRequest request) async {
     _validateBaseUri(baseUri);
 
     final body = utf8.encode(jsonEncode(_requestJson(request)));
@@ -53,7 +51,10 @@ final class HttpBackendTransport implements BackendTransport {
       }
 
       final responseDeadline = DateTime.now().add(timeout);
-      final responseBytes = await _readResponseBytes(response, responseDeadline);
+      final responseBytes = await _readResponseBytes(
+        response,
+        responseDeadline,
+      );
 
       if (responseBytes.isEmpty) {
         return const BackendTransportResponse();
@@ -94,7 +95,9 @@ final class HttpBackendTransport implements BackendTransport {
     final responseBytes = <int>[];
     final iterator = StreamIterator<List<int>>(response);
     try {
-      while (await iterator.moveNext().timeout(_remainingUntil(responseDeadline))) {
+      while (await iterator.moveNext().timeout(
+        _remainingUntil(responseDeadline),
+      )) {
         responseBytes.addAll(iterator.current);
         if (responseBytes.length > MAX_RESPONSE_BYTES) {
           throw const BackendTransportFailure(
@@ -117,9 +120,7 @@ final class HttpBackendTransport implements BackendTransport {
   }
 
   static Map<String, dynamic> _requestJson(BackendTransportRequest request) {
-    final result = <String, dynamic>{
-      'operation': request.operation.name,
-    };
+    final result = <String, dynamic>{'operation': request.operation.name};
     if (request.email != null) result['email'] = request.email;
     if (request.otp != null) result['otp'] = request.otp;
     final assertion = request.assertion;
@@ -134,9 +135,7 @@ final class HttpBackendTransport implements BackendTransport {
     return result;
   }
 
-  static BackendTransportResponse _responseFromJson(
-    Map<String, dynamic> json,
-  ) {
+  static BackendTransportResponse _responseFromJson(Map<String, dynamic> json) {
     SecureSessionCredentials? credentials;
     final credential = json['credential'];
     if (credential != null) {
@@ -165,10 +164,7 @@ final class HttpBackendTransport implements BackendTransport {
       session = _sessionFromJson(rawSession);
     }
 
-    return BackendTransportResponse(
-      session: session,
-      credentials: credentials,
-    );
+    return BackendTransportResponse(session: session, credentials: credentials);
   }
 
   static void _validateResponseForOperation(
@@ -262,7 +258,8 @@ final class HttpBackendTransport implements BackendTransport {
       );
     }
     if (statusCode == 401 || statusCode == 403) {
-      final sessionOperation = operation == BackendTransportOperation.currentSession ||
+      final sessionOperation =
+          operation == BackendTransportOperation.currentSession ||
           operation == BackendTransportOperation.renewSession ||
           operation == BackendTransportOperation.revokeSession;
       return BackendTransportFailure(
@@ -278,7 +275,9 @@ final class HttpBackendTransport implements BackendTransport {
 
   static Duration _validateTimeout(Duration value) {
     if (value < MIN_TIMEOUT || value > MAX_TIMEOUT) {
-      throw ArgumentError('Backend transport timeout must be between 1 and 30 seconds');
+      throw ArgumentError(
+        'Backend transport timeout must be between 1 and 30 seconds',
+      );
     }
     return value;
   }

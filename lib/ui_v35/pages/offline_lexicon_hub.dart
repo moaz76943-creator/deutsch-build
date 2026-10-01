@@ -37,10 +37,15 @@ class _OfflineLexiconHubState extends State<OfflineLexiconHub> {
   String q = '';
   late final LearnerState state = widget.repo.load();
   late final Set<String> _learnedIds = state.learned;
-  late final List<ContentItem> _learnedItems = widget.corpus.where((x) => _learnedIds.contains(x.id)).toList(growable: false);
+  late final List<ContentItem> _learnedItems = widget.corpus
+      .where((x) => _learnedIds.contains(x.id))
+      .toList(growable: false);
 
-  final Map<String, WordProfile<ContentItem>> _profiles = <String, WordProfile<ContentItem>>{};
-  late final Map<String, List<Attempt>> _attemptsByItem = _groupAttempts(state.attempts);
+  final Map<String, WordProfile<ContentItem>> _profiles =
+      <String, WordProfile<ContentItem>>{};
+  late final Map<String, List<Attempt>> _attemptsByItem = _groupAttempts(
+    state.attempts,
+  );
 
   static Map<String, List<Attempt>> _groupAttempts(List<Attempt> attempts) {
     final grouped = <String, List<Attempt>>{};
@@ -54,14 +59,15 @@ class _OfflineLexiconHubState extends State<OfflineLexiconHub> {
 
   Future<void> _speak(String text) => _tts.speak(text);
 
-  WordProfile<ContentItem> _profileFor(ContentItem item) => _profiles[item.id] ??= WordProfileService.build(
-    item,
-    state,
-    searchIndex: widget.searchIndex,
-    verbIndex: widget.verbIndex,
-    textNormalizer: widget.textNormalizer,
-    itemAttempts: _attemptsByItem[item.id] ?? const <Attempt>[]
-  );
+  WordProfile<ContentItem> _profileFor(ContentItem item) =>
+      _profiles[item.id] ??= WordProfileService.build(
+        item,
+        state,
+        searchIndex: widget.searchIndex,
+        verbIndex: widget.verbIndex,
+        textNormalizer: widget.textNormalizer,
+        itemAttempts: _attemptsByItem[item.id] ?? const <Attempt>[],
+      );
 
   @override
   void dispose() {
@@ -77,14 +83,16 @@ class _OfflineLexiconHubState extends State<OfflineLexiconHub> {
     if (query.isEmpty) {
       results = _learnedItems;
     } else {
-      final searchResults = widget.searchIndex.searchDetailed(query, limit: 200).map((x) => x.item);
-      results = searchResults.where((item) => _learnedIds.contains(item.id)).toList();
+      final searchResults = widget.searchIndex
+          .searchDetailed(query, limit: 200)
+          .map((x) => x.item);
+      results = searchResults
+          .where((item) => _learnedIds.contains(item.id))
+          .toList();
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('مكتبة المفردات'),
-      ),
+      appBar: AppBar(title: const Text('مكتبة المفردات')),
       body: Column(
         children: [
           Padding(
@@ -102,45 +110,48 @@ class _OfflineLexiconHubState extends State<OfflineLexiconHub> {
           ),
           Expanded(
             child: results.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.search_off, size: 48),
-                        const SizedBox(height: 10),
-                        Text(
-                          _learnedItems.isEmpty
-                            ? 'لم تكتسب أي مفردات بعد'
-                            : 'لا توجد نتيجة مطابقة في مفرداتك المكتسبة',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (_learnedItems.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          const Text(
-                            'جرّب الكلمة الألمانية أو ترجمتها العربية.',
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.search_off, size: 48),
+                          const SizedBox(height: 10),
+                          Text(
+                            _learnedItems.isEmpty
+                                ? 'لم تكتسب أي مفردات بعد'
+                                : 'لا توجد نتيجة مطابقة في مفرداتك المكتسبة',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
                             textAlign: TextAlign.center,
                           ),
-                        ]
-                      ],
+                          if (_learnedItems.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            const Text(
+                              'جرّب الكلمة الألمانية أو ترجمتها العربية.',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: results.length,
+                    itemBuilder: (c, i) {
+                      final x = results[i];
+                      return _LexiconWordCard(
+                        item: x,
+                        profile: _profileFor(x),
+                        speak: _speak,
+                        presentation: widget.presentation,
+                      );
+                    },
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: results.length,
-                  itemBuilder: (c, i) {
-                    final x = results[i];
-                    return _LexiconWordCard(
-                      item: x,
-                      profile: _profileFor(x),
-                      speak: _speak,
-                      presentation: widget.presentation,
-                    );
-                  },
-                ),
           ),
         ],
       ),
@@ -183,7 +194,10 @@ class _LexiconWordCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item.sourceText,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textDirection: TextDirection.ltr,
                     ),
                   ),
@@ -199,29 +213,45 @@ class _LexiconWordCard extends StatelessWidget {
               const Divider(height: 20),
               Text(
                 item.exampleText,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
                 textDirection: TextDirection.ltr,
               ),
               const SizedBox(height: 4),
               Text(item.exampleTranslationText),
-              if (item.grammaticalMarker.isNotEmpty || item.pluralForm.isNotEmpty) ...[
+              if (item.grammaticalMarker.isNotEmpty ||
+                  item.pluralForm.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
                   children: [
                     if (item.grammaticalMarker.isNotEmpty)
-                      Chip(label: Text('${presentation.grammaticalMarkerLabel}: ${item.grammaticalMarker}')),
+                      Chip(
+                        label: Text(
+                          '${presentation.grammaticalMarkerLabel}: ${item.grammaticalMarker}',
+                        ),
+                      ),
                     if (item.pluralForm.isNotEmpty)
-                      Chip(label: Text('${presentation.pluralLabel}: ${item.pluralForm}')),
+                      Chip(
+                        label: Text(
+                          '${presentation.pluralLabel}: ${item.pluralForm}',
+                        ),
+                      ),
                   ],
                 ),
               ],
               const SizedBox(height: 12),
               LinearProgressIndicator(
                 value: profile.masteryPercent / 100,
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                color: profile.masteryPercent >= 80 ? Colors.green : Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest,
+                color: profile.masteryPercent >= 80
+                    ? Colors.green
+                    : Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(height: 4),
               Text(

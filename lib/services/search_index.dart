@@ -8,30 +8,53 @@ class SearchIndex<T extends LearningContent> {
   final VerbIndex _verbIndex;
   final LanguageTextNormalizer _textNormalizer;
 
-  late final Map<String, List<T>> _sourceExact =
-      _buildExact(_items, (x) => x.sourceText);
-  late final Map<String, List<T>> _translationExact =
-      _buildExact(_items, (x) => x.translationText);
+  late final Map<String, List<T>> _sourceExact = _buildExact(
+    _items,
+    (x) => x.sourceText,
+  );
+  late final Map<String, List<T>> _translationExact = _buildExact(
+    _items,
+    (x) => x.translationText,
+  );
   late final Map<String, List<T>> _tokenIndex = _buildTokens(_items);
-  late final Map<String, List<T>> _topicGroups = _buildGroups(_items, (x) => x.topic);
-  late final Map<String, List<T>> _skillGroups = _buildGroups(_items, (x) => x.skill);
+  late final Map<String, List<T>> _topicGroups = _buildGroups(
+    _items,
+    (x) => x.topic,
+  );
+  late final Map<String, List<T>> _skillGroups = _buildGroups(
+    _items,
+    (x) => x.skill,
+  );
   final Map<String, _Entry<T>> _entryCache = <String, _Entry<T>>{};
-  late final Map<String, List<_Entry<T>>> _trigramIndex =
-      _buildTrigrams(_items.map((item) => _Entry<T>(item, _textNormalizer)).toList(growable: false));
+  late final Map<String, List<_Entry<T>>> _trigramIndex = _buildTrigrams(
+    _items
+        .map((item) => _Entry<T>(item, _textNormalizer))
+        .toList(growable: false),
+  );
 
   SearchIndex(this._items, this._verbIndex, this._textNormalizer);
 
   List<T> search(String query, {int limit = 60, String? skill}) =>
-      searchDetailed(query, limit: limit, skill: skill).map((x) => x.item).toList(growable: false);
+      searchDetailed(
+        query,
+        limit: limit,
+        skill: skill,
+      ).map((x) => x.item).toList(growable: false);
 
-  List<SearchResult<T>> searchDetailed(String query, {int limit = 60, String? skill}) {
+  List<SearchResult<T>> searchDetailed(
+    String query, {
+    int limit = 60,
+    String? skill,
+  }) {
     final q = _textNormalizer.answer(query);
     final cap = limit.clamp(1, 200).toInt();
     final eligible = (T x) => skill == null || x.skill == skill;
     if (q.isEmpty) {
-      return _items.where(eligible).take(cap).map((item) => SearchResult(
-        item, 1, 'browse', 'عرض المحتوى',
-      )).toList(growable: false);
+      return _items
+          .where(eligible)
+          .take(cap)
+          .map((item) => SearchResult(item, 1, 'browse', 'عرض المحتوى'))
+          .toList(growable: false);
     }
 
     final scored = <String, SearchResult<T>>{};
@@ -45,12 +68,19 @@ class SearchIndex<T extends LearningContent> {
 
     final exactResults = <SearchResult<T>>[];
     for (final item in _sourceExact[q] ?? <T>[]) {
-      if (eligible(item)) exactResults.add(SearchResult(item, 1000, 'exactGerman', 'مطابقة ألمانية كاملة'));
+      if (eligible(item))
+        exactResults.add(
+          SearchResult(item, 1000, 'exactGerman', 'مطابقة ألمانية كاملة'),
+        );
     }
     for (final item in _translationExact[q] ?? <T>[]) {
-      if (eligible(item)) exactResults.add(SearchResult(item, 940, 'exactArabic', 'مطابقة عربية كاملة'));
+      if (eligible(item))
+        exactResults.add(
+          SearchResult(item, 940, 'exactArabic', 'مطابقة عربية كاملة'),
+        );
     }
-    if (exactResults.length >= cap) return exactResults.take(cap).toList(growable: false);
+    if (exactResults.length >= cap)
+      return exactResults.take(cap).toList(growable: false);
 
     for (final item in exactResults) {
       add(item.item, item.score, item.matchType, item.label);
@@ -58,7 +88,8 @@ class SearchIndex<T extends LearningContent> {
 
     final verbInfinitives = _verbIndex.infinitivesFor(q);
     for (final infinitive in verbInfinitives) {
-      for (final item in _sourceExact[_textNormalizer.answer(infinitive)] ?? <T>[]) {
+      for (final item
+          in _sourceExact[_textNormalizer.answer(infinitive)] ?? <T>[]) {
         add(item, 920, 'verbForm', 'صيغة فعل → المصدر');
       }
     }
@@ -79,13 +110,15 @@ class SearchIndex<T extends LearningContent> {
       if (!eligible(item)) continue;
       final entry = _entryCache[item.id] ??= _Entry<T>(item, _textNormalizer);
       final scoredEntry = entry.scoreDetailed(q);
-      if (scoredEntry.score > 0) add(item, scoredEntry.score, scoredEntry.type, scoredEntry.label);
+      if (scoredEntry.score > 0)
+        add(item, scoredEntry.score, scoredEntry.type, scoredEntry.label);
     }
 
     // Fuzzy fallback is intentionally bounded to avoid O(N²) behavior for ordinary searches.
     if (scored.length < cap) {
       for (final entry in _fuzzyCandidates(q)) {
-        if (!eligible(entry.item) || scored.containsKey(entry.item.id)) continue;
+        if (!eligible(entry.item) || scored.containsKey(entry.item.id))
+          continue;
         final distance = _bestFuzzyDistance(q, entry.searchTerms);
         if (distance <= _fuzzyLimit(q)) {
           final score = 320 - distance * 55 + _lengthProximity(q, entry.source);
@@ -117,7 +150,10 @@ class SearchIndex<T extends LearningContent> {
   Map<String, List<T>> get topicGroups => _topicGroups;
   Map<String, List<T>> get skillGroups => _skillGroups;
 
-  static Map<String, List<E>> _buildGroups<E extends LearningContent>(List<E> items, String Function(E) key) {
+  static Map<String, List<E>> _buildGroups<E extends LearningContent>(
+    List<E> items,
+    String Function(E) key,
+  ) {
     final map = <String, List<E>>{};
     for (final item in items) {
       (map[key(item)] ??= <E>[]).add(item);
@@ -125,7 +161,10 @@ class SearchIndex<T extends LearningContent> {
     return map;
   }
 
-  Map<String, List<E>> _buildExact<E extends LearningContent>(List<E> items, String Function(E) key) {
+  Map<String, List<E>> _buildExact<E extends LearningContent>(
+    List<E> items,
+    String Function(E) key,
+  ) {
     final map = <String, List<E>>{};
     for (final item in items) {
       final value = _textNormalizer.answer(key(item));
@@ -142,9 +181,15 @@ class SearchIndex<T extends LearningContent> {
       final first = q.isEmpty ? '' : q[0];
       final candidates = <_Entry<T>>[];
       for (final item in _items) {
-        if (first.isNotEmpty && !_textNormalizer.answer(item.sourceText).startsWith(first)) continue;
-        if ((_textNormalizer.answer(item.sourceText).length - q.length).abs() > maxDistance + 1) continue;
-        candidates.add(_entryCache[item.id] ??= _Entry<T>(item, _textNormalizer));
+        if (first.isNotEmpty &&
+            !_textNormalizer.answer(item.sourceText).startsWith(first))
+          continue;
+        if ((_textNormalizer.answer(item.sourceText).length - q.length).abs() >
+            maxDistance + 1)
+          continue;
+        candidates.add(
+          _entryCache[item.id] ??= _Entry<T>(item, _textNormalizer),
+        );
         if (candidates.length >= _fuzzyCandidateCap(q)) break;
       }
       return candidates;
@@ -163,7 +208,9 @@ class SearchIndex<T extends LearningContent> {
 
   int _fuzzyCandidateCap(String q) => q.length <= 4 ? 80 : 160;
 
-  static Map<String, List<_Entry<E>>> _buildTrigrams<E extends LearningContent>(List<_Entry<E>> entries) {
+  static Map<String, List<_Entry<E>>> _buildTrigrams<E extends LearningContent>(
+    List<_Entry<E>> entries,
+  ) {
     final map = <String, List<_Entry<E>>>{};
     for (final entry in entries) {
       for (final term in entry.searchTerms) {
@@ -196,7 +243,11 @@ class SearchResult<T extends LearningContent> {
   final String label;
   const SearchResult(this.item, this.score, this.matchType, this.label);
 
-  String get level => score >= 900 ? 'high' : score >= 500 ? 'medium' : 'low';
+  String get level => score >= 900
+      ? 'high'
+      : score >= 500
+      ? 'medium'
+      : 'low';
 }
 
 class _EntryScore {
@@ -208,43 +259,61 @@ class _EntryScore {
 
 class _Entry<T extends LearningContent> {
   final T item;
-  final String source, translation, sentence, sentenceAr, topic, grammaticalMarker, plural;
+  final String source,
+      translation,
+      sentence,
+      sentenceAr,
+      topic,
+      grammaticalMarker,
+      plural;
   final LanguageTextNormalizer _textNormalizer;
   final Set<String> sourceTokens, translationTokens;
   final Set<String> searchTerms;
 
   _Entry(this.item, this._textNormalizer)
-      : source = _textNormalizer.answer(item.sourceText),
-        translation = _textNormalizer.answer(item.translationText),
-        sentence = _textNormalizer.answer(item.exampleText),
-        sentenceAr = _textNormalizer.answer(item.exampleTranslationText),
-        topic = _textNormalizer.answer(item.topic),
-        grammaticalMarker = _textNormalizer.answer(item.grammaticalMarker),
-        plural = _textNormalizer.answer(item.pluralForm),
-        sourceTokens = _tokens(_textNormalizer.answer(item.sourceText)),
-        translationTokens = _tokens(_textNormalizer.answer(item.translationText)),
-        searchTerms = {
-          _textNormalizer.answer(item.sourceText),
-          _textNormalizer.answer(item.translationText),
-          _textNormalizer.answer(item.pluralForm),
-          ...item.acceptedForms.map(_textNormalizer.answer),
-        }..removeWhere((x) => x.isEmpty);
+    : source = _textNormalizer.answer(item.sourceText),
+      translation = _textNormalizer.answer(item.translationText),
+      sentence = _textNormalizer.answer(item.exampleText),
+      sentenceAr = _textNormalizer.answer(item.exampleTranslationText),
+      topic = _textNormalizer.answer(item.topic),
+      grammaticalMarker = _textNormalizer.answer(item.grammaticalMarker),
+      plural = _textNormalizer.answer(item.pluralForm),
+      sourceTokens = _tokens(_textNormalizer.answer(item.sourceText)),
+      translationTokens = _tokens(_textNormalizer.answer(item.translationText)),
+      searchTerms = {
+        _textNormalizer.answer(item.sourceText),
+        _textNormalizer.answer(item.translationText),
+        _textNormalizer.answer(item.pluralForm),
+        ...item.acceptedForms.map(_textNormalizer.answer),
+      }..removeWhere((x) => x.isEmpty);
 
   int tokenScore(String q) => scoreDetailed(q).score;
 
   _EntryScore scoreDetailed(String q) {
-    if (source == q) return const _EntryScore(1000, 'exactGerman', 'مطابقة ألمانية كاملة');
-    if ('$grammaticalMarker $source' == q) return const _EntryScore(980, 'article', 'مطابقة Artikel + كلمة');
-    if ('$source $plural' == q && plural.isNotEmpty) return const _EntryScore(970, 'plural', 'مطابقة المفرد + الجمع');
-    if (plural == q) return const _EntryScore(900, 'plural', 'مطابقة صيغة الجمع');
-    if (item.acceptedForms.any((x) => _textNormalizer.answer(x) == q)) return const _EntryScore(890, 'accepted', 'إجابة بديلة معتمدة');
-    if (source.startsWith(q)) return const _EntryScore(850, 'prefix', 'مطابقة بداية الكلمة');
-    if (source.contains(q)) return const _EntryScore(720, 'containsGerman', 'الكلمة تحتوي البحث');
-    if (translation == q) return const _EntryScore(940, 'exactArabic', 'مطابقة عربية كاملة');
-    if (translation.contains(q)) return const _EntryScore(610, 'containsArabic', 'العربية تحتوي البحث');
-    if (plural.contains(q)) return const _EntryScore(520, 'containsPlural', 'البحث داخل الجمع');
-    if (sentence.contains(q) || sentenceAr.contains(q)) return const _EntryScore(410, 'example', 'مطابقة داخل المثال');
-    if (topic.contains(q)) return const _EntryScore(250, 'topic', 'مطابقة الموضوع');
+    if (source == q)
+      return const _EntryScore(1000, 'exactGerman', 'مطابقة ألمانية كاملة');
+    if ('$grammaticalMarker $source' == q)
+      return const _EntryScore(980, 'article', 'مطابقة Artikel + كلمة');
+    if ('$source $plural' == q && plural.isNotEmpty)
+      return const _EntryScore(970, 'plural', 'مطابقة المفرد + الجمع');
+    if (plural == q)
+      return const _EntryScore(900, 'plural', 'مطابقة صيغة الجمع');
+    if (item.acceptedForms.any((x) => _textNormalizer.answer(x) == q))
+      return const _EntryScore(890, 'accepted', 'إجابة بديلة معتمدة');
+    if (source.startsWith(q))
+      return const _EntryScore(850, 'prefix', 'مطابقة بداية الكلمة');
+    if (source.contains(q))
+      return const _EntryScore(720, 'containsGerman', 'الكلمة تحتوي البحث');
+    if (translation == q)
+      return const _EntryScore(940, 'exactArabic', 'مطابقة عربية كاملة');
+    if (translation.contains(q))
+      return const _EntryScore(610, 'containsArabic', 'العربية تحتوي البحث');
+    if (plural.contains(q))
+      return const _EntryScore(520, 'containsPlural', 'البحث داخل الجمع');
+    if (sentence.contains(q) || sentenceAr.contains(q))
+      return const _EntryScore(410, 'example', 'مطابقة داخل المثال');
+    if (topic.contains(q))
+      return const _EntryScore(250, 'topic', 'مطابقة الموضوع');
     final queryTokens = _tokens(q);
     if (queryTokens.isEmpty) return const _EntryScore(0, 'none', '');
     final germanHits = queryTokens.where(sourceTokens.contains).length;
@@ -252,8 +321,14 @@ class _Entry<T extends LearningContent> {
     final hits = germanHits + arabicHits;
     if (hits == 0) return const _EntryScore(0, 'none', '');
     final coverage = hits / queryTokens.length;
-    if (coverage == 1 && germanHits == queryTokens.length) return const _EntryScore(560, 'tokenGerman', 'مطابقة كلمات ألمانية');
-    if (coverage >= .5 && germanHits > 0) return const _EntryScore(360, 'tokenMixed', 'مطابقة جزئية متعددة الكلمات');
+    if (coverage == 1 && germanHits == queryTokens.length)
+      return const _EntryScore(560, 'tokenGerman', 'مطابقة كلمات ألمانية');
+    if (coverage >= .5 && germanHits > 0)
+      return const _EntryScore(
+        360,
+        'tokenMixed',
+        'مطابقة جزئية متعددة الكلمات',
+      );
     return const _EntryScore(180, 'tokenArabic', 'مطابقة كلمات عربية');
   }
 }
@@ -268,9 +343,14 @@ int _bestFuzzyDistance(String q, Iterable<String> terms) {
   return best;
 }
 
-int _fuzzyLimit(String q) => q.length <= 4 ? 1 : q.length <= 8 ? 2 : 3;
+int _fuzzyLimit(String q) => q.length <= 4
+    ? 1
+    : q.length <= 8
+    ? 2
+    : 3;
 
-int _lengthProximity(String a, String b) => (10 - (a.length - b.length).abs()).clamp(0, 10).toInt();
+int _lengthProximity(String a, String b) =>
+    (10 - (a.length - b.length).abs()).clamp(0, 10).toInt();
 
 int _editDistance(String a, String b) {
   if (a == b) return 0;
@@ -283,7 +363,11 @@ int _editDistance(String a, String b) {
     current[0] = i;
     for (var j = 1; j <= b.length; j++) {
       final cost = a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1;
-      current[j] = [current[j - 1] + 1, previous[j] + 1, previous[j - 1] + cost].reduce((x, y) => x < y ? x : y);
+      current[j] = [
+        current[j - 1] + 1,
+        previous[j] + 1,
+        previous[j - 1] + cost,
+      ].reduce((x, y) => x < y ? x : y);
     }
     previous = current;
   }

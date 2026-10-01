@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+
 import '../../../services/database_migration_helper.dart';
 
 class ReverseQuizDatabase {
@@ -12,7 +13,8 @@ class ReverseQuizDatabase {
   final String? _inMemoryPath;
 
   ReverseQuizDatabase({DatabaseFactory? factory, String? path})
-      : _dbFactory = factory, _inMemoryPath = path;
+    : _dbFactory = factory,
+      _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -32,10 +34,7 @@ class ReverseQuizDatabase {
     if (_dbFactory != null) {
       return await _dbFactory.openDatabase(
         path,
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: _createDB,
-        ),
+        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
       );
     }
 
@@ -84,11 +83,7 @@ class ReverseQuizDatabase {
 
   Future<List<Map<String, dynamic>>> getRandomFlashcards(int count) async {
     final db = await database;
-    return await db.query(
-      _flashcardsTable,
-      orderBy: 'RANDOM()',
-      limit: count,
-    );
+    return await db.query(_flashcardsTable, orderBy: 'RANDOM()', limit: count);
   }
 
   Future<void> recordAttempt(Map<String, dynamic> attempt) async {

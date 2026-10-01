@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../models/grammar.dart';
 
 class GrammarTopicDetailPage extends StatefulWidget {
@@ -91,9 +92,8 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
         const SizedBox(height: 16),
         Text(
           widget.topic.summaryAr,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(fontFamily: 'Tajawal'),
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(fontFamily: 'Tajawal'),
         ),
       ],
     );
@@ -127,9 +127,8 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
             const SizedBox(height: 12),
             Text(
               rule.explanationAr,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontFamily: 'Tajawal'),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(fontFamily: 'Tajawal'),
             ),
             if (rule.table.isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -172,9 +171,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
           return TableRow(
             decoration: isHeader
                 ? BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
                   )
                 : null,
             children: row.map((cell) {
@@ -204,9 +203,8 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
           color: Theme.of(context).colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.outlineVariant
+                .withOpacity(0.5),
           ),
         ),
         child: Column(
@@ -239,9 +237,8 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest
+          .withOpacity(0.3),
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16.0),

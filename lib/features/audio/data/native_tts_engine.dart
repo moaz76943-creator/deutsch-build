@@ -1,11 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter_tts/flutter_tts.dart';
+
 import '../domain/entities/audio_playback_state.dart';
 import '../domain/services/i_audio_service.dart';
 
 class NativeTtsEngine implements IAudioService {
   final FlutterTts _flutterTts;
-  final StreamController<AudioPlaybackState> _stateController = StreamController<AudioPlaybackState>.broadcast();
+  final StreamController<AudioPlaybackState> _stateController =
+      StreamController<AudioPlaybackState>.broadcast();
   bool _isDisposed = false;
 
   static final NativeTtsEngine _instance = NativeTtsEngine._internal();
@@ -15,7 +18,7 @@ class NativeTtsEngine implements IAudioService {
   }
 
   NativeTtsEngine._internal({FlutterTts? flutterTts})
-      : _flutterTts = flutterTts ?? FlutterTts() {
+    : _flutterTts = flutterTts ?? FlutterTts() {
     _initTts();
   }
 
@@ -54,14 +57,19 @@ class NativeTtsEngine implements IAudioService {
   Stream<AudioPlaybackState> get playbackStateStream => _stateController.stream;
 
   @override
-  Future<void> playVocabularyAudio({required String conceptId, required String languageCode}) async {
+  Future<void> playVocabularyAudio({
+    required String conceptId,
+    required String languageCode,
+  }) async {
     if (_isDisposed) return;
 
     // Note: A true implementation would look up the word by conceptId.
     // Given the parameters, this method is fundamentally difficult to satisfy offline
     // without a repository reference. We will keep it but UI will use `speak`
     _emitState(AudioPlaybackState.loading);
-    String ttsLang = languageCode.toLowerCase().startsWith('de') ? 'de-DE' : languageCode;
+    String ttsLang = languageCode.toLowerCase().startsWith('de')
+        ? 'de-DE'
+        : languageCode;
     await _flutterTts.setLanguage(ttsLang);
     await _flutterTts.speak(conceptId);
   }

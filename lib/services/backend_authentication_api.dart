@@ -45,15 +45,15 @@ final class BackendAuthenticationApi {
           assertion: _require(request.assertion, 'assertion'),
         ),
       BackendAuthenticationOperation.currentSession =>
-        BackendTransportRequest.currentSession(credentials: request.credentials),
+        BackendTransportRequest.currentSession(
+          credentials: request.credentials,
+        ),
       BackendAuthenticationOperation.renewSession =>
         BackendTransportRequest.renewSession(
           credentials: _require(request.credentials, 'credentials'),
         ),
       BackendAuthenticationOperation.revokeSession =>
-        BackendTransportRequest.revokeSession(
-          credentials: request.credentials,
-        ),
+        BackendTransportRequest.revokeSession(credentials: request.credentials),
       BackendAuthenticationOperation.signOut =>
         const BackendTransportRequest.signOut(),
     };

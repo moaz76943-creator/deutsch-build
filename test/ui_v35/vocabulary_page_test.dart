@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../lib/core/content_contract.dart';
 import '../../lib/models/content.dart';
 import '../../lib/services/app_dependencies.dart';
@@ -19,6 +20,7 @@ import '../../lib/ui_v35/flashcard_widget.dart';
 import '../../lib/models/learner.dart';
 import '../../lib/services/learner_persistence.dart';
 import '../../lib/models/assessment.dart';
+
 import 'package:sqflite/sqflite.dart';
 
 class FakeLearnerRepository implements LearnerRepository {
@@ -33,13 +35,30 @@ class FakeLearnerRepository implements LearnerRepository {
   @override
   PreferencesService get prefs => throw UnimplementedError();
   @override
-  Future<void> record({required LearningContent item, required String answer, required bool correct, required int seconds, required bool hinted, String? skillOverride}) async {}
+  Future<void> record({
+    required LearningContent item,
+    required String answer,
+    required bool correct,
+    required int seconds,
+    required bool hinted,
+    String? skillOverride,
+  }) async {}
   @override
   Future<void> recordAssessment(AssessmentResult result) async {}
   @override
-  Future<void> recordConversationAttempt({required String itemId, required String skill, required String answer, required bool correct, required int seconds, required bool hinted}) async {}
+  Future<void> recordConversationAttempt({
+    required String itemId,
+    required String skill,
+    required String answer,
+    required bool correct,
+    required int seconds,
+    required bool hinted,
+  }) async {}
   @override
-  Future<void> recordWritingMistake({required String issue, DateTime? at}) async {}
+  Future<void> recordWritingMistake({
+    required String issue,
+    DateTime? at,
+  }) async {}
   @override
   LearnerState reload() => load();
   @override
@@ -76,9 +95,14 @@ class FakeAiGateway implements AiGateway {
   @override
   bool get enabled => false;
   @override
-  Future<AiReview> reviewWriting(String text, {String level = 'A1'}) async => const AiReview(corrected: '', issues: [], explanation: '');
+  Future<AiReview> reviewWriting(String text, {String level = 'A1'}) async =>
+      const AiReview(corrected: '', issues: [], explanation: '');
   @override
-  Future<String> continueConversation({required String scenario, required String message, String level = 'A1'}) async => '';
+  Future<String> continueConversation({
+    required String scenario,
+    required String message,
+    String level = 'A1',
+  }) async => '';
 }
 
 void main() {
@@ -89,7 +113,11 @@ void main() {
   Widget createTestWidget(List<ContentItem> corpus, PreferencesService prefs) {
     final languagePack = const GermanLanguagePack();
     final verbIndex = languagePack.contentPack.verbIndex;
-    final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);
+    final searchIndex = SearchIndex(
+      corpus,
+      verbIndex,
+      languagePack.textNormalizer,
+    );
 
     final dependencies = AppDependencies<ContentItem>(
       searchIndex: searchIndex,
@@ -119,7 +147,9 @@ void main() {
     );
   }
 
-  testWidgets('renders list mode by default and saves view mode preference', (tester) async {
+  testWidgets('renders list mode by default and saves view mode preference', (
+    tester,
+  ) async {
     final prefs = await PreferencesService.instance();
     final item = ContentItem(
       id: '1',

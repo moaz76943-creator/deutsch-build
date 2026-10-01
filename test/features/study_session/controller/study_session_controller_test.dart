@@ -11,13 +11,34 @@ void main() {
         sessionId: 'test-session',
         startTime: DateTime.now(),
       );
-      final shield = CognitiveOverloadShield(thresholdAccuracy: 0.60, minimumAnswersBeforeCheck: 3);
-      final controller = StudySessionController(session: session, shield: shield);
+      final shield = CognitiveOverloadShield(
+        thresholdAccuracy: 0.60,
+        minimumAnswersBeforeCheck: 3,
+      );
+      final controller = StudySessionController(
+        session: session,
+        shield: shield,
+      );
 
       final cards = [
-        const Flashcard(id: '1', conceptId: 'c1', german: 'Hallo', arabic: 'مرحبا'),
-        const Flashcard(id: '2', conceptId: 'c2', german: 'Tschüss', arabic: 'وداعا'),
-        const Flashcard(id: '3', conceptId: 'c3', german: 'Bitte', arabic: 'رجاء'),
+        const Flashcard(
+          id: '1',
+          conceptId: 'c1',
+          german: 'Hallo',
+          arabic: 'مرحبا',
+        ),
+        const Flashcard(
+          id: '2',
+          conceptId: 'c2',
+          german: 'Tschüss',
+          arabic: 'وداعا',
+        ),
+        const Flashcard(
+          id: '3',
+          conceptId: 'c3',
+          german: 'Bitte',
+          arabic: 'رجاء',
+        ),
       ];
 
       controller.startSession(dueCards: cards, newCards: []);
@@ -31,7 +52,9 @@ void main() {
       controller.submitAnswer(Rating.good); // 2 correct, 2 total
       expect(controller.isPaused, isFalse);
 
-      controller.submitAnswer(Rating.good); // 3 correct, 3 total (100% accuracy)
+      controller.submitAnswer(
+        Rating.good,
+      ); // 3 correct, 3 total (100% accuracy)
       expect(controller.isPaused, isFalse);
     });
 
@@ -40,14 +63,40 @@ void main() {
         sessionId: 'test-session-2',
         startTime: DateTime.now(),
       );
-      final shield = CognitiveOverloadShield(thresholdAccuracy: 0.60, minimumAnswersBeforeCheck: 3);
-      final controller = StudySessionController(session: session, shield: shield);
+      final shield = CognitiveOverloadShield(
+        thresholdAccuracy: 0.60,
+        minimumAnswersBeforeCheck: 3,
+      );
+      final controller = StudySessionController(
+        session: session,
+        shield: shield,
+      );
 
       final cards = [
-        const Flashcard(id: '1', conceptId: 'c1', german: 'Hallo', arabic: 'مرحبا'),
-        const Flashcard(id: '2', conceptId: 'c2', german: 'Tschüss', arabic: 'وداعا'),
-        const Flashcard(id: '3', conceptId: 'c3', german: 'Bitte', arabic: 'رجاء'),
-        const Flashcard(id: '4', conceptId: 'c4', german: 'Danke', arabic: 'شكرا'),
+        const Flashcard(
+          id: '1',
+          conceptId: 'c1',
+          german: 'Hallo',
+          arabic: 'مرحبا',
+        ),
+        const Flashcard(
+          id: '2',
+          conceptId: 'c2',
+          german: 'Tschüss',
+          arabic: 'وداعا',
+        ),
+        const Flashcard(
+          id: '3',
+          conceptId: 'c3',
+          german: 'Bitte',
+          arabic: 'رجاء',
+        ),
+        const Flashcard(
+          id: '4',
+          conceptId: 'c4',
+          german: 'Danke',
+          arabic: 'شكرا',
+        ),
       ];
 
       controller.startSession(dueCards: cards, newCards: []);
@@ -63,7 +112,10 @@ void main() {
       // Now minimum checks reached and accuracy is 0% (below 60%)
       expect(controller.isPaused, isTrue);
       expect(controller.interventionPrompt, isNotNull);
-      expect(controller.interventionPrompt, contains('Let\'s take a short break'));
+      expect(
+        controller.interventionPrompt,
+        contains('Let\'s take a short break'),
+      );
     });
 
     test('resumeSession unpauses the controller and clears the prompt', () {
@@ -71,11 +123,22 @@ void main() {
         sessionId: 'test-session-3',
         startTime: DateTime.now(),
       );
-      final shield = CognitiveOverloadShield(thresholdAccuracy: 0.60, minimumAnswersBeforeCheck: 1);
-      final controller = StudySessionController(session: session, shield: shield);
+      final shield = CognitiveOverloadShield(
+        thresholdAccuracy: 0.60,
+        minimumAnswersBeforeCheck: 1,
+      );
+      final controller = StudySessionController(
+        session: session,
+        shield: shield,
+      );
 
       final cards = [
-        const Flashcard(id: '1', conceptId: 'c1', german: 'Hallo', arabic: 'مرحبا'),
+        const Flashcard(
+          id: '1',
+          conceptId: 'c1',
+          german: 'Hallo',
+          arabic: 'مرحبا',
+        ),
       ];
 
       controller.startSession(dueCards: cards, newCards: []);

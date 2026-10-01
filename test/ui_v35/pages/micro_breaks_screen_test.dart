@@ -5,11 +5,7 @@ import 'package:deutsch_bilarabi/ui_v35/pages/micro_breaks_screen.dart';
 void main() {
   group('MicroBreaksScreen', () {
     testWidgets('renders initial state correctly', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: MicroBreaksScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: MicroBreaksScreen()));
 
       expect(find.text('Micro-Break'), findsOneWidget);
       expect(find.text('Relax your eyes. Follow the rhythm.'), findsOneWidget);
@@ -19,16 +15,14 @@ void main() {
       expect(find.byType(Icon), findsOneWidget);
     });
 
-    testWidgets('transitions through breathing phases automatically', (WidgetTester tester) async {
+    testWidgets('transitions through breathing phases automatically', (
+      WidgetTester tester,
+    ) async {
       // Need fake_async when dealing with periodic Timer / Future.delayed in UI
       // but flutter_test's pump mechanisms usually handle this.
       // Let's use fake_async for better timer control.
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: MicroBreaksScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: MicroBreaksScreen()));
 
       // Initial Phase: Inhale
       expect(find.text('Breathe In...'), findsOneWidget);
@@ -69,7 +63,9 @@ void main() {
       expect(find.text('Cycle 2 of 3'), findsOneWidget);
     });
 
-    testWidgets('calls onComplete when max cycles are reached', (WidgetTester tester) async {
+    testWidgets('calls onComplete when max cycles are reached', (
+      WidgetTester tester,
+    ) async {
       bool onCompleteCalled = false;
 
       await tester.pumpWidget(
@@ -112,7 +108,9 @@ void main() {
       expect(onCompleteCalled, isTrue);
     });
 
-    testWidgets('calls onComplete when Skip Break is pressed', (WidgetTester tester) async {
+    testWidgets('calls onComplete when Skip Break is pressed', (
+      WidgetTester tester,
+    ) async {
       bool onCompleteCalled = false;
 
       await tester.pumpWidget(
@@ -131,37 +129,42 @@ void main() {
       expect(onCompleteCalled, isTrue);
     });
 
-    testWidgets('pops the navigator if onComplete is null and Skip Break is pressed', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const MicroBreaksScreen()),
-                  );
-                },
-                child: const Text('Go'),
+    testWidgets(
+      'pops the navigator if onComplete is null and Skip Break is pressed',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MicroBreaksScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Go'),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Navigate to MicroBreaksScreen
-      await tester.tap(find.text('Go'));
-      await tester.pumpAndSettle();
+        // Navigate to MicroBreaksScreen
+        await tester.tap(find.text('Go'));
+        await tester.pumpAndSettle();
 
-      expect(find.byType(MicroBreaksScreen), findsOneWidget);
+        expect(find.byType(MicroBreaksScreen), findsOneWidget);
 
-      // Tap Skip Break
-      await tester.tap(find.text('Skip Break'));
-      await tester.pumpAndSettle();
+        // Tap Skip Break
+        await tester.tap(find.text('Skip Break'));
+        await tester.pumpAndSettle();
 
-      // Should be back on the original screen
-      expect(find.byType(MicroBreaksScreen), findsNothing);
-      expect(find.text('Go'), findsOneWidget);
-    });
+        // Should be back on the original screen
+        expect(find.byType(MicroBreaksScreen), findsNothing);
+        expect(find.text('Go'), findsOneWidget);
+      },
+    );
   });
 }

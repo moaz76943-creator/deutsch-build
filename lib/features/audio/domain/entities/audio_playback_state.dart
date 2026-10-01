@@ -1,8 +1,1 @@
-enum AudioPlaybackState {
-  idle,
-  loading,
-  playing,
-  paused,
-  completed,
-  error,
-}
+enum AudioPlaybackState { idle, loading, playing, paused, completed, error }

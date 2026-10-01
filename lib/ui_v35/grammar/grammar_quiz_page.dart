@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../services/grammar_hub_service.dart';
 import '../../services/app_dependencies.dart';
 
@@ -31,7 +32,8 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
   }
 
   Future<void> _loadQuizzes() async {
-    final quizzes = await widget.dependencies.grammarHubService.getQuizzesForTopic(widget.topicId);
+    final quizzes = await widget.dependencies.grammarHubService
+        .getQuizzesForTopic(widget.topicId);
     setState(() {
       _quizzes = quizzes;
       _isLoading = false;
@@ -59,7 +61,10 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
     } else {
       // Finished all quizzes for this topic
       if (_correctCount == _quizzes.length && _quizzes.isNotEmpty) {
-        await widget.dependencies.grammarHubService.saveTopicMastery(widget.topicId, true);
+        await widget.dependencies.grammarHubService.saveTopicMastery(
+          widget.topicId,
+          true,
+        );
       }
       if (mounted) {
         Navigator.pop(context);
@@ -77,14 +82,15 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _quizzes.isEmpty
-              ? const Center(child: Text('No quizzes available.'))
-              : _buildQuizContent(),
+          ? const Center(child: Text('No quizzes available.'))
+          : _buildQuizContent(),
     );
   }
 
   Widget _buildQuizContent() {
     final quiz = _quizzes[_currentIndex];
-    return SingleChildScrollView( // Wrap in SingleChildScrollView to prevent overflow
+    return SingleChildScrollView(
+      // Wrap in SingleChildScrollView to prevent overflow
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,7 +103,11 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
           const SizedBox(height: 16),
           Text(
             quiz.question,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Inter'),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Inter',
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -140,14 +150,18 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _selectedIndex == quiz.correctIndex ? Colors.green.shade50 : Colors.red.shade50,
+                color: _selectedIndex == quiz.correctIndex
+                    ? Colors.green.shade50
+                    : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 quiz.explanation,
                 style: TextStyle(
                   fontSize: 14,
-                  color: _selectedIndex == quiz.correctIndex ? Colors.green.shade900 : Colors.red.shade900,
+                  color: _selectedIndex == quiz.correctIndex
+                      ? Colors.green.shade900
+                      : Colors.red.shade900,
                   fontFamily: 'Inter',
                 ),
                 textAlign: TextAlign.center,
@@ -158,14 +172,18 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
               onPressed: _nextQuestion,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text(
-                _currentIndex < _quizzes.length - 1 ? 'Next Question' : 'Finish',
+                _currentIndex < _quizzes.length - 1
+                    ? 'Next Question'
+                    : 'Finish',
                 style: const TextStyle(fontSize: 16, fontFamily: 'Inter'),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );

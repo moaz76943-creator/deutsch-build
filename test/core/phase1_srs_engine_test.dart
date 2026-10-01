@@ -46,12 +46,7 @@ void main() {
       lastReviewedAt: now.subtract(const Duration(days: 1)),
     );
 
-    final updated = Srs.update(
-      card,
-      correct: false,
-      hinted: false,
-      now: now,
-    );
+    final updated = Srs.update(card, correct: false, hinted: false, now: now);
 
     expect(updated.dueAt, now);
     expect(updated.repetitions, 0);

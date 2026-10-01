@@ -12,7 +12,11 @@ class PuzzleItem {
   });
 
   List<String> get scrambledWords {
-    final words = germanSentence.split(RegExp(r'\s+')).map((w) => w.replaceAll(RegExp(r'[^\wäöüßÄÖÜ]'), '')).where((w) => w.isNotEmpty).toList();
+    final words = germanSentence
+        .split(RegExp(r'\s+'))
+        .map((w) => w.replaceAll(RegExp(r'[^\wäöüßÄÖÜ]'), ''))
+        .where((w) => w.isNotEmpty)
+        .toList();
     words.shuffle();
     return words;
   }

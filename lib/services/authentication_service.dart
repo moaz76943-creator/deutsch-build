@@ -14,19 +14,16 @@ final class ProviderAuthenticationService implements AuthenticationService {
     required SocialAuthenticationProvider appleProvider,
     BackendAuthenticationGateway? backendGateway,
     SecureSessionStorage? secureSessionStorage,
-  })  : _emailOtpProvider = emailOtpProvider,
-        _backendGateway =
-            backendGateway ?? const UnavailableBackendAuthenticationGateway(),
-        _secureSessionStorage =
-            secureSessionStorage ?? const UnavailableSecureSessionStorage(),
-        _googleProvider = _requireProvider(
-          googleProvider,
-          AccountProvider.google,
-        ),
-        _appleProvider = _requireProvider(
-          appleProvider,
-          AccountProvider.apple,
-        );
+  }) : _emailOtpProvider = emailOtpProvider,
+       _backendGateway =
+           backendGateway ?? const UnavailableBackendAuthenticationGateway(),
+       _secureSessionStorage =
+           secureSessionStorage ?? const UnavailableSecureSessionStorage(),
+       _googleProvider = _requireProvider(
+         googleProvider,
+         AccountProvider.google,
+       ),
+       _appleProvider = _requireProvider(appleProvider, AccountProvider.apple);
 
   final EmailOtpProvider _emailOtpProvider;
   final BackendAuthenticationGateway _backendGateway;
@@ -54,10 +51,8 @@ final class ProviderAuthenticationService implements AuthenticationService {
         _session = const AccountSession.unauthenticated();
       }
     }
-    if (
-      operationGeneration == _storageOperationGeneration &&
-      _session.requiresReauthentication
-    ) {
+    if (operationGeneration == _storageOperationGeneration &&
+        _session.requiresReauthentication) {
       _session = const AccountSession.unauthenticated();
     }
     if (operationGeneration != _storageOperationGeneration) {
@@ -77,9 +72,11 @@ final class ProviderAuthenticationService implements AuthenticationService {
     required String email,
     required String otp,
   }) async {
-    return _authenticate(() => _backendGateway.verifyEmailOtp(
-          EmailOtpVerification(email: email, otp: otp),
-        ));
+    return _authenticate(
+      () => _backendGateway.verifyEmailOtp(
+        EmailOtpVerification(email: email, otp: otp),
+      ),
+    );
   }
 
   @override

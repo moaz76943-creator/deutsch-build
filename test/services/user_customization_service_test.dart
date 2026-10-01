@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import '../../lib/services/user_customization_service.dart';
+
 import 'package:sqflite/sqflite.dart';
 
 void main() {
@@ -21,7 +23,11 @@ void main() {
     });
 
     test('can save and retrieve translation override', () async {
-      await service.saveTranslationOverride('word_1', 'custom_arabic_1', 'note_1');
+      await service.saveTranslationOverride(
+        'word_1',
+        'custom_arabic_1',
+        'note_1',
+      );
 
       final customization = await service.getCustomization('word_1');
       expect(customization, isNotNull);
@@ -31,8 +37,16 @@ void main() {
     });
 
     test('can update existing translation override', () async {
-      await service.saveTranslationOverride('word_1', 'custom_arabic_1', 'note_1');
-      await service.saveTranslationOverride('word_1', 'custom_arabic_2', 'note_2');
+      await service.saveTranslationOverride(
+        'word_1',
+        'custom_arabic_1',
+        'note_1',
+      );
+      await service.saveTranslationOverride(
+        'word_1',
+        'custom_arabic_2',
+        'note_2',
+      );
 
       final customization = await service.getCustomization('word_1');
       expect(customization, isNotNull);
@@ -42,7 +56,11 @@ void main() {
     });
 
     test('can reset translation override', () async {
-      await service.saveTranslationOverride('word_1', 'custom_arabic_1', 'note_1');
+      await service.saveTranslationOverride(
+        'word_1',
+        'custom_arabic_1',
+        'note_1',
+      );
       await service.resetTranslationOverride('word_1');
 
       final customization = await service.getCustomization('word_1');

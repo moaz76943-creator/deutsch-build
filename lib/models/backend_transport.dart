@@ -25,35 +25,47 @@ final class BackendTransportRequest {
   });
 
   const BackendTransportRequest.requestEmailOtp({required String email})
-      : this(operation: BackendTransportOperation.requestEmailOtp, email: email);
+    : this(operation: BackendTransportOperation.requestEmailOtp, email: email);
 
   const BackendTransportRequest.verifyEmailOtp({
     required String email,
     required String otp,
   }) : this(
-          operation: BackendTransportOperation.verifyEmailOtp,
-          email: email,
-          otp: otp,
-        );
+         operation: BackendTransportOperation.verifyEmailOtp,
+         email: email,
+         otp: otp,
+       );
 
   const BackendTransportRequest.authenticateProvider({
     required ProviderAuthenticationAssertion assertion,
   }) : this(
-          operation: BackendTransportOperation.authenticateProvider,
-          assertion: assertion,
-        );
+         operation: BackendTransportOperation.authenticateProvider,
+         assertion: assertion,
+       );
 
-  const BackendTransportRequest.currentSession({SecureSessionCredentials? credentials})
-      : this(operation: BackendTransportOperation.currentSession, credentials: credentials);
+  const BackendTransportRequest.currentSession({
+    SecureSessionCredentials? credentials,
+  }) : this(
+         operation: BackendTransportOperation.currentSession,
+         credentials: credentials,
+       );
 
-  const BackendTransportRequest.renewSession({required SecureSessionCredentials credentials})
-      : this(operation: BackendTransportOperation.renewSession, credentials: credentials);
+  const BackendTransportRequest.renewSession({
+    required SecureSessionCredentials credentials,
+  }) : this(
+         operation: BackendTransportOperation.renewSession,
+         credentials: credentials,
+       );
 
-  const BackendTransportRequest.revokeSession({SecureSessionCredentials? credentials})
-      : this(operation: BackendTransportOperation.revokeSession, credentials: credentials);
+  const BackendTransportRequest.revokeSession({
+    SecureSessionCredentials? credentials,
+  }) : this(
+         operation: BackendTransportOperation.revokeSession,
+         credentials: credentials,
+       );
 
   const BackendTransportRequest.signOut()
-      : this(operation: BackendTransportOperation.signOut);
+    : this(operation: BackendTransportOperation.signOut);
 
   final BackendTransportOperation operation;
   final String? email;

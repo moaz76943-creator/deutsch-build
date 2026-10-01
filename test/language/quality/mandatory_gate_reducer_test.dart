@@ -5,10 +5,7 @@ import 'package:deutsch_bilarabi/language/language_role.dart';
 import 'package:deutsch_bilarabi/language/language_role_status.dart';
 import 'package:deutsch_bilarabi/language/quality/mandatory_gate_reducer.dart';
 
-LanguageRoleEligibilityRecord _eligible(
-  String languageId,
-  LanguageRole role,
-) {
+LanguageRoleEligibilityRecord _eligible(String languageId, LanguageRole role) {
   return LanguageRoleEligibilityRecord(
     languageId: languageId,
     role: role,
@@ -34,10 +31,7 @@ LanguageCapabilityStatus _capability({
   );
 }
 
-LanguageRoleEvidenceBinding _binding(
-  String languageId,
-  LanguageRole role,
-) {
+LanguageRoleEvidenceBinding _binding(String languageId, LanguageRole role) {
   return LanguageRoleEvidenceBinding(
     languageId: languageId,
     role: role,
@@ -332,10 +326,7 @@ void main() {
           ),
         ],
         evidence: <QualityGateEvidence>[
-          _evidence(
-            gateId: 'golden',
-            kind: QualityEvidenceKind.candidate,
-          ),
+          _evidence(gateId: 'golden', kind: QualityEvidenceKind.candidate),
         ],
       );
 
@@ -357,10 +348,7 @@ void main() {
           ),
         ],
         evidence: <QualityGateEvidence>[
-          _evidence(
-            gateId: 'self-test',
-            kind: QualityEvidenceKind.selfTest,
-          ),
+          _evidence(gateId: 'self-test', kind: QualityEvidenceKind.selfTest),
         ],
       );
 

@@ -1,8 +1,6 @@
 import '../models/learner.dart';
 
-enum OfflineRepositoryAuthority {
-  localOnly,
-}
+enum OfflineRepositoryAuthority { localOnly }
 
 abstract interface class OfflineLearnerRepository {
   OfflineRepositoryAuthority get authority;

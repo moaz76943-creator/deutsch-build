@@ -16,7 +16,6 @@ import 'package:deutsch_bilarabi/models/content.dart';
 import 'package:deutsch_bilarabi/services/preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 void main() {
   late GrammarHubService service;
   late AppDependencies<ContentItem> dependencies;
@@ -40,33 +39,41 @@ void main() {
     final contentPack = languagePack.contentPack;
     final corpus = contentPack.items;
     final verbIndex = contentPack.verbIndex;
-    final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);
+    final searchIndex = SearchIndex(
+      corpus,
+      verbIndex,
+      languagePack.textNormalizer,
+    );
 
     dependencies = AppDependencies<ContentItem>(
-        searchIndex: searchIndex,
-        verbIndex: verbIndex,
-        corpus: corpus,
-        languagePack: languagePack,
-        aiGateway: AiGatewayFactory.fromRuntimeConfig(AiRuntimeConfig.fromEnvironment()),
-        privacySettings: LocalPrivacySettingsStore(prefs),
-        neuroSettings: NeuroAccessibilitySettings(prefs),
-        userVocabularyService: UserVocabularyService.instance,
-        favoritesRepository: FavoritesRepository.instance,
-        grammarHubService: service,
-      );
+      searchIndex: searchIndex,
+      verbIndex: verbIndex,
+      corpus: corpus,
+      languagePack: languagePack,
+      aiGateway: AiGatewayFactory.fromRuntimeConfig(
+        AiRuntimeConfig.fromEnvironment(),
+      ),
+      privacySettings: LocalPrivacySettingsStore(prefs),
+      neuroSettings: NeuroAccessibilitySettings(prefs),
+      userVocabularyService: UserVocabularyService.instance,
+      favoritesRepository: FavoritesRepository.instance,
+      grammarHubService: service,
+    );
   });
 
   tearDown(() async {
     await service.close();
   });
 
-  testWidgets('GrammarHubPage loads and displays topics for default level A1', (WidgetTester tester) async {
+  testWidgets('GrammarHubPage loads and displays topics for default level A1', (
+    WidgetTester tester,
+  ) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
         MaterialApp(
           home: ScaffoldMessenger(
-             child: GrammarHubPage(dependencies: dependencies),
-          )
+            child: GrammarHubPage(dependencies: dependencies),
+          ),
         ),
       );
 
@@ -80,13 +87,15 @@ void main() {
     });
   });
 
-  testWidgets('GrammarHubPage switches levels and displays correct topics', (WidgetTester tester) async {
+  testWidgets('GrammarHubPage switches levels and displays correct topics', (
+    WidgetTester tester,
+  ) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
         MaterialApp(
           home: ScaffoldMessenger(
-             child: GrammarHubPage(dependencies: dependencies),
-          )
+            child: GrammarHubPage(dependencies: dependencies),
+          ),
         ),
       );
 

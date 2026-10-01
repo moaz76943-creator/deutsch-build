@@ -18,20 +18,23 @@ class ContextualExamplesDrawer extends StatelessWidget {
               children: [
                 Text(
                   'أمثلة سياقية',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 16),
                 if (examples.isEmpty)
                   const Text('لا توجد أمثلة متاحة.')
                 else
-                  ...examples.map((ex) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Text(
-                      ex,
-                      style: const TextStyle(fontSize: 16),
-                      textDirection: TextDirection.ltr,
+                  ...examples.map(
+                    (ex) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Text(
+                        ex,
+                        style: const TextStyle(fontSize: 16),
+                        textDirection: TextDirection.ltr,
+                      ),
                     ),
-                  )),
+                  ),
               ],
             ),
           ),

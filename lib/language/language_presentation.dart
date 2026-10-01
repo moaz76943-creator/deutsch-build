@@ -23,7 +23,6 @@ abstract interface class ConversationPresentation {
   ConversationScenario get fallbackScenario;
 }
 
-
 /// Language-aware presentation data for practical real-world learning.
 abstract interface class RealWorldLearningPresentation {
   String get title;
@@ -45,7 +44,6 @@ final class RealWorldScenario {
   });
 }
 
-
 /// Language-aware placement-test presentation data.
 abstract interface class PlacementPresentation {
   String get title;
@@ -62,8 +60,5 @@ final class PlacementQuestion {
   final String prompt;
   final String answer;
 
-  const PlacementQuestion({
-    required this.prompt,
-    required this.answer,
-  });
+  const PlacementQuestion({required this.prompt, required this.answer});
 }

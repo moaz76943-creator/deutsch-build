@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+
 import '../../lib/models/grammar.dart';
 
 void main() {
@@ -47,7 +48,7 @@ void main() {
         explanationAr: 'شرح',
         table: [
           ['A', 'B'],
-          ['1', '2']
+          ['1', '2'],
         ],
       );
 
@@ -57,7 +58,7 @@ void main() {
         explanationAr: 'شرح',
         table: [
           ['A', 'B'],
-          ['1', '2']
+          ['1', '2'],
         ],
       );
 

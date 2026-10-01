@@ -25,35 +25,50 @@ final class BackendAuthenticationApiRequest {
   });
 
   const BackendAuthenticationApiRequest.requestEmailOtp({required String email})
-      : this(operation: BackendAuthenticationOperation.requestEmailOtp, email: email);
+    : this(
+        operation: BackendAuthenticationOperation.requestEmailOtp,
+        email: email,
+      );
 
   const BackendAuthenticationApiRequest.verifyEmailOtp({
     required String email,
     required String otp,
   }) : this(
-          operation: BackendAuthenticationOperation.verifyEmailOtp,
-          email: email,
-          otp: otp,
-        );
+         operation: BackendAuthenticationOperation.verifyEmailOtp,
+         email: email,
+         otp: otp,
+       );
 
   const BackendAuthenticationApiRequest.authenticateProvider({
     required ProviderAuthenticationAssertion assertion,
   }) : this(
-          operation: BackendAuthenticationOperation.authenticateProvider,
-          assertion: assertion,
-        );
+         operation: BackendAuthenticationOperation.authenticateProvider,
+         assertion: assertion,
+       );
 
-  const BackendAuthenticationApiRequest.currentSession({SecureSessionCredentials? credentials})
-      : this(operation: BackendAuthenticationOperation.currentSession, credentials: credentials);
+  const BackendAuthenticationApiRequest.currentSession({
+    SecureSessionCredentials? credentials,
+  }) : this(
+         operation: BackendAuthenticationOperation.currentSession,
+         credentials: credentials,
+       );
 
-  const BackendAuthenticationApiRequest.renewSession({required SecureSessionCredentials credentials})
-      : this(operation: BackendAuthenticationOperation.renewSession, credentials: credentials);
+  const BackendAuthenticationApiRequest.renewSession({
+    required SecureSessionCredentials credentials,
+  }) : this(
+         operation: BackendAuthenticationOperation.renewSession,
+         credentials: credentials,
+       );
 
-  const BackendAuthenticationApiRequest.revokeSession({SecureSessionCredentials? credentials})
-      : this(operation: BackendAuthenticationOperation.revokeSession, credentials: credentials);
+  const BackendAuthenticationApiRequest.revokeSession({
+    SecureSessionCredentials? credentials,
+  }) : this(
+         operation: BackendAuthenticationOperation.revokeSession,
+         credentials: credentials,
+       );
 
   const BackendAuthenticationApiRequest.signOut()
-      : this(operation: BackendAuthenticationOperation.signOut);
+    : this(operation: BackendAuthenticationOperation.signOut);
 
   final BackendAuthenticationOperation operation;
   final String? email;

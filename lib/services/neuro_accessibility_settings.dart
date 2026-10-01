@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import 'preferences_service.dart';
 
 class NeuroAccessibilitySettings extends ChangeNotifier {

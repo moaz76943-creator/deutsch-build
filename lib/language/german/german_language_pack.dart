@@ -19,10 +19,10 @@ final class GermanLanguagePack implements LanguagePack {
 
   @override
   LanguageIdentity get identity => LanguageIdentity(
-        languageId: 'de',
-        displayName: 'German',
-        primaryLocale: 'de-DE',
-      );
+    languageId: 'de',
+    displayName: 'German',
+    primaryLocale: 'de-DE',
+  );
 
   @override
   String get languageCode => identity.languageId;
@@ -40,7 +40,8 @@ final class GermanLanguagePack implements LanguagePack {
   LanguageContentPack get contentPack => const GermanContentPack();
 
   @override
-  LanguageExerciseStrategy get exerciseStrategy => const GermanLanguageExerciseStrategy();
+  LanguageExerciseStrategy get exerciseStrategy =>
+      const GermanLanguageExerciseStrategy();
 
   @override
   LanguagePresentation get presentation => const GermanLanguagePresentation();
@@ -52,5 +53,6 @@ final class GermanLanguagePack implements LanguagePack {
   LanguageContentQuality get contentQuality => const GermanContentQuality();
 
   @override
-  LanguageContentIntelligence get contentIntelligence => const GermanContentIntelligence();
+  LanguageContentIntelligence get contentIntelligence =>
+      const GermanContentIntelligence();
 }

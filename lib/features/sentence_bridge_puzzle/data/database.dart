@@ -11,8 +11,8 @@ class SentenceBridgeDatabase {
   final String? _inMemoryPath;
 
   SentenceBridgeDatabase({DatabaseFactory? factory, String? path})
-      : _dbFactory = factory,
-        _inMemoryPath = path;
+    : _dbFactory = factory,
+      _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -32,18 +32,11 @@ class SentenceBridgeDatabase {
     if (_dbFactory != null) {
       return await _dbFactory.openDatabase(
         path,
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: _createDB,
-        ),
+        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
       );
     }
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -83,11 +76,7 @@ class SentenceBridgeDatabase {
 
   Future<List<Map<String, dynamic>>> getRandomPuzzles(int count) async {
     final db = await database;
-    return await db.query(
-      _puzzlesTable,
-      orderBy: 'RANDOM()',
-      limit: count,
-    );
+    return await db.query(_puzzlesTable, orderBy: 'RANDOM()', limit: count);
   }
 
   Future<void> recordAttempt(Map<String, dynamic> attempt) async {

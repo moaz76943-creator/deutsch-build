@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+
 import '../../services/preferences_service.dart';
 
 class CalmOnboardingSetupScreen extends StatefulWidget {
   final VoidCallback? onComplete;
   final PreferencesService prefs;
 
-  const CalmOnboardingSetupScreen({super.key, this.onComplete, required this.prefs});
+  const CalmOnboardingSetupScreen({
+    super.key,
+    this.onComplete,
+    required this.prefs,
+  });
 
   @override
-  State<CalmOnboardingSetupScreen> createState() => _CalmOnboardingSetupScreenState();
+  State<CalmOnboardingSetupScreen> createState() =>
+      _CalmOnboardingSetupScreenState();
 }
 
 class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
@@ -67,7 +73,11 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
     }
   }
 
-  Widget _buildTimeOption(BuildContext context, int minutes, String description) {
+  Widget _buildTimeOption(
+    BuildContext context,
+    int minutes,
+    String description,
+  ) {
     final isSelected = _selectedMinutes == minutes;
 
     return Padding(
@@ -75,13 +85,17 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
       child: Material(
         color: isSelected
             ? Theme.of(context).colorScheme.primaryContainer
-            : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            : Theme.of(context).colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24.0),
         child: InkWell(
           borderRadius: BorderRadius.circular(24.0),
           onTap: _isSaving ? null : () => _savePreferences(minutes),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 24.0,
+            ),
             child: Row(
               children: [
                 Container(
@@ -91,17 +105,18 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
                     shape: BoxShape.circle,
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        : Theme.of(context).colorScheme.primary
+                              .withValues(alpha: 0.1),
                   ),
                   child: Center(
                     child: Text(
                       '$minutes',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -113,10 +128,13 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
                       Text(
                         '$minutes دقائق يومياً',
                         textDirection: TextDirection.rtl,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: isSelected
-                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                  ? Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer
                                   : Theme.of(context).colorScheme.onSurface,
                             ),
                       ),
@@ -125,10 +143,11 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
                         description,
                         textDirection: TextDirection.rtl,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                                    .withValues(alpha: 0.8)
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -164,7 +183,10 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600.0),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32.0,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -180,9 +202,8 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
                     'مرحباً بك',
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w300,
-                        ),
+                    style: Theme.of(context).textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.w300),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -190,9 +211,9 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          height: 1.5,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 48),
                   _buildTimeOption(context, 5, 'جلسة قصيرة وخفيفة'),

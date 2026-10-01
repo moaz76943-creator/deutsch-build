@@ -16,17 +16,17 @@ class DeckSummary {
     if (identical(this, other)) return true;
 
     return other is DeckSummary &&
-      other.totalCards == totalCards &&
-      other.dueCount == dueCount &&
-      other.masteredCount == masteredCount &&
-      other.learningCount == learningCount;
+        other.totalCards == totalCards &&
+        other.dueCount == dueCount &&
+        other.masteredCount == masteredCount &&
+        other.learningCount == learningCount;
   }
 
   @override
   int get hashCode {
     return totalCards.hashCode ^
-      dueCount.hashCode ^
-      masteredCount.hashCode ^
-      learningCount.hashCode;
+        dueCount.hashCode ^
+        masteredCount.hashCode ^
+        learningCount.hashCode;
   }
 }

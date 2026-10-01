@@ -29,10 +29,11 @@ final class LegacyBinding {
     List<String> compatibilityProjectionRefs = const <String>[],
     this.learnerContentKey,
     required this.provenance,
-  })  : semanticRefs = List<String>.unmodifiable(semanticRefs),
-        realizationRefs = List<String>.unmodifiable(realizationRefs),
-        compatibilityProjectionRefs =
-            List<String>.unmodifiable(compatibilityProjectionRefs) {
+  }) : semanticRefs = List<String>.unmodifiable(semanticRefs),
+       realizationRefs = List<String>.unmodifiable(realizationRefs),
+       compatibilityProjectionRefs = List<String>.unmodifiable(
+         compatibilityProjectionRefs,
+       ) {
     _requireNonEmpty(legacyNamespace, 'legacyNamespace');
     _requireNonEmpty(legacyId, 'legacyId');
     _requireNonEmpty(languageId, 'languageId');
@@ -64,18 +65,17 @@ final class LegacyBinding {
     List<String> realizationRefs = const <String>[],
     List<String> compatibilityProjectionRefs = const <String>[],
     required ArtifactProvenance provenance,
-  }) =>
-      LegacyBinding(
-        legacyNamespace: germanLegacyNamespace,
-        legacyId: legacyId,
-        bindingVersion: bindingVersion,
-        languageId: 'de',
-        semanticRefs: semanticRefs,
-        realizationRefs: realizationRefs,
-        compatibilityProjectionRefs: compatibilityProjectionRefs,
-        learnerContentKey: LearnerContentKey.germanLegacy(legacyId),
-        provenance: provenance,
-      );
+  }) => LegacyBinding(
+    legacyNamespace: germanLegacyNamespace,
+    legacyId: legacyId,
+    bindingVersion: bindingVersion,
+    languageId: 'de',
+    semanticRefs: semanticRefs,
+    realizationRefs: realizationRefs,
+    compatibilityProjectionRefs: compatibilityProjectionRefs,
+    learnerContentKey: LearnerContentKey.germanLegacy(legacyId),
+    provenance: provenance,
+  );
 
   /// Resolve learner-addressable compatibility identity.
   ///
@@ -92,16 +92,16 @@ final class LegacyBinding {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-        'legacyNamespace': legacyNamespace,
-        'legacyId': legacyId,
-        'bindingVersion': bindingVersion,
-        'languageId': languageId,
-        'semanticRefs': semanticRefs,
-        'realizationRefs': realizationRefs,
-        'compatibilityProjectionRefs': compatibilityProjectionRefs,
-        'learnerContentKey': learnerContentKey?.toMap(),
-        'provenance': provenance.toMap(),
-      };
+    'legacyNamespace': legacyNamespace,
+    'legacyId': legacyId,
+    'bindingVersion': bindingVersion,
+    'languageId': languageId,
+    'semanticRefs': semanticRefs,
+    'realizationRefs': realizationRefs,
+    'compatibilityProjectionRefs': compatibilityProjectionRefs,
+    'learnerContentKey': learnerContentKey?.toMap(),
+    'provenance': provenance.toMap(),
+  };
 }
 
 void _validateRefs(List<String> refs, String field) {

@@ -1,10 +1,12 @@
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-
 class SpeechResult {
   final String recognizedWords;
   final bool finalResult;
-  const SpeechResult({required this.recognizedWords, required this.finalResult});
+  const SpeechResult({
+    required this.recognizedWords,
+    required this.finalResult,
+  });
 }
 
 /// Isolates speech_to_text lifecycle quirks from UI consumers.
@@ -35,7 +37,9 @@ class SpeechService {
     }
   }
 
-  Future<bool> listen({required void Function(SpeechResult result) onResult}) async {
+  Future<bool> listen({
+    required void Function(SpeechResult result) onResult,
+  }) async {
     if (_disposed || _operationBusy) return false;
     _operationBusy = true;
     final generation = ++_generation;
@@ -49,7 +53,12 @@ class SpeechService {
         onResult: (result) {
           if (_disposed || generation != _generation) return;
           try {
-            onResult(SpeechResult(recognizedWords: result.recognizedWords, finalResult: result.finalResult));
+            onResult(
+              SpeechResult(
+                recognizedWords: result.recognizedWords,
+                finalResult: result.finalResult,
+              ),
+            );
           } catch (_) {
             // Consumer callback errors must not escape the plugin boundary.
           }

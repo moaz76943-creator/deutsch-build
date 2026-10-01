@@ -21,9 +21,17 @@ class WordProfile<T extends LearningContent> {
     this.masteryScore = 0,
   });
 
-  String get displayForm => item.grammaticalMarker.isEmpty ? item.sourceText : '${item.grammaticalMarker} ${item.sourceText}';
+  String get displayForm => item.grammaticalMarker.isEmpty
+      ? item.sourceText
+      : '${item.grammaticalMarker} ${item.sourceText}';
   double get successRate => attempts == 0 ? 0 : (attempts - errors) / attempts;
   bool get needsPractice => due || errors > 0 || attempts == 0;
   int get masteryPercent => (masteryScore.clamp(0.0, 1.0) * 100).round();
-  String get masteryLabel => masteryPercent >= 85 ? 'متقنة' : masteryPercent >= 65 ? 'جيدة' : masteryPercent >= 40 ? 'تحتاج تثبيتًا' : 'تحتاج تدريبًا';
+  String get masteryLabel => masteryPercent >= 85
+      ? 'متقنة'
+      : masteryPercent >= 65
+      ? 'جيدة'
+      : masteryPercent >= 40
+      ? 'تحتاج تثبيتًا'
+      : 'تحتاج تدريبًا';
 }

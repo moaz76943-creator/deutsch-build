@@ -40,15 +40,17 @@ void main() {
     expect(pair.stableId, isNot(reverse.stableId));
   });
 
-  test('valid canonical case passes schema validation and counts as evidence', () {
-    final value = _case();
+  test(
+    'valid canonical case passes schema validation and counts as evidence',
+    () {
+      final value = _case();
 
-    expect(ArabicGermanGoldStandard.validate(value), isEmpty);
-    expect(ArabicGermanGoldStandard.countsTowardReadiness(value), isTrue);
-  });
+      expect(ArabicGermanGoldStandard.validate(value), isEmpty);
+      expect(ArabicGermanGoldStandard.countsTowardReadiness(value), isTrue);
+    },
+  );
 
-  test('candidate can validate structurally but cannot count as canonical evidence',
-      () {
+  test('candidate can validate structurally but cannot count as canonical evidence', () {
     final value = _case(lifecycle: GoldCaseLifecycle.candidate);
 
     expect(ArabicGermanGoldStandard.validate(value), isEmpty);
@@ -66,10 +68,7 @@ void main() {
       ),
     );
 
-    expect(
-      ArabicGermanGoldStandard.validate(tooLong),
-      contains('sourceText'),
-    );
+    expect(ArabicGermanGoldStandard.validate(tooLong), contains('sourceText'));
     expect(
       ArabicGermanGoldStandard.validate(tooManyForms),
       contains('acceptedTargetForms'),

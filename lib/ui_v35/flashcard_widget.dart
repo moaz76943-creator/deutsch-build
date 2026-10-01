@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 class FlashcardWidget extends StatefulWidget {
@@ -21,14 +22,18 @@ class FlashcardWidget extends StatefulWidget {
   State<FlashcardWidget> createState() => _FlashcardWidgetState();
 }
 
-class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProviderStateMixin {
+class _FlashcardWidgetState extends State<FlashcardWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isFront = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
   }
 
   @override
@@ -48,11 +53,16 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
 
   Color _getArticleColor() {
     switch (widget.article.toLowerCase()) {
-      case 'der': return const Color(0xFF2563EB); // Slate Blue
-      case 'die': return const Color(0xFFE11D48); // Soft Crimson
-      case 'das': return const Color(0xFF0D9488); // Deep Teal
-      case 'plural': return const Color(0xFF7C3AED); // Muted Violet
-      default: return Colors.grey;
+      case 'der':
+        return const Color(0xFF2563EB); // Slate Blue
+      case 'die':
+        return const Color(0xFFE11D48); // Soft Crimson
+      case 'das':
+        return const Color(0xFF0D9488); // Deep Teal
+      case 'plural':
+        return const Color(0xFF7C3AED); // Muted Violet
+      default:
+        return Colors.grey;
     }
   }
 
@@ -87,7 +97,9 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
   }
 
   Widget _buildFront() {
-    final articleColor = widget.article.isNotEmpty ? _getArticleColor() : Colors.transparent;
+    final articleColor = widget.article.isNotEmpty
+        ? _getArticleColor()
+        : Colors.transparent;
 
     return Card(
       color: Colors.blue.withValues(alpha: 0.05),
@@ -103,21 +115,30 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
               children: [
                 Text(
                   widget.frontText,
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 if (widget.article.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: articleColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         widget.article,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -138,7 +159,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
                 widget.onAudio();
               },
             ),
-          )
+          ),
         ],
       ),
     );
@@ -147,9 +168,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
   Widget _buildBack() {
     return Card(
       color: Colors.green.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

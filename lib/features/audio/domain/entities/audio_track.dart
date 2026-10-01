@@ -18,19 +18,19 @@ class AudioTrack {
     if (identical(this, other)) return true;
 
     return other is AudioTrack &&
-      other.id == id &&
-      other.assetPath == assetPath &&
-      other.languageCode == languageCode &&
-      other.durationMs == durationMs &&
-      other.hasLocalFallback == hasLocalFallback;
+        other.id == id &&
+        other.assetPath == assetPath &&
+        other.languageCode == languageCode &&
+        other.durationMs == durationMs &&
+        other.hasLocalFallback == hasLocalFallback;
   }
 
   @override
   int get hashCode {
     return id.hashCode ^
-      assetPath.hashCode ^
-      languageCode.hashCode ^
-      durationMs.hashCode ^
-      hasLocalFallback.hashCode;
+        assetPath.hashCode ^
+        languageCode.hashCode ^
+        durationMs.hashCode ^
+        hasLocalFallback.hashCode;
   }
 }

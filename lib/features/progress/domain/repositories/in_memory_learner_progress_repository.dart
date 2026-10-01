@@ -19,7 +19,10 @@ class InMemoryLearnerProgressRepository implements ILearnerProgressRepository {
   }
 
   @override
-  Future<List<CardProgress>> getDueCards({required DateTime asOf, int? limit}) async {
+  Future<List<CardProgress>> getDueCards({
+    required DateTime asOf,
+    int? limit,
+  }) async {
     final dueCards = _progressData.values.where((progress) {
       if (progress.lastReviewedAt == null) return true;
       // In a real app we'd have a 'nextReviewAt' property,
@@ -36,7 +39,10 @@ class InMemoryLearnerProgressRepository implements ILearnerProgressRepository {
   }
 
   @override
-  Future<void> saveReview({required CardProgress updatedProgress, required ReviewLog log}) async {
+  Future<void> saveReview({
+    required CardProgress updatedProgress,
+    required ReviewLog log,
+  }) async {
     _progressData[updatedProgress.cardId] = updatedProgress;
     _reviewLogs.add(log);
   }
@@ -52,7 +58,8 @@ class InMemoryLearnerProgressRepository implements ILearnerProgressRepository {
     final now = DateTime.now();
 
     for (final progress in _progressData.values) {
-      if (progress.lastReviewedAt == null || progress.lastReviewedAt!.isBefore(now)) {
+      if (progress.lastReviewedAt == null ||
+          progress.lastReviewedAt!.isBefore(now)) {
         dueCount++;
       }
       if (progress.srsItemState == SrsItemState.mastered) {

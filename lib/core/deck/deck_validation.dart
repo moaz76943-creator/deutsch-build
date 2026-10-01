@@ -26,7 +26,7 @@ final class DeckValidationError {
 /// Typed aggregate validation failure with every provable error from one pass.
 final class DeckValidationException implements Exception {
   DeckValidationException(Iterable<DeckValidationError> errors)
-      : errors = List<DeckValidationError>.unmodifiable(errors);
+    : errors = List<DeckValidationError>.unmodifiable(errors);
 
   final List<DeckValidationError> errors;
 

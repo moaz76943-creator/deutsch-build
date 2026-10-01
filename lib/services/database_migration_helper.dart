@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 
@@ -39,10 +40,12 @@ class DatabaseMigrationHelper {
     if (factory != null) {
       return await factory.openDatabase(path, options: options);
     }
-    return await openDatabase(path,
-        version: options.version,
-        onCreate: options.onCreate,
-        onUpgrade: options.onUpgrade);
+    return await openDatabase(
+      path,
+      version: options.version,
+      onCreate: options.onCreate,
+      onUpgrade: options.onUpgrade,
+    );
   }
 
   /// Creates a backup of the main `.db` file as well as `-wal` and `-shm` files if they exist.

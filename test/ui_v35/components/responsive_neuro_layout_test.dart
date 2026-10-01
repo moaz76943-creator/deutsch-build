@@ -4,7 +4,9 @@ import 'package:deutsch_bilarabi/ui_v35/components/responsive_neuro_layout.dart'
 
 void main() {
   group('ResponsiveNeuroLayout', () {
-    testWidgets('renders SafeArea and Center appropriately', (WidgetTester tester) async {
+    testWidgets('renders SafeArea and Center appropriately', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -22,7 +24,9 @@ void main() {
       expect(find.byType(SingleChildScrollView), findsNothing);
     });
 
-    testWidgets('respects scrollable constraint and adds thumb-zone padding', (WidgetTester tester) async {
+    testWidgets('respects scrollable constraint and adds thumb-zone padding', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -37,10 +41,12 @@ void main() {
       expect(find.byType(SingleChildScrollView), findsOneWidget);
 
       // Look for the specific padding we injected
-      final paddingFinder = find.ancestor(
-        of: find.text('Scrollable Neuro Test'),
-        matching: find.byType(Padding),
-      ).first;
+      final paddingFinder = find
+          .ancestor(
+            of: find.text('Scrollable Neuro Test'),
+            matching: find.byType(Padding),
+          )
+          .first;
 
       final Padding paddingWidget = tester.widget(paddingFinder);
       expect(paddingWidget.padding, const EdgeInsets.only(bottom: 80.0));
@@ -68,7 +74,9 @@ void main() {
       );
 
       // The child tries to be infinite width, but should be constrained to 500
-      final Size childSize = tester.getSize(find.byKey(const Key('inner_child')));
+      final Size childSize = tester.getSize(
+        find.byKey(const Key('inner_child')),
+      );
       expect(childSize.width, 500.0);
 
       // Reset

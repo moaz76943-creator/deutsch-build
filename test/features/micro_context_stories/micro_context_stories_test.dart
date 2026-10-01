@@ -11,7 +11,6 @@ void main() {
   });
 
   group('MicroContextStoriesEngine', () {
-
     late MicroContextStoriesEngine engine;
 
     setUp(() async {});
@@ -25,15 +24,17 @@ void main() {
     });
 
     test('generateStoryForToday generates story with 1 word', () async {
-      final fakeService = FakeUserVocabularyService(entries: [
-        {
-          'id': '1',
-          'german_text': 'Apfel',
-          'arabic_translation': 'تفاحة',
-          'created_at': DateTime.now().toIso8601String(),
-          'is_custom': 1,
-        }
-      ]);
+      final fakeService = FakeUserVocabularyService(
+        entries: [
+          {
+            'id': '1',
+            'german_text': 'Apfel',
+            'arabic_translation': 'تفاحة',
+            'created_at': DateTime.now().toIso8601String(),
+            'is_custom': 1,
+          },
+        ],
+      );
       engine = MicroContextStoriesEngine(fakeService);
 
       final story = await engine.generateStoryForToday();
@@ -44,29 +45,31 @@ void main() {
     });
 
     test('generateStoryForToday generates story with 3 words', () async {
-      final fakeService = FakeUserVocabularyService(entries: [
-        {
-          'id': '1',
-          'german_text': 'Apfel',
-          'arabic_translation': 'تفاحة',
-          'created_at': DateTime.now().toIso8601String(),
-          'is_custom': 1,
-        },
-        {
-          'id': '2',
-          'german_text': 'Banane',
-          'arabic_translation': 'موز',
-          'created_at': DateTime.now().toIso8601String(),
-          'is_custom': 1,
-        },
-        {
-          'id': '3',
-          'german_text': 'Kirsche',
-          'arabic_translation': 'كرز',
-          'created_at': DateTime.now().toIso8601String(),
-          'is_custom': 1,
-        }
-      ]);
+      final fakeService = FakeUserVocabularyService(
+        entries: [
+          {
+            'id': '1',
+            'german_text': 'Apfel',
+            'arabic_translation': 'تفاحة',
+            'created_at': DateTime.now().toIso8601String(),
+            'is_custom': 1,
+          },
+          {
+            'id': '2',
+            'german_text': 'Banane',
+            'arabic_translation': 'موز',
+            'created_at': DateTime.now().toIso8601String(),
+            'is_custom': 1,
+          },
+          {
+            'id': '3',
+            'german_text': 'Kirsche',
+            'arabic_translation': 'كرز',
+            'created_at': DateTime.now().toIso8601String(),
+            'is_custom': 1,
+          },
+        ],
+      );
       engine = MicroContextStoriesEngine(fakeService);
 
       final story = await engine.generateStoryForToday();
@@ -79,36 +82,43 @@ void main() {
   });
 
   group('MicroContextStoriesView', () {
-    testWidgets('shows loading indicator initially, then empty message if no vocab', (WidgetTester tester) async {
-      final fakeService = FakeUserVocabularyService(entries: []);
+    testWidgets(
+      'shows loading indicator initially, then empty message if no vocab',
+      (WidgetTester tester) async {
+        final fakeService = FakeUserVocabularyService(entries: []);
+        final engine = MicroContextStoriesEngine(fakeService);
+
+        await tester.pumpWidget(
+          MaterialApp(home: MicroContextStoriesView(engine: engine)),
+        );
+
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('لا يوجد مفردات كافية'), findsOneWidget);
+      },
+    );
+
+    testWidgets('shows story and opens translation drawer on word tap', (
+      WidgetTester tester,
+    ) async {
+      final fakeService = FakeUserVocabularyService(
+        entries: [
+          {
+            'id': '1',
+            'german_text': 'Apfel',
+            'arabic_translation': 'تفاحة',
+            'created_at': DateTime.now().toIso8601String(),
+            'is_custom': 1,
+          },
+        ],
+      );
       final engine = MicroContextStoriesEngine(fakeService);
 
-      await tester.pumpWidget(MaterialApp(
-        home: MicroContextStoriesView(engine: engine),
-      ));
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('لا يوجد مفردات كافية'), findsOneWidget);
-    });
-
-    testWidgets('shows story and opens translation drawer on word tap', (WidgetTester tester) async {
-      final fakeService = FakeUserVocabularyService(entries: [
-        {
-          'id': '1',
-          'german_text': 'Apfel',
-          'arabic_translation': 'تفاحة',
-          'created_at': DateTime.now().toIso8601String(),
-          'is_custom': 1,
-        }
-      ]);
-      final engine = MicroContextStoriesEngine(fakeService);
-
-      await tester.pumpWidget(MaterialApp(
-        home: MicroContextStoriesView(engine: engine),
-      ));
+      await tester.pumpWidget(
+        MaterialApp(home: MicroContextStoriesView(engine: engine)),
+      );
 
       await tester.pumpAndSettle();
 

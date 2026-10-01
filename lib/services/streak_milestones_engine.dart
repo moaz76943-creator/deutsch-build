@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+
 import 'database_migration_helper.dart';
 
 class MilestoneBadge {
@@ -26,11 +27,36 @@ class StreakMilestonesEngine {
   static Database? _database;
 
   static const List<MilestoneBadge> availableBadges = [
-    MilestoneBadge(id: 'streak_3', title: 'بداية موفقة', description: 'دراسة لمدة 3 أيام متتالية', requiredStreak: 3),
-    MilestoneBadge(id: 'streak_7', title: 'أسبوع من الالتزام', description: 'دراسة لمدة 7 أيام متتالية', requiredStreak: 7),
-    MilestoneBadge(id: 'streak_30', title: 'شهر كامل', description: 'دراسة لمدة 30 يوم متتالية', requiredStreak: 30),
-    MilestoneBadge(id: 'streak_100', title: 'مئة يوم من النجاح', description: 'دراسة لمدة 100 يوم متتالية', requiredStreak: 100),
-    MilestoneBadge(id: 'streak_365', title: 'سنة من التفوق', description: 'دراسة لمدة 365 يوم متتالية', requiredStreak: 365),
+    MilestoneBadge(
+      id: 'streak_3',
+      title: 'بداية موفقة',
+      description: 'دراسة لمدة 3 أيام متتالية',
+      requiredStreak: 3,
+    ),
+    MilestoneBadge(
+      id: 'streak_7',
+      title: 'أسبوع من الالتزام',
+      description: 'دراسة لمدة 7 أيام متتالية',
+      requiredStreak: 7,
+    ),
+    MilestoneBadge(
+      id: 'streak_30',
+      title: 'شهر كامل',
+      description: 'دراسة لمدة 30 يوم متتالية',
+      requiredStreak: 30,
+    ),
+    MilestoneBadge(
+      id: 'streak_100',
+      title: 'مئة يوم من النجاح',
+      description: 'دراسة لمدة 100 يوم متتالية',
+      requiredStreak: 100,
+    ),
+    MilestoneBadge(
+      id: 'streak_365',
+      title: 'سنة من التفوق',
+      description: 'دراسة لمدة 365 يوم متتالية',
+      requiredStreak: 365,
+    ),
   ];
 
   StreakMilestonesEngine._init();

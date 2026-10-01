@@ -107,21 +107,25 @@ void main() {
     test('respects limit when returning due cards', () async {
       final now = DateTime.now();
 
-      repository.seedCardProgress(CardProgress(
-        cardId: 'card1',
-        srsItemState: SrsItemState.learning,
-        totalViews: 0,
-        successCount: 0,
-        failureCount: 0,
-      ));
+      repository.seedCardProgress(
+        CardProgress(
+          cardId: 'card1',
+          srsItemState: SrsItemState.learning,
+          totalViews: 0,
+          successCount: 0,
+          failureCount: 0,
+        ),
+      );
 
-      repository.seedCardProgress(CardProgress(
-        cardId: 'card2',
-        srsItemState: SrsItemState.learning,
-        totalViews: 0,
-        successCount: 0,
-        failureCount: 0,
-      ));
+      repository.seedCardProgress(
+        CardProgress(
+          cardId: 'card2',
+          srsItemState: SrsItemState.learning,
+          totalViews: 0,
+          successCount: 0,
+          failureCount: 0,
+        ),
+      );
 
       final dueCards = await repository.getDueCards(asOf: now, limit: 1);
       expect(dueCards.length, 1);
@@ -132,32 +136,38 @@ void main() {
     test('calculates summary correctly', () async {
       final now = DateTime.now();
 
-      repository.seedCardProgress(CardProgress(
-        cardId: 'card1',
-        srsItemState: SrsItemState.learning,
-        totalViews: 1,
-        successCount: 1,
-        failureCount: 0,
-        lastReviewedAt: now.add(const Duration(days: 1)), // Not due
-      ));
+      repository.seedCardProgress(
+        CardProgress(
+          cardId: 'card1',
+          srsItemState: SrsItemState.learning,
+          totalViews: 1,
+          successCount: 1,
+          failureCount: 0,
+          lastReviewedAt: now.add(const Duration(days: 1)), // Not due
+        ),
+      );
 
-      repository.seedCardProgress(CardProgress(
-        cardId: 'card2',
-        srsItemState: SrsItemState.mastered,
-        totalViews: 10,
-        successCount: 10,
-        failureCount: 0,
-        lastReviewedAt: now.subtract(const Duration(days: 1)), // Due
-      ));
+      repository.seedCardProgress(
+        CardProgress(
+          cardId: 'card2',
+          srsItemState: SrsItemState.mastered,
+          totalViews: 10,
+          successCount: 10,
+          failureCount: 0,
+          lastReviewedAt: now.subtract(const Duration(days: 1)), // Due
+        ),
+      );
 
-      repository.seedCardProgress(CardProgress(
-        cardId: 'card3',
-        srsItemState: SrsItemState.review,
-        totalViews: 2,
-        successCount: 2,
-        failureCount: 0,
-        lastReviewedAt: now.subtract(const Duration(days: 1)), // Due
-      ));
+      repository.seedCardProgress(
+        CardProgress(
+          cardId: 'card3',
+          srsItemState: SrsItemState.review,
+          totalViews: 2,
+          successCount: 2,
+          failureCount: 0,
+          lastReviewedAt: now.subtract(const Duration(days: 1)), // Due
+        ),
+      );
 
       final summary = await repository.getDeckSummary('deck1');
 

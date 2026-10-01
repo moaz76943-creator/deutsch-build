@@ -8,21 +8,28 @@ import '../language_content_intelligence.dart';
 /// exposed here is therefore an inferred curriculum band, not a certification.
 final class GermanContentIntelligence implements LanguageContentIntelligence {
   final LanguageTextNormalizer normalizer;
-  const GermanContentIntelligence({this.normalizer = const _GermanFallbackNormalizer()});
+  const GermanContentIntelligence({
+    this.normalizer = const _GermanFallbackNormalizer(),
+  });
   @override
   ContentProfile profile(LearningContent item) {
     final german = normalizer.answer(item.sourceText);
     final tokens = german.split(' ').where((x) => x.isNotEmpty).toList();
     final hasArticle = item.grammaticalMarker.trim().isNotEmpty;
     final hasPlural = item.pluralForm.trim().isNotEmpty;
-    final hasExample = item.exampleText.trim().isNotEmpty && item.exampleTranslationText.trim().isNotEmpty;
+    final hasExample =
+        item.exampleText.trim().isNotEmpty &&
+        item.exampleTranslationText.trim().isNotEmpty;
     final phrase = tokens.length > 1;
     final compound = german.length >= 14 && !phrase;
     var difficulty = .18 + (german.length.clamp(0, 28) / 100);
     if (phrase) difficulty += .12;
     if (compound) difficulty += .12;
     if (item.exampleText.split(' ').length >= 9) difficulty += .08;
-    if (item.exampleText.contains('weil') || item.exampleText.contains('dass') || item.exampleText.contains('obwohl')) difficulty += .10;
+    if (item.exampleText.contains('weil') ||
+        item.exampleText.contains('dass') ||
+        item.exampleText.contains('obwohl'))
+      difficulty += .10;
     difficulty = difficulty.clamp(.05, .95).toDouble();
 
     final level = _inferLevel(item, difficulty);
@@ -75,7 +82,9 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
       if (p.wordFamily.isNotEmpty) families.add(p.wordFamily);
     }
 
-    final duplicateGermanCount = german.values.where((x) => x > 1).fold<int>(0, (sum, x) => sum + x - 1);
+    final duplicateGermanCount = german.values
+        .where((x) => x > 1)
+        .fold<int>(0, (sum, x) => sum + x - 1);
     final nearDuplicatePairCount = _nearDuplicatePairs(items);
     final gaps = _gaps(items, levels, skills, articles, plurals);
     return ContentIntelligenceReport(
@@ -95,7 +104,9 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
 
   /// Returns curriculum buckets ordered by inferred progression.
   @override
-  Map<ContentLevel, List<LearningContent>> curriculum(List<LearningContent> items) {
+  Map<ContentLevel, List<LearningContent>> curriculum(
+    List<LearningContent> items,
+  ) {
     final result = <ContentLevel, List<LearningContent>>{
       ContentLevel.a1: <LearningContent>[],
       ContentLevel.a2: <LearningContent>[],
@@ -134,7 +145,19 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
     if (w.isEmpty) return '';
     if (w.contains(' ')) return normalizer.answer(w.split(' ').first);
     var stem = w;
-    for (final suffix in const ['lichkeit', 'igkeit', 'ung', 'heit', 'schaft', 'tion', 'isch', 'lich', 'er', 'en', 'e']) {
+    for (final suffix in const [
+      'lichkeit',
+      'igkeit',
+      'ung',
+      'heit',
+      'schaft',
+      'tion',
+      'isch',
+      'lich',
+      'er',
+      'en',
+      'e',
+    ]) {
       if (stem.length > suffix.length + 4 && stem.endsWith(suffix)) {
         stem = stem.substring(0, stem.length - suffix.length);
         break;
@@ -157,26 +180,72 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
       for (var i = 0; i < cap.length; i++) {
         for (var j = i + 1; j < cap.length; j++) {
           if (cap[i] == cap[j]) continue;
-          final maxLen = cap[i].length > cap[j].length ? cap[i].length : cap[j].length;
-          if ((cap[i].length - cap[j].length).abs() <= 3 && _editDistance(cap[i], cap[j]) <= (maxLen <= 9 ? 1 : 2)) pairs++;
+          final maxLen = cap[i].length > cap[j].length
+              ? cap[i].length
+              : cap[j].length;
+          if ((cap[i].length - cap[j].length).abs() <= 3 &&
+              _editDistance(cap[i], cap[j]) <= (maxLen <= 9 ? 1 : 2))
+            pairs++;
         }
       }
     }
     return pairs;
   }
 
-  List<CurriculumGap> _gaps(List<LearningContent> items, Map<ContentLevel, int> levels, Map<String, int> skills, int articles, int plurals) {
+  List<CurriculumGap> _gaps(
+    List<LearningContent> items,
+    Map<ContentLevel, int> levels,
+    Map<String, int> skills,
+    int articles,
+    int plurals,
+  ) {
     final gaps = <CurriculumGap>[];
     final a2 = levels[ContentLevel.a2] ?? 0;
     if (items.isNotEmpty && a2 / items.length < .05) {
-      gaps.add(const CurriculumGap('curriculum', 'A2', 0, 'أضف وحدات A2 تدريجيًا مع أمثلة وتراكيب عملية، ثم راجعها لغويًا بشريًا.'));
+      gaps.add(
+        const CurriculumGap(
+          'curriculum',
+          'A2',
+          0,
+          'أضف وحدات A2 تدريجيًا مع أمثلة وتراكيب عملية، ثم راجعها لغويًا بشريًا.',
+        ),
+      );
     }
-    for (final skill in const ['recall', 'transfer', 'production', 'listening']) {
-      if ((skills[skill] ?? 0) == 0) gaps.add(CurriculumGap('skill', skill, 0, 'أضف محتوى لهذه المهارة بدل الاعتماد على مهارة واحدة.'));
+    for (final skill in const [
+      'recall',
+      'transfer',
+      'production',
+      'listening',
+    ]) {
+      if ((skills[skill] ?? 0) == 0)
+        gaps.add(
+          CurriculumGap(
+            'skill',
+            skill,
+            0,
+            'أضف محتوى لهذه المهارة بدل الاعتماد على مهارة واحدة.',
+          ),
+        );
     }
     final nounCount = items.where((x) => x.grammaticalMarker.isNotEmpty).length;
-    if (nounCount > 0 && articles / nounCount < .98) gaps.add(CurriculumGap('metadata', 'article', nounCount - articles, 'أكمل Artikel للأسماء قبل إدخالها في التدريب الأساسي.'));
-    if (nounCount > 0 && plurals / nounCount < .55) gaps.add(CurriculumGap('metadata', 'plural', nounCount - plurals, 'وسّع بيانات الجمع للأسماء التي تدخل مسار المفردات.'));
+    if (nounCount > 0 && articles / nounCount < .98)
+      gaps.add(
+        CurriculumGap(
+          'metadata',
+          'article',
+          nounCount - articles,
+          'أكمل Artikel للأسماء قبل إدخالها في التدريب الأساسي.',
+        ),
+      );
+    if (nounCount > 0 && plurals / nounCount < .55)
+      gaps.add(
+        CurriculumGap(
+          'metadata',
+          'plural',
+          nounCount - plurals,
+          'وسّع بيانات الجمع للأسماء التي تدخل مسار المفردات.',
+        ),
+      );
     return gaps;
   }
 
@@ -190,7 +259,11 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
       curr[0] = i;
       for (var j = 1; j <= b.length; j++) {
         final cost = a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1;
-        curr[j] = [curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost].reduce((x, y) => x < y ? x : y);
+        curr[j] = [
+          curr[j - 1] + 1,
+          prev[j] + 1,
+          prev[j - 1] + cost,
+        ].reduce((x, y) => x < y ? x : y);
       }
       prev = curr;
     }
@@ -198,9 +271,16 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
   }
 }
 
-
 final class _GermanFallbackNormalizer implements LanguageTextNormalizer {
   const _GermanFallbackNormalizer();
   @override
-  String answer(String value) => value.toLowerCase().replaceAll('ä','a').replaceAll('ö','o').replaceAll('ü','u').replaceAll('ß','ss').replaceAll(RegExp(r'[.!?,;،؛؟]'),'').replaceAll(RegExp(r'\s+'),' ').trim();
+  String answer(String value) => value
+      .toLowerCase()
+      .replaceAll('ä', 'a')
+      .replaceAll('ö', 'o')
+      .replaceAll('ü', 'u')
+      .replaceAll('ß', 'ss')
+      .replaceAll(RegExp(r'[.!?,;،؛؟]'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }

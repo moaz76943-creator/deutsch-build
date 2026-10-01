@@ -19,7 +19,8 @@ class NeuroAccessibilityMode extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(NeuroAccessibilityMode oldWidget) => isEnabled != oldWidget.isEnabled;
+  bool updateShouldNotify(NeuroAccessibilityMode oldWidget) =>
+      isEnabled != oldWidget.isEnabled;
 }
 
 extension NeuroAccessibilityThemeExtension on ThemeData {
@@ -36,9 +37,7 @@ extension NeuroAccessibilityThemeExtension on ThemeData {
           letterSpacing: 1.5,
           height: 1.8,
         ),
-        titleLarge: textTheme.titleLarge?.copyWith(
-          letterSpacing: 1.2,
-        ),
+        titleLarge: textTheme.titleLarge?.copyWith(letterSpacing: 1.2),
       ),
     );
   }

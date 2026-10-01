@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../models/grammar.dart';
 import '../../data/grammar_topics.dart';
 import 'grammar_topic_detail_page.dart';
@@ -99,9 +100,9 @@ class _GrammarHubPageState extends State<GrammarHubPage>
                           topic.level,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -129,9 +130,8 @@ class _GrammarHubPageState extends State<GrammarHubPage>
                   const SizedBox(height: 8),
                   Text(
                     topic.summaryAr,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(fontFamily: 'Tajawal'),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(fontFamily: 'Tajawal'),
                   ),
                 ],
               ),

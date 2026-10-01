@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import '../../../lib/features/semantic_color_tagging/semantic_color_tagging.dart';
 
 void main() {
@@ -25,11 +26,26 @@ void main() {
     });
 
     test('determines correct grammatical class', () {
-      expect(taggingService.determineClass('der', 'Hund'), GrammaticalClass.masculineNoun);
-      expect(taggingService.determineClass('die', 'Katze'), GrammaticalClass.feminineNoun);
-      expect(taggingService.determineClass('das', 'Auto'), GrammaticalClass.neuterNoun);
-      expect(taggingService.determineClass('', 'laufen'), GrammaticalClass.verb);
-      expect(taggingService.determineClass('', 'schön'), GrammaticalClass.other);
+      expect(
+        taggingService.determineClass('der', 'Hund'),
+        GrammaticalClass.masculineNoun,
+      );
+      expect(
+        taggingService.determineClass('die', 'Katze'),
+        GrammaticalClass.feminineNoun,
+      );
+      expect(
+        taggingService.determineClass('das', 'Auto'),
+        GrammaticalClass.neuterNoun,
+      );
+      expect(
+        taggingService.determineClass('', 'laufen'),
+        GrammaticalClass.verb,
+      );
+      expect(
+        taggingService.determineClass('', 'schön'),
+        GrammaticalClass.other,
+      );
     });
 
     test('tags and retrieves color for masculine noun', () async {

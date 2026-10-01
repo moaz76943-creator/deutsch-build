@@ -20,21 +20,21 @@ class ReviewLog {
     if (identical(this, other)) return true;
 
     return other is ReviewLog &&
-      other.id == id &&
-      other.cardId == cardId &&
-      other.rating == rating &&
-      other.reviewTimestamp == reviewTimestamp &&
-      other.scheduledInterval == scheduledInterval &&
-      other.durationSeconds == durationSeconds;
+        other.id == id &&
+        other.cardId == cardId &&
+        other.rating == rating &&
+        other.reviewTimestamp == reviewTimestamp &&
+        other.scheduledInterval == scheduledInterval &&
+        other.durationSeconds == durationSeconds;
   }
 
   @override
   int get hashCode {
     return id.hashCode ^
-      cardId.hashCode ^
-      rating.hashCode ^
-      reviewTimestamp.hashCode ^
-      scheduledInterval.hashCode ^
-      durationSeconds.hashCode;
+        cardId.hashCode ^
+        rating.hashCode ^
+        reviewTimestamp.hashCode ^
+        scheduledInterval.hashCode ^
+        durationSeconds.hashCode;
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -42,7 +43,10 @@ class OfflineBackupSystem {
     final backupDir = Directory(backupDirectoryPath);
 
     if (!await backupDir.exists()) {
-      throw FileSystemException('Backup directory does not exist', backupDirectoryPath);
+      throw FileSystemException(
+        'Backup directory does not exist',
+        backupDirectoryPath,
+      );
     }
 
     final databasesDir = Directory(dbPath);

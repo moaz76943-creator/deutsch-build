@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+
 import 'dart:math';
 
 class DynamicUiVariationsEngine {
@@ -9,7 +10,8 @@ class DynamicUiVariationsEngine {
   static const String _columnDate = 'last_date';
   static const String _columnSeed = 'current_seed';
 
-  static final DynamicUiVariationsEngine instance = DynamicUiVariationsEngine._init();
+  static final DynamicUiVariationsEngine instance =
+      DynamicUiVariationsEngine._init();
   static Database? _database;
 
   DynamicUiVariationsEngine._init();
@@ -24,11 +26,7 @@ class DynamicUiVariationsEngine {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -44,7 +42,8 @@ class DynamicUiVariationsEngine {
   Future<int> getDailySeed() async {
     final db = await instance.database;
     final now = DateTime.now();
-    final today = "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
+    final today =
+        "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
 
     final maps = await db.query(
       _tableName,
@@ -66,10 +65,7 @@ class DynamicUiVariationsEngine {
         final newSeed = Random().nextInt(360);
         await db.update(
           _tableName,
-          {
-            _columnDate: today,
-            _columnSeed: newSeed,
-          },
+          {_columnDate: today, _columnSeed: newSeed},
           where: '$_columnId = ?',
           whereArgs: ['daily_variation'],
         );
@@ -102,8 +98,15 @@ class DynamicUiVariationHelpers {
 
     final lightnessAdjustment = isDark ? -0.05 : 0.05;
 
-    final color1 = hsl.withLightness((hsl.lightness + lightnessAdjustment).clamp(0.0, 1.0)).withAlpha(0.05).toColor();
-    final color2 = hsl.withHue((hsl.hue + 10) % 360).withLightness((hsl.lightness - lightnessAdjustment).clamp(0.0, 1.0)).withAlpha(0.02).toColor();
+    final color1 = hsl
+        .withLightness((hsl.lightness + lightnessAdjustment).clamp(0.0, 1.0))
+        .withAlpha(0.05)
+        .toColor();
+    final color2 = hsl
+        .withHue((hsl.hue + 10) % 360)
+        .withLightness((hsl.lightness - lightnessAdjustment).clamp(0.0, 1.0))
+        .withAlpha(0.02)
+        .toColor();
 
     return [color1, color2];
   }
@@ -114,7 +117,11 @@ class DynamicUiVariationHelpers {
   }
 
   static Alignment getGradientEnd(int seed) {
-    final values = [Alignment.bottomRight, Alignment.bottomLeft, Alignment.bottomCenter];
+    final values = [
+      Alignment.bottomRight,
+      Alignment.bottomLeft,
+      Alignment.bottomCenter,
+    ];
     return values[seed % values.length];
   }
 

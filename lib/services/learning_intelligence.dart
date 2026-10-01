@@ -34,13 +34,25 @@ class LearningDecision {
 }
 
 class LearningIntelligence {
-
-  static List<LearningDecision> rankSession(List<LearningContent> items, LearnerState state, {required LanguageContentIntelligence contentIntelligence, DateTime? now, int limit = 20}) {
+  static List<LearningDecision> rankSession(
+    List<LearningContent> items,
+    LearnerState state, {
+    required LanguageContentIntelligence contentIntelligence,
+    DateTime? now,
+    int limit = 20,
+  }) {
     final at = now ?? DateTime.now();
     final teacher = AdaptiveTeacher.next(state, now: at);
     final mistakes = MistakeEngine.from(state.attempts, items, now: at).items;
     final mistakeById = {for (final m in mistakes) m.itemId: m};
-    final dueIds = {for (final card in MemoryQueue.rank(state.reviewCards.values, now: at, limit: 100)) card.itemId};
+    final dueIds = {
+      for (final card in MemoryQueue.rank(
+        state.reviewCards.values,
+        now: at,
+        limit: 100,
+      ))
+        card.itemId,
+    };
     final attemptsByItem = <String, List<Attempt>>{};
     for (final attempt in state.attempts) {
       (attemptsByItem[attempt.itemId] ??= <Attempt>[]).add(attempt);
@@ -48,8 +60,27 @@ class LearningIntelligence {
     final ranked = <LearningDecision>[];
     final cap = limit.clamp(1, 100).toInt();
     for (final item in items) {
-      final decision = decide(item: item, state: state, attempts: attemptsByItem[item.id] ?? const <Attempt>[], teacher: teacher, mistake: mistakeById[item.id], contentIntelligence: contentIntelligence, now: at);
-      final adjusted = dueIds.contains(item.id) ? LearningDecision(itemId: decision.itemId, recommendedMode: 'review', priority: (decision.priority + 20).clamp(0.0, 200.0).toDouble(), reason: decision.reason, newContentAllowed: decision.newContentAllowed, mastery: decision.mastery, retrievability: decision.retrievability, mistakePressure: decision.mistakePressure) : decision;
+      final decision = decide(
+        item: item,
+        state: state,
+        attempts: attemptsByItem[item.id] ?? const <Attempt>[],
+        teacher: teacher,
+        mistake: mistakeById[item.id],
+        contentIntelligence: contentIntelligence,
+        now: at,
+      );
+      final adjusted = dueIds.contains(item.id)
+          ? LearningDecision(
+              itemId: decision.itemId,
+              recommendedMode: 'review',
+              priority: (decision.priority + 20).clamp(0.0, 200.0).toDouble(),
+              reason: decision.reason,
+              newContentAllowed: decision.newContentAllowed,
+              mastery: decision.mastery,
+              retrievability: decision.retrievability,
+              mistakePressure: decision.mistakePressure,
+            )
+          : decision;
       ranked.add(adjusted);
       if (ranked.length > cap * 2) {
         ranked.sort((a, b) => b.priority.compareTo(a.priority));
@@ -59,6 +90,7 @@ class LearningIntelligence {
     ranked.sort((a, b) => b.priority.compareTo(a.priority));
     return ranked.take(cap).toList(growable: false);
   }
+
   static LearningDecision decide({
     required LearningContent item,
     required LearnerState state,
@@ -70,13 +102,21 @@ class LearningIntelligence {
   }) {
     final at = now ?? DateTime.now();
     final card = state.reviewCards[item.id];
-    final evidence = Mastery.forItemRows(item.id, attempts, reviewCard: card, now: at);
+    final evidence = Mastery.forItemRows(
+      item.id,
+      attempts,
+      reviewCard: card,
+      now: at,
+    );
     final profile = contentIntelligence.profile(item);
     final retrievability = card == null ? 0.0 : _safeRetrievability(card, at);
     final mistakePressure = mistake == null
         ? 0.0
-        : ((mistake.severity / 100) * .55 + mistake.recentFailureRate * .45).clamp(0.0, 1.0).toDouble();
-    final newAllowed = teacher.newContentReadiness >= .55 &&
+        : ((mistake.severity / 100) * .55 + mistake.recentFailureRate * .45)
+              .clamp(0.0, 1.0)
+              .toDouble();
+    final newAllowed =
+        teacher.newContentReadiness >= .55 &&
         teacher.reviewPressure < .75 &&
         teacher.recentFailureRate < .45;
 
@@ -92,7 +132,8 @@ class LearningIntelligence {
       if (mistake.recentFailureRate >= .60) mode = 'repair';
       priority = 85 + mistake.severity * .65 + mistake.recentFailureRate * 30;
       reason = mistake.diagnosis;
-    } else if (evidence.skillScores.isNotEmpty && evidence.nextAction != 'consolidate') {
+    } else if (evidence.skillScores.isNotEmpty &&
+        evidence.nextAction != 'consolidate') {
       mode = evidence.nextAction;
       priority = 65 + (1 - evidence.overall) * 45;
       reason = 'الإتقان غير مكتمل؛ نركز على ${evidence.nextAction} بدل التوسع.';
@@ -100,7 +141,8 @@ class LearningIntelligence {
       mode = 'consolidate';
       priority = 48 + teacher.reviewPressure * 20;
       reason = 'نؤجل المحتوى الجديد لأن ضغط المراجعة أو الأخطاء الحديثة مرتفع.';
-    } else if (profile.inferredLevel == ContentLevel.b1 && teacher.newContentReadiness < .75) {
+    } else if (profile.inferredLevel == ContentLevel.b1 &&
+        teacher.newContentReadiness < .75) {
       mode = 'consolidate';
       priority = 42;
       reason = 'محتوى أعلى صعوبة؛ نؤجله حتى ترتفع جاهزية المحتوى الجديد.';
@@ -122,7 +164,8 @@ class LearningIntelligence {
     );
   }
 
-  static double _safeRetrievability(ReviewCard card, DateTime now) => SrsAdapter.retrievability(card, now);
+  static double _safeRetrievability(ReviewCard card, DateTime now) =>
+      SrsAdapter.retrievability(card, now);
 
   static String _modeForMistake(MistakeCategory category) {
     switch (category) {
@@ -145,5 +188,6 @@ class LearningIntelligence {
 /// Tiny adapter keeps the decision layer independent of SRS implementation
 /// details and gives us one seam for future retention-model upgrades.
 class SrsAdapter {
-  static double retrievability(ReviewCard card, DateTime now) => Srs.retrievability(card, now: now);
+  static double retrievability(ReviewCard card, DateTime now) =>
+      Srs.retrievability(card, now: now);
 }

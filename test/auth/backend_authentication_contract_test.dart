@@ -36,8 +36,7 @@ class FakeBackendGateway implements BackendAuthenticationGateway {
   @override
   Future<AccountSession> renewSession(
     SecureSessionCredentials credentials,
-  ) async =>
-      session;
+  ) async => session;
 
   @override
   Future<void> revokeSession(SecureSessionCredentials? credentials) async {}
@@ -78,8 +77,7 @@ class FakeEmailProvider implements EmailOtpProvider {
   Future<AccountSession> verifyCode({
     required String email,
     required String otp,
-  }) async =>
-      const AccountSession.unauthenticated();
+  }) async => const AccountSession.unauthenticated();
 }
 
 void main() {
@@ -116,25 +114,34 @@ void main() {
     expect(result.session.isAuthenticated, isTrue);
   });
 
-  test('Google assertion is delegated to backend for canonical session', () async {
-    final gateway = FakeBackendGateway(
-      session: const AccountSession.authenticated(
-        identity: AccountIdentity(userId: 'internal-user'),
-      ),
-    );
-    final service = ProviderAuthenticationService(
-      emailOtpProvider: FakeEmailProvider(),
-      googleProvider: FakeGoogleProvider(),
-      appleProvider: FakeAppleProvider(),
-      backendGateway: gateway,
-    );
+  test(
+    'Google assertion is delegated to backend for canonical session',
+    () async {
+      final gateway = FakeBackendGateway(
+        session: const AccountSession.authenticated(
+          identity: AccountIdentity(userId: 'internal-user'),
+        ),
+      );
+      final service = ProviderAuthenticationService(
+        emailOtpProvider: FakeEmailProvider(),
+        googleProvider: FakeGoogleProvider(),
+        appleProvider: FakeAppleProvider(),
+        backendGateway: gateway,
+      );
 
-    final session = await service.signInWithGoogle();
+      final session = await service.signInWithGoogle();
 
-    expect(session.identity?.userId, 'internal-user');
-    expect(gateway.providerAssertions.single.provider, AccountProvider.google);
-    expect(gateway.providerAssertions.single.assertion, 'ephemeral-assertion');
-  });
+      expect(session.identity?.userId, 'internal-user');
+      expect(
+        gateway.providerAssertions.single.provider,
+        AccountProvider.google,
+      );
+      expect(
+        gateway.providerAssertions.single.assertion,
+        'ephemeral-assertion',
+      );
+    },
+  );
 
   test('Email OTP verification is delegated to backend', () async {
     final gateway = FakeBackendGateway(

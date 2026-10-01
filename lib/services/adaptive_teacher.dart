@@ -50,7 +50,10 @@ class AdaptiveTeacher {
         : recentFailureCount / recentAttemptCount;
     final due = _dueCount(state, at);
     final reviewPressure = _reviewPressure(state, at, due);
-    final newContentReadiness = _newContentReadiness(recentFailureRate, reviewPressure);
+    final newContentReadiness = _newContentReadiness(
+      recentFailureRate,
+      reviewPressure,
+    );
     final weak = _weakest(state, attemptsBySkill, scoresBySkill);
 
     if (due > 0 || state.review.isNotEmpty) {
@@ -149,7 +152,9 @@ class AdaptiveTeacher {
 
   static double _scoreForAttempts(List<Attempt>? attempts) {
     if (attempts == null || attempts.isEmpty) return .5;
-    final recent = attempts.length > 20 ? attempts.sublist(attempts.length - 20) : attempts;
+    final recent = attempts.length > 20
+        ? attempts.sublist(attempts.length - 20)
+        : attempts;
     var weight = 1.0;
     var total = 0.0;
     var score = 0.0;
@@ -170,7 +175,11 @@ class AdaptiveTeacher {
     return due;
   }
 
-  static double _reviewPressure(LearnerState state, DateTime now, int dueCount) {
+  static double _reviewPressure(
+    LearnerState state,
+    DateTime now,
+    int dueCount,
+  ) {
     final total = state.reviewCards.length;
     if (total == 0) return 0;
     final dueRatio = dueCount / total;
@@ -182,11 +191,16 @@ class AdaptiveTeacher {
         if (!a.correct) recentFailureCount++;
       }
     }
-    final failureRatio = recentAttemptCount == 0 ? 0.0 : recentFailureCount / recentAttemptCount;
+    final failureRatio = recentAttemptCount == 0
+        ? 0.0
+        : recentFailureCount / recentAttemptCount;
     return (dueRatio * .6 + failureRatio * .4).clamp(0.0, 1.0);
   }
 
-  static double _newContentReadiness(double recentFailureRate, double reviewPressure) {
+  static double _newContentReadiness(
+    double recentFailureRate,
+    double reviewPressure,
+  ) {
     if (recentFailureRate >= .60 || reviewPressure >= .85) return 0;
     if (recentFailureRate >= .40 || reviewPressure >= .65) return .35;
     if (recentFailureRate >= .20 || reviewPressure >= .40) return .70;

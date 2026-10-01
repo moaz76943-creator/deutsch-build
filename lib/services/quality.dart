@@ -6,7 +6,9 @@ import '../language/german/german_content_quality.dart';
 /// New code should receive LanguageContentQuality from the selected LanguagePack.
 final class ContentQuality {
   static final GermanContentQuality _delegate = const GermanContentQuality();
-  static final Expando<List<String>> _validationCache = Expando<List<String>>('contentQualityIssues');
+  static final Expando<List<String>> _validationCache = Expando<List<String>>(
+    'contentQualityIssues',
+  );
 
   static List<String> issues(ContentItem item) {
     final cached = _validationCache[item];
@@ -15,6 +17,7 @@ final class ContentQuality {
     _validationCache[item] = computed;
     return computed;
   }
+
   static List<String> validate(ContentItem item) => issues(item);
   static bool isLearnable(ContentItem item) => issues(item).isEmpty;
 

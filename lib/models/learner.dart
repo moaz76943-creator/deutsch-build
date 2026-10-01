@@ -3,9 +3,36 @@ class Attempt {
   final bool correct, hinted;
   final int seconds;
   final DateTime at;
-  const Attempt({required this.id, required this.itemId, required this.skill, required this.answer, required this.correct, required this.hinted, required this.seconds, required this.at});
-  Map<String,dynamic> toJson()=>{'id':id,'itemId':itemId,'skill':skill,'answer':answer,'correct':correct,'hinted':hinted,'seconds':seconds,'at':at.toIso8601String()};
-  factory Attempt.fromJson(Map<String,dynamic> j)=>Attempt(id:j['id']??'',itemId:j['itemId']??'',skill:j['skill']??'recall',answer:j['answer']??'',correct:j['correct']==true,hinted:j['hinted']==true,seconds:(j['seconds'] as num?)?.toInt()??5,at:DateTime.tryParse(j['at']??'')??DateTime.now());
+  const Attempt({
+    required this.id,
+    required this.itemId,
+    required this.skill,
+    required this.answer,
+    required this.correct,
+    required this.hinted,
+    required this.seconds,
+    required this.at,
+  });
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'itemId': itemId,
+    'skill': skill,
+    'answer': answer,
+    'correct': correct,
+    'hinted': hinted,
+    'seconds': seconds,
+    'at': at.toIso8601String(),
+  };
+  factory Attempt.fromJson(Map<String, dynamic> j) => Attempt(
+    id: j['id'] ?? '',
+    itemId: j['itemId'] ?? '',
+    skill: j['skill'] ?? 'recall',
+    answer: j['answer'] ?? '',
+    correct: j['correct'] == true,
+    hinted: j['hinted'] == true,
+    seconds: (j['seconds'] as num?)?.toInt() ?? 5,
+    at: DateTime.tryParse(j['at'] ?? '') ?? DateTime.now(),
+  );
 }
 
 class AssessmentHistory {
@@ -14,15 +41,40 @@ class AssessmentHistory {
   final double score;
   final List<String> weakSkills;
   final int answered;
-  const AssessmentHistory({required this.id, required this.at, required this.score, required this.weakSkills, required this.answered});
-  Map<String,dynamic> toJson()=>{'id':id,'at':at.toIso8601String(),'score':score.clamp(0,100),'weakSkills':weakSkills.take(8).toList(),'answered':answered.clamp(0,100)};
-  factory AssessmentHistory.fromJson(Map<String,dynamic> j){
+  const AssessmentHistory({
+    required this.id,
+    required this.at,
+    required this.score,
+    required this.weakSkills,
+    required this.answered,
+  });
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'at': at.toIso8601String(),
+    'score': score.clamp(0, 100),
+    'weakSkills': weakSkills.take(8).toList(),
+    'answered': answered.clamp(0, 100),
+  };
+  factory AssessmentHistory.fromJson(Map<String, dynamic> j) {
     final now = DateTime.now();
     var safeAt = DateTime.tryParse(j['at']?.toString() ?? '') ?? now;
     if (safeAt.isAfter(now.add(const Duration(days: 1)))) safeAt = now;
     if (safeAt.isBefore(DateTime(2000))) safeAt = now;
     final rawId = (j['id'] ?? '').toString().trim();
-    return AssessmentHistory(id:rawId.substring(0, rawId.length.clamp(0,160).toInt()), at:safeAt, score:(((j['score'] as num?)?.toDouble()??0).clamp(0,100)).toDouble(), weakSkills:(j['weakSkills'] is List ? (j['weakSkills'] as List).whereType<String>().map((x)=>x.trim()).where((x)=>x.isNotEmpty).take(8).toList() : const <String>[]), answered:(((j['answered'] as num?)?.toInt()??0).clamp(0,100)).toInt());
+    return AssessmentHistory(
+      id: rawId.substring(0, rawId.length.clamp(0, 160).toInt()),
+      at: safeAt,
+      score: (((j['score'] as num?)?.toDouble() ?? 0).clamp(0, 100)).toDouble(),
+      weakSkills: (j['weakSkills'] is List
+          ? (j['weakSkills'] as List)
+                .whereType<String>()
+                .map((x) => x.trim())
+                .where((x) => x.isNotEmpty)
+                .take(8)
+                .toList()
+          : const <String>[]),
+      answered: (((j['answered'] as num?)?.toInt() ?? 0).clamp(0, 100)).toInt(),
+    );
   }
 }
 
@@ -103,8 +155,10 @@ class ReviewCard {
     var due = DateTime.tryParse((j['dueAt'] ?? '').toString()) ?? now;
     var last = DateTime.tryParse((j['lastReviewedAt'] ?? '').toString());
     if (due.isBefore(DateTime(2000))) due = now;
-    if (due.isAfter(now.add(const Duration(days: 3650)))) due = now.add(const Duration(days: 3650));
-    if (last != null && last.isAfter(now.add(const Duration(days: 1)))) last = now;
+    if (due.isAfter(now.add(const Duration(days: 3650))))
+      due = now.add(const Duration(days: 3650));
+    if (last != null && last.isAfter(now.add(const Duration(days: 1))))
+      last = now;
     if (last != null && last.isBefore(DateTime(2000))) last = now;
     return ReviewCard(
       itemId: id,
@@ -120,10 +174,15 @@ class ReviewCard {
     );
   }
 
-  static int _int(Object? v) => v is num ? v.toInt() : int.tryParse(v?.toString() ?? '') ?? 0;
-  static double _double(Object? v, double fallback) => v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '') ?? fallback;
-  static int _boundInt(int v, int min, int max) => v < min ? min : (v > max ? max : v);
-  static double _boundDouble(double v, double min, double max) => v < min ? min : (v > max ? max : v);
+  static int _int(Object? v) =>
+      v is num ? v.toInt() : int.tryParse(v?.toString() ?? '') ?? 0;
+  static double _double(Object? v, double fallback) => v is num
+      ? v.toDouble()
+      : double.tryParse(v?.toString() ?? '') ?? fallback;
+  static int _boundInt(int v, int min, int max) =>
+      v < min ? min : (v > max ? max : v);
+  static double _boundDouble(double v, double min, double max) =>
+      v < min ? min : (v > max ? max : v);
 }
 
 class LearnerState {
@@ -133,6 +192,35 @@ class LearnerState {
   final List<Attempt> attempts;
   final List<AssessmentHistory> assessmentHistory;
   final DateTime updatedAt;
-  const LearnerState({this.xp=0,this.streak=0,this.learned=const {},this.review=const {},this.favoriteVerbs=const {},this.reviewCards=const {},this.attempts=const [],this.assessmentHistory=const [],required this.updatedAt});
-  LearnerState copyWith({int? xp,int? streak,Set<String>? learned,Set<String>? review,Set<String>? favoriteVerbs,Map<String,ReviewCard>? reviewCards,List<Attempt>? attempts,List<AssessmentHistory>? assessmentHistory})=>LearnerState(xp:xp??this.xp,streak:streak??this.streak,learned:learned??this.learned,review:review??this.review,favoriteVerbs:favoriteVerbs??this.favoriteVerbs,reviewCards:reviewCards??this.reviewCards,attempts:attempts??this.attempts,assessmentHistory:assessmentHistory??this.assessmentHistory,updatedAt:DateTime.now());
+  const LearnerState({
+    this.xp = 0,
+    this.streak = 0,
+    this.learned = const {},
+    this.review = const {},
+    this.favoriteVerbs = const {},
+    this.reviewCards = const {},
+    this.attempts = const [],
+    this.assessmentHistory = const [],
+    required this.updatedAt,
+  });
+  LearnerState copyWith({
+    int? xp,
+    int? streak,
+    Set<String>? learned,
+    Set<String>? review,
+    Set<String>? favoriteVerbs,
+    Map<String, ReviewCard>? reviewCards,
+    List<Attempt>? attempts,
+    List<AssessmentHistory>? assessmentHistory,
+  }) => LearnerState(
+    xp: xp ?? this.xp,
+    streak: streak ?? this.streak,
+    learned: learned ?? this.learned,
+    review: review ?? this.review,
+    favoriteVerbs: favoriteVerbs ?? this.favoriteVerbs,
+    reviewCards: reviewCards ?? this.reviewCards,
+    attempts: attempts ?? this.attempts,
+    assessmentHistory: assessmentHistory ?? this.assessmentHistory,
+    updatedAt: DateTime.now(),
+  );
 }

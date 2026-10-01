@@ -66,7 +66,9 @@ class _AccountPageState extends State<AccountPage> {
       _showMessage('أدخل رمز التحقق.');
       return;
     }
-    await _runBusy(() => widget.auth.signInWithEmailOtp(email: email, otp: otp));
+    await _runBusy(
+      () => widget.auth.signInWithEmailOtp(email: email, otp: otp),
+    );
     if (mounted && widget.auth.session.isAuthenticated) {
       _otpController.clear();
       setState(() => _otpRequested = false);
@@ -92,12 +94,15 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   bool _validEmail(String value) {
-    return value.contains('@') && value.indexOf('@') > 0 && value.indexOf('@') < value.length - 1;
+    return value.contains('@') &&
+        value.indexOf('@') > 0 &&
+        value.indexOf('@') < value.length - 1;
   }
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -109,7 +114,12 @@ class _AccountPageState extends State<AccountPage> {
         padding: const EdgeInsets.all(18),
         children: [
           if (!widget.auth.isInitialized)
-            const Card(child: ListTile(leading: CircularProgressIndicator(), title: Text('جارٍ التحقق من حالة الحساب...')))
+            const Card(
+              child: ListTile(
+                leading: CircularProgressIndicator(),
+                title: Text('جارٍ التحقق من حالة الحساب...'),
+              ),
+            )
           else if (session.isAuthenticated)
             _authenticatedView(context, session)
           else
@@ -134,83 +144,129 @@ class _AccountPageState extends State<AccountPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Icon(Icons.verified_user_outlined, size: 42),
-          const SizedBox(height: 12),
-          Text('تم تسجيل الدخول', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          Text('معرّف الحساب: ${identity.userId}'),
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: OutlinedButton.icon(
-            onPressed: _busy ? null : _renewSession,
-            icon: const Icon(Icons.refresh),
-            label: const Text('تجديد الجلسة'),
-          )),
-          const SizedBox(height: 8),
-          SizedBox(width: double.infinity, child: OutlinedButton.icon(
-            onPressed: _busy ? null : _signOut,
-            icon: const Icon(Icons.logout),
-            label: const Text('تسجيل الخروج'),
-          )),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.verified_user_outlined, size: 42),
+            const SizedBox(height: 12),
+            Text(
+              'تم تسجيل الدخول',
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text('معرّف الحساب: ${identity.userId}'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _busy ? null : _renewSession,
+                icon: const Icon(Icons.refresh),
+                label: const Text('تجديد الجلسة'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _busy ? null : _signOut,
+                icon: const Icon(Icons.logout),
+                label: const Text('تسجيل الخروج'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _signInView(BuildContext context) {
-    return Column(children: [
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('تسجيل الدخول', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            const Text('يمكنك متابعة التعلم بدون حساب. الحساب مخصص للميزات التي تحتاج هوية حساب لاحقًا.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              textDirection: TextDirection.ltr,
-              autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(labelText: 'البريد الإلكتروني', border: OutlineInputBorder()),
+    return Column(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'تسجيل الدخول',
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'يمكنك متابعة التعلم بدون حساب. الحساب مخصص للميزات التي تحتاج هوية حساب لاحقًا.',
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textDirection: TextDirection.ltr,
+                  autofillHints: const [AutofillHints.email],
+                  decoration: const InputDecoration(
+                    labelText: 'البريد الإلكتروني',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _busy ? null : _requestOtp,
+                    icon: const Icon(Icons.mark_email_read_outlined),
+                    label: const Text('إرسال رمز التحقق'),
+                  ),
+                ),
+                if (_otpRequested) ...[
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
+                    textDirection: TextDirection.ltr,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'رمز التحقق',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _busy ? null : _verifyOtp,
+                      child: const Text('تأكيد وتسجيل الدخول'),
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 10),
-            SizedBox(width: double.infinity, child: FilledButton.icon(
-              onPressed: _busy ? null : _requestOtp,
-              icon: const Icon(Icons.mark_email_read_outlined),
-              label: const Text('إرسال رمز التحقق'),
-            )),
-            if (_otpRequested) ...[
-              const SizedBox(height: 14),
-              TextField(
-                controller: _otpController,
-                keyboardType: TextInputType.number,
-                textDirection: TextDirection.ltr,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'رمز التحقق', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(width: double.infinity, child: FilledButton(
-                onPressed: _busy ? null : _verifyOtp,
-                child: const Text('تأكيد وتسجيل الدخول'),
-              )),
-            ],
-          ]),
+          ),
         ),
-      ),
-      const SizedBox(height: 12),
-      SizedBox(width: double.infinity, child: OutlinedButton.icon(
-        onPressed: _busy ? null : () => _runBusy(widget.auth.signInWithGoogle),
-        icon: const Icon(Icons.g_mobiledata),
-        label: const Text('المتابعة باستخدام Google'),
-      )),
-      const SizedBox(height: 8),
-      SizedBox(width: double.infinity, child: OutlinedButton.icon(
-        onPressed: _busy ? null : () => _runBusy(widget.auth.signInWithApple),
-        icon: const Icon(Icons.apple),
-        label: const Text('المتابعة باستخدام Apple'),
-      )),
-    ]);
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _busy
+                ? null
+                : () => _runBusy(widget.auth.signInWithGoogle),
+            icon: const Icon(Icons.g_mobiledata),
+            label: const Text('المتابعة باستخدام Google'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _busy
+                ? null
+                : () => _runBusy(widget.auth.signInWithApple),
+            icon: const Icon(Icons.apple),
+            label: const Text('المتابعة باستخدام Apple'),
+          ),
+        ),
+      ],
+    );
   }
 
   String _failureMessage(AuthenticationFailureCode code) {

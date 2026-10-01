@@ -91,7 +91,8 @@ final class LanguageCapabilityStatus {
       case LanguageCapabilityState.notApplicable:
         if (justification == null || justification!.trim().isEmpty) {
           throw ArgumentError(
-              'NOT_APPLICABLE capability state requires a justification');
+            'NOT_APPLICABLE capability state requires a justification',
+          );
         }
         break;
       default:
@@ -100,14 +101,14 @@ final class LanguageCapabilityStatus {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-        'role': role.wireName,
-        'capability': capability.name,
-        'state': state.name,
-        'snapshotVersion': snapshotVersion,
-        'snapshotHash': snapshotHash,
-        'limitation': limitation,
-        'justification': justification,
-      };
+    'role': role.wireName,
+    'capability': capability.name,
+    'state': state.name,
+    'snapshotVersion': snapshotVersion,
+    'snapshotHash': snapshotHash,
+    'limitation': limitation,
+    'justification': justification,
+  };
 
   static void _requireNonEmpty(String value, String field) {
     if (value.trim().isEmpty) {
