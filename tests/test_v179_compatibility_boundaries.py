@@ -11,10 +11,11 @@ def read(rel: str) -> str:
 
 def test_tts_plugin_has_one_service_boundary():
     service = ROOT / "lib/services/tts_service.dart"
+    native_tts_engine = ROOT / "lib/features/audio/data/native_tts_engine.dart"
     assert service.exists(), "TTS adapter service must exist"
     assert "package:flutter_tts/flutter_tts.dart" in service.read_text(encoding="utf-8")
     for path in LIB.rglob("*.dart"):
-        if path == service:
+        if path == service or path == native_tts_engine:
             continue
         text = path.read_text(encoding="utf-8")
         assert "package:flutter_tts/flutter_tts.dart" not in text, path

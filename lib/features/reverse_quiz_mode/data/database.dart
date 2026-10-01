@@ -29,8 +29,18 @@ class ReverseQuizDatabase {
       path = join(dbPath, _dbName);
     }
 
-    return await DatabaseMigrationHelper.open(
-      path: path,
+    if (_dbFactory != null) {
+      return await _dbFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: _createDB,
+        ),
+      );
+    }
+
+    return await openDatabase(
+      path,
       version: 1,
       onCreate: _createDB,
       migrationScripts: {},
