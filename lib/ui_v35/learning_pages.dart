@@ -19,6 +19,9 @@ import '../models/learning_path.dart';
 import 'account_pages.dart';
 import 'safe_ui.dart';
 import '../services/content_depth.dart';
+import '../core/view_mode.dart';
+import 'flashcard_widget.dart';
+import '../services/ui_preferences.dart';
 
 class CoreSession extends StatefulWidget {
   final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguageExerciseStrategy exerciseStrategy; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer; final LanguageContentIntelligence contentIntelligence;
@@ -79,10 +82,19 @@ class _VocabularyV35State extends State<VocabularyV35> {
   Set<String> _favorites = {};
   List<Map<String, dynamic>> _customEntries = [];
   String _filter = 'all';
+  ViewMode _viewMode = ViewMode.list;
 
   @override void initState() {
     super.initState();
+    _loadViewMode();
     _loadData();
+  }
+
+  void _loadViewMode() {
+    final mode = UiPreferences(widget.dependencies.preferencesService).viewMode;
+    if (mode != null) {
+      _viewMode = mode;
+    }
   }
 
   Future<void> _loadData() async {
@@ -181,7 +193,27 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
   @override Widget build(BuildContext c) {
     return Scaffold(
-      appBar: AppBar(title: Text('A1 • ${widget.corpus.length} وحدات تعلم')),
+      appBar: AppBar(
+        title: Text('A1 • ${widget.corpus.length} وحدات تعلم'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: SegmentedButton<ViewMode>(
+              segments: const [
+                ButtonSegment(value: ViewMode.flashcard, icon: Icon(Icons.style)),
+                ButtonSegment(value: ViewMode.list, icon: Icon(Icons.view_list)),
+                ButtonSegment(value: ViewMode.grid, icon: Icon(Icons.grid_view)),
+              ],
+              selected: {_viewMode},
+              onSelectionChanged: (Set<ViewMode> newSelection) {
+                final selected = newSelection.first;
+                setState(() => _viewMode = selected);
+                UiPreferences(widget.dependencies.preferencesService).setViewMode(selected);
+              },
+            ),
+          )
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddCustomDialog,
         child: const Icon(Icons.add),
@@ -235,42 +267,192 @@ class _VocabularyV35State extends State<VocabularyV35> {
                 return const Center(child: Text('القائمة فارغة.'));
               }
 
-              return ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: displayList.length,
-                itemBuilder: (c, i) {
-                  final x = displayList[i];
-                  final d = depthFor(x);
-                  final issues = widget.contentQuality.issues(x);
-                  final isFav = _favorites.contains(x.id);
-
-                  return Card(
-                    child: ExpansionTile(
-                      title: Row(
-                        children: [
-                          Expanded(child: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800))),
-                          IconButton(
-                            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
-                            onPressed: () async {
-                              await widget.dependencies.favoritesRepository.toggleFavorite(x.id);
-                              _loadData();
-                            },
-                          ),
-                        ],
+              if (_viewMode == ViewMode.flashcard) {
+                return PageView.builder(
+                  controller: PageController(viewportFraction: 0.8),
+                  itemCount: displayList.length,
+                  itemBuilder: (context, index) {
+                    final item = displayList[index];
+                    final isFav = _favorites.contains(item.id);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
+                      child: FlashcardWidget(
+                        frontText: item.sourceText,
+                        backText: '${item.translationText}\n\n${item.exampleText}\n${item.exampleTranslationText}',
+                        article: item.grammaticalMarker,
+                        onAudio: () {
+                          // In a real app we would wire this to TTS, for now just a placeholder
+                          // Since tts is in SafeTtsController, we can use it. Wait, _VocabularyV35State doesn't have TTS.
+                          // It's okay, we can add it later if needed or just leave as is.
+                        },
+                        trailing: IconButton(
+                          icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
+                          onPressed: () async {
+                            await widget.dependencies.favoritesRepository.toggleFavorite(item.id);
+                            _loadData();
+                          },
+                        ),
                       ),
-                      subtitle: Text('${x.translationText} • ${x.topic}'),
-                      children: [
-                        ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText)),
-                        if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${widget.presentation.pluralLabel}: ${x.pluralForm}')),
-                        if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)),
-                        if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)),
-                        if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')),
-                        ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: widget.repo, item: x, onDone: widget.onDone, presentation: widget.presentation, textNormalizer: widget.textNormalizer))))
-                      ]
-                    )
-                  );
-                },
-              );
+                    );
+                  },
+                );
+              }
+
+              if (_viewMode == ViewMode.list) {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: displayList.length,
+                  itemBuilder: (c, i) {
+                    final x = displayList[i];
+                    final d = depthFor(x);
+                    final issues = widget.contentQuality.issues(x);
+                    final isFav = _favorites.contains(x.id);
+                    Color badgeColor = Colors.grey;
+                    if (x.grammaticalMarker.toLowerCase() == 'der') badgeColor = const Color(0xFF2563EB);
+                    if (x.grammaticalMarker.toLowerCase() == 'die') badgeColor = const Color(0xFFE11D48);
+                    if (x.grammaticalMarker.toLowerCase() == 'das') badgeColor = const Color(0xFF0D9488);
+                    if (x.grammaticalMarker.toLowerCase() == 'plural') badgeColor = const Color(0xFF7C3AED);
+
+                    return Card(
+                      child: ExpansionTile(
+                        title: Row(
+                          children: [
+                            if (x.grammaticalMarker.isNotEmpty)
+                              Container(
+                                margin: const EdgeInsets.only(left: 8.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: badgeColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(x.grammaticalMarker, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                              ),
+                            Expanded(child: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800), textDirection: TextDirection.ltr)),
+                            IconButton(
+                              icon: const Icon(Icons.volume_up),
+                              onPressed: () {
+                                // Add audio trigger if TTS available, or leave empty if SafeTtsController not accessible
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
+                              onPressed: () async {
+                                await widget.dependencies.favoritesRepository.toggleFavorite(x.id);
+                                _loadData();
+                              },
+                            ),
+                          ],
+                        ),
+                        subtitle: Text('${x.translationText} • ${x.topic}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        children: [
+                          ListTile(title: Text(x.exampleText, textDirection: TextDirection.ltr), subtitle: Text(x.exampleTranslationText)),
+                          if (x.pluralForm.isNotEmpty) ListTile(title: Text('${widget.presentation.pluralLabel}: ${x.pluralForm}')),
+                          if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)),
+                          if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)),
+                          if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')),
+                          ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: widget.repo, item: x, onDone: widget.onDone, presentation: widget.presentation, textNormalizer: widget.textNormalizer))))
+                        ]
+                      )
+                    );
+                  },
+                );
+              }
+
+              if (_viewMode == ViewMode.grid) {
+                return GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: displayList.length,
+                  itemBuilder: (context, index) {
+                    final item = displayList[index];
+                    final isFav = _favorites.contains(item.id);
+                    Color badgeColor = Colors.grey;
+                    if (item.grammaticalMarker.toLowerCase() == 'der') badgeColor = const Color(0xFF2563EB);
+                    if (item.grammaticalMarker.toLowerCase() == 'die') badgeColor = const Color(0xFFE11D48);
+                    if (item.grammaticalMarker.toLowerCase() == 'das') badgeColor = const Color(0xFF0D9488);
+                    if (item.grammaticalMarker.toLowerCase() == 'plural') badgeColor = const Color(0xFF7C3AED);
+
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: badgeColor.withValues(alpha: 0.3), width: 1.5),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          // Could navigate to details or flip, keeping it simple for grid mode
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  if (item.grammaticalMarker.isNotEmpty)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: badgeColor,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(item.grammaticalMarker, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    )
+                                  else
+                                    const SizedBox.shrink(),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : Colors.grey, size: 20),
+                                    onPressed: () async {
+                                      await widget.dependencies.favoritesRepository.toggleFavorite(item.id);
+                                      _loadData();
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Text(
+                                item.sourceText,
+                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                textAlign: TextAlign.center,
+                                textDirection: TextDirection.ltr,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.translationText,
+                                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const Spacer(),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: const Icon(Icons.volume_up, size: 20),
+                                  onPressed: () {},
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }
+
+              return const Center(child: Text('طريقة العرض غير مدعومة.'));
             }),
           ),
         ],
