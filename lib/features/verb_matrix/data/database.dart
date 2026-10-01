@@ -21,14 +21,14 @@ class VerbMatrixDatabase {
   Future<Database> _initDB() async {
     String path;
     if (_inMemoryPath != null) {
-      path = _inMemoryPath!;
+      path = _inMemoryPath;
     } else {
       final dbPath = await getDatabasesPath();
       path = join(dbPath, _dbName);
     }
 
     if (_dbFactory != null) {
-      return await _dbFactory!.openDatabase(
+      return await _dbFactory.openDatabase(
         path,
         options: OpenDatabaseOptions(
           version: 1,

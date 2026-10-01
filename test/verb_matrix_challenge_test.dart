@@ -5,7 +5,6 @@ import 'package:deutsch_bilarabi/features/verb_matrix/verb_matrix_challenge.dart
 import 'package:deutsch_bilarabi/features/verb_matrix/data/database.dart';
 import 'package:deutsch_bilarabi/services/verb_index.dart';
 import 'package:deutsch_bilarabi/language/german/german_text_normalizer.dart';
-import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 void main() {
   setUpAll(() {
