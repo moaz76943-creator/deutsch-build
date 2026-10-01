@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../../../services/database_migration_helper.dart';
 
 class ReverseQuizDatabase {
   static const String _dbName = 'reverse_quiz.db';
@@ -42,6 +43,8 @@ class ReverseQuizDatabase {
       path,
       version: 1,
       onCreate: _createDB,
+      migrationScripts: {},
+      factory: _dbFactory,
     );
   }
 
