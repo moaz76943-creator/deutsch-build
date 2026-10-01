@@ -19,6 +19,9 @@ import 'account_pages.dart';
 import 'safe_ui.dart';
 import 'dart:math' as math;
 import '../services/content_depth.dart';
+import '../core/view_mode.dart';
+import 'flashcard_widget.dart';
+import '../services/ui_preferences.dart';
 
 class CoreSession extends StatefulWidget {
   final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguageExerciseStrategy exerciseStrategy; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer; final LanguageContentIntelligence contentIntelligence;
@@ -87,6 +90,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
   @override void initState() {
     super.initState();
+    _loadViewMode();
     _loadData();
   }
 
