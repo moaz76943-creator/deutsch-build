@@ -548,13 +548,13 @@ class _DictionaryWordCard extends StatelessWidget {
       Text(item.exampleText,style:const TextStyle(fontWeight:FontWeight.w700),textDirection:TextDirection.ltr),
       const SizedBox(height:4),Text(item.exampleTranslationText),
       const SizedBox(height:8),
-      Row(children:[Text('الإتقان: ${profile.masteryPercent}% • ${profile.masteryLabel}',style:const TextStyle(fontWeight:FontWeight.w800)),const Spacer(),Text(profile.masteryPercent>=85?'جاهزة للانتقال':'جرعة إضافية')]),
+      Row(children:[Expanded(child: Text('الإتقان: ${profile.masteryPercent}% • ${profile.masteryLabel}',style:const TextStyle(fontWeight:FontWeight.w800))),const SizedBox(width: 8),Text(profile.masteryPercent>=85?'جاهزة للانتقال':'جرعة إضافية')]),
       const SizedBox(height:5),LinearProgressIndicator(value:profile.masteryScore),
       if(profile.relatedForms.isNotEmpty)Padding(padding:const EdgeInsets.only(top:10),child:Text('تصريفات/أشكال: ${profile.relatedForms.join(' • ')}',textDirection:TextDirection.ltr)),
       if(profile.relatedWords.isNotEmpty)Padding(padding:const EdgeInsets.only(top:6),child:Text('كلمات مرتبطة: ${profile.relatedWords.join(' • ')}',textDirection:TextDirection.ltr)),
       if(profile.relatedExamples.isNotEmpty)Padding(padding:const EdgeInsets.only(top:6),child:Text('أمثلة مرتبطة: ${profile.relatedExamples.take(3).join('  |  ')}',textDirection:TextDirection.ltr)),
       const SizedBox(height:8),
-      Row(children:[Icon(profile.due?Icons.schedule:profile.needsPractice?Icons.school_outlined:Icons.check_circle_outline,size:18),const SizedBox(width:6),Text(profile.due?'مستحقة للمراجعة':profile.needsPractice?'تحتاج تثبيتًا':'مستقرة'),const Spacer(),Text('${profile.attempts} محاولات')]),
+      Row(children:[Icon(profile.due?Icons.schedule:profile.needsPractice?Icons.school_outlined:Icons.check_circle_outline,size:18),const SizedBox(width:6),Expanded(child: Text(profile.due?'مستحقة للمراجعة':profile.needsPractice?'تحتاج تثبيتًا':'مستقرة')),const SizedBox(width: 8),Text('${profile.attempts} محاولات')]),
     ])));
   }
 }

@@ -8,12 +8,14 @@ import '../services/app_dependencies.dart';
 import '../services/daily_plan.dart';
 import 'theme/neuro_accessibility_mode.dart';
 import 'pages/core_pages.dart';
+import 'pages/offline_lexicon_hub.dart';
 import 'learning_pages.dart';
 import 'account_pages.dart';
 import 'account_auth_page.dart';
 import 'verb_pages.dart';
 import 'conversation_pages.dart';
 import 'progress_pages.dart';
+import '../services/dynamic_ui_variations.dart';
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
   textDirection: TextDirection.rtl,
@@ -29,12 +31,22 @@ class DeutschAppV35 extends StatefulWidget {
 }
 class _AppState extends State<DeutschAppV35> {
   bool dark = false;
+
   @override Widget build(BuildContext c) => ListenableBuilder(
     listenable: widget.dependencies.neuroSettings,
     builder: (context, child) {
       final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
-      ThemeData lightTheme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo);
-      ThemeData darkTheme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark);
+      final int dailySeed = widget.dependencies.dailyUiSeed;
+
+      ThemeData lightTheme = ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(dailySeed),
+      );
+      ThemeData darkTheme = ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(dailySeed),
+        brightness: Brightness.dark,
+      );
 
       if (isNeuroMode) {
         lightTheme = lightTheme.applyNeuroAccessibility();
@@ -85,6 +97,11 @@ class _HomeState extends State<HomeV35> {
   }
 
   @override Widget build(BuildContext c) {
+    final seed = widget.dependencies.dailyUiSeed;
+    final isDark = Theme.of(c).brightness == Brightness.dark;
+    final gradientColors = DynamicUiVariationHelpers.getGradientColors(seed, isDark);
+    final duration = DynamicUiVariationHelpers.getMicroAnimationDuration(seed);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Deutsch بالعربي'),
@@ -95,7 +112,21 @@ class _HomeState extends State<HomeV35> {
     IconButton(tooltip: 'الإعدادات', onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SettingsV35(repo: widget.repo, privacySettings: widget.dependencies.privacySettings, neuroSettings: widget.dependencies.neuroSettings, onCleared: refresh))), icon: const Icon(Icons.settings_outlined)),
         ],
       ),
-      body: Semantics(label: 'محتوى الصفحة الرئيسية', child: _tabForIndex(c, tab)),
+      body: Semantics(
+        label: 'محتوى الصفحة الرئيسية',
+        child: AnimatedContainer(
+          duration: duration,
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: DynamicUiVariationHelpers.getGradientBegin(seed),
+              end: DynamicUiVariationHelpers.getGradientEnd(seed),
+            ),
+          ),
+          child: _tabForIndex(c, tab),
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab,
         onDestinationSelected: (i) => setState(() => tab = i),
@@ -151,7 +182,8 @@ class _HomeState extends State<HomeV35> {
   Widget _learnTab(BuildContext c) => ListView(padding: const EdgeInsets.fromLTRB(18, 12, 18, 30), children: [
     _sectionTitle(c, 'تعلم بطريقة منظمة', 'كل أداة هنا مرتبطة بمسار التعلم، وليست قائمة أدوات منفصلة.'),
     _featureCard(c, 'جلسة التعلم الأساسية', 'تعرّف → فهم → استماع → إنتاج → نقل → احتفاظ', Icons.school_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => CoreSession(repo: widget.repo, corpus: widget.dependencies.corpus, onDone: refresh, exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy, presentation: widget.dependencies.languagePack.presentation, textNormalizer: widget.dependencies.languagePack.textNormalizer, contentQuality: widget.dependencies.languagePack.contentQuality, contentIntelligence: widget.dependencies.languagePack.contentIntelligence))), primary: true),
-    _featureCard(c, 'المفردات', '${state.learned.length}/${widget.dependencies.corpus.length} مكتسبة', Icons.menu_book_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => VocabularyV35(repo: widget.repo, corpus: widget.dependencies.corpus, onDone: refresh, presentation: widget.dependencies.languagePack.presentation, contentQuality: widget.dependencies.languagePack.contentQuality, textNormalizer: widget.dependencies.languagePack.textNormalizer, userCustomizationService: widget.dependencies.userCustomizationService)))),
+    _featureCard(c, 'المفردات', '${state.learned.length}/${widget.dependencies.corpus.length} مكتسبة', Icons.menu_book_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => VocabularyV35(repo: widget.repo, corpus: widget.dependencies.corpus, onDone: refresh, presentation: widget.dependencies.languagePack.presentation, contentQuality: widget.dependencies.languagePack.contentQuality, textNormalizer: widget.dependencies.languagePack.textNormalizer, dependencies: widget.dependencies)))),
+    _featureCard(c, 'مكتبة المفردات', 'بحث سريع في مفرداتك المكتسبة', Icons.library_books_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => OfflineLexiconHub(repo: widget.repo, corpus: widget.dependencies.corpus, searchIndex: widget.dependencies.searchIndex, verbIndex: widget.dependencies.verbIndex, presentation: widget.dependencies.languagePack.presentation, textNormalizer: widget.dependencies.languagePack.textNormalizer)))),
     _featureCard(c, 'الأقسام والفئات', 'تعلم حسب الموضوع والمجال', Icons.category_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => CategoriesPage(repo: widget.repo, searchIndex: widget.dependencies.searchIndex, presentation: widget.dependencies.languagePack.presentation)))),
     _featureCard(c, 'الأفعال والتصريف', 'تدريب عملي على تصريف الأفعال', Icons.translate_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => VerbConjugationPage(repo: widget.repo, verbIndex: widget.dependencies.verbIndex)))),
     _featureCard(c, 'القراءة التفاعلية', 'نصوص وأسئلة مرتبطة بالمفردات', Icons.menu_book_outlined, () => Navigator.push(c, MaterialPageRoute(builder: (_) => ReadingPracticePage(repo: widget.repo, corpus: widget.dependencies.corpus, searchIndex: widget.dependencies.searchIndex, verbIndex: widget.dependencies.verbIndex, contentQuality: widget.dependencies.languagePack.contentQuality)))),
@@ -201,6 +233,6 @@ class _HomeState extends State<HomeV35> {
   Widget _sectionTitle(BuildContext c, String title, String subtitle) => Padding(padding: const EdgeInsets.only(bottom: 14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(c).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)), const SizedBox(height: 5), Text(subtitle)]));
   Widget _featureCard(BuildContext c, String title, String subtitle, IconData icon, VoidCallback onTap, {bool primary = false}) => Card(color: primary ? Theme.of(c).colorScheme.primaryContainer : null, child: ListTile(leading: CircleAvatar(child: Icon(icon)), title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text(subtitle), trailing: const Icon(Icons.chevron_left), onTap: onTap));
   Widget _stat(BuildContext c, String label, String value, IconData icon) => Semantics(label: '$label: $value', value: value, child: Column(children: [Icon(icon, semanticLabel: label), const SizedBox(height: 5), Text(value, style: const TextStyle(fontWeight: FontWeight.w900)), Text(label, style: Theme.of(c).textTheme.labelSmall)]));
-  Widget _skill(String label, double value) { final pct = (value.clamp(0, 1) * 100).round(); return Semantics(label: label, value: '$pct%', child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label), Text('$pct%')]), const SizedBox(height: 4), LinearProgressIndicator(value: value.clamp(0, 1).toDouble())]))); }
+  Widget _skill(String label, double value) { final pct = (value.clamp(0, 1) * 100).round(); return Semantics(label: label, value: '$pct%', child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Expanded(child: Text(label)), const SizedBox(width: 8), Text('$pct%')]), const SizedBox(height: 4), LinearProgressIndicator(value: value.clamp(0, 1).toDouble())]))); }
 }
 

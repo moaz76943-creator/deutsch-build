@@ -547,28 +547,31 @@ class _VerbPageState extends State<VerbPage> {
                   tooltip: 'أفعالي المفضلة',
                   onPressed: () => showModalBottomSheet(
                     context: context,
-                    builder: (_) => ListView(
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        Text(
-                          '⭐ أفعال أريد دراستها',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 10),
-                        ...favorites.map(
-                          (favorite) => ListTile(
-                            title: Text(favorite),
-                            trailing: IconButton(
-                              onPressed: () =>
-                                  _toggleFavorite(favorite, close: true),
-                              icon: const Icon(Icons.star, color: Colors.amber),
+                    builder: (_) => Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          Text(
+                            '⭐ أفعال أريد دراستها',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 10),
+                          ...favorites.map(
+                            (favorite) => ListTile(
+                              title: Text(favorite),
+                              trailing: IconButton(
+                                onPressed: () =>
+                                    _toggleFavorite(favorite, close: true),
+                                icon: const Icon(Icons.star, color: Colors.amber),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   icon: const Icon(Icons.star_border),
