@@ -38,8 +38,8 @@ class ReverseQuizDatabase {
       );
     }
 
-    return await openDatabase(
-      path,
+    return await DatabaseMigrationHelper.open(
+      path: path,
       version: 1,
       onCreate: _createDB,
       migrationScripts: {},

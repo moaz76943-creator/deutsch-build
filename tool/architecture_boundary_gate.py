@@ -27,6 +27,7 @@ _CONFIGURATION_FILES = {
 _PLATFORM_ADAPTERS = {
     Path('lib/services/android_secure_session_storage.dart'),
     Path('lib/services/offline_backup_system.dart'),
+    Path('lib/services/database_migration_helper.dart'),
 }
 _SCAN_ROOTS = (Path('lib/core'), Path('lib/models'), Path('lib/services'), Path('lib/ui'), Path('lib/ui_v35'))
 
