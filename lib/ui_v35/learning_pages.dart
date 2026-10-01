@@ -331,8 +331,9 @@ class _VocabularyV35State extends State<VocabularyV35> {
       );
     }
     final favs = await widget.dependencies.favoritesRepository.getFavorites();
+    final langCode = widget.presentation.targetLanguageName.contains("لمان") ? "de" : "en";
     final custom = await widget.dependencies.userVocabularyService
-        .getCustomEntries();
+          .getCustomEntries(targetLanguage: langCode);
     if (mounted) {
       setState(() {
         _favorites = favs;
