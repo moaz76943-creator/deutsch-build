@@ -15,6 +15,7 @@ import 'account_auth_page.dart';
 import 'verb_pages.dart';
 import 'conversation_pages.dart';
 import 'progress_pages.dart';
+import '../services/dynamic_ui_variations.dart';
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
   textDirection: TextDirection.rtl,
@@ -30,12 +31,22 @@ class DeutschAppV35 extends StatefulWidget {
 }
 class _AppState extends State<DeutschAppV35> {
   bool dark = false;
+
   @override Widget build(BuildContext c) => ListenableBuilder(
     listenable: widget.dependencies.neuroSettings,
     builder: (context, child) {
       final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
-      ThemeData lightTheme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo);
-      ThemeData darkTheme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo, brightness: Brightness.dark);
+      final int dailySeed = widget.dependencies.dailyUiSeed;
+
+      ThemeData lightTheme = ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(dailySeed),
+      );
+      ThemeData darkTheme = ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(dailySeed),
+        brightness: Brightness.dark,
+      );
 
       if (isNeuroMode) {
         lightTheme = lightTheme.applyNeuroAccessibility();
@@ -86,6 +97,11 @@ class _HomeState extends State<HomeV35> {
   }
 
   @override Widget build(BuildContext c) {
+    final seed = widget.dependencies.dailyUiSeed;
+    final isDark = Theme.of(c).brightness == Brightness.dark;
+    final gradientColors = DynamicUiVariationHelpers.getGradientColors(seed, isDark);
+    final duration = DynamicUiVariationHelpers.getMicroAnimationDuration(seed);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Deutsch بالعربي'),
@@ -96,7 +112,21 @@ class _HomeState extends State<HomeV35> {
     IconButton(tooltip: 'الإعدادات', onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SettingsV35(repo: widget.repo, privacySettings: widget.dependencies.privacySettings, neuroSettings: widget.dependencies.neuroSettings, onCleared: refresh))), icon: const Icon(Icons.settings_outlined)),
         ],
       ),
-      body: Semantics(label: 'محتوى الصفحة الرئيسية', child: _tabForIndex(c, tab)),
+      body: Semantics(
+        label: 'محتوى الصفحة الرئيسية',
+        child: AnimatedContainer(
+          duration: duration,
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: DynamicUiVariationHelpers.getGradientBegin(seed),
+              end: DynamicUiVariationHelpers.getGradientEnd(seed),
+            ),
+          ),
+          child: _tabForIndex(c, tab),
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab,
         onDestinationSelected: (i) => setState(() => tab = i),

@@ -52,6 +52,7 @@ Future<void> main() async {
       final corpus = contentPack.items;
       final verbIndex = contentPack.verbIndex;
       final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);
+      final uiSeed = await DynamicUiVariationsEngine.instance.getDailySeed();
       final dependencies = AppDependencies<ContentItem>(
         searchIndex: searchIndex,
         verbIndex: verbIndex,
