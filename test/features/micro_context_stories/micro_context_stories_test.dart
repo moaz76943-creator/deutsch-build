@@ -11,7 +11,7 @@ void main() {
   });
 
   group('MicroContextStoriesEngine', () {
-    late UserVocabularyService vocabularyService;
+
     late MicroContextStoriesEngine engine;
 
     setUp(() async {});
