@@ -26,8 +26,10 @@ import '../services/word_profile_service.dart';
 import '../models/mistake.dart';
 import '../services/mistake_engine.dart';
 import '../services/repair_engine.dart';
+import '../services/streak_milestones_engine.dart';
 import 'safe_ui.dart';
 import 'learning_pages.dart';
+import 'milestone_badges_page.dart';
 
 class PersonalPathCard extends StatefulWidget {
   final LearnerRepository repo;
@@ -126,6 +128,15 @@ class ProgressPage extends StatelessWidget {
       ...p.skillScores.entries.map((e)=>ListTile(title: Text(_skillName(e.key)), subtitle: LinearProgressIndicator(value:e.value), trailing: Text('${(e.value*100).round()}%'))),
       const SizedBox(height: 8),
       Text('عدد الاختبارات المحفوظة: ${p.assessedCount}'),
+      const SizedBox(height: 12),
+      FilledButton.icon(
+        onPressed: () => Navigator.push(
+          c,
+          MaterialPageRoute(builder: (_) => MilestoneBadgesPage(currentStreak: state.streak, engine: StreakMilestonesEngine.getInstance())),
+        ),
+        icon: const Icon(Icons.stars_outlined),
+        label: const Text('إنجازات الاستمرارية'),
+      ),
       const SizedBox(height: 12),
       FilledButton.icon(onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SmartAssessmentPage(repo: repo, corpus: corpus, exerciseStrategy: exerciseStrategy, presentation: presentation, contentQuality: contentQuality, textNormalizer: textNormalizer, contentIntelligence: contentIntelligence))), icon: const Icon(Icons.quiz_outlined), label: const Text('اختبار جديد')),
     ]));

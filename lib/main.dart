@@ -18,6 +18,7 @@ import 'services/preferences_service.dart';
 import 'services/learner_persistence.dart';
 import 'services/privacy_settings.dart';
 import 'services/neuro_accessibility_settings.dart';
+import 'services/user_vocabulary_service.dart';
 import 'ui_v35/app.dart';
 import 'language/german/german_language_pack.dart';
 
@@ -58,6 +59,8 @@ Future<void> main() async {
         aiGateway: AiGatewayFactory.fromRuntimeConfig(AiRuntimeConfig.fromEnvironment()),
         privacySettings: LocalPrivacySettingsStore(prefs),
         neuroSettings: NeuroAccessibilitySettings(prefs),
+        userVocabularyService: UserVocabularyService.instance,
+        favoritesRepository: FavoritesRepository.instance,
       );
       final config = BackendRuntimeConfig.fromEnvironment();
       final BackendTransport transport =
