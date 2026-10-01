@@ -6,6 +6,7 @@ import 'ai_gateway.dart';
 import 'verb_index.dart';
 import 'privacy_settings.dart';
 import 'neuro_accessibility_settings.dart';
+import 'user_customization_service.dart';
 
 /// Composition-root dependencies shared by the application surface.
 /// Concrete language models remain outside this shared dependency contract.
@@ -18,7 +19,8 @@ final class AppDependencies<T extends LearningContent> {
     required this.aiGateway,
     required this.privacySettings,
     required this.neuroSettings,
-  });
+    required this.userCustomizationService,
+    });
 
   final SearchIndex<T> searchIndex;
   final VerbIndex verbIndex;
@@ -27,4 +29,5 @@ final class AppDependencies<T extends LearningContent> {
   final AiGateway aiGateway;
   final PrivacySettingsStore privacySettings;
   final NeuroAccessibilitySettings neuroSettings;
+  final UserCustomizationService userCustomizationService;
 }

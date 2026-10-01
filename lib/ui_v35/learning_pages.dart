@@ -17,6 +17,8 @@ import '../models/learning_path.dart';
 import 'account_pages.dart';
 import 'safe_ui.dart';
 import '../services/content_depth.dart';
+import '../services/user_customization_service.dart';
+import 'components/contextual_examples_drawer.dart';
 
 class CoreSession extends StatefulWidget {
   final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguageExerciseStrategy exerciseStrategy; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer; final LanguageContentIntelligence contentIntelligence;
@@ -66,11 +68,15 @@ class _CoreState extends State<CoreSession> {
   ]));
 }
 
-class VocabularyV35 extends StatelessWidget {
-  final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer;
-  const VocabularyV35({super.key, required this.repo, required this.corpus, required this.onDone, required this.presentation, required this.contentQuality, required this.textNormalizer});
-  @override Widget build(BuildContext c) {
-    return Scaffold(appBar: AppBar(title: Text('A1 • ${corpus.length} وحدات تعلم')), body: ListView.builder(padding: const EdgeInsets.all(12), itemCount: corpus.length, itemBuilder: (c, i) { final x = corpus[i]; final d = depthFor(x); final issues = contentQuality.issues(x); return Card(child: ExpansionTile(title: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${x.translationText} • ${x.topic}'), children: [ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText)), if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${presentation.pluralLabel}: ${x.pluralForm}')), if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)), if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)), if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')), ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SingleItemSession(repo: repo, item: x, onDone: onDone, presentation: presentation, textNormalizer: textNormalizer))))])); }));
+class VocabularyV35 extends StatefulWidget {
+  final LearnerRepository repo; final List<ContentItem> corpus; final VoidCallback onDone; final LanguagePresentation presentation; final LanguageContentQuality contentQuality; final LanguageTextNormalizer textNormalizer; final UserCustomizationService userCustomizationService;
+  const VocabularyV35({super.key, required this.repo, required this.corpus, required this.onDone, required this.presentation, required this.contentQuality, required this.textNormalizer, required this.userCustomizationService});
+  @override
+  State<VocabularyV35> createState() => _VocabularyV35State();
+}
+class _VocabularyV35State extends State<VocabularyV35> {
+  @override Widget build(BuildContext context) {
+    return Scaffold(appBar: AppBar(title: Text('A1 • ${widget.corpus.length} وحدات تعلم')), body: ListView.builder(padding: const EdgeInsets.all(12), itemCount: widget.corpus.length, itemBuilder: (context, i) { final x = widget.corpus[i]; final d = depthFor(x); final issues = widget.contentQuality.issues(x); return Card(child: ExpansionTile(title: Text(x.sourceText, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${x.translationText} • ${x.topic}'), children: [ListTile(title: Text(x.exampleText), subtitle: Text(x.exampleTranslationText), trailing: IconButton(icon: const Icon(Icons.list_alt_outlined), onPressed: () => showModalBottomSheet(context: context, builder: (context) => ContextualExamplesDrawer(item: x, service: widget.userCustomizationService, onRefresh: () { if (mounted) setState(() {}); })))), ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('تعديل الترجمة'), onTap: () => showEditTranslationSheet(context, x, widget.userCustomizationService, () { if (mounted) setState(() {}); })), if (x.grammaticalMarker.isNotEmpty) ListTile(title: Text('${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}'), subtitle: Text(x.pluralForm.isEmpty ? '' : '${widget.presentation.pluralLabel}: ${x.pluralForm}')), if (d.collocation.isNotEmpty) ListTile(title: const Text('تركيب طبيعي'), subtitle: Text(d.collocation)), if (d.grammar.isNotEmpty) ListTile(title: const Text('قاعدة مرتبطة'), subtitle: Text(d.grammar)), if (issues.isNotEmpty) ListTile(title: Text('محجوب: ${issues.join(' • ')}')), ListTile(leading: const Icon(Icons.play_circle_outline), title: const Text('تدرب من البداية إلى الاحتفاظ'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SingleItemSession(repo: widget.repo, item: x, onDone: widget.onDone, presentation: widget.presentation, textNormalizer: widget.textNormalizer))))])); }));
   }
 }
 
