@@ -69,6 +69,7 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
+      preferencesService: prefs,
     );
 
     final corpus = [

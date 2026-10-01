@@ -33,7 +33,7 @@ class FakeLearnerRepository implements LearnerRepository {
   @override
   PreferencesService get prefs => throw UnimplementedError();
   @override
-  Future<void> record({required LearningContent item, required String skill, required bool correct, required int seconds, required bool hinted, double? reviewInterval, required bool? early, bool? test, required int repetitionCount, String? answer}) async {}
+  Future<void> record({required LearningContent item, required String answer, required bool correct, required int seconds, required bool hinted, String? skillOverride}) async {}
   @override
   Future<void> recordAssessment(AssessmentResult result) async {}
   @override
@@ -74,19 +74,11 @@ class FakeUserVocabularyService implements UserVocabularyService {
 
 class FakeAiGateway implements AiGateway {
   @override
-  final String systemPrompt = '';
-  @override
-  void updateSystemPrompt(String prompt) {}
-  @override
-  Future<String> evaluateTranslation(String german, String expectedArabic, String userArabic) async => '';
-  @override
-  Future<String> generateHints(String german, String targetAudience) async => '';
-  @override
-  Future<String> continueConversation({required String scenario, required String message, String level = 'A1'}) async => '';
-  @override
   bool get enabled => false;
   @override
   Future<AiReview> reviewWriting(String text, {String level = 'A1'}) async => const AiReview(corrected: '', issues: [], explanation: '');
+  @override
+  Future<String> continueConversation({required String scenario, required String message, String level = 'A1'}) async => '';
 }
 
 void main() {
