@@ -8,7 +8,7 @@ import 'package:deutsch_bilarabi/services/user_vocabulary_service.dart';
 import 'package:deutsch_bilarabi/services/privacy_settings.dart';
 import 'package:deutsch_bilarabi/services/neuro_accessibility_settings.dart';
 import 'package:deutsch_bilarabi/services/search_index.dart';
-import 'package:deutsch_bilarabi/services/verb_index.dart';
+
 import 'package:deutsch_bilarabi/language/german/german_language_pack.dart';
 import 'package:deutsch_bilarabi/services/ai_gateway_factory.dart';
 import 'package:deutsch_bilarabi/models/ai_runtime_config.dart';

@@ -17,8 +17,8 @@ import '../../lib/services/ai_gateway.dart';
 import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/language/german/german_language_pack.dart';
+import '../../lib/services/grammar_hub_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 
@@ -54,7 +54,7 @@ void main() {
 
   testWidgets('VocabularyV35 shows add custom word dialog', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
-    final sharedPrefs = await SharedPreferences.getInstance();
+    await SharedPreferences.getInstance();
     final prefs = await PreferencesService.instance();
     final persistence = LearnerPersistence(prefs, LearnerRepository.key, LearnerRepository.legacyFavoriteKey);
     final repo = LearnerRepository(prefs, persistence: persistence);
@@ -69,6 +69,7 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
+      grammarHubService: GrammarHubService(factory: databaseFactoryFfi, path: inMemoryDatabasePath)
     );
 
     final corpus = [
