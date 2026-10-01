@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import '../models/learner.dart';
+import 'date_utils.dart';
 
 class Srs {
   static const schedule = <int>[1, 2, 4, 7, 12, 18, 30];
@@ -15,14 +16,14 @@ class Srs {
   static double retrievability(ReviewCard card, {DateTime? now}) {
     final at = now ?? DateTime.now();
     if (card.lastReviewedAt == null || card.stabilityDays <= 0) return 0;
-    final elapsed = math.max(0, at.difference(card.lastReviewedAt!).inMinutes) / (60 * 24);
+    final elapsed = math.max(0, at.toUtcNominal.difference(card.lastReviewedAt!.toUtcNominal).inMinutes) / (60 * 24);
     return math.exp(-elapsed / card.stabilityDays).clamp(0.0, 1.0).toDouble();
   }
 
   static double reviewPriority(ReviewCard card, {DateTime? now}) {
     final at = now ?? DateTime.now();
     final r = retrievability(card, now: at);
-    final overdueDays = card.dueAt.isAfter(at) ? 0.0 : at.difference(card.dueAt).inMinutes / (60 * 24);
+    final overdueDays = card.dueAt.isAfter(at) ? 0.0 : at.toUtcNominal.difference(card.dueAt.toUtcNominal).inMinutes / (60 * 24);
     final lapsePressure = card.lapses * 0.16 + card.failures * 0.025;
     final difficultyPressure = (card.difficulty - 1.0).clamp(0.0, 1.5).toDouble() * 0.08;
     return ((1 - r) * 0.62 + overdueDays.clamp(0, 30) / 30 * 0.22 + lapsePressure + difficultyPressure).clamp(0.0, 2.0).toDouble();
