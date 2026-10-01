@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class FlashcardWidget extends StatefulWidget {
   final String frontText;
   final String backText;
-  final String article;
+  final String? article;
   final VoidCallback onAudio;
   final Widget? trailing;
 
@@ -13,7 +13,7 @@ class FlashcardWidget extends StatefulWidget {
     super.key,
     required this.frontText,
     required this.backText,
-    required this.article,
+    this.article,
     required this.onAudio,
     this.trailing,
   });
@@ -52,7 +52,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
   }
 
   Color _getArticleColor() {
-    switch (widget.article.toLowerCase()) {
+    switch (widget.article?.toLowerCase() ?? "") {
       case 'der':
         return const Color(0xFF2563EB); // Slate Blue
       case 'die':
@@ -97,7 +97,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
   }
 
   Widget _buildFront() {
-    final articleColor = widget.article.isNotEmpty
+    final articleColor = widget.article != null && widget.article!.isNotEmpty
         ? _getArticleColor()
         : Colors.transparent;
 
@@ -121,7 +121,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (widget.article.isNotEmpty)
+                if (widget.article != null && widget.article!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Container(
