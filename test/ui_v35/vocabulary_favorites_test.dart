@@ -54,7 +54,7 @@ void main() {
 
   testWidgets('VocabularyV35 shows add custom word dialog', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
-    final sharedPrefs = await SharedPreferences.getInstance();
+    await SharedPreferences.getInstance();
     final prefs = await PreferencesService.instance();
     final persistence = LearnerPersistence(prefs, LearnerRepository.key, LearnerRepository.legacyFavoriteKey);
     final repo = LearnerRepository(prefs, persistence: persistence);
