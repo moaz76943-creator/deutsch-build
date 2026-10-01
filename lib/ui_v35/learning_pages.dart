@@ -128,8 +128,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                // ignore: deprecated_member_use
-                value: 'none',
+                initialValue: 'none',
                 decoration: const InputDecoration(labelText: 'الأداة (اختياري)', border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: 'none', child: Text('بدون أداة')),
