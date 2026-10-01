@@ -1,4 +1,5 @@
 import '../models/learner.dart';
+import '../core/date_utils.dart';
 
 enum TeacherActionType { baseline, review, repair, newContent, consolidation }
 
@@ -35,7 +36,7 @@ class AdaptiveTeacher {
     var recentAttemptCount = 0;
     for (final a in state.attempts) {
       (attemptsBySkill[a.skill] ??= <Attempt>[]).add(a);
-      if (at.difference(a.at).inDays <= 14) {
+      if (at.toUtcMidnight.difference(a.at.toUtcMidnight).inDays <= 14) {
         recentAttemptCount++;
         if (!a.correct) recentFailureCount++;
       }
@@ -176,7 +177,7 @@ class AdaptiveTeacher {
     var recentFailureCount = 0;
     var recentAttemptCount = 0;
     for (final a in state.attempts) {
-      if (now.difference(a.at).inDays <= 14) {
+      if (now.toUtcMidnight.difference(a.at.toUtcMidnight).inDays <= 14) {
         recentAttemptCount++;
         if (!a.correct) recentFailureCount++;
       }

@@ -45,10 +45,11 @@ class StreakMilestonesEngine {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await DatabaseMigrationHelper.openSafeDatabase(
+    return await DatabaseMigrationHelper.open(
       path: path,
       version: 1,
       onCreate: _createDB,
+      migrationScripts: {},
     );
   }
 
