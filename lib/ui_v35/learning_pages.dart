@@ -1,5 +1,4 @@
 import '../services/app_dependencies.dart';
-
 import 'package:flutter/material.dart';
 import '../core/learning_core.dart';
 import '../core/content_contract.dart';

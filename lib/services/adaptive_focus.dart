@@ -1,5 +1,6 @@
 import '../models/learner.dart';
 import 'mastery.dart';
+import '../core/date_utils.dart';
 
 class AdaptiveFocus {
   static String dimensionForItem(String itemId, List<Attempt> attempts, {ReviewCard? reviewCard, DateTime? now}) {
@@ -32,7 +33,7 @@ class AdaptiveFocus {
   static double _recencyAdjusted(String dimension, double score, Map<String, DateTime> latestByDimension, DateTime now) {
     final latest = latestByDimension[dimension];
     if (latest == null) return score;
-    final days = now.difference(latest).inDays.clamp(0, 60).toDouble();
+    final days = now.toUtcMidnight.difference(latest.toUtcMidnight).inDays.clamp(0, 60).toDouble();
     final decay = (days / 60) * .12;
     return (score - decay).clamp(0.0, 1.0).toDouble();
   }

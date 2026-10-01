@@ -4,6 +4,7 @@ import 'learner_persistence.dart';
 import '../models/learner.dart';
 import 'srs.dart';
 import '../models/assessment.dart';
+import '../core/date_utils.dart';
 
 /// Local learner-state storage. This app deliberately has no network trust boundary.
 /// Persisted values are treated as untrusted input and are bounded before use.
@@ -139,9 +140,9 @@ class LearnerRepository {
     final learned = {...s.learned};
     if (correct) learned.add(item.id);
     final last = s.attempts.isEmpty ? null : s.attempts.last.at;
-    final today = DateTime(now.year, now.month, now.day);
-    final sameDay = last != null && DateTime(last.year, last.month, last.day) == today;
-    final yesterday = last != null && today.difference(DateTime(last.year, last.month, last.day)).inDays == 1;
+    final today = now.toUtcMidnight;
+    final sameDay = last != null && last.toUtcMidnight == today;
+    final yesterday = last != null && today.difference(last.toUtcMidnight).inDays == 1;
     final nextStreak = s.attempts.isEmpty ? 1 : (sameDay ? s.streak : (yesterday ? s.streak + 1 : 1));
     await _saveNow(s.copyWith(
       xp: (s.xp + (correct ? 10 : 2)).clamp(0, maxXp),
