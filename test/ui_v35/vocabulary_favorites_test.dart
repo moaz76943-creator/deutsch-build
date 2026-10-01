@@ -15,6 +15,7 @@ import '../../lib/services/ai_gateway.dart';
 import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/language/german/german_language_pack.dart';
+import '../../lib/services/grammar_hub_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path/path.dart';
