@@ -71,7 +71,7 @@ class ReverseQuizDatabase {
 
   Future<void> insertFlashcards(List<Map<String, dynamic>> cards) async {
     final db = await database;
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       for (final card in cards) {
         await txn.insert(
           _flashcardsTable,
@@ -93,11 +93,13 @@ class ReverseQuizDatabase {
 
   Future<void> recordAttempt(Map<String, dynamic> attempt) async {
     final db = await database;
-    await db.insert(
-      _attemptsTable,
-      attempt,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
+      await txn.insert(
+        _attemptsTable,
+        attempt,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
   }
 
   Future<void> close() async {

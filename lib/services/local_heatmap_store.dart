@@ -44,7 +44,7 @@ class LocalHeatmapStore {
     final dateString = _formatDate(date);
 
     // Using compatible SQLite approach (without UPSERT which needs SQLite 3.24.0+)
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       final maps = await txn.query(
         _tableName,
         where: '$_columnDate = ?',

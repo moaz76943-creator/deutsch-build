@@ -67,7 +67,7 @@ class StreakMilestonesEngine {
     final now = DateTime.now().toIso8601String();
     List<String> newlyUnlocked = [];
 
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       for (final badge in availableBadges) {
         if (currentStreak >= badge.requiredStreak) {
           final maps = await txn.query(
