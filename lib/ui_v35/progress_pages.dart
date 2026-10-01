@@ -219,12 +219,12 @@ class ReadingPracticePage extends StatelessWidget {
   void _showWord(BuildContext c, String raw, LearningContent source) {
     final word=raw.replaceAll(RegExp(r'[^A-Za-zÄÖÜäöüß-]'), '').toLowerCase();
     final matches=searchIndex.search(word, limit:3);
-    showModalBottomSheet(context:c,builder:(_)=>SafeArea(child: Padding(padding:const EdgeInsets.all(20),child: Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
+    showModalBottomSheet(context:c,builder:(_)=>Directionality(textDirection: TextDirection.rtl, child: SafeArea(child: Padding(padding:const EdgeInsets.all(20),child: Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
       Text(raw,textDirection:TextDirection.ltr,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900)),
       Text(matches.isEmpty ? 'من الجملة: ${source.translationText}' : matches.map((x)=>'${x.sourceText} — ${x.translationText}${x.grammaticalMarker.isEmpty?'':' • ${x.grammaticalMarker}'}').join('\n')),
       const SizedBox(height:8),
       const Text('استخدم هذه الكلمة في جملة جديدة لتثبيتها.'),
-    ]))));
+    ])))));
   }
 }
 
