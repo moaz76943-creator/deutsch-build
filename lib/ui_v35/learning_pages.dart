@@ -131,10 +131,12 @@ class _VocabularyV35State extends State<VocabularyV35> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (c) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(c).viewInsets.bottom, left: 16, right: 16, top: 24),
-        child: Form(
-          key: formKey,
+      builder: (c) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(c).viewInsets.bottom, left: 16, right: 16, top: 24),
+          child: Form(
+            key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -200,7 +202,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Color _getArticleColor(String article) {
