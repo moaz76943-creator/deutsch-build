@@ -62,7 +62,7 @@ Future<void> main() async {
         neuroSettings: NeuroAccessibilitySettings(prefs),
         userVocabularyService: UserVocabularyService.instance,
         favoritesRepository: FavoritesRepository.instance,
-        grammarHubService: GrammarHubService(),
+        preferencesService: prefs,
       );
       final config = BackendRuntimeConfig.fromEnvironment();
       final BackendTransport transport =

@@ -7,7 +7,7 @@ import 'verb_index.dart';
 import 'privacy_settings.dart';
 import 'neuro_accessibility_settings.dart';
 import 'user_vocabulary_service.dart';
-import 'grammar_hub_service.dart';
+import 'preferences_service.dart';
 
 /// Composition-root dependencies shared by the application surface.
 /// Concrete language models remain outside this shared dependency contract.
@@ -22,7 +22,7 @@ final class AppDependencies<T extends LearningContent> {
     required this.neuroSettings,
     required this.userVocabularyService,
     required this.favoritesRepository,
-    required this.grammarHubService,
+    required this.preferencesService,
   });
 
   final SearchIndex<T> searchIndex;
@@ -34,5 +34,5 @@ final class AppDependencies<T extends LearningContent> {
   final NeuroAccessibilitySettings neuroSettings;
   final UserVocabularyService userVocabularyService;
   final FavoritesRepository favoritesRepository;
-  final GrammarHubService grammarHubService;
+  final PreferencesService preferencesService;
 }
