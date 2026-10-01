@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 
@@ -73,43 +74,31 @@ class ProgressTrackerService {
   Future<void> markLessonCompleted(String lessonId) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(
-        _tableNameCompletedLessons,
-        {
-          'id': lessonId,
-          'completedAt': DateTime.now().toUtc().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert(_tableNameCompletedLessons, {
+        'id': lessonId,
+        'completedAt': DateTime.now().toUtc().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
   Future<void> updateStreak(String date, int count) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(
-        _tableNameStreaks,
-        {
-          'date': date,
-          'count': count,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert(_tableNameStreaks, {
+        'date': date,
+        'count': count,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
   Future<void> updateReviewScore(String lessonId, double score) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(
-        _tableNameReviewScores,
-        {
-          'lessonId': lessonId,
-          'score': score,
-          'reviewedAt': DateTime.now().toUtc().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert(_tableNameReviewScores, {
+        'lessonId': lessonId,
+        'score': score,
+        'reviewedAt': DateTime.now().toUtc().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 

@@ -38,7 +38,9 @@ class UserVocabularyService {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getCustomEntries({String? targetLanguage}) async {
+  Future<List<Map<String, dynamic>>> getCustomEntries({
+    String? targetLanguage,
+  }) async {
     final db = await instance.database;
     if (targetLanguage != null && targetLanguage.isNotEmpty) {
       return await db.query(

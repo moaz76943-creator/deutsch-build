@@ -70,6 +70,7 @@ Future<void> main() async {
         );
         final uiSeed = await DynamicUiVariationsEngine.instance.getDailySeed();
         final dependencies = AppDependencies<ContentItem>(
+          grammarHubService: GrammarHubService(prefs),
           searchIndex: searchIndex,
           verbIndex: verbIndex,
           corpus: corpus,

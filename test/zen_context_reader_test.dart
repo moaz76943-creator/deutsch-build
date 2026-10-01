@@ -64,7 +64,6 @@ class MockPreferences implements PreferencesService {
   }
 }
 
-
 class FakeUserVocabularyService implements UserVocabularyService {
   @override
   Future<void> addCustomEntry(Map<String, dynamic> entry) async {}
@@ -75,7 +74,9 @@ class FakeUserVocabularyService implements UserVocabularyService {
   @override
   Future<void> deleteCustomEntry(String id) async {}
   @override
-  Future<List<Map<String, dynamic>>> getCustomEntries({String? targetLanguage}) async => [];
+  Future<List<Map<String, dynamic>>> getCustomEntries({
+    String? targetLanguage,
+  }) async => [];
 }
 
 class FakeFavoritesRepository implements FavoritesRepository {

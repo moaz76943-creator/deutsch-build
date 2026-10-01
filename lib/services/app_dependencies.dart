@@ -1,3 +1,4 @@
+import 'grammar_hub_service.dart';
 export 'verb_index.dart' show VerbIndex;
 import '../core/content_contract.dart';
 import '../language/language_pack.dart';
@@ -23,6 +24,7 @@ final class AppDependencies<T extends LearningContent> {
     required this.userVocabularyService,
     required this.favoritesRepository,
     required this.preferencesService,
+    required this.grammarHubService,
   });
 
   final SearchIndex<T> searchIndex;
@@ -35,4 +37,5 @@ final class AppDependencies<T extends LearningContent> {
   final UserVocabularyService userVocabularyService;
   final FavoritesRepository favoritesRepository;
   final PreferencesService preferencesService;
+  final GrammarHubService grammarHubService;
 }

@@ -89,8 +89,10 @@ class DatabaseMigrationHelper {
     }
   }
 
-  static Future<T> executeAtomic<T>(Database db, Future<T> Function(Transaction txn) action) async {
+  static Future<T> executeAtomic<T>(
+    Database db,
+    Future<T> Function(Transaction txn) action,
+  ) async {
     return await db.transaction((txn) async => await action(txn));
   }
-
 }

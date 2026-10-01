@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/progress_tracker_service.dart';
@@ -68,14 +69,18 @@ void main() {
     test('importProgressState restores state properly', () async {
       final initialState = {
         'completed_lessons': [
-          {'id': 'lesson_3', 'completedAt': '2023-05-05T12:00:00Z'}
+          {'id': 'lesson_3', 'completedAt': '2023-05-05T12:00:00Z'},
         ],
         'daily_streaks': [
-          {'date': '2023-05-05', 'count': 10}
+          {'date': '2023-05-05', 'count': 10},
         ],
         'review_scores': [
-          {'lessonId': 'lesson_3', 'score': 100.0, 'reviewedAt': '2023-05-05T12:00:00Z'}
-        ]
+          {
+            'lessonId': 'lesson_3',
+            'score': 100.0,
+            'reviewedAt': '2023-05-05T12:00:00Z',
+          },
+        ],
       };
 
       await service.importProgressState(jsonEncode(initialState));

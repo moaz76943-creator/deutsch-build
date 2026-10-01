@@ -23,9 +23,6 @@ import 'safe_ui.dart';
 import 'dart:math' as math;
 
 import '../services/content_depth.dart';
-import '../core/view_mode.dart';
-import 'flashcard_widget.dart';
-import '../services/ui_preferences.dart';
 
 class CoreSession extends StatefulWidget {
   final LearnerRepository repo;
@@ -309,7 +306,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
   @override
   void initState() {
     super.initState();
-    _loadViewMode();
     _loadData();
   }
 
@@ -331,9 +327,11 @@ class _VocabularyV35State extends State<VocabularyV35> {
       );
     }
     final favs = await widget.dependencies.favoritesRepository.getFavorites();
-    final langCode = widget.presentation.targetLanguageName.contains("لمان") ? "de" : "en";
+    final langCode = widget.presentation.targetLanguageName.contains("لمان")
+        ? "de"
+        : "en";
     final custom = await widget.dependencies.userVocabularyService
-          .getCustomEntries(targetLanguage: langCode);
+        .getCustomEntries(targetLanguage: langCode);
     if (mounted) {
       setState(() {
         _favorites = favs;

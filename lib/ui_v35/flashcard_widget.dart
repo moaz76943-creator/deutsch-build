@@ -134,7 +134,7 @@ class _FlashcardWidgetState extends State<FlashcardWidget>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        widget.article,
+                        widget.article!,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
