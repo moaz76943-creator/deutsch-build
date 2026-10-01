@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / 'lib/ui_v35/progress_pages.dart'
@@ -9,7 +10,11 @@ def test_progress_pages_uses_composed_corpus_boundary():
     assert "import '../services/content_engine.dart';" not in text
     assert "import '../data/content_a1.dart';" not in text
     assert 'ContentEngine.instance.items' not in text
-    assert 'LearningEngine.buildPlan(widget.corpus' in text or 'LearningEngine.buildPlan(corpus' in text
+    assert re.search(
+        r'LearningEngine\.buildPlan\(\s*(?:widget\.)?corpus\s*,',
+        text,
+        re.DOTALL,
+    )
     assert 'LearningEngine.buildPlan(a1' not in text
     assert 'MistakeEngine.from(state.attempts,a1)' not in text
     assert 'RepairEngine.build(widget.mistake,a1)' not in text

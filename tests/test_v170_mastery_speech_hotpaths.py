@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,7 +19,11 @@ def test_adaptive_focus_accepts_pre_grouped_rows():
     src = read('lib/services/adaptive_focus.dart')
     assert 'dimensionForRows' in src
     assert 'modeForRows' in src
-    assert 'dimensionForItem(String itemId, List<Attempt> attempts' in src
+    assert re.search(
+        r'dimensionForItem\(\s*String itemId\s*,\s*List<Attempt> attempts',
+        src,
+        re.DOTALL,
+    )
 
 
 def test_speech_locale_is_configurable_not_hardcoded():

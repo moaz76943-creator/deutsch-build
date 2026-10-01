@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../lib/services/user_vocabulary_service.dart';
 import '../../lib/ui_v35/learning_pages.dart';
@@ -86,6 +87,10 @@ void main() {
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
       preferencesService: prefs,
+      grammarHubService: GrammarHubService(
+        factory: databaseFactoryFfi,
+        path: inMemoryDatabasePath,
+      ),
     );
 
     final corpus = [

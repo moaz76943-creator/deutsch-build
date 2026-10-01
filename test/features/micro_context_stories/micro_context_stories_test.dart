@@ -147,7 +147,9 @@ class FakeUserVocabularyService implements UserVocabularyService {
   FakeUserVocabularyService({required this.entries});
 
   @override
-  Future<List<Map<String, dynamic>>> getCustomEntries() async {
+  Future<List<Map<String, dynamic>>> getCustomEntries({
+    String? targetLanguage,
+  }) async {
     return entries;
   }
 

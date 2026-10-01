@@ -92,8 +92,9 @@ class GrammarHubService {
       path = join(dbPath, _dbName);
     }
 
-    if (_dbFactory != null) {
-      return await _dbFactory!.openDatabase(
+    final factory = _dbFactory;
+    if (factory != null) {
+      return await factory.openDatabase(
         path,
         options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
       );

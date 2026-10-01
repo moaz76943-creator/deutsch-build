@@ -43,7 +43,7 @@ class DynamicUiVariationsEngine {
     final db = await instance.database;
     final now = DateTime.now();
     final today =
-        "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
     final maps = await db.query(
       _tableName,

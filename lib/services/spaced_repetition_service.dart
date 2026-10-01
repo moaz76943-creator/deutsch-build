@@ -78,7 +78,9 @@ class SpacedRepetitionService {
       ef = 1.3;
     }
 
-    final nextReviewAt = DateTime.now().toUtc().add(Duration(days: intervalDays));
+    final nextReviewAt = DateTime.now().toUtc().add(
+      Duration(days: intervalDays),
+    );
 
     return SpacedRepetitionItem(
       id: itemId,

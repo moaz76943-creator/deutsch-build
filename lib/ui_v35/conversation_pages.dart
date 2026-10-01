@@ -9,7 +9,6 @@ import '../services/repository.dart';
 import '../language/language_text_normalizer.dart';
 import '../services/speech_service.dart';
 import '../services/ai_gateway.dart';
-import '../data/generated/conversation_scenarios_generated.dart';
 import '../services/privacy_settings.dart';
 import '../services/conversation_engine.dart';
 import 'safe_ui.dart';
@@ -73,7 +72,7 @@ class _WritingCoachState extends State<WritingCoachPage> {
     }
     if (!mounted) return;
     for (final issue in issues.where((x) => !x.startsWith('اكتب جملة'))) {
-      await widget.widget.repo.recordWritingMistake(issue: issue);
+      await widget.repo.recordWritingMistake(issue: issue);
     }
     setState(() {
       checked = true;
@@ -82,7 +81,7 @@ class _WritingCoachState extends State<WritingCoachPage> {
           : issues.join('\n');
       loading = false;
     });
-    widget.widget.onDone();
+    widget.onDone();
   }
 
   @override
@@ -125,13 +124,6 @@ class _WritingCoachState extends State<WritingCoachPage> {
 }
 
 class ConversationPage extends StatefulWidget {
-
-
-  @override
-  State<ConversationPage> createState() => _ConversationPageState();
-}
-
-class _ConversationPageState extends State<ConversationPage> {
   final LearnerRepository repo;
   final VoidCallback onDone;
   final LanguageExerciseStrategy exerciseStrategy;
@@ -149,14 +141,20 @@ class _ConversationPageState extends State<ConversationPage> {
     required this.aiGateway,
     required this.privacySettings,
   });
+
+  @override
+  State<ConversationPage> createState() => _ConversationPageState();
+}
+
+class _ConversationPageState extends State<ConversationPage> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(title: const Text('المحادثة')),
     body: Builder(
       builder: (BuildContext context) {
         final scenarios = ConversationEngine(
-          exerciseStrategy: exerciseStrategy,
-          textNormalizer: textNormalizer,
+          exerciseStrategy: widget.exerciseStrategy,
+          textNormalizer: widget.textNormalizer,
         ).scenarios;
         return ListView.builder(
           padding: const EdgeInsets.all(12),
@@ -167,7 +165,9 @@ class _ConversationPageState extends State<ConversationPage> {
                 child: ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined),
                   title: const Text('محادثة صوتية واقعية'),
-                  subtitle: Text(presentation.conversation.targetLanguageInstruction),
+                  subtitle: Text(
+                    widget.presentation.conversation.targetLanguageInstruction,
+                  ),
                 ),
               );
             }
@@ -184,8 +184,8 @@ class _ConversationPageState extends State<ConversationPage> {
                       MaterialPageRoute(
                         builder: (_) => AiConversationPage(
                           scenario: 'محادثة عامة',
-                          aiGateway: aiGateway,
-                          privacySettings: privacySettings,
+                          aiGateway: widget.aiGateway,
+                          privacySettings: widget.privacySettings,
                         ),
                       ),
                     ),
@@ -207,12 +207,12 @@ class _ConversationPageState extends State<ConversationPage> {
                   c,
                   MaterialPageRoute(
                     builder: (_) => VoiceConversationPage(
-                      repo: repo,
-                      onDone: onDone,
+                      repo: widget.repo,
+                      onDone: widget.onDone,
                       scenario: x,
-                      exerciseStrategy: exerciseStrategy,
-                      presentation: presentation,
-                      textNormalizer: textNormalizer,
+                      exerciseStrategy: widget.exerciseStrategy,
+                      presentation: widget.presentation,
+                      textNormalizer: widget.textNormalizer,
                     ),
                   ),
                 ),
@@ -332,7 +332,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
           ? 'إجابة جيدة. انتقل للجولة التالية.'
           : 'اقتربت. راجع الكلمات الناقصة ثم أعد المحاولة أو تابع.';
     });
-    await widget.widget.repo.recordConversationAttempt(
+    await widget.repo.recordConversationAttempt(
       itemId: turn.id,
       skill: turn.skill,
       answer: heard,
@@ -341,7 +341,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
       hinted: false,
     );
     if (!mounted) return;
-    widget.widget.onDone();
+    widget.onDone();
   }
 
   void _retry() {

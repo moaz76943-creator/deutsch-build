@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -6,8 +7,16 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_runtime_config_contract_exists_and_reads_only_dart_defines():
     source = (ROOT / "lib/models/backend_runtime_config.dart").read_text()
     assert "class BackendRuntimeConfig" in source
-    assert "String.fromEnvironment(baseUrlDefine" in source or "String.fromEnvironment('DEUTSCH_AUTH_BASE_URL'" in source
-    assert "String.fromEnvironment(allowedHostsDefine" in source or "String.fromEnvironment('DEUTSCH_AUTH_ALLOWED_HOSTS'" in source
+    assert re.search(
+        r'String\.fromEnvironment\(\s*baseUrlDefine\s*,',
+        source,
+        re.DOTALL,
+    ) or "String.fromEnvironment('DEUTSCH_AUTH_BASE_URL'" in source
+    assert re.search(
+        r'String\.fromEnvironment\(\s*allowedHostsDefine\s*,',
+        source,
+        re.DOTALL,
+    ) or "String.fromEnvironment('DEUTSCH_AUTH_ALLOWED_HOSTS'" in source
     assert "https" in source
 
 

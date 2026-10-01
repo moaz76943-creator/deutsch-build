@@ -32,7 +32,10 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    // Use bounded pumps: an empty verb index intentionally leaves a
+    // CircularProgressIndicator animating, so pumpAndSettle would never settle.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     if (verbIndex.infinitives.isEmpty) {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -41,6 +44,8 @@ void main() {
       expect(find.byType(DragTarget<String>), findsWidgets);
     }
 
-    await database.close();
+    // The challenge does not persist an attempt in this smoke interaction,
+    // so the lazy database was never opened. Calling close() would initialize
+    // it solely to close it, which can hang the widget test runner.
   });
 }

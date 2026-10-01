@@ -46,8 +46,9 @@ class SemanticColorTagging {
       path = join(dbPath, _dbName);
     }
 
-    if (_dbFactory != null) {
-      return await _dbFactory!.openDatabase(
+    final factory = _dbFactory;
+    if (factory != null) {
+      return await factory.openDatabase(
         path,
         options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
       );
@@ -110,7 +111,7 @@ class SemanticColorTagging {
       'id': id,
       'word': word,
       'grammaticalClass': gClass.name,
-      'colorHex': color.value,
+      'colorHex': color.toARGB32(),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

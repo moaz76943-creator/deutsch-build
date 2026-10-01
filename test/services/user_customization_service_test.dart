@@ -3,8 +3,6 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../lib/services/user_customization_service.dart';
 
-import 'package:sqflite/sqflite.dart';
-
 void main() {
   setUpAll(() {
     sqfliteFfiInit();

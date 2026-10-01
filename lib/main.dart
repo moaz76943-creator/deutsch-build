@@ -68,9 +68,8 @@ Future<void> main() async {
           verbIndex,
           languagePack.textNormalizer,
         );
-        final uiSeed = await DynamicUiVariationsEngine.instance.getDailySeed();
         final dependencies = AppDependencies<ContentItem>(
-          grammarHubService: GrammarHubService(prefs),
+          grammarHubService: GrammarHubService(),
           searchIndex: searchIndex,
           verbIndex: verbIndex,
           corpus: corpus,

@@ -54,7 +54,7 @@ class ProgressTrackerService {
             intervalDays INTEGER NOT NULL,
             nextReviewAt TEXT NOT NULL
           )
-          '''
+          ''',
         ],
       },
       factory: _factory,
