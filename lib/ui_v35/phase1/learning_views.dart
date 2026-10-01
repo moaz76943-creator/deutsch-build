@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'learning_view_models.dart';
+import '../../features/audio/data/native_tts_engine.dart';
+
 
 final class TodayHomeView extends StatelessWidget {
   final TodayHomeViewModel model;
@@ -39,13 +41,33 @@ final class TodayHomeView extends StatelessWidget {
   }
 }
 
-final class StudyCardView extends StatelessWidget {
+
+final class StudyCardView extends StatefulWidget {
   final StudyCardViewModel model;
 
   const StudyCardView({
     super.key,
     required this.model,
   });
+
+  @override
+  State<StudyCardView> createState() => _StudyCardViewState();
+}
+
+class _StudyCardViewState extends State<StudyCardView> {
+  late final NativeTtsEngine _tts;
+
+  @override
+  void initState() {
+    super.initState();
+    _tts = NativeTtsEngine();
+  }
+
+  @override
+  void dispose() {
+    // _tts.dispose(); // Do not dispose singleton here
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,24 +78,35 @@ final class StudyCardView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (model.prompt.isNotEmpty) Text(model.prompt),
+            if (widget.model.prompt.isNotEmpty) Text(widget.model.prompt),
             const SizedBox(height: 12),
             Text(
-              model.sourceText,
+              widget.model.sourceText,
               key: const Key('phase1-study-source'),
               textDirection: TextDirection.rtl,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Text(
-              model.targetText,
-              key: const Key('phase1-study-target'),
-              textDirection: TextDirection.ltr,
-              style: Theme.of(context).textTheme.titleLarge,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.model.targetText,
+                    key: const Key('phase1-study-target'),
+                    textDirection: TextDirection.ltr,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.volume_up),
+                  onPressed: () => _tts.speak(widget.model.targetText),
+                  tooltip: 'استمع',
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: model.progress.clamp(0.0, 1.0).toDouble(),
+              value: widget.model.progress.clamp(0.0, 1.0).toDouble(),
             ),
           ],
         ),
@@ -81,6 +114,7 @@ final class StudyCardView extends StatelessWidget {
     );
   }
 }
+
 
 final class ReviewQueueView extends StatelessWidget {
   final ReviewQueueViewModel model;
