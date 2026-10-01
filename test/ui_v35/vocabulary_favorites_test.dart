@@ -16,7 +16,6 @@ import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/language/german/german_language_pack.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 
@@ -52,7 +51,7 @@ void main() {
 
   testWidgets('VocabularyV35 shows add custom word dialog', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
-
+    await SharedPreferences.getInstance();
     final prefs = await PreferencesService.instance();
     final persistence = LearnerPersistence(prefs, LearnerRepository.key, LearnerRepository.legacyFavoriteKey);
     final repo = LearnerRepository(prefs, persistence: persistence);

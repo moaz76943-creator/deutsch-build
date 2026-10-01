@@ -1,6 +1,7 @@
 import '../core/content_contract.dart';
 import '../models/mistake.dart';
 import '../models/learner.dart';
+import '../core/date_utils.dart';
 
 class MistakeEngine {
   static MistakeReport from(List<Attempt> attempts, List<LearningContent> content, {DateTime? now}) {
@@ -53,12 +54,12 @@ class MistakeEngine {
     return MistakeCategory.vocabulary;
   }
   static int _correctiveStreak(List<Attempt> all) { var n=0; for(final a in all.reversed){if(!a.correct)break;n++;} return n; }
-  static int _recency(DateTime now, DateTime seen) { final d=now.difference(seen).inDays.clamp(0,30); return 30-d; }
+  static int _recency(DateTime now, DateTime seen) { final d=now.toUtcMidnight.difference(seen.toUtcMidnight).inDays.clamp(0,30); return 30-d; }
   static double _recentFailureRate(List<Attempt> all, DateTime now) {
     var total = 0;
     var failures = 0;
     for (final a in all) {
-      if (now.difference(a.at).inDays > 14) continue;
+      if (now.toUtcMidnight.difference(a.at.toUtcMidnight).inDays > 14) continue;
       total++;
       if (!a.correct) failures++;
     }
