@@ -23,7 +23,7 @@ class ReverseQuizDatabase {
   Future<Database> _initDB() async {
     String path;
     if (_inMemoryPath != null) {
-      path = _inMemoryPath!;
+      path = _inMemoryPath;
     } else {
       final dbPath = await getDatabasesPath();
       path = join(dbPath, _dbName);
