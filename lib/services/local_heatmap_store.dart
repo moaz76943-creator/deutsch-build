@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'database_migration_helper.dart';
 
 class LocalHeatmapStore {
   static const String _tableName = 'study_activity';
@@ -21,8 +22,8 @@ class LocalHeatmapStore {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
+    return await DatabaseMigrationHelper.openSafeDatabase(
+      path: path,
       version: 1,
       onCreate: _createDB,
     );
@@ -42,7 +43,7 @@ class LocalHeatmapStore {
     final dateString = _formatDate(date);
 
     // Using compatible SQLite approach (without UPSERT which needs SQLite 3.24.0+)
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       final maps = await txn.query(
         _tableName,
         where: '$_columnDate = ?',

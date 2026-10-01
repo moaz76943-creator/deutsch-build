@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../../../services/database_migration_helper.dart';
 
 class ReverseQuizDatabase {
   static const String _dbName = 'reverse_quiz.db';
@@ -28,20 +29,11 @@ class ReverseQuizDatabase {
       path = join(dbPath, _dbName);
     }
 
-    if (_dbFactory != null) {
-      return await _dbFactory!.openDatabase(
-        path,
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: _createDB,
-        ),
-      );
-    }
-
-    return await openDatabase(
-      path,
+    return await DatabaseMigrationHelper.openSafeDatabase(
+      path: path,
       version: 1,
       onCreate: _createDB,
+      factory: _dbFactory,
     );
   }
 
@@ -68,7 +60,7 @@ class ReverseQuizDatabase {
 
   Future<void> insertFlashcards(List<Map<String, dynamic>> cards) async {
     final db = await database;
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       for (final card in cards) {
         await txn.insert(
           _flashcardsTable,
@@ -90,11 +82,13 @@ class ReverseQuizDatabase {
 
   Future<void> recordAttempt(Map<String, dynamic> attempt) async {
     final db = await database;
-    await db.insert(
-      _attemptsTable,
-      attempt,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
+      await txn.insert(
+        _attemptsTable,
+        attempt,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
   }
 
   Future<void> close() async {

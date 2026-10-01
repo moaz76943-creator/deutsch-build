@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'database_migration_helper.dart';
 
 class UserVocabularyService {
   static final UserVocabularyService instance = UserVocabularyService._init();
@@ -17,8 +18,8 @@ class UserVocabularyService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
+    return await DatabaseMigrationHelper.openSafeDatabase(
+      path: path,
       version: 1,
       onCreate: _createDB,
     );
@@ -26,11 +27,13 @@ class UserVocabularyService {
 
   Future<void> addCustomEntry(Map<String, dynamic> entry) async {
     final db = await instance.database;
-    await db.insert(
-      'user_vocabulary',
-      entry,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
+      await txn.insert(
+        'user_vocabulary',
+        entry,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
   }
 
   Future<List<Map<String, dynamic>>> getCustomEntries() async {
@@ -43,11 +46,13 @@ class UserVocabularyService {
 
   Future<void> deleteCustomEntry(String id) async {
     final db = await instance.database;
-    await db.delete(
-      'user_vocabulary',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
+      await txn.delete(
+        'user_vocabulary',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
   }
 
   Future<void> close() async {
@@ -87,7 +92,7 @@ class FavoritesRepository {
   Future<void> toggleFavorite(String id) async {
     final db = await UserVocabularyService.instance.database;
 
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       final maps = await txn.query(
         'vocabulary_favorites',
         where: 'id = ?',
