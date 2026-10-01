@@ -1,5 +1,4 @@
 import '../services/app_dependencies.dart';
-import '../services/user_vocabulary_service.dart';
 import 'package:flutter/material.dart';
 import '../core/learning_core.dart';
 import '../core/content_contract.dart';
@@ -129,7 +128,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: 'none',
+                initialValue: 'none',
                 decoration: const InputDecoration(labelText: 'الأداة (اختياري)', border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: 'none', child: Text('بدون أداة')),
