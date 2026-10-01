@@ -39,3 +39,4 @@ The German content adapter now owns the language-specific singleton bindings int
 | `lib/language/german/german_content_pack.dart` | `VerbIndex.instance` | LANGUAGE_CONTENT_ADAPTER | Allowed. Binds the current German verb index behind `LanguageContentPack`. |
 | `lib/services/streak_milestones_engine.dart` | `StreakMilestonesEngine.instance` | STORAGE_GATEWAY | Allowed. Storage gateway for sqflite offline milestone tracking. |
 | `lib/ui_v35/progress_pages.dart` | `StreakMilestonesEngine.instance` | LEGACY_COMPATIBILITY | Required injection for milestone pages. |
+| `lib/ui_v35/pages/silent_bubble_popper.dart` | `UserVocabularyService.instance` | COMPOSITION_ROOT | Expected temporary singleton injection during migration. |
