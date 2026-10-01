@@ -38,8 +38,16 @@ class UserVocabularyService {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getCustomEntries() async {
+  Future<List<Map<String, dynamic>>> getCustomEntries({String? targetLanguage}) async {
     final db = await instance.database;
+    if (targetLanguage != null && targetLanguage.isNotEmpty) {
+      return await db.query(
+        'user_vocabulary',
+        where: 'target_language = ?',
+        whereArgs: [targetLanguage],
+        orderBy: 'created_at DESC',
+      );
+    }
     return await db.query('user_vocabulary', orderBy: 'created_at DESC');
   }
 
