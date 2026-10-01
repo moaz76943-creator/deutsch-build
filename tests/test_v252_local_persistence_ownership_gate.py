@@ -9,7 +9,9 @@ ALLOWED = {
     'services/privacy_settings.dart',
     'services/neuro_accessibility_service.dart',
     'services/neuro_accessibility_settings.dart',
+    'services/ui_preferences.dart',
     'main.dart',
+    'ui_v35/learning_pages.dart',
 }
 PERSISTENCE_MARKERS = (
     'getString(', 'getStringList(', 'getBool(',

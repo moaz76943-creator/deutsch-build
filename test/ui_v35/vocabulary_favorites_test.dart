@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../lib/services/user_vocabulary_service.dart';
 import '../../lib/ui_v35/learning_pages.dart';
 import '../../lib/models/content.dart';
@@ -12,13 +11,12 @@ import '../../lib/language/german/german_content_quality.dart';
 import '../../lib/language/german/german_text_normalizer.dart';
 import '../../lib/services/app_dependencies.dart';
 import '../../lib/services/search_index.dart';
-import '../../lib/services/verb_index.dart';
 import '../../lib/services/ai_gateway.dart';
 import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/language/german/german_language_pack.dart';
+import '../../lib/services/grammar_hub_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 
@@ -54,7 +52,7 @@ void main() {
 
   testWidgets('VocabularyV35 shows add custom word dialog', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
-    final sharedPrefs = await SharedPreferences.getInstance();
+    await SharedPreferences.getInstance();
     final prefs = await PreferencesService.instance();
     final persistence = LearnerPersistence(prefs, LearnerRepository.key, LearnerRepository.legacyFavoriteKey);
     final repo = LearnerRepository(prefs, persistence: persistence);
@@ -69,6 +67,7 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
+      preferencesService: prefs,
     );
 
     final corpus = [
@@ -113,5 +112,9 @@ void main() {
     // Verify BottomSheet opens with title
     expect(find.text('إضافة مفردة مخصصة'), findsOneWidget);
     expect(find.byType(TextFormField), findsWidgets);
+
+    // Dispose the widget tree to avoid leaking timers
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
   });
 }

@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'database_migration_helper.dart';
 
 class MilestoneBadge {
   final String id;
@@ -44,10 +45,11 @@ class StreakMilestonesEngine {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
+    return await DatabaseMigrationHelper.open(
+      path: path,
       version: 1,
       onCreate: _createDB,
+      migrationScripts: {},
     );
   }
 
@@ -65,7 +67,7 @@ class StreakMilestonesEngine {
     final now = DateTime.now().toIso8601String();
     List<String> newlyUnlocked = [];
 
-    await db.transaction((txn) async {
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
       for (final badge in availableBadges) {
         if (currentStreak >= badge.requiredStreak) {
           final maps = await txn.query(
