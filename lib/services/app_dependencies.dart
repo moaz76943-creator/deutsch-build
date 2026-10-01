@@ -7,6 +7,7 @@ import 'verb_index.dart';
 import 'privacy_settings.dart';
 import 'neuro_accessibility_settings.dart';
 import 'user_vocabulary_service.dart';
+import 'dynamic_ui_variations.dart';
 
 /// Composition-root dependencies shared by the application surface.
 /// Concrete language models remain outside this shared dependency contract.
@@ -21,6 +22,8 @@ final class AppDependencies<T extends LearningContent> {
     required this.neuroSettings,
     required this.userVocabularyService,
     required this.favoritesRepository,
+    required this.dynamicUiVariationsEngine,
+    required this.dailyUiSeed,
   });
 
   final SearchIndex<T> searchIndex;
@@ -32,4 +35,6 @@ final class AppDependencies<T extends LearningContent> {
   final NeuroAccessibilitySettings neuroSettings;
   final UserVocabularyService userVocabularyService;
   final FavoritesRepository favoritesRepository;
+  final DynamicUiVariationsEngine dynamicUiVariationsEngine;
+  final int dailyUiSeed;
 }

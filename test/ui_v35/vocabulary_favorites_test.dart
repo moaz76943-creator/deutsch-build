@@ -18,7 +18,7 @@ import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/language/german/german_language_pack.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
+import '../../lib/services/dynamic_ui_variations.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 
@@ -69,6 +69,8 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
+      dynamicUiVariationsEngine: DynamicUiVariationsEngine.instance,
+      dailyUiSeed: 0,
     );
 
     final corpus = [

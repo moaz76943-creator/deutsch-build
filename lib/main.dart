@@ -19,6 +19,7 @@ import 'services/learner_persistence.dart';
 import 'services/privacy_settings.dart';
 import 'services/neuro_accessibility_settings.dart';
 import 'services/user_vocabulary_service.dart';
+import 'services/dynamic_ui_variations.dart';
 import 'ui_v35/app.dart';
 import 'language/german/german_language_pack.dart';
 
@@ -51,6 +52,7 @@ Future<void> main() async {
       final corpus = contentPack.items;
       final verbIndex = contentPack.verbIndex;
       final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);
+      final uiSeed = await DynamicUiVariationsEngine.instance.getDailySeed();
       final dependencies = AppDependencies<ContentItem>(
         searchIndex: searchIndex,
         verbIndex: verbIndex,
@@ -61,6 +63,8 @@ Future<void> main() async {
         neuroSettings: NeuroAccessibilitySettings(prefs),
         userVocabularyService: UserVocabularyService.instance,
         favoritesRepository: FavoritesRepository.instance,
+        dynamicUiVariationsEngine: DynamicUiVariationsEngine.instance,
+        dailyUiSeed: uiSeed,
       );
       final config = BackendRuntimeConfig.fromEnvironment();
       final BackendTransport transport =
