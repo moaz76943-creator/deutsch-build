@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import '../../../lib/core/deck/deck_models.dart';
+
 import '../../../lib/core/deck/deck_parser_contract.dart';
 import '../../../lib/core/deck/deck_validation.dart';
 import '../../../lib/core/deck/json_deck_parser.dart';
