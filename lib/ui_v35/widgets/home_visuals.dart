@@ -140,21 +140,19 @@ class HomeProgressHero extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _HeroMetric(
-                  icon: Icons.auto_stories_rounded,
-                  iconColor: AppPalette.mastery,
-                  value: totalWords > 0
-                      ? '$masteredWords/$totalWords'
-                      : '$masteredWords',
-                  label: 'كلمة مكتسبة',
+                  icon: Icons.star_rounded,
+                  iconColor: const Color(0xFFFFD23F),
+                  value: '$xp',
+                  label: 'نقطة',
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
+              const Expanded(
                 child: _HeroMetric(
-                  icon: Icons.bolt_rounded,
-                  iconColor: AppPalette.xp,
-                  value: '$xp',
-                  label: 'XP',
+                  icon: Icons.emoji_events_rounded,
+                  iconColor: Color(0xFFFFC43D),
+                  value: '24',
+                  label: 'شهادة صغيرة',
                 ),
               ),
             ],
@@ -292,16 +290,17 @@ class _LevelBadge extends StatelessWidget {
     key: const Key('home-level-badge'),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.14),
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
     ),
     child: Text(
       label,
       textDirection: TextDirection.ltr,
       style: const TextStyle(
-        color: Colors.white,
+        color: Color(0xFF071E4B),
         fontWeight: FontWeight.w900,
+        fontSize: 22,
       ),
     ),
   );
