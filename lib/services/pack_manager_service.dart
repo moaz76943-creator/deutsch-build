@@ -248,7 +248,7 @@ class JsonGzipPackExtractor implements PackArchiveExtractor {
   }
 }
 
-final class _BoundedByteSink extends ChunkedConversionSink<List<int>> {
+final class _BoundedByteSink implements ChunkedConversionSink<List<int>> {
   _BoundedByteSink(this.target, this.maxBytes);
 
   final List<int> target;

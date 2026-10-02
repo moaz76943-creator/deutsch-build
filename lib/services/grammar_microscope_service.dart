@@ -41,7 +41,8 @@ final class GrammarMicroscopeService {
     List<GrammarRuleDetail> rules = const <GrammarRuleDetail>[];
     final source = repository;
     if (source is GrammarMicroscopeRepository) {
-      rules = await source.getRulesForTopic(safeTopicId);
+      rules = await (source as GrammarMicroscopeRepository)
+          .getRulesForTopic(safeTopicId);
     }
 
     final linkedFacets = _linkedFacets(topic, rules);

@@ -319,8 +319,10 @@ extension FacetReviewRepository on LearnerRepository {
         variantKey: key.normalizedVariantKey,
       );
       final attempts = <Attempt>[...state.attempts, attempt];
-      final bounded = attempts.length > maxAttempts
-          ? attempts.sublist(attempts.length - maxAttempts)
+      final bounded = attempts.length > LearnerRepository.maxAttempts
+          ? attempts.sublist(
+              attempts.length - LearnerRepository.maxAttempts,
+            )
           : attempts;
 
       final cards = <String, ReviewCard>{...state.reviewCards};
@@ -345,7 +347,10 @@ extension FacetReviewRepository on LearnerRepository {
       );
       await _saveNow(
         state.copyWith(
-          xp: (state.xp + xpReward).clamp(0, maxXp),
+          xp: (state.xp + xpReward).clamp(
+            0,
+            LearnerRepository.maxXp,
+          ),
           reviewCards: cards,
           attempts: bounded,
         ),

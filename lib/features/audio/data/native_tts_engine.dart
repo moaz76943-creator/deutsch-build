@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import '../../language/german/german_speech_profile.dart';
-import 'domain/entities/audio_playback_state.dart';
-import 'domain/entities/audio_request.dart';
-import 'domain/services/i_audio_service.dart';
-import 'offline_audio_runtime.dart';
-import '../../services/tts_service.dart';
+import '../../../language/german/german_speech_profile.dart';
+import '../../../services/tts_service.dart';
+import '../domain/entities/audio_playback_state.dart';
+import '../domain/entities/audio_request.dart';
+import '../domain/services/i_audio_service.dart';
+import '../offline_audio_runtime.dart';
 
 /// Compatibility adapter for the early audio feature surface.
 ///
