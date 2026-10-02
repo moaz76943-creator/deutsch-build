@@ -17,6 +17,11 @@ abstract final class AppPalette {
   static const Color articleDie = Color(0xFFD94662);
   static const Color articleDas = Color(0xFF0F8B7D);
   static const Color articleOther = Color(0xFF7C3AED);
+
+  static const Color streak = Color(0xFFFF7A00);
+  static const Color xp = Color(0xFFFFC43D);
+  static const Color achievement = Color(0xFF8B5CF6);
+  static const Color mastery = Color(0xFF18B981);
 }
 
 abstract final class AppDesignSystem {
@@ -97,12 +102,12 @@ abstract final class AppDesignSystem {
         shadowColor: Colors.black.withValues(alpha: isDark ? 0.30 : 0.07),
         margin: const EdgeInsets.symmetric(vertical: 6),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           side: BorderSide(color: cardBorder),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 72,
+        height: 70,
         elevation: 0,
         backgroundColor: surface,
         indicatorColor: scheme.primaryContainer,
@@ -159,6 +164,18 @@ abstract final class AppDesignSystem {
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: scheme.primary, width: 1.5),
         ),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: scheme.primary,
+        linearTrackColor: scheme.surfaceContainerHighest,
+        linearMinHeight: 8,
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        side: BorderSide(color: cardBorder),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
+        labelStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
       dividerTheme: DividerThemeData(
         color: scheme.outlineVariant.withValues(alpha: 0.55),

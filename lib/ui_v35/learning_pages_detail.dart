@@ -185,7 +185,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
   Widget _buildListView(List<ContentItem> items) {
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 96),
       itemCount: items.length,
       itemBuilder: (c, i) {
         final x = items[i];
@@ -195,52 +195,42 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
         return Card(
           child: ExpansionTile(
-            title: Row(
-              children: [
-                if (x.grammaticalMarker.isNotEmpty)
-                  ArticleBadge(
-                    article: x.grammaticalMarker,
-                    margin: const EdgeInsets.only(left: 10),
-                  ),
-                Expanded(
-                  child: Text(
-                    x.sourceText,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+            tilePadding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+            childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+            title: VocabularyWordHeader(
+              article: x.grammaticalMarker,
+              german: x.sourceText,
+              arabic: x.translationText,
+              topic: x.topic,
+              isFavorite: isFav,
+              onSpeak: () => safeSpeak(_tts, x.sourceText),
+              onToggleFavorite: () async {
+                await widget.dependencies.favoritesRepository.toggleFavorite(
+                  x.id,
+                );
+                _loadData();
+              },
+            ),
+            children: [
+              if (x.exampleText.isNotEmpty)
+                ListTile(
+                  title: Text(
+                    x.exampleText,
                     textDirection: TextDirection.ltr,
                   ),
+                  subtitle: Text(x.exampleTranslationText),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.volume_up_outlined),
-                  onPressed: () => safeSpeak(_tts, x.sourceText),
-                ),
-                IconButton(
-                  icon: Icon(
-                    isFav ? Icons.favorite : Icons.favorite_border,
-                    color: isFav ? Colors.red : null,
-                  ),
-                  onPressed: () async {
-                    await widget.dependencies.favoritesRepository
-                        .toggleFavorite(x.id);
-                    _loadData();
-                  },
-                ),
-              ],
-            ),
-            subtitle: Text('${x.translationText} • ${x.topic}'),
-            children: [
-              ListTile(
-                title: Text(x.exampleText, textDirection: TextDirection.ltr),
-                subtitle: Text(x.exampleTranslationText),
-              ),
               if (x.grammaticalMarker.isNotEmpty)
                 ListTile(
                   title: Text(
-                    '${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}',
+                    '${widget.presentation.grammaticalMarkerLabel}: '
+                    '${x.grammaticalMarker}',
                   ),
                   subtitle: Text(
                     x.pluralForm.isEmpty
                         ? ''
-                        : '${widget.presentation.pluralLabel}: ${x.pluralForm}',
+                        : '${widget.presentation.pluralLabel}: '
+                              '${x.pluralForm}',
                   ),
                 ),
               if (d.collocation.isNotEmpty)
@@ -256,7 +246,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
               if (issues.isNotEmpty)
                 ListTile(title: Text('محجوب: ${issues.join(' • ')}')),
               ListTile(
-                leading: const Icon(Icons.play_circle_outline),
+                leading: const Icon(Icons.play_circle_outline_rounded),
                 title: const Text('تدرب من البداية إلى الاحتفاظ'),
                 onTap: () => Navigator.push(
                   c,
@@ -280,91 +270,29 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
   Widget _buildGridView(List<ContentItem> items) {
     return GridView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 96),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.85,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        childAspectRatio: 0.82,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: items.length,
       itemBuilder: (c, i) {
         final x = items[i];
         final isFav = _favorites.contains(x.id);
-        final color = articleBadgeColor(x.grammaticalMarker);
 
-        return Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: x.grammaticalMarker.isNotEmpty
-                  ? color.withValues(alpha: 0.3)
-                  : Colors.transparent,
-              width: 2,
-            ),
-          ),
-          child: InkWell(
-            onTap: () => safeSpeak(_tts, x.sourceText),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (x.grammaticalMarker.isNotEmpty)
-                        ArticleBadge(
-                          article: x.grammaticalMarker,
-                          compact: true,
-                        )
-                      else
-                        const SizedBox(),
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          size: 20,
-                          color: isFav ? Colors.red : null,
-                        ),
-                        onPressed: () async {
-                          await widget.dependencies.favoritesRepository
-                              .toggleFavorite(x.id);
-                          _loadData();
-                        },
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text(
-                    x.sourceText,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
-                    textDirection: TextDirection.ltr,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    x.translationText,
-                    style: const TextStyle(fontSize: 14),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.volume_up_outlined,
-                    size: 20,
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return VocabularyGridCard(
+          article: x.grammaticalMarker,
+          german: x.sourceText,
+          arabic: x.translationText,
+          topic: x.topic,
+          isFavorite: isFav,
+          onSpeak: () => safeSpeak(_tts, x.sourceText),
+          onToggleFavorite: () async {
+            await widget.dependencies.favoritesRepository.toggleFavorite(x.id);
+            _loadData();
+          },
         );
       },
     );
@@ -481,6 +409,18 @@ class _VocabularyV35State extends State<VocabularyV35> {
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: const [
+              Text('الأدوات:'),
+              ArticleBadge(article: 'der', compact: true),
+              ArticleBadge(article: 'die', compact: true),
+              ArticleBadge(article: 'das', compact: true),
+            ],
+          ),
         ],
       ),
     );
@@ -534,41 +474,34 @@ class _VocabularyV35State extends State<VocabularyV35> {
                       final e = _customEntries[i];
                       final article = e['article']?.toString().trim() ?? '';
                       return Card(
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          title: Row(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+                          child: Row(
                             children: [
-                              if (article.isNotEmpty)
-                                ArticleBadge(
-                                  article: article,
-                                  margin: const EdgeInsets.only(left: 10),
-                                ),
                               Expanded(
-                                child: Text(
-                                  e['german_text'] as String,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
+                                child: VocabularyWordHeader(
+                                  article: article,
+                                  german: e['german_text'] as String,
+                                  arabic: e['arabic_translation'] as String,
+                                  topic: 'مخصص',
+                                  onSpeak: () => safeSpeak(
+                                    _tts,
+                                    e['german_text'] as String,
                                   ),
-                                  textDirection: TextDirection.ltr,
                                 ),
                               ),
+                              IconButton(
+                                tooltip: 'حذف',
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () async {
+                                  await widget
+                                      .dependencies
+                                      .userVocabularyService
+                                      .deleteCustomEntry(e['id'] as String);
+                                  _loadData();
+                                },
+                              ),
                             ],
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(e['arabic_translation'] as String),
-                          ),
-                          trailing: IconButton(
-                            tooltip: 'حذف',
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () async {
-                              await widget.dependencies.userVocabularyService
-                                  .deleteCustomEntry(e['id'] as String);
-                              _loadData();
-                            },
                           ),
                         ),
                       );

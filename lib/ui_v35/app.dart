@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/learning_core.dart';
 import 'grammar/grammar_hub_page.dart';
 import 'word_families/word_families_page.dart';
 import 'pronunciation/offline_pronunciation_lab_page.dart';
@@ -12,6 +11,7 @@ import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
 import '../services/app_dependencies.dart';
 import '../services/daily_plan.dart';
+import '../services/progress_snapshot_service.dart';
 import 'theme/app_design_system.dart';
 import 'theme/neuro_accessibility_mode.dart';
 import 'widgets/home_visuals.dart';
@@ -193,24 +193,25 @@ class _HomeState extends State<HomeV35> {
           child: _tabForIndex(c, tab),
         ),
       ),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: scheme.outlineVariant.withValues(alpha: 0.45),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.50),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.26 : 0.10),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.06),
-              blurRadius: 18,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
           child: NavigationBar(
             key: const Key('main-navigation-bar'),
             selectedIndex: tab,
@@ -245,12 +246,20 @@ class _HomeState extends State<HomeV35> {
 
   Widget _homeTab(BuildContext c) {
     final next = NextAction.from(state);
-    final scores = LearningCore.skillScores(state);
+    final progress = ProgressSnapshotService.build(
+      state.attempts,
+      state.assessmentHistory,
+    );
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
       children: [
-        HomeWelcomeSurface(
-          hasAttempts: state.attempts.isNotEmpty,
+        HomeProgressHero(
+          levelLabel: progress.levelLabel,
+          overallProgress: progress.overall,
+          streak: state.streak,
+          masteredWords: state.learned.length,
+          totalWords: widget.dependencies.corpus.length,
+          xp: state.xp,
         ),
         const SizedBox(height: 14),
         Card(
@@ -338,50 +347,12 @@ class _HomeState extends State<HomeV35> {
         const SizedBox(height: 12),
         _dailyFocusCard(),
         const SizedBox(height: 18),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _stat(
-                    c,
-                    'المكتسب',
-                    '${state.learned.length}',
-                    Icons.check_circle_outline,
-                  ),
-                ),
-                Expanded(
-                  child: _stat(
-                    c,
-                    'المحاولات',
-                    '${state.attempts.length}',
-                    Icons.bolt_outlined,
-                  ),
-                ),
-                Expanded(
-                  child: _stat(
-                    c,
-                    'المراجعة',
-                    '${state.meaningReviewCards.length}',
-                    Icons.replay_outlined,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
         Text(
-          'ملف مهاراتك',
-          style: Theme.of(c).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w900),
+          'مسار مهاراتك',
+          style: Theme.of(c).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
-        _skill('التعرّف', scores['recall'] ?? 0),
-        _skill('الاستماع', scores['listening'] ?? 0),
-        _skill('الإنتاج', scores['production'] ?? 0),
-        _skill('النقل', scores['transfer'] ?? 0),
+        LearningTrackGrid(skillScores: progress.skillScores),
         const SizedBox(height: 12),
         OutlinedButton.icon(
           onPressed: () => setState(() => tab = 3),
@@ -935,41 +906,5 @@ class _HomeState extends State<HomeV35> {
     primary: primary,
   );
 
-  Widget _stat(BuildContext c, String label, String value, IconData icon) =>
-      Semantics(
-        label: '$label: $value',
-        value: value,
-        child: Column(
-          children: [
-            Icon(icon, semanticLabel: label),
-            const SizedBox(height: 5),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-            Text(label, style: Theme.of(c).textTheme.labelSmall),
-          ],
-        ),
-      );
-  Widget _skill(String label, double value) {
-    final pct = (value.clamp(0, 1) * 100).round();
-    return Semantics(
-      label: label,
-      value: '$pct%',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(child: Text(label)),
-                const SizedBox(width: 8),
-                Text('$pct%'),
-              ],
-            ),
-            const SizedBox(height: 4),
-            LinearProgressIndicator(value: value.clamp(0, 1).toDouble()),
-          ],
-        ),
-      ),
-    );
-  }
+
 }
