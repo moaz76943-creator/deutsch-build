@@ -43,18 +43,19 @@ class LearningIntelligence {
   }) {
     final at = now ?? DateTime.now();
     final teacher = AdaptiveTeacher.next(state, now: at);
-    final mistakes = MistakeEngine.from(state.attempts, items, now: at).items;
+    final meaningAttempts = state.meaningAttempts.toList(growable: false);
+    final mistakes = MistakeEngine.from(meaningAttempts, items, now: at).items;
     final mistakeById = {for (final m in mistakes) m.itemId: m};
     final dueIds = {
       for (final card in MemoryQueue.rank(
-        state.reviewCards.values,
+        state.meaningReviewCards,
         now: at,
         limit: 100,
       ))
         card.itemId,
     };
     final attemptsByItem = <String, List<Attempt>>{};
-    for (final attempt in state.attempts) {
+    for (final attempt in meaningAttempts) {
       (attemptsByItem[attempt.itemId] ??= <Attempt>[]).add(attempt);
     }
     final ranked = <LearningDecision>[];

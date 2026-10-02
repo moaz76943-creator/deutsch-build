@@ -11,6 +11,10 @@ import '../../language/language_text_normalizer.dart';
 import '../../services/verb_index.dart';
 import '../../services/word_profile_service.dart';
 import '../../language/language_presentation.dart';
+import '../../language/language_exercise_strategy.dart';
+import '../../language/language_content_quality.dart';
+import '../../features/audio/domain/services/i_audio_runtime.dart';
+import '../placement/adaptive_placement_page.dart';
 import '../../models/word_profile.dart';
 import '../safe_ui.dart';
 
@@ -230,108 +234,43 @@ class _RealityState extends State<RealityPractice> {
   );
 }
 
-class PlacementPage extends StatefulWidget {
+class PlacementPage extends StatelessWidget {
   final LearnerRepository repo;
+  final List<ContentItem> corpus;
   final VoidCallback onDone;
   final LanguagePresentation presentation;
+  final LanguageExerciseStrategy exerciseStrategy;
+  final LanguageContentQuality contentQuality;
+  final IAudioRuntime audioRuntime;
+  final String languageCode;
+  final String sourceLanguageCode;
 
   const PlacementPage({
     super.key,
     required this.repo,
+    required this.corpus,
     required this.onDone,
     required this.presentation,
+    required this.exerciseStrategy,
+    required this.contentQuality,
+    required this.audioRuntime,
+    required this.languageCode,
+    required this.sourceLanguageCode,
   });
 
   @override
-  State<PlacementPage> createState() => _PlacementState();
-}
-
-class _PlacementState extends State<PlacementPage> {
-  int i = 0;
-  int score = 0;
-  String answer = '';
-
-  void submit() {
-    final questions = widget.presentation.placement.questions;
-    if (questions.isEmpty) return;
-    if (answer.trim().toLowerCase() == questions[i].answer.toLowerCase()) {
-      score++;
-    }
-    if (i + 1 == questions.length) {
-      widget.onDone();
-      showDialog(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(widget.presentation.placement.resultTitle),
-          content: Text(
-            widget.presentation.placement.resultMessage(
-              score,
-              questions.length,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('حسنًا'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      setState(() {
-        i++;
-        answer = '';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final placement = widget.presentation.placement;
-    final questions = placement.questions;
-    if (questions.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: Text(placement.title)),
-        body: const Center(
-          child: Text('لا توجد أسئلة تحديد مستوى متاحة حاليًا.'),
-        ),
-      );
-    }
-    final question = questions[i];
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${placement.title} ${i + 1}/${questions.length}'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(18),
-        children: [
-          Text(
-            question.prompt,
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            onChanged: (value) => answer = value,
-            textDirection: TextDirection.ltr,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: placement.answerLabel,
-            ),
-          ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: submit,
-            child: Text(
-              i + 1 == questions.length
-                  ? placement.finishLabel
-                  : placement.nextLabel,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AdaptivePlacementPage(
+    repo: repo,
+    corpus: corpus,
+    exerciseStrategy: exerciseStrategy,
+    contentQuality: contentQuality,
+    placementPresentation: presentation.placement,
+    targetLanguageName: presentation.targetLanguageName,
+    languageCode: languageCode,
+    sourceLanguageCode: sourceLanguageCode,
+    audioRuntime: audioRuntime,
+    onDone: onDone,
+  );
 }
 
 class QualityV35 extends StatelessWidget {

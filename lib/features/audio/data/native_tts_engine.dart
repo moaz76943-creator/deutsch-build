@@ -1,97 +1,58 @@
 import 'dart:async';
 
-import 'package:flutter_tts/flutter_tts.dart';
+import '../../language/german/german_speech_profile.dart';
+import 'domain/entities/audio_playback_state.dart';
+import 'domain/entities/audio_request.dart';
+import 'domain/services/i_audio_service.dart';
+import 'offline_audio_runtime.dart';
+import '../../services/tts_service.dart';
 
-import '../domain/entities/audio_playback_state.dart';
-import '../domain/services/i_audio_service.dart';
-
+/// Compatibility adapter for the early audio feature surface.
+///
+/// It now delegates to the unified offline runtime and never speaks a
+/// conceptId as though it were learner-facing text.
 class NativeTtsEngine implements IAudioService {
-  final FlutterTts _flutterTts;
-  final StreamController<AudioPlaybackState> _stateController =
-      StreamController<AudioPlaybackState>.broadcast();
-  bool _isDisposed = false;
+  NativeTtsEngine({OfflineAudioRuntime? runtime})
+    : _runtime =
+          runtime ??
+          OfflineAudioRuntime(
+            speechProfile: const GermanSpeechProfile(),
+            ttsEngine: FlutterOfflineTtsEngine(),
+          );
 
-  static final NativeTtsEngine _instance = NativeTtsEngine._internal();
-
-  factory NativeTtsEngine() {
-    return _instance;
-  }
-
-  NativeTtsEngine._internal({FlutterTts? flutterTts})
-    : _flutterTts = flutterTts ?? FlutterTts() {
-    _initTts();
-  }
-
-  void _initTts() {
-    _flutterTts.setStartHandler(() {
-      _emitState(AudioPlaybackState.playing);
-    });
-
-    _flutterTts.setCompletionHandler(() {
-      _emitState(AudioPlaybackState.completed);
-      _emitState(AudioPlaybackState.idle);
-    });
-
-    _flutterTts.setErrorHandler((msg) {
-      _emitState(AudioPlaybackState.error);
-    });
-
-    _flutterTts.setCancelHandler(() {
-      _emitState(AudioPlaybackState.idle);
-    });
-
-    // Default configuration for German language
-    _flutterTts.setLanguage("de-DE");
-    _flutterTts.setSpeechRate(0.46);
-    _flutterTts.setVolume(1.0);
-    _flutterTts.setPitch(1.0);
-  }
-
-  void _emitState(AudioPlaybackState state) {
-    if (!_isDisposed && !_stateController.isClosed) {
-      _stateController.add(state);
-    }
-  }
+  final OfflineAudioRuntime _runtime;
 
   @override
-  Stream<AudioPlaybackState> get playbackStateStream => _stateController.stream;
+  Stream<AudioPlaybackState> get playbackStateStream =>
+      _runtime.playbackStateStream;
 
   @override
   Future<void> playVocabularyAudio({
     required String conceptId,
     required String languageCode,
   }) async {
-    if (_isDisposed) return;
-
-    // Note: A true implementation would look up the word by conceptId.
-    // Given the parameters, this method is fundamentally difficult to satisfy offline
-    // without a repository reference. We will keep it but UI will use `speak`
-    _emitState(AudioPlaybackState.loading);
-    String ttsLang = languageCode.toLowerCase().startsWith('de')
-        ? 'de-DE'
-        : languageCode;
-    await _flutterTts.setLanguage(ttsLang);
-    await _flutterTts.speak(conceptId);
+    // This legacy signature does not contain learner-facing text. Fail closed
+    // instead of pronouncing the technical concept identifier.
   }
 
-  Future<void> speak(String text, {String languageCode = 'de-DE'}) async {
-    if (_isDisposed || text.trim().isEmpty) return;
-
-    _emitState(AudioPlaybackState.loading);
-    await _flutterTts.setLanguage(languageCode);
-    await _flutterTts.speak(text);
+  Future<void> speak(
+    String text, {
+    String languageCode = 'de',
+    String? conceptId,
+  }) async {
+    await _runtime.play(
+      AudioRequest(
+        text: text,
+        languageCode: languageCode,
+        conceptId: conceptId,
+      ),
+    );
   }
 
   @override
-  Future<void> stop() async {
-    if (_isDisposed) return;
-    await _flutterTts.stop();
-    _emitState(AudioPlaybackState.idle);
-  }
+  Future<void> stop() => _runtime.stop();
 
   void dispose() {
-    _isDisposed = true;
-    _flutterTts.stop();
-    _stateController.close();
+    Future<void>(() => _runtime.shutdown());
   }
 }

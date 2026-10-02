@@ -51,7 +51,7 @@ def test_v153_home_passes_state_revision_to_personal_path_card():
 def test_v153_learning_engine_groups_attempts_once_for_item_priority_and_history():
     text = (ROOT / 'lib/services/learning_engine.dart').read_text()
     assert 'final attemptsByItem = <String, List<Attempt>>{};' in text
-    assert 'for (final attempt in state.attempts)' in text
+    assert 'for (final attempt in meaningAttempts)' in text
     assert 'attemptsByItem[item.id]' in text
     assert 'state.attempts.where((x)=>x.itemId==item.id)' not in text
     assert 'state.attempts.any((a)=>a.itemId==item.id)' not in text

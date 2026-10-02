@@ -1,7 +1,9 @@
 import 'dart:io';
 
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/sqlite_api.dart';
 import 'package:path/path.dart' as p;
+
+import 'sqlite_policy.dart';
 
 class DatabaseMigrationHelper {
   /// Opens the database, handling backups and migrations automatically.
@@ -37,12 +39,9 @@ class DatabaseMigrationHelper {
       },
     );
 
-    if (factory != null) {
-      return await factory.openDatabase(path, options: options);
-    }
-    return await openDatabase(
-      path,
-      version: options.version,
+    return AppSqlitePolicy(factory: factory).openWritable(
+      path: path,
+      version: options.version ?? version,
       onCreate: options.onCreate,
       onUpgrade: options.onUpgrade,
     );
@@ -81,11 +80,9 @@ class DatabaseMigrationHelper {
       if (await shmFile.exists()) {
         await shmFile.copy('$backupPath-shm');
       }
-    } catch (e) {
-      // In a production app we might log this to an analytics service
-      print('Failed to backup database: $e');
-      // We continue with migration even if backup fails to not block users,
-      // but in some strict environments, we might want to rethrow.
+    } on Object {
+      // Backup is best-effort. Do not emit exception details into production
+      // logs; migration continuity is intentionally preserved.
     }
   }
 

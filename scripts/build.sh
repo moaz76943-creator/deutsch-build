@@ -36,6 +36,7 @@ python tool/quality_audit.py
 
 log CHECK "5/10 Security"
 python tool/security_audit.py
+python tool/phase17_production_gate.py
 
 if [[ "$MODE" == "release" ]]; then
   log CHECK "6/10 Release signing"

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../models/content.dart';
+import '../../models/learner.dart';
 import '../../services/grammar_hub_service.dart';
 import '../../services/app_dependencies.dart';
+import '../../core/text/directional_text.dart';
+import '../shared/text/bidi_text.dart';
 import 'grammar_topic_detail_page.dart';
 
 class GrammarHubPage extends StatefulWidget {
-  final AppDependencies dependencies;
-  const GrammarHubPage({Key? key, required this.dependencies})
-    : super(key: key);
+  final AppDependencies<ContentItem> dependencies;
+  final LearnerState? learnerState;
+  const GrammarHubPage({
+    Key? key,
+    required this.dependencies,
+    this.learnerState,
+  }) : super(key: key);
 
   @override
   _GrammarHubPageState createState() => _GrammarHubPageState();
@@ -111,16 +119,24 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                               horizontal: 16.0,
                               vertical: 8.0,
                             ),
-                            title: Text(
-                              topic.titleDe,
+                            title: BidiText(
+                              DirectionalText.german(
+                                topic.titleDe,
+                                semanticRole:
+                                    LinguisticSemanticRole.grammarLabel,
+                              ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                                 fontFamily: 'Inter',
                               ),
                             ),
-                            subtitle: Text(
-                              topic.titleAr,
+                            subtitle: BidiText(
+                              DirectionalText.arabic(
+                                topic.titleAr,
+                                semanticRole:
+                                    LinguisticSemanticRole.translation,
+                              ),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontFamily: 'Tajawal',
@@ -141,6 +157,7 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                                   builder: (context) => GrammarTopicDetailPage(
                                     topic: topic,
                                     dependencies: widget.dependencies,
+                                    learnerState: widget.learnerState,
                                   ),
                                 ),
                               );

@@ -31,10 +31,11 @@ class AdaptiveTeacher {
 
   static TeacherAction next(LearnerState state, {DateTime? now}) {
     final at = now ?? DateTime.now();
+    final meaningAttempts = state.meaningAttempts.toList(growable: false);
     final attemptsBySkill = <String, List<Attempt>>{};
     var recentFailureCount = 0;
     var recentAttemptCount = 0;
-    for (final a in state.attempts) {
+    for (final a in meaningAttempts) {
       (attemptsBySkill[a.skill] ??= <Attempt>[]).add(a);
       if (at.toUtcMidnight.difference(a.at.toUtcMidnight).inDays <= 14) {
         recentAttemptCount++;
@@ -147,7 +148,9 @@ class AdaptiveTeacher {
       }
     }
     if (measured) return selected;
-    return state.attempts.isEmpty ? 'recall' : state.attempts.last.skill;
+    return state.meaningAttempts.isEmpty
+        ? 'recall'
+        : state.meaningAttempts.last.skill;
   }
 
   static double _scoreForAttempts(List<Attempt>? attempts) {
@@ -169,7 +172,7 @@ class AdaptiveTeacher {
 
   static int _dueCount(LearnerState state, DateTime now) {
     var due = 0;
-    for (final card in state.reviewCards.values) {
+    for (final card in state.meaningReviewCards) {
       if (!card.dueAt.isAfter(now)) due++;
     }
     return due;
@@ -180,7 +183,7 @@ class AdaptiveTeacher {
     DateTime now,
     int dueCount,
   ) {
-    final total = state.reviewCards.length;
+    final total = state.meaningReviewCards.length;
     if (total == 0) return 0;
     final dueRatio = dueCount / total;
     var recentFailureCount = 0;
@@ -208,7 +211,7 @@ class AdaptiveTeacher {
   }
 
   static double _confidence(LearnerState state) {
-    final attempts = state.attempts.length;
+    final attempts = state.meaningAttempts.length;
     return (attempts / 40).clamp(.35, .95).toDouble();
   }
 }

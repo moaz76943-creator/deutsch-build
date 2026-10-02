@@ -5,6 +5,7 @@ import 'language_exercise_strategy.dart';
 import 'language_identity.dart';
 import 'language_presentation.dart';
 import 'language_text_normalizer.dart';
+import 'language_speech_profile.dart';
 
 /// Language configuration selected by the Composition Root.
 ///
@@ -23,4 +24,5 @@ abstract interface class LanguagePack {
   LanguageTextNormalizer get textNormalizer;
   LanguageContentQuality get contentQuality;
   LanguageContentIntelligence get contentIntelligence;
+  LanguageSpeechProfile get speechProfile;
 }

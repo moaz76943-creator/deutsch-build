@@ -1,9 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/features/progress/domain/models/card_progress.dart';
-
-import 'package:deutsch_bilarabi/features/progress/domain/models/review_log.dart';
-import 'package:deutsch_bilarabi/features/progress/domain/models/srs_item_state.dart';
-import 'package:deutsch_bilarabi/features/progress/domain/repositories/in_memory_learner_progress_repository.dart';
+import 'support/in_memory_learner_progress_repository.dart';
 
 void main() {
   late InMemoryLearnerProgressRepository repository;

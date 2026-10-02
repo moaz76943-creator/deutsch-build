@@ -20,6 +20,7 @@ void main() {
     await db.execute('DELETE FROM completed_lessons');
     await db.execute('DELETE FROM daily_streaks');
     await db.execute('DELETE FROM review_scores');
+    await db.execute('DELETE FROM spaced_repetition');
   });
 
   tearDown(() async {

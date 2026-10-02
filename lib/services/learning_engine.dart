@@ -32,19 +32,20 @@ class LearningEngine {
     final eligibleById = <String, LearningContent>{
       for (final item in eligible) item.id: item,
     };
+    final meaningAttempts = state.meaningAttempts.toList(growable: false);
     final attemptsByItem = <String, List<Attempt>>{};
-    for (final attempt in state.attempts) {
+    for (final attempt in meaningAttempts) {
       (attemptsByItem[attempt.itemId] ??= <Attempt>[]).add(attempt);
     }
     final teacher = AdaptiveTeacher.next(state, now: at);
     final weak = teacher.skill;
     final mistakes = MistakeEngine.from(
-      state.attempts,
+      meaningAttempts,
       eligible,
       now: at,
     ).items;
     final due = MemoryQueue.rank(
-      state.reviewCards.values,
+      state.meaningReviewCards,
       now: at,
       limit: goal,
     );

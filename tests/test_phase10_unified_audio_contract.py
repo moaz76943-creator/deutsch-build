@@ -1,0 +1,59 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def read(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+def test_phase10_composition_root_owns_unified_audio_runtime():
+    main = read("lib/main.dart")
+    deps = read("lib/services/app_dependencies.dart")
+    assert "OfflineAudioRuntime(" in main
+    assert "activeLanguagePack.speechProfile" in main
+    assert "AndroidRecordedAudioPlayer()" in main
+    assert "audioRuntime: audioRuntime" in main
+    assert "IAudioRuntime audioRuntime" in deps
+
+
+def test_phase10_uses_existing_locked_dependencies_only():
+    pubspec = read("pubspec.yaml")
+    assert "flutter_tts: ^4.2.3" in pubspec
+    assert "audioplayers:" not in pubspec
+    assert "just_audio:" not in pubspec
+    assert "content/german/audio_manifest.json" in pubspec
+    assert "content/german/audio/" in pubspec
+
+
+def test_phase10_android_declares_tts_discovery_and_local_player_bridge():
+    manifest = read("android/app/src/main/AndroidManifest.xml")
+    activity = read(
+        "android/app/src/main/kotlin/com/deutschbilarabi/app/MainActivity.kt"
+    )
+    player = read(
+        "android/app/src/main/kotlin/com/deutschbilarabi/app/"
+        "AndroidRecordedAudioPlayer.kt"
+    )
+    assert "android.intent.action.TTS_SERVICE" in manifest
+    assert "AndroidRecordedAudioPlayer.CHANNEL_NAME" in activity
+    assert "MediaPlayer" in player
+    assert "getLookupKeyForAsset" in player
+    assert "http" not in player.lower()
+
+
+def test_phase10_recorded_audio_is_manifest_driven_not_path_guessed():
+    catalog = read("lib/features/audio/data/audio_manifest_catalog.dart")
+    legacy = read(
+        "lib/features/audio/domain/resolvers/audio_path_resolver.dart"
+    )
+    runtime = read("lib/features/audio/offline_audio_runtime.dart")
+    assert "recordedAssetFor" in catalog
+    assert "recordedPlayer.playAsset" in runtime
+    assert "AudioPathResolver" not in runtime
+    assert "_baseAssetPath" in legacy
+
+
+def test_phase10_keeps_ui_files_under_limit():
+    for path in (ROOT / "lib/ui_v35").rglob("*.dart"):
+        assert len(path.read_text(encoding="utf-8").splitlines()) <= 1000, path

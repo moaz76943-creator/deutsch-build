@@ -19,6 +19,8 @@ _ADAPTER = Path('lib/services/preferences_service.dart')
 _NETWORK_ADAPTERS = {
     Path('lib/services/backend_http_transport.dart'),
     Path('lib/services/ai_gateway.dart'),
+    Path('lib/services/pack_manager_service.dart'),
+    Path('lib/services/pack_database_security.dart'),
 }
 _CONFIGURATION_FILES = {
     Path('lib/services/release.dart'),
@@ -28,6 +30,7 @@ _PLATFORM_ADAPTERS = {
     Path('lib/services/android_secure_session_storage.dart'),
     Path('lib/services/offline_backup_system.dart'),
     Path('lib/services/database_migration_helper.dart'),
+    Path('lib/services/pack_manager_service.dart'),
 }
 _SCAN_ROOTS = (Path('lib/core'), Path('lib/models'), Path('lib/services'), Path('lib/ui'), Path('lib/ui_v35'))
 

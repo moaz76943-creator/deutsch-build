@@ -10,8 +10,8 @@ def read(rel):
 def test_mastery_dashboard_iterates_active_state_ids_not_full_corpus():
     src = read('lib/services/mastery_dashboard.dart')
     assert 'final activeItemIds = <String>{' in src
-    assert 'for (final attempt in state.attempts)' in src
-    assert '...state.reviewCards.keys' in src
+    assert 'for (final attempt in state.meaningAttempts)' in src
+    assert '...state.meaningReviewCards.map((card) => card.itemId)' in src
     assert 'for (final item in items)' not in src
 
 

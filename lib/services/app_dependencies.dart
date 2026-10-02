@@ -1,7 +1,13 @@
 import 'grammar_hub_service.dart';
+import 'active_pack_runtime_provider.dart';
+import 'pack_manager_service.dart';
 export 'verb_index.dart' show VerbIndex;
 import '../core/content_contract.dart';
 import '../language/language_pack.dart';
+import '../language/german/german_word_family_repository.dart';
+import '../features/audio/domain/services/i_audio_runtime.dart';
+import '../features/pronunciation/domain/services/pronunciation_signal_probe.dart';
+import '../features/gamification/gamification_repository.dart';
 import 'search_index.dart';
 import 'ai_gateway.dart';
 import 'verb_index.dart';
@@ -25,6 +31,15 @@ final class AppDependencies<T extends LearningContent> {
     required this.favoritesRepository,
     required this.preferencesService,
     required this.grammarHubService,
+    this.gamificationRepository =
+        const UnavailableGamificationRepository(),
+    this.audioRuntime = const UnavailableAudioRuntime(),
+    this.sourceAudioRuntime = const UnavailableAudioRuntime(),
+    this.pronunciationSignalProbe =
+        const UnavailablePronunciationSignalProbe(),
+    this.wordFamilyRepository = const EmptyGermanWordFamilyRepository(),
+    this.packManagerService,
+    this.runtimePackState = const RuntimePackState.embeddedFallback(),
   });
 
   final SearchIndex<T> searchIndex;
@@ -37,5 +52,12 @@ final class AppDependencies<T extends LearningContent> {
   final UserVocabularyService userVocabularyService;
   final FavoritesRepository favoritesRepository;
   final PreferencesService preferencesService;
-  final GrammarHubService grammarHubService;
+  final GrammarHubRepository grammarHubService;
+  final GamificationRepository gamificationRepository;
+  final IAudioRuntime audioRuntime;
+  final IAudioRuntime sourceAudioRuntime;
+  final PronunciationSignalProbe pronunciationSignalProbe;
+  final GermanWordFamilyRepository wordFamilyRepository;
+  final PackManagerService? packManagerService;
+  final RuntimePackState runtimePackState;
 }

@@ -68,7 +68,7 @@ class MasteryDashboard {
     final at = now ?? DateTime.now();
     final items = corpus;
     final report = contentIntelligence.analyze(items);
-    final cards = state.reviewCards.values.toList(growable: false);
+    final cards = state.meaningReviewCards.toList(growable: false);
     final due = cards.where((c) => !c.dueAt.isAfter(at)).length;
     final overdue = cards.where((c) => c.dueAt.isBefore(at)).length;
 
@@ -81,13 +81,13 @@ class MasteryDashboard {
     final skillCounts = <String, int>{};
     final priorities = <String, double>{};
     final attemptsByItem = <String, List<Attempt>>{};
-    for (final attempt in state.attempts) {
+    for (final attempt in state.meaningAttempts) {
       (attemptsByItem[attempt.itemId] ??= <Attempt>[]).add(attempt);
     }
 
     final activeItemIds = <String>{
       ...attemptsByItem.keys,
-      ...state.reviewCards.keys,
+      ...state.meaningReviewCards.map((card) => card.itemId),
     };
     for (final itemId in activeItemIds) {
       final itemAttempts = attemptsByItem[itemId] ?? const <Attempt>[];
@@ -155,7 +155,7 @@ class MasteryDashboard {
       skillScores,
       retrievability,
       retention,
-      state.attempts,
+      state.meaningAttempts.toList(growable: false),
     );
     final nextReviewDays = retrievability <= 0
         ? 0
@@ -193,7 +193,7 @@ class MasteryDashboard {
   }
 
   static double _evidenceStrength(LearnerState state, int measuredItems) {
-    final attempts = state.attempts.length;
+    final attempts = state.meaningAttempts.length;
     return ((attempts / 60) * .55 + (measuredItems / 40) * .45)
         .clamp(0.0, 1.0)
         .toDouble();

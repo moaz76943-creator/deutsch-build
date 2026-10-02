@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../core/learning_core.dart';
-import 'pages/grammar_hub_page.dart';
+import 'grammar/grammar_hub_page.dart';
+import 'word_families/word_families_page.dart';
+import 'pronunciation/offline_pronunciation_lab_page.dart';
+import 'commute/hands_free_commute_page.dart';
+import 'gamification/gamification_dashboard_page.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
 import '../services/repository.dart';
@@ -40,6 +44,14 @@ class DeutschAppV35 extends StatefulWidget {
 
 class _AppState extends State<DeutschAppV35> {
   bool dark = false;
+
+  @override
+  void dispose() {
+    widget.dependencies.audioRuntime.shutdown();
+    widget.dependencies.sourceAudioRuntime.shutdown();
+    widget.dependencies.gamificationRepository.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext c) => ListenableBuilder(
@@ -346,7 +358,7 @@ class _HomeState extends State<HomeV35> {
                   child: _stat(
                     c,
                     'المراجعة',
-                    '${state.reviewCards.length}',
+                    '${state.meaningReviewCards.length}',
                     Icons.replay_outlined,
                   ),
                 ),
@@ -423,6 +435,22 @@ class _HomeState extends State<HomeV35> {
               contentQuality: widget.dependencies.languagePack.contentQuality,
               textNormalizer: widget.dependencies.languagePack.textNormalizer,
               dependencies: widget.dependencies,
+            ),
+          ),
+        ),
+      ),
+      _featureCard(
+        c,
+        'عائلات الكلمات',
+        'اربط الكلمات الألمانية باشتقاقاتها الموثّقة دون تخمين',
+        Icons.account_tree_outlined,
+        () => Navigator.push(
+          c,
+          MaterialPageRoute(
+            builder: (_) => WordFamiliesPage(
+              repository: widget.dependencies.wordFamilyRepository,
+              corpus: widget.dependencies.corpus,
+              learnedIds: state.learned.toSet(),
             ),
           ),
         ),
@@ -536,7 +564,12 @@ class _HomeState extends State<HomeV35> {
         Icons.rule_outlined,
         () => Navigator.push(
           c,
-          MaterialPageRoute(builder: (_) => GrammarHubPage()),
+          MaterialPageRoute(
+            builder: (_) => GrammarHubPage(
+              dependencies: widget.dependencies,
+              learnerState: state,
+            ),
+          ),
         ),
       ),
     ],
@@ -560,8 +593,16 @@ class _HomeState extends State<HomeV35> {
           MaterialPageRoute(
             builder: (_) => PlacementPage(
               repo: widget.repo,
+              corpus: widget.dependencies.corpus,
               onDone: refresh,
               presentation: widget.dependencies.languagePack.presentation,
+              exerciseStrategy:
+                  widget.dependencies.languagePack.exerciseStrategy,
+              contentQuality: widget.dependencies.languagePack.contentQuality,
+              audioRuntime: widget.dependencies.audioRuntime,
+              languageCode: widget.dependencies.languagePack.languageCode,
+              sourceLanguageCode:
+                  widget.dependencies.languagePack.sourceLocale,
             ),
           ),
         ),
@@ -622,12 +663,32 @@ class _HomeState extends State<HomeV35> {
       _featureCard(
         c,
         'مختبر النطق والاستماع',
-        'تدريب صوتي وتقييم فوري',
+        'تمييز صوتي + فحص ميكروفون محلي بلا سحابة',
         Icons.mic_none_outlined,
         () => Navigator.push(
           c,
           MaterialPageRoute(
-            builder: (_) => SpeechPracticePage(repo: widget.repo),
+            builder: (_) => OfflinePronunciationLabPage(
+              repo: widget.repo,
+              dependencies: widget.dependencies,
+              onDone: refresh,
+            ),
+          ),
+        ),
+      ),
+      _featureCard(
+        c,
+        'وضع التنقل',
+        'مراجعة SRS صوتية: كلمة → معنى → مثال',
+        Icons.directions_walk_outlined,
+        () => Navigator.push(
+          c,
+          MaterialPageRoute(
+            builder: (_) => HandsFreeCommutePage(
+              repo: widget.repo,
+              dependencies: widget.dependencies,
+              onDone: refresh,
+            ),
           ),
         ),
       ),
@@ -743,6 +804,20 @@ class _HomeState extends State<HomeV35> {
               textNormalizer: widget.dependencies.languagePack.textNormalizer,
               contentIntelligence:
                   widget.dependencies.languagePack.contentIntelligence,
+            ),
+          ),
+        ),
+      ),
+      _featureCard(
+        c,
+        'الإنجازات و XP',
+        'السلسلة اليومية والشارات والمعلم التالي',
+        Icons.workspace_premium_outlined,
+        () => Navigator.push(
+          c,
+          MaterialPageRoute(
+            builder: (_) => GamificationDashboardPage(
+              repository: widget.dependencies.gamificationRepository,
             ),
           ),
         ),

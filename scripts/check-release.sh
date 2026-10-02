@@ -6,6 +6,7 @@ cd "$ROOT"
 python3 -m pytest -q tests
 python3 tool/quality_audit.py
 python3 tool/security_audit.py
+python3 tool/phase17_production_gate.py
 python3 tool/privacy_audit.py
 python3 tool/accessibility_audit.py
 python3 tool/architecture_audit.py
@@ -21,7 +22,9 @@ python3 tool/content_compiler.py parity --output-dir "$TMP_DIR/generated"
 if command -v flutter >/dev/null 2>&1; then
   flutter analyze
   flutter test
-  flutter build apk --release
+  "$ROOT/scripts/signing_guard.sh"
+  flutter build apk --release --obfuscate --split-debug-info=build/symbols
+  flutter build appbundle --release --obfuscate --split-debug-info=build/symbols
 else
   echo "BUILD VERIFICATION: Flutter/Android toolchain unavailable in this environment" >&2
   exit 2

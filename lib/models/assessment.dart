@@ -56,9 +56,11 @@ class AssessmentResult {
   });
 }
 
-String assessmentNormalize(String value) =>
-    value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-
+String assessmentNormalize(String value) => value
+    .trim()
+    .toLowerCase()
+    .replaceAll(RegExp(r'[.!?]+$'), '')
+    .replaceAll(RegExp(r'\s+'), ' ');
 bool assessmentAnswerMatches(
   AssessmentResponse response,
   AssessmentQuestion q,

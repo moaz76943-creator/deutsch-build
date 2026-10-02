@@ -1,8 +1,11 @@
 import 'dart:convert';
 
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
 
+import '../core/srs_facets.dart';
+import '../core/srs_scheduler.dart';
+import '../models/learner.dart';
 import 'database_migration_helper.dart';
 import 'spaced_repetition_service.dart';
 
@@ -18,7 +21,6 @@ class ProgressTrackerService {
 
   ProgressTrackerService._init();
 
-  // For testing
   factory ProgressTrackerService.withFactory(DatabaseFactory factory) {
     final service = ProgressTrackerService._init();
     service._factory = factory;
@@ -32,20 +34,16 @@ class ProgressTrackerService {
   }
 
   Future<Database> _initDB(String filePath) async {
-    String path;
-    if (_factory != null) {
-      path = filePath;
-    } else {
-      final dbPath = await getDatabasesPath();
-      path = p.join(dbPath, filePath);
-    }
+    final path = _factory != null
+        ? filePath
+        : p.join(await getDatabasesPath(), filePath);
 
-    return await DatabaseMigrationHelper.open(
+    return DatabaseMigrationHelper.open(
       path: path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
-      migrationScripts: {
-        2: [
+      migrationScripts: <int, List<String>>{
+        2: <String>[
           '''
           CREATE TABLE $_tableNameSpacedRepetition (
             id TEXT PRIMARY KEY,
@@ -55,6 +53,34 @@ class ProgressTrackerService {
             nextReviewAt TEXT NOT NULL
           )
           ''',
+        ],
+        3: <String>[
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN conceptId TEXT NOT NULL DEFAULT ''",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN facetType TEXT NOT NULL DEFAULT 'meaning_recall'",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN variantKey TEXT NOT NULL DEFAULT ''",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN lapses INTEGER NOT NULL DEFAULT 0",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN successes INTEGER NOT NULL DEFAULT 0",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN failures INTEGER NOT NULL DEFAULT 0",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN difficulty REAL NOT NULL DEFAULT 1.3",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN stabilityDays REAL NOT NULL DEFAULT 0",
+          "ALTER TABLE $_tableNameSpacedRepetition "
+              "ADD COLUMN lastReviewedAt TEXT",
+          "UPDATE $_tableNameSpacedRepetition SET conceptId = id "
+              "WHERE conceptId = ''",
+          "UPDATE $_tableNameSpacedRepetition SET successes = repetitions "
+              "WHERE successes = 0 AND repetitions > 0",
+          "UPDATE $_tableNameSpacedRepetition SET stabilityDays = intervalDays "
+              "WHERE stabilityDays = 0 AND intervalDays > 0",
+          "CREATE UNIQUE INDEX IF NOT EXISTS idx_spaced_repetition_facet "
+              "ON $_tableNameSpacedRepetition(conceptId, facetType, variantKey)",
         ],
       },
       factory: _factory,
@@ -86,18 +112,31 @@ class ProgressTrackerService {
     await db.execute('''
       CREATE TABLE $_tableNameSpacedRepetition (
         id TEXT PRIMARY KEY,
-        ef REAL NOT NULL,
+        conceptId TEXT NOT NULL,
+        facetType TEXT NOT NULL,
+        variantKey TEXT NOT NULL DEFAULT '',
+        ef REAL NOT NULL DEFAULT 2.5,
         repetitions INTEGER NOT NULL,
         intervalDays INTEGER NOT NULL,
-        nextReviewAt TEXT NOT NULL
+        lapses INTEGER NOT NULL DEFAULT 0,
+        successes INTEGER NOT NULL DEFAULT 0,
+        failures INTEGER NOT NULL DEFAULT 0,
+        difficulty REAL NOT NULL DEFAULT 1.3,
+        stabilityDays REAL NOT NULL DEFAULT 0,
+        nextReviewAt TEXT NOT NULL,
+        lastReviewedAt TEXT
       )
     ''');
+    await db.execute(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_spaced_repetition_facet '
+      'ON $_tableNameSpacedRepetition(conceptId, facetType, variantKey)',
+    );
   }
 
   Future<void> markLessonCompleted(String lessonId) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(_tableNameCompletedLessons, {
+      await txn.insert(_tableNameCompletedLessons, <String, Object>{
         'id': lessonId,
         'completedAt': DateTime.now().toUtc().toIso8601String(),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
@@ -107,7 +146,7 @@ class ProgressTrackerService {
   Future<void> updateStreak(String date, int count) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(_tableNameStreaks, {
+      await txn.insert(_tableNameStreaks, <String, Object>{
         'date': date,
         'count': count,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
@@ -117,7 +156,7 @@ class ProgressTrackerService {
   Future<void> updateReviewScore(String lessonId, double score) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(_tableNameReviewScores, {
+      await txn.insert(_tableNameReviewScores, <String, Object>{
         'lessonId': lessonId,
         'score': score,
         'reviewedAt': DateTime.now().toUtc().toIso8601String(),
@@ -125,61 +164,138 @@ class ProgressTrackerService {
     });
   }
 
-  Future<SpacedRepetitionItem?> getSpacedRepetitionItem(String id) async {
-    final db = await database;
-    final results = await db.query(
-      _tableNameSpacedRepetition,
-      where: 'id = ?',
-      whereArgs: [id],
+  Future<ReviewCard?> getFacetReviewCard({
+    required String conceptId,
+    ReviewFacetType facetType = ReviewFacetType.meaningRecall,
+    String? variantKey,
+  }) async {
+    final key = ReviewFacetKey(
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
     );
-    if (results.isNotEmpty) {
-      return SpacedRepetitionItem.fromMap(results.first);
+    if (!key.isValid) return null;
+    final db = await database;
+    final rows = await db.query(
+      _tableNameSpacedRepetition,
+      where: 'conceptId = ? AND facetType = ? AND variantKey = ?',
+      whereArgs: <Object?>[
+        key.conceptId.trim(),
+        key.facetType.wireName,
+        key.normalizedVariantKey ?? '',
+      ],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return _reviewCardFromRow(rows.first);
+  }
+
+  Future<SpacedRepetitionItem?> getSpacedRepetitionItem(String id) async {
+    final key = ReviewFacetKey(conceptId: id);
+    if (!key.isValid) return null;
+    final db = await database;
+    final rows = await db.query(
+      _tableNameSpacedRepetition,
+      where: 'conceptId = ? AND facetType = ? AND variantKey = ?',
+      whereArgs: <Object?>[
+        key.conceptId.trim(),
+        ReviewFacetType.meaningRecall.wireName,
+        '',
+      ],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final row = rows.first;
+    return SpacedRepetitionItem(
+      id: key.conceptId.trim(),
+      ef: (row['ef'] as num?)?.toDouble() ?? 2.5,
+      repetitions: (row['repetitions'] as num?)?.toInt() ?? 0,
+      intervalDays: (row['intervalDays'] as num?)?.toInt() ?? 0,
+      nextReviewAt:
+          DateTime.tryParse(row['nextReviewAt']?.toString() ?? '')?.toUtc() ??
+          DateTime.now().toUtc(),
+    );
+  }
+
+  Future<void> processFacetReview({
+    required String conceptId,
+    required ReviewFacetType facetType,
+    String? variantKey,
+    required bool correct,
+    required bool hinted,
+    DateTime? at,
+  }) async {
+    final key = ReviewFacetKey(
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
+    );
+    if (!key.isValid) {
+      throw ArgumentError('Invalid facet review key.');
     }
-    return null;
+
+    final now = at ?? DateTime.now();
+    final current =
+        await getFacetReviewCard(
+          conceptId: key.conceptId,
+          facetType: key.facetType,
+          variantKey: key.normalizedVariantKey,
+        ) ??
+        ReviewCard(
+          itemId: key.conceptId.trim(),
+          facetType: key.facetType,
+          variantKey: key.normalizedVariantKey,
+          dueAt: now,
+        );
+    final updated = unifiedSrsScheduler.schedule(
+      current,
+      correct: correct,
+      hinted: hinted,
+      now: now,
+    );
+
+    final db = await database;
+    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
+      await txn.insert(
+        _tableNameSpacedRepetition,
+        _rowForCard(updated),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
   }
 
   Future<void> processSpacedRepetitionReview({
     required String itemId,
     required int quality,
   }) async {
-    final db = await database;
-    final currentItem = await getSpacedRepetitionItem(itemId);
-
-    final updatedItem = SpacedRepetitionService.calculateNextReview(
-      item: currentItem,
-      itemId: itemId,
-      quality: quality,
+    if (quality < 0 || quality > 5) {
+      throw ArgumentError('Quality must be between 0 and 5.');
+    }
+    await processFacetReview(
+      conceptId: itemId,
+      facetType: ReviewFacetType.meaningRecall,
+      correct: quality >= 3,
+      hinted: quality == 3,
     );
-
-    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(
-        _tableNameSpacedRepetition,
-        updatedItem.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
   }
 
   Future<String> exportProgressState() async {
     final db = await database;
-
-    final completedLessons = await db.query(_tableNameCompletedLessons);
-    final streaks = await db.query(_tableNameStreaks);
-    final reviewScores = await db.query(_tableNameReviewScores);
-    final spacedRepetitions = await db.query(_tableNameSpacedRepetition);
-
-    final state = {
-      'completed_lessons': completedLessons,
-      'daily_streaks': streaks,
-      'review_scores': reviewScores,
-      'spaced_repetition': spacedRepetitions,
+    final state = <String, Object?>{
+      'completed_lessons': await db.query(_tableNameCompletedLessons),
+      'daily_streaks': await db.query(_tableNameStreaks),
+      'review_scores': await db.query(_tableNameReviewScores),
+      'spaced_repetition': await db.query(_tableNameSpacedRepetition),
     };
-
     return jsonEncode(state);
   }
 
   Future<void> importProgressState(String jsonState) async {
-    final Map<String, dynamic> state = jsonDecode(jsonState);
+    final decoded = jsonDecode(jsonState);
+    if (decoded is! Map) {
+      throw const FormatException('progress_state_invalid');
+    }
+    final state = Map<String, dynamic>.from(decoded);
     final db = await database;
 
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
@@ -188,47 +304,114 @@ class ProgressTrackerService {
       await txn.delete(_tableNameReviewScores);
       await txn.delete(_tableNameSpacedRepetition);
 
-      final completedLessons = state['completed_lessons'] as List<dynamic>?;
-      if (completedLessons != null) {
-        for (var lesson in completedLessons) {
-          await txn.insert(
-            _tableNameCompletedLessons,
-            Map<String, dynamic>.from(lesson as Map),
-          );
-        }
-      }
+      await _restoreRows(
+        txn,
+        _tableNameCompletedLessons,
+        state['completed_lessons'],
+      );
+      await _restoreRows(txn, _tableNameStreaks, state['daily_streaks']);
+      await _restoreRows(txn, _tableNameReviewScores, state['review_scores']);
 
-      final streaks = state['daily_streaks'] as List<dynamic>?;
-      if (streaks != null) {
-        for (var streak in streaks) {
-          await txn.insert(
-            _tableNameStreaks,
-            Map<String, dynamic>.from(streak as Map),
+      final spaced = state['spaced_repetition'];
+      if (spaced is List) {
+        for (final raw in spaced.take(20000)) {
+          if (raw is! Map) continue;
+          final normalized = _normalizeImportedSrsRow(
+            Map<String, dynamic>.from(raw),
           );
-        }
-      }
-
-      final reviewScores = state['review_scores'] as List<dynamic>?;
-      if (reviewScores != null) {
-        for (var score in reviewScores) {
-          await txn.insert(
-            _tableNameReviewScores,
-            Map<String, dynamic>.from(score as Map),
-          );
-        }
-      }
-
-      final spacedRepetitions = state['spaced_repetition'] as List<dynamic>?;
-      if (spacedRepetitions != null) {
-        for (var item in spacedRepetitions) {
+          if (normalized == null) continue;
           await txn.insert(
             _tableNameSpacedRepetition,
-            Map<String, dynamic>.from(item as Map),
+            normalized,
+            conflictAlgorithm: ConflictAlgorithm.replace,
           );
         }
       }
     });
   }
+
+  Future<void> _restoreRows(
+    Transaction txn,
+    String table,
+    Object? rawRows,
+  ) async {
+    if (rawRows is! List) return;
+    for (final raw in rawRows.take(20000)) {
+      if (raw is! Map) continue;
+      await txn.insert(table, Map<String, dynamic>.from(raw));
+    }
+  }
+
+  Map<String, Object?>? _normalizeImportedSrsRow(
+    Map<String, dynamic> row,
+  ) {
+    final conceptId = (row['conceptId'] ?? row['id'])?.toString().trim() ?? '';
+    final facetType = ReviewFacetType.fromWire(row['facetType']?.toString());
+    final variantKey = ReviewFacetKey.normalizeVariant(
+      row['variantKey']?.toString(),
+    );
+    final key = ReviewFacetKey(
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
+    );
+    if (!key.isValid) return null;
+
+    final card = ReviewCard.fromJson(<String, dynamic>{
+      'itemId': conceptId,
+      'facetType': facetType.wireName,
+      if (variantKey != null) 'variantKey': variantKey,
+      'repetitions': row['repetitions'],
+      'intervalDays': row['intervalDays'],
+      'lapses': row['lapses'],
+      'successes': row['successes'] ?? row['repetitions'],
+      'failures': row['failures'],
+      'difficulty': row['difficulty'],
+      'stabilityDays': row['stabilityDays'] ?? row['intervalDays'],
+      'dueAt': row['nextReviewAt'],
+      'lastReviewedAt': row['lastReviewedAt'],
+    });
+    return _rowForCard(
+      card,
+      legacyEase: (row['ef'] as num?)?.toDouble() ?? 2.5,
+    );
+  }
+
+  Map<String, Object?> _rowForCard(
+    ReviewCard card, {
+    double legacyEase = 2.5,
+  }) => <String, Object?>{
+    'id': card.storageKey,
+    'conceptId': card.itemId,
+    'facetType': card.facetType.wireName,
+    'variantKey': card.facetKey.normalizedVariantKey ?? '',
+    'ef': legacyEase.clamp(1.3, 5.0),
+    'repetitions': card.repetitions,
+    'intervalDays': card.intervalDays,
+    'lapses': card.lapses,
+    'successes': card.successes,
+    'failures': card.failures,
+    'difficulty': card.difficulty,
+    'stabilityDays': card.stabilityDays,
+    'nextReviewAt': card.dueAt.toUtc().toIso8601String(),
+    'lastReviewedAt': card.lastReviewedAt?.toUtc().toIso8601String(),
+  };
+
+  ReviewCard _reviewCardFromRow(Map<String, Object?> row) =>
+      ReviewCard.fromJson(<String, dynamic>{
+        'itemId': row['conceptId'] ?? row['id'],
+        'facetType': row['facetType'],
+        'variantKey': row['variantKey'],
+        'repetitions': row['repetitions'],
+        'intervalDays': row['intervalDays'],
+        'lapses': row['lapses'],
+        'successes': row['successes'],
+        'failures': row['failures'],
+        'difficulty': row['difficulty'],
+        'stabilityDays': row['stabilityDays'],
+        'dueAt': row['nextReviewAt'],
+        'lastReviewedAt': row['lastReviewedAt'],
+      });
 
   Future<void> close() async {
     final db = _database;

@@ -1,5 +1,6 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+
+import '../../../services/sqlite_policy.dart';
 
 class SentenceBridgeDatabase {
   static const String _dbName = 'sentence_bridge_puzzle.db';
@@ -7,11 +8,11 @@ class SentenceBridgeDatabase {
   static const String _attemptsTable = 'puzzle_attempts';
 
   Database? _db;
-  final DatabaseFactory? _dbFactory;
+  final AppSqlitePolicy _sqlitePolicy;
   final String? _inMemoryPath;
 
   SentenceBridgeDatabase({DatabaseFactory? factory, String? path})
-    : _dbFactory = factory,
+    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
       _inMemoryPath = path;
 
   Future<Database> get database async {
@@ -21,22 +22,15 @@ class SentenceBridgeDatabase {
   }
 
   Future<Database> _initDB() async {
-    String path;
-    if (_inMemoryPath != null) {
-      path = _inMemoryPath;
-    } else {
-      final dbPath = await getDatabasesPath();
-      path = join(dbPath, _dbName);
-    }
-
-    if (_dbFactory != null) {
-      return await _dbFactory.openDatabase(
-        path,
-        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
-      );
-    }
-
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    final path = await _sqlitePolicy.resolvePath(
+      fileName: _dbName,
+      overridePath: _inMemoryPath,
+    );
+    return _sqlitePolicy.openWritable(
+      path: path,
+      version: 1,
+      onCreate: _createDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {

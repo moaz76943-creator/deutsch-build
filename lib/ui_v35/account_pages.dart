@@ -358,6 +358,20 @@ class SettingsV35 extends StatelessWidget {
         ),
         Card(
           child: ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('تراخيص المصادر المفتوحة'),
+            subtitle: const Text(
+              'اعرض تراخيص وملاحظات المكونات مفتوحة المصدر المستخدمة في التطبيق.',
+            ),
+            onTap: () => showLicensePage(
+              context: c,
+              applicationName: 'Deutsch بالعربي',
+              applicationVersion: '3.3.9',
+            ),
+          ),
+        ),
+        Card(
+          child: ListTile(
             leading: const Icon(Icons.auto_awesome),
             title: const Text('AI Teacher'),
             subtitle: Text(AiTeacherContract.rules.join('\\n')),
