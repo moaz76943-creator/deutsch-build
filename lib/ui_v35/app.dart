@@ -11,8 +11,6 @@ import '../models/learner.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
 import '../services/app_dependencies.dart';
-import '../services/daily_plan.dart';
-import '../services/progress_snapshot_service.dart';
 import 'theme/app_design_system.dart';
 import 'theme/neuro_accessibility_mode.dart';
 import 'widgets/home_visuals.dart';
@@ -109,7 +107,6 @@ class HomeV35 extends StatefulWidget {
 class _HomeState extends State<HomeV35> {
   late LearnerState state;
   int tab = 0;
-  int _stateRevision = 0;
   @override
   void initState() {
     super.initState();
@@ -120,7 +117,6 @@ class _HomeState extends State<HomeV35> {
     if (!mounted) return;
     setState(() {
       state = widget.repo.load();
-      _stateRevision++;
     });
   }
 
@@ -142,9 +138,6 @@ class _HomeState extends State<HomeV35> {
 
   @override
   Widget build(BuildContext c) {
-    final scheme = Theme.of(c).colorScheme;
-    final isDark = Theme.of(c).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Deutsch بالعربي'),
