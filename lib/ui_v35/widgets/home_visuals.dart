@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_design_system.dart';
@@ -26,18 +28,19 @@ class HomeProgressHero extends StatelessWidget {
     final pct = (value * 100).round();
 
     return Container(
-      key: const Key('home-progress-hero'),
+      key: const Key('reference-home-hero'),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: <Color>[
-            Color(0xFF123B8C),
-            Color(0xFF126A78),
+            Color(0xFF071E4B),
+            Color(0xFF123F91),
+            Color(0xFF087D79),
           ],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
         boxShadow: <BoxShadow>[
           BoxShadow(
@@ -57,7 +60,7 @@ class HomeProgressHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     const Text(
-                      'مسارك الألماني اليوم',
+                      'Hallo Salim! 👋',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 23,
@@ -67,7 +70,7 @@ class HomeProgressHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'تقدم حقيقي مبني على جلساتك ومراجعاتك المحلية.',
+                      'واصل التعلم وحافظ على تقدمك',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.80),
                         fontSize: 13,
@@ -105,13 +108,21 @@ class HomeProgressHero extends StatelessWidget {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              key: const Key('home-overall-progress'),
-              value: value,
-              minHeight: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.18),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF8BF4E8),
+            child: SizedBox(
+              height: 72,
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  CircularProgressIndicator(
+                    key: const Key('home-circular-progress'),
+                    value: value,
+                    strokeWidth: 7,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: Colors.white24,
+                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF53F1B8)),
+                  ),
+                  Text('\$pct%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                ],
               ),
             ),
           ),
@@ -121,7 +132,7 @@ class HomeProgressHero extends StatelessWidget {
               Expanded(
                 child: _HeroMetric(
                   icon: Icons.local_fire_department_rounded,
-                  iconColor: AppPalette.streak,
+                  iconColor: const Color(0xFFFF7A21),
                   value: '$streak',
                   label: 'يوم متتالي',
                 ),
@@ -439,4 +450,114 @@ class _TrackSpec {
   final String label;
   final IconData icon;
   final Color color;
+}
+
+class ReferenceHomeActions extends StatelessWidget {
+  const ReferenceHomeActions({
+    required this.onDailyLessons,
+    required this.onAiConversation,
+    required this.onQuickPractice,
+    required this.onAssessment,
+    super.key,
+  });
+  final VoidCallback onDailyLessons;
+  final VoidCallback onAiConversation;
+  final VoidCallback onQuickPractice;
+  final VoidCallback onAssessment;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      _ReferenceActionCard(key: const Key('daily-lessons-card'), title: 'دروس اليوم', subtitle: '5 تمارين في انتظارك', icon: Icons.menu_book_rounded, colors: const [Color(0xFF0759D9), Color(0xFF1296F3)], onTap: onDailyLessons),
+      const SizedBox(height: 11),
+      _ReferenceActionCard(key: const Key('ai-conversation-card'), title: 'محادثة بالذكاء الاصطناعي', subtitle: 'تحدث وتعلم بنطق طبيعي', icon: Icons.chat_bubble_rounded, colors: const [Color(0xFF6424E8), Color(0xFFB319E7)], onTap: onAiConversation),
+      const SizedBox(height: 11),
+      Row(children: [
+        Expanded(child: _ReferenceActionCard(key: const Key('quick-practice-card'), title: 'التدريب السريع', subtitle: '15 دقيقة', icon: Icons.edit_rounded, compact: true, colors: const [Color(0xFF087D58), Color(0xFF17B873)], onTap: onQuickPractice)),
+        const SizedBox(width: 10),
+        Expanded(child: _ReferenceActionCard(key: const Key('assessment-card'), title: 'الاختبارات', subtitle: 'اختبر مستواك', icon: Icons.fact_check_rounded, compact: true, colors: const [Color(0xFFC51D55), Color(0xFFF04475)], onTap: onAssessment)),
+      ]),
+    ],
+  );
+}
+
+class _ReferenceActionCard extends StatelessWidget {
+  const _ReferenceActionCard({required this.title, required this.subtitle, required this.icon, required this.colors, required this.onTap, this.compact = false, super.key});
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Color> colors;
+  final VoidCallback onTap;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Ink(
+        height: compact ? 112 : 88,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(colors: colors, begin: Alignment.topRight, end: Alignment.bottomLeft),
+          border: Border.all(color: Colors.white24),
+          boxShadow: [BoxShadow(color: colors.first.withValues(alpha: .24), blurRadius: 20, offset: const Offset(0, 9))],
+        ),
+        child: Row(children: [
+          Container(width: 46, height: 46, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .18), borderRadius: BorderRadius.circular(15)), child: Icon(icon, color: Colors.white)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title, maxLines: 2, style: TextStyle(color: Colors.white, fontSize: compact ? 15 : 18, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 3),
+            Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withValues(alpha: .84), fontSize: 11)),
+          ])),
+          if (!compact) const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+        ]),
+      ),
+    ),
+  );
+}
+
+class ReferenceFloatingNavigationBar extends StatelessWidget {
+  const ReferenceFloatingNavigationBar({required this.selectedIndex, required this.onSelected, super.key});
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    top: false,
+    minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: .90),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: .72)),
+            boxShadow: const [BoxShadow(color: Color(0x1F082B64), blurRadius: 26, offset: Offset(0, 10))],
+          ),
+          child: NavigationBar(
+            key: const Key('main-navigation-bar'),
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onSelected,
+            backgroundColor: Colors.transparent,
+            indicatorColor: const Color(0xFFDDEBFF),
+            elevation: 0,
+            height: 68,
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded, color: Color(0xFF0866D9)), label: 'الرئيسية'),
+              NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book_rounded, color: Color(0xFF0866D9)), label: 'الدروس'),
+              NavigationDestination(icon: Icon(Icons.forum_outlined), selectedIcon: Icon(Icons.forum_rounded, color: Color(0xFF0866D9)), label: 'محادثة'),
+              NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart_rounded, color: Color(0xFF0866D9)), label: 'التقدم'),
+              NavigationDestination(icon: Icon(Icons.more_horiz_rounded), selectedIcon: Icon(Icons.more_horiz_rounded, color: Color(0xFF0866D9)), label: 'المزيد'),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
