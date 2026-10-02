@@ -70,22 +70,12 @@ jobs:
         run: flutter pub get
 
       - name: Build Debug APK
-        working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Collect Debug APK
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          apk_path="$(find build/app/outputs -type f -name 'app-debug.apk' -print -quit)"
-          test -n "$apk_path"
-          mkdir -p build/artifacts
-          cp "$apk_path" build/artifacts/app-debug.apk
+        run: flutter build apk --debug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: app-debug-apk
-          path: build/artifacts/app-debug.apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
           retention-days: 7
