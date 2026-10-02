@@ -12,7 +12,9 @@ import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
 import '../services/app_dependencies.dart';
 import '../services/daily_plan.dart';
+import 'theme/app_design_system.dart';
 import 'theme/neuro_accessibility_mode.dart';
+import 'widgets/home_visuals.dart';
 import 'pages/core_pages.dart';
 import 'pages/offline_lexicon_hub.dart';
 import 'learning_pages.dart';
@@ -21,7 +23,6 @@ import 'account_auth_page.dart';
 import 'verb_pages.dart';
 import 'conversation_pages.dart';
 import 'progress_pages.dart';
-import '../services/dynamic_ui_variations.dart';
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
   textDirection: TextDirection.rtl,
@@ -58,21 +59,9 @@ class _AppState extends State<DeutschAppV35> {
     listenable: widget.dependencies.neuroSettings,
     builder: (context, child) {
       final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
-      final int dailySeed = DateTime.now().millisecond;
 
-      ThemeData lightTheme = ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(
-          dailySeed,
-        ),
-      );
-      ThemeData darkTheme = ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(
-          dailySeed,
-        ),
-        brightness: Brightness.dark,
-      );
+      ThemeData lightTheme = AppDesignSystem.light();
+      ThemeData darkTheme = AppDesignSystem.dark();
 
       if (isNeuroMode) {
         lightTheme = lightTheme.applyNeuroAccessibility();
@@ -150,13 +139,8 @@ class _HomeState extends State<HomeV35> {
 
   @override
   Widget build(BuildContext c) {
-    final seed = DateTime.now().millisecond;
+    final scheme = Theme.of(c).colorScheme;
     final isDark = Theme.of(c).brightness == Brightness.dark;
-    final gradientColors = DynamicUiVariationHelpers.getGradientColors(
-      seed,
-      isDark,
-    );
-    final duration = DynamicUiVariationHelpers.getMicroAnimationDuration(seed);
 
     return Scaffold(
       appBar: AppBar(
@@ -204,44 +188,57 @@ class _HomeState extends State<HomeV35> {
       ),
       body: Semantics(
         label: 'محتوى الصفحة الرئيسية',
-        child: AnimatedContainer(
-          duration: duration,
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradientColors,
-              begin: DynamicUiVariationHelpers.getGradientBegin(seed),
-              end: DynamicUiVariationHelpers.getGradientEnd(seed),
-            ),
-          ),
+        child: ColoredBox(
+          color: Theme.of(c).scaffoldBackgroundColor,
           child: _tabForIndex(c, tab),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: tab,
-        onDestinationSelected: (i) => setState(() => tab = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'الرئيسية',
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: scheme.outlineVariant.withValues(alpha: 0.45),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'التعلم',
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: NavigationBar(
+            key: const Key('main-navigation-bar'),
+            selectedIndex: tab,
+            onDestinationSelected: (i) => setState(() => tab = i),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home_rounded),
+                label: 'الرئيسية',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.school_outlined),
+                selectedIcon: Icon(Icons.school_rounded),
+                label: 'التعلم',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.fitness_center_outlined),
+                selectedIcon: Icon(Icons.fitness_center_rounded),
+                label: 'التدريب',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.insights_outlined),
+                selectedIcon: Icon(Icons.insights_rounded),
+                label: 'التقدم',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.fitness_center_outlined),
-            selectedIcon: Icon(Icons.fitness_center),
-            label: 'التدريب',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'التقدم',
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -252,26 +249,34 @@ class _HomeState extends State<HomeV35> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
       children: [
-        Text(
-          'مرحبًا 👋',
-          style: Theme.of(c).textTheme.headlineMedium
-              ?.copyWith(fontWeight: FontWeight.w900),
+        HomeWelcomeSurface(
+          hasAttempts: state.attempts.isNotEmpty,
         ),
-        const SizedBox(height: 5),
-        Text(
-          state.attempts.isEmpty
-              ? 'سنقيسك أولًا ثم يختار المدرس طريقك.'
-              : 'الخطوة التالية مبنية على أدائك الفعلي.',
-        ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
         Card(
+          key: const Key('home-next-action-card'),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('أفضل خطوة الآن', style: Theme.of(c).textTheme.labelLarge),
-                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.route_outlined,
+                      size: 20,
+                      color: Theme.of(c).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'أفضل خطوة الآن',
+                      style: Theme.of(c).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(c).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
                 Text(
                   next.title,
                   style: Theme.of(c).textTheme.headlineSmall
@@ -922,16 +927,14 @@ class _HomeState extends State<HomeV35> {
     IconData icon,
     VoidCallback onTap, {
     bool primary = false,
-  }) => Card(
-    color: primary ? Theme.of(c).colorScheme.primaryContainer : null,
-    child: ListTile(
-      leading: CircleAvatar(child: Icon(icon)),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_left),
-      onTap: onTap,
-    ),
+  }) => FeatureNavigationCard(
+    title: title,
+    subtitle: subtitle,
+    icon: icon,
+    onTap: onTap,
+    primary: primary,
   );
+
   Widget _stat(BuildContext c, String label, String value, IconData icon) =>
       Semantics(
         label: '$label: $value',

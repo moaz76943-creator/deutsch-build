@@ -3,6 +3,7 @@
 /// The actual flutter_tts dependency is isolated in TtsService. Existing UI
 /// imports can remain stable while the package boundary stays in services/.
 export '../services/tts_service.dart';
+export 'shared/article_badge.dart';
 
 import '../services/tts_service.dart';
 

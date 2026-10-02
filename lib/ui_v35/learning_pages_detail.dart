@@ -183,19 +183,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
     );
   }
 
-  Color _getArticleColor(String article) {
-    switch (article.toLowerCase()) {
-      case 'der':
-        return const Color(0xFF2563EB); // Masculine/Slate Blue
-      case 'die':
-        return const Color(0xFFE11D48); // Feminine/Soft Crimson
-      case 'das':
-        return const Color(0xFF0D9488); // Neuter/Deep Teal
-      default:
-        return const Color(0xFF7C3AED); // Plural/Muted Violet
-    }
-  }
-
   Widget _buildListView(List<ContentItem> items) {
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -205,31 +192,15 @@ class _VocabularyV35State extends State<VocabularyV35> {
         final d = depthFor(x);
         final issues = widget.contentQuality.issues(x);
         final isFav = _favorites.contains(x.id);
-        final color = _getArticleColor(x.grammaticalMarker);
 
         return Card(
           child: ExpansionTile(
             title: Row(
               children: [
                 if (x.grammaticalMarker.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: color),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      x.grammaticalMarker,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  ArticleBadge(
+                    article: x.grammaticalMarker,
+                    margin: const EdgeInsets.only(left: 10),
                   ),
                 Expanded(
                   child: Text(
@@ -320,7 +291,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
       itemBuilder: (c, i) {
         final x = items[i];
         final isFav = _favorites.contains(x.id);
-        final color = _getArticleColor(x.grammaticalMarker);
+        final color = articleBadgeColor(x.grammaticalMarker);
 
         return Card(
           shape: RoundedRectangleBorder(
@@ -344,23 +315,9 @@ class _VocabularyV35State extends State<VocabularyV35> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (x.grammaticalMarker.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            x.grammaticalMarker,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        ArticleBadge(
+                          article: x.grammaticalMarker,
+                          compact: true,
                         )
                       else
                         const SizedBox(),
@@ -428,40 +385,78 @@ class _VocabularyV35State extends State<VocabularyV35> {
             _loadData();
           },
           onSpeak: () => safeSpeak(_tts, items[i].sourceText),
-          articleColor: _getArticleColor(items[i].grammaticalMarker),
+          articleColor: articleBadgeColor(items[i].grammaticalMarker),
         );
       },
     );
   }
 
-  @override
-  Widget build(BuildContext c) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('A1 • ${widget.corpus.length} وحدات تعلم'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
+  Widget _buildToolbar(BuildContext c) {
+    final scheme = Theme.of(c).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.45),
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: scheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.menu_book_rounded,
+                  color: scheme.onSecondaryContainer,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'مفرداتك الألمانية',
+                      style: Theme.of(c).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${widget.corpus.length} وحدة تعلم • استماع، حفظ ومراجعة',
+                      style: Theme.of(c).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                Expanded(
-                  child: SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(value: 'all', label: Text('الكل')),
-                      ButtonSegment(value: 'favorites', label: Text('المفضلة')),
-                      ButtonSegment(value: 'custom', label: Text('مخصص')),
-                    ],
-                    selected: {_filter},
-                    onSelectionChanged: (Set<String> newSelection) {
-                      setState(() => _filter = newSelection.first);
-                    },
-                  ),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'all', label: Text('الكل')),
+                    ButtonSegment(value: 'favorites', label: Text('المفضلة')),
+                    ButtonSegment(value: 'custom', label: Text('مخصص')),
+                  ],
+                  selected: {_filter},
+                  onSelectionChanged: (Set<String> newSelection) {
+                    setState(() => _filter = newSelection.first);
+                  },
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 SegmentedButton<ViewMode>(
                   showSelectedIcon: false,
                   segments: const [
@@ -486,61 +481,125 @@ class _VocabularyV35State extends State<VocabularyV35> {
               ],
             ),
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddCustomDialog,
-        child: const Icon(Icons.add),
-      ),
-      body: Builder(
-        builder: (c) {
-          if (_filter == 'custom') {
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _customEntries.length,
-              itemBuilder: (c, i) {
-                final e = _customEntries[i];
-                return Card(
-                  child: ListTile(
-                    title: Text(
-                      e['german_text'] as String,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    subtitle: Text(e['arabic_translation'] as String),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        await widget.dependencies.userVocabularyService
-                            .deleteCustomEntry(e['id'] as String);
-                        _loadData();
-                      },
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-
-          final displayList = _filter == 'favorites'
-              ? widget.corpus.where((x) => _favorites.contains(x.id)).toList()
-              : widget.corpus;
-
-          if (displayList.isEmpty) {
-            return const Center(child: Text('القائمة فارغة.'));
-          }
-
-          switch (_viewMode) {
-            case ViewMode.list:
-              return _buildListView(displayList);
-            case ViewMode.grid:
-              return _buildGridView(displayList);
-            case ViewMode.flashcard:
-              return _buildFlashcardView(displayList);
-          }
-        },
+        ],
       ),
     );
   }
+
+  Widget _emptyState(BuildContext c) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.auto_stories_outlined,
+            size: 44,
+            color: Theme.of(c).colorScheme.primary,
+          ),
+          const SizedBox(height: 12),
+          Text('القائمة فارغة', style: Theme.of(c).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            'غيّر الفلتر أو أضف مفردة مخصصة.',
+            style: Theme.of(c).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext c) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('المفردات')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddCustomDialog,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('إضافة'),
+      ),
+      body: Column(
+        children: [
+          _buildToolbar(c),
+          Expanded(
+            child: Builder(
+              builder: (c) {
+                if (_filter == 'custom') {
+                  if (_customEntries.isEmpty) return _emptyState(c);
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _customEntries.length,
+                    itemBuilder: (c, i) {
+                      final e = _customEntries[i];
+                      final article = e['article']?.toString().trim() ?? '';
+                      return Card(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          title: Row(
+                            children: [
+                              if (article.isNotEmpty)
+                                ArticleBadge(
+                                  article: article,
+                                  margin: const EdgeInsets.only(left: 10),
+                                ),
+                              Expanded(
+                                child: Text(
+                                  e['german_text'] as String,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                  textDirection: TextDirection.ltr,
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(e['arabic_translation'] as String),
+                          ),
+                          trailing: IconButton(
+                            tooltip: 'حذف',
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () async {
+                              await widget.dependencies.userVocabularyService
+                                  .deleteCustomEntry(e['id'] as String);
+                              _loadData();
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+
+                final displayList = _filter == 'favorites'
+                    ? widget.corpus
+                          .where((x) => _favorites.contains(x.id))
+                          .toList()
+                    : widget.corpus;
+
+                if (displayList.isEmpty) return _emptyState(c);
+
+                switch (_viewMode) {
+                  case ViewMode.list:
+                    return _buildListView(displayList);
+                  case ViewMode.grid:
+                    return _buildGridView(displayList);
+                  case ViewMode.flashcard:
+                    return _buildFlashcardView(displayList);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class _FlashcardWidget extends StatefulWidget {
@@ -656,24 +715,10 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
             ),
             const Spacer(),
             if (widget.item.grammaticalMarker.isNotEmpty)
-              Container(
+              ArticleBadge(
+                article: widget.item.grammaticalMarker,
+                prominent: true,
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: widget.articleColor, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  widget.item.grammaticalMarker,
-                  style: TextStyle(
-                    color: widget.articleColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
             Text(
               widget.item.sourceText,
