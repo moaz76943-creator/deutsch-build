@@ -785,21 +785,6 @@ class _HomeState extends State<HomeV35> {
     ],
   );
 
-  Widget _dailyFocusCard() {
-    final plan = DailyPlan.from(state);
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.today_outlined),
-        title: const Text('تركيز اليوم'),
-        subtitle: Text(
-          'المجموع: ${plan.total} • مراجعة: ${plan.review} • '
-          'علاج: ${plan.repair} • جديد: ${plan.newContent}',
-        ),
-        trailing: Text(plan.focusSkill),
-      ),
-    );
-  }
-
   Widget _sectionTitle(BuildContext c, String title, String subtitle) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 14),
