@@ -7,6 +7,7 @@ import '../../lib/models/content.dart';
 import '../../lib/services/app_dependencies.dart';
 import '../../lib/services/preferences_service.dart';
 import '../../lib/services/repository.dart';
+import '../../lib/features/gamification/domain/gamification_review_sink.dart';
 import '../../lib/language/german/german_language_pack.dart';
 import '../../lib/services/search_index.dart';
 import '../../lib/services/ai_gateway.dart';
@@ -33,6 +34,9 @@ class FakeLearnerRepository implements LearnerRepository {
   @override
   PreferencesService get prefs => throw UnimplementedError();
   @override
+  GamificationReviewSink get gamificationReviewSink =>
+      const NoopGamificationReviewSink();
+  @override
   Future<void> record({
     required LearningContent item,
     required String answer,
@@ -40,6 +44,7 @@ class FakeLearnerRepository implements LearnerRepository {
     required int seconds,
     required bool hinted,
     String? skillOverride,
+    DateTime? at,
   }) async {}
   @override
   Future<void> recordAssessment(AssessmentResult result) async {}

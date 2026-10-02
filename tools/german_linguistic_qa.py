@@ -241,6 +241,24 @@ def _validate_word_families(
                 "wordFamily must be an explicit object",
             )
             continue
+        allowed_family_keys = {
+            "familyId",
+            "baseConceptId",
+            "relationType",
+            "prefix",
+            "suffix",
+            "semanticDistance",
+            "pedagogicalLevel",
+            "interferenceRisk",
+        }
+        unknown_family_keys = sorted(set(family) - allowed_family_keys)
+        if unknown_family_keys:
+            _error(
+                issues,
+                "word_family.unknown_keys",
+                path,
+                "wordFamily contains unknown keys: " + ", ".join(unknown_family_keys),
+            )
 
         family_id = _clean(family.get("familyId"))
         base_id = _clean(family.get("baseConceptId"))

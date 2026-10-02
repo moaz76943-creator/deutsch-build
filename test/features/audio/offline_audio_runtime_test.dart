@@ -38,9 +38,8 @@ final class _Player implements RecordedAudioPlayer {
 }
 
 final class _Tts implements OfflineTtsEngine {
-  _Tts({required this.availability, this.speakResult = true});
+  _Tts({required this.availability});
   final OfflineTtsAvailability availability;
-  final bool speakResult;
   int speaks = 0;
 
   @override
@@ -54,7 +53,7 @@ final class _Tts implements OfflineTtsEngine {
     required double rate,
   }) async {
     speaks++;
-    return speakResult;
+    return true;
   }
 
   @override

@@ -14,6 +14,9 @@ except ModuleNotFoundError:
     from german_linguistic_qa import assert_german_sqlite
 
 
+_CEFR_LEVELS = {"unknown", "A1", "A2", "B1", "B2", "C1", "C2"}
+
+
 def build_sqlite_bytes(
     document: Mapping[str, Any],
     *,

@@ -234,7 +234,7 @@ def _normalize_canonical_fields(
     canonical = _require_mapping(raw, f"{path}.canonical")
     _reject_unknown_keys(
         canonical,
-        {"senseId", "register", "cefr", "semanticTags", "noun", "verb"},
+        {"senseId", "register", "cefr", "semanticTags", "noun", "verb", "wordFamily"},
         f"{path}.canonical",
     )
     sense_id = _optional_string(
@@ -506,6 +506,12 @@ def _normalize_canonical_fields(
             "valencyFrames": frames,
             "forms": forms,
         }
+
+    word_family = canonical.get("wordFamily")
+    if word_family is not None:
+        canonical_out["wordFamily"] = dict(
+            _require_mapping(word_family, f"{path}.canonical.wordFamily")
+        )
 
     normalized["canonical"] = canonical_out
     return normalized

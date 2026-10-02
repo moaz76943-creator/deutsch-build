@@ -18,7 +18,12 @@ def test_main_composes_repository_persistence_once():
         src,
         re.DOTALL,
     )
-    assert 'LearnerRepository(prefs, persistence: persistence)' in src
+    assert re.search(
+        r'LearnerRepository\(\s*prefs\s*,\s*persistence:\s*persistence\s*,\s*'
+        r'gamificationReviewSink:\s*gamificationRepository\s*,?\s*\)',
+        src,
+        re.DOTALL,
+    )
 
 
 def test_repository_boundary_does_not_construct_persistence():

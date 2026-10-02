@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:deutsch_bilarabi/services/sqlite_policy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -12,7 +11,7 @@ void main() {
   test('writable policy applies foreign keys and bounded busy timeout', () async {
     final root = await Directory.systemTemp.createTemp('sqlite_policy_');
     final path = p.join(root.path, 'policy.db');
-    const policy = AppSqlitePolicy(factory: databaseFactoryFfi);
+    final policy = AppSqlitePolicy(factory: databaseFactoryFfi);
 
     final database = await policy.openWritable(
       path: path,
@@ -45,7 +44,7 @@ void main() {
   });
 
   test('factory-backed path resolution is deterministic and traversal-safe', () async {
-    const policy = AppSqlitePolicy(factory: databaseFactoryFfi);
+    final policy = AppSqlitePolicy(factory: databaseFactoryFfi);
 
     expect(
       await policy.resolvePath(fileName: 'grammar_hub.db'),

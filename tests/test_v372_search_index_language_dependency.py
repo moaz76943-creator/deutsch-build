@@ -19,7 +19,7 @@ def test_composition_root_injects_language_normalizer():
     text = (ROOT / "lib/main.dart").read_text()
     assert "final verbIndex = contentPack.verbIndex;" in text
     assert re.search(
-        r'SearchIndex\(\s*corpus\s*,\s*verbIndex\s*,\s*languagePack\.textNormalizer\s*,?\s*\)',
+        r'SearchIndex\(\s*corpus\s*,\s*verbIndex\s*,\s*activeLanguagePack\.textNormalizer\s*,?\s*\)',
         text,
         re.DOTALL,
     )

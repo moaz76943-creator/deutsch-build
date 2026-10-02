@@ -14,7 +14,9 @@ def test_phase13_microscope_reads_canonical_runtime_grammar():
     assert "GrammarMicroscopeRepository" in hub
     assert "getRulesForTopic" in hub
     assert "getRulesForTopic" in pack
-    assert "fallback.getRulesForTopic" in pack
+    assert "fallback is GrammarMicroscopeRepository" in pack
+    assert "as GrammarMicroscopeRepository" in pack
+    assert ".getRulesForTopic(safeTopicId)" in pack
     assert "CanonicalGrammarCatalog" not in service
 
 

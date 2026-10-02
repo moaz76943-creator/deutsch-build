@@ -27,6 +27,7 @@ The single highest-risk boundary is `ContentItem` because the current fields are
 | `lib/core/mastery.dart` | LANGUAGE-AGNOSTIC | mastery evidence/calculation | keep unchanged |
 | `lib/core/safe_runtime.dart` | LANGUAGE-AGNOSTIC | runtime safety helpers | keep unchanged |
 | `lib/core/text_normalizer.dart` | LANGUAGE-SPECIFIC | German character awareness is present | split generic normalization from language rules later |
+| `lib/core/text/directional_text.dart` | LANGUAGE-PRESENTATION + INTEGRATION-SENSITIVE | generic language-direction wrapper with explicit German/Arabic convenience constructors | keep `forLanguage` shared; move pair-specific shortcuts behind language presentation adapters when compatibility permits |
 | `lib/core/content_quality.dart` | LANGUAGE-SPECIFIC + INTEGRATION-SENSITIVE | German sentence regex/quality messages and `ContentItem` fields | German quality adapter behind a generic contract |
 | `lib/core/learning_core.dart` | INTEGRATION-SENSITIVE | algorithm is generic but typed to German-shaped `ContentItem` and `ContentQuality` | introduce content projection first; do not rewrite algorithms |
 | `lib/models/content.dart` | INTEGRATION-SENSITIVE | German/Arabic field names plus article/plural | dedicated schema migration with compatibility layer |

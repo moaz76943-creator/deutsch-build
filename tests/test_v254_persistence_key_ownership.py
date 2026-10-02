@@ -14,5 +14,9 @@ def test_each_local_persistence_key_has_a_single_declared_owner():
         'verb_favorites_v1': 'lib/services/repository.dart',
         'privacy_cloud_ai_v1': 'lib/services/privacy_settings.dart',
         'privacy_speech_v1': 'lib/services/privacy_settings.dart',
-            'vocabulary_view_mode': 'lib/services/ui_preferences.dart',
+        'vocabulary_view_mode': 'lib/services/ui_preferences.dart',
+        'offline_pack_registry_v1': 'lib/services/pack_manager_service.dart',
+        'offline_active_pack_v1': 'lib/services/pack_manager_service.dart',
+        'offline_manifest_revision_v1': 'lib/services/pack_manager_service.dart',
+        'offline_manifest_acceptance_v2': 'lib/services/pack_manager_service.dart',
     }
