@@ -17,7 +17,7 @@ void main() {
     final shape = first.cardTheme.shape;
     expect(shape, isA<RoundedRectangleBorder>());
     final rounded = shape! as RoundedRectangleBorder;
-    expect(rounded.borderRadius, BorderRadius.circular(20));
+    expect(rounded.borderRadius, BorderRadius.circular(22));
   });
 
   test('dark theme keeps the same fixed design language', () {
