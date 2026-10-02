@@ -139,7 +139,8 @@ class _HomeState extends State<HomeV35> {
   @override
   Widget build(BuildContext c) {
     return Scaffold(
-      appBar: AppBar(
+      extendBody: true,
+      appBar: tab == 0 ? null : AppBar(
         title: const Text('Deutsch بالعربي'),
         actions: [
           IconButton(
@@ -217,7 +218,7 @@ class _HomeState extends State<HomeV35> {
 
   Widget _homeTab(BuildContext c) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 112),
       children: [
         const HomeProgressHero(
           levelLabel: 'A2',

@@ -428,9 +428,9 @@ class ReferenceHomeActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      _ReferenceActionCard(key: const Key('daily-lessons-card'), title: 'دروس اليوم', subtitle: '5 تمارين في انتظارك', icon: Icons.menu_book_rounded, colors: const [Color(0xFF0759D9), Color(0xFF1296F3)], onTap: onDailyLessons),
+      _ReferenceActionCard(key: const Key('daily-lessons-card'), title: 'دروس اليوم', subtitle: 'مخصص لك', icon: Icons.menu_book_rounded, colors: const [Color(0xFF0759D9), Color(0xFF1296F3)], onTap: onDailyLessons),
       const SizedBox(height: 11),
-      _ReferenceActionCard(key: const Key('ai-conversation-card'), title: 'محادثة بالذكاء الاصطناعي', subtitle: 'تحدث وتعلم بنطق طبيعي', icon: Icons.chat_bubble_rounded, colors: const [Color(0xFF6424E8), Color(0xFFB319E7)], onTap: onAiConversation),
+      _ReferenceActionCard(key: const Key('ai-conversation-card'), title: 'محادثة بالذكاء الاصطناعي', subtitle: 'تحدث وتعلم بطلاقة', icon: Icons.chat_bubble_rounded, colors: const [Color(0xFF6424E8), Color(0xFFB319E7)], onTap: onAiConversation),
       const SizedBox(height: 11),
       Row(children: [
         Expanded(child: _ReferenceActionCard(key: const Key('quick-practice-card'), title: 'التدريب السريع', subtitle: '15 دقيقة', icon: Icons.edit_rounded, compact: true, colors: const [Color(0xFF087D58), Color(0xFF17B873)], onTap: onQuickPractice)),
@@ -457,7 +457,7 @@ class _ReferenceActionCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Ink(
-        height: compact ? 112 : 88,
+        height: compact ? 86 : 88,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
