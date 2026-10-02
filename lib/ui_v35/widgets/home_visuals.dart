@@ -29,138 +29,175 @@ class HomeProgressHero extends StatelessWidget {
 
     return Container(
       key: const Key('reference-home-hero'),
-      padding: const EdgeInsets.all(20),
+      height: 286,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
-          colors: <Color>[
-            Color(0xFF071E4B),
-            Color(0xFF123F91),
-            Color(0xFF087D79),
-          ],
+          colors: [Color(0xFF061B46), Color(0xFF103E91), Color(0xFF087B78)],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-        boxShadow: <BoxShadow>[
+        border: Border.all(color: Colors.white24),
+        boxShadow: [
           BoxShadow(
-            color: AppPalette.primary.withValues(alpha: 0.22),
-            blurRadius: 30,
-            offset: const Offset(0, 14),
+            color: const Color(0xFF0B4FB3).withValues(alpha: .30),
+            blurRadius: 32,
+            offset: const Offset(0, 15),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const Text(
-                      'Hallo Salim! 👋',
-                      style: TextStyle(
+      child: Stack(
+        children: [
+          const Positioned(left: -12, bottom: 72, child: _LandmarkSilhouette()),
+          Positioned(
+            top: -70,
+            left: -40,
+            child: Container(
+              width: 190,
+              height: 190,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF33E3D2).withValues(alpha: .10),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 17, 18, 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Hallo Salim! 👋',
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'واصل التعلم وحافظ على تقدمك',
+                  style: TextStyle(color: Colors.white.withValues(alpha: .78), fontSize: 12),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Container(
+                      key: const Key('home-level-badge'),
+                      padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 9),
+                      decoration: BoxDecoration(
                         color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w900,
-                        height: 1.2,
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 12, offset: Offset(0, 5))],
+                      ),
+                      child: Text(
+                        levelLabel,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(color: Color(0xFF071E4B), fontSize: 27, fontWeight: FontWeight.w900),
                       ),
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      'واصل التعلم وحافظ على تقدمك',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.80),
-                        fontSize: 13,
-                        height: 1.4,
+                    const Spacer(),
+                    SizedBox(
+                      width: 76,
+                      height: 76,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            key: const Key('home-circular-progress'),
+                            value: value,
+                            strokeWidth: 7,
+                            strokeCap: StrokeCap.round,
+                            backgroundColor: Colors.white24,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF53F1B8)),
+                          ),
+                          Text(
+                            pct.toString() + '%',
+                            textDirection: TextDirection.ltr,
+                            style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              _LevelBadge(label: levelLabel),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  'التقدم العام',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.82),
-                    fontWeight: FontWeight.w700,
-                  ),
+                const Spacer(),
+                Row(
+                  children: [
+                    Expanded(child: _HeroMetric(icon: Icons.local_fire_department_rounded, iconColor: Color(0xFFFF7A21), value: streak.toString(), label: 'يوم متتالي')),
+                    const SizedBox(width: 8),
+                    Expanded(child: _HeroMetric(icon: Icons.star_rounded, iconColor: Color(0xFFFFD23F), value: xp.toString(), label: 'نقطة')),
+                    const SizedBox(width: 8),
+                    const Expanded(child: _HeroMetric(icon: Icons.emoji_events_rounded, iconColor: Color(0xFFFFC43D), value: '24', label: 'شهادة صغيرة')),
+                  ],
                 ),
-              ),
-              Text(
-                '$pct%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: SizedBox(
-              height: 72,
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  CircularProgressIndicator(
-                    key: const Key('home-circular-progress'),
-                    value: value,
-                    strokeWidth: 7,
-                    strokeCap: StrokeCap.round,
-                    backgroundColor: Colors.white24,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF53F1B8)),
-                  ),
-                  Text('$pct%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-                ],
-              ),
+              ],
             ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: _HeroMetric(
-                  icon: Icons.local_fire_department_rounded,
-                  iconColor: const Color(0xFFFF7A21),
-                  value: '$streak',
-                  label: 'يوم متتالي',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _HeroMetric(
-                  icon: Icons.star_rounded,
-                  iconColor: const Color(0xFFFFD23F),
-                  value: '$xp',
-                  label: 'نقطة',
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: _HeroMetric(
-                  icon: Icons.emoji_events_rounded,
-                  iconColor: Color(0xFFFFC43D),
-                  value: '24',
-                  label: 'شهادة صغيرة',
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
+}
+
+class _HeroMetric extends StatelessWidget {
+  const _HeroMetric({required this.icon, required this.iconColor, required this.value, required this.label});
+  final IconData icon;
+  final Color iconColor;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(17),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 11, sigmaY: 11),
+      child: Container(
+        height: 76,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .12),
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: Colors.white.withValues(alpha: .22)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 22, color: iconColor),
+            const SizedBox(height: 2),
+            Text(value, textDirection: TextDirection.ltr, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withValues(alpha: .82), fontSize: 10)),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _LandmarkSilhouette extends StatelessWidget {
+  const _LandmarkSilhouette();
+
+  @override
+  Widget build(BuildContext context) => Opacity(
+    opacity: .15,
+    child: SizedBox(width: 210, height: 95, child: CustomPaint(painter: _LandmarkPainter())),
+  );
+}
+
+class _LandmarkPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = Colors.white;
+    final path = Path()
+      ..moveTo(0, size.height)..lineTo(0, 68)..lineTo(24, 68)..lineTo(24, 45)
+      ..lineTo(35, 45)..lineTo(35, 25)..lineTo(42, 10)..lineTo(49, 25)..lineTo(49, 45)
+      ..lineTo(67, 45)..lineTo(67, 64)..lineTo(88, 64)..lineTo(88, 36)..lineTo(98, 36)
+      ..lineTo(98, 18)..lineTo(104, 5)..lineTo(110, 18)..lineTo(110, 36)..lineTo(127, 36)
+      ..lineTo(127, 60)..lineTo(151, 60)..lineTo(151, 40)..lineTo(162, 40)..lineTo(162, 22)
+      ..lineTo(169, 8)..lineTo(176, 22)..lineTo(176, 40)..lineTo(193, 40)..lineTo(193, 68)
+      ..lineTo(size.width, 68)..lineTo(size.width, size.height)..close();
+    canvas.drawPath(path, p);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class LearningTrackGrid extends StatelessWidget {
@@ -278,82 +315,6 @@ class FeatureNavigationCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _LevelBadge extends StatelessWidget {
-  const _LevelBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    key: const Key('home-level-badge'),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(999),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
-    ),
-    child: Text(
-      label,
-      textDirection: TextDirection.ltr,
-      style: const TextStyle(
-        color: Color(0xFF071E4B),
-        fontWeight: FontWeight.w900,
-        fontSize: 22,
-      ),
-    ),
-  );
-}
-
-class _HeroMetric extends StatelessWidget {
-  const _HeroMetric({
-    required this.icon,
-    required this.iconColor,
-    required this.value,
-    required this.label,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-    ),
-    child: Column(
-      children: <Widget>[
-        Icon(icon, size: 20, color: iconColor),
-        const SizedBox(height: 5),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.72),
-            fontSize: 10,
-          ),
-        ),
-      ],
-    ),
-  );
 }
 
 class _LearningTrackCard extends StatelessWidget {
