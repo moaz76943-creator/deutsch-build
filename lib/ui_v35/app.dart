@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/learning_core.dart';
 import 'grammar/grammar_hub_page.dart';
 import 'word_families/word_families_page.dart';
 import 'pronunciation/offline_pronunciation_lab_page.dart';
