@@ -121,7 +121,7 @@ class HomeProgressHero extends StatelessWidget {
                     backgroundColor: Colors.white24,
                     valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF53F1B8)),
                   ),
-                  Text('\$pct%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                  Text('$pct%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
                 ],
               ),
             ),
