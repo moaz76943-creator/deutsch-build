@@ -11,13 +11,13 @@ void main() {
         theme: AppDesignSystem.light(),
         home: const Scaffold(
           body: SingleChildScrollView(
-            child: ReferenceHomeHero(
-              greeting: 'Hallo Salim! 👋',
+            child: HomeProgressHero(
               levelLabel: 'A2',
-              progress: 0.65,
+              overallProgress: 0.65,
               streak: 37,
-              points: 1280,
-              certificates: 24,
+              masteredWords: 0,
+              totalWords: 0,
+              xp: 1280,
             ),
           ),
         ),
