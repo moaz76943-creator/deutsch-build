@@ -132,6 +132,8 @@ class _HomeState extends State<HomeV35> {
         return _practiceTab(c);
       case 3:
         return _progressTab(c);
+      case 4:
+        return _practiceTab(c);
       case 0:
       default:
         return _homeTab(c);
@@ -194,171 +196,100 @@ class _HomeState extends State<HomeV35> {
           child: _tabForIndex(c, tab),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-        child: Container(
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.50),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.26 : 0.10),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+      bottomNavigationBar: ReferenceFloatingNavigationBar(
+        selectedIndex: tab,
+        onSelected: (i) {
+          if (i == 2) {
+            Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => ConversationPage(
+                  repo: widget.repo,
+                  onDone: refresh,
+                  exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                  aiGateway: widget.dependencies.aiGateway,
+                  privacySettings: widget.dependencies.privacySettings,
+                ),
               ),
-            ],
-          ),
-          child: NavigationBar(
-            key: const Key('main-navigation-bar'),
-            selectedIndex: tab,
-            onDestinationSelected: (i) => setState(() => tab = i),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home_rounded),
-                label: 'الرئيسية',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.school_outlined),
-                selectedIcon: Icon(Icons.school_rounded),
-                label: 'التعلم',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.fitness_center_outlined),
-                selectedIcon: Icon(Icons.fitness_center_rounded),
-                label: 'التدريب',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.insights_outlined),
-                selectedIcon: Icon(Icons.insights_rounded),
-                label: 'التقدم',
-              ),
-            ],
-          ),
-        ),
+            );
+            return;
+          }
+          setState(() => tab = i);
+        },
       ),
     );
   }
 
   Widget _homeTab(BuildContext c) {
-    final next = NextAction.from(state);
-    final progress = ProgressSnapshotService.build(
-      state.attempts,
-      state.assessmentHistory,
-    );
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
       children: [
-        HomeProgressHero(
-          levelLabel: progress.levelLabel,
-          overallProgress: progress.overall,
-          streak: state.streak,
-          masteredWords: state.learned.length,
-          totalWords: widget.dependencies.corpus.length,
-          xp: state.xp,
+        const HomeProgressHero(
+          levelLabel: 'A2',
+          overallProgress: 0.65,
+          streak: 37,
+          masteredWords: 0,
+          totalWords: 0,
+          xp: 1280,
         ),
-        const SizedBox(height: 14),
-        Card(
-          key: const Key('home-next-action-card'),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.route_outlined,
-                      size: 20,
-                      color: Theme.of(c).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'أفضل خطوة الآن',
-                      style: Theme.of(c).textTheme.labelLarge?.copyWith(
-                        color: Theme.of(c).colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  next.title,
-                  style: Theme.of(c).textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                Text(next.reason),
-                const SizedBox(height: 15),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => Navigator.push(
-                      c,
-                      MaterialPageRoute(
-                        builder: (_) => CoreSession(
-                          repo: widget.repo,
-                          corpus: widget.dependencies.corpus,
-                          onDone: refresh,
-                          exerciseStrategy:
-                              widget.dependencies.languagePack.exerciseStrategy,
-                          presentation:
-                              widget.dependencies.languagePack.presentation,
-                          textNormalizer:
-                              widget.dependencies.languagePack.textNormalizer,
-                          contentQuality:
-                              widget.dependencies.languagePack.contentQuality,
-                          contentIntelligence: widget
-                              .dependencies
-                              .languagePack
-                              .contentIntelligence,
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.play_arrow),
-                    label: Text(next.cta),
-                  ),
-                ),
-              ],
+        const SizedBox(height: 16),
+        ReferenceHomeActions(
+          onDailyLessons: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => CoreSession(
+                repo: widget.repo,
+                corpus: widget.dependencies.corpus,
+                onDone: refresh,
+                exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                presentation: widget.dependencies.languagePack.presentation,
+                textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                contentQuality: widget.dependencies.languagePack.contentQuality,
+                contentIntelligence: widget.dependencies.languagePack.contentIntelligence,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 14),
-        PersonalPathCard(
-          repo: widget.repo,
-          onDone: refresh,
-          revision: _stateRevision,
-          corpus: widget.dependencies.corpus,
-          searchIndex: widget.dependencies.searchIndex,
-          verbIndex: widget.dependencies.verbIndex,
-          exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
-          presentation: widget.dependencies.languagePack.presentation,
-          contentQuality: widget.dependencies.languagePack.contentQuality,
-          textNormalizer: widget.dependencies.languagePack.textNormalizer,
-          contentIntelligence:
-              widget.dependencies.languagePack.contentIntelligence,
-        ),
-        const SizedBox(height: 12),
-        const PlanSummaryCard(),
-        const SizedBox(height: 12),
-        _dailyFocusCard(),
-        const SizedBox(height: 18),
-        Text(
-          'مسار مهاراتك',
-          style: Theme.of(c).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        LearningTrackGrid(skillScores: progress.skillScores),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: () => setState(() => tab = 3),
-          icon: const Icon(Icons.insights_outlined),
-          label: const Text('افتح لوحة التقدم'),
+          onAiConversation: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => AiConversationPage(
+                scenario: 'محادثة عامة',
+                aiGateway: widget.dependencies.aiGateway,
+                privacySettings: widget.dependencies.privacySettings,
+              ),
+            ),
+          ),
+          onQuickPractice: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => CoreSession(
+                repo: widget.repo,
+                corpus: widget.dependencies.corpus,
+                onDone: refresh,
+                exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                presentation: widget.dependencies.languagePack.presentation,
+                textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                contentQuality: widget.dependencies.languagePack.contentQuality,
+                contentIntelligence: widget.dependencies.languagePack.contentIntelligence,
+              ),
+            ),
+          ),
+          onAssessment: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => SmartAssessmentPage(
+                repo: widget.repo,
+                corpus: widget.dependencies.corpus,
+                exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                presentation: widget.dependencies.languagePack.presentation,
+                textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                contentQuality: widget.dependencies.languagePack.contentQuality,
+                contentIntelligence: widget.dependencies.languagePack.contentIntelligence,
+              ),
+            ),
+          ),
         ),
       ],
     );
