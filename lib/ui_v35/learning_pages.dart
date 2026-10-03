@@ -1,5 +1,6 @@
 import '../services/app_dependencies.dart';
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../core/learning_core.dart';
 import '../core/view_mode.dart';
 import '../core/srs_facets.dart';
 import '../features/session/universal_session_orchestrator.dart';
+import '../features/audio/domain/entities/audio_request.dart';
 import '../language/language_content_intelligence.dart';
 import '../language/language_content_quality.dart';
 import '../language/language_exercise_strategy.dart';

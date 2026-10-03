@@ -35,6 +35,10 @@ import 'services/pack_database_security.dart';
 import 'services/open_source_license_registry.dart';
 import 'services/tts_service.dart';
 import 'services/runtime_failure_reporter.dart';
+import 'features/app_settings/application/settings_notifier.dart';
+import 'features/app_settings/data/canonical_learning_progress_resetter.dart';
+import 'features/app_settings/data/local_settings_repository.dart';
+import 'features/app_settings/data/preferences_settings_local_data_source.dart';
 import 'features/audio/data/android_recorded_audio_player.dart';
 import 'features/audio/data/audio_manifest_catalog.dart';
 import 'features/audio/offline_audio_runtime.dart';
@@ -98,6 +102,14 @@ Future<void> main() async {
           gamificationReviewSink: gamificationRepository,
           errorDiagnosticSink: errorPatternAgent,
         );
+        final settingsNotifier = SettingsNotifier(
+          LocalSettingsRepository(
+            PreferencesSettingsLocalDataSource(prefs),
+          ),
+          CanonicalLearningProgressResetter(repo),
+        );
+        await settingsNotifier.initialize();
+
         final languagePack = const GermanLanguagePack();
         final packSecurity = PackSecurityRuntimeConfig.fromEnvironment();
         final manifestVerifier = PackManifestVerifiers.fromSingleBase64Key(
@@ -136,10 +148,14 @@ Future<void> main() async {
           ttsEngine: FlutterOfflineTtsEngine(),
           catalog: audioCatalog,
           recordedPlayer: AndroidRecordedAudioPlayer(),
+          speechRateProvider: () =>
+              settingsNotifier.preferences.speechRate,
         );
         final sourceAudioRuntime = OfflineAudioRuntime(
           speechProfile: const ArabicSpeechProfile(),
           ttsEngine: FlutterOfflineTtsEngine(),
+          speechRateProvider: () =>
+              settingsNotifier.preferences.speechRate,
         );
         final contentPack = activeLanguagePack.contentPack;
         final corpus = contentPack.items;
@@ -151,6 +167,7 @@ Future<void> main() async {
         );
         final dependencies = AppDependencies<ContentItem>(
           grammarHubService: runtime.grammarHubService,
+          settingsController: settingsNotifier,
           gamificationRepository: gamificationRepository,
           audioRuntime: audioRuntime,
           sourceAudioRuntime: sourceAudioRuntime,

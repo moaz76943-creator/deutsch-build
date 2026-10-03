@@ -29,7 +29,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
   List<Map<String, dynamic>> _customEntries = [];
   String _filter = 'all';
   ViewMode _viewMode = ViewMode.list;
-  final SafeTtsController _tts = SafeTtsController();
   final PageController _pageController = PageController();
 
   @override
@@ -41,7 +40,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
   @override
   void dispose() {
-    _tts.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -68,6 +66,20 @@ class _VocabularyV35State extends State<VocabularyV35> {
     await UiPreferences(
       widget.dependencies.preferencesService,
     ).setViewMode(mode);
+  }
+
+  void _speakSource(ContentItem item) {
+    unawaited(
+      widget.dependencies.audioRuntime
+          .play(
+            AudioRequest(
+              text: item.sourceText,
+              languageCode: widget.dependencies.languagePack.targetLocale,
+              conceptId: item.id,
+            ),
+          )
+          .then<void>((_) {}),
+    );
   }
 
   void _showAddCustomDialog() {
@@ -195,6 +207,8 @@ class _VocabularyV35State extends State<VocabularyV35> {
   }
 
   Widget _buildListView(List<ContentItem> items) {
+    final showTranslation =
+        widget.dependencies.settingsController.preferences.showAutomaticTranslation;
     return ListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: items.length,
@@ -238,7 +252,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.volume_up_outlined),
-                  onPressed: () => safeSpeak(_tts, x.sourceText),
+                  onPressed: () => _speakSource(x),
                 ),
                 IconButton(
                   icon: Icon(
@@ -253,7 +267,9 @@ class _VocabularyV35State extends State<VocabularyV35> {
                 ),
               ],
             ),
-            subtitle: Text('${x.translationText} • ${x.topic}'),
+            subtitle: Text(
+              showTranslation ? '${x.translationText} • ${x.topic}' : x.topic,
+            ),
             children: [
               ListTile(
                 title: Text(x.exampleText, textDirection: TextDirection.ltr),
@@ -306,6 +322,8 @@ class _VocabularyV35State extends State<VocabularyV35> {
   }
 
   Widget _buildGridView(List<ContentItem> items) {
+    final showTranslation =
+        widget.dependencies.settingsController.preferences.showAutomaticTranslation;
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -331,7 +349,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
             ),
           ),
           child: InkWell(
-            onTap: () => safeSpeak(_tts, x.sourceText),
+            onTap: () => _speakSource(x),
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -388,14 +406,16 @@ class _VocabularyV35State extends State<VocabularyV35> {
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.ltr,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    x.translationText,
-                    style: const TextStyle(fontSize: 14),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  if (showTranslation) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      x.translationText,
+                      style: const TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const Spacer(),
                   const Icon(
                     Icons.volume_up_outlined,
@@ -425,7 +445,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
             );
             _loadData();
           },
-          onSpeak: () => safeSpeak(_tts, items[i].sourceText),
+          onSpeak: () => _speakSource(items[i]),
           articleColor: _getArticleColor(items[i].grammaticalMarker),
         );
       },
@@ -490,8 +510,11 @@ class _VocabularyV35State extends State<VocabularyV35> {
         onPressed: _showAddCustomDialog,
         child: const Icon(Icons.add),
       ),
-      body: Builder(
-        builder: (c) {
+      body: ListenableBuilder(
+        listenable: widget.dependencies.settingsController,
+        builder: (c, _) {
+          final showTranslation = widget.dependencies.settingsController
+              .preferences.showAutomaticTranslation;
           if (_filter == 'custom') {
             return ListView.builder(
               padding: const EdgeInsets.all(12),
@@ -504,7 +527,9 @@ class _VocabularyV35State extends State<VocabularyV35> {
                       e['german_text'] as String,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    subtitle: Text(e['arabic_translation'] as String),
+                    subtitle: showTranslation
+                        ? Text(e['arabic_translation'] as String)
+                        : null,
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
                       onPressed: () async {
