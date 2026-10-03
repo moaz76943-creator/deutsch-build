@@ -34,6 +34,29 @@ Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
       child: child ?? const SizedBox.shrink(),
     );
 
+final class _PreferenceTextScaler extends TextScaler {
+  const _PreferenceTextScaler(this.base, this.factor);
+
+  final TextScaler base;
+  final double factor;
+
+  @override
+  double scale(double fontSize) => base.scale(fontSize) * factor;
+
+  @override
+  double get textScaleFactor => scale(14) / 14;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _PreferenceTextScaler &&
+          other.base == base &&
+          other.factor == factor;
+
+  @override
+  int get hashCode => Object.hash(base, factor);
+}
+
 class DeutschAppV35 extends StatefulWidget {
   final LearnerRepository repo;
   final AuthSessionController auth;
@@ -93,7 +116,7 @@ class _AppState extends State<DeutschAppV35> {
                   textDirection: TextDirection.rtl,
                   child: MediaQuery(
                     data: media.copyWith(
-                      textScaler: TextScaler.linear(scale),
+                      textScaler: _PreferenceTextScaler(media.textScaler, scale),
                     ),
                     child: child ?? const SizedBox.shrink(),
                   ),
@@ -206,6 +229,11 @@ class _HomeState extends State<HomeV35> {
                     MaterialPageRoute(
                       builder: (_) => AppSettingsScreen(
                         notifier: widget.dependencies.settingsController,
+                        accessibilityListenable: widget.dependencies.neuroSettings,
+                        cognitiveAccessibilityEnabled:
+                            () => widget.dependencies.neuroSettings.isEnabled,
+                        onCognitiveAccessibilityChanged:
+                            widget.dependencies.neuroSettings.setEnabled,
                         onProgressReset: refresh,
                       ),
                     ),
