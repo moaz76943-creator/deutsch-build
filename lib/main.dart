@@ -44,6 +44,8 @@ import 'features/audio/data/audio_manifest_catalog.dart';
 import 'features/audio/offline_audio_runtime.dart';
 import 'features/pronunciation/data/android_pronunciation_signal_probe.dart';
 import 'features/gamification/sqlite_gamification_repository.dart';
+import 'features/error_pattern_agent/application/error_pattern_agent_notifier.dart';
+import 'features/error_pattern_agent/data/local_error_diagnostic_repository.dart';
 import 'ui_v35/app.dart';
 import 'language/german/german_language_pack.dart';
 import 'language/arabic/arabic_speech_profile.dart';
@@ -81,6 +83,10 @@ Future<void> main() async {
     () async {
       try {
         final prefs = await PreferencesService.instance();
+        final errorPatternAgent = ErrorPatternAgentNotifier(
+          LocalErrorDiagnosticRepository(prefs),
+        );
+        await errorPatternAgent.initialize();
         final persistence = LearnerPersistence(
           prefs,
           LearnerRepository.key,
@@ -94,6 +100,7 @@ Future<void> main() async {
           prefs,
           persistence: persistence,
           gamificationReviewSink: gamificationRepository,
+          errorDiagnosticSink: errorPatternAgent,
         );
         final settingsNotifier = SettingsNotifier(
           LocalSettingsRepository(
@@ -180,6 +187,7 @@ Future<void> main() async {
           userVocabularyService: UserVocabularyService.instance,
           favoritesRepository: FavoritesRepository.instance,
           preferencesService: prefs,
+          errorPatternAgent: errorPatternAgent,
         );
         final config = BackendRuntimeConfig.fromEnvironment();
         final BackendTransport transport =

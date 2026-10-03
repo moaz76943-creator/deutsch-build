@@ -5,17 +5,20 @@ import '../../../../design_system/app_glass_card.dart';
 import '../../../../design_system/app_typography.dart';
 import '../../application/grammar_drill_notifier.dart';
 import '../../domain/grammar_drill_models.dart';
+import '../../../error_pattern_agent/domain/error_diagnostic_repository.dart';
 import '../widgets/interactive_sentence_builder_widget.dart';
 
 class GrammarDrillScreen extends StatefulWidget {
   const GrammarDrillScreen({
     required this.exercises,
     required this.levelLabel,
+    this.errorDiagnosticSink,
     super.key,
   });
 
   final List<GrammarDrill> exercises;
   final String levelLabel;
+  final ErrorDiagnosticSink? errorDiagnosticSink;
 
   @override
   State<GrammarDrillScreen> createState() => _GrammarDrillScreenState();
@@ -27,7 +30,11 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
   @override
   void initState() {
     super.initState();
-    _notifier = GrammarDrillNotifier(widget.exercises);
+    _notifier = GrammarDrillNotifier(
+      widget.exercises,
+      errorDiagnosticSink:
+          widget.errorDiagnosticSink ?? const NoopErrorDiagnosticSink(),
+    );
   }
 
   @override

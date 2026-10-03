@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../domain/grammar_drill_evaluator.dart';
 import '../domain/grammar_drill_models.dart';
+import '../../error_pattern_agent/domain/error_diagnostic_repository.dart';
+import '../../error_pattern_agent/domain/error_pattern_models.dart';
 
 final class GrammarDrillState {
   final List<GrammarDrill> exercises;
@@ -84,11 +88,13 @@ final class GrammarDrillState {
 
 final class GrammarDrillNotifier extends ChangeNotifier {
   final GrammarDrillEvaluator evaluator;
+  final ErrorDiagnosticSink errorDiagnosticSink;
   late GrammarDrillState _state;
 
   GrammarDrillNotifier(
     List<GrammarDrill> exercises, {
     this.evaluator = const GrammarDrillEvaluator(),
+    this.errorDiagnosticSink = const NoopErrorDiagnosticSink(),
   }) {
     if (exercises.isEmpty) {
       throw ArgumentError.value(exercises, 'exercises', 'must not be empty');
@@ -151,6 +157,65 @@ final class GrammarDrillNotifier extends ChangeNotifier {
         lastAnswerCorrect: evaluation.correct,
       ),
     );
+    if (!evaluation.correct) {
+      unawaited(_recordDiagnosticFailure(current, answer));
+    }
+  }
+
+  Future<void> _recordDiagnosticFailure(
+    GrammarDrill exercise,
+    Object answer,
+  ) async {
+    final signal = switch (exercise) {
+      SentenceReorderExercise sentence => LearningFailureSignal(
+          source: ErrorEventSource.grammar,
+          skillTag: 'sentence_reorder',
+          expected: _sentenceText(
+            sentence,
+            sentence.correctTokenIds,
+          ),
+          actual: _sentenceText(
+            sentence,
+            answer is List<String> ? answer : const <String>[],
+          ),
+          focus: 'V2 / Satzstellung',
+          occurredAt: DateTime.now(),
+        ),
+      CaseSelectionDrill grammarCase => LearningFailureSignal(
+          source: ErrorEventSource.grammar,
+          skillTag: 'case_${grammarCase.targetCase.name}',
+          expected: grammarCase.expectedArticle,
+          actual: answer.toString(),
+          focus: grammarCase.noun,
+          occurredAt: DateTime.now(),
+        ),
+      VerbConjugationDrill verb => LearningFailureSignal(
+          source: ErrorEventSource.grammar,
+          skillTag: 'verb_conjugation',
+          expected: verb.expectedForm,
+          actual: answer.toString(),
+          focus: verb.infinitive,
+          occurredAt: DateTime.now(),
+        ),
+    };
+    try {
+      await errorDiagnosticSink.recordFailure(signal);
+    } on Object {
+      // Diagnostics never block the exercise feedback loop.
+    }
+  }
+
+  String _sentenceText(
+    SentenceReorderExercise exercise,
+    List<String> ids,
+  ) {
+    final byId = <String, GrammarToken>{
+      for (final token in exercise.tokens) token.id: token,
+    };
+    return ids
+        .map((id) => byId[id]?.text)
+        .whereType<String>()
+        .join(' ');
   }
 
   void retry() {
