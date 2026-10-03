@@ -23,4 +23,5 @@ def test_each_local_persistence_key_has_a_single_declared_owner():
         'offline_active_pack_v1': 'lib/services/pack_manager_service.dart',
         'offline_manifest_revision_v1': 'lib/services/pack_manager_service.dart',
         'offline_manifest_acceptance_v2': 'lib/services/pack_manager_service.dart',
+        'search_custom_word_notes_v1': 'lib/features/search/infrastructure/local_bookmarks_repository.dart',
     }

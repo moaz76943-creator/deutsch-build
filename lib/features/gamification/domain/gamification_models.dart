@@ -114,6 +114,7 @@ final class GamificationProfile {
     this.lastLocalDay,
     this.lastTimezoneOffsetMinutes,
     this.clockAnomalyDetected = false,
+    this.streakFreezeAvailable = true,
   });
 
   final int totalXp;
@@ -123,6 +124,7 @@ final class GamificationProfile {
   final String? lastLocalDay;
   final int? lastTimezoneOffsetMinutes;
   final bool clockAnomalyDetected;
+  final bool streakFreezeAvailable;
 
   XpProgress get xpProgress => XpProgress.fromTotalXp(totalXp);
 
@@ -143,6 +145,7 @@ final class GamificationReviewEvent {
     required this.requestedXp,
     required this.occurredAtUtc,
     required this.timezoneOffsetMinutes,
+    this.useStreakFreeze = false,
   });
 
   final String reviewId;
@@ -152,6 +155,7 @@ final class GamificationReviewEvent {
   final int requestedXp;
   final DateTime occurredAtUtc;
   final int timezoneOffsetMinutes;
+  final bool useStreakFreeze;
 }
 
 final class UnlockedMilestone {
@@ -190,10 +194,12 @@ final class GamificationTransition {
     required this.awardedXp,
     required this.clockAnomaly,
     required this.newlyUnlocked,
+    this.streakFreezeUsed = false,
   });
 
   final GamificationProfile profile;
   final int awardedXp;
   final bool clockAnomaly;
   final List<MilestoneBadge> newlyUnlocked;
+  final bool streakFreezeUsed;
 }
