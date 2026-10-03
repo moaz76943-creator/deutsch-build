@@ -16,10 +16,9 @@ final class AndroidRecordedAudioPlayer implements RecordedAudioPlayer {
   Future<bool> playAsset(String assetPath) async {
     if (_closed || !_isSafeAssetPath(assetPath)) return false;
     try {
-      return await _channel.invokeMethod<bool>(
-            'playAsset',
-            <String, Object>{'assetPath': assetPath},
-          ) ??
+      return await _channel.invokeMethod<bool>('playAsset', <String, Object>{
+            'assetPath': assetPath,
+          }) ??
           false;
     } on MissingPluginException {
       return false;

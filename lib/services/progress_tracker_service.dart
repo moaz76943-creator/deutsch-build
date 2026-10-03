@@ -342,9 +342,7 @@ class ProgressTrackerService {
     }
   }
 
-  Map<String, Object?>? _normalizeImportedSrsRow(
-    Map<String, dynamic> row,
-  ) {
+  Map<String, Object?>? _normalizeImportedSrsRow(Map<String, dynamic> row) {
     final conceptId = (row['conceptId'] ?? row['id'])?.toString().trim() ?? '';
     final facetType = ReviewFacetType.fromWire(row['facetType']?.toString());
     final variantKey = ReviewFacetKey.normalizeVariant(

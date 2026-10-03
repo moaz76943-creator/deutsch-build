@@ -108,7 +108,8 @@ final class ActivePackRuntimeProvider {
   }) : embeddedLanguagePack = languagePack,
        _databaseKeyStore =
            databaseKeyStore ?? const UnavailablePackDatabaseKeyStore(),
-       _databaseOpener = databaseOpener ??
+       _databaseOpener =
+           databaseOpener ??
            (databaseFactory == null
                ? const SqlCipherPackDatabaseSecurity()
                : FactoryBackedPackDatabaseOpener(databaseFactory));
@@ -156,9 +157,7 @@ final class ActivePackRuntimeProvider {
       }
       final databaseKey = await _databaseKeyStore.readKey();
       if (databaseKey == null) {
-        throw const RuntimePackAdmissionException(
-          'pack_database_key_missing',
-        );
+        throw const RuntimePackAdmissionException('pack_database_key_missing');
       }
       db = await _databaseOpener.openReadOnly(
         sqlitePath,

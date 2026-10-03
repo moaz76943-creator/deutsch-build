@@ -75,8 +75,7 @@ class GrammarTopicDetailPage extends StatelessWidget {
                       BidiText(
                         DirectionalText.german(
                           topic.formulaPattern!,
-                          semanticRole:
-                              LinguisticSemanticRole.grammarLabel,
+                          semanticRole: LinguisticSemanticRole.grammarLabel,
                         ),
                         style: const TextStyle(
                           fontFamily: 'Inter',

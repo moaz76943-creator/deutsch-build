@@ -21,9 +21,7 @@ abstract final class PronunciationSignalEvaluator {
         .toInt();
     final observedMs = features.voicedDurationMs;
     final delta = (observedMs - expectedMs).abs();
-    final timingScore = (1 - (delta / expectedMs))
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final timingScore = (1 - (delta / expectedMs)).clamp(0.0, 1.0).toDouble();
 
     if (features.rms < .012) {
       return PronunciationProductionFeedback(
@@ -50,8 +48,7 @@ abstract final class PronunciationSignalEvaluator {
         signalAvailable: true,
         signalUsable: false,
         timingScore: timingScore,
-        messageAr:
-            'المقطع المنطوق قصير جدًا للتحليل. انطق الكلمة كاملة ثم أعد المحاولة.',
+        messageAr: 'المقطع المنطوق قصير جدًا للتحليل. انطق الكلمة كاملة ثم أعد المحاولة.',
         features: features,
       );
     }
@@ -60,8 +57,7 @@ abstract final class PronunciationSignalEvaluator {
         signalAvailable: true,
         signalUsable: false,
         timingScore: timingScore,
-        messageAr:
-            'هناك ضوضاء أو احتكاك مرتفع في التسجيل. جرّب مكانًا أهدأ.',
+        messageAr: 'هناك ضوضاء أو احتكاك مرتفع في التسجيل. جرّب مكانًا أهدأ.',
         features: features,
       );
     }

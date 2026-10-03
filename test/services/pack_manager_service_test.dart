@@ -92,42 +92,45 @@ void main() {
     );
   });
 
-  test('corrupted archive is rejected before extraction or encryption', () async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-    final prefs = await PreferencesService.instance();
-    final root = await Directory.systemTemp.createTemp('pack_corrupt_');
-    final extractor = TrackingExtractor();
-    final cipher = PassthroughCipher();
-    final service = PackManagerService(
-      prefs,
-      rootDirectory: root,
-      manifestVerifier: const AcceptingManifestVerifier(),
-      databaseKeyStore: const TestKeyStore(),
-      databaseCipher: cipher,
-      downloader: BytesDownloader(utf8.encode('abd')),
-      extractor: extractor,
-    );
-    await service.loadManifestJson(
-      _manifestJson(
-        sha256:
-            'ba7816bf8f01cfea414140de5dae2223'
-            'b00361a396177a9cb410ff61f20015ad',
-        contentSha256: List<String>.filled(64, 'b').join(),
-        archiveSizeBytes: 3,
-        installedSizeBytes: 1,
-      ),
-    );
+  test(
+    'corrupted archive is rejected before extraction or encryption',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final prefs = await PreferencesService.instance();
+      final root = await Directory.systemTemp.createTemp('pack_corrupt_');
+      final extractor = TrackingExtractor();
+      final cipher = PassthroughCipher();
+      final service = PackManagerService(
+        prefs,
+        rootDirectory: root,
+        manifestVerifier: const AcceptingManifestVerifier(),
+        databaseKeyStore: const TestKeyStore(),
+        databaseCipher: cipher,
+        downloader: BytesDownloader(utf8.encode('abd')),
+        extractor: extractor,
+      );
+      await service.loadManifestJson(
+        _manifestJson(
+          sha256:
+              'ba7816bf8f01cfea414140de5dae2223'
+              'b00361a396177a9cb410ff61f20015ad',
+          contentSha256: List<String>.filled(64, 'b').join(),
+          archiveSizeBytes: 3,
+          installedSizeBytes: 1,
+        ),
+      );
 
-    await expectLater(
-      service.install(service.availablePacks.single),
-      throwsA(isA<PackIntegrityException>()),
-    );
-    expect(extractor.called, isFalse);
-    expect(cipher.called, isFalse);
+      await expectLater(
+        service.install(service.availablePacks.single),
+        throwsA(isA<PackIntegrityException>()),
+      );
+      expect(extractor.called, isFalse);
+      expect(cipher.called, isFalse);
 
-    service.dispose();
-    await root.delete(recursive: true);
-  });
+      service.dispose();
+      await root.delete(recursive: true);
+    },
+  );
 
   test('install encrypts SQLite before registering active pack', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});

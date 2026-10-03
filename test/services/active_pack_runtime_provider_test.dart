@@ -194,38 +194,35 @@ void main() {
     },
   );
 
-  test(
-    'legacy plaintext registered pack fails closed after Phase 7',
-    () async {
-      final root = await Directory.systemTemp.createTemp('plaintext_pack_');
-      final sqlitePath = _sqlitePath(root, 'de-core');
-      await _createCompatiblePackDatabase(sqlitePath, includeGrammar: true);
-      SharedPreferences.setMockInitialValues(
-        _installedPreferences('de-core', databaseEncrypted: false),
-      );
-      final preferences = await PreferencesService.instance();
-      final manager = PackManagerService(preferences, rootDirectory: root);
-      final fallbackGrammar = GrammarHubService(
-        factory: databaseFactoryFfi,
-        path: p.join(root.path, 'fallback_plaintext.db'),
-      );
+  test('legacy plaintext registered pack fails closed after Phase 7', () async {
+    final root = await Directory.systemTemp.createTemp('plaintext_pack_');
+    final sqlitePath = _sqlitePath(root, 'de-core');
+    await _createCompatiblePackDatabase(sqlitePath, includeGrammar: true);
+    SharedPreferences.setMockInitialValues(
+      _installedPreferences('de-core', databaseEncrypted: false),
+    );
+    final preferences = await PreferencesService.instance();
+    final manager = PackManagerService(preferences, rootDirectory: root);
+    final fallbackGrammar = GrammarHubService(
+      factory: databaseFactoryFfi,
+      path: p.join(root.path, 'fallback_plaintext.db'),
+    );
 
-      final runtime = await ActivePackRuntimeProvider(
-        packManager: manager,
-        languagePack: const GermanLanguagePack(),
-        embeddedGrammar: fallbackGrammar,
-        databaseFactory: databaseFactoryFfi,
-        databaseKeyStore: const _TestPackDatabaseKeyStore(),
-      ).resolve();
+    final runtime = await ActivePackRuntimeProvider(
+      packManager: manager,
+      languagePack: const GermanLanguagePack(),
+      embeddedGrammar: fallbackGrammar,
+      databaseFactory: databaseFactoryFfi,
+      databaseKeyStore: const _TestPackDatabaseKeyStore(),
+    ).resolve();
 
-      expect(runtime.state.origin, RuntimeContentOrigin.embeddedFallback);
-      expect(runtime.state.fallbackReason, 'pack_database_unencrypted');
+    expect(runtime.state.origin, RuntimeContentOrigin.embeddedFallback);
+    expect(runtime.state.fallbackReason, 'pack_database_unencrypted');
 
-      await runtime.grammarHubService.close();
-      manager.dispose();
-      await root.delete(recursive: true);
-    },
-  );
+    await runtime.grammarHubService.close();
+    manager.dispose();
+    await root.delete(recursive: true);
+  });
 }
 
 Map<String, Object> _installedPreferences(

@@ -5,7 +5,9 @@ import '../../lib/ui_v35/theme/app_design_system.dart';
 import '../../lib/ui_v35/widgets/home_visuals.dart';
 
 void main() {
-  testWidgets('reference hero renders exact A2 visual specification', (tester) async {
+  testWidgets('reference hero renders exact A2 visual specification', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppDesignSystem.light(),
@@ -37,7 +39,9 @@ void main() {
     expect(find.text('شهادة صغيرة'), findsOneWidget);
   });
 
-  testWidgets('reference action deck exposes four exact learning actions', (tester) async {
+  testWidgets('reference action deck exposes four exact learning actions', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppDesignSystem.light(),
@@ -64,7 +68,9 @@ void main() {
     expect(find.text('اختبر مستواك'), findsOneWidget);
   });
 
-  testWidgets('floating nav exposes five reference destinations', (tester) async {
+  testWidgets('floating nav exposes five reference destinations', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppDesignSystem.light(),
@@ -78,7 +84,13 @@ void main() {
     );
 
     expect(find.byKey(const Key('main-navigation-bar')), findsOneWidget);
-    for (final label in const ['الرئيسية', 'الدروس', 'محادثة', 'التقدم', 'المزيد']) {
+    for (final label in const [
+      'الرئيسية',
+      'الدروس',
+      'محادثة',
+      'التقدم',
+      'المزيد',
+    ]) {
       expect(find.text(label), findsOneWidget);
     }
   });

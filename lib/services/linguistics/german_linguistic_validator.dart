@@ -288,9 +288,7 @@ final class GermanLinguisticValidator {
     return LinguisticQaReport(issues);
   }
 
-  LinguisticQaReport validateGrammarCatalog(
-    Iterable<GrammarTopic> topics,
-  ) {
+  LinguisticQaReport validateGrammarCatalog(Iterable<GrammarTopic> topics) {
     final issues = <LinguisticQaIssue>[];
     final topicIds = <String>{};
     final ruleIds = <String>{};
@@ -342,7 +340,8 @@ final class GermanLinguisticValidator {
           LinguisticQaIssue(
             code: 'grammar.topic_without_rules',
             path: path + '.rules',
-            message: 'Canonical grammar topic should include at least one rule.',
+            message:
+                'Canonical grammar topic should include at least one rule.',
             severity: LinguisticQaSeverity.warning,
           ),
         );
@@ -358,12 +357,7 @@ final class GermanLinguisticValidator {
             ),
           );
         }
-        _requireText(
-          rule.id,
-          rulePath + '.id',
-          'grammar.blank_field',
-          issues,
-        );
+        _requireText(rule.id, rulePath + '.id', 'grammar.blank_field', issues);
         _requireText(
           rule.title,
           rulePath + '.title',
@@ -420,12 +414,7 @@ final class GermanLinguisticValidator {
             ),
           );
         }
-        _requireText(
-          quiz.id,
-          quizPath + '.id',
-          'grammar.blank_field',
-          issues,
-        );
+        _requireText(quiz.id, quizPath + '.id', 'grammar.blank_field', issues);
         _requireText(
           quiz.questionText,
           quizPath + '.questionText',
@@ -500,12 +489,7 @@ final class GermanLinguisticValidator {
       'concept.blank_sense_id',
       issues,
     );
-    _requireText(
-      concept.lemma,
-      path + '.lemma',
-      'concept.blank_lemma',
-      issues,
-    );
+    _requireText(concept.lemma, path + '.lemma', 'concept.blank_lemma', issues);
     if (concept.partOfSpeech != expectedPartOfSpeech) {
       issues.add(
         LinguisticQaIssue(
@@ -571,7 +555,8 @@ final class GermanLinguisticValidator {
         LinguisticQaIssue(
           code: 'valency.preposition_case_pair',
           path: path,
-          message: 'Preposition and preposition case must be declared together.',
+          message:
+              'Preposition and preposition case must be declared together.',
         ),
       );
     }

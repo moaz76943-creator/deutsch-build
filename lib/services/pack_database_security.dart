@@ -11,10 +11,7 @@ abstract interface class PackDatabaseCipher {
 }
 
 abstract interface class PackDatabaseOpener {
-  Future<Database> openReadOnly(
-    String path, {
-    required String password,
-  });
+  Future<Database> openReadOnly(String path, {required String password});
 }
 
 final class UnavailablePackDatabaseCipher implements PackDatabaseCipher {
@@ -37,16 +34,11 @@ final class FactoryBackedPackDatabaseOpener implements PackDatabaseOpener {
   final DatabaseFactory factory;
 
   @override
-  Future<Database> openReadOnly(
-    String path, {
-    required String password,
-  }) => factory.openDatabase(
-    path,
-    options: OpenDatabaseOptions(
-      readOnly: true,
-      singleInstance: false,
-    ),
-  );
+  Future<Database> openReadOnly(String path, {required String password}) =>
+      factory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(readOnly: true, singleInstance: false),
+      );
 }
 
 final class SqlCipherPackDatabaseSecurity
@@ -131,10 +123,7 @@ final class SqlCipherPackDatabaseSecurity
       await plaintextDatabase.rename(backup.path);
       try {
         await encrypted.rename(plaintextDatabase.path);
-        await _assertEncryptedFile(
-          plaintextDatabase,
-          password: password,
-        );
+        await _assertEncryptedFile(plaintextDatabase, password: password);
         await backup.delete();
       } on Object {
         if (await plaintextDatabase.exists()) {
@@ -173,10 +162,7 @@ final class SqlCipherPackDatabaseSecurity
   }
 
   @override
-  Future<Database> openReadOnly(
-    String path, {
-    required String password,
-  }) async {
+  Future<Database> openReadOnly(String path, {required String password}) async {
     _requirePassword(password);
     Database? database;
     try {
@@ -194,9 +180,7 @@ final class SqlCipherPackDatabaseSecurity
       rethrow;
     } on Object {
       if (database != null) await database.close();
-      throw const PackDatabaseSecurityException(
-        'pack_database_open_failed',
-      );
+      throw const PackDatabaseSecurityException('pack_database_open_failed');
     }
   }
 
@@ -212,10 +196,7 @@ final class SqlCipherPackDatabaseSecurity
         'pack_database_plaintext_header_detected',
       );
     }
-    final database = await openReadOnly(
-      databaseFile.path,
-      password: password,
-    );
+    final database = await openReadOnly(databaseFile.path, password: password);
     await database.close();
   }
 
@@ -235,17 +216,13 @@ final class SqlCipherPackDatabaseSecurity
       'PRAGMA cipher_integrity_check',
     );
     if (cipherErrors.isNotEmpty) {
-      throw const PackDatabaseSecurityException(
-        'pack_cipher_integrity_failed',
-      );
+      throw const PackDatabaseSecurityException('pack_cipher_integrity_failed');
     }
     final logical = await database.rawQuery('PRAGMA integrity_check');
     if (logical.isEmpty ||
         logical.first.values.isEmpty ||
         logical.first.values.first.toString().toLowerCase() != 'ok') {
-      throw const PackDatabaseSecurityException(
-        'pack_sqlite_integrity_failed',
-      );
+      throw const PackDatabaseSecurityException('pack_sqlite_integrity_failed');
     }
   }
 
@@ -255,8 +232,7 @@ final class SqlCipherPackDatabaseSecurity
     }
   }
 
-  static String _sqlLiteral(String value) =>
-      value.replaceAll("'", "''");
+  static String _sqlLiteral(String value) => value.replaceAll("'", "''");
 
   static bool _sameBytes(List<int> left, List<int> right) {
     if (left.length != right.length) return false;

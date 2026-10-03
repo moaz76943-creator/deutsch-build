@@ -20,8 +20,7 @@ class HandsFreeCommutePage extends StatefulWidget {
   final VoidCallback onDone;
 
   @override
-  State<HandsFreeCommutePage> createState() =>
-      _HandsFreeCommutePageState();
+  State<HandsFreeCommutePage> createState() => _HandsFreeCommutePageState();
 }
 
 class _HandsFreeCommutePageState extends State<HandsFreeCommutePage> {
@@ -53,10 +52,7 @@ class _HandsFreeCommutePageState extends State<HandsFreeCommutePage> {
   }
 
   void _reloadQueue() {
-    _queue = _service.pendingQueue(
-      state: widget.repo.load(),
-      limit: 50,
-    );
+    _queue = _service.pendingQueue(state: widget.repo.load(), limit: 50);
     _reviewStartedMs = DateTime.now().millisecondsSinceEpoch;
   }
 

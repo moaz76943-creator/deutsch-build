@@ -100,13 +100,8 @@ void main() {
       ),
     ];
 
-    final snapshot = await GrammarMicroscopeService(
-      const _GrammarRepository(),
-    ).load(
-      topicId: 'a1_nominativ',
-      state: state,
-      corpus: corpus,
-    );
+    final snapshot = await GrammarMicroscopeService(const _GrammarRepository())
+        .load(topicId: 'a1_nominativ', state: state, corpus: corpus);
 
     expect(snapshot, isNotNull);
     expect(snapshot!.rules, hasLength(1));
@@ -130,13 +125,12 @@ void main() {
     'microscope does not invent evidence when SRS has no linked weakness',
     () async {
       final state = LearnerState(updatedAt: DateTime(2026, 10, 2));
-      final snapshot = await GrammarMicroscopeService(
-        const _GrammarRepository(),
-      ).load(
-        topicId: 'a1_nominativ',
-        state: state,
-        corpus: const <ContentItem>[],
-      );
+      final snapshot =
+          await GrammarMicroscopeService(const _GrammarRepository()).load(
+            topicId: 'a1_nominativ',
+            state: state,
+            corpus: const <ContentItem>[],
+          );
 
       expect(snapshot, isNotNull);
       expect(snapshot!.hasPersonalEvidence, isFalse);

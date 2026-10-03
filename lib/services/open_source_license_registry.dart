@@ -2,10 +2,9 @@ import 'package:flutter/foundation.dart';
 
 void registerProjectOpenSourceLicenses() {
   LicenseRegistry.addLicense(() async* {
-    yield const LicenseEntryWithLineBreaks(
-      <String>['SQLCipher Community Edition'],
-      _sqlCipherLicense,
-    );
+    yield const LicenseEntryWithLineBreaks(<String>[
+      'SQLCipher Community Edition',
+    ], _sqlCipherLicense);
   });
 }
 

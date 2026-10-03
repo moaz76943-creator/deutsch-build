@@ -230,10 +230,7 @@ class LearnerRepository {
         attempts: bounded,
       ),
     );
-    await _recordGamificationReview(
-      attempt,
-      requestedXp: xpReward,
-    );
+    await _recordGamificationReview(attempt, requestedXp: xpReward);
   });
 
   Future<void> recordConversationAttempt({
@@ -271,7 +268,6 @@ class LearnerRepository {
   });
 }
 
-
 extension FacetReviewRepository on LearnerRepository {
   Future<void> recordFacet({
     required LearningContent item,
@@ -304,8 +300,9 @@ extension FacetReviewRepository on LearnerRepository {
     return _enqueue(() async {
       final state = load();
       final now = at ?? DateTime.now();
-      final safeAnswer =
-          answer.length > 1000 ? answer.substring(0, 1000) : answer;
+      final safeAnswer = answer.length > 1000
+          ? answer.substring(0, 1000)
+          : answer;
       final attempt = Attempt(
         id: 'f_${now.microsecondsSinceEpoch}',
         itemId: item.id,
@@ -320,9 +317,7 @@ extension FacetReviewRepository on LearnerRepository {
       );
       final attempts = <Attempt>[...state.attempts, attempt];
       final bounded = attempts.length > LearnerRepository.maxAttempts
-          ? attempts.sublist(
-              attempts.length - LearnerRepository.maxAttempts,
-            )
+          ? attempts.sublist(attempts.length - LearnerRepository.maxAttempts)
           : attempts;
 
       final cards = <String, ReviewCard>{...state.reviewCards};
@@ -347,32 +342,26 @@ extension FacetReviewRepository on LearnerRepository {
       );
       await _saveNow(
         state.copyWith(
-          xp: (state.xp + xpReward).clamp(
-            0,
-            LearnerRepository.maxXp,
-          ),
+          xp: (state.xp + xpReward).clamp(0, LearnerRepository.maxXp),
           reviewCards: cards,
           attempts: bounded,
         ),
       );
-      await _recordGamificationReview(
-        attempt,
-        requestedXp: xpReward,
-      );
+      await _recordGamificationReview(attempt, requestedXp: xpReward);
     });
   }
 }
 
-
 extension PlacementDiagnosticRepository on LearnerRepository {
-  Future<void> recordPlacementDiagnostic(
-    PlacementDiagnosticRecord record,
-  ) => _enqueue(() async {
-    final state = load();
-    final history = <PlacementDiagnosticRecord>[
-      record,
-      ...state.placementHistory.where((existing) => existing.id != record.id),
-    ].take(20).toList(growable: false);
-    await _saveNow(state.copyWith(placementHistory: history));
-  });
+  Future<void> recordPlacementDiagnostic(PlacementDiagnosticRecord record) =>
+      _enqueue(() async {
+        final state = load();
+        final history = <PlacementDiagnosticRecord>[
+          record,
+          ...state.placementHistory.where(
+            (existing) => existing.id != record.id,
+          ),
+        ].take(20).toList(growable: false);
+        await _saveNow(state.copyWith(placementHistory: history));
+      });
 }

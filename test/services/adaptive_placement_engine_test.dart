@@ -162,12 +162,19 @@ void main() {
 
     expect(result.scoredAnswers, 1);
     expect(result.score, 100);
-    expect(result.dimensionScores.containsKey(DiagnosticDimension.listening), isFalse);
+    expect(
+      result.dimensionScores.containsKey(DiagnosticDimension.listening),
+      isFalse,
+    );
   });
 
   test('adaptive placement does not pretend to grade open production', () {
     final responses = <DiagnosticResponse>[];
-    for (var step = 0; step < AdaptivePlacementEngine.defaultMaxQuestions; step++) {
+    for (
+      var step = 0;
+      step < AdaptivePlacementEngine.defaultMaxQuestions;
+      step++
+    ) {
       final question = AdaptivePlacementEngine.nextQuestion(
         items: corpus,
         state: state,

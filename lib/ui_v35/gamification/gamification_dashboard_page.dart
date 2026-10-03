@@ -5,10 +5,7 @@ import '../../features/gamification/gamification_repository.dart';
 import 'gamification_dashboard_sections.dart';
 
 class GamificationDashboardPage extends StatefulWidget {
-  const GamificationDashboardPage({
-    super.key,
-    required this.repository,
-  });
+  const GamificationDashboardPage({super.key, required this.repository});
 
   final GamificationRepository repository;
 
@@ -17,8 +14,7 @@ class GamificationDashboardPage extends StatefulWidget {
       _GamificationDashboardPageState();
 }
 
-class _GamificationDashboardPageState
-    extends State<GamificationDashboardPage> {
+class _GamificationDashboardPageState extends State<GamificationDashboardPage> {
   late Future<GamificationSnapshot> _snapshot;
 
   @override

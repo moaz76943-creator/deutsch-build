@@ -83,10 +83,9 @@ Future<void> main() async {
           LearnerRepository.legacyFavoriteKey,
         );
         final databaseRoot = await getDatabasesPath();
-        final gamificationRepository =
-            await SqliteGamificationRepository.open(
-              p.join(databaseRoot, 'gamification_v1.db'),
-            );
+        final gamificationRepository = await SqliteGamificationRepository.open(
+          p.join(databaseRoot, 'gamification_v1.db'),
+        );
         final repo = LearnerRepository(
           prefs,
           persistence: persistence,
@@ -98,8 +97,7 @@ Future<void> main() async {
           keyId: packSecurity.manifestKeyId,
           publicKeyBase64: packSecurity.manifestPublicKeyBase64,
         );
-        final packDatabaseKeyStore =
-            AndroidKeystorePackDatabaseKeyStore();
+        final packDatabaseKeyStore = AndroidKeystorePackDatabaseKeyStore();
         const packDatabaseSecurity = SqlCipherPackDatabaseSecurity();
         final packManager = PackManagerService(
           prefs,
@@ -121,9 +119,7 @@ Future<void> main() async {
         AudioManifestCatalog audioCatalog;
         try {
           audioCatalog = AudioManifestCatalog.parse(
-            await rootBundle.loadString(
-              'content/german/audio_manifest.json',
-            ),
+            await rootBundle.loadString('content/german/audio_manifest.json'),
           );
         } on Object {
           audioCatalog = AudioManifestCatalog.empty();

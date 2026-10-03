@@ -21,10 +21,7 @@ void main() {
 
     final player = AndroidRecordedAudioPlayer(channel: channel);
 
-    expect(
-      await player.playAsset('content/german/audio/de-1.mp3'),
-      isTrue,
-    );
+    expect(await player.playAsset('content/german/audio/de-1.mp3'), isTrue);
     expect(received, 'content/german/audio/de-1.mp3');
     expect(await player.playAsset('../secret.mp3'), isFalse);
   });
@@ -35,9 +32,6 @@ void main() {
     );
     final player = AndroidRecordedAudioPlayer(channel: channel);
 
-    expect(
-      await player.playAsset('content/german/audio/de-1.mp3'),
-      isFalse,
-    );
+    expect(await player.playAsset('content/german/audio/de-1.mp3'), isFalse);
   });
 }

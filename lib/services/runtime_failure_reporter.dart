@@ -16,8 +16,7 @@ abstract interface class RuntimeFailureReporter {
   });
 }
 
-final class NoopRuntimeFailureReporter
-    implements RuntimeFailureReporter {
+final class NoopRuntimeFailureReporter implements RuntimeFailureReporter {
   const NoopRuntimeFailureReporter();
 
   @override

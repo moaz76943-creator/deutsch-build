@@ -41,8 +41,9 @@ final class GrammarMicroscopeService {
     List<GrammarRuleDetail> rules = const <GrammarRuleDetail>[];
     final source = repository;
     if (source is GrammarMicroscopeRepository) {
-      rules = await (source as GrammarMicroscopeRepository)
-          .getRulesForTopic(safeTopicId);
+      rules = await (source as GrammarMicroscopeRepository).getRulesForTopic(
+        safeTopicId,
+      );
     }
 
     final linkedFacets = _linkedFacets(topic, rules);
@@ -90,8 +91,7 @@ final class GrammarMicroscopeService {
     if (haystack.contains('plural')) {
       facets.add(ReviewFacetType.plural);
     }
-    if (haystack.contains('präposition') ||
-        haystack.contains('preposition')) {
+    if (haystack.contains('präposition') || haystack.contains('preposition')) {
       facets.add(ReviewFacetType.prepositionCase);
     }
     if (haystack.contains('valenz') || haystack.contains('valency')) {

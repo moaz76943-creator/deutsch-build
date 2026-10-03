@@ -139,49 +139,53 @@ class _HomeState extends State<HomeV35> {
   Widget build(BuildContext c) {
     return Scaffold(
       extendBody: true,
-      appBar: tab == 0 ? null : AppBar(
-        title: const Text('Deutsch بالعربي'),
-        actions: [
-          IconButton(
-            tooltip: 'تغيير المظهر',
-            onPressed: widget.onTheme,
-            icon: const Icon(Icons.dark_mode_outlined),
-          ),
-          IconButton(
-            tooltip: 'الحساب',
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(builder: (_) => AccountPage(auth: widget.auth)),
-            ),
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-          IconButton(
-            tooltip: 'الاشتراك والباقات',
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => SubscriptionPage(repo: widget.repo),
-              ),
-            ),
-            icon: const Icon(Icons.workspace_premium_outlined),
-          ),
-          IconButton(
-            tooltip: 'الإعدادات',
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => SettingsV35(
-                  repo: widget.repo,
-                  privacySettings: widget.dependencies.privacySettings,
-                  neuroSettings: widget.dependencies.neuroSettings,
-                  onCleared: refresh,
+      appBar: tab == 0
+          ? null
+          : AppBar(
+              title: const Text('Deutsch بالعربي'),
+              actions: [
+                IconButton(
+                  tooltip: 'تغيير المظهر',
+                  onPressed: widget.onTheme,
+                  icon: const Icon(Icons.dark_mode_outlined),
                 ),
-              ),
+                IconButton(
+                  tooltip: 'الحساب',
+                  onPressed: () => Navigator.push(
+                    c,
+                    MaterialPageRoute(
+                      builder: (_) => AccountPage(auth: widget.auth),
+                    ),
+                  ),
+                  icon: const Icon(Icons.account_circle_outlined),
+                ),
+                IconButton(
+                  tooltip: 'الاشتراك والباقات',
+                  onPressed: () => Navigator.push(
+                    c,
+                    MaterialPageRoute(
+                      builder: (_) => SubscriptionPage(repo: widget.repo),
+                    ),
+                  ),
+                  icon: const Icon(Icons.workspace_premium_outlined),
+                ),
+                IconButton(
+                  tooltip: 'الإعدادات',
+                  onPressed: () => Navigator.push(
+                    c,
+                    MaterialPageRoute(
+                      builder: (_) => SettingsV35(
+                        repo: widget.repo,
+                        privacySettings: widget.dependencies.privacySettings,
+                        neuroSettings: widget.dependencies.neuroSettings,
+                        onCleared: refresh,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.settings_outlined),
+                ),
+              ],
             ),
-            icon: const Icon(Icons.settings_outlined),
-          ),
-        ],
-      ),
       body: Semantics(
         label: 'محتوى الصفحة الرئيسية',
         child: ColoredBox(
@@ -199,9 +203,11 @@ class _HomeState extends State<HomeV35> {
                 builder: (_) => ConversationPage(
                   repo: widget.repo,
                   onDone: refresh,
-                  exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
                   presentation: widget.dependencies.languagePack.presentation,
-                  textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
                   aiGateway: widget.dependencies.aiGateway,
                   privacySettings: widget.dependencies.privacySettings,
                 ),
@@ -236,11 +242,13 @@ class _HomeState extends State<HomeV35> {
                 repo: widget.repo,
                 corpus: widget.dependencies.corpus,
                 onDone: refresh,
-                exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                exerciseStrategy:
+                    widget.dependencies.languagePack.exerciseStrategy,
                 presentation: widget.dependencies.languagePack.presentation,
                 textNormalizer: widget.dependencies.languagePack.textNormalizer,
                 contentQuality: widget.dependencies.languagePack.contentQuality,
-                contentIntelligence: widget.dependencies.languagePack.contentIntelligence,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
               ),
             ),
           ),
@@ -261,11 +269,13 @@ class _HomeState extends State<HomeV35> {
                 repo: widget.repo,
                 corpus: widget.dependencies.corpus,
                 onDone: refresh,
-                exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                exerciseStrategy:
+                    widget.dependencies.languagePack.exerciseStrategy,
                 presentation: widget.dependencies.languagePack.presentation,
                 textNormalizer: widget.dependencies.languagePack.textNormalizer,
                 contentQuality: widget.dependencies.languagePack.contentQuality,
-                contentIntelligence: widget.dependencies.languagePack.contentIntelligence,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
               ),
             ),
           ),
@@ -275,11 +285,13 @@ class _HomeState extends State<HomeV35> {
               builder: (_) => SmartAssessmentPage(
                 repo: widget.repo,
                 corpus: widget.dependencies.corpus,
-                exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+                exerciseStrategy:
+                    widget.dependencies.languagePack.exerciseStrategy,
                 presentation: widget.dependencies.languagePack.presentation,
                 textNormalizer: widget.dependencies.languagePack.textNormalizer,
                 contentQuality: widget.dependencies.languagePack.contentQuality,
-                contentIntelligence: widget.dependencies.languagePack.contentIntelligence,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
               ),
             ),
           ),
@@ -502,8 +514,7 @@ class _HomeState extends State<HomeV35> {
               contentQuality: widget.dependencies.languagePack.contentQuality,
               audioRuntime: widget.dependencies.audioRuntime,
               languageCode: widget.dependencies.languagePack.languageCode,
-              sourceLanguageCode:
-                  widget.dependencies.languagePack.sourceLocale,
+              sourceLanguageCode: widget.dependencies.languagePack.sourceLocale,
             ),
           ),
         ),
@@ -815,6 +826,4 @@ class _HomeState extends State<HomeV35> {
     onTap: onTap,
     primary: primary,
   );
-
-
 }

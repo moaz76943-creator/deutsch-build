@@ -1,14 +1,7 @@
-enum AudioPlaybackSource {
-  recorded,
-  offlineTts,
-  unavailable,
-}
+enum AudioPlaybackSource { recorded, offlineTts, unavailable }
 
 final class AudioPlaybackResult {
-  const AudioPlaybackResult._({
-    required this.source,
-    this.reason,
-  });
+  const AudioPlaybackResult._({required this.source, this.reason});
 
   const AudioPlaybackResult.recorded()
     : this._(source: AudioPlaybackSource.recorded);
@@ -17,10 +10,7 @@ final class AudioPlaybackResult {
     : this._(source: AudioPlaybackSource.offlineTts);
 
   const AudioPlaybackResult.unavailable(String reason)
-    : this._(
-        source: AudioPlaybackSource.unavailable,
-        reason: reason,
-      );
+    : this._(source: AudioPlaybackSource.unavailable, reason: reason);
 
   final AudioPlaybackSource source;
   final String? reason;

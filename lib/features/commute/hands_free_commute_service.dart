@@ -32,15 +32,9 @@ final class HandsFreeCommuteService<T extends LearningContent> {
     LearnerState? state,
     DateTime? now,
     int limit = 50,
-  }) => queueBuilder.build(
-    state ?? repository.load(),
-    now: now,
-    limit: limit,
-  );
+  }) => queueBuilder.build(state ?? repository.load(), now: now, limit: limit);
 
-  Future<CommutePlaybackReport> play(
-    CommuteReviewItem<T> review,
-  ) async {
+  Future<CommutePlaybackReport> play(CommuteReviewItem<T> review) async {
     final generation = ++_generation;
     _paused = false;
 
