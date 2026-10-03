@@ -1,5 +1,12 @@
 import 'domain/gamification_models.dart';
 
+final class _StreakResult {
+  const _StreakResult(this.value, {this.freezeUsed = false});
+
+  final int value;
+  final bool freezeUsed;
+}
+
 abstract final class GamificationEngine {
   static const Duration _backwardClockTolerance = Duration(minutes: 5);
 
@@ -29,6 +36,7 @@ abstract final class GamificationEngine {
           lastLocalDay: current.lastLocalDay,
           lastTimezoneOffsetMinutes: current.lastTimezoneOffsetMinutes,
           clockAnomalyDetected: true,
+          streakFreezeAvailable: current.streakFreezeAvailable,
         ),
         awardedXp: 0,
         clockAnomaly: true,
@@ -36,21 +44,25 @@ abstract final class GamificationEngine {
       );
     }
 
-    final streak = _nextStreak(
+    final streakResult = _nextStreak(
       current.currentStreak,
       current.lastLocalDay,
       localDay,
+      useFreeze: event.useStreakFreeze && current.streakFreezeAvailable,
     );
     final awardedXp = event.requestedXp.clamp(0, 100).toInt();
     final nextProfile = GamificationProfile(
       totalXp: (current.totalXp + awardedXp).clamp(0, 100000000).toInt(),
-      currentStreak: streak,
-      longestStreak:
-          streak > current.longestStreak ? streak : current.longestStreak,
+      currentStreak: streakResult.value,
+      longestStreak: streakResult.value > current.longestStreak
+          ? streakResult.value
+          : current.longestStreak,
       lastReviewAtUtc: eventUtc,
       lastLocalDay: localDay,
       lastTimezoneOffsetMinutes: safeOffset,
       clockAnomalyDetected: current.clockAnomalyDetected,
+      streakFreezeAvailable:
+          current.streakFreezeAvailable && !streakResult.freezeUsed,
     );
     final newlyUnlocked = <MilestoneBadge>[
       for (final badge in badges)
@@ -63,23 +75,45 @@ abstract final class GamificationEngine {
       awardedXp: awardedXp,
       clockAnomaly: false,
       newlyUnlocked: List<MilestoneBadge>.unmodifiable(newlyUnlocked),
+      streakFreezeUsed: streakResult.freezeUsed,
     );
   }
 
-  static int _nextStreak(int current, String? previousDay, String localDay) {
-    if (previousDay == null || previousDay.isEmpty) return 1;
-    if (previousDay == localDay) return current <= 0 ? 1 : current;
+  static _StreakResult _nextStreak(
+    int current,
+    String? previousDay,
+    String localDay, {
+    required bool useFreeze,
+  }) {
+    if (previousDay == null || previousDay.isEmpty) {
+      return const _StreakResult(1);
+    }
+    if (previousDay == localDay) {
+      return _StreakResult(current <= 0 ? 1 : current);
+    }
 
     final previous = _parseDay(previousDay);
     final next = _parseDay(localDay);
-    if (previous == null || next == null) return 1;
+    if (previous == null || next == null) {
+      return const _StreakResult(1);
+    }
 
     final delta = next.difference(previous).inDays;
     if (delta == 1) {
-      return (current <= 0 ? 1 : current + 1).clamp(1, 10000).toInt();
+      return _StreakResult(
+        (current <= 0 ? 1 : current + 1).clamp(1, 10000).toInt(),
+      );
     }
-    if (delta <= 0) return current.clamp(0, 10000).toInt();
-    return 1;
+    if (delta == 2 && useFreeze) {
+      return _StreakResult(
+        (current <= 0 ? 1 : current + 1).clamp(1, 10000).toInt(),
+        freezeUsed: true,
+      );
+    }
+    if (delta <= 0) {
+      return _StreakResult(current.clamp(0, 10000).toInt());
+    }
+    return const _StreakResult(1);
   }
 
   static bool _isDayBefore(String day, String? reference) {

@@ -27,7 +27,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     final database = await factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 2,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
@@ -41,7 +41,8 @@ final class SqliteGamificationRepository implements GamificationRepository {
               last_review_utc TEXT,
               last_local_day TEXT,
               last_timezone_offset_minutes INTEGER,
-              clock_anomaly_detected INTEGER NOT NULL
+              clock_anomaly_detected INTEGER NOT NULL,
+              streak_freeze_available INTEGER NOT NULL
             )
           ''');
           await db.execute('''
@@ -64,6 +65,13 @@ final class SqliteGamificationRepository implements GamificationRepository {
             )
           ''');
           await _resetProfile(db);
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            await db.execute(
+              'ALTER TABLE gamification_profile ADD COLUMN streak_freeze_available INTEGER NOT NULL DEFAULT 1',
+            );
+          }
         },
       ),
     );
@@ -130,6 +138,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
             'last_local_day': profile.lastLocalDay,
             'last_timezone_offset_minutes': profile.lastTimezoneOffsetMinutes,
             'clock_anomaly_detected': profile.clockAnomalyDetected ? 1 : 0,
+            'streak_freeze_available': profile.streakFreezeAvailable ? 1 : 0,
           },
           where: 'id = 1');
 
@@ -183,6 +192,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
           'current_streak': 0,
           'longest_streak': 0,
           'clock_anomaly_detected': 0,
+          'streak_freeze_available': 1,
         },
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -218,6 +228,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
       lastLocalDay: _safeDay(row['last_local_day']),
       lastTimezoneOffsetMinutes: offset,
       clockAnomalyDetected: row['clock_anomaly_detected'] == 1,
+      streakFreezeAvailable: row['streak_freeze_available'] != 0,
     );
   }
 
