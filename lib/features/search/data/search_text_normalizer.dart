@@ -1,31 +1,8 @@
+import '../../lexicon_search/domain/german_search_normalizer.dart';
+
+/// Compatibility facade retained for the existing search feature.
+/// The canonical normalization logic lives in lexicon_search/domain.
 abstract final class SearchTextNormalizer {
-  static Set<String> variants(String input) {
-    final base = _base(input);
-    if (base.isEmpty) return const <String>{};
-
-    final transliterated = base
-        .replaceAll('ä', 'ae')
-        .replaceAll('ö', 'oe')
-        .replaceAll('ü', 'ue');
-    final folded = transliterated
-        .replaceAll('ae', 'a')
-        .replaceAll('oe', 'o')
-        .replaceAll('ue', 'u');
-
-    return <String>{base, transliterated, folded};
-  }
-
-  static String _base(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll('ß', 'ss')
-        .replaceAll(RegExp(r'[\u064B-\u065F\u0670\u06D6-\u06ED]'), '')
-        .replaceAll('\u0640', '')
-        .replaceAll(RegExp('[أإآ]'), 'ا')
-        .replaceAll('ى', 'ي')
-        .replaceAll(RegExp(r'''[.,!?;:،؛؟„“"'’()\[\]{}<>/\\|+*=~^]'''), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-  }
+  static Set<String> variants(String input) =>
+      GermanSearchNormalizer.variants(input);
 }

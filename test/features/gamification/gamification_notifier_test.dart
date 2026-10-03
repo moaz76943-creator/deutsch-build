@@ -190,4 +190,26 @@ void main() {
     expect(levelEvent.fromLevel, 1);
     expect(levelEvent.toLevel, 2);
   });
+
+  test('exercise and card completion award XP through the canonical notifier path', () async {
+    final notifier = GamificationNotifier(_MemoryGamificationRepository());
+    addTearDown(notifier.dispose);
+    await notifier.initialize();
+
+    await notifier.completeExercise(
+      activityId: 'exercise_1',
+      completedAtUtc: DateTime.utc(2026, 10, 2, 7),
+      earnedXp: 12,
+      timezoneOffsetMinutes: 180,
+    );
+    final result = await notifier.completeCardReview(
+      activityId: 'card_1',
+      completedAtUtc: DateTime.utc(2026, 10, 3, 7),
+      earnedXp: 8,
+      timezoneOffsetMinutes: 180,
+    );
+
+    expect(result.state.progress.totalXp, 20);
+    expect(result.state.streak.currentDays, 2);
+  });
 }
