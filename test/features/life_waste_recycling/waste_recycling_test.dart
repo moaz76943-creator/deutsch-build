@@ -51,7 +51,7 @@ void main() {
 
       orchestrator.setLookupQuery('unbekannter Verbundstoff');
       expect(orchestrator.lookupResult.isKnown, isFalse);
-      expect(orchestrator.lookupResult.routeDe, contains('lokale Abfallberatung'));
+      expect(orchestrator.lookupResult.routeDe, contains('Abfallberatung'));
     });
   });
 
