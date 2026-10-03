@@ -16,11 +16,12 @@ jobs:
       ${{ vars.ARCHITECTURE_LEDGER_SYNC_ENABLED == 'true' &&
           vars.ARCHITECTURE_LEDGER_BILLING_APPROVED == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
       - name: Checkout exact main head
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0

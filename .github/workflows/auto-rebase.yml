@@ -2,24 +2,55 @@ name: Auto Rebase PRs
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths-ignore:
+      - 'docs/project-record/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-rebase-main
+  cancel-in-progress: true
 
 jobs:
   rebase:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
-
-      - name: Update Open PRs
+      - name: Rebase eligible PRs
+        shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          prs=$(gh pr list --state open --json number -q '.[].number')
-          for pr in $prs; do
-            echo "Updating PR #$pr"
-            gh pr update-branch $pr --rebase || true
+          set -Eeuo pipefail
+
+          mapfile -t prs < <(
+            gh pr list               --repo "$GITHUB_REPOSITORY"               --base main               --state open               --limit 100               --json number,isDraft,isCrossRepository,mergeStateStatus,mergeable               --jq '.[] | select(
+                .isDraft == false and
+                .isCrossRepository == false and
+                .mergeable == "MERGEABLE" and
+                .mergeStateStatus == "BEHIND"
+              ) | .number'
+          )
+
+          if (( ${#prs[@]} == 0 )); then
+            echo "No eligible behind PRs require rebasing."
+            exit 0
+          fi
+
+          updated=0
+          skipped=0
+          for pr in "${prs[@]}"; do
+            echo "Rebasing PR #$pr onto main"
+            if gh pr update-branch "$pr" --repo "$GITHUB_REPOSITORY" --rebase; then
+              updated=$((updated + 1))
+            else
+              skipped=$((skipped + 1))
+              echo "::warning::PR #$pr changed state or could not be rebased cleanly; leaving it untouched."
+            fi
           done
+
+          echo "Auto Rebase summary: updated=$updated skipped=$skipped"
