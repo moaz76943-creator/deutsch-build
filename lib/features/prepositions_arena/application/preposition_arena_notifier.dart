@@ -14,6 +14,7 @@ final class PrepositionArenaState {
     this.correctCount = 0,
     this.answeredCount = 0,
     this.selectedType,
+    this.selectedLevel,
     this.lastResult,
   });
 
@@ -23,6 +24,7 @@ final class PrepositionArenaState {
   final int correctCount;
   final int answeredCount;
   final PrepositionType? selectedType;
+  final String? selectedLevel;
   final PrepositionAnswerResult? lastResult;
 
   PrepositionChallenge? get currentChallenge {
@@ -48,6 +50,7 @@ final class PrepositionArenaState {
     int? correctCount,
     int? answeredCount,
     PrepositionType? selectedType,
+    String? selectedLevel,
     bool clearSelectedType = false,
     PrepositionAnswerResult? lastResult,
     bool clearLastResult = false,
@@ -61,6 +64,7 @@ final class PrepositionArenaState {
       selectedType: clearSelectedType
           ? null
           : selectedType ?? this.selectedType,
+      selectedLevel: selectedLevel ?? this.selectedLevel,
       lastResult: clearLastResult ? null : lastResult ?? this.lastResult,
     );
   }
@@ -95,6 +99,7 @@ final class PrepositionArenaNotifier extends ChangeNotifier {
           : PrepositionArenaStatus.active,
       challenges: List<PrepositionChallenge>.unmodifiable(challenges),
       selectedType: type,
+      selectedLevel: level?.trim().toUpperCase(),
     );
     notifyListeners();
   }
@@ -160,7 +165,11 @@ final class PrepositionArenaNotifier extends ChangeNotifier {
   }
 
   void restart() {
-    start(type: _state.selectedType, limit: _state.challenges.length);
+    start(
+      type: _state.selectedType,
+      level: _state.selectedLevel,
+      limit: _state.challenges.length,
+    );
   }
 
   _ExpectedAnswer _expectedFor(PrepositionChallenge challenge) {
