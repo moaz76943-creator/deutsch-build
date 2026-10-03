@@ -90,13 +90,11 @@ class MemorySnapshot {
       if (c.dueAt.isBefore(overdueCutoff)) overdue++;
       if (c.memoryState == MemoryState.mature) mature++;
       if (c.memoryState == MemoryState.learning ||
-          c.memoryState == MemoryState.young)
-        learning++;
+          c.memoryState == MemoryState.young) learning++;
       if (c.memoryState == MemoryState.relearning) relearning++;
       final intervalRatio = c.intervalDays / 30;
-      final interval = intervalRatio < 0
-          ? 0.0
-          : (intervalRatio > 1 ? 1.0 : intervalRatio);
+      final interval =
+          intervalRatio < 0 ? 0.0 : (intervalRatio > 1 ? 1.0 : intervalRatio);
       final history = c.successRate;
       final lapsePenalty = (c.lapses * .05) > .35 ? .35 : (c.lapses * .05);
       retentionSum += (history * .65 + interval * .35 - lapsePenalty)

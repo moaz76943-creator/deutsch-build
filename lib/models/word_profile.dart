@@ -30,8 +30,8 @@ class WordProfile<T extends LearningContent> {
   String get masteryLabel => masteryPercent >= 85
       ? 'متقنة'
       : masteryPercent >= 65
-      ? 'جيدة'
-      : masteryPercent >= 40
-      ? 'تحتاج تثبيتًا'
-      : 'تحتاج تدريبًا';
+          ? 'جيدة'
+          : masteryPercent >= 40
+              ? 'تحتاج تثبيتًا'
+              : 'تحتاج تدريبًا';
 }

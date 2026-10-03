@@ -25,11 +25,11 @@ final class LanguageOwnedExtension {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'languageId': languageId,
-    'schemaRef': schemaRef,
-    'schemaVersion': schemaVersion,
-    'payload': payload,
-  };
+        'languageId': languageId,
+        'schemaRef': schemaRef,
+        'schemaVersion': schemaVersion,
+        'payload': payload,
+      };
 }
 
 /// Natural realization of one explicit semantic identity in one language.
@@ -57,8 +57,8 @@ final class LanguageRealization {
     List<String> acceptedForms = const <String>[],
     List<LanguageOwnedExtension> extensions = const <LanguageOwnedExtension>[],
     required this.provenance,
-  }) : acceptedForms = List<String>.unmodifiable(acceptedForms),
-       extensions = List<LanguageOwnedExtension>.unmodifiable(extensions) {
+  })  : acceptedForms = List<String>.unmodifiable(acceptedForms),
+        extensions = List<LanguageOwnedExtension>.unmodifiable(extensions) {
     _requireNonEmpty(realizationId, 'realizationId');
     _requireNonEmpty(semanticId, 'semanticId');
     if (realizationVersion <= 0) {
@@ -84,16 +84,16 @@ final class LanguageRealization {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'realizationId': realizationId,
-    'semanticId': semanticId,
-    'languageId': language.languageId,
-    'realizationVersion': realizationVersion,
-    'kind': kind.name,
-    'surface': surface,
-    'acceptedForms': acceptedForms,
-    'extensions': extensions.map((extension) => extension.toMap()).toList(),
-    'provenance': provenance.toMap(),
-  };
+        'realizationId': realizationId,
+        'semanticId': semanticId,
+        'languageId': language.languageId,
+        'realizationVersion': realizationVersion,
+        'kind': kind.name,
+        'surface': surface,
+        'acceptedForms': acceptedForms,
+        'extensions': extensions.map((extension) => extension.toMap()).toList(),
+        'provenance': provenance.toMap(),
+      };
 }
 
 void _requireNonEmpty(String value, String field) {

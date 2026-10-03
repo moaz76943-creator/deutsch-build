@@ -138,22 +138,22 @@ final class PlacementDiagnosticRecord {
   final List<String> reviewItemIds;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'id': id,
-    'at': at.toIso8601String(),
-    'answered': answered,
-    'scoredAnswers': scoredAnswers,
-    'score': score,
-    'confidence': confidence,
-    'band': band.wireName,
-    'dimensionScores': <String, double>{
-      for (final entry in dimensionScores.entries)
-        entry.key.wireName: entry.value,
-    },
-    'weakDimensions': weakDimensions
-        .map((dimension) => dimension.wireName)
-        .toList(growable: false),
-    'reviewItemIds': reviewItemIds.take(20).toList(growable: false),
-  };
+        'id': id,
+        'at': at.toIso8601String(),
+        'answered': answered,
+        'scoredAnswers': scoredAnswers,
+        'score': score,
+        'confidence': confidence,
+        'band': band.wireName,
+        'dimensionScores': <String, double>{
+          for (final entry in dimensionScores.entries)
+            entry.key.wireName: entry.value,
+        },
+        'weakDimensions': weakDimensions
+            .map((dimension) => dimension.wireName)
+            .toList(growable: false),
+        'reviewItemIds': reviewItemIds.take(20).toList(growable: false),
+      };
 
   factory PlacementDiagnosticRecord.fromJson(Map<String, dynamic> json) {
     final now = DateTime.now();
@@ -212,16 +212,14 @@ final class PlacementDiagnosticRecord {
   }
 
   static int _boundedInt(Object? raw, int min, int max) {
-    final value = raw is num
-        ? raw.toInt()
-        : int.tryParse(raw?.toString() ?? '');
+    final value =
+        raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
     return (value ?? min).clamp(min, max).toInt();
   }
 
   static double _boundedDouble(Object? raw, double min, double max) {
-    final value = raw is num
-        ? raw.toDouble()
-        : double.tryParse(raw?.toString() ?? '');
+    final value =
+        raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
     return (value ?? min).clamp(min, max).toDouble();
   }
 }

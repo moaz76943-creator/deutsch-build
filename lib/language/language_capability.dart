@@ -101,14 +101,14 @@ final class LanguageCapabilityStatus {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'role': role.wireName,
-    'capability': capability.name,
-    'state': state.name,
-    'snapshotVersion': snapshotVersion,
-    'snapshotHash': snapshotHash,
-    'limitation': limitation,
-    'justification': justification,
-  };
+        'role': role.wireName,
+        'capability': capability.name,
+        'state': state.name,
+        'snapshotVersion': snapshotVersion,
+        'snapshotHash': snapshotHash,
+        'limitation': limitation,
+        'justification': justification,
+      };
 
   static void _requireNonEmpty(String value, String field) {
     if (value.trim().isEmpty) {

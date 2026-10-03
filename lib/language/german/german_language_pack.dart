@@ -21,10 +21,10 @@ final class GermanLanguagePack implements LanguagePack {
 
   @override
   LanguageIdentity get identity => LanguageIdentity(
-    languageId: 'de',
-    displayName: 'German',
-    primaryLocale: 'de-DE',
-  );
+        languageId: 'de',
+        displayName: 'German',
+        primaryLocale: 'de-DE',
+      );
 
   @override
   String get languageCode => identity.languageId;

@@ -20,5 +20,6 @@ abstract final class BidiBoundary {
   static String join(
     Iterable<DirectionalText> segments, {
     String separator = '',
-  }) => segments.map(isolate).join(separator);
+  }) =>
+      segments.map(isolate).join(separator);
 }

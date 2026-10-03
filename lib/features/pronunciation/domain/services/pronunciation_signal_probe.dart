@@ -18,7 +18,8 @@ final class UnavailablePronunciationSignalProbe
   @override
   Future<PronunciationSignalCapture> capture({
     Duration maxDuration = const Duration(milliseconds: 1600),
-  }) async => const PronunciationSignalCapture.unavailable(
-    'pronunciation_signal_probe_unavailable',
-  );
+  }) async =>
+      const PronunciationSignalCapture.unavailable(
+        'pronunciation_signal_probe_unavailable',
+      );
 }

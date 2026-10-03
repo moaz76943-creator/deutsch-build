@@ -161,9 +161,8 @@ class _SentenceBridgePuzzleWidgetState
               _feedbackMessage!,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _feedbackMessage == "Correct!"
-                    ? Colors.green
-                    : Colors.red,
+                color:
+                    _feedbackMessage == "Correct!" ? Colors.green : Colors.red,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),

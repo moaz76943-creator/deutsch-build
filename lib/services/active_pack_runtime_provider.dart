@@ -105,14 +105,13 @@ final class ActivePackRuntimeProvider {
     PackDatabaseKeyStore? databaseKeyStore,
     PackDatabaseOpener? databaseOpener,
     this.admissionGate = const RegisteredRuntimePackAdmissionGate(),
-  }) : embeddedLanguagePack = languagePack,
-       _databaseKeyStore =
-           databaseKeyStore ?? const UnavailablePackDatabaseKeyStore(),
-       _databaseOpener =
-           databaseOpener ??
-           (databaseFactory == null
-               ? const SqlCipherPackDatabaseSecurity()
-               : FactoryBackedPackDatabaseOpener(databaseFactory));
+  })  : embeddedLanguagePack = languagePack,
+        _databaseKeyStore =
+            databaseKeyStore ?? const UnavailablePackDatabaseKeyStore(),
+        _databaseOpener = databaseOpener ??
+            (databaseFactory == null
+                ? const SqlCipherPackDatabaseSecurity()
+                : FactoryBackedPackDatabaseOpener(databaseFactory));
 
   static const int maxRuntimeLexiconRows = 100000;
   static const int maxAcceptedForms = 32;
@@ -275,11 +274,14 @@ final class ActivePackRuntimeProvider {
         maxLength: maxTextLength,
       );
       final fields = _decodeFields(row['fields_json']);
-      final translation = _firstString(fields, const <String>[
-        'translation',
-        'translationText',
-        'arabic',
-      ], required: true);
+      final translation = _firstString(
+          fields,
+          const <String>[
+            'translation',
+            'translationText',
+            'arabic',
+          ],
+          required: true);
 
       corpus.add(
         ContentItem(
@@ -291,12 +293,18 @@ final class ActivePackRuntimeProvider {
             'exampleTranslation',
             'sentenceAr',
           ]),
-          topic: _firstString(fields, const <String>[
-            'topic',
-          ], fallback: 'pack'),
-          skill: _firstString(fields, const <String>[
-            'skill',
-          ], fallback: 'recall'),
+          topic: _firstString(
+              fields,
+              const <String>[
+                'topic',
+              ],
+              fallback: 'pack'),
+          skill: _firstString(
+              fields,
+              const <String>[
+                'skill',
+              ],
+              fallback: 'recall'),
           article: _firstString(fields, const <String>[
             'article',
             'grammaticalMarker',
@@ -383,32 +391,30 @@ final class ActivePackRuntimeProvider {
     if (raw.length > 128) {
       throw const RuntimePackAdmissionException('pack_verb_rows_too_large');
     }
-    return raw
-        .map((entry) {
-          if (entry is! Map) {
-            throw const RuntimePackAdmissionException('pack_verb_row_invalid');
-          }
-          final row = Map<String, dynamic>.from(entry);
-          return VerbConjugation(
-            infinitive: _mapString(
-              row,
-              'infinitive',
-              fallback: fallbackInfinitive,
-            ),
-            arabic: _mapString(row, 'arabic', fallback: fallbackTranslation),
-            group: _mapString(row, 'group', fallback: 'pack'),
-            person: _mapString(row, 'person', required: true),
-            personAr: _mapString(row, 'personAr'),
-            form: _mapString(row, 'form', required: true),
-            past: _mapString(row, 'past'),
-            pastArabic: _mapString(row, 'pastArabic'),
-            example: _mapString(row, 'example'),
-            exampleAr: _mapString(row, 'exampleAr'),
-            pastExample: _mapString(row, 'pastExample'),
-            pastExampleAr: _mapString(row, 'pastExampleAr'),
-          );
-        })
-        .toList(growable: false);
+    return raw.map((entry) {
+      if (entry is! Map) {
+        throw const RuntimePackAdmissionException('pack_verb_row_invalid');
+      }
+      final row = Map<String, dynamic>.from(entry);
+      return VerbConjugation(
+        infinitive: _mapString(
+          row,
+          'infinitive',
+          fallback: fallbackInfinitive,
+        ),
+        arabic: _mapString(row, 'arabic', fallback: fallbackTranslation),
+        group: _mapString(row, 'group', fallback: 'pack'),
+        person: _mapString(row, 'person', required: true),
+        personAr: _mapString(row, 'personAr'),
+        form: _mapString(row, 'form', required: true),
+        past: _mapString(row, 'past'),
+        pastArabic: _mapString(row, 'pastArabic'),
+        example: _mapString(row, 'example'),
+        exampleAr: _mapString(row, 'exampleAr'),
+        pastExample: _mapString(row, 'pastExample'),
+        pastExampleAr: _mapString(row, 'pastExampleAr'),
+      );
+    }).toList(growable: false);
   }
 
   String _mapString(

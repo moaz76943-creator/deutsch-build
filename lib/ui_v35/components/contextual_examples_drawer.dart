@@ -18,7 +18,9 @@ class ContextualExamplesDrawer extends StatelessWidget {
               children: [
                 Text(
                   'أمثلة سياقية',
-                  style: Theme.of(context).textTheme.titleLarge
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
                       ?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 16),

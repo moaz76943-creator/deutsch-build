@@ -110,11 +110,11 @@ class _GrammarHubPageState extends State<GrammarHubPage>
                       Expanded(
                         child: Text(
                           topic.titleDe,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inter',
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Inter',
+                                  ),
                         ),
                       ),
                     ],
@@ -123,14 +123,16 @@ class _GrammarHubPageState extends State<GrammarHubPage>
                   Text(
                     topic.titleAr,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Tajawal',
-                    ),
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Tajawal',
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     topic.summaryAr,
-                    style: Theme.of(context).textTheme.bodyMedium
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
                         ?.copyWith(fontFamily: 'Tajawal'),
                   ),
                 ],

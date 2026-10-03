@@ -24,7 +24,6 @@ import 'dart:math' as math;
 
 import '../services/content_depth.dart';
 
-
 class CoreSession extends StatefulWidget {
   final LearnerRepository repo;
   final List<ContentItem> corpus;
@@ -131,8 +130,8 @@ class _CoreState extends State<CoreSession> {
         return d.transferAnswer.isNotEmpty
             ? d.transferAnswer
             : (item.acceptedForms.isNotEmpty
-                  ? item.acceptedForms.first
-                  : item.sourceText);
+                ? item.acceptedForms.first
+                : item.sourceText);
     }
   }
 
@@ -140,8 +139,7 @@ class _CoreState extends State<CoreSession> {
     if (submitted) return;
     final a = widget.textNormalizer.answer(answer);
     final e = widget.textNormalizer.answer(expected);
-    correct =
-        a == e ||
+    correct = a == e ||
         item.acceptedForms.any(
           (value) => widget.textNormalizer.answer(value) == a,
         );
@@ -149,11 +147,8 @@ class _CoreState extends State<CoreSession> {
       item: item,
       answer: answer,
       correct: correct,
-      seconds: DateTime.now()
-          .difference(started)
-          .inSeconds
-          .clamp(1, 999)
-          .toInt(),
+      seconds:
+          DateTime.now().difference(started).inSeconds.clamp(1, 999).toInt(),
       hinted: false,
       skillOverride: mode,
     );
@@ -170,105 +165,111 @@ class _CoreState extends State<CoreSession> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: Text('جلسة ${pos + 1}/${items.length}')),
-    body: ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        Chip(
-          label: Text(
-            mode == 'listening'
-                ? 'Listening'
-                : mode == 'transfer'
-                ? 'Transfer'
-                : mode == 'recall'
-                ? 'Recognition'
-                : 'Production',
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(item.topic, style: Theme.of(c).textTheme.labelLarge),
-        const SizedBox(height: 7),
-        Text(
-          prompt,
-          style: Theme.of(c).textTheme.headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        if (mode == 'listening')
-          Padding(
-            padding: const EdgeInsets.only(top: 14),
-            child: FilledButton.icon(
-              onPressed: speak,
-              icon: const Icon(Icons.volume_up),
-              label: const Text('استمع'),
-            ),
-          ),
-        const SizedBox(height: 14),
-        TextField(
-          enabled: !submitted,
-          onChanged: (x) => answer = x,
-          textDirection: TextDirection.ltr,
-          minLines: 1,
-          maxLines: 3,
-          decoration: InputDecoration(
-            labelText: 'إجابتك بـ${widget.presentation.targetLanguageName}',
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (!submitted)
-          FilledButton(onPressed: submit, child: const Text('تحقق'))
-        else
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    correct ? '✓ إجابة صحيحة' : '✗ نحتاج تدريبًا إضافيًا',
-                    style: Theme.of(c).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 5),
-                  Text('الإجابة المستهدفة: $expected'),
-                  if (depthFor(item).grammar.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text('قاعدة: ${depthFor(item).grammar}'),
-                    ),
-                  if (depthFor(item).collocation.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text('تركيب مهم: ${depthFor(item).collocation}'),
-                    ),
-                ],
+        appBar: AppBar(title: Text('جلسة ${pos + 1}/${items.length}')),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            Chip(
+              label: Text(
+                mode == 'listening'
+                    ? 'Listening'
+                    : mode == 'transfer'
+                        ? 'Transfer'
+                        : mode == 'recall'
+                            ? 'Recognition'
+                            : 'Production',
               ),
             ),
-          ),
-        const SizedBox(height: 12),
-        if (submitted)
-          FilledButton(
-            onPressed: () {
-              if (pos + 1 >= items.length) {
-                widget.onDone();
-                Navigator.pop(c);
-              } else {
-                setState(() {
-                  pos++;
-                  submitted = false;
-                  answer = '';
-                  started = DateTime.now();
-                  mode = plannedItems.isEmpty
-                      ? _fallbackMode(pos, sessionState)
-                      : _modeForPlanItem(plannedItems[pos]);
-                });
-              }
-            },
-            child: Text(pos + 1 >= items.length ? 'إنهاء الجلسة' : 'التالي'),
-          ),
-      ],
-    ),
-  );
+            const SizedBox(height: 12),
+            Text(item.topic, style: Theme.of(c).textTheme.labelLarge),
+            const SizedBox(height: 7),
+            Text(
+              prompt,
+              style: Theme.of(c)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            if (mode == 'listening')
+              Padding(
+                padding: const EdgeInsets.only(top: 14),
+                child: FilledButton.icon(
+                  onPressed: speak,
+                  icon: const Icon(Icons.volume_up),
+                  label: const Text('استمع'),
+                ),
+              ),
+            const SizedBox(height: 14),
+            TextField(
+              enabled: !submitted,
+              onChanged: (x) => answer = x,
+              textDirection: TextDirection.ltr,
+              minLines: 1,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'إجابتك بـ${widget.presentation.targetLanguageName}',
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (!submitted)
+              FilledButton(onPressed: submit, child: const Text('تحقق'))
+            else
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        correct ? '✓ إجابة صحيحة' : '✗ نحتاج تدريبًا إضافيًا',
+                        style: Theme.of(c)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 5),
+                      Text('الإجابة المستهدفة: $expected'),
+                      if (depthFor(item).grammar.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text('قاعدة: ${depthFor(item).grammar}'),
+                        ),
+                      if (depthFor(item).collocation.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child:
+                              Text('تركيب مهم: ${depthFor(item).collocation}'),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+            if (submitted)
+              FilledButton(
+                onPressed: () {
+                  if (pos + 1 >= items.length) {
+                    widget.onDone();
+                    Navigator.pop(c);
+                  } else {
+                    setState(() {
+                      pos++;
+                      submitted = false;
+                      answer = '';
+                      started = DateTime.now();
+                      mode = plannedItems.isEmpty
+                          ? _fallbackMode(pos, sessionState)
+                          : _modeForPlanItem(plannedItems[pos]);
+                    });
+                  }
+                },
+                child:
+                    Text(pos + 1 >= items.length ? 'إنهاء الجلسة' : 'التالي'),
+              ),
+          ],
+        ),
+      );
 }
 
 enum ViewMode { list, flashcard, grid }
@@ -329,9 +330,10 @@ class _VocabularyV35State extends State<VocabularyV35> {
       );
     }
     final favs = await widget.dependencies.favoritesRepository.getFavorites();
-    final langCode = widget.presentation.targetLanguageName.contains("لمان") ? "de" : "en";
+    final langCode =
+        widget.presentation.targetLanguageName.contains("لمان") ? "de" : "en";
     final custom = await widget.dependencies.userVocabularyService
-          .getCustomEntries(targetLanguage: langCode);
+        .getCustomEntries(targetLanguage: langCode);
     if (mounted) {
       setState(() {
         _favorites = favs;
@@ -433,16 +435,15 @@ class _VocabularyV35State extends State<VocabularyV35> {
                     if (formKey.currentState!.validate()) {
                       await widget.dependencies.userVocabularyService
                           .addCustomEntry({
-                            'id':
-                                'custom_${DateTime.now().millisecondsSinceEpoch}',
-                            'german_text': germanController.text,
-                            'arabic_translation': arabicController.text,
-                            'article': articleController.text,
-                            'notes': notesController.text,
-                            'example_sentence': exampleController.text,
-                            'created_at': DateTime.now().toIso8601String(),
-                            'is_custom': 1,
-                          });
+                        'id': 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                        'german_text': germanController.text,
+                        'arabic_translation': arabicController.text,
+                        'article': articleController.text,
+                        'notes': notesController.text,
+                        'example_sentence': exampleController.text,
+                        'created_at': DateTime.now().toIso8601String(),
+                        'is_custom': 1,
+                      });
                       if (mounted) {
                         Navigator.pop(c);
                         _loadData();
@@ -1084,8 +1085,7 @@ class _SingleState extends State<SingleItemSession> {
   Future<void> submit() async {
     final a = widget.textNormalizer.answer(answer);
     final e = widget.textNormalizer.answer(expected);
-    correct =
-        a == e ||
+    correct = a == e ||
         widget.item.acceptedForms.any(
           (value) => widget.textNormalizer.answer(value) == a,
         );
@@ -1112,72 +1112,75 @@ class _SingleState extends State<SingleItemSession> {
   Future<void> speak() => tts.speak(widget.item.exampleText);
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: Text('${labels[step]} • ${widget.item.sourceText}')),
-    body: ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        LinearProgressIndicator(value: (step + 1) / labels.length),
-        const SizedBox(height: 22),
-        Text(
-          question,
-          style: Theme.of(c).textTheme.headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        if (step == 2)
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: FilledButton.icon(
-              onPressed: speak,
-              icon: const Icon(Icons.volume_up),
-              label: const Text('استمع'),
+        appBar:
+            AppBar(title: Text('${labels[step]} • ${widget.item.sourceText}')),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            LinearProgressIndicator(value: (step + 1) / labels.length),
+            const SizedBox(height: 22),
+            Text(
+              question,
+              style: Theme.of(c)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
-          ),
-        if (step == 1)
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Text('المعنى: ${widget.item.translationText}'),
-          ),
-        const SizedBox(height: 15),
-        TextField(
-          enabled: !done,
-          onChanged: (x) => answer = x,
-          textDirection: TextDirection.ltr,
-          decoration: InputDecoration(
-            labelText: 'اكتب بـ${widget.presentation.targetLanguageName}',
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (!done)
-          FilledButton(onPressed: submit, child: const Text('تحقق'))
-        else
-          Card(
-            child: ListTile(
-              leading: Icon(correct ? Icons.check_circle : Icons.close),
-              title: Text(correct ? 'أحسنت' : 'نحتاج دليلًا إضافيًا'),
-              subtitle: Text('الإجابة: $expected'),
+            if (step == 2)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: FilledButton.icon(
+                  onPressed: speak,
+                  icon: const Icon(Icons.volume_up),
+                  label: const Text('استمع'),
+                ),
+              ),
+            if (step == 1)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text('المعنى: ${widget.item.translationText}'),
+              ),
+            const SizedBox(height: 15),
+            TextField(
+              enabled: !done,
+              onChanged: (x) => answer = x,
+              textDirection: TextDirection.ltr,
+              decoration: InputDecoration(
+                labelText: 'اكتب بـ${widget.presentation.targetLanguageName}',
+                border: const OutlineInputBorder(),
+              ),
             ),
-          ),
-        if (done)
-          FilledButton(
-            onPressed: () {
-              if (step + 1 >= labels.length) {
-                widget.onDone();
-                Navigator.pop(c);
-              } else {
-                setState(() {
-                  step++;
-                  done = false;
-                  answer = '';
-                  start = DateTime.now();
-                });
-              }
-            },
-            child: Text(step + 1 >= labels.length ? 'إنهاء' : 'التالي'),
-          ),
-      ],
-    ),
-  );
+            const SizedBox(height: 12),
+            if (!done)
+              FilledButton(onPressed: submit, child: const Text('تحقق'))
+            else
+              Card(
+                child: ListTile(
+                  leading: Icon(correct ? Icons.check_circle : Icons.close),
+                  title: Text(correct ? 'أحسنت' : 'نحتاج دليلًا إضافيًا'),
+                  subtitle: Text('الإجابة: $expected'),
+                ),
+              ),
+            if (done)
+              FilledButton(
+                onPressed: () {
+                  if (step + 1 >= labels.length) {
+                    widget.onDone();
+                    Navigator.pop(c);
+                  } else {
+                    setState(() {
+                      step++;
+                      done = false;
+                      answer = '';
+                      start = DateTime.now();
+                    });
+                  }
+                },
+                child: Text(step + 1 >= labels.length ? 'إنهاء' : 'التالي'),
+              ),
+          ],
+        ),
+      );
 }
 
 class SmartAssessmentPage extends StatefulWidget {
@@ -1347,7 +1350,9 @@ class _SmartAssessmentState extends State<SmartAssessmentPage> {
           const SizedBox(height: 12),
           Text(
             q.prompt,
-            style: Theme.of(c).textTheme.headlineSmall
+            style: Theme.of(c)
+                .textTheme
+                .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           if (q.type == AssessmentQuestionType.listening)
@@ -1383,7 +1388,9 @@ class _SmartAssessmentState extends State<SmartAssessmentPage> {
                   children: [
                     Text(
                       correct ? '✓ إجابة صحيحة' : '✗ تحتاج مراجعة',
-                      style: Theme.of(c).textTheme.titleMedium
+                      style: Theme.of(c)
+                          .textTheme
+                          .titleMedium
                           ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(height: 5),
@@ -1434,111 +1441,117 @@ class AssessmentResultPage extends StatelessWidget {
   });
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: const Text('نتيجة الاختبار')),
-    body: ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Text(
-                  '${result.score.round()}%',
-                  style: Theme.of(c).textTheme.displaySmall
-                      ?.copyWith(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${result.correct}/${result.answered} إجابات صحيحة • ${result.cleanCorrect} دون تلميح',
-                ),
-                const SizedBox(height: 8),
-                Text(_message(result.score)),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          'خريطة المهارات',
-          style: Theme.of(c).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        ...result.skillScores.entries.map(
-          (e) => ListTile(
-            title: Text(e.key),
-            subtitle: LinearProgressIndicator(value: e.value),
-            trailing: Text('${(e.value * 100).round()}%'),
-          ),
-        ),
-        const SizedBox(height: 8),
-        if (result.weakSkills.isNotEmpty)
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.warning_amber_outlined),
-              title: const Text('ما الذي نركز عليه؟'),
-              subtitle: Text(result.weakSkills.join(' • ')),
-            ),
-          ),
-        if (result.nextReviewItemIds.isNotEmpty)
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.replay_outlined),
-              title: const Text('بطاقات تستحق المراجعة'),
-              subtitle: Text(
-                '${result.nextReviewItemIds.length} عناصر ستعود إلى خطة المراجعة.',
-              ),
-            ),
-          ),
-        const SizedBox(height: 12),
-        Text(
-          'آخر الاختبارات',
-          style: Theme.of(c).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        ...history
-            .take(5)
-            .map(
-              (h) => ListTile(
-                title: Text('${h.score.round()}%'),
-                subtitle: Text(
-                  '${h.at.toLocal()} • ${h.weakSkills.isEmpty ? 'لا توجد نقاط ضعف محددة' : h.weakSkills.join('، ')}',
+        appBar: AppBar(title: const Text('نتيجة الاختبار')),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      '${result.score.round()}%',
+                      style: Theme.of(c)
+                          .textTheme
+                          .displaySmall
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${result.correct}/${result.answered} إجابات صحيحة • ${result.cleanCorrect} دون تلميح',
+                    ),
+                    const SizedBox(height: 8),
+                    Text(_message(result.score)),
+                  ],
                 ),
               ),
             ),
-      ],
-    ),
-  );
+            const SizedBox(height: 14),
+            Text(
+              'خريطة المهارات',
+              style: Theme.of(c)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            ...result.skillScores.entries.map(
+              (e) => ListTile(
+                title: Text(e.key),
+                subtitle: LinearProgressIndicator(value: e.value),
+                trailing: Text('${(e.value * 100).round()}%'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (result.weakSkills.isNotEmpty)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.warning_amber_outlined),
+                  title: const Text('ما الذي نركز عليه؟'),
+                  subtitle: Text(result.weakSkills.join(' • ')),
+                ),
+              ),
+            if (result.nextReviewItemIds.isNotEmpty)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.replay_outlined),
+                  title: const Text('بطاقات تستحق المراجعة'),
+                  subtitle: Text(
+                    '${result.nextReviewItemIds.length} عناصر ستعود إلى خطة المراجعة.',
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+            Text(
+              'آخر الاختبارات',
+              style: Theme.of(c)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            ...history.take(5).map(
+                  (h) => ListTile(
+                    title: Text('${h.score.round()}%'),
+                    subtitle: Text(
+                      '${h.at.toLocal()} • ${h.weakSkills.isEmpty ? 'لا توجد نقاط ضعف محددة' : h.weakSkills.join('، ')}',
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      );
   static String _message(double score) => score >= 85
       ? 'ممتاز. سنرفع التحدي ونركز على الاحتفاظ.'
       : score >= 70
-      ? 'جيد. هناك مهارات تحتاج تثبيتًا إضافيًا.'
-      : 'النتيجة تكشف نقاطًا تحتاج علاجًا؛ سنحوّلها إلى مراجعات مستهدفة.';
+          ? 'جيد. هناك مهارات تحتاج تثبيتًا إضافيًا.'
+          : 'النتيجة تكشف نقاطًا تحتاج علاجًا؛ سنحوّلها إلى مراجعات مستهدفة.';
 }
 
 class PlanSummaryCard extends StatelessWidget {
   const PlanSummaryCard({super.key});
   @override
   Widget build(BuildContext c) => FutureBuilder<bool>(
-    future: SubscriptionService.isPremium(),
-    builder: (c, snap) {
-      final premium = snap.data == true;
-      return Card(
-        child: ListTile(
-          leading: Icon(
-            premium ? Icons.workspace_premium : Icons.lock_open_outlined,
-          ),
-          title: Text(premium ? 'Premium مفعّل' : 'الخطة المجانية'),
-          subtitle: Text(
-            premium ? 'كل مزايا التعلم المتقدمة متاحة لك.' : 'جرّب الأساسيات مجانًا، واطّلع على الباقات المدفوعة للمزايا المتقدمة.',
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            c,
-            MaterialPageRoute(builder: (_) => SubscriptionPage(repo: null)),
-          ),
-        ),
+        future: SubscriptionService.isPremium(),
+        builder: (c, snap) {
+          final premium = snap.data == true;
+          return Card(
+            child: ListTile(
+              leading: Icon(
+                premium ? Icons.workspace_premium : Icons.lock_open_outlined,
+              ),
+              title: Text(premium ? 'Premium مفعّل' : 'الخطة المجانية'),
+              subtitle: Text(
+                premium
+                    ? 'كل مزايا التعلم المتقدمة متاحة لك.'
+                    : 'جرّب الأساسيات مجانًا، واطّلع على الباقات المدفوعة للمزايا المتقدمة.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                c,
+                MaterialPageRoute(builder: (_) => SubscriptionPage(repo: null)),
+              ),
+            ),
+          );
+        },
       );
-    },
-  );
 }

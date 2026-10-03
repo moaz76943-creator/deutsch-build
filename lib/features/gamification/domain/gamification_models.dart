@@ -127,11 +127,11 @@ final class GamificationProfile {
   XpProgress get xpProgress => XpProgress.fromTotalXp(totalXp);
 
   DailyStreak get streak => DailyStreak(
-    current: currentStreak,
-    longest: longestStreak,
-    lastLocalDay: lastLocalDay,
-    clockAnomalyDetected: clockAnomalyDetected,
-  );
+        current: currentStreak,
+        longest: longestStreak,
+        lastLocalDay: lastLocalDay,
+        clockAnomalyDetected: clockAnomalyDetected,
+      );
 }
 
 final class GamificationReviewEvent {

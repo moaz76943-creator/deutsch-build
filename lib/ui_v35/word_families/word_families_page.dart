@@ -64,8 +64,7 @@ class _WordFamiliesPageState extends State<WordFamiliesPage> {
             return const _MessageState(
               icon: Icons.account_tree_outlined,
               title: 'لا توجد عائلات موثّقة في الحزمة الحالية',
-              body:
-                  'لن يخمّن التطبيق الاشتقاق من تشابه شكل الكلمات. '
+              body: 'لن يخمّن التطبيق الاشتقاق من تشابه شكل الكلمات. '
                   'تظهر هنا فقط العلاقات الألمانية الصريحة المراجعة.',
             );
           }
@@ -111,30 +110,32 @@ class _MessageState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 46),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w900),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 46),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              Text(body, textAlign: TextAlign.center),
+              if (action != null) ...[
+                const SizedBox(height: 16),
+                OutlinedButton(
+                  onPressed: action,
+                  child: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(body, textAlign: TextAlign.center),
-          if (action != null) ...[
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: action,
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

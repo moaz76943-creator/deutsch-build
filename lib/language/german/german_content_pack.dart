@@ -31,10 +31,10 @@ final class GermanContentPack implements LanguageContentPack {
   );
 
   ContentEngine<ContentItem> get _engine => ContentEngine<ContentItem>(
-    useGeneratedContent
-        ? const JsonGermanContentSource()
-        : const LegacyGermanContentSource(),
-  );
+        useGeneratedContent
+            ? const JsonGermanContentSource()
+            : const LegacyGermanContentSource(),
+      );
 
   @override
   List<ContentItem> get items => _engine.items.toList(growable: false);

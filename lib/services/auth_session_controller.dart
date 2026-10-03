@@ -144,8 +144,7 @@ final class AuthSessionController extends ChangeNotifier {
   }
 
   void _setSession(AccountSession session) {
-    _session =
-        session.isAuthenticated &&
+    _session = session.isAuthenticated &&
             session.identity != null &&
             !session.requiresReauthentication
         ? session

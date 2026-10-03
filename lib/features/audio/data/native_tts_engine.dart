@@ -13,12 +13,11 @@ import '../offline_audio_runtime.dart';
 /// conceptId as though it were learner-facing text.
 class NativeTtsEngine implements IAudioService {
   NativeTtsEngine({OfflineAudioRuntime? runtime})
-    : _runtime =
-          runtime ??
-          OfflineAudioRuntime(
-            speechProfile: const GermanSpeechProfile(),
-            ttsEngine: FlutterOfflineTtsEngine(),
-          );
+      : _runtime = runtime ??
+            OfflineAudioRuntime(
+              speechProfile: const GermanSpeechProfile(),
+              ttsEngine: FlutterOfflineTtsEngine(),
+            );
 
   final OfflineAudioRuntime _runtime;
 

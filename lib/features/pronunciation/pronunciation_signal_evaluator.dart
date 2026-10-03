@@ -16,9 +16,8 @@ abstract final class PronunciationSignalEvaluator {
       );
     }
 
-    final expectedMs = (280 + targetToken.trim().length * 65)
-        .clamp(420, 1500)
-        .toInt();
+    final expectedMs =
+        (280 + targetToken.trim().length * 65).clamp(420, 1500).toInt();
     final observedMs = features.voicedDurationMs;
     final delta = (observedMs - expectedMs).abs();
     final timingScore = (1 - (delta / expectedMs)).clamp(0.0, 1.0).toDouble();
@@ -48,7 +47,8 @@ abstract final class PronunciationSignalEvaluator {
         signalAvailable: true,
         signalUsable: false,
         timingScore: timingScore,
-        messageAr: 'المقطع المنطوق قصير جدًا للتحليل. انطق الكلمة كاملة ثم أعد المحاولة.',
+        messageAr:
+            'المقطع المنطوق قصير جدًا للتحليل. انطق الكلمة كاملة ثم أعد المحاولة.',
         features: features,
       );
     }
@@ -65,8 +65,8 @@ abstract final class PronunciationSignalEvaluator {
     final timingMessage = timingScore >= .72
         ? 'توقيت النطق ضمن نطاق تدريبي مناسب.'
         : observedMs < expectedMs
-        ? 'النطق أسرع من النطاق التدريبي المتوقع؛ أبطئ قليلًا.'
-        : 'النطق أطول من النطاق التدريبي المتوقع؛ حاول قول الكلمة بوحدة واحدة.';
+            ? 'النطق أسرع من النطاق التدريبي المتوقع؛ أبطئ قليلًا.'
+            : 'النطق أطول من النطاق التدريبي المتوقع؛ حاول قول الكلمة بوحدة واحدة.';
 
     return PronunciationProductionFeedback(
       signalAvailable: true,
@@ -79,12 +79,11 @@ abstract final class PronunciationSignalEvaluator {
   }
 
   static String _unavailableMessage(String? reason) => switch (reason) {
-    'microphone_permission_required' =>
-      'إذن الميكروفون مطلوب. فعّله ثم أعد المحاولة.',
-    'pronunciation_capture_busy' =>
-      'هناك تسجيل جارٍ بالفعل. أنهه قبل بدء تسجيل جديد.',
-    _ =>
-      'فحص الميكروفون المحلي غير متاح على هذا الجهاز حاليًا. '
-          'لن نختلق درجة نطق بديلة.',
-  };
+        'microphone_permission_required' =>
+          'إذن الميكروفون مطلوب. فعّله ثم أعد المحاولة.',
+        'pronunciation_capture_busy' =>
+          'هناك تسجيل جارٍ بالفعل. أنهه قبل بدء تسجيل جديد.',
+        _ => 'فحص الميكروفون المحلي غير متاح على هذا الجهاز حاليًا. '
+            'لن نختلق درجة نطق بديلة.',
+      };
 }

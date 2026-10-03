@@ -34,8 +34,8 @@ class UserCustomization {
 
 class UserCustomizationService {
   UserCustomizationService({DatabaseFactory? factory, String? path})
-    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
-      _overridePath = path;
+      : _sqlitePolicy = AppSqlitePolicy(factory: factory),
+        _overridePath = path;
 
   final AppSqlitePolicy _sqlitePolicy;
   final String? _overridePath;
@@ -84,12 +84,15 @@ class UserCustomizationService {
     String? notes,
   ) async {
     final database = await db;
-    await database.insert('user_vocab_customizations', {
-      'word_id': wordId,
-      'custom_arabic_translation': customArabic,
-      'custom_notes': notes,
-      'updated_at': DateTime.now().toIso8601String(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await database.insert(
+        'user_vocab_customizations',
+        {
+          'word_id': wordId,
+          'custom_arabic_translation': customArabic,
+          'custom_notes': notes,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> resetTranslationOverride(String wordId) async {

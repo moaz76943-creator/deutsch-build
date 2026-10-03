@@ -56,10 +56,10 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
   Future<void> _speak(String text) => _tts.speak(text);
 
   Widget _audioButton(String text) => IconButton(
-    tooltip: 'استمع للنطق الألماني',
-    onPressed: () => _speak(text),
-    icon: const Icon(Icons.volume_up_outlined),
-  );
+        tooltip: 'استمع للنطق الألماني',
+        onPressed: () => _speak(text),
+        icon: const Icon(Icons.volume_up_outlined),
+      );
 
   Widget _verbCard(BuildContext c, VerbConjugation v) {
     final key = '${v.infinitive}|${v.person}';
@@ -217,7 +217,9 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
               padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
               child: Text(
                 g,
-                style: Theme.of(c).textTheme.titleLarge
+                style: Theme.of(c)
+                    .textTheme
+                    .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
             ),

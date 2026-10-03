@@ -11,9 +11,8 @@ final class TodayHomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safeGoal = model.dailyGoal <= 0 ? 1 : model.dailyGoal;
-    final progress = (model.completedToday / safeGoal)
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final progress =
+        (model.completedToday / safeGoal).clamp(0.0, 1.0).toDouble();
 
     return Padding(
       key: const Key('phase1-today-home'),

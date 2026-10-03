@@ -59,11 +59,11 @@ final class LanguageRoleEligibilityRecord {
   bool get isFailClosed => state.isFailClosed;
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'languageId': languageId,
-    'role': role.wireName,
-    'state': state.name,
-    'reason': reason,
-  };
+        'languageId': languageId,
+        'role': role.wireName,
+        'state': state.name,
+        'reason': reason,
+      };
 }
 
 void _requireNonEmpty(String value, String field) {

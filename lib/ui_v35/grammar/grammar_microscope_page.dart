@@ -30,79 +30,81 @@ class _GrammarMicroscopePageState extends State<GrammarMicroscopePage> {
   @override
   void initState() {
     super.initState();
-    _snapshot = GrammarMicroscopeService(widget.dependencies.grammarHubService)
-        .load(
-          topicId: widget.topicId,
-          state: widget.state,
-          corpus: widget.dependencies.corpus,
-        );
+    _snapshot =
+        GrammarMicroscopeService(widget.dependencies.grammarHubService).load(
+      topicId: widget.topicId,
+      state: widget.state,
+      corpus: widget.dependencies.corpus,
+    );
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('مجهر القواعد')),
-    body: FutureBuilder<GrammarMicroscopeSnapshot?>(
-      future: _snapshot,
-      builder: (context, asyncSnapshot) {
-        if (asyncSnapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (asyncSnapshot.hasError) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('تعذر تحميل تفاصيل القاعدة بأمان.'),
-            ),
-          );
-        }
+        appBar: AppBar(title: const Text('مجهر القواعد')),
+        body: FutureBuilder<GrammarMicroscopeSnapshot?>(
+          future: _snapshot,
+          builder: (context, asyncSnapshot) {
+            if (asyncSnapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (asyncSnapshot.hasError) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('تعذر تحميل تفاصيل القاعدة بأمان.'),
+                ),
+              );
+            }
 
-        final snapshot = asyncSnapshot.data;
-        if (snapshot == null) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('موضوع القاعدة غير متاح في المصدر النشط.'),
-            ),
-          );
-        }
+            final snapshot = asyncSnapshot.data;
+            if (snapshot == null) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('موضوع القاعدة غير متاح في المصدر النشط.'),
+                ),
+              );
+            }
 
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            children: [
-              BidiText(
-                DirectionalText.german(
-                  snapshot.topic.titleDe,
-                  semanticRole: LinguisticSemanticRole.grammarLabel,
-                ),
-                style: Theme.of(context).textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                children: [
+                  BidiText(
+                    DirectionalText.german(
+                      snapshot.topic.titleDe,
+                      semanticRole: LinguisticSemanticRole.grammarLabel,
+                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  BidiText(
+                    DirectionalText.arabic(
+                      snapshot.topic.titleAr,
+                      semanticRole: LinguisticSemanticRole.translation,
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  BidiText(
+                    DirectionalText.arabic(
+                      snapshot.topic.explanationMarkdown,
+                      semanticRole: LinguisticSemanticRole.explanation,
+                    ),
+                    style: const TextStyle(height: 1.5),
+                  ),
+                  const SizedBox(height: 20),
+                  GrammarMicroscopeEvidenceSection(snapshot: snapshot),
+                  const SizedBox(height: 20),
+                  GrammarMicroscopeRulesSection(snapshot: snapshot),
+                ],
               ),
-              const SizedBox(height: 4),
-              BidiText(
-                DirectionalText.arabic(
-                  snapshot.topic.titleAr,
-                  semanticRole: LinguisticSemanticRole.translation,
-                ),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              BidiText(
-                DirectionalText.arabic(
-                  snapshot.topic.explanationMarkdown,
-                  semanticRole: LinguisticSemanticRole.explanation,
-                ),
-                style: const TextStyle(height: 1.5),
-              ),
-              const SizedBox(height: 20),
-              GrammarMicroscopeEvidenceSection(snapshot: snapshot),
-              const SizedBox(height: 20),
-              GrammarMicroscopeRulesSection(snapshot: snapshot),
-            ],
-          ),
-        );
-      },
-    ),
-  );
+            );
+          },
+        ),
+      );
 }

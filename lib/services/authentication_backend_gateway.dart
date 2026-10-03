@@ -13,7 +13,7 @@ final class TransportBackendAuthenticationGateway
     this.transport, {
     SecureSessionStorage? secureSessionStorage,
   }) : _secureSessionStorage =
-           secureSessionStorage ?? const UnavailableSecureSessionStorage();
+            secureSessionStorage ?? const UnavailableSecureSessionStorage();
 
   final BackendTransport transport;
   final SecureSessionStorage _secureSessionStorage;

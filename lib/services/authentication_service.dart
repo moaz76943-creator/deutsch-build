@@ -14,16 +14,16 @@ final class ProviderAuthenticationService implements AuthenticationService {
     required SocialAuthenticationProvider appleProvider,
     BackendAuthenticationGateway? backendGateway,
     SecureSessionStorage? secureSessionStorage,
-  }) : _emailOtpProvider = emailOtpProvider,
-       _backendGateway =
-           backendGateway ?? const UnavailableBackendAuthenticationGateway(),
-       _secureSessionStorage =
-           secureSessionStorage ?? const UnavailableSecureSessionStorage(),
-       _googleProvider = _requireProvider(
-         googleProvider,
-         AccountProvider.google,
-       ),
-       _appleProvider = _requireProvider(appleProvider, AccountProvider.apple);
+  })  : _emailOtpProvider = emailOtpProvider,
+        _backendGateway =
+            backendGateway ?? const UnavailableBackendAuthenticationGateway(),
+        _secureSessionStorage =
+            secureSessionStorage ?? const UnavailableSecureSessionStorage(),
+        _googleProvider = _requireProvider(
+          googleProvider,
+          AccountProvider.google,
+        ),
+        _appleProvider = _requireProvider(appleProvider, AccountProvider.apple);
 
   final EmailOtpProvider _emailOtpProvider;
   final BackendAuthenticationGateway _backendGateway;

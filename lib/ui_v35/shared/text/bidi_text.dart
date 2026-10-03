@@ -29,12 +29,12 @@ class BidiText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    value.text,
-    textDirection: flutterTextDirection(value.direction),
-    style: style,
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-    semanticsLabel: semanticsLabel,
-  );
+        value.text,
+        textDirection: flutterTextDirection(value.direction),
+        style: style,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+        semanticsLabel: semanticsLabel,
+      );
 }

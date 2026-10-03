@@ -22,19 +22,16 @@ abstract final class PackChecksum {
       final words = List<int>.filled(64, 0);
       for (var index = 0; index < 16; index++) {
         final base = offset + index * 4;
-        words[index] =
-            (bytes[base] << 24) |
+        words[index] = (bytes[base] << 24) |
             (bytes[base + 1] << 16) |
             (bytes[base + 2] << 8) |
             bytes[base + 3];
       }
       for (var index = 16; index < 64; index++) {
-        final s0 =
-            _rotateRight(words[index - 15], 7) ^
+        final s0 = _rotateRight(words[index - 15], 7) ^
             _rotateRight(words[index - 15], 18) ^
             (words[index - 15] >> 3);
-        final s1 =
-            _rotateRight(words[index - 2], 17) ^
+        final s1 = _rotateRight(words[index - 2], 17) ^
             _rotateRight(words[index - 2], 19) ^
             (words[index - 2] >> 10);
         words[index] =
@@ -56,7 +53,7 @@ abstract final class PackChecksum {
         final choose = (e & f) ^ ((~e) & g);
         final temp1 =
             (h + s1 + choose + _roundConstants[index] + words[index]) &
-            0xffffffff;
+                0xffffffff;
         final s0 =
             _rotateRight(a, 2) ^ _rotateRight(a, 13) ^ _rotateRight(a, 22);
         final majority = (a & b) ^ (a & c) ^ (b & c);

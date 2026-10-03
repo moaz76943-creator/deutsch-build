@@ -25,30 +25,31 @@ class Attempt {
       ReviewFacetKey.normalizeVariant(variantKey) == null;
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'itemId': itemId,
-    'skill': skill,
-    'answer': answer,
-    'correct': correct,
-    'hinted': hinted,
-    'seconds': seconds,
-    'at': at.toIso8601String(),
-    'facetType': facetType.wireName,
-    if (ReviewFacetKey.normalizeVariant(variantKey) != null)
-      'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
-  };
+        'id': id,
+        'itemId': itemId,
+        'skill': skill,
+        'answer': answer,
+        'correct': correct,
+        'hinted': hinted,
+        'seconds': seconds,
+        'at': at.toIso8601String(),
+        'facetType': facetType.wireName,
+        if (ReviewFacetKey.normalizeVariant(variantKey) != null)
+          'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
+      };
   factory Attempt.fromJson(Map<String, dynamic> j) => Attempt(
-    id: j['id'] ?? '',
-    itemId: j['itemId'] ?? '',
-    skill: j['skill'] ?? 'recall',
-    answer: j['answer'] ?? '',
-    correct: j['correct'] == true,
-    hinted: j['hinted'] == true,
-    seconds: (j['seconds'] as num?)?.toInt() ?? 5,
-    at: DateTime.tryParse(j['at'] ?? '') ?? DateTime.now(),
-    facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
-    variantKey: ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
-  );
+        id: j['id'] ?? '',
+        itemId: j['itemId'] ?? '',
+        skill: j['skill'] ?? 'recall',
+        answer: j['answer'] ?? '',
+        correct: j['correct'] == true,
+        hinted: j['hinted'] == true,
+        seconds: (j['seconds'] as num?)?.toInt() ?? 5,
+        at: DateTime.tryParse(j['at'] ?? '') ?? DateTime.now(),
+        facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
+        variantKey:
+            ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
+      );
 }
 
 class AssessmentHistory {
@@ -65,12 +66,12 @@ class AssessmentHistory {
     required this.answered,
   });
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'at': at.toIso8601String(),
-    'score': score.clamp(0, 100),
-    'weakSkills': weakSkills.take(8).toList(),
-    'answered': answered.clamp(0, 100),
-  };
+        'id': id,
+        'at': at.toIso8601String(),
+        'score': score.clamp(0, 100),
+        'weakSkills': weakSkills.take(8).toList(),
+        'answered': answered.clamp(0, 100),
+      };
   factory AssessmentHistory.fromJson(Map<String, dynamic> j) {
     final now = DateTime.now();
     var safeAt = DateTime.tryParse(j['at']?.toString() ?? '') ?? now;
@@ -83,11 +84,11 @@ class AssessmentHistory {
       score: (((j['score'] as num?)?.toDouble() ?? 0).clamp(0, 100)).toDouble(),
       weakSkills: (j['weakSkills'] is List
           ? (j['weakSkills'] as List)
-                .whereType<String>()
-                .map((x) => x.trim())
-                .where((x) => x.isNotEmpty)
-                .take(8)
-                .toList()
+              .whereType<String>()
+              .map((x) => x.trim())
+              .where((x) => x.isNotEmpty)
+              .take(8)
+              .toList()
           : const <String>[]),
       answered: (((j['answered'] as num?)?.toInt() ?? 0).clamp(0, 100)).toInt(),
     );
@@ -123,10 +124,10 @@ class ReviewCard {
   String get conceptId => itemId;
 
   ReviewFacetKey get facetKey => ReviewFacetKey(
-    conceptId: itemId,
-    facetType: facetType,
-    variantKey: variantKey,
-  );
+        conceptId: itemId,
+        facetType: facetType,
+        variantKey: variantKey,
+      );
 
   String get storageKey => facetKey.storageKey;
 
@@ -153,36 +154,37 @@ class ReviewCard {
     double? stabilityDays,
     DateTime? dueAt,
     DateTime? lastReviewedAt,
-  }) => ReviewCard(
-    itemId: itemId,
-    facetType: facetType,
-    variantKey: variantKey,
-    repetitions: repetitions ?? this.repetitions,
-    intervalDays: intervalDays ?? this.intervalDays,
-    lapses: lapses ?? this.lapses,
-    successes: successes ?? this.successes,
-    failures: failures ?? this.failures,
-    difficulty: difficulty ?? this.difficulty,
-    stabilityDays: stabilityDays ?? this.stabilityDays,
-    dueAt: dueAt ?? this.dueAt,
-    lastReviewedAt: lastReviewedAt ?? this.lastReviewedAt,
-  );
+  }) =>
+      ReviewCard(
+        itemId: itemId,
+        facetType: facetType,
+        variantKey: variantKey,
+        repetitions: repetitions ?? this.repetitions,
+        intervalDays: intervalDays ?? this.intervalDays,
+        lapses: lapses ?? this.lapses,
+        successes: successes ?? this.successes,
+        failures: failures ?? this.failures,
+        difficulty: difficulty ?? this.difficulty,
+        stabilityDays: stabilityDays ?? this.stabilityDays,
+        dueAt: dueAt ?? this.dueAt,
+        lastReviewedAt: lastReviewedAt ?? this.lastReviewedAt,
+      );
 
   Map<String, dynamic> toJson() => {
-    'itemId': itemId,
-    'facetType': facetType.wireName,
-    if (ReviewFacetKey.normalizeVariant(variantKey) != null)
-      'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
-    'repetitions': repetitions,
-    'intervalDays': intervalDays,
-    'lapses': lapses,
-    'successes': successes,
-    'failures': failures,
-    'difficulty': difficulty,
-    'stabilityDays': stabilityDays,
-    'dueAt': dueAt.toIso8601String(),
-    'lastReviewedAt': lastReviewedAt?.toIso8601String(),
-  };
+        'itemId': itemId,
+        'facetType': facetType.wireName,
+        if (ReviewFacetKey.normalizeVariant(variantKey) != null)
+          'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
+        'repetitions': repetitions,
+        'intervalDays': intervalDays,
+        'lapses': lapses,
+        'successes': successes,
+        'failures': failures,
+        'difficulty': difficulty,
+        'stabilityDays': stabilityDays,
+        'dueAt': dueAt.toIso8601String(),
+        'lastReviewedAt': lastReviewedAt?.toIso8601String(),
+      };
 
   factory ReviewCard.fromJson(Map<String, dynamic> j) {
     final id = (j['itemId'] ?? '').toString().trim();
@@ -286,16 +288,17 @@ class LearnerState {
     List<Attempt>? attempts,
     List<AssessmentHistory>? assessmentHistory,
     List<PlacementDiagnosticRecord>? placementHistory,
-  }) => LearnerState(
-    xp: xp ?? this.xp,
-    streak: streak ?? this.streak,
-    learned: learned ?? this.learned,
-    review: review ?? this.review,
-    favoriteVerbs: favoriteVerbs ?? this.favoriteVerbs,
-    reviewCards: reviewCards ?? this.reviewCards,
-    attempts: attempts ?? this.attempts,
-    assessmentHistory: assessmentHistory ?? this.assessmentHistory,
-    placementHistory: placementHistory ?? this.placementHistory,
-    updatedAt: DateTime.now(),
-  );
+  }) =>
+      LearnerState(
+        xp: xp ?? this.xp,
+        streak: streak ?? this.streak,
+        learned: learned ?? this.learned,
+        review: review ?? this.review,
+        favoriteVerbs: favoriteVerbs ?? this.favoriteVerbs,
+        reviewCards: reviewCards ?? this.reviewCards,
+        attempts: attempts ?? this.attempts,
+        assessmentHistory: assessmentHistory ?? this.assessmentHistory,
+        placementHistory: placementHistory ?? this.placementHistory,
+        updatedAt: DateTime.now(),
+      );
 }

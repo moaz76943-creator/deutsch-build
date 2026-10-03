@@ -96,8 +96,8 @@ final class HttpBackendTransport implements BackendTransport {
     final iterator = StreamIterator<List<int>>(response);
     try {
       while (await iterator.moveNext().timeout(
-        _remainingUntil(responseDeadline),
-      )) {
+            _remainingUntil(responseDeadline),
+          )) {
         responseBytes.addAll(iterator.current);
         if (responseBytes.length > MAX_RESPONSE_BYTES) {
           throw const BackendTransportFailure(
@@ -260,8 +260,8 @@ final class HttpBackendTransport implements BackendTransport {
     if (statusCode == 401 || statusCode == 403) {
       final sessionOperation =
           operation == BackendTransportOperation.currentSession ||
-          operation == BackendTransportOperation.renewSession ||
-          operation == BackendTransportOperation.revokeSession;
+              operation == BackendTransportOperation.renewSession ||
+              operation == BackendTransportOperation.revokeSession;
       return BackendTransportFailure(
         sessionOperation
             ? BackendTransportFailureCode.invalidSession

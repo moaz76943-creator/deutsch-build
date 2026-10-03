@@ -199,44 +199,44 @@ class _HeroMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(17),
-    child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 11, sigmaY: 11),
-      child: Container(
-        height: 76,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .12),
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: Colors.white.withValues(alpha: .22)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 22, color: iconColor),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              textDirection: TextDirection.ltr,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
+        borderRadius: BorderRadius.circular(17),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 11, sigmaY: 11),
+          child: Container(
+            height: 76,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: Colors.white.withValues(alpha: .22)),
             ),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: .82),
-                fontSize: 10,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 22, color: iconColor),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  textDirection: TextDirection.ltr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .82),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _LandmarkSilhouette extends StatelessWidget {
@@ -244,13 +244,13 @@ class _LandmarkSilhouette extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Opacity(
-    opacity: .15,
-    child: SizedBox(
-      width: 210,
-      height: 95,
-      child: CustomPaint(painter: _LandmarkPainter()),
-    ),
-  );
+        opacity: .15,
+        child: SizedBox(
+          width: 210,
+          height: 95,
+          child: CustomPaint(painter: _LandmarkPainter()),
+        ),
+      );
 }
 
 class _LandmarkPainter extends CustomPainter {
@@ -344,9 +344,8 @@ class LearningTrackGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final track = tracks[index];
-        final score = (skillScores[track.keyName] ?? 0)
-            .clamp(0.0, 1.0)
-            .toDouble();
+        final score =
+            (skillScores[track.keyName] ?? 0).clamp(0.0, 1.0).toDouble();
         return _LearningTrackCard(
           label: track.label,
           icon: track.icon,
@@ -463,7 +462,9 @@ class _LearningTrackCard extends StatelessWidget {
           const Spacer(),
           Text(
             label,
-            style: Theme.of(context).textTheme.titleSmall
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
@@ -511,54 +512,54 @@ class ReferenceHomeActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    children: [
-      _ReferenceActionCard(
-        key: const Key('daily-lessons-card'),
-        title: 'دروس اليوم',
-        subtitle: 'مخصص لك',
-        icon: Icons.menu_book_rounded,
-        colors: const [Color(0xFF0759D9), Color(0xFF1296F3)],
-        onTap: onDailyLessons,
-      ),
-      const SizedBox(height: 11),
-      _ReferenceActionCard(
-        key: const Key('ai-conversation-card'),
-        title: 'محادثة بالذكاء الاصطناعي',
-        subtitle: 'تحدث وتعلم بطلاقة',
-        icon: Icons.chat_bubble_rounded,
-        colors: const [Color(0xFF6424E8), Color(0xFFB319E7)],
-        onTap: onAiConversation,
-      ),
-      const SizedBox(height: 11),
-      Row(
         children: [
-          Expanded(
-            child: _ReferenceActionCard(
-              key: const Key('quick-practice-card'),
-              title: 'التدريب السريع',
-              subtitle: '15 دقيقة',
-              icon: Icons.edit_rounded,
-              compact: true,
-              colors: const [Color(0xFF087D58), Color(0xFF17B873)],
-              onTap: onQuickPractice,
-            ),
+          _ReferenceActionCard(
+            key: const Key('daily-lessons-card'),
+            title: 'دروس اليوم',
+            subtitle: 'مخصص لك',
+            icon: Icons.menu_book_rounded,
+            colors: const [Color(0xFF0759D9), Color(0xFF1296F3)],
+            onTap: onDailyLessons,
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _ReferenceActionCard(
-              key: const Key('assessment-card'),
-              title: 'الاختبارات',
-              subtitle: 'اختبر مستواك',
-              icon: Icons.fact_check_rounded,
-              compact: true,
-              colors: const [Color(0xFFC51D55), Color(0xFFF04475)],
-              onTap: onAssessment,
-            ),
+          const SizedBox(height: 11),
+          _ReferenceActionCard(
+            key: const Key('ai-conversation-card'),
+            title: 'محادثة بالذكاء الاصطناعي',
+            subtitle: 'تحدث وتعلم بطلاقة',
+            icon: Icons.chat_bubble_rounded,
+            colors: const [Color(0xFF6424E8), Color(0xFFB319E7)],
+            onTap: onAiConversation,
+          ),
+          const SizedBox(height: 11),
+          Row(
+            children: [
+              Expanded(
+                child: _ReferenceActionCard(
+                  key: const Key('quick-practice-card'),
+                  title: 'التدريب السريع',
+                  subtitle: '15 دقيقة',
+                  icon: Icons.edit_rounded,
+                  compact: true,
+                  colors: const [Color(0xFF087D58), Color(0xFF17B873)],
+                  onTap: onQuickPractice,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _ReferenceActionCard(
+                  key: const Key('assessment-card'),
+                  title: 'الاختبارات',
+                  subtitle: 'اختبر مستواك',
+                  icon: Icons.fact_check_rounded,
+                  compact: true,
+                  colors: const [Color(0xFFC51D55), Color(0xFFF04475)],
+                  onTap: onAssessment,
+                ),
+              ),
+            ],
           ),
         ],
-      ),
-    ],
-  );
+      );
 }
 
 class _ReferenceActionCard extends StatelessWidget {
@@ -580,79 +581,79 @@ class _ReferenceActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Ink(
-        height: compact ? 86 : 88,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: colors,
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
+          onTap: onTap,
+          child: Ink(
+            height: compact ? 86 : 88,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: colors,
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              border: Border.all(color: Colors.white24),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.first.withValues(alpha: .24),
+                  blurRadius: 20,
+                  offset: const Offset(0, 9),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .18),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(icon, color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 2,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: compact ? 15 : 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: .84),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!compact)
+                  const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+              ],
+            ),
           ),
-          border: Border.all(color: Colors.white24),
-          boxShadow: [
-            BoxShadow(
-              color: colors.first.withValues(alpha: .24),
-              blurRadius: 20,
-              offset: const Offset(0, 9),
-            ),
-          ],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .18),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Icon(icon, color: Colors.white),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 2,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: compact ? 15 : 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: .84),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (!compact)
-              const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-          ],
-        ),
-      ),
-    ),
-  );
+      );
 }
 
 class ReferenceFloatingNavigationBar extends StatelessWidget {
@@ -666,78 +667,81 @@ class ReferenceFloatingNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-    top: false,
-    minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: .90),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: .72)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1F082B64),
-                blurRadius: 26,
-                offset: Offset(0, 10),
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: .90),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withValues(alpha: .72)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x1F082B64),
+                    blurRadius: 26,
+                    offset: Offset(0, 10),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: NavigationBar(
-            key: const Key('main-navigation-bar'),
-            selectedIndex: selectedIndex,
-            onDestinationSelected: onSelected,
-            backgroundColor: Colors.transparent,
-            indicatorColor: const Color(0xFFDDEBFF),
-            elevation: 0,
-            height: 68,
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(
-                  Icons.home_rounded,
-                  color: Color(0xFF0866D9),
-                ),
-                label: 'الرئيسية',
+              child: NavigationBar(
+                key: const Key('main-navigation-bar'),
+                selectedIndex: selectedIndex,
+                onDestinationSelected: onSelected,
+                backgroundColor: Colors.transparent,
+                indicatorColor: const Color(0xFFDDEBFF),
+                elevation: 0,
+                height: 68,
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(
+                      Icons.home_rounded,
+                      color: Color(0xFF0866D9),
+                    ),
+                    label: 'الرئيسية',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.menu_book_outlined),
+                    selectedIcon: Icon(
+                      Icons.menu_book_rounded,
+                      color: Color(0xFF0866D9),
+                    ),
+                    label: 'الدروس',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.forum_outlined),
+                    selectedIcon: Icon(
+                      Icons.forum_rounded,
+                      color: Color(0xFF0866D9),
+                    ),
+                    label: 'محادثة',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.bar_chart_outlined),
+                    selectedIcon: Icon(
+                      Icons.bar_chart_rounded,
+                      color: Color(0xFF0866D9),
+                    ),
+                    label: 'التقدم',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.more_horiz_rounded),
+                    selectedIcon: Icon(
+                      Icons.more_horiz_rounded,
+                      color: Color(0xFF0866D9),
+                    ),
+                    label: 'المزيد',
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(Icons.menu_book_outlined),
-                selectedIcon: Icon(
-                  Icons.menu_book_rounded,
-                  color: Color(0xFF0866D9),
-                ),
-                label: 'الدروس',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.forum_outlined),
-                selectedIcon: Icon(
-                  Icons.forum_rounded,
-                  color: Color(0xFF0866D9),
-                ),
-                label: 'محادثة',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.bar_chart_outlined),
-                selectedIcon: Icon(
-                  Icons.bar_chart_rounded,
-                  color: Color(0xFF0866D9),
-                ),
-                label: 'التقدم',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.more_horiz_rounded),
-                selectedIcon: Icon(
-                  Icons.more_horiz_rounded,
-                  color: Color(0xFF0866D9),
-                ),
-                label: 'المزيد',
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 }

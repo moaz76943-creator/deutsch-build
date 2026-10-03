@@ -8,11 +8,11 @@ final class ArabicSpeechProfile implements LanguageSpeechProfile {
 
   @override
   List<String> get preferredTtsLocales => const <String>[
-    'ar-JO',
-    'ar-SA',
-    'ar-EG',
-    'ar',
-  ];
+        'ar-JO',
+        'ar-SA',
+        'ar-EG',
+        'ar',
+      ];
 
   @override
   double get defaultSpeechRate => .45;

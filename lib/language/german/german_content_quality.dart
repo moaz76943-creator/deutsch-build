@@ -32,16 +32,13 @@ final class GermanContentQuality implements LanguageContentQuality {
     if (RegExp(
       r'\bIch\s+[a-zäöüß]+\s+(ab|an|auf|aus|ein|fest|hoch|mit|nach|vor|weg|weiter|zurück|zu)\s+heute\b',
       caseSensitive: false,
-    ).hasMatch(de))
-      e.add('Likely separable-verb word order');
+    ).hasMatch(de)) e.add('Likely separable-verb word order');
     if (RegExp(r'\bIch\s+\w+\s+heute\b', caseSensitive: false).hasMatch(de) &&
-        de.contains('Ich '))
-      e.add('Likely generated first-person example');
+        de.contains('Ich ')) e.add('Likely generated first-person example');
     if (RegExp(
       r'\b(vermutten|vermutte(?:t|n)?)\b',
       caseSensitive: false,
-    ).hasMatch(de + x.sourceText))
-      e.add('Known verb typo: vermuten');
+    ).hasMatch(de + x.sourceText)) e.add('Known verb typo: vermuten');
 
     final source = x.sourceText.trim();
     if (source.startsWith('die ') ||
@@ -54,18 +51,15 @@ final class GermanContentQuality implements LanguageContentQuality {
         e.add('Noun capitalization');
     }
     if (RegExp(r'\b(kundin)\b', caseSensitive: false).hasMatch(de) &&
-        de.contains('Die kundin'))
-      e.add('Noun capitalization');
+        de.contains('Die kundin')) e.add('Noun capitalization');
     if (x.translationText.contains('kundin')) e.add('Arabic contamination');
     if (RegExp(
       r'(أنا عادت|نحن عادنا|أنا أرحب الضيف|المستندات يزن|الملابس يزن|البيانات يقيس)',
-    ).hasMatch(ar))
-      e.add('Malformed Arabic example');
+    ).hasMatch(ar)) e.add('Malformed Arabic example');
     if (RegExp(
       r'\b(übersetze|übersetzt)\s+den\s+Text\s+über\.?$',
       caseSensitive: false,
-    ).hasMatch(de))
-      e.add('Malformed German separable verb example');
+    ).hasMatch(de)) e.add('Malformed German separable verb example');
     return e;
   }
 

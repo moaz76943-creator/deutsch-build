@@ -12,7 +12,8 @@ Future<void> safeSpeak(
   SafeTtsController tts,
   String text, {
   double rate = .46,
-}) => tts.speak(text, rate: rate);
+}) =>
+    tts.speak(text, rate: rate);
 
 Future<void> safeTtsStop(SafeTtsController tts) => tts.stop();
 

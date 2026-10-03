@@ -30,9 +30,8 @@ abstract final class AppDesignSystem {
 
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final background = isDark
-        ? AppPalette.darkBackground
-        : AppPalette.lightBackground;
+    final background =
+        isDark ? AppPalette.darkBackground : AppPalette.lightBackground;
     final surface = isDark ? AppPalette.darkSurface : AppPalette.lightSurface;
 
     final generated = ColorScheme.fromSeed(

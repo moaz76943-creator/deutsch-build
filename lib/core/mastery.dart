@@ -37,9 +37,8 @@ class MasteryEvidence {
   String get nextAction {
     if (retrievability < .45) return 'review';
     if (skillScores.isEmpty) return 'learn';
-    final weakest = skillScores.entries
-        .reduce((a, b) => a.value <= b.value ? a : b)
-        .key;
+    final weakest =
+        skillScores.entries.reduce((a, b) => a.value <= b.value ? a : b).key;
     if ((skillScores[weakest] ?? 0) < .65) return weakest;
     if (retention < .65) return 'review';
     return 'consolidate';
@@ -88,9 +87,8 @@ class Mastery {
         weight *= .94;
       }
       const priorWeight = 2.0;
-      scores[skill] = total == 0
-          ? 0
-          : (score + priorWeight * .50) / (total + priorWeight);
+      scores[skill] =
+          total == 0 ? 0 : (score + priorWeight * .50) / (total + priorWeight);
     }
     final at = now ?? DateTime.now();
     final retention = _retention(reviewCard);
@@ -117,17 +115,14 @@ class Mastery {
     // allowing one or two successes to masquerade as durable retention.
     const priorWeight = 2.0;
     final evidenceWeight = attempts.toDouble();
-    final smoothed =
-        ((observed * evidenceWeight) + (.50 * priorWeight)) /
+    final smoothed = ((observed * evidenceWeight) + (.50 * priorWeight)) /
         (evidenceWeight + priorWeight);
     final intervalDurability = (card.intervalDays.clamp(0, 30) / 30).toDouble();
-    final stabilityDurability = (card.stabilityDays.clamp(0, 30) / 30)
-        .toDouble();
+    final stabilityDurability =
+        (card.stabilityDays.clamp(0, 30) / 30).toDouble();
     final durability = intervalDurability * .40 + stabilityDurability * .60;
-    final lapseRecovery = math
-        .exp(-card.lapses.clamp(0, 12) / 4)
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final lapseRecovery =
+        math.exp(-card.lapses.clamp(0, 12) / 4).clamp(0.0, 1.0).toDouble();
     return (smoothed * .55 + durability * .35 + lapseRecovery * .10)
         .clamp(0.0, 1.0)
         .toDouble();

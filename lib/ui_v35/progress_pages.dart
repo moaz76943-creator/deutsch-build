@@ -107,7 +107,9 @@ class _PersonalPathCardState extends State<PersonalPathCard> {
                 Expanded(
                   child: Text(
                     'المسار الشخصي اليومي',
-                    style: Theme.of(c).textTheme.titleLarge
+                    style: Theme.of(c)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -318,7 +320,9 @@ class ReadingPracticePage extends StatelessWidget {
                     Text(
                       x.exampleText,
                       textDirection: TextDirection.ltr,
-                      style: Theme.of(c).textTheme.titleLarge
+                      style: Theme.of(c)
+                          .textTheme
+                          .titleLarge
                           ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 5),
@@ -381,11 +385,11 @@ class ReadingPracticePage extends StatelessWidget {
                   matches.isEmpty
                       ? 'من الجملة: ${source.translationText}'
                       : matches
-                            .map(
-                              (x) =>
-                                  '${x.sourceText} — ${x.translationText}${x.grammaticalMarker.isEmpty ? '' : ' • ${x.grammaticalMarker}'}',
-                            )
-                            .join('\n'),
+                          .map(
+                            (x) =>
+                                '${x.sourceText} — ${x.translationText}${x.grammaticalMarker.isEmpty ? '' : ' • ${x.grammaticalMarker}'}',
+                          )
+                          .join('\n'),
                 ),
                 const SizedBox(height: 8),
                 const Text('استخدم هذه الكلمة في جملة جديدة لتثبيتها.'),
@@ -461,7 +465,9 @@ class LearningDashboardPage extends StatelessWidget {
                 children: [
                   Text(
                     'خطة اليوم',
-                    style: Theme.of(c).textTheme.titleLarge
+                    style: Theme.of(c)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 10),
@@ -594,7 +600,9 @@ class MistakeDashboardPage extends StatelessWidget {
         children: [
           Text(
             'أكثر المهارات احتياجًا للعلاج',
-            style: Theme.of(c).textTheme.titleLarge
+            style: Theme.of(c)
+                .textTheme
+                .titleLarge
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
@@ -619,7 +627,9 @@ class MistakeDashboardPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'عناصر تتكرر فيها الأخطاء',
-            style: Theme.of(c).textTheme.titleLarge
+            style: Theme.of(c)
+                .textTheme
+                .titleLarge
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           ...report.weakItems.map(
@@ -678,7 +688,9 @@ class _SpeechPracticeState extends State<SpeechPracticePage> {
       if (mounted)
         setState(() {
           listening = ok;
-          if (!ok) status = 'تعذر تشغيل التعرف الصوتي. تحقق من إذن الميكروفون وإعداد اللغة الألمانية.';
+          if (!ok)
+            status =
+                'تعذر تشغيل التعرف الصوتي. تحقق من إذن الميكروفون وإعداد اللغة الألمانية.';
         });
     } finally {
       speechBusy = false;
@@ -694,47 +706,48 @@ class _SpeechPracticeState extends State<SpeechPracticePage> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: const Text('مختبر النطق')),
-    body: ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        const Text('Shadowing: اسمع، كرر، ثم قارن النص الذي التقطه الجهاز.'),
-        const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            title: const Text('الجملة المستهدفة'),
-            subtitle: Text(target, textDirection: TextDirection.ltr),
-            trailing: IconButton(
-              tooltip: 'استمع للجملة المستهدفة',
-              onPressed: speakTarget,
-              icon: const Icon(Icons.volume_up_outlined),
+        appBar: AppBar(title: const Text('مختبر النطق')),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            const Text(
+                'Shadowing: اسمع، كرر، ثم قارن النص الذي التقطه الجهاز.'),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                title: const Text('الجملة المستهدفة'),
+                subtitle: Text(target, textDirection: TextDirection.ltr),
+                trailing: IconButton(
+                  tooltip: 'استمع للجملة المستهدفة',
+                  onPressed: speakTarget,
+                  icon: const Icon(Icons.volume_up_outlined),
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            title: Text(
-              heard.isEmpty ? 'لم يتم التعرف بعد' : heard,
-              textDirection: TextDirection.ltr,
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                title: Text(
+                  heard.isEmpty ? 'لم يتم التعرف بعد' : heard,
+                  textDirection: TextDirection.ltr,
+                ),
+                subtitle: Text(status),
+              ),
             ),
-            subtitle: Text(status),
-          ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: toggle,
+              icon: Icon(listening ? Icons.stop : Icons.mic),
+              label: Text(listening ? 'إيقاف' : 'ابدأ النطق'),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'ملاحظة: التعرف الصوتي يعتمد على خدمة/محرك الجهاز وقد يحتاج اتصالًا بالإنترنت حسب إعدادات Android.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: toggle,
-          icon: Icon(listening ? Icons.stop : Icons.mic),
-          label: Text(listening ? 'إيقاف' : 'ابدأ النطق'),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          'ملاحظة: التعرف الصوتي يعتمد على خدمة/محرك الجهاز وقد يحتاج اتصالًا بالإنترنت حسب إعدادات Android.',
-          style: TextStyle(fontSize: 12),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 class PrivacyCenterPage extends StatefulWidget {
@@ -760,48 +773,48 @@ class _PrivacyCenterState extends State<PrivacyCenterPage> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: const Text('الخصوصية')),
-    body: loading
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.all(18),
-            children: [
-              const Card(
-                child: ListTile(
-                  leading: Icon(Icons.offline_bolt_outlined),
-                  title: Text('الأساس المحلي'),
-                  subtitle: Text('المحتوى والتقدم وSRS لا تحتاج إلى خادم.'),
-                ),
+        appBar: AppBar(title: const Text('الخصوصية')),
+        body: loading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(18),
+                children: [
+                  const Card(
+                    child: ListTile(
+                      leading: Icon(Icons.offline_bolt_outlined),
+                      title: Text('الأساس المحلي'),
+                      subtitle: Text('المحتوى والتقدم وSRS لا تحتاج إلى خادم.'),
+                    ),
+                  ),
+                  SwitchListTile(
+                    title: const Text('ميزات AI السحابية'),
+                    subtitle: const Text(
+                      'تسمح بإرسال النص الذي تختاره فقط إلى خادم AI آمن عند ربطه. مغلقة افتراضيًا.',
+                    ),
+                    value: cloud,
+                    onChanged: (v) async {
+                      final saved = await widget.privacySettings.setCloudAi(v);
+                      if (saved && mounted) setState(() => cloud = v);
+                    },
+                  ),
+                  SwitchListTile(
+                    title: const Text('التعرف الصوتي'),
+                    subtitle: const Text(
+                      'يسمح باستخدام ميكروفون الجهاز لتدريب النطق.',
+                    ),
+                    value: speech,
+                    onChanged: (v) async {
+                      final saved = await widget.privacySettings.setSpeech(v);
+                      if (saved && mounted) setState(() => speech = v);
+                    },
+                  ),
+                  const Divider(height: 28),
+                  const Text(
+                    'لا توجد مفاتيح API سرية داخل التطبيق. أي تكامل سحابي يجب أن يمر عبر طبقة آمنة ويستخدم HTTPS فقط.',
+                  ),
+                ],
               ),
-              SwitchListTile(
-                title: const Text('ميزات AI السحابية'),
-                subtitle: const Text(
-                  'تسمح بإرسال النص الذي تختاره فقط إلى خادم AI آمن عند ربطه. مغلقة افتراضيًا.',
-                ),
-                value: cloud,
-                onChanged: (v) async {
-                  final saved = await widget.privacySettings.setCloudAi(v);
-                  if (saved && mounted) setState(() => cloud = v);
-                },
-              ),
-              SwitchListTile(
-                title: const Text('التعرف الصوتي'),
-                subtitle: const Text(
-                  'يسمح باستخدام ميكروفون الجهاز لتدريب النطق.',
-                ),
-                value: speech,
-                onChanged: (v) async {
-                  final saved = await widget.privacySettings.setSpeech(v);
-                  if (saved && mounted) setState(() => speech = v);
-                },
-              ),
-              const Divider(height: 28),
-              const Text(
-                'لا توجد مفاتيح API سرية داخل التطبيق. أي تكامل سحابي يجب أن يمر عبر طبقة آمنة ويستخدم HTTPS فقط.',
-              ),
-            ],
-          ),
-  );
+      );
 }
 
 class MasteryDashboardPage extends StatelessWidget {
@@ -835,13 +848,17 @@ class MasteryDashboardPage extends StatelessWidget {
                 children: [
                   Text(
                     'جاهزية الإتقان',
-                    style: Theme.of(c).textTheme.titleLarge
+                    style: Theme.of(c)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '${pct(snapshot.readiness)} • ${snapshot.readinessLabel}',
-                    style: Theme.of(c).textTheme.headlineSmall
+                    style: Theme.of(c)
+                        .textTheme
+                        .headlineSmall
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 8),
@@ -898,7 +915,9 @@ class MasteryDashboardPage extends StatelessWidget {
                 children: [
                   Text(
                     'تغطية المحتوى',
-                    style: Theme.of(c).textTheme.titleLarge
+                    style: Theme.of(c)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 8),
@@ -916,7 +935,9 @@ class MasteryDashboardPage extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'أولوية المراجعة',
-              style: Theme.of(c).textTheme.titleLarge
+              style: Theme.of(c)
+                  .textTheme
+                  .titleLarge
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             ...snapshot.priorityItemIds.map(
@@ -933,18 +954,18 @@ class MasteryDashboardPage extends StatelessWidget {
   }
 
   Widget _metric(BuildContext c, String title, double value) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title),
-          const SizedBox(height: 6),
-          LinearProgressIndicator(value: value),
-          const SizedBox(height: 5),
-          Text('${(value * 100).round()}%'),
-        ],
-      ),
-    ),
-  );
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title),
+              const SizedBox(height: 6),
+              LinearProgressIndicator(value: value),
+              const SizedBox(height: 5),
+              Text('${(value * 100).round()}%'),
+            ],
+          ),
+        ),
+      );
 }

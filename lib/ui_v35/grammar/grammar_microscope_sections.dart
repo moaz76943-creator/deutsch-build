@@ -30,7 +30,9 @@ class GrammarMicroscopeEvidenceSection extends StatelessWidget {
       children: [
         Text(
           'لماذا قد تكون هذه القاعدة مفيدة الآن؟',
-          style: Theme.of(context).textTheme.titleMedium
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
@@ -60,7 +62,9 @@ class GrammarMicroscopeEvidenceSection extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             'أمثلة من بطاقات تحتاج مراجعة',
-            style: Theme.of(context).textTheme.titleSmall
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
@@ -121,7 +125,9 @@ class GrammarMicroscopeRulesSection extends StatelessWidget {
       children: [
         Text(
           'تفكيك القاعدة',
-          style: Theme.of(context).textTheme.titleMedium
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 10),
@@ -138,108 +144,114 @@ class _GrammarRuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    margin: const EdgeInsets.only(bottom: 12),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BidiText(
-            _directional(
-              rule.title,
-              semanticRole: LinguisticSemanticRole.grammarLabel,
-            ),
-            style: Theme.of(context).textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 8),
-          BidiText(
-            DirectionalText.arabic(
-              rule.explanationAr,
-              semanticRole: LinguisticSemanticRole.explanation,
-            ),
-            style: const TextStyle(height: 1.5),
-          ),
-          if (rule.table.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            for (final row in rule.table)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    for (final cell in row)
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).dividerColor,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 7,
-                          ),
-                          child: BidiText(
-                            _directional(
-                              cell,
-                              semanticRole: LinguisticSemanticRole.grammarLabel,
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              BidiText(
+                _directional(
+                  rule.title,
+                  semanticRole: LinguisticSemanticRole.grammarLabel,
+                ),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              BidiText(
+                DirectionalText.arabic(
+                  rule.explanationAr,
+                  semanticRole: LinguisticSemanticRole.explanation,
+                ),
+                style: const TextStyle(height: 1.5),
+              ),
+              if (rule.table.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                for (final row in rule.table)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final cell in row)
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 7,
+                              ),
+                              child: BidiText(
+                                _directional(
+                                  cell,
+                                  semanticRole:
+                                      LinguisticSemanticRole.grammarLabel,
+                                ),
+                              ),
                             ),
                           ),
+                      ],
+                    ),
+                  ),
+              ],
+              if (rule.examples.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'أمثلة',
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                for (final example in rule.examples)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        BidiText(
+                          DirectionalText.german(
+                            example.german,
+                            semanticRole: LinguisticSemanticRole.example,
+                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-          ],
-          if (rule.examples.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              'أمثلة',
-              style: Theme.of(context).textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            for (final example in rule.examples)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    BidiText(
-                      DirectionalText.german(
-                        example.german,
-                        semanticRole: LinguisticSemanticRole.example,
-                      ),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+                        const SizedBox(height: 2),
+                        BidiText(
+                          DirectionalText.arabic(
+                            example.arabic,
+                            semanticRole: LinguisticSemanticRole.translation,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    BidiText(
-                      DirectionalText.arabic(
-                        example.arabic,
-                        semanticRole: LinguisticSemanticRole.translation,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ],
-      ),
-    ),
-  );
+                  ),
+              ],
+            ],
+          ),
+        ),
+      );
 }
 
 DirectionalText _directional(
   String text, {
   required LinguisticSemanticRole semanticRole,
-}) => DirectionalText.forLanguage(
-  text,
-  languageCode: RegExp(r'[\u0600-\u06FF]').hasMatch(text) ? 'ar' : 'de',
-  semanticRole: semanticRole,
-);
+}) =>
+    DirectionalText.forLanguage(
+      text,
+      languageCode: RegExp(r'[\u0600-\u06FF]').hasMatch(text) ? 'ar' : 'de',
+      semanticRole: semanticRole,
+    );
 
 String _facetLabel(Object facet) {
   final wire = facet.toString().split('.').last;

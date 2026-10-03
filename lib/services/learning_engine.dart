@@ -26,9 +26,8 @@ class LearningEngine {
   }) {
     final at = now ?? DateTime.now();
     final goal = dailyGoal.clamp(5, 20).toInt();
-    final eligible = items
-        .where((x) => contentQuality.issues(x).isEmpty)
-        .toList();
+    final eligible =
+        items.where((x) => contentQuality.issues(x).isEmpty).toList();
     final eligibleById = <String, LearningContent>{
       for (final item in eligible) item.id: item,
     };
@@ -95,13 +94,10 @@ class LearningEngine {
         item.id: _itemPriority(item, attemptsByItem, weak),
     };
     final remaining = [...coached];
-    final intelligenceLimit = (goal * 3)
-        .clamp(20, 120)
-        .clamp(1, remaining.length)
-        .toInt();
-    final intelligenceCandidates = remaining
-        .take(intelligenceLimit)
-        .toList(growable: false);
+    final intelligenceLimit =
+        (goal * 3).clamp(20, 120).clamp(1, remaining.length).toInt();
+    final intelligenceCandidates =
+        remaining.take(intelligenceLimit).toList(growable: false);
     final intelligence = LearningIntelligence.rankSession(
       intelligenceCandidates,
       state,
@@ -115,8 +111,7 @@ class LearningEngine {
       var bestScore = double.negativeInfinity;
       for (var i = 0; i < remaining.length; i++) {
         final candidate = remaining[i];
-        final score =
-            (priorityById[candidate.id] ?? 0) -
+        final score = (priorityById[candidate.id] ?? 0) -
             _topicPenalty(candidate, selected) +
             (intelligenceById[candidate.id]?.priority ?? 0) * .35;
         if (score > bestScore) {
@@ -127,8 +122,7 @@ class LearningEngine {
       final item = remaining.removeAt(bestIndex);
       const _topicCap = 2;
       if (_topicCount(selected, item.topic) >= _topicCap &&
-          _hasTopicAlternative(remaining, selected))
-        continue;
+          _hasTopicAlternative(remaining, selected)) continue;
       final decision = intelligenceById[item.id];
       final itemAttempts = attemptsByItem[item.id] ?? const <Attempt>[];
       final adaptiveMode = AdaptiveFocus.modeForRows(
@@ -141,8 +135,7 @@ class LearningEngine {
       final hasHistory = itemAttempts.isNotEmpty;
       if (!hasHistory &&
           teacher.newContentReadiness < .5 &&
-          selected.length >= teacherBudget)
-        continue;
+          selected.length >= teacherBudget) continue;
       final mastery = Mastery.forItemRows(
         item.id,
         itemAttempts,
@@ -151,35 +144,33 @@ class LearningEngine {
       );
       final isWeak = item.skill == weak || hasHistory;
       final contentProfile = contentIntelligence.profile(item);
-      final curriculumPenalty =
-          !hasHistory &&
+      final curriculumPenalty = !hasHistory &&
               teacher.newContentReadiness < .70 &&
               contentProfile.inferredLevel == ContentLevel.b1
           ? 30
           : 0;
       final productionTask =
           (selectedMode == 'production' || item.skill == 'production')
-          ? ProductionEngine.buildFor(
-              item,
-              exerciseStrategy: exerciseStrategy,
-              isLearnable: contentQuality.isLearnable,
-            )
-          : null;
-      final productionHint = productionTask == null
-          ? ''
-          : ' • ${productionTask.prompt}';
+              ? ProductionEngine.buildFor(
+                  item,
+                  exerciseStrategy: exerciseStrategy,
+                  isLearnable: contentQuality.isLearnable,
+                )
+              : null;
+      final productionHint =
+          productionTask == null ? '' : ' • ${productionTask.prompt}';
       add(
         item.id,
         hasHistory ? selectedMode : 'new',
         hasHistory
             ? '${decision?.reason ?? 'تدريب موجّه: ${mastery.nextAction}'} • المراجعة التالية خلال ${mastery.nextReviewDays} يوم.$productionHint'
             : (teacher.newContentReadiness < .75
-                  ? 'محتوى جديد بجرعة محسوبة حسب جاهزيتك.$productionHint'
-                  : 'اختيار ذكي من مفردات مناسبة لمسارك.$productionHint'),
+                ? 'محتوى جديد بجرعة محسوبة حسب جاهزيتك.$productionHint'
+                : 'اختيار ذكي من مفردات مناسبة لمسارك.$productionHint'),
         isWeak
             ? 70
             : ((30 + (teacher.newContentReadiness * 10).round()) -
-                  curriculumPenalty),
+                curriculumPenalty),
       );
     }
     selected = _interleave(selected);

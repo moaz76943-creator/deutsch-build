@@ -52,8 +52,7 @@ class _WritingCoachState extends State<WritingCoachPage> {
           final result = await widget.aiGateway.reviewWriting(t);
           if (!mounted) return;
           setState(
-            () => feedback =
-                (result.corrected.isEmpty
+            () => feedback = (result.corrected.isEmpty
                     ? ''
                     : 'التصحيح المقترح: ${result.corrected}\n') +
                 (result.issues.isEmpty
@@ -86,41 +85,41 @@ class _WritingCoachState extends State<WritingCoachPage> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: const Text('تصحيح الكتابة')),
-    body: ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        const Text(
-          'فحص محلي أولًا. أخطاء الكتابة تدخل الآن في مدرب الأخطاء حتى تتحول إلى تدريب علاجي.',
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          onChanged: (v) => text = v,
-          textDirection: TextDirection.ltr,
-          minLines: 3,
-          maxLines: 6,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'الجملة بالألمانية',
-            hintText: 'Ich lerne Deutsch.',
-          ),
-        ),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: loading ? null : check,
-          icon: Icon(loading ? Icons.hourglass_top : Icons.check),
-          label: Text(loading ? 'جارٍ الفحص' : 'افحص الجملة'),
-        ),
-        if (checked || feedback.isNotEmpty)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Text(feedback),
+        appBar: AppBar(title: const Text('تصحيح الكتابة')),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            const Text(
+              'فحص محلي أولًا. أخطاء الكتابة تدخل الآن في مدرب الأخطاء حتى تتحول إلى تدريب علاجي.',
             ),
-          ),
-      ],
-    ),
-  );
+            const SizedBox(height: 14),
+            TextField(
+              onChanged: (v) => text = v,
+              textDirection: TextDirection.ltr,
+              minLines: 3,
+              maxLines: 6,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'الجملة بالألمانية',
+                hintText: 'Ich lerne Deutsch.',
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: loading ? null : check,
+              icon: Icon(loading ? Icons.hourglass_top : Icons.check),
+              label: Text(loading ? 'جارٍ الفحص' : 'افحص الجملة'),
+            ),
+            if (checked || feedback.isNotEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Text(feedback),
+                ),
+              ),
+          ],
+        ),
+      );
 }
 
 class ConversationPage extends StatefulWidget {
@@ -149,80 +148,81 @@ class ConversationPage extends StatefulWidget {
 class _ConversationPageState extends State<ConversationPage> {
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: const Text('المحادثة')),
-    body: Builder(
-      builder: (BuildContext context) {
-        final scenarios = ConversationEngine(
-          exerciseStrategy: widget.exerciseStrategy,
-          textNormalizer: widget.textNormalizer,
-        ).scenarios;
-        return ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: scenarios.length + 3,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Card(
-                child: ListTile(
-                  leading: const Icon(Icons.record_voice_over_outlined),
-                  title: const Text('محادثة صوتية واقعية'),
-                  subtitle: Text(
-                    widget.presentation.conversation.targetLanguageInstruction,
-                  ),
-                ),
-              );
-            }
-            if (index == 1) {
-              return const SizedBox(height: 8);
-            }
-            if (index == scenarios.length + 2) {
-              return Column(
-                children: [
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(
+        appBar: AppBar(title: const Text('المحادثة')),
+        body: Builder(
+          builder: (BuildContext context) {
+            final scenarios = ConversationEngine(
+              exerciseStrategy: widget.exerciseStrategy,
+              textNormalizer: widget.textNormalizer,
+            ).scenarios;
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: scenarios.length + 3,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.record_voice_over_outlined),
+                      title: const Text('محادثة صوتية واقعية'),
+                      subtitle: Text(
+                        widget.presentation.conversation
+                            .targetLanguageInstruction,
+                      ),
+                    ),
+                  );
+                }
+                if (index == 1) {
+                  return const SizedBox(height: 8);
+                }
+                if (index == scenarios.length + 2) {
+                  return Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          c,
+                          MaterialPageRoute(
+                            builder: (_) => AiConversationPage(
+                              scenario: 'محادثة عامة',
+                              aiGateway: widget.aiGateway,
+                              privacySettings: widget.privacySettings,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.auto_awesome_outlined),
+                        label: const Text('المحادثة النصية مع AI الاختياري'),
+                      ),
+                    ],
+                  );
+                }
+                final scenarioIndex = index - 2;
+                final x = scenarios[scenarioIndex];
+                return Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.forum_outlined),
+                    title: Text(x.title),
+                    subtitle: Text('${x.situation}\n${x.turns.length} جولات'),
+                    isThreeLine: true,
+                    onTap: () => Navigator.push(
                       c,
                       MaterialPageRoute(
-                        builder: (_) => AiConversationPage(
-                          scenario: 'محادثة عامة',
-                          aiGateway: widget.aiGateway,
-                          privacySettings: widget.privacySettings,
+                        builder: (_) => VoiceConversationPage(
+                          repo: widget.repo,
+                          onDone: widget.onDone,
+                          scenario: x,
+                          exerciseStrategy: widget.exerciseStrategy,
+                          presentation: widget.presentation,
+                          textNormalizer: widget.textNormalizer,
                         ),
                       ),
                     ),
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('المحادثة النصية مع AI الاختياري'),
                   ),
-                ],
-              );
-            }
-            final scenarioIndex = index - 2;
-            final x = scenarios[scenarioIndex];
-            return Card(
-              child: ListTile(
-                leading: const Icon(Icons.forum_outlined),
-                title: Text(x.title),
-                subtitle: Text('${x.situation}\n${x.turns.length} جولات'),
-                isThreeLine: true,
-                onTap: () => Navigator.push(
-                  c,
-                  MaterialPageRoute(
-                    builder: (_) => VoiceConversationPage(
-                      repo: widget.repo,
-                      onDone: widget.onDone,
-                      scenario: x,
-                      exerciseStrategy: widget.exerciseStrategy,
-                      presentation: widget.presentation,
-                      textNormalizer: widget.textNormalizer,
-                    ),
-                  ),
-                ),
-              ),
+                );
+              },
             );
           },
-        );
-      },
-    ),
-  );
+        ),
+      );
 }
 
 class VoiceConversationPage extends StatefulWidget {
@@ -407,7 +407,9 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
           Text('الموقف', style: Theme.of(c).textTheme.labelLarge),
           Text(
             scenario.situation,
-            style: Theme.of(c).textTheme.titleMedium
+            style: Theme.of(c)
+                .textTheme
+                .titleMedium
                 ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 18),
@@ -422,7 +424,9 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
                   Text(
                     turn.promptGerman,
                     textDirection: TextDirection.ltr,
-                    style: Theme.of(c).textTheme.headlineSmall
+                    style: Theme.of(c)
+                        .textTheme
+                        .headlineSmall
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 5),
@@ -468,8 +472,7 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
-                    onPressed:
-                        (!listening &&
+                    onPressed: (!listening &&
                             heard.trim().isNotEmpty &&
                             !scored &&
                             !saving)
@@ -492,7 +495,9 @@ class _VoiceConversationState extends State<VoiceConversationPage> {
                   children: [
                     Text(
                       '${currentScore.value}%',
-                      style: Theme.of(c).textTheme.displaySmall
+                      style: Theme.of(c)
+                          .textTheme
+                          .displaySmall
                           ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     Text(
@@ -577,7 +582,9 @@ class VoiceConversationResultPage extends StatelessWidget {
                 children: [
                   Text(
                     '$average%',
-                    style: Theme.of(c).textTheme.displaySmall
+                    style: Theme.of(c)
+                        .textTheme
+                        .displaySmall
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 6),
@@ -589,8 +596,8 @@ class VoiceConversationResultPage extends StatelessWidget {
                     average >= 85
                         ? 'ممتاز. يمكنك رفع صعوبة الموقف.'
                         : average >= 67
-                        ? 'جيد. أعد الجولات الضعيفة مرة أخرى.'
-                        : 'سنحوّل الكلمات الناقصة إلى تدريب علاجي.',
+                            ? 'جيد. أعد الجولات الضعيفة مرة أخرى.'
+                            : 'سنحوّل الكلمات الناقصة إلى تدريب علاجي.',
                   ),
                 ],
               ),
@@ -598,18 +605,18 @@ class VoiceConversationResultPage extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           ...scores.asMap().entries.map(
-            (e) => Card(
-              child: ListTile(
-                leading: CircleAvatar(child: Text('${e.key + 1}')),
-                title: Text('${e.value.value}%'),
-                subtitle: Text(
-                  e.value.missingKeywords.isEmpty
-                      ? 'لا توجد كلمات ناقصة.'
-                      : 'تحتاج: ${e.value.missingKeywords.join(' • ')}',
+                (e) => Card(
+                  child: ListTile(
+                    leading: CircleAvatar(child: Text('${e.key + 1}')),
+                    title: Text('${e.value.value}%'),
+                    subtitle: Text(
+                      e.value.missingKeywords.isEmpty
+                          ? 'لا توجد كلمات ناقصة.'
+                          : 'تحتاج: ${e.value.missingKeywords.join(' • ')}',
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => Navigator.pop(c),
@@ -691,46 +698,46 @@ class _AiConversationState extends State<AiConversationPage> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: Text(widget.scenario)),
-    body: Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(14),
-            itemCount: messages.length,
-            itemBuilder: (_, i) => Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(messages[i], textDirection: TextDirection.ltr),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: input,
-                  textDirection: TextDirection.ltr,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'ردك بالألمانية',
-                    hintText: 'اكتب ردك بالألمانية',
+        appBar: AppBar(title: Text(widget.scenario)),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(14),
+                itemCount: messages.length,
+                itemBuilder: (_, i) => Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(messages[i], textDirection: TextDirection.ltr),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: 'إرسال الرسالة إلى المدرس',
-                onPressed: loading ? null : send,
-                icon: const Icon(Icons.send),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: input,
+                      textDirection: TextDirection.ltr,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'ردك بالألمانية',
+                        hintText: 'اكتب ردك بالألمانية',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'إرسال الرسالة إلى المدرس',
+                    onPressed: loading ? null : send,
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }

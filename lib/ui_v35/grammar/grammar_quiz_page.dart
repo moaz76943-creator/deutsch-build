@@ -82,8 +82,8 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _quizzes.isEmpty
-          ? const Center(child: Text('No quizzes available.'))
-          : _buildQuizContent(),
+              ? const Center(child: Text('No quizzes available.'))
+              : _buildQuizContent(),
     );
   }
 

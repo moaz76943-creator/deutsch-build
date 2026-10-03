@@ -62,9 +62,12 @@ class StreakMilestonesEngine {
     final db = await database;
     final dateString = _formatDate(date);
 
-    await db.insert(_studyDaysTable, {
-      _columnDate: dateString,
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await db.insert(
+        _studyDaysTable,
+        {
+          _columnDate: dateString,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
 
     final streak = await calculateCurrentStreak();
     await checkAndUnlockMilestones(streak);

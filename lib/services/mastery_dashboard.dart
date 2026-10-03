@@ -41,10 +41,10 @@ class MasteryDashboardSnapshot {
   String get readinessLabel => readiness >= .85
       ? 'جاهز'
       : readiness >= .65
-      ? 'قريب'
-      : readiness >= .45
-      ? 'يحتاج تثبيتًا'
-      : 'يحتاج علاجًا';
+          ? 'قريب'
+          : readiness >= .45
+              ? 'يحتاج تثبيتًا'
+              : 'يحتاج علاجًا';
   String get actionLabel =>
       const {
         'review': 'راجع العناصر المعرضة للنسيان',
@@ -138,18 +138,16 @@ class MasteryDashboard {
     }
     final weakest = _weakest(skillScores);
     final evidenceStrength = _evidenceStrength(state, measured);
-    final readiness =
-        (skillScores.isEmpty
-                ? evidenceStrength * .55 + retrievability * .45
-                : skillScores.values.reduce((a, b) => a + b) /
-                          skillScores.length *
-                          .55 +
-                      retrievability * .25 +
-                      retention * .20)
-            .clamp(0.0, 1.0)
-            .toDouble();
-    final retentionRisk =
-        (1 - retrievability) * .72 +
+    final readiness = (skillScores.isEmpty
+            ? evidenceStrength * .55 + retrievability * .45
+            : skillScores.values.reduce((a, b) => a + b) /
+                    skillScores.length *
+                    .55 +
+                retrievability * .25 +
+                retention * .20)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final retentionRisk = (1 - retrievability) * .72 +
         (due == 0 ? 0 : (due / (cardCount == 0 ? due : cardCount)) * .28);
     final nextAction = _nextAction(
       skillScores,
@@ -160,14 +158,14 @@ class MasteryDashboard {
     final nextReviewDays = retrievability <= 0
         ? 0
         : retrievability < .45
-        ? 0
-        : retrievability < .60
-        ? 1
-        : retrievability < .75
-        ? 2
-        : retrievability < .85
-        ? 4
-        : 7;
+            ? 0
+            : retrievability < .60
+                ? 1
+                : retrievability < .75
+                    ? 2
+                    : retrievability < .85
+                        ? 4
+                        : 7;
     final ordered = priorities.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -184,10 +182,8 @@ class MasteryDashboard {
       dueItems: due,
       overdueItems: overdue,
       activeErrorItems: activeErrors,
-      priorityItemIds: ordered
-          .take(8)
-          .map((x) => x.key)
-          .toList(growable: false),
+      priorityItemIds:
+          ordered.take(8).map((x) => x.key).toList(growable: false),
       contentReport: report,
     );
   }

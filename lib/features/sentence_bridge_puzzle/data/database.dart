@@ -12,8 +12,8 @@ class SentenceBridgeDatabase {
   final String? _inMemoryPath;
 
   SentenceBridgeDatabase({DatabaseFactory? factory, String? path})
-    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
-      _inMemoryPath = path;
+      : _sqlitePolicy = AppSqlitePolicy(factory: factory),
+        _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;

@@ -21,9 +21,8 @@ final class LearningCardViewModel {
       sourceText: sourceText,
       targetText: targetText,
       prompt: prompt,
-      progress: rawProgress is num
-          ? rawProgress.toDouble().clamp(0.0, 1.0)
-          : 0.0,
+      progress:
+          rawProgress is num ? rawProgress.toDouble().clamp(0.0, 1.0) : 0.0,
     );
   }
 }

@@ -213,15 +213,17 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Silent Popper',
-                style: Theme.of(context).textTheme.headlineSmall
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w300, letterSpacing: 1.5),
               ),
             ),
             Text(
               'Match the words to pop the bubbles.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
             Expanded(
               child: LayoutBuilder(
@@ -234,15 +236,14 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
                           bubble,
                         ) {
                           // Calculate position with float
-                          final floatOffset =
-                              sin(
+                          final floatOffset = sin(
                                 bubble.phase + _floatController.value * 2 * pi,
                               ) *
                               20;
                           final xPos = bubble.x * (constraints.maxWidth - 100);
                           final yPos =
                               bubble.y * (constraints.maxHeight - 100) +
-                              floatOffset;
+                                  floatOffset;
 
                           return Positioned(
                             left: xPos.clamp(0.0, constraints.maxWidth - 100),
@@ -256,17 +257,19 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
                                   shape: BoxShape.circle,
                                   color: bubble.isSelected
                                       ? Theme.of(context)
-                                            .colorScheme
-                                            .primaryContainer
+                                          .colorScheme
+                                          .primaryContainer
                                       : Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHighest
-                                            .withValues(alpha: 0.8),
+                                          .colorScheme
+                                          .surfaceContainerHighest
+                                          .withValues(alpha: 0.8),
                                   border: Border.all(
                                     color: bubble.isSelected
                                         ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.outline
-                                              .withValues(alpha: 0.3),
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .outline
+                                            .withValues(alpha: 0.3),
                                     width: bubble.isSelected ? 2.0 : 1.0,
                                   ),
                                   boxShadow: [
@@ -293,11 +296,11 @@ class _SilentBubblePopperState extends State<SilentBubblePopper>
                                         style: TextStyle(
                                           color: bubble.isSelected
                                               ? Theme.of(context)
-                                                    .colorScheme
-                                                    .onPrimaryContainer
+                                                  .colorScheme
+                                                  .onPrimaryContainer
                                               : Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
+                                                  .colorScheme
+                                                  .onSurface,
                                           fontWeight: bubble.isSelected
                                               ? FontWeight.bold
                                               : FontWeight.normal,

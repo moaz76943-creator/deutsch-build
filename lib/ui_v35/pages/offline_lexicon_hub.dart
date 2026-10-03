@@ -86,9 +86,8 @@ class _OfflineLexiconHubState extends State<OfflineLexiconHub> {
       final searchResults = widget.searchIndex
           .searchDetailed(query, limit: 200)
           .map((x) => x.item);
-      results = searchResults
-          .where((item) => _learnedIds.contains(item.id))
-          .toList();
+      results =
+          searchResults.where((item) => _learnedIds.contains(item.id)).toList();
     }
 
     return Scaffold(
@@ -246,9 +245,8 @@ class _LexiconWordCard extends StatelessWidget {
               const SizedBox(height: 12),
               LinearProgressIndicator(
                 value: profile.masteryPercent / 100,
-                backgroundColor: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
                 color: profile.masteryPercent >= 80
                     ? Colors.green
                     : Theme.of(context).colorScheme.primary,

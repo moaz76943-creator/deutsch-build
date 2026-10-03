@@ -26,32 +26,35 @@ final class DirectionalText {
     String text, {
     required String languageCode,
     LinguisticSemanticRole semanticRole = LinguisticSemanticRole.generic,
-  }) => DirectionalText._(
-    text: text,
-    languageCode: languageCode,
-    direction: AppTextDirection.forLanguage(languageCode),
-    semanticRole: semanticRole,
-  );
+  }) =>
+      DirectionalText._(
+        text: text,
+        languageCode: languageCode,
+        direction: AppTextDirection.forLanguage(languageCode),
+        semanticRole: semanticRole,
+      );
 
   factory DirectionalText.german(
     String text, {
     LinguisticSemanticRole semanticRole = LinguisticSemanticRole.generic,
-  }) => DirectionalText._(
-    text: text,
-    languageCode: 'de',
-    direction: AppTextDirection.ltr,
-    semanticRole: semanticRole,
-  );
+  }) =>
+      DirectionalText._(
+        text: text,
+        languageCode: 'de',
+        direction: AppTextDirection.ltr,
+        semanticRole: semanticRole,
+      );
 
   factory DirectionalText.arabic(
     String text, {
     LinguisticSemanticRole semanticRole = LinguisticSemanticRole.generic,
-  }) => DirectionalText._(
-    text: text,
-    languageCode: 'ar',
-    direction: AppTextDirection.rtl,
-    semanticRole: semanticRole,
-  );
+  }) =>
+      DirectionalText._(
+        text: text,
+        languageCode: 'ar',
+        direction: AppTextDirection.rtl,
+        semanticRole: semanticRole,
+      );
 
   final String text;
   final String languageCode;

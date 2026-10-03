@@ -15,13 +15,13 @@ enum ReviewFacetType {
   unknown;
 
   String get wireName => switch (this) {
-    ReviewFacetType.meaningRecall => 'meaning_recall',
-    ReviewFacetType.caseForm => 'case_form',
-    ReviewFacetType.verbValency => 'verb_valency',
-    ReviewFacetType.prepositionCase => 'preposition_case',
-    ReviewFacetType.separablePrefix => 'separable_prefix',
-    _ => name,
-  };
+        ReviewFacetType.meaningRecall => 'meaning_recall',
+        ReviewFacetType.caseForm => 'case_form',
+        ReviewFacetType.verbValency => 'verb_valency',
+        ReviewFacetType.prepositionCase => 'preposition_case',
+        ReviewFacetType.separablePrefix => 'separable_prefix',
+        _ => name,
+      };
 
   static ReviewFacetType fromWire(String? raw) {
     final value = raw?.trim().toLowerCase();

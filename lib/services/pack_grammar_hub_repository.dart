@@ -17,9 +17,9 @@ final class PackGrammarHubRepository
     required GrammarHubRepository fallback,
     required PackDatabaseOpener databaseOpener,
     required String databasePassword,
-  }) : _fallback = fallback,
-       _databaseOpener = databaseOpener,
-       _databasePassword = databasePassword;
+  })  : _fallback = fallback,
+        _databaseOpener = databaseOpener,
+        _databasePassword = databasePassword;
 
   final String databasePath;
   final String packId;
@@ -53,12 +53,10 @@ final class PackGrammarHubRepository
       final quizColumns = await db.rawQuery(
         'PRAGMA table_info(grammar_quizzes)',
       );
-      final topicNames = topicColumns
-          .map((row) => row['name']?.toString() ?? '')
-          .toSet();
-      final quizNames = quizColumns
-          .map((row) => row['name']?.toString() ?? '')
-          .toSet();
+      final topicNames =
+          topicColumns.map((row) => row['name']?.toString() ?? '').toSet();
+      final quizNames =
+          quizColumns.map((row) => row['name']?.toString() ?? '').toSet();
       const requiredTopics = <String>{
         'id',
         'level',
@@ -76,8 +74,7 @@ final class PackGrammarHubRepository
         'correct_index',
         'explanation',
       };
-      _compatibleSchema =
-          topicNames.containsAll(requiredTopics) &&
+      _compatibleSchema = topicNames.containsAll(requiredTopics) &&
           quizNames.containsAll(requiredQuizzes);
     } on Object {
       _compatibleSchema = false;
@@ -97,8 +94,7 @@ final class PackGrammarHubRepository
       final ruleColumns = await _columnNames(db, 'grammar_rules');
       final rowColumns = await _columnNames(db, 'grammar_rule_rows');
       final exampleColumns = await _columnNames(db, 'grammar_examples');
-      _microscopeCompatibleSchema =
-          ruleColumns.containsAll(const <String>{
+      _microscopeCompatibleSchema = ruleColumns.containsAll(const <String>{
             'id',
             'topic_id',
             'title',

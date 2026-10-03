@@ -117,7 +117,8 @@ final class GermanLanguageExerciseStrategy implements LanguageExerciseStrategy {
               'اكتب جملة ألمانية جديدة من إنشائك باستخدام «${item.sourceText}».',
           expected: expected,
           accepted: accepted,
-          hint: 'الجملة الجديدة لا يلزم أن تطابق المثال حرفيًا؛ المطلوب استعمال الكلمة استعمالًا صحيحًا.',
+          hint:
+              'الجملة الجديدة لا يلزم أن تطابق المثال حرفيًا؛ المطلوب استعمال الكلمة استعمالًا صحيحًا.',
         );
     }
   }
@@ -148,8 +149,7 @@ final class GermanLanguageExerciseStrategy implements LanguageExerciseStrategy {
         ],
       );
     }
-    final expected =
-        mistake.category == MistakeCategory.article &&
+    final expected = mistake.category == MistakeCategory.article &&
             item.grammaticalMarker.isNotEmpty
         ? '${item.grammaticalMarker} ${item.sourceText}'
         : item.sourceText;
@@ -161,8 +161,8 @@ final class GermanLanguageExerciseStrategy implements LanguageExerciseStrategy {
     final firstPrompt = mistake.category == MistakeCategory.article
         ? 'حدّد Artikel الصحيح ثم اكتب الاسم كاملًا: ${item.translationText}'
         : mistake.category == MistakeCategory.grammar
-        ? 'حدّد القاعدة التي أخطأت فيها ثم اختر الصيغة الصحيحة: ${item.translationText}'
-        : 'استرجع الإجابة الصحيحة من المعنى: ${item.translationText}';
+            ? 'حدّد القاعدة التي أخطأت فيها ثم اختر الصيغة الصحيحة: ${item.translationText}'
+            : 'استرجع الإجابة الصحيحة من المعنى: ${item.translationText}';
     final correctionPrompt = mistake.category == MistakeCategory.grammar
         ? 'طبّق القاعدة وصحّح العبارة كاملة.'
         : 'صحّح الخطأ ثم اكتب العبارة كاملة.';

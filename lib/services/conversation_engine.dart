@@ -45,9 +45,8 @@ class ConversationEngine {
       else
         missing.add(key);
     }
-    final coverage = normalizedKeys.isEmpty
-        ? 0.0
-        : matched.length / normalizedKeys.length;
+    final coverage =
+        normalizedKeys.isEmpty ? 0.0 : matched.length / normalizedKeys.length;
     final order = _orderScore(answer, matched);
     final value = (coverage * 80 + order * 20).round().clamp(0, 99);
     return ConversationScore(

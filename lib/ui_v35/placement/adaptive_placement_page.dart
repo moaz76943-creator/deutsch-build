@@ -68,13 +68,13 @@ class _AdaptivePlacementPageState extends State<AdaptivePlacementPage> {
   }
 
   DiagnosticQuestion? _nextQuestion() => AdaptivePlacementEngine.nextQuestion(
-    items: widget.corpus,
-    state: _baseline,
-    responses: _responses,
-    exerciseStrategy: widget.exerciseStrategy,
-    isLearnable: widget.contentQuality.isLearnable,
-    seed: _seed,
-  );
+        items: widget.corpus,
+        state: _baseline,
+        responses: _responses,
+        exerciseStrategy: widget.exerciseStrategy,
+        isLearnable: widget.contentQuality.isLearnable,
+        seed: _seed,
+      );
 
   Future<void> _submit() async {
     final current = _current;
@@ -225,7 +225,9 @@ class _AdaptivePlacementPageState extends State<AdaptivePlacementPage> {
               languageCode: widget.sourceLanguageCode,
               semanticRole: LinguisticSemanticRole.explanation,
             ),
-            style: Theme.of(context).textTheme.headlineSmall
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           if (current.dimension == DiagnosticDimension.listening) ...[

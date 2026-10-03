@@ -185,8 +185,7 @@ class SearchIndex<T extends LearningContent> {
             !_textNormalizer.answer(item.sourceText).startsWith(first))
           continue;
         if ((_textNormalizer.answer(item.sourceText).length - q.length).abs() >
-            maxDistance + 1)
-          continue;
+            maxDistance + 1) continue;
         candidates.add(
           _entryCache[item.id] ??= _Entry<T>(item, _textNormalizer),
         );
@@ -246,8 +245,8 @@ class SearchResult<T extends LearningContent> {
   String get level => score >= 900
       ? 'high'
       : score >= 500
-      ? 'medium'
-      : 'low';
+          ? 'medium'
+          : 'low';
 }
 
 class _EntryScore {
@@ -271,21 +270,22 @@ class _Entry<T extends LearningContent> {
   final Set<String> searchTerms;
 
   _Entry(this.item, this._textNormalizer)
-    : source = _textNormalizer.answer(item.sourceText),
-      translation = _textNormalizer.answer(item.translationText),
-      sentence = _textNormalizer.answer(item.exampleText),
-      sentenceAr = _textNormalizer.answer(item.exampleTranslationText),
-      topic = _textNormalizer.answer(item.topic),
-      grammaticalMarker = _textNormalizer.answer(item.grammaticalMarker),
-      plural = _textNormalizer.answer(item.pluralForm),
-      sourceTokens = _tokens(_textNormalizer.answer(item.sourceText)),
-      translationTokens = _tokens(_textNormalizer.answer(item.translationText)),
-      searchTerms = {
-        _textNormalizer.answer(item.sourceText),
-        _textNormalizer.answer(item.translationText),
-        _textNormalizer.answer(item.pluralForm),
-        ...item.acceptedForms.map(_textNormalizer.answer),
-      }..removeWhere((x) => x.isEmpty);
+      : source = _textNormalizer.answer(item.sourceText),
+        translation = _textNormalizer.answer(item.translationText),
+        sentence = _textNormalizer.answer(item.exampleText),
+        sentenceAr = _textNormalizer.answer(item.exampleTranslationText),
+        topic = _textNormalizer.answer(item.topic),
+        grammaticalMarker = _textNormalizer.answer(item.grammaticalMarker),
+        plural = _textNormalizer.answer(item.pluralForm),
+        sourceTokens = _tokens(_textNormalizer.answer(item.sourceText)),
+        translationTokens =
+            _tokens(_textNormalizer.answer(item.translationText)),
+        searchTerms = {
+          _textNormalizer.answer(item.sourceText),
+          _textNormalizer.answer(item.translationText),
+          _textNormalizer.answer(item.pluralForm),
+          ...item.acceptedForms.map(_textNormalizer.answer),
+        }..removeWhere((x) => x.isEmpty);
 
   int tokenScore(String q) => scoreDetailed(q).score;
 
@@ -346,8 +346,8 @@ int _bestFuzzyDistance(String q, Iterable<String> terms) {
 int _fuzzyLimit(String q) => q.length <= 4
     ? 1
     : q.length <= 8
-    ? 2
-    : 3;
+        ? 2
+        : 3;
 
 int _lengthProximity(String a, String b) =>
     (10 - (a.length - b.length).abs()).clamp(0, 10).toInt();

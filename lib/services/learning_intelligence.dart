@@ -114,10 +114,9 @@ class LearningIntelligence {
     final mistakePressure = mistake == null
         ? 0.0
         : ((mistake.severity / 100) * .55 + mistake.recentFailureRate * .45)
-              .clamp(0.0, 1.0)
-              .toDouble();
-    final newAllowed =
-        teacher.newContentReadiness >= .55 &&
+            .clamp(0.0, 1.0)
+            .toDouble();
+    final newAllowed = teacher.newContentReadiness >= .55 &&
         teacher.reviewPressure < .75 &&
         teacher.recentFailureRate < .45;
 

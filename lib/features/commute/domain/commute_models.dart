@@ -33,17 +33,17 @@ final class CommutePlaybackReport {
   });
 
   const CommutePlaybackReport.completed()
-    : this._(completed: true, stage: CommutePlaybackStage.completed);
+      : this._(completed: true, stage: CommutePlaybackStage.completed);
 
   const CommutePlaybackReport.cancelled()
-    : this._(
-        completed: false,
-        stage: CommutePlaybackStage.cancelled,
-        reason: 'commute_playback_cancelled',
-      );
+      : this._(
+          completed: false,
+          stage: CommutePlaybackStage.cancelled,
+          reason: 'commute_playback_cancelled',
+        );
 
   const CommutePlaybackReport.failed(CommutePlaybackStage stage, String reason)
-    : this._(completed: false, stage: stage, reason: reason);
+      : this._(completed: false, stage: stage, reason: reason);
 
   final bool completed;
   final CommutePlaybackStage stage;

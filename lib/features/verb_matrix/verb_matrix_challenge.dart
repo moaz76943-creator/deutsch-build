@@ -170,13 +170,11 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                       }
                     },
                     builder: (context, candidateData, rejectedData) {
-                      Color bgColor = Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest;
+                      Color bgColor =
+                          Theme.of(context).colorScheme.surfaceContainerHighest;
                       if (candidateData.isNotEmpty) {
-                        bgColor = Theme.of(context)
-                            .colorScheme
-                            .primaryContainer;
+                        bgColor =
+                            Theme.of(context).colorScheme.primaryContainer;
                       } else if (isCorrect == true) {
                         bgColor = const Color(0xFF0D9488)
                             .withValues(alpha: 0.3); // Deep Teal for success
@@ -203,7 +201,9 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                                 horizontal: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
                                     .withValues(alpha: 0.1),
                                 borderRadius: const BorderRadius.horizontal(
                                   left: Radius.circular(14),
@@ -305,9 +305,8 @@ class _VerbMatrixChallengePageState extends State<VerbMatrixChallengePage> {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer,
+                            color:
+                                Theme.of(context).colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(

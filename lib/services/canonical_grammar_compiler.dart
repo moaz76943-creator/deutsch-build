@@ -90,8 +90,8 @@ FROM grammar_topics
 
   static Future<void> rebuild(Database db) async {
     const GermanLinguisticValidator().validateCanonicalGrammar().throwIfInvalid(
-      context: 'canonical grammar catalog',
-    );
+          context: 'canonical grammar catalog',
+        );
     await db.execute('PRAGMA foreign_keys = ON');
     final mastered = await _existingMastery(db);
 
@@ -173,11 +173,9 @@ FROM grammar_topics
         });
       }
 
-      for (
-        var exampleIndex = 0;
-        exampleIndex < rule.examples.length;
-        exampleIndex++
-      ) {
+      for (var exampleIndex = 0;
+          exampleIndex < rule.examples.length;
+          exampleIndex++) {
         final example = rule.examples[exampleIndex];
         await db.insert('grammar_examples', <String, Object?>{
           'rule_id': rule.id,

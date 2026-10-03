@@ -130,9 +130,9 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
               Text(
                 germanWord,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -185,7 +185,9 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
           children: [
             Text(
               _story!.title,
-              style: Theme.of(context).textTheme.headlineMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
@@ -222,10 +224,10 @@ class _MicroContextStoriesViewState extends State<MicroContextStoriesView> {
           TextSpan(
             text: part,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-              decoration: TextDecoration.underline,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
             recognizer: TapGestureRecognizer()
               ..onTap = () => _showTranslationDrawer(cleanWord, translation!),
           ),

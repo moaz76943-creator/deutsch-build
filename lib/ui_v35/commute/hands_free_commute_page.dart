@@ -73,8 +73,7 @@ class _HandsFreeCommutePageState extends State<HandsFreeCommutePage> {
       } else if (report.stage == CommutePlaybackStage.cancelled) {
         _status = 'تم الإيقاف المؤقت. التشغيل التالي يبدأ العنصر من أوله.';
       } else {
-        _status =
-            'تعذر الصوت عند ${_stageLabel(report.stage)}: '
+        _status = 'تعذر الصوت عند ${_stageLabel(report.stage)}: '
             '${report.reason ?? 'audio_runtime_unavailable'}.';
       }
     });
@@ -121,12 +120,12 @@ class _HandsFreeCommutePageState extends State<HandsFreeCommutePage> {
   }
 
   String _stageLabel(CommutePlaybackStage stage) => switch (stage) {
-    CommutePlaybackStage.targetTerm => 'الكلمة الألمانية',
-    CommutePlaybackStage.sourceMeaning => 'المعنى العربي',
-    CommutePlaybackStage.targetExample => 'المثال الألماني',
-    CommutePlaybackStage.completed => 'الاكتمال',
-    CommutePlaybackStage.cancelled => 'الإيقاف',
-  };
+        CommutePlaybackStage.targetTerm => 'الكلمة الألمانية',
+        CommutePlaybackStage.sourceMeaning => 'المعنى العربي',
+        CommutePlaybackStage.targetExample => 'المثال الألماني',
+        CommutePlaybackStage.completed => 'الاكتمال',
+        CommutePlaybackStage.cancelled => 'الإيقاف',
+      };
 
   @override
   void dispose() {

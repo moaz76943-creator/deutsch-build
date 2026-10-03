@@ -92,8 +92,8 @@ class GrammarHubService
   final String? _inMemoryPath;
 
   GrammarHubService({DatabaseFactory? factory, String? path})
-    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
-      _inMemoryPath = path;
+      : _sqlitePolicy = AppSqlitePolicy(factory: factory),
+        _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;

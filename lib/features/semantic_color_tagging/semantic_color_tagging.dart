@@ -29,8 +29,8 @@ class SemanticColorTagging {
   final String? _inMemoryPath;
 
   SemanticColorTagging({DatabaseFactory? factory, String? path})
-    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
-      _inMemoryPath = path;
+      : _sqlitePolicy = AppSqlitePolicy(factory: factory),
+        _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -94,18 +94,20 @@ class SemanticColorTagging {
     String article, {
     bool isPlural = false,
   }) async {
-    final gClass = isPlural
-        ? GrammaticalClass.pluralNoun
-        : determineClass(article, word);
+    final gClass =
+        isPlural ? GrammaticalClass.pluralNoun : determineClass(article, word);
     final color = getColorForClass(gClass);
 
     final db = await database;
-    await db.insert(_tableName, {
-      'id': id,
-      'word': word,
-      'grammaticalClass': gClass.name,
-      'colorHex': color.toARGB32(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        _tableName,
+        {
+          'id': id,
+          'word': word,
+          'grammaticalClass': gClass.name,
+          'colorHex': color.toARGB32(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Color> getColorForWord(String id) async {

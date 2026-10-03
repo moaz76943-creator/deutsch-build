@@ -28,14 +28,12 @@ final class LanguageConfiguration {
       'target language',
     );
 
-    final sourceDirection =
-        _firstValue(json, const [
+    final sourceDirection = _firstValue(json, const [
           'sourceLanguageDirection',
           'source_direction',
         ]) ??
         pairIdentity?['source_direction'];
-    final targetDirection =
-        _firstValue(json, const [
+    final targetDirection = _firstValue(json, const [
           'targetLanguageDirection',
           'target_direction',
         ]) ??
@@ -56,11 +54,11 @@ final class LanguageConfiguration {
   }
 
   Map<String, Object?> toJson() => <String, Object?>{
-    'sourceLanguage': sourceLanguage,
-    'targetLanguage': targetLanguage,
-    'sourceLanguageDirection': sourceLanguageDirection.jsonValue,
-    'targetLanguageDirection': targetLanguageDirection.jsonValue,
-  };
+        'sourceLanguage': sourceLanguage,
+        'targetLanguage': targetLanguage,
+        'sourceLanguageDirection': sourceLanguageDirection.jsonValue,
+        'targetLanguageDirection': targetLanguageDirection.jsonValue,
+      };
 }
 
 Object? _firstValue(Map<String, Object?> json, List<String> keys) {

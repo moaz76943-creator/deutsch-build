@@ -169,9 +169,8 @@ abstract final class QualityGateReducer {
       evaluations.add(_evaluate(requirement, matching.single));
     }
 
-    final mandatory = evaluations
-        .where((item) => item.requirement.mandatory)
-        .toList();
+    final mandatory =
+        evaluations.where((item) => item.requirement.mandatory).toList();
     final mandatorySatisfied = mandatory.every((item) => item.satisfied);
 
     if (mandatorySatisfied) {
@@ -260,8 +259,7 @@ abstract final class QualityGateReducer {
           return capabilityEvaluation!;
         }
         final status = evidence.capabilityStatus;
-        final justified =
-            status != null &&
+        final justified = status != null &&
             status.state == LanguageCapabilityState.notApplicable &&
             status.justification != null &&
             status.justification!.trim().isNotEmpty;
@@ -382,11 +380,9 @@ abstract final class QualityGateReducer {
       return false;
     }
 
-    for (
-      var index = 0;
-      index < left.consumedArtifactCoordinates.length;
-      index++
-    ) {
+    for (var index = 0;
+        index < left.consumedArtifactCoordinates.length;
+        index++) {
       final leftCoordinate = left.consumedArtifactCoordinates[index];
       final rightCoordinate = right.consumedArtifactCoordinates[index];
       if (leftCoordinate.artifactType != rightCoordinate.artifactType ||
@@ -492,8 +488,7 @@ abstract final class QualityGateReducer {
           'required capability is UNSUPPORTED',
         );
       case LanguageCapabilityState.notApplicable:
-        final justified =
-            status.justification != null &&
+        final justified = status.justification != null &&
             status.justification!.trim().isNotEmpty;
         if (requirement.allowNotApplicable && justified) {
           return QualityGateEvaluation(

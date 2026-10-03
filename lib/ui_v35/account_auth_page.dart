@@ -151,7 +151,9 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 12),
             Text(
               'تم تسجيل الدخول',
-              style: Theme.of(context).textTheme.headlineSmall
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
@@ -191,7 +193,9 @@ class _AccountPageState extends State<AccountPage> {
               children: [
                 Text(
                   'تسجيل الدخول',
-                  style: Theme.of(context).textTheme.headlineSmall
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
                       ?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 8),
@@ -247,9 +251,8 @@ class _AccountPageState extends State<AccountPage> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: _busy
-                ? null
-                : () => _runBusy(widget.auth.signInWithGoogle),
+            onPressed:
+                _busy ? null : () => _runBusy(widget.auth.signInWithGoogle),
             icon: const Icon(Icons.g_mobiledata),
             label: const Text('المتابعة باستخدام Google'),
           ),
@@ -258,9 +261,8 @@ class _AccountPageState extends State<AccountPage> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: _busy
-                ? null
-                : () => _runBusy(widget.auth.signInWithApple),
+            onPressed:
+                _busy ? null : () => _runBusy(widget.auth.signInWithApple),
             icon: const Icon(Icons.apple),
             label: const Text('المتابعة باستخدام Apple'),
           ),

@@ -59,15 +59,15 @@ class HttpsAiGateway implements AiGateway {
     required String allowedHostsCsv,
     http.Client? client,
     this.timeout = const Duration(seconds: 12),
-  }) : baseUri = baseUri.path.endsWith('/')
-           ? baseUri
-           : baseUri.replace(path: '${baseUri.path}/'),
-       allowedHosts = allowedHostsCsv
-           .split(',')
-           .map((host) => host.trim().toLowerCase())
-           .where((host) => host.isNotEmpty)
-           .toSet(),
-       client = client ?? http.Client() {
+  })  : baseUri = baseUri.path.endsWith('/')
+            ? baseUri
+            : baseUri.replace(path: '${baseUri.path}/'),
+        allowedHosts = allowedHostsCsv
+            .split(',')
+            .map((host) => host.trim().toLowerCase())
+            .where((host) => host.isNotEmpty)
+            .toSet(),
+        client = client ?? http.Client() {
     if (baseUri.scheme != 'https')
       throw ArgumentError('AI endpoint must use HTTPS.');
     if (baseUri.host.isEmpty)
@@ -128,9 +128,9 @@ class HttpsAiGateway implements AiGateway {
       'task': 'writing_review',
       'level': level,
       'text': text.trim().substring(
-        0,
-        text.trim().length.clamp(0, 2000).toInt(),
-      ),
+            0,
+            text.trim().length.clamp(0, 2000).toInt(),
+          ),
     });
     final request = http.Request('POST', baseUri.resolve('v1/review'))
       ..followRedirects = false
@@ -149,16 +149,20 @@ class HttpsAiGateway implements AiGateway {
     if (json is! Map) throw StateError('Invalid AI response.');
     return AiReview(
       corrected: (json['corrected'] ?? '').toString().substring(
-        0,
-        (json['corrected'] ?? '').toString().length.clamp(0, 2000).toInt(),
-      ),
+            0,
+            (json['corrected'] ?? '').toString().length.clamp(0, 2000).toInt(),
+          ),
       issues: (json['issues'] is List
           ? (json['issues'] as List).whereType<String>().take(8).toList()
           : const <String>[]),
       explanation: (json['explanation'] ?? '').toString().substring(
-        0,
-        (json['explanation'] ?? '').toString().length.clamp(0, 3000).toInt(),
-      ),
+            0,
+            (json['explanation'] ?? '')
+                .toString()
+                .length
+                .clamp(0, 3000)
+                .toInt(),
+          ),
     );
   }
 
@@ -176,9 +180,9 @@ class HttpsAiGateway implements AiGateway {
       'level': level,
       'scenario': scenario.substring(0, scenario.length.clamp(0, 160).toInt()),
       'message': message.trim().substring(
-        0,
-        message.trim().length.clamp(0, 2000).toInt(),
-      ),
+            0,
+            message.trim().length.clamp(0, 2000).toInt(),
+          ),
     });
     final request = http.Request('POST', baseUri.resolve('v1/conversation'))
       ..followRedirects = false
@@ -196,9 +200,9 @@ class HttpsAiGateway implements AiGateway {
     final json = jsonDecode(response.body);
     if (json is! Map) throw StateError('Invalid AI response.');
     return (json['reply'] ?? '').toString().substring(
-      0,
-      (json['reply'] ?? '').toString().length.clamp(0, 3000).toInt(),
-    );
+          0,
+          (json['reply'] ?? '').toString().length.clamp(0, 3000).toInt(),
+        );
   }
 
   static void _guardResponse(http.Response response) {

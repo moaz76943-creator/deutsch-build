@@ -17,8 +17,7 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
     final tokens = german.split(' ').where((x) => x.isNotEmpty).toList();
     final hasArticle = item.grammaticalMarker.trim().isNotEmpty;
     final hasPlural = item.pluralForm.trim().isNotEmpty;
-    final hasExample =
-        item.exampleText.trim().isNotEmpty &&
+    final hasExample = item.exampleText.trim().isNotEmpty &&
         item.exampleTranslationText.trim().isNotEmpty;
     final phrase = tokens.length > 1;
     final compound = german.length >= 14 && !phrase;
@@ -28,8 +27,7 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
     if (item.exampleText.split(' ').length >= 9) difficulty += .08;
     if (item.exampleText.contains('weil') ||
         item.exampleText.contains('dass') ||
-        item.exampleText.contains('obwohl'))
-      difficulty += .10;
+        item.exampleText.contains('obwohl')) difficulty += .10;
     difficulty = difficulty.clamp(.05, .95).toDouble();
 
     final level = _inferLevel(item, difficulty);
@@ -82,9 +80,8 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
       if (p.wordFamily.isNotEmpty) families.add(p.wordFamily);
     }
 
-    final duplicateGermanCount = german.values
-        .where((x) => x > 1)
-        .fold<int>(0, (sum, x) => sum + x - 1);
+    final duplicateGermanCount =
+        german.values.where((x) => x > 1).fold<int>(0, (sum, x) => sum + x - 1);
     final nearDuplicatePairCount = _nearDuplicatePairs(items);
     final gaps = _gaps(items, levels, skills, articles, plurals);
     return ContentIntelligenceReport(
@@ -180,12 +177,10 @@ final class GermanContentIntelligence implements LanguageContentIntelligence {
       for (var i = 0; i < cap.length; i++) {
         for (var j = i + 1; j < cap.length; j++) {
           if (cap[i] == cap[j]) continue;
-          final maxLen = cap[i].length > cap[j].length
-              ? cap[i].length
-              : cap[j].length;
+          final maxLen =
+              cap[i].length > cap[j].length ? cap[i].length : cap[j].length;
           if ((cap[i].length - cap[j].length).abs() <= 3 &&
-              _editDistance(cap[i], cap[j]) <= (maxLen <= 9 ? 1 : 2))
-            pairs++;
+              _editDistance(cap[i], cap[j]) <= (maxLen <= 9 ? 1 : 2)) pairs++;
         }
       }
     }

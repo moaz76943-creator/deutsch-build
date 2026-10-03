@@ -11,10 +11,11 @@ final class AudioManifestCatalog implements AudioCatalog {
 
   factory AudioManifestCatalog.empty({
     String baseAssetPath = 'content/german/audio',
-  }) => AudioManifestCatalog._(
-    baseAssetPath: baseAssetPath,
-    entries: const <String, Map<AudioVariant, String>>{},
-  );
+  }) =>
+      AudioManifestCatalog._(
+        baseAssetPath: baseAssetPath,
+        entries: const <String, Map<AudioVariant, String>>{},
+      );
 
   factory AudioManifestCatalog.parse(
     String rawJson, {

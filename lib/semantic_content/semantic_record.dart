@@ -26,10 +26,10 @@ final class SemanticRecord {
     List<String> domainRefs = const <String>[],
     Map<String, Object?> neutralConstraints = const <String, Object?>{},
     required this.provenance,
-  }) : domainRefs = List<String>.unmodifiable(domainRefs),
-       neutralConstraints = Map<String, Object?>.unmodifiable(
-         neutralConstraints,
-       ) {
+  })  : domainRefs = List<String>.unmodifiable(domainRefs),
+        neutralConstraints = Map<String, Object?>.unmodifiable(
+          neutralConstraints,
+        ) {
     _requireNonEmpty(semanticId, 'semanticId');
     if (semanticVersion <= 0) {
       throw ArgumentError.value(
@@ -53,15 +53,15 @@ final class SemanticRecord {
   String get identityKey => semanticId;
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'semanticId': semanticId,
-    'semanticVersion': semanticVersion,
-    'kind': kind.name,
-    'conceptId': conceptId,
-    'intentId': intentId,
-    'domainRefs': domainRefs,
-    'neutralConstraints': neutralConstraints,
-    'provenance': provenance.toMap(),
-  };
+        'semanticId': semanticId,
+        'semanticVersion': semanticVersion,
+        'kind': kind.name,
+        'conceptId': conceptId,
+        'intentId': intentId,
+        'domainRefs': domainRefs,
+        'neutralConstraints': neutralConstraints,
+        'provenance': provenance.toMap(),
+      };
 }
 
 void _requireNonEmpty(String value, String field) {

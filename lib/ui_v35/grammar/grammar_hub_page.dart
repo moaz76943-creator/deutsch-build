@@ -97,77 +97,78 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _topics.isEmpty
-                  ? const Center(
-                      child: Text('لا توجد مواضيع متاحة لهذا المستوى.'),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: _topics.length,
-                      itemBuilder: (context, index) {
-                        final topic = _topics[index];
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.only(bottom: 12.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          color: topic.isMastered
-                              ? Colors.green.shade50
-                              : Colors.white,
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 8.0,
-                            ),
-                            title: BidiText(
-                              DirectionalText.german(
-                                topic.titleDe,
-                                semanticRole:
-                                    LinguisticSemanticRole.grammarLabel,
+                      ? const Center(
+                          child: Text('لا توجد مواضيع متاحة لهذا المستوى.'),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16.0),
+                          itemCount: _topics.length,
+                          itemBuilder: (context, index) {
+                            final topic = _topics[index];
+                            return Card(
+                              elevation: 2,
+                              margin: const EdgeInsets.only(bottom: 12.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                fontFamily: 'Inter',
-                              ),
-                            ),
-                            subtitle: BidiText(
-                              DirectionalText.arabic(
-                                topic.titleAr,
-                                semanticRole:
-                                    LinguisticSemanticRole.translation,
-                              ),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'Tajawal',
-                              ),
-                            ),
-                            trailing: Icon(
-                              topic.isMastered
-                                  ? Icons.check_circle
-                                  : Icons.chevron_right,
                               color: topic.isMastered
-                                  ? Colors.green
-                                  : Colors.grey,
-                            ),
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => GrammarTopicDetailPage(
-                                    topic: topic,
-                                    dependencies: widget.dependencies,
-                                    learnerState: widget.learnerState,
+                                  ? Colors.green.shade50
+                                  : Colors.white,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                title: BidiText(
+                                  DirectionalText.german(
+                                    topic.titleDe,
+                                    semanticRole:
+                                        LinguisticSemanticRole.grammarLabel,
+                                  ),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    fontFamily: 'Inter',
                                   ),
                                 ),
-                              );
-                              // Refresh topics to update mastery status
-                              _loadTopics();
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                                subtitle: BidiText(
+                                  DirectionalText.arabic(
+                                    topic.titleAr,
+                                    semanticRole:
+                                        LinguisticSemanticRole.translation,
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Tajawal',
+                                  ),
+                                ),
+                                trailing: Icon(
+                                  topic.isMastered
+                                      ? Icons.check_circle
+                                      : Icons.chevron_right,
+                                  color: topic.isMastered
+                                      ? Colors.green
+                                      : Colors.grey,
+                                ),
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          GrammarTopicDetailPage(
+                                        topic: topic,
+                                        dependencies: widget.dependencies,
+                                        learnerState: widget.learnerState,
+                                      ),
+                                    ),
+                                  );
+                                  // Refresh topics to update mastery status
+                                  _loadTopics();
+                                },
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

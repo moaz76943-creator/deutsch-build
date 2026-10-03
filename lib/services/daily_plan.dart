@@ -24,9 +24,8 @@ class DailyPlan {
     final repair = action.type == TeacherActionType.repair
         ? ((boundedGoal - review) * .45).round()
         : ((boundedGoal - review) * .25).round();
-    final newContent = (boundedGoal - review - repair)
-        .clamp(0, boundedGoal)
-        .toInt();
+    final newContent =
+        (boundedGoal - review - repair).clamp(0, boundedGoal).toInt();
     final listening = (boundedGoal * .15).round();
     final production = (boundedGoal * .25).round();
     return DailyPlan(

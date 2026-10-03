@@ -46,9 +46,9 @@ class VocabularyWordHeader extends StatelessWidget {
                     german,
                     textDirection: TextDirection.ltr,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.2,
-                    ),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.2,
+                        ),
                   ),
                 ],
               ),
@@ -58,22 +58,26 @@ class VocabularyWordHeader extends StatelessWidget {
                   hint,
                   textDirection: TextDirection.ltr,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.tertiary,
-                    fontWeight: FontWeight.w700,
-                  ),
+                        color: scheme.tertiary,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
               const SizedBox(height: 5),
               Text(
                 arabic,
-                style: Theme.of(context).textTheme.bodyLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
               if (topic.trim().isNotEmpty) ...<Widget>[
                 const SizedBox(height: 5),
                 Text(
                   topic,
-                  style: Theme.of(context).textTheme.labelSmall
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
                       ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
               ],
@@ -180,7 +184,9 @@ class VocabularyGridCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textDirection: TextDirection.ltr,
-                style: Theme.of(context).textTheme.titleMedium
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               if (hint.isNotEmpty) ...<Widget>[
@@ -191,9 +197,9 @@ class VocabularyGridCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textDirection: TextDirection.ltr,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: scheme.tertiary,
-                    fontWeight: FontWeight.w700,
-                  ),
+                        color: scheme.tertiary,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
               const SizedBox(height: 5),
@@ -211,7 +217,9 @@ class VocabularyGridCard extends StatelessWidget {
                       topic,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall
                           ?.copyWith(color: scheme.onSurfaceVariant),
                     ),
                   ),
@@ -250,19 +258,19 @@ class _VocabularyActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Tooltip(
-    message: tooltip,
-    child: Material(
-      color: color.withValues(alpha: 0.11),
-      borderRadius: BorderRadius.circular(compact ? 12 : 14),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(compact ? 12 : 14),
-        child: SizedBox(
-          width: compact ? 34 : 40,
-          height: compact ? 34 : 40,
-          child: Icon(icon, size: compact ? 18 : 20, color: color),
+        message: tooltip,
+        child: Material(
+          color: color.withValues(alpha: 0.11),
+          borderRadius: BorderRadius.circular(compact ? 12 : 14),
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(compact ? 12 : 14),
+            child: SizedBox(
+              width: compact ? 34 : 40,
+              height: compact ? 34 : 40,
+              child: Icon(icon, size: compact ? 18 : 20, color: color),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }

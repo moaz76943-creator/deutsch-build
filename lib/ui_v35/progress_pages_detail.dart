@@ -37,7 +37,9 @@ class ProgressPage extends StatelessWidget {
                 children: [
                   Text(
                     p.levelLabel,
-                    style: Theme.of(c).textTheme.displaySmall
+                    style: Theme.of(c)
+                        .textTheme
+                        .displaySmall
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 6),
@@ -146,9 +148,7 @@ class MistakeCoachPage extends StatelessWidget {
                 ),
               ),
             ),
-          ...report.items
-              .take(8)
-              .map(
+          ...report.items.take(8).map(
                 (m) => Card(
                   child: ListTile(
                     leading: CircleAvatar(child: Text('${m.errorCount}')),
@@ -307,7 +307,9 @@ class _MistakeRepairState extends State<MistakeRepairPage> {
           const SizedBox(height: 8),
           Text(
             mistakeCategoryLabel(widget.mistake.category),
-            style: Theme.of(c).textTheme.headlineSmall
+            style: Theme.of(c)
+                .textTheme
+                .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 16),

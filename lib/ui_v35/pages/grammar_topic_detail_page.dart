@@ -6,7 +6,7 @@ class GrammarTopicDetailPage extends StatefulWidget {
   final GrammarTopic topic;
 
   const GrammarTopicDetailPage({Key? key, required this.topic})
-    : super(key: key);
+      : super(key: key);
 
   @override
   _GrammarTopicDetailPageState createState() => _GrammarTopicDetailPageState();
@@ -42,9 +42,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
               Text(
                 'اختبر فهمك',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
-                ),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Tajawal',
+                    ),
               ),
               const SizedBox(height: 16),
               ...widget.topic.miniChecks
@@ -82,9 +82,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
               child: Text(
                 widget.topic.titleAr,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
-                ),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Tajawal',
+                    ),
               ),
             ),
           ],
@@ -92,7 +92,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
         const SizedBox(height: 16),
         Text(
           widget.topic.summaryAr,
-          style: Theme.of(context).textTheme.bodyLarge
+          style: Theme.of(context)
+              .textTheme
+              .bodyLarge
               ?.copyWith(fontFamily: 'Tajawal'),
         ),
       ],
@@ -117,9 +119,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
                   child: Text(
                     rule.title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Tajawal',
-                    ),
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Tajawal',
+                        ),
                   ),
                 ),
               ],
@@ -127,7 +129,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
             const SizedBox(height: 12),
             Text(
               rule.explanationAr,
-              style: Theme.of(context).textTheme.bodyMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
                   ?.copyWith(fontFamily: 'Tajawal'),
             ),
             if (rule.table.isNotEmpty) ...[
@@ -171,9 +175,8 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
           return TableRow(
             decoration: isHeader
                 ? BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                   )
                 : null,
             children: row.map((cell) {
@@ -203,7 +206,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
           color: Theme.of(context).colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant
+            color: Theme.of(context)
+                .colorScheme
+                .outlineVariant
                 .withValues(alpha: 0.5),
           ),
         ),
@@ -237,7 +242,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
           .withValues(alpha: 0.3),
       elevation: 0,
       child: Padding(

@@ -11,8 +11,8 @@ final class LinguisticTextSpan {
   final String? semanticsLabel;
 
   TextSpan toTextSpan() => TextSpan(
-    text: BidiBoundary.isolate(value),
-    style: style,
-    semanticsLabel: semanticsLabel,
-  );
+        text: BidiBoundary.isolate(value),
+        style: style,
+        semanticsLabel: semanticsLabel,
+      );
 }

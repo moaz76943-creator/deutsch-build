@@ -14,9 +14,9 @@ class ReverseQuizDatabase {
   final String? _inMemoryPath;
 
   ReverseQuizDatabase({DatabaseFactory? factory, String? path})
-    : _dbFactory = factory,
-      _sqlitePolicy = AppSqlitePolicy(factory: factory),
-      _inMemoryPath = path;
+      : _dbFactory = factory,
+        _sqlitePolicy = AppSqlitePolicy(factory: factory),
+        _inMemoryPath = path;
 
   Future<Database> get database async {
     if (_db != null) return _db!;

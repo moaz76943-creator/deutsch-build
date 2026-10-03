@@ -27,12 +27,14 @@ final class PronunciationLabService<T extends LearningContent> {
 
   List<PronunciationContrast> availableContrasts(
     Iterable<PronunciationContrast> catalog,
-  ) => engine.availableContrasts(catalog);
+  ) =>
+      engine.availableContrasts(catalog);
 
   PronunciationTrial<T>? buildTrial(
     PronunciationContrast contrast, {
     required int round,
-  }) => engine.buildTrial(contrast, round: round);
+  }) =>
+      engine.buildTrial(contrast, round: round);
 
   List<PronunciationConfusionStat> confusionStats([LearnerState? state]) =>
       engine.confusionStats(state ?? repository.load());
@@ -40,15 +42,16 @@ final class PronunciationLabService<T extends LearningContent> {
   Future<AudioPlaybackResult> playTarget(
     PronunciationTrial<T> trial, {
     bool slow = false,
-  }) => audioRuntime.play(
-    AudioRequest(
-      text: trial.target.token,
-      languageCode: languageCode,
-      conceptId: trial.target.item.id,
-      variant: AudioVariant.pronunciation,
-      rate: slow ? .34 : .48,
-    ),
-  );
+  }) =>
+      audioRuntime.play(
+        AudioRequest(
+          text: trial.target.token,
+          languageCode: languageCode,
+          conceptId: trial.target.item.id,
+          variant: AudioVariant.pronunciation,
+          rate: slow ? .34 : .48,
+        ),
+      );
 
   Future<PronunciationPerceptionResult> answerPerception(
     PronunciationTrial<T> trial, {

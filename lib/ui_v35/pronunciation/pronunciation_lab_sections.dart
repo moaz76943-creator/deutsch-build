@@ -26,56 +26,58 @@ class PronunciationPerceptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            contrast.titleAr,
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '1) استمع للكلمة المخفية. 2) اختر أي كلمة سمعت. '
-            'لا يوجد إرسال صوت إلى خادم.',
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: busy ? null : onListen,
-            icon: const Icon(Icons.volume_up_outlined),
-            label: Text(busy ? 'جارٍ التشغيل...' : 'استمع'),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('تشغيل بطيء للتدريب'),
-            value: slow,
-            onChanged: busy ? null : onSlowChanged,
-          ),
-          const SizedBox(height: 6),
-          for (final option in options)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: OutlinedButton(
-                onPressed: busy ? null : () => onChoose(option),
-                child: BidiText(
-                  DirectionalText.german(
-                    option,
-                    semanticRole: LinguisticSemanticRole.word,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                contrast.titleAr,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '1) استمع للكلمة المخفية. 2) اختر أي كلمة سمعت. '
+                'لا يوجد إرسال صوت إلى خادم.',
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: busy ? null : onListen,
+                icon: const Icon(Icons.volume_up_outlined),
+                label: Text(busy ? 'جارٍ التشغيل...' : 'استمع'),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('تشغيل بطيء للتدريب'),
+                value: slow,
+                onChanged: busy ? null : onSlowChanged,
+              ),
+              const SizedBox(height: 6),
+              for (final option in options)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: OutlinedButton(
+                    onPressed: busy ? null : () => onChoose(option),
+                    child: BidiText(
+                      DirectionalText.german(
+                        option,
+                        semanticRole: LinguisticSemanticRole.word,
+                      ),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
+            ],
+          ),
+        ),
+      );
 }
 
 class PronunciationFeedbackCard extends StatelessWidget {
@@ -90,40 +92,40 @@ class PronunciationFeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                result.correct ? Icons.check_circle : Icons.refresh,
-                color: result.correct ? Colors.green : Colors.orange,
+              Row(
+                children: [
+                  Icon(
+                    result.correct ? Icons.check_circle : Icons.refresh,
+                    color: result.correct ? Colors.green : Colors.orange,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      result.feedbackAr,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  result.feedbackAr,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+              const SizedBox(height: 12),
+              Text(coachingAr),
+              const SizedBox(height: 10),
+              BidiText(
+                DirectionalText.german(
+                  'Ziel: ${result.expectedToken}',
+                  semanticRole: LinguisticSemanticRole.phonetic,
                 ),
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(coachingAr),
-          const SizedBox(height: 10),
-          BidiText(
-            DirectionalText.german(
-              'Ziel: ${result.expectedToken}',
-              semanticRole: LinguisticSemanticRole.phonetic,
-            ),
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class PronunciationProductionCard extends StatelessWidget {
@@ -151,7 +153,9 @@ class PronunciationProductionCard extends StatelessWidget {
           children: [
             Text(
               'الإنتاج المحلي',
-              style: Theme.of(context).textTheme.titleMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
@@ -244,7 +248,9 @@ class PronunciationConfusionPanel extends StatelessWidget {
           children: [
             Text(
               'خريطة الالتباس الصوتي',
-              style: Theme.of(context).textTheme.titleSmall
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),

@@ -19,10 +19,10 @@ final class LanguageIdentity {
   }
 
   Map<String, String> toMap() => <String, String>{
-    'languageId': languageId,
-    'displayName': displayName,
-    'primaryLocale': primaryLocale,
-  };
+        'languageId': languageId,
+        'displayName': displayName,
+        'primaryLocale': primaryLocale,
+      };
 
   @override
   bool operator ==(Object other) =>

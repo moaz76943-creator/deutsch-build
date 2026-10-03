@@ -9,7 +9,7 @@ import '../language/language_speech_profile.dart';
 
 final class FlutterOfflineTtsEngine implements OfflineTtsEngine {
   FlutterOfflineTtsEngine({FlutterTts? engine})
-    : _engine = engine ?? FlutterTts();
+      : _engine = engine ?? FlutterTts();
 
   final FlutterTts _engine;
   Map<String, String>? _selectedVoice;
@@ -111,9 +111,8 @@ final class FlutterOfflineTtsEngine implements OfflineTtsEngine {
         if (voiceLocale != locale && !voiceLocale.startsWith(locale + '-')) {
           continue;
         }
-        final networkRequired = (normalized['network_required'] ?? '')
-            .trim()
-            .toLowerCase();
+        final networkRequired =
+            (normalized['network_required'] ?? '').trim().toLowerCase();
         if (networkRequired == 'true' || networkRequired == '1') continue;
         final features = (normalized['features'] ?? '').toLowerCase();
         if (features.contains('notinstalled')) continue;
@@ -135,13 +134,12 @@ class SafeTtsController {
   SafeTtsController({
     OfflineAudioRuntime? runtime,
     LanguageSpeechProfile profile = const GermanSpeechProfile(),
-  }) : _profile = profile,
-       _runtime =
-           runtime ??
-           OfflineAudioRuntime(
-             speechProfile: profile,
-             ttsEngine: FlutterOfflineTtsEngine(),
-           );
+  })  : _profile = profile,
+        _runtime = runtime ??
+            OfflineAudioRuntime(
+              speechProfile: profile,
+              ttsEngine: FlutterOfflineTtsEngine(),
+            );
 
   final LanguageSpeechProfile _profile;
   final OfflineAudioRuntime _runtime;
@@ -185,8 +183,8 @@ class SafeTtsController {
       _lastResult?.source == AudioPlaybackSource.offlineTts;
   String? get voiceError =>
       _lastResult?.source == AudioPlaybackSource.unavailable
-      ? _profile.offlineVoiceUnavailableMessage
-      : null;
+          ? _profile.offlineVoiceUnavailableMessage
+          : null;
 }
 
 class _TtsGate {
@@ -205,9 +203,8 @@ Future<void> _enqueueTts(
 ) {
   final gate = _gateFor(tts);
   final generation = gate.generation;
-  gate.tail = gate.tail
-      .then<void>((_) => action(gate, generation))
-      .catchError((_) {});
+  gate.tail =
+      gate.tail.then<void>((_) => action(gate, generation)).catchError((_) {});
   return gate.tail;
 }
 

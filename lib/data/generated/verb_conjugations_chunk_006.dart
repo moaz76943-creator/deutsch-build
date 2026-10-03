@@ -4832,7 +4832,8 @@ const generatedVerbConjugationsChunk006 = <VerbConjugation>[
     example: 'Sie saugen heute.',
     exampleAr: 'حضرتك تكنس بالمكنسة الكهربائيةون اليوم.',
     pastExample: 'Sie haben heute gesaugt.',
-    pastExampleAr: 'حضرتك / حضراتكم كنس بالمكنسة الكهربائيةتم بالمكنسة الكهربائيةون اليوم.',
+    pastExampleAr:
+        'حضرتك / حضراتكم كنس بالمكنسة الكهربائيةتم بالمكنسة الكهربائيةون اليوم.',
   ),
   VerbConjugation(
     infinitive: 'schimpfen',

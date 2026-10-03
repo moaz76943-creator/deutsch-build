@@ -106,9 +106,8 @@ class GamificationNextMilestoneCard extends StatelessWidget {
 
     final profile = snapshot.profile;
     final threshold = badge.xpThreshold ?? badge.streakThreshold ?? 1;
-    final current = badge.xpThreshold != null
-        ? profile.totalXp
-        : profile.currentStreak;
+    final current =
+        badge.xpThreshold != null ? profile.totalXp : profile.currentStreak;
     final progress = (current / threshold).clamp(0.0, 1.0).toDouble();
     final unit = badge.xpThreshold != null ? 'XP' : 'يوم';
 
@@ -131,7 +130,9 @@ class GamificationNextMilestoneCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               badge.titleAr,
-              style: Theme.of(context).textTheme.titleMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
@@ -171,7 +172,9 @@ class GamificationBadgeList extends StatelessWidget {
           children: [
             Text(
               'الشارات',
-              style: Theme.of(context).textTheme.titleMedium
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
@@ -204,18 +207,18 @@ class GamificationClockWarning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Card(
-    child: ListTile(
-      leading: Icon(Icons.schedule_outlined),
-      title: Text(
-        'تم رصد رجوع غير طبيعي في ساعة الجهاز',
-        style: TextStyle(fontWeight: FontWeight.w900),
-      ),
-      subtitle: Text(
-        'تم إيقاف مكافأة الحدث المشبوه بدل زيادة XP أو السلسلة. '
-        'المراجعات التعليمية نفسها لا تُحذف.',
-      ),
-    ),
-  );
+        child: ListTile(
+          leading: Icon(Icons.schedule_outlined),
+          title: Text(
+            'تم رصد رجوع غير طبيعي في ساعة الجهاز',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(
+            'تم إيقاف مكافأة الحدث المشبوه بدل زيادة XP أو السلسلة. '
+            'المراجعات التعليمية نفسها لا تُحذف.',
+          ),
+        ),
+      );
 }
 
 class _MetricCard extends StatelessWidget {
@@ -231,29 +234,30 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-      child: Column(
-        children: [
-          Icon(icon, size: 32),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w700),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+          child: Column(
+            children: [
+              Icon(icon, size: 32),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              BidiText(
+                DirectionalText.forLanguage(
+                  value,
+                  languageCode: 'en',
+                  semanticRole: LinguisticSemanticRole.number,
+                ),
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          BidiText(
-            DirectionalText.forLanguage(
-              value,
-              languageCode: 'en',
-              semanticRole: LinguisticSemanticRole.number,
-            ),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

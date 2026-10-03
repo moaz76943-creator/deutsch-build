@@ -59,11 +59,11 @@ enum GermanAuxiliary {
   unknown;
 
   String get wireName => switch (this) {
-    GermanAuxiliary.haben => 'haben',
-    GermanAuxiliary.sein => 'sein',
-    GermanAuxiliary.habenOrSein => 'haben_or_sein',
-    GermanAuxiliary.unknown => 'unknown',
-  };
+        GermanAuxiliary.haben => 'haben',
+        GermanAuxiliary.sein => 'sein',
+        GermanAuxiliary.habenOrSein => 'haben_or_sein',
+        GermanAuxiliary.unknown => 'unknown',
+      };
 
   static GermanAuxiliary fromWire(String? value) =>
       switch (value?.trim().toLowerCase()) {
@@ -82,12 +82,12 @@ enum GermanReflexivity {
   unknown;
 
   String get wireName => switch (this) {
-    GermanReflexivity.none => 'none',
-    GermanReflexivity.accusative => 'accusative',
-    GermanReflexivity.dative => 'dative',
-    GermanReflexivity.contextDependent => 'context_dependent',
-    GermanReflexivity.unknown => 'unknown',
-  };
+        GermanReflexivity.none => 'none',
+        GermanReflexivity.accusative => 'accusative',
+        GermanReflexivity.dative => 'dative',
+        GermanReflexivity.contextDependent => 'context_dependent',
+        GermanReflexivity.unknown => 'unknown',
+      };
 
   static GermanReflexivity fromWire(String? value) =>
       switch (value?.trim().toLowerCase()) {

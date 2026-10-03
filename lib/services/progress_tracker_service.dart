@@ -136,31 +136,40 @@ class ProgressTrackerService {
   Future<void> markLessonCompleted(String lessonId) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(_tableNameCompletedLessons, <String, Object>{
-        'id': lessonId,
-        'completedAt': DateTime.now().toUtc().toIso8601String(),
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await txn.insert(
+          _tableNameCompletedLessons,
+          <String, Object>{
+            'id': lessonId,
+            'completedAt': DateTime.now().toUtc().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
   Future<void> updateStreak(String date, int count) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(_tableNameStreaks, <String, Object>{
-        'date': date,
-        'count': count,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await txn.insert(
+          _tableNameStreaks,
+          <String, Object>{
+            'date': date,
+            'count': count,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
   Future<void> updateReviewScore(String lessonId, double score) async {
     final db = await database;
     await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(_tableNameReviewScores, <String, Object>{
-        'lessonId': lessonId,
-        'score': score,
-        'reviewedAt': DateTime.now().toUtc().toIso8601String(),
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await txn.insert(
+          _tableNameReviewScores,
+          <String, Object>{
+            'lessonId': lessonId,
+            'score': score,
+            'reviewedAt': DateTime.now().toUtc().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
 
@@ -213,7 +222,7 @@ class ProgressTrackerService {
       intervalDays: (row['intervalDays'] as num?)?.toInt() ?? 0,
       nextReviewAt:
           DateTime.tryParse(row['nextReviewAt']?.toString() ?? '')?.toUtc() ??
-          DateTime.now().toUtc(),
+              DateTime.now().toUtc(),
     );
   }
 
@@ -235,8 +244,7 @@ class ProgressTrackerService {
     }
 
     final now = at ?? DateTime.now();
-    final current =
-        await getFacetReviewCard(
+    final current = await getFacetReviewCard(
           conceptId: key.conceptId,
           facetType: key.facetType,
           variantKey: key.normalizedVariantKey,
@@ -378,22 +386,23 @@ class ProgressTrackerService {
   Map<String, Object?> _rowForCard(
     ReviewCard card, {
     double legacyEase = 2.5,
-  }) => <String, Object?>{
-    'id': card.storageKey,
-    'conceptId': card.itemId,
-    'facetType': card.facetType.wireName,
-    'variantKey': card.facetKey.normalizedVariantKey ?? '',
-    'ef': legacyEase.clamp(1.3, 5.0),
-    'repetitions': card.repetitions,
-    'intervalDays': card.intervalDays,
-    'lapses': card.lapses,
-    'successes': card.successes,
-    'failures': card.failures,
-    'difficulty': card.difficulty,
-    'stabilityDays': card.stabilityDays,
-    'nextReviewAt': card.dueAt.toUtc().toIso8601String(),
-    'lastReviewedAt': card.lastReviewedAt?.toUtc().toIso8601String(),
-  };
+  }) =>
+      <String, Object?>{
+        'id': card.storageKey,
+        'conceptId': card.itemId,
+        'facetType': card.facetType.wireName,
+        'variantKey': card.facetKey.normalizedVariantKey ?? '',
+        'ef': legacyEase.clamp(1.3, 5.0),
+        'repetitions': card.repetitions,
+        'intervalDays': card.intervalDays,
+        'lapses': card.lapses,
+        'successes': card.successes,
+        'failures': card.failures,
+        'difficulty': card.difficulty,
+        'stabilityDays': card.stabilityDays,
+        'nextReviewAt': card.dueAt.toUtc().toIso8601String(),
+        'lastReviewedAt': card.lastReviewedAt?.toUtc().toIso8601String(),
+      };
 
   ReviewCard _reviewCardFromRow(Map<String, Object?> row) =>
       ReviewCard.fromJson(<String, dynamic>{

@@ -32,9 +32,9 @@ class PackOperationState {
   });
 
   const PackOperationState.idle()
-    : stage = PackLifecycleStage.idle,
-      progress = 0,
-      message = null;
+      : stage = PackLifecycleStage.idle,
+        progress = 0,
+        message = null;
 
   final PackLifecycleStage stage;
   final double progress;
@@ -67,8 +67,8 @@ abstract interface class PackDownloader {
 
 class HttpPackDownloader implements PackDownloader {
   HttpPackDownloader({http.Client? client})
-    : _client = client ?? http.Client(),
-      _ownsClient = client == null;
+      : _client = client ?? http.Client(),
+        _ownsClient = client == null;
 
   final http.Client _client;
   final bool _ownsClient;
@@ -277,7 +277,10 @@ final class _ManifestAcceptance {
     required this.keyId,
   });
 
-  const _ManifestAcceptance.empty() : revision = 0, signature = '', keyId = '';
+  const _ManifestAcceptance.empty()
+      : revision = 0,
+        signature = '',
+        keyId = '';
 
   final int revision;
   final String signature;
@@ -295,13 +298,13 @@ class PackManagerService extends ChangeNotifier {
     PackDownloader? downloader,
     PackArchiveExtractor extractor = const JsonGzipPackExtractor(),
     DateTime Function()? clock,
-  }) : _manifestVerifier =
-           manifestVerifier ?? const RejectingPackManifestVerifier(),
-       _databaseKeyStore = databaseKeyStore,
-       _databaseCipher = databaseCipher,
-       _downloader = downloader ?? HttpPackDownloader(),
-       _extractor = extractor,
-       _clock = clock ?? DateTime.now {
+  })  : _manifestVerifier =
+            manifestVerifier ?? const RejectingPackManifestVerifier(),
+        _databaseKeyStore = databaseKeyStore,
+        _databaseCipher = databaseCipher,
+        _downloader = downloader ?? HttpPackDownloader(),
+        _extractor = extractor,
+        _clock = clock ?? DateTime.now {
     _loadInstalledRegistry();
   }
 
@@ -332,9 +335,9 @@ class PackManagerService extends ChangeNotifier {
       List.unmodifiable(_installed.values);
   String? get activePackId => _activePackId;
   int get totalStorageBytes => _installed.values.fold<int>(
-    0,
-    (total, pack) => total + pack.storageBytes,
-  );
+        0,
+        (total, pack) => total + pack.storageBytes,
+      );
 
   InstalledLanguagePack? installedFor(String packId) => _installed[packId];
 
@@ -648,9 +651,8 @@ class PackManagerService extends ChangeNotifier {
       }
     }
     final active = _prefs.readText(activePackKey);
-    _activePackId = active != null && _installed.containsKey(active)
-        ? active
-        : null;
+    _activePackId =
+        active != null && _installed.containsKey(active) ? active : null;
   }
 
   Future<void> _persistInstalledRegistry() async {

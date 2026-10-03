@@ -60,11 +60,11 @@ final class ArtifactEvidenceCoordinate {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'artifactType': artifactType,
-    'version': version,
-    'hash': hash,
-    'reference': reference,
-  };
+        'artifactType': artifactType,
+        'version': version,
+        'hash': hash,
+        'reference': reference,
+      };
 }
 
 /// Exact evidence envelope for one language + one role.
@@ -99,9 +99,9 @@ final class LanguageRoleEvidenceBinding {
     required this.readinessValidatorFingerprint,
     required this.readinessEvidenceRef,
   }) : consumedArtifactCoordinates =
-           List<ArtifactEvidenceCoordinate>.unmodifiable(
-             consumedArtifactCoordinates,
-           ) {
+            List<ArtifactEvidenceCoordinate>.unmodifiable(
+          consumedArtifactCoordinates,
+        ) {
     _requireNonEmpty(languageId, 'languageId');
     _requireNonEmpty(universalContractVersion, 'universalContractVersion');
     _requireNonEmpty(universalContractHash, 'universalContractHash');
@@ -118,21 +118,21 @@ final class LanguageRoleEvidenceBinding {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'languageId': languageId,
-    'role': role.wireName,
-    'universalContractVersion': universalContractVersion,
-    'universalContractHash': universalContractHash,
-    'manifestStaticFingerprint': manifestStaticFingerprint,
-    'capabilitySnapshotVersion': capabilitySnapshotVersion,
-    'capabilitySnapshotHash': capabilitySnapshotHash,
-    'consumedArtifactCoordinates': consumedArtifactCoordinates
-        .map((coordinate) => coordinate.toMap())
-        .toList(growable: false),
-    'compatibilityPolicyVersion': compatibilityPolicyVersion,
-    'compatibilityPolicyHash': compatibilityPolicyHash,
-    'readinessValidatorFingerprint': readinessValidatorFingerprint,
-    'readinessEvidenceRef': readinessEvidenceRef,
-  };
+        'languageId': languageId,
+        'role': role.wireName,
+        'universalContractVersion': universalContractVersion,
+        'universalContractHash': universalContractHash,
+        'manifestStaticFingerprint': manifestStaticFingerprint,
+        'capabilitySnapshotVersion': capabilitySnapshotVersion,
+        'capabilitySnapshotHash': capabilitySnapshotHash,
+        'consumedArtifactCoordinates': consumedArtifactCoordinates
+            .map((coordinate) => coordinate.toMap())
+            .toList(growable: false),
+        'compatibilityPolicyVersion': compatibilityPolicyVersion,
+        'compatibilityPolicyHash': compatibilityPolicyHash,
+        'readinessValidatorFingerprint': readinessValidatorFingerprint,
+        'readinessEvidenceRef': readinessEvidenceRef,
+      };
 }
 
 /// Status for exactly one eligible language + role.
@@ -202,12 +202,12 @@ final class LanguageRoleStatusRecord {
   bool get isFailClosed => state.isFailClosed;
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'languageId': languageId,
-    'role': role.wireName,
-    'eligibility': eligibility.toMap(),
-    'state': state.name,
-    'evidenceBinding': evidenceBinding?.toMap(),
-  };
+        'languageId': languageId,
+        'role': role.wireName,
+        'eligibility': eligibility.toMap(),
+        'state': state.name,
+        'evidenceBinding': evidenceBinding?.toMap(),
+      };
 }
 
 void _requireNonEmpty(String value, String field) {

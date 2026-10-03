@@ -3,7 +3,7 @@ import '../language/language_text_normalizer.dart';
 
 class VerbIndex {
   VerbIndex({required LanguageTextNormalizer textNormalizer})
-    : this.fromRows(textNormalizer: textNormalizer, rows: _embeddedRows());
+      : this.fromRows(textNormalizer: textNormalizer, rows: _embeddedRows());
 
   VerbIndex.fromRows({
     required LanguageTextNormalizer textNormalizer,

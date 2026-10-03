@@ -46,7 +46,8 @@ class StudySessionController extends ChangeNotifier {
       correctAnswers: session.correctAnswers,
     )) {
       _isPaused = true;
-      _interventionPrompt = 'You seem to be getting tired. Let\'s take a short break to rest your mind and cement what you\'ve learned.';
+      _interventionPrompt =
+          'You seem to be getting tired. Let\'s take a short break to rest your mind and cement what you\'ve learned.';
     }
 
     notifyListeners();

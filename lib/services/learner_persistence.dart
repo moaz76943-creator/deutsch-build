@@ -53,7 +53,8 @@ class LearnerPersistence {
               Attempt.fromJson(Map<String, dynamic>.from(value)),
             );
             if (normalized.id.isNotEmpty && normalized.itemId.isNotEmpty)
-              attempts.add(normalized); // Ignore one corrupt record rather than discarding all progress.
+              attempts.add(
+                  normalized); // Ignore one corrupt record rather than discarding all progress.
           } catch (_) {}
         }
       }
@@ -187,15 +188,14 @@ class LearnerPersistence {
       review: normalizedReview,
       favoriteVerbs: normalizedFavorites,
       reviewCards: normalizedCards,
-      attempts:
-          (s.attempts.length > maxAttempts
-                  ? s.attempts.sublist(s.attempts.length - maxAttempts)
-                  : List<Attempt>.from(s.attempts))
-              .map(_normalizeAttempt)
-              .where(
-                (a) => a.id.trim().isNotEmpty && a.itemId.trim().isNotEmpty,
-              )
-              .toList(),
+      attempts: (s.attempts.length > maxAttempts
+              ? s.attempts.sublist(s.attempts.length - maxAttempts)
+              : List<Attempt>.from(s.attempts))
+          .map(_normalizeAttempt)
+          .where(
+            (a) => a.id.trim().isNotEmpty && a.itemId.trim().isNotEmpty,
+          )
+          .toList(),
       assessmentHistory: s.assessmentHistory
           .take(100)
           .map(_normalizeAssessmentHistory)
@@ -255,19 +255,20 @@ class LearnerPersistence {
   static AssessmentHistory _normalizeAssessmentHistory(AssessmentHistory h) =>
       AssessmentHistory.fromJson(h.toJson());
   static Map<String, dynamic> _toJson(LearnerState s) => {
-    'xp': s.xp,
-    'streak': s.streak,
-    'learned': s.learned.toList(),
-    'review': s.review.toList(),
-    'favoriteVerbs': s.favoriteVerbs.toList(),
-    'reviewCards': Map.fromEntries(
-      s.reviewCards.entries.map((e) => MapEntry(e.key, e.value.toJson())),
-    ),
-    'assessmentHistory': s.assessmentHistory.map((x) => x.toJson()).toList(),
-    'placementHistory': s.placementHistory.map((x) => x.toJson()).toList(),
-    'attempts': s.attempts.map((x) => x.toJson()).toList(),
-    'updatedAt': s.updatedAt.toIso8601String(),
-  };
+        'xp': s.xp,
+        'streak': s.streak,
+        'learned': s.learned.toList(),
+        'review': s.review.toList(),
+        'favoriteVerbs': s.favoriteVerbs.toList(),
+        'reviewCards': Map.fromEntries(
+          s.reviewCards.entries.map((e) => MapEntry(e.key, e.value.toJson())),
+        ),
+        'assessmentHistory':
+            s.assessmentHistory.map((x) => x.toJson()).toList(),
+        'placementHistory': s.placementHistory.map((x) => x.toJson()).toList(),
+        'attempts': s.attempts.map((x) => x.toJson()).toList(),
+        'updatedAt': s.updatedAt.toIso8601String(),
+      };
   static int _boundedInt(Object? value, int min, int max) =>
       ((value is num ? value.toInt() : int.tryParse(value?.toString() ?? '')) ??
               min)
@@ -279,10 +280,10 @@ class LearnerPersistence {
       .toSet();
   static Set<String> _boundedStrings(Object? value) => value is List
       ? value
-            .whereType<String>()
-            .map((x) => x.trim())
-            .where((x) => x.isNotEmpty && x.length <= 160)
-            .take(maxCollectionItems)
-            .toSet()
+          .whereType<String>()
+          .map((x) => x.trim())
+          .where((x) => x.isNotEmpty && x.length <= 160)
+          .take(maxCollectionItems)
+          .toSet()
       : <String>{};
 }

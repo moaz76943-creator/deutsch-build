@@ -116,15 +116,17 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
             children: [
               Text(
                 'Micro-Break',
-                style: Theme.of(context).textTheme.headlineSmall
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w300, letterSpacing: 2.0),
               ),
               const SizedBox(height: 16),
               Text(
                 'Relax your eyes. Follow the rhythm.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               const SizedBox(height: 64),
               AnimatedBuilder(
@@ -141,10 +143,14 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                     height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.primary
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
                           .withValues(alpha: opacity * 0.2),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.primary
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
                             .withValues(alpha: opacity),
                         width: 2.0,
                       ),
@@ -157,7 +163,9 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                           height: 160,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Theme.of(context).colorScheme.primary
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
                                 .withValues(alpha: opacity * 0.5),
                           ),
                           child: Center(
@@ -179,14 +187,18 @@ class _MicroBreaksScreenState extends State<MicroBreaksScreen>
                 child: Text(
                   _promptText,
                   key: ValueKey<BreathingPhase>(_currentPhase),
-                  style: Theme.of(context).textTheme.titleLarge
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
                       ?.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(height: 32),
               Text(
                 'Cycle ${_cycleCount + 1} of $_maxCycles',
-                style: Theme.of(context).textTheme.labelLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .labelLarge
                     ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
               const SizedBox(height: 48),

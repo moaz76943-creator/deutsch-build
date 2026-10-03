@@ -25,11 +25,11 @@ final class ArtifactFingerprint {
   }
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'artifactType': artifactType,
-    'version': version,
-    'fingerprint': fingerprint,
-    'reference': reference,
-  };
+        'artifactType': artifactType,
+        'version': version,
+        'fingerprint': fingerprint,
+        'reference': reference,
+      };
 }
 
 /// Bounded provenance/evidence envelope.
@@ -47,10 +47,10 @@ final class ArtifactProvenance {
     required this.producer,
     List<String> evidenceRefs = const <String>[],
     List<ArtifactFingerprint> inputFingerprints = const <ArtifactFingerprint>[],
-  }) : evidenceRefs = List<String>.unmodifiable(evidenceRefs),
-       inputFingerprints = List<ArtifactFingerprint>.unmodifiable(
-         inputFingerprints,
-       ) {
+  })  : evidenceRefs = List<String>.unmodifiable(evidenceRefs),
+        inputFingerprints = List<ArtifactFingerprint>.unmodifiable(
+          inputFingerprints,
+        ) {
     _requireNonEmpty(producer, 'producer');
     for (final evidenceRef in this.evidenceRefs) {
       _requireNonEmpty(evidenceRef, 'evidenceRef');
@@ -60,11 +60,12 @@ final class ArtifactProvenance {
   factory ArtifactProvenance.unknown({
     required String producer,
     List<ArtifactFingerprint> inputFingerprints = const <ArtifactFingerprint>[],
-  }) => ArtifactProvenance(
-    status: ArtifactProvenanceStatus.unknown,
-    producer: producer,
-    inputFingerprints: inputFingerprints,
-  );
+  }) =>
+      ArtifactProvenance(
+        status: ArtifactProvenanceStatus.unknown,
+        producer: producer,
+        inputFingerprints: inputFingerprints,
+      );
 
   /// Provenance can never certify canonical publication by itself.
   bool get grantsCanonicalAuthority => false;
@@ -73,13 +74,13 @@ final class ArtifactProvenance {
   bool get grantsReadinessAuthority => false;
 
   Map<String, Object?> toMap() => <String, Object?>{
-    'status': status.name,
-    'producer': producer,
-    'evidenceRefs': evidenceRefs,
-    'inputFingerprints': inputFingerprints
-        .map((fingerprint) => fingerprint.toMap())
-        .toList(),
-  };
+        'status': status.name,
+        'producer': producer,
+        'evidenceRefs': evidenceRefs,
+        'inputFingerprints': inputFingerprints
+            .map((fingerprint) => fingerprint.toMap())
+            .toList(),
+      };
 }
 
 void _requireNonEmpty(String value, String field) {

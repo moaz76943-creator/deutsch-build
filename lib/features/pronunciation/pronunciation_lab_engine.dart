@@ -5,7 +5,7 @@ import 'domain/pronunciation_models.dart';
 
 final class PronunciationLabEngine<T extends LearningContent> {
   PronunciationLabEngine(Iterable<T> corpus)
-    : _items = List<T>.unmodifiable(corpus);
+      : _items = List<T>.unmodifiable(corpus);
 
   final List<T> _items;
 
@@ -89,19 +89,18 @@ final class PronunciationLabEngine<T extends LearningContent> {
       }
     }
 
-    final result =
-        <PronunciationConfusionStat>[
-          for (final entry in attempts.entries)
-            PronunciationConfusionStat(
-              contrastId: entry.key,
-              attempts: entry.value,
-              mistakes: mistakes[entry.key] ?? 0,
-            ),
-        ]..sort((a, b) {
-          final errors = b.mistakes.compareTo(a.mistakes);
-          if (errors != 0) return errors;
-          return b.attempts.compareTo(a.attempts);
-        });
+    final result = <PronunciationConfusionStat>[
+      for (final entry in attempts.entries)
+        PronunciationConfusionStat(
+          contrastId: entry.key,
+          attempts: entry.value,
+          mistakes: mistakes[entry.key] ?? 0,
+        ),
+    ]..sort((a, b) {
+        final errors = b.mistakes.compareTo(a.mistakes);
+        if (errors != 0) return errors;
+        return b.attempts.compareTo(a.attempts);
+      });
     return List<PronunciationConfusionStat>.unmodifiable(result);
   }
 

@@ -12,8 +12,7 @@ abstract final class GamificationEngine {
     final eventUtc = event.occurredAtUtc.toUtc();
     final safeOffset = event.timezoneOffsetMinutes.clamp(-840, 840).toInt();
     final malformedOffset = safeOffset != event.timezoneOffsetMinutes;
-    final backwardClock =
-        current.lastReviewAtUtc != null &&
+    final backwardClock = current.lastReviewAtUtc != null &&
         eventUtc.isBefore(
           current.lastReviewAtUtc!.toUtc().subtract(_backwardClockTolerance),
         );
@@ -46,9 +45,8 @@ abstract final class GamificationEngine {
     final nextProfile = GamificationProfile(
       totalXp: (current.totalXp + awardedXp).clamp(0, 100000000).toInt(),
       currentStreak: streak,
-      longestStreak: streak > current.longestStreak
-          ? streak
-          : current.longestStreak,
+      longestStreak:
+          streak > current.longestStreak ? streak : current.longestStreak,
       lastReviewAtUtc: eventUtc,
       lastLocalDay: localDay,
       lastTimezoneOffsetMinutes: safeOffset,

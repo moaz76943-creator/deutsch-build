@@ -12,7 +12,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'a1_nominativ_articles',
           title: 'أدوات التعريف في حالة الرفع',
-          explanationAr: 'في Nominativ نستخدم der للمذكر، die للمؤنث والجمع، وdas للمحايد.',
+          explanationAr:
+              'في Nominativ نستخدم der للمذكر، die للمؤنث والجمع، وdas للمحايد.',
           table: [
             ['Maskulin', 'der'],
             ['Feminin', 'die'],
@@ -45,13 +46,13 @@ abstract final class CanonicalGrammarCatalog {
         ),
       ],
     ),
-
     GrammarTopic(
       id: 'a1_pronouns',
       level: 'A1',
       titleDe: 'Personalpronomen',
       titleAr: 'الضمائر الشخصية',
-      summaryAr: 'تعرف على الضمائر الشخصية في حالة الرفع وكيفية استخدامها كفاعل في الجملة.',
+      summaryAr:
+          'تعرف على الضمائر الشخصية في حالة الرفع وكيفية استخدامها كفاعل في الجملة.',
       rules: [
         GrammarRule(
           id: 'a1_pronouns_nominative',
@@ -114,7 +115,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'a2_perfect_formation',
           title: 'تكوين الماضي التام',
-          explanationAr: 'يتكون الماضي التام من فعل مساعد (haben أو sein) في المركز الثاني، والتصريف الثالث للفعل (Partizip II) في نهاية الجملة.',
+          explanationAr:
+              'يتكون الماضي التام من فعل مساعد (haben أو sein) في المركز الثاني، والتصريف الثالث للفعل (Partizip II) في نهاية الجملة.',
           table: [
             ['Subjekt', 'Hilfsverb', '...', 'Partizip II'],
             ['Ich', 'habe', 'einen Apfel', 'gegessen.'],
@@ -152,7 +154,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'b1_relative_pronouns_nominative',
           title: 'ضمائر الوصل في حالة الرفع',
-          explanationAr: 'تطابق ضمائر الوصل الاسم الموصوف في الجنس والعدد. ويكون الفعل المصرف في نهاية الجملة الموصولة.',
+          explanationAr:
+              'تطابق ضمائر الوصل الاسم الموصوف في الجنس والعدد. ويكون الفعل المصرف في نهاية الجملة الموصولة.',
           table: [
             ['Maskulin', 'der'],
             ['Feminin', 'die'],
@@ -225,7 +228,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'c1_konjunktiv1_formation',
           title: 'تكوين Konjunktiv I',
-          explanationAr: 'يُشتق من جذر الفعل في حالة المصدر مع إضافة نهايات محددة. يُستخدم بشكل أساسي في الأخبار والتقارير.',
+          explanationAr:
+              'يُشتق من جذر الفعل في حالة المصدر مع إضافة نهايات محددة. يُستخدم بشكل أساسي في الأخبار والتقارير.',
           table: [
             ['ich', 'gehe'],
             ['du', 'gehest'],
@@ -258,12 +262,14 @@ abstract final class CanonicalGrammarCatalog {
       level: 'C2',
       titleDe: 'Nominalisierung',
       titleAr: 'تحويل الأفعال والصفات إلى أسماء',
-      summaryAr: 'استخدام أسلوب التعبير الاسمي في الكتابة الأكاديمية والعلمية المعقدة.',
+      summaryAr:
+          'استخدام أسلوب التعبير الاسمي في الكتابة الأكاديمية والعلمية المعقدة.',
       rules: [
         GrammarRule(
           id: 'c2_nominalization_verbs',
           title: 'تحويل الأفعال لأسماء',
-          explanationAr: 'يتم غالباً بإضافة النهاية -ung، أو بتحويل الفعل المصدر إلى اسم بوضع أداة das.',
+          explanationAr:
+              'يتم غالباً بإضافة النهاية -ung، أو بتحويل الفعل المصدر إلى اسم بوضع أداة das.',
           table: [
             ['Verb', 'Nomen'],
             ['entwickeln', 'die Entwicklung'],
@@ -299,7 +305,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'b2_konjunktiv2_core',
           title: 'Konjunktiv II في الاستعمال',
-          explanationAr: 'توجد صيغ شائعة مثل wäre وhätte، كما تُستخدم würde + Infinitiv كثيرًا.',
+          explanationAr:
+              'توجد صيغ شائعة مثل wäre وhätte، كما تُستخدم würde + Infinitiv كثيرًا.',
           table: [
             ['haben', 'hätte'],
             ['sein', 'wäre'],
@@ -346,7 +353,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'c1_partizipialattribute_core',
           title: 'Partizip I وPartizip II كصفة',
-          explanationAr: 'Partizip I يميل إلى معنى متزامن/فاعل، وPartizip II إلى معنى مكتمل أو مفعولي بحسب السياق.',
+          explanationAr:
+              'Partizip I يميل إلى معنى متزامن/فاعل، وPartizip II إلى معنى مكتمل أو مفعولي بحسب السياق.',
           table: [
             ['Partizip I', 'lesend'],
             ['Partizip II', 'gelesen'],
@@ -382,7 +390,8 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'c2_feste_nomen_verb_core',
           title: 'Nomen-Verb-Verbindungen',
-          explanationAr: 'لا يمكن استبدال الفعل بحرية دائمًا؛ التركيب الاصطلاحي هو الذي يحدد الاختيار.',
+          explanationAr:
+              'لا يمكن استبدال الفعل بحرية دائمًا؛ التركيب الاصطلاحي هو الذي يحدد الاختيار.',
           table: [
             ['eine Entscheidung', 'treffen'],
             ['Abschied', 'nehmen'],

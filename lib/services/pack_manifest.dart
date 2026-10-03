@@ -33,19 +33,22 @@ final class LanguagePackDescriptor {
   final int installedSizeBytes;
 
   factory LanguagePackDescriptor.fromJson(Map<String, dynamic> json) {
-    _rejectUnknownKeys(json, const <String>{
-      'id',
-      'languageCode',
-      'displayName',
-      'version',
-      'contractVersion',
-      'bundleFormat',
-      'archiveUrl',
-      'sha256',
-      'contentSha256',
-      'archiveSizeBytes',
-      'installedSizeBytes',
-    }, 'pack descriptor');
+    _rejectUnknownKeys(
+        json,
+        const <String>{
+          'id',
+          'languageCode',
+          'displayName',
+          'version',
+          'contractVersion',
+          'bundleFormat',
+          'archiveUrl',
+          'sha256',
+          'contentSha256',
+          'archiveSizeBytes',
+          'installedSizeBytes',
+        },
+        'pack descriptor');
     final id = _requiredString(json, 'id');
     if (!RegExp(r'^[a-z0-9][a-z0-9._-]{1,63}$').hasMatch(id)) {
       throw const FormatException('Invalid pack id.');
@@ -93,18 +96,18 @@ final class LanguagePackDescriptor {
   }
 
   Map<String, Object> toJson() => <String, Object>{
-    'id': id,
-    'languageCode': languageCode,
-    'displayName': displayName,
-    'version': version,
-    'contractVersion': contractVersion,
-    'bundleFormat': bundleFormat,
-    'archiveUrl': archiveUrl.toString(),
-    'sha256': sha256,
-    'contentSha256': contentSha256,
-    'archiveSizeBytes': archiveSizeBytes,
-    'installedSizeBytes': installedSizeBytes,
-  };
+        'id': id,
+        'languageCode': languageCode,
+        'displayName': displayName,
+        'version': version,
+        'contractVersion': contractVersion,
+        'bundleFormat': bundleFormat,
+        'archiveUrl': archiveUrl.toString(),
+        'sha256': sha256,
+        'contentSha256': contentSha256,
+        'archiveSizeBytes': archiveSizeBytes,
+        'installedSizeBytes': installedSizeBytes,
+      };
 
   bool sameAs(LanguagePackDescriptor other) =>
       id == other.id &&
@@ -141,13 +144,13 @@ final class PackManifest {
   final List<LanguagePackDescriptor> packs;
 
   static PackManifest empty() => const PackManifest(
-    schemaVersion: supportedSchemaVersion,
-    manifestRevision: 0,
-    algorithm: supportedAlgorithm,
-    keyId: '',
-    signature: '',
-    packs: <LanguagePackDescriptor>[],
-  );
+        schemaVersion: supportedSchemaVersion,
+        manifestRevision: 0,
+        algorithm: supportedAlgorithm,
+        keyId: '',
+        signature: '',
+        packs: <LanguagePackDescriptor>[],
+      );
 
   factory PackManifest.parse(String rawJson) {
     final decoded = jsonDecode(rawJson);
@@ -155,14 +158,17 @@ final class PackManifest {
       throw const FormatException('Pack manifest must be a JSON object.');
     }
     final json = decoded.cast<String, dynamic>();
-    _rejectUnknownKeys(json, const <String>{
-      'schemaVersion',
-      'manifestRevision',
-      'algorithm',
-      'keyId',
-      'packs',
-      'signature',
-    }, 'manifest');
+    _rejectUnknownKeys(
+        json,
+        const <String>{
+          'schemaVersion',
+          'manifestRevision',
+          'algorithm',
+          'keyId',
+          'packs',
+          'signature',
+        },
+        'manifest');
     final schemaVersion = _requiredPositiveInt(json, 'schemaVersion');
     if (schemaVersion != supportedSchemaVersion) {
       throw FormatException(
@@ -261,20 +267,20 @@ final class InstalledLanguagePack {
       _validSignature(manifestSignature);
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'id': id,
-    'languageCode': languageCode,
-    'displayName': displayName,
-    'version': version,
-    'contractVersion': contractVersion,
-    'sha256': sha256,
-    'contentSha256': contentSha256,
-    'storageBytes': storageBytes,
-    'installedAt': installedAt.toUtc().toIso8601String(),
-    'manifestRevision': manifestRevision,
-    'manifestKeyId': manifestKeyId,
-    'manifestSignature': manifestSignature,
-    'databaseEncrypted': databaseEncrypted,
-  };
+        'id': id,
+        'languageCode': languageCode,
+        'displayName': displayName,
+        'version': version,
+        'contractVersion': contractVersion,
+        'sha256': sha256,
+        'contentSha256': contentSha256,
+        'storageBytes': storageBytes,
+        'installedAt': installedAt.toUtc().toIso8601String(),
+        'manifestRevision': manifestRevision,
+        'manifestKeyId': manifestKeyId,
+        'manifestSignature': manifestSignature,
+        'databaseEncrypted': databaseEncrypted,
+      };
 
   factory InstalledLanguagePack.fromJson(Map<String, dynamic> json) {
     final id = (json['id'] ?? '').toString().trim();
@@ -299,8 +305,8 @@ final class InstalledLanguagePack {
           .clamp(0, 1 << 50)
           .toInt(),
       installedAt: installedAt.toUtc(),
-      manifestRevision: ((json['manifestRevision'] as num?)?.toInt() ?? 0)
-          .clamp(0, 1 << 31),
+      manifestRevision:
+          ((json['manifestRevision'] as num?)?.toInt() ?? 0).clamp(0, 1 << 31),
       manifestKeyId: (json['manifestKeyId'] ?? '').toString(),
       manifestSignature: (json['manifestSignature'] ?? '').toString(),
       databaseEncrypted: json['databaseEncrypted'] == true,
@@ -308,20 +314,20 @@ final class InstalledLanguagePack {
   }
 
   InstalledLanguagePack copyWith({int? storageBytes}) => InstalledLanguagePack(
-    id: id,
-    languageCode: languageCode,
-    displayName: displayName,
-    version: version,
-    contractVersion: contractVersion,
-    sha256: sha256,
-    contentSha256: contentSha256,
-    storageBytes: storageBytes ?? this.storageBytes,
-    installedAt: installedAt,
-    manifestRevision: manifestRevision,
-    manifestKeyId: manifestKeyId,
-    manifestSignature: manifestSignature,
-    databaseEncrypted: databaseEncrypted,
-  );
+        id: id,
+        languageCode: languageCode,
+        displayName: displayName,
+        version: version,
+        contractVersion: contractVersion,
+        sha256: sha256,
+        contentSha256: contentSha256,
+        storageBytes: storageBytes ?? this.storageBytes,
+        installedAt: installedAt,
+        manifestRevision: manifestRevision,
+        manifestKeyId: manifestKeyId,
+        manifestSignature: manifestSignature,
+        databaseEncrypted: databaseEncrypted,
+      );
 }
 
 abstract interface class PackManifestVerifier {
@@ -343,10 +349,10 @@ final class Ed25519PackManifestVerifier implements PackManifestVerifier {
   Ed25519PackManifestVerifier({
     required Map<String, List<int>> trustedPublicKeys,
   }) : _trustedPublicKeys = Map<String, List<int>>.unmodifiable(
-         trustedPublicKeys.map(
-           (key, value) => MapEntry(key, List<int>.unmodifiable(value)),
-         ),
-       );
+          trustedPublicKeys.map(
+            (key, value) => MapEntry(key, List<int>.unmodifiable(value)),
+          ),
+        );
 
   final Map<String, List<int>> _trustedPublicKeys;
   final Ed25519 _algorithm = Ed25519();

@@ -35,12 +35,14 @@ class ProgressSnapshotService {
     final overall = considered.isEmpty
         ? (history.isEmpty ? 0.0 : history.first.score / 100)
         : considered.map((e) => e.value).reduce((a, b) => a + b) /
-              considered.length;
+            considered.length;
     final weakest = considered.isEmpty
         ? 'recall'
         : (List.of(
             considered,
-          )..sort((a, b) => a.value.compareTo(b.value))).first.key;
+          )..sort((a, b) => a.value.compareTo(b.value)))
+            .first
+            .key;
     return ProgressSnapshot(
       skillScores: scores,
       levelLabel: _level(overall),
@@ -63,12 +65,12 @@ class ProgressSnapshotService {
   static String _level(double score) => score >= .90
       ? 'B2 قوي'
       : score >= .78
-      ? 'B1 متقدم'
-      : score >= .64
-      ? 'A2 متقدم'
-      : score >= .48
-      ? 'A2'
-      : score >= .30
-      ? 'A1 متقدم'
-      : 'A1 بداية';
+          ? 'B1 متقدم'
+          : score >= .64
+              ? 'A2 متقدم'
+              : score >= .48
+                  ? 'A2'
+                  : score >= .30
+                      ? 'A1 متقدم'
+                      : 'A1 بداية';
 }

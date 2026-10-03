@@ -22,7 +22,7 @@ final class UnavailablePackDatabaseKeyStore implements PackDatabaseKeyStore {
 final class AndroidKeystorePackDatabaseKeyStore
     implements PackDatabaseKeyStore {
   AndroidKeystorePackDatabaseKeyStore({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel(_channelName);
+      : _channel = channel ?? const MethodChannel(_channelName);
 
   static const String _channelName =
       'com.deutschbilarabi.app/pack_database_key_store';

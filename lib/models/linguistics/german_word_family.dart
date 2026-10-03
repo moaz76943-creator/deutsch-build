@@ -14,17 +14,18 @@ enum GermanWordFamilyRelationType {
   unknown;
 
   String get wireName => switch (this) {
-    GermanWordFamilyRelationType.agentNoun => 'agent_noun',
-    GermanWordFamilyRelationType.eventNoun => 'event_noun',
-    GermanWordFamilyRelationType.derivedNoun => 'derived_noun',
-    GermanWordFamilyRelationType.derivedAdjective => 'derived_adjective',
-    GermanWordFamilyRelationType.prefixedVerb => 'prefixed_verb',
-    GermanWordFamilyRelationType.semanticRelative => 'semantic_relative',
-    GermanWordFamilyRelationType.historicalRelative => 'historical_relative',
-    GermanWordFamilyRelationType.notPedagogicallyLinked =>
-      'not_pedagogically_linked',
-    _ => name,
-  };
+        GermanWordFamilyRelationType.agentNoun => 'agent_noun',
+        GermanWordFamilyRelationType.eventNoun => 'event_noun',
+        GermanWordFamilyRelationType.derivedNoun => 'derived_noun',
+        GermanWordFamilyRelationType.derivedAdjective => 'derived_adjective',
+        GermanWordFamilyRelationType.prefixedVerb => 'prefixed_verb',
+        GermanWordFamilyRelationType.semanticRelative => 'semantic_relative',
+        GermanWordFamilyRelationType.historicalRelative =>
+          'historical_relative',
+        GermanWordFamilyRelationType.notPedagogicallyLinked =>
+          'not_pedagogically_linked',
+        _ => name,
+      };
 
   static GermanWordFamilyRelationType fromWire(String? value) {
     final normalized = value?.trim().toLowerCase();

@@ -107,12 +107,12 @@ final class PronunciationSignalFeatures {
 
 final class PronunciationSignalCapture {
   const PronunciationSignalCapture.available(this.features)
-    : available = true,
-      reason = null;
+      : available = true,
+        reason = null;
 
   const PronunciationSignalCapture.unavailable(this.reason)
-    : available = false,
-      features = null;
+      : available = false,
+        features = null;
 
   final bool available;
   final String? reason;

@@ -14,11 +14,11 @@ final class AdaptivePlacementEngine {
   static const int minQuestionsBeforeAdaptiveStop = 7;
   static const List<DiagnosticDimension> _dimensionOrder =
       <DiagnosticDimension>[
-        DiagnosticDimension.meaning,
-        DiagnosticDimension.grammar,
-        DiagnosticDimension.transfer,
-        DiagnosticDimension.listening,
-      ];
+    DiagnosticDimension.meaning,
+    DiagnosticDimension.grammar,
+    DiagnosticDimension.transfer,
+    DiagnosticDimension.listening,
+  ];
 
   static DiagnosticQuestion? nextQuestion<T extends LearningContent>({
     required List<T> items,
@@ -68,8 +68,7 @@ final class AdaptivePlacementEngine {
       final priorPenalty =
           (priorAttempts[item.id] ?? 0).clamp(0, 20).toInt() * 7;
       final tie = _stableHash('$seed|${item.id}|${dimension.wireName}') % 29;
-      final dimensionPenalty =
-          dimension == DiagnosticDimension.grammar &&
+      final dimensionPenalty = dimension == DiagnosticDimension.grammar &&
               item.grammaticalMarker.trim().isEmpty
           ? 400
           : 0;
@@ -140,9 +139,10 @@ final class AdaptivePlacementEngine {
     final score = scored.isEmpty
         ? 0.0
         : (evidence / scored.length * 100).clamp(0.0, 100.0).toDouble();
-    final weak =
-        dimensionScores.entries.where((entry) => entry.value < .65).toList()
-          ..sort((a, b) => a.value.compareTo(b.value));
+    final weak = dimensionScores.entries
+        .where((entry) => entry.value < .65)
+        .toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
 
     final skippedDimensions = <DiagnosticDimension>{
       for (final response in bounded)
@@ -152,9 +152,8 @@ final class AdaptivePlacementEngine {
       1,
       _dimensionOrder.length - skippedDimensions.length,
     );
-    final coverage = (dimensionScores.length / availableCount)
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final coverage =
+        (dimensionScores.length / availableCount).clamp(0.0, 1.0).toDouble();
     final sample = (scored.length / boundedMax).clamp(0.0, 1.0).toDouble();
     final confidence = (coverage * sample).clamp(0.0, 1.0).toDouble();
 
@@ -202,9 +201,8 @@ final class AdaptivePlacementEngine {
     var lowest = 1 << 30;
     for (final dimension in _dimensionOrder) {
       if (skipped.contains(dimension)) continue;
-      final count = scored
-          .where((response) => response.dimension == dimension)
-          .length;
+      final count =
+          scored.where((response) => response.dimension == dimension).length;
       if (selected == null || count < lowest) {
         selected = dimension;
         lowest = count;

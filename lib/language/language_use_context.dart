@@ -31,10 +31,10 @@ final class LanguageUseContext {
   }
 
   Map<String, String> toMap() => <String, String>{
-    LanguageRole.user.wireName: userLanguageId,
-    LanguageRole.source.wireName: sourceLanguageId,
-    LanguageRole.target.wireName: targetLanguageId,
-  };
+        LanguageRole.user.wireName: userLanguageId,
+        LanguageRole.source.wireName: sourceLanguageId,
+        LanguageRole.target.wireName: targetLanguageId,
+      };
 
   static void _requireNonEmpty(String value, String field) {
     if (value.trim().isEmpty) {

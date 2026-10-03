@@ -1680,7 +1680,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'هم تواعدوا',
     example: 'Sie verabreden sich mit dem Team.',
     exampleAr: 'هم يتواعدون مع الفريق.',
-    pastExample: 'Sie haben sich mit dem Team ge gesich gesich gesich gesich verabredet.',
+    pastExample:
+        'Sie haben sich mit dem Team ge gesich gesich gesich gesich verabredet.',
     pastExampleAr: 'هم تواعدوا يتواعدون مع الفريق.',
   ),
   VerbConjugation(
@@ -1694,7 +1695,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'حضرتك / حضراتكم تواعدتم',
     example: 'Sie verabreden sich mit dem Team.',
     exampleAr: 'حضرتك /حضرتك يتواعدون مع الفريق.',
-    pastExample: 'Sie haben sich mit dem Team ge gesich gesich gesich gesich verabredet.',
+    pastExample:
+        'Sie haben sich mit dem Team ge gesich gesich gesich gesich verabredet.',
     pastExampleAr: 'حضرتك / حضراتكم تواعدتم يتواعدون مع الفريق.',
   ),
   VerbConjugation(
@@ -2229,7 +2231,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'أنا تعجبت',
     example: 'Ich wundere mich über das Problem.',
     exampleAr: 'أنا أتعجب حول المشكلة.',
-    pastExample: 'Ich habe mich über das Problem ge gesich gesich gesich gesich wundert.',
+    pastExample:
+        'Ich habe mich über das Problem ge gesich gesich gesich gesich wundert.',
     pastExampleAr: 'أنا تعجبت حول المشكلة.',
   ),
   VerbConjugation(
@@ -2303,7 +2306,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'نحن تعجبنا',
     example: 'Wir wundern uns über das Problem.',
     exampleAr: 'نحن نتعجب حول المشكلة.',
-    pastExample: 'Wir haben uns über das Problem ge gesich gesich gesich gesich wundert.',
+    pastExample:
+        'Wir haben uns über das Problem ge gesich gesich gesich gesich wundert.',
     pastExampleAr: 'نحن تعجبنا حول المشكلة.',
   ),
   VerbConjugation(
@@ -2317,7 +2321,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'أنتم تعجبتم',
     example: 'Ihr wundert euch über das Problem.',
     exampleAr: 'أنتم تتعجبون حول المشكلة.',
-    pastExample: 'Ihr habt euch über das Problem ge gesich gesich gesich gesich wundert.',
+    pastExample:
+        'Ihr habt euch über das Problem ge gesich gesich gesich gesich wundert.',
     pastExampleAr: 'أنتم تعجبتم حول المشكلة.',
   ),
   VerbConjugation(
@@ -2331,7 +2336,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'هم تعجبوا',
     example: 'Sie wundern sich über das Problem.',
     exampleAr: 'هم يتعجبون حول المشكلة.',
-    pastExample: 'Sie haben sich über das Problem ge gesich gesich gesich gesich wundert.',
+    pastExample:
+        'Sie haben sich über das Problem ge gesich gesich gesich gesich wundert.',
     pastExampleAr: 'هم تعجبوا يتعجبون حول المشكلة.',
   ),
   VerbConjugation(
@@ -2345,7 +2351,8 @@ const generatedVerbConjugationsChunk024 = <VerbConjugation>[
     pastArabic: 'حضرتك / حضراتكم تعجبتم',
     example: 'Sie wundern sich über das Problem.',
     exampleAr: 'حضرتك /حضرتك يتعجبون حول المشكلة.',
-    pastExample: 'Sie haben sich über das Problem ge gesich gesich gesich gesich wundert.',
+    pastExample:
+        'Sie haben sich über das Problem ge gesich gesich gesich gesich wundert.',
     pastExampleAr: 'حضرتك / حضراتكم تعجبتم يتعجبون حول المشكلة.',
   ),
   VerbConjugation(

@@ -32,7 +32,8 @@ final class HandsFreeCommuteService<T extends LearningContent> {
     LearnerState? state,
     DateTime? now,
     int limit = 50,
-  }) => queueBuilder.build(state ?? repository.load(), now: now, limit: limit);
+  }) =>
+      queueBuilder.build(state ?? repository.load(), now: now, limit: limit);
 
   Future<CommutePlaybackReport> play(CommuteReviewItem<T> review) async {
     final generation = ++_generation;
@@ -102,16 +103,17 @@ final class HandsFreeCommuteService<T extends LearningContent> {
     required bool known,
     required int seconds,
     DateTime? at,
-  }) => repository.recordFacet(
-    item: review.item,
-    facetType: review.facetType,
-    variantKey: review.variantKey,
-    answer: known ? 'commute_known' : 'commute_unknown',
-    correct: known,
-    seconds: seconds.clamp(0, 3600).toInt(),
-    hinted: false,
-    at: at,
-  );
+  }) =>
+      repository.recordFacet(
+        item: review.item,
+        facetType: review.facetType,
+        variantKey: review.variantKey,
+        answer: known ? 'commute_known' : 'commute_unknown',
+        correct: known,
+        seconds: seconds.clamp(0, 3600).toInt(),
+        hinted: false,
+        at: at,
+      );
 
   Future<CommutePlaybackReport?> _playSegment({
     required int generation,

@@ -62,7 +62,9 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
                   const SizedBox(height: 8),
                   Text(
                     'الاستمرارية الحالية: ${widget.currentStreak} أيام',
-                    style: Theme.of(context).textTheme.titleLarge
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ],
@@ -72,7 +74,9 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
           const SizedBox(height: 20),
           Text(
             'الشارات',
-            style: Theme.of(context).textTheme.titleMedium
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 10),
@@ -91,9 +95,8 @@ class _MilestoneBadgesPageState extends State<MilestoneBadgesPage> {
                 title: Text(
                   badge.title,
                   style: TextStyle(
-                    fontWeight: isUnlocked
-                        ? FontWeight.w800
-                        : FontWeight.normal,
+                    fontWeight:
+                        isUnlocked ? FontWeight.w800 : FontWeight.normal,
                     color: isUnlocked ? null : Colors.grey,
                   ),
                 ),

@@ -27,9 +27,9 @@ final class ArabicGermanGoldCase {
     required List<String> evidenceRefs,
     required this.lifecycle,
     this.contrastiveNotes = '',
-  }) : acceptedTargetForms = List<String>.unmodifiable(acceptedTargetForms),
-       provenanceRefs = List<String>.unmodifiable(provenanceRefs),
-       evidenceRefs = List<String>.unmodifiable(evidenceRefs);
+  })  : acceptedTargetForms = List<String>.unmodifiable(acceptedTargetForms),
+        provenanceRefs = List<String>.unmodifiable(provenanceRefs),
+        evidenceRefs = List<String>.unmodifiable(evidenceRefs);
 
   PairIdentity get pair => ArabicGermanGoldStandard.pair;
 }

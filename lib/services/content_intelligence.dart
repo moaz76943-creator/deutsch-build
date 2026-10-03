@@ -27,5 +27,6 @@ final class ContentIntelligence {
 
   Map<ContentLevel, List<LearningContent>> curriculum(
     List<LearningContent> items,
-  ) => delegate.curriculum(items);
+  ) =>
+      delegate.curriculum(items);
 }

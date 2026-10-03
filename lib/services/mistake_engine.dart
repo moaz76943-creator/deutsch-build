@@ -34,13 +34,12 @@ class MistakeEngine {
       final recurrence = errors.length * 18 + (errors.length >= 2 ? 22 : 0);
       final unresolved = (errors.length - streak).clamp(0, errors.length);
       if (streak >= 3 && unresolved == 0) continue;
-      final severity =
-          (recurrence +
-                  unresolved * 10 +
-                  recency +
-                  (recentFailureRate * 25).round())
-              .clamp(1, 100)
-              .toInt();
+      final severity = (recurrence +
+              unresolved * 10 +
+              recency +
+              (recentFailureRate * 25).round())
+          .clamp(1, 100)
+          .toInt();
       rows.add(
         MistakeRecord(
           itemId: entry.key,
@@ -71,17 +70,18 @@ class MistakeEngine {
     required String itemId,
     required String issue,
     DateTime? at,
-  }) => MistakeRecord(
-    itemId: itemId,
-    category: MistakeCategory.writing,
-    source: MistakeSource.writing,
-    errorCount: 1,
-    attemptCount: 1,
-    correctiveStreak: 0,
-    lastSeenAt: at ?? DateTime.now(),
-    severity: 55,
-    normalizedKey: 'writing:${issue.trim().toLowerCase()}',
-  );
+  }) =>
+      MistakeRecord(
+        itemId: itemId,
+        category: MistakeCategory.writing,
+        source: MistakeSource.writing,
+        errorCount: 1,
+        attemptCount: 1,
+        correctiveStreak: 0,
+        lastSeenAt: at ?? DateTime.now(),
+        severity: 55,
+        normalizedKey: 'writing:${issue.trim().toLowerCase()}',
+      );
 
   static MistakeCategory _classify(List<Attempt> all, LearningContent? item) {
     final skill = all.last.skill.toLowerCase();
@@ -96,8 +96,8 @@ class MistakeEngine {
         (a) =>
             !a.correct &&
             a.answer.toLowerCase().contains(
-              RegExp(r'^(der|die|das|ein|eine)\b'),
-            ) &&
+                  RegExp(r'^(der|die|das|ein|eine)\b'),
+                ) &&
             !a.answer.toLowerCase().startsWith(expected),
       );
       if (wrong) return MistakeCategory.article;
@@ -115,10 +115,8 @@ class MistakeEngine {
   }
 
   static int _recency(DateTime now, DateTime seen) {
-    final d = now.toUtcMidnight
-        .difference(seen.toUtcMidnight)
-        .inDays
-        .clamp(0, 30);
+    final d =
+        now.toUtcMidnight.difference(seen.toUtcMidnight).inDays.clamp(0, 30);
     return 30 - d;
   }
 
@@ -169,8 +167,7 @@ class MistakeEngine {
         id.startsWith('station_') ||
         id.startsWith('market_') ||
         id.startsWith('work_') ||
-        id.startsWith('doctor_'))
-      return MistakeSource.conversation;
+        id.startsWith('doctor_')) return MistakeSource.conversation;
     if (id.startsWith('writing:')) return MistakeSource.writing;
     if (id.startsWith('assessment_')) return MistakeSource.assessment;
     return MistakeSource.practice;

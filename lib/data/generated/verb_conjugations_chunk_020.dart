@@ -2564,7 +2564,8 @@ const generatedVerbConjugationsChunk020 = <VerbConjugation>[
     example: 'Du jonglierst die Aufgabe.',
     exampleAr: 'أنتَ/أنتِ : يجيد التعامل مع عدة أشياء — المهمة.',
     pastExample: 'Du hast die Aufgabe jonglieiert.',
-    pastExampleAr: 'أنتَ/أنتِ جيد التعامل مع عدة أشياءت يجيد التعامل مع عدة أشياء — المهمة.',
+    pastExampleAr:
+        'أنتَ/أنتِ جيد التعامل مع عدة أشياءت يجيد التعامل مع عدة أشياء — المهمة.',
   ),
   VerbConjugation(
     infinitive: 'jonglieren',
@@ -2608,7 +2609,8 @@ const generatedVerbConjugationsChunk020 = <VerbConjugation>[
     example: 'Es jongliert die Aufgabe.',
     exampleAr: 'هو/هي/ذلك : يجيد التعامل مع عدة أشياء — المهمة.',
     pastExample: 'Es hat die Aufgabe jonglieiert.',
-    pastExampleAr: 'هو/هي/ذلك جيد التعامل مع عدة أشياء يجيد التعامل مع عدة أشياء — المهمة.',
+    pastExampleAr:
+        'هو/هي/ذلك جيد التعامل مع عدة أشياء يجيد التعامل مع عدة أشياء — المهمة.',
   ),
   VerbConjugation(
     infinitive: 'jonglieren',
@@ -2667,7 +2669,8 @@ const generatedVerbConjugationsChunk020 = <VerbConjugation>[
     example: 'Sie jonglieren die Aufgabe.',
     exampleAr: 'حضرتك /حضرتك: يجيد التعامل مع عدة أشياء — المهمة.',
     pastExample: 'Sie haben die Aufgabe jonglieiert.',
-    pastExampleAr: 'حضرتك / حضراتكم جيد التعامل مع عدة أشياءتم يجيد التعامل مع عدة أشياء — المهمة.',
+    pastExampleAr:
+        'حضرتك / حضراتكم جيد التعامل مع عدة أشياءتم يجيد التعامل مع عدة أشياء — المهمة.',
   ),
   VerbConjugation(
     infinitive: 'kaputtmachen',

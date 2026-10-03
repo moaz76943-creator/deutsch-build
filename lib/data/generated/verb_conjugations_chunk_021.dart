@@ -1973,7 +1973,8 @@ const generatedVerbConjugationsChunk021 = <VerbConjugation>[
     example: 'Sie tippen ab heute.',
     exampleAr: 'حضرتك /حضرتك يكتب على لوحة المفاتيحون اليوم.',
     pastExample: 'Sie haben ab heute abgetippt.',
-    pastExampleAr: 'حضرتك / حضراتكم كتب على لوحة المفاتيحتم يكتب على لوحة المفاتيحون اليوم.',
+    pastExampleAr:
+        'حضرتك / حضراتكم كتب على لوحة المفاتيحتم يكتب على لوحة المفاتيحون اليوم.',
   ),
   VerbConjugation(
     infinitive: 'abwischen',

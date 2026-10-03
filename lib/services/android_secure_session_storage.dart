@@ -9,7 +9,7 @@ import 'secure_session_storage.dart';
 /// The Dart layer never handles keys, ciphertext, or storage files.
 final class AndroidSecureSessionStorage implements SecureSessionStorage {
   AndroidSecureSessionStorage({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel(_channelName);
+      : _channel = channel ?? const MethodChannel(_channelName);
 
   static const String _channelName =
       'com.deutschbilarabi.app/secure_session_storage';

@@ -144,8 +144,8 @@ class LearningCore {
       final score = evidence.skillScores.isEmpty
           ? 0.0
           : (evidence.overall * .70 + evidence.retention * .30)
-                .clamp(0.0, 1.0)
-                .toDouble();
+              .clamp(0.0, 1.0)
+              .toDouble();
       if (best == null || score < bestScore) {
         best = item;
         bestScore = score;
@@ -180,12 +180,11 @@ class LearningCore {
   static double _clamp(double x) => x < 0
       ? 0
       : x > 1
-      ? 1
-      : x;
+          ? 1
+          : x;
   static bool proofMastered(LearnerState s, String id) {
-    final a = s.meaningAttempts
-        .where((x) => x.itemId == id && x.correct)
-        .toList();
+    final a =
+        s.meaningAttempts.where((x) => x.itemId == id && x.correct).toList();
     final skills = a.map((x) => x.skill).toSet();
     return skills.containsAll([
           'recall',

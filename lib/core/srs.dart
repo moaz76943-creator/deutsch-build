@@ -23,8 +23,7 @@ class Srs {
   static double retrievability(ReviewCard card, {DateTime? now}) {
     final at = now ?? DateTime.now();
     if (card.lastReviewedAt == null || card.stabilityDays <= 0) return 0;
-    final elapsed =
-        math.max(
+    final elapsed = math.max(
           0,
           at.toUtcNominal
               .difference(card.lastReviewedAt!.toUtcNominal)
@@ -40,7 +39,7 @@ class Srs {
     final overdueDays = card.dueAt.isAfter(at)
         ? 0.0
         : at.toUtcNominal.difference(card.dueAt.toUtcNominal).inMinutes /
-              (60 * 24);
+            (60 * 24);
     final lapsePressure = card.lapses * 0.16 + card.failures * 0.025;
     final difficultyPressure =
         (card.difficulty - 1.0).clamp(0.0, 1.5).toDouble() * 0.08;
@@ -60,8 +59,7 @@ class Srs {
   }) {
     final at = now ?? DateTime.now();
     if (!correct) {
-      final stability =
-          (current.stabilityDays <= 0
+      final stability = (current.stabilityDays <= 0
               ? current.intervalDays.toDouble()
               : current.stabilityDays) *
           .45;
@@ -89,9 +87,8 @@ class Srs {
       1.35,
       1.85,
     );
-    final stability = (base * growth * difficultyFactor)
-        .clamp(1, 3650)
-        .toDouble();
+    final stability =
+        (base * growth * difficultyFactor).clamp(1, 3650).toDouble();
     final scheduled = nextDays(
       correct: true,
       hinted: hinted,

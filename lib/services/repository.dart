@@ -65,41 +65,41 @@ class LearnerRepository {
   LearnerState _loadFromPrefs() => persistence.load();
 
   Future<void> save(LearnerState s) => _enqueue(() async {
-    final persisted = persistence.normalize(s);
-    await persistence.save(persisted);
-    _cachedState = persisted;
-  });
+        final persisted = persistence.normalize(s);
+        await persistence.save(persisted);
+        _cachedState = persisted;
+      });
 
   Future<Set<String>> loadAndMigrateFavoriteVerbs() => _enqueue(() async {
-    final result = await persistence.loadAndMigrateFavoriteVerbs(load());
-    _cachedState = result;
-    return result.favoriteVerbs;
-  });
+        final result = await persistence.loadAndMigrateFavoriteVerbs(load());
+        _cachedState = result;
+        return result.favoriteVerbs;
+      });
 
   Future<bool> clearLocalData() => _enqueue<bool>(() async {
-    try {
-      final learnerCleared = await persistence.clearLocalData();
-      await gamificationReviewSink.clearGamification();
-      return learnerCleared;
-    } finally {
-      _cachedState = null;
-    }
-  });
+        try {
+          final learnerCleared = await persistence.clearLocalData();
+          await gamificationReviewSink.clearGamification();
+          return learnerCleared;
+        } finally {
+          _cachedState = null;
+        }
+      });
 
   Future<void> recordAssessment(AssessmentResult result) => _enqueue(() async {
-    final s = load();
-    final history = [
-      AssessmentHistory(
-        id: result.id,
-        at: result.at,
-        score: result.score,
-        weakSkills: result.weakSkills,
-        answered: result.answered,
-      ),
-      ...s.assessmentHistory,
-    ].take(100).toList();
-    await _saveNow(s.copyWith(assessmentHistory: history));
-  });
+        final s = load();
+        final history = [
+          AssessmentHistory(
+            id: result.id,
+            at: result.at,
+            score: result.score,
+            weakSkills: result.weakSkills,
+            answered: result.answered,
+          ),
+          ...s.assessmentHistory,
+        ].take(100).toList();
+        await _saveNow(s.copyWith(assessmentHistory: history));
+      });
 
   Future<void> recordWritingMistake({required String issue, DateTime? at}) =>
       _enqueue(() async {
@@ -127,16 +127,15 @@ class LearnerRepository {
       });
 
   Future<void> toggleFavoriteVerb(String infinitive) => _enqueue(() async {
-    final value = infinitive.trim();
-    if (value.isEmpty || value.length > 120) return;
-    final s = load();
-    final f = {...s.favoriteVerbs};
-    if (f.contains(value))
-      f.remove(value);
-    else if (f.length < maxCollectionItems)
-      f.add(value);
-    await _saveNow(s.copyWith(favoriteVerbs: f));
-  });
+        final value = infinitive.trim();
+        if (value.isEmpty || value.length > 120) return;
+        final s = load();
+        final f = {...s.favoriteVerbs};
+        if (f.contains(value))
+          f.remove(value);
+        else if (f.length < maxCollectionItems) f.add(value);
+        await _saveNow(s.copyWith(favoriteVerbs: f));
+      });
 
   Future<void> _saveNow(LearnerState s) async {
     final persisted = persistence.normalize(s);
@@ -174,64 +173,64 @@ class LearnerRepository {
     required bool hinted,
     String? skillOverride,
     DateTime? at,
-  }) => _enqueue(() async {
-    final s = load();
-    final now = at ?? DateTime.now();
-    final attempt = Attempt(
-      id: 'a_${now.microsecondsSinceEpoch}',
-      itemId: item.id,
-      skill: skillOverride ?? item.skill,
-      answer: answer.length > 1000 ? answer.substring(0, 1000) : answer,
-      correct: correct,
-      hinted: hinted,
-      seconds: seconds.clamp(0, 3600),
-      at: now,
-    );
-    final a = [...s.attempts, attempt];
-    final bounded = a.length > maxAttempts
-        ? a.sublist(a.length - maxAttempts)
-        : a;
-    final review = {...s.review};
-    final cards = {...s.reviewCards};
-    final currentCard =
-        cards[item.id] ?? ReviewCard(itemId: item.id, dueAt: now);
-    final updatedCard = unifiedSrsScheduler.schedule(
-      currentCard,
-      correct: correct,
-      hinted: hinted,
-      now: now,
-    );
-    cards[item.id] = updatedCard;
-    if (correct && updatedCard.repetitions >= 2)
-      review.remove(item.id);
-    else
-      review.add(item.id);
-    final learned = {...s.learned};
-    if (correct) learned.add(item.id);
-    final last = s.attempts.isEmpty ? null : s.attempts.last.at;
-    final today = now.toUtcMidnight;
-    final sameDay = last != null && last.toUtcMidnight == today;
-    final yesterday =
-        last != null && today.difference(last.toUtcMidnight).inDays == 1;
-    final nextStreak = s.attempts.isEmpty
-        ? 1
-        : (sameDay ? s.streak : (yesterday ? s.streak + 1 : 1));
-    final xpReward = unifiedSrsScheduler.xpRewardForReview(
-      correct: correct,
-      hinted: hinted,
-    );
-    await _saveNow(
-      s.copyWith(
-        xp: (s.xp + xpReward).clamp(0, maxXp),
-        streak: nextStreak.clamp(0, maxStreak),
-        learned: learned,
-        review: review,
-        reviewCards: cards,
-        attempts: bounded,
-      ),
-    );
-    await _recordGamificationReview(attempt, requestedXp: xpReward);
-  });
+  }) =>
+      _enqueue(() async {
+        final s = load();
+        final now = at ?? DateTime.now();
+        final attempt = Attempt(
+          id: 'a_${now.microsecondsSinceEpoch}',
+          itemId: item.id,
+          skill: skillOverride ?? item.skill,
+          answer: answer.length > 1000 ? answer.substring(0, 1000) : answer,
+          correct: correct,
+          hinted: hinted,
+          seconds: seconds.clamp(0, 3600),
+          at: now,
+        );
+        final a = [...s.attempts, attempt];
+        final bounded =
+            a.length > maxAttempts ? a.sublist(a.length - maxAttempts) : a;
+        final review = {...s.review};
+        final cards = {...s.reviewCards};
+        final currentCard =
+            cards[item.id] ?? ReviewCard(itemId: item.id, dueAt: now);
+        final updatedCard = unifiedSrsScheduler.schedule(
+          currentCard,
+          correct: correct,
+          hinted: hinted,
+          now: now,
+        );
+        cards[item.id] = updatedCard;
+        if (correct && updatedCard.repetitions >= 2)
+          review.remove(item.id);
+        else
+          review.add(item.id);
+        final learned = {...s.learned};
+        if (correct) learned.add(item.id);
+        final last = s.attempts.isEmpty ? null : s.attempts.last.at;
+        final today = now.toUtcMidnight;
+        final sameDay = last != null && last.toUtcMidnight == today;
+        final yesterday =
+            last != null && today.difference(last.toUtcMidnight).inDays == 1;
+        final nextStreak = s.attempts.isEmpty
+            ? 1
+            : (sameDay ? s.streak : (yesterday ? s.streak + 1 : 1));
+        final xpReward = unifiedSrsScheduler.xpRewardForReview(
+          correct: correct,
+          hinted: hinted,
+        );
+        await _saveNow(
+          s.copyWith(
+            xp: (s.xp + xpReward).clamp(0, maxXp),
+            streak: nextStreak.clamp(0, maxStreak),
+            learned: learned,
+            review: review,
+            reviewCards: cards,
+            attempts: bounded,
+          ),
+        );
+        await _recordGamificationReview(attempt, requestedXp: xpReward);
+      });
 
   Future<void> recordConversationAttempt({
     required String itemId,
@@ -240,32 +239,33 @@ class LearnerRepository {
     required bool correct,
     required int seconds,
     required bool hinted,
-  }) => _enqueue(() async {
-    final s = load();
-    final now = DateTime.now();
-    final safeId = itemId.trim();
-    if (safeId.isEmpty || safeId.length > 160) return;
-    final attempt = Attempt(
-      id: 'c_${now.microsecondsSinceEpoch}',
-      itemId: safeId,
-      skill: skill.trim().isEmpty ? 'production' : skill.trim(),
-      answer: answer.length > 1000 ? answer.substring(0, 1000) : answer,
-      correct: correct,
-      hinted: hinted,
-      seconds: seconds.clamp(0, 3600).toInt(),
-      at: now,
-    );
-    final bounded = [...s.attempts, attempt];
-    final kept = bounded.length > maxAttempts
-        ? bounded.sublist(bounded.length - maxAttempts)
-        : bounded;
-    await _saveNow(
-      s.copyWith(
-        xp: (s.xp + (correct ? 10 : 2)).clamp(0, maxXp),
-        attempts: kept,
-      ),
-    );
-  });
+  }) =>
+      _enqueue(() async {
+        final s = load();
+        final now = DateTime.now();
+        final safeId = itemId.trim();
+        if (safeId.isEmpty || safeId.length > 160) return;
+        final attempt = Attempt(
+          id: 'c_${now.microsecondsSinceEpoch}',
+          itemId: safeId,
+          skill: skill.trim().isEmpty ? 'production' : skill.trim(),
+          answer: answer.length > 1000 ? answer.substring(0, 1000) : answer,
+          correct: correct,
+          hinted: hinted,
+          seconds: seconds.clamp(0, 3600).toInt(),
+          at: now,
+        );
+        final bounded = [...s.attempts, attempt];
+        final kept = bounded.length > maxAttempts
+            ? bounded.sublist(bounded.length - maxAttempts)
+            : bounded;
+        await _saveNow(
+          s.copyWith(
+            xp: (s.xp + (correct ? 10 : 2)).clamp(0, maxXp),
+            attempts: kept,
+          ),
+        );
+      });
 }
 
 extension FacetReviewRepository on LearnerRepository {
@@ -300,9 +300,8 @@ extension FacetReviewRepository on LearnerRepository {
     return _enqueue(() async {
       final state = load();
       final now = at ?? DateTime.now();
-      final safeAnswer = answer.length > 1000
-          ? answer.substring(0, 1000)
-          : answer;
+      final safeAnswer =
+          answer.length > 1000 ? answer.substring(0, 1000) : answer;
       final attempt = Attempt(
         id: 'f_${now.microsecondsSinceEpoch}',
         itemId: item.id,
@@ -321,8 +320,7 @@ extension FacetReviewRepository on LearnerRepository {
           : attempts;
 
       final cards = <String, ReviewCard>{...state.reviewCards};
-      final current =
-          cards[key.storageKey] ??
+      final current = cards[key.storageKey] ??
           ReviewCard(
             itemId: item.id,
             facetType: facetType,

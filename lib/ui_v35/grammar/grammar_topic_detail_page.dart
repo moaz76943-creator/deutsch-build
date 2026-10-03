@@ -47,9 +47,9 @@ class GrammarTopicDetailPage extends StatelessWidget {
                   semanticRole: LinguisticSemanticRole.translation,
                 ),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontFamily: 'Tajawal',
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontFamily: 'Tajawal',
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 16),
               if (topic.formulaPattern != null)

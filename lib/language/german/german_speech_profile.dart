@@ -8,11 +8,11 @@ final class GermanSpeechProfile implements LanguageSpeechProfile {
 
   @override
   List<String> get preferredTtsLocales => const <String>[
-    'de-DE',
-    'de-AT',
-    'de-CH',
-    'de',
-  ];
+        'de-DE',
+        'de-AT',
+        'de-CH',
+        'de',
+      ];
 
   @override
   double get defaultSpeechRate => .46;

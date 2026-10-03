@@ -70,9 +70,8 @@ class StudySession {
     final timeSpentSeconds = end.difference(startTime).inSeconds;
 
     final totalReviewed = currentCardIndex;
-    final accuracyPercentage = totalReviewed == 0
-        ? 0.0
-        : (_correctAnswers / totalReviewed) * 100.0;
+    final accuracyPercentage =
+        totalReviewed == 0 ? 0.0 : (_correctAnswers / totalReviewed) * 100.0;
 
     return SessionResult(
       totalReviewed: totalReviewed,

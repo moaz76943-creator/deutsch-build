@@ -21,13 +21,13 @@ class BilingualText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text.rich(
-    TextSpan(
-      style: style,
-      children: segments
-          .map((segment) => LinguisticTextSpan(segment).toTextSpan())
-          .toList(growable: false),
-    ),
-    textDirection: flutterTextDirection(baseDirection),
-    textAlign: textAlign,
-  );
+        TextSpan(
+          style: style,
+          children: segments
+              .map((segment) => LinguisticTextSpan(segment).toTextSpan())
+              .toList(growable: false),
+        ),
+        textDirection: flutterTextDirection(baseDirection),
+        textAlign: textAlign,
+      );
 }

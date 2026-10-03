@@ -37,7 +37,9 @@ class WeeklyPage extends StatelessWidget {
         children: [
           Text(
             'آخر 7 أيام',
-            style: Theme.of(context).textTheme.headlineSmall
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 14),
@@ -55,8 +57,8 @@ class WeeklyPage extends StatelessWidget {
             report.attempts == 0
                 ? 'ابدأ جلسة حتى يصبح التقرير مبنيًا على بيانات حقيقية.'
                 : report.accuracy >= .8
-                ? 'أداء جيد. الآن نركز على النقل والاحتفاظ.'
-                : 'نحتاج مزيدًا من المحاولات المتنوعة.',
+                    ? 'أداء جيد. الآن نركز على النقل والاحتفاظ.'
+                    : 'نحتاج مزيدًا من المحاولات المتنوعة.',
           ),
         ],
       ),
@@ -64,14 +66,14 @@ class WeeklyPage extends StatelessWidget {
   }
 
   Widget _box(String label, String value) => Card(
-    child: ListTile(
-      title: Text(label),
-      trailing: Text(
-        value,
-        style: const TextStyle(fontWeight: FontWeight.w900),
-      ),
-    ),
-  );
+        child: ListTile(
+          title: Text(label),
+          trailing: Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ),
+      );
 }
 
 class GermanyRealityPage extends StatelessWidget {
@@ -190,48 +192,50 @@ class _RealityState extends State<RealityPractice> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.title)),
-    body: ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        Text(
-          widget.sourceText,
-          style: Theme.of(context).textTheme.headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 8),
-        Text(widget.presentation.realWorld.targetLanguageInstruction),
-        const SizedBox(height: 15),
-        TextField(
-          enabled: !done,
-          onChanged: (value) => answer = value,
-          textDirection: TextDirection.ltr,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            labelText: widget.presentation.realWorld.title,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (!done)
-          FilledButton(onPressed: submit, child: const Text('تحقق'))
-        else
-          Card(
-            child: ListTile(
-              title: Text(correct ? 'صحيح' : 'راجع الصياغة'),
-              subtitle: Text(widget.targetText),
+        appBar: AppBar(title: Text(widget.title)),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            Text(
+              widget.sourceText,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
-          ),
-        if (done)
-          FilledButton(
-            onPressed: () {
-              widget.onDone();
-              Navigator.pop(context);
-            },
-            child: const Text('إنهاء'),
-          ),
-      ],
-    ),
-  );
+            const SizedBox(height: 8),
+            Text(widget.presentation.realWorld.targetLanguageInstruction),
+            const SizedBox(height: 15),
+            TextField(
+              enabled: !done,
+              onChanged: (value) => answer = value,
+              textDirection: TextDirection.ltr,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: widget.presentation.realWorld.title,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (!done)
+              FilledButton(onPressed: submit, child: const Text('تحقق'))
+            else
+              Card(
+                child: ListTile(
+                  title: Text(correct ? 'صحيح' : 'راجع الصياغة'),
+                  subtitle: Text(widget.targetText),
+                ),
+              ),
+            if (done)
+              FilledButton(
+                onPressed: () {
+                  widget.onDone();
+                  Navigator.pop(context);
+                },
+                child: const Text('إنهاء'),
+              ),
+          ],
+        ),
+      );
 }
 
 class PlacementPage extends StatelessWidget {
@@ -260,17 +264,17 @@ class PlacementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AdaptivePlacementPage(
-    repo: repo,
-    corpus: corpus,
-    exerciseStrategy: exerciseStrategy,
-    contentQuality: contentQuality,
-    placementPresentation: presentation.placement,
-    targetLanguageName: presentation.targetLanguageName,
-    languageCode: languageCode,
-    sourceLanguageCode: sourceLanguageCode,
-    audioRuntime: audioRuntime,
-    onDone: onDone,
-  );
+        repo: repo,
+        corpus: corpus,
+        exerciseStrategy: exerciseStrategy,
+        contentQuality: contentQuality,
+        placementPresentation: presentation.placement,
+        targetLanguageName: presentation.targetLanguageName,
+        languageCode: languageCode,
+        sourceLanguageCode: sourceLanguageCode,
+        audioRuntime: audioRuntime,
+        onDone: onDone,
+      );
 }
 
 class QualityV35 extends StatelessWidget {
@@ -286,7 +290,9 @@ class QualityV35 extends StatelessWidget {
         children: [
           Text(
             '$failed بوابات غير مكتملة',
-            style: Theme.of(context).textTheme.headlineSmall
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
@@ -317,25 +323,27 @@ class FeatureStatusPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('حالة أدوات التطبيق')),
-    body: ListView(
-      padding: const EdgeInsets.all(12),
-      children: featureRegistry
-          .map(
-            (feature) => Card(
-              child: ListTile(
-                leading: Icon(
-                  feature.active ? Icons.check_circle : Icons.pending_outlined,
+        appBar: AppBar(title: const Text('حالة أدوات التطبيق')),
+        body: ListView(
+          padding: const EdgeInsets.all(12),
+          children: featureRegistry
+              .map(
+                (feature) => Card(
+                  child: ListTile(
+                    leading: Icon(
+                      feature.active
+                          ? Icons.check_circle
+                          : Icons.pending_outlined,
+                    ),
+                    title: Text(feature.name),
+                    subtitle: Text(feature.note),
+                    trailing: Text(feature.active ? 'مفعّل' : 'قيد التطوير'),
+                  ),
                 ),
-                title: Text(feature.name),
-                subtitle: Text(feature.note),
-                trailing: Text(feature.active ? 'مفعّل' : 'قيد التطوير'),
-              ),
-            ),
-          )
-          .toList(growable: false),
-    ),
-  );
+              )
+              .toList(growable: false),
+        ),
+      );
 }
 
 class CategoriesPage extends StatelessWidget {
@@ -415,79 +423,80 @@ class _CategoryWordsPageState extends State<CategoryWordsPage> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(title: Text(widget.title)),
-    body: ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-      itemCount: widget.items.length,
-      itemBuilder: (c, i) {
-        final x = widget.items[i];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+        appBar: AppBar(title: Text(widget.title)),
+        body: ListView.builder(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+          itemCount: widget.items.length,
+          itemBuilder: (c, i) {
+            final x = widget.items[i];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: Text(
-                        x.sourceText,
-                        style: const TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w900,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            x.sourceText,
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            textDirection: TextDirection.ltr,
+                          ),
                         ),
-                        textDirection: TextDirection.ltr,
+                        IconButton(
+                          tooltip: widget.presentation.pronunciationTooltip,
+                          onPressed: () => _speak(x.sourceText),
+                          icon: const Icon(Icons.volume_up_outlined),
+                        ),
+                      ],
+                    ),
+                    Text(x.translationText,
+                        style: const TextStyle(fontSize: 16)),
+                    const Divider(height: 20),
+                    Text(
+                      x.exampleText,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
+                      textDirection: TextDirection.ltr,
                     ),
-                    IconButton(
-                      tooltip: widget.presentation.pronunciationTooltip,
-                      onPressed: () => _speak(x.sourceText),
-                      icon: const Icon(Icons.volume_up_outlined),
-                    ),
+                    const SizedBox(height: 4),
+                    Text(x.exampleTranslationText),
+                    if (x.grammaticalMarker.isNotEmpty ||
+                        x.pluralForm.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          if (x.grammaticalMarker.isNotEmpty)
+                            Chip(
+                              label: Text(
+                                '${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}',
+                              ),
+                            ),
+                          if (x.pluralForm.isNotEmpty)
+                            Chip(
+                              label: Text(
+                                '${widget.presentation.pluralLabel}: ${x.pluralForm}',
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
-                Text(x.translationText, style: const TextStyle(fontSize: 16)),
-                const Divider(height: 20),
-                Text(
-                  x.exampleText,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textDirection: TextDirection.ltr,
-                ),
-                const SizedBox(height: 4),
-                Text(x.exampleTranslationText),
-                if (x.grammaticalMarker.isNotEmpty ||
-                    x.pluralForm.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      if (x.grammaticalMarker.isNotEmpty)
-                        Chip(
-                          label: Text(
-                            '${widget.presentation.grammaticalMarkerLabel}: ${x.grammaticalMarker}',
-                          ),
-                        ),
-                      if (x.pluralForm.isNotEmpty)
-                        Chip(
-                          label: Text(
-                            '${widget.presentation.pluralLabel}: ${x.pluralForm}',
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
-    ),
-  );
+              ),
+            );
+          },
+        ),
+      );
 }
 
 class SearchDictionaryPage extends StatefulWidget {
@@ -726,8 +735,8 @@ class _DictionaryWordCard extends StatelessWidget {
                   profile.due
                       ? Icons.schedule
                       : profile.needsPractice
-                      ? Icons.school_outlined
-                      : Icons.check_circle_outline,
+                          ? Icons.school_outlined
+                          : Icons.check_circle_outline,
                   size: 18,
                 ),
                 const SizedBox(width: 6),
@@ -736,8 +745,8 @@ class _DictionaryWordCard extends StatelessWidget {
                     profile.due
                         ? 'مستحقة للمراجعة'
                         : profile.needsPractice
-                        ? 'تحتاج تثبيتًا'
-                        : 'مستقرة',
+                            ? 'تحتاج تثبيتًا'
+                            : 'مستقرة',
                   ),
                 ),
                 const SizedBox(width: 8),

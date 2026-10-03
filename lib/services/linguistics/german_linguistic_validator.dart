@@ -24,7 +24,7 @@ final class LinguisticQaIssue {
 
 final class LinguisticQaReport {
   LinguisticQaReport(Iterable<LinguisticQaIssue> issues)
-    : issues = List<LinguisticQaIssue>.unmodifiable(issues);
+      : issues = List<LinguisticQaIssue>.unmodifiable(issues);
 
   final List<LinguisticQaIssue> issues;
 
@@ -382,11 +382,9 @@ final class GermanLinguisticValidator {
             );
           }
         }
-        for (
-          var exampleIndex = 0;
-          exampleIndex < rule.examples.length;
-          exampleIndex++
-        ) {
+        for (var exampleIndex = 0;
+            exampleIndex < rule.examples.length;
+            exampleIndex++) {
           final example = rule.examples[exampleIndex];
           _requireText(
             example.german,
@@ -446,9 +444,8 @@ final class GermanLinguisticValidator {
             ),
           );
         }
-        final normalizedOptions = quiz.options
-            .map((option) => option.trim())
-            .toList(growable: false);
+        final normalizedOptions =
+            quiz.options.map((option) => option.trim()).toList(growable: false);
         if (normalizedOptions.any((option) => option.isEmpty)) {
           issues.add(
             LinguisticQaIssue(

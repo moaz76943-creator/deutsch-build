@@ -4,7 +4,7 @@ import '../domain/services/recorded_audio_player.dart';
 
 final class AndroidRecordedAudioPlayer implements RecordedAudioPlayer {
   AndroidRecordedAudioPlayer({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel(_channelName);
+      : _channel = channel ?? const MethodChannel(_channelName);
 
   static const String _channelName =
       'com.deutschbilarabi.app/recorded_audio_player';

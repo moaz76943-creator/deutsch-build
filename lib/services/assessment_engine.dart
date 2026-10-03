@@ -18,8 +18,7 @@ class AssessmentEngine {
     final eligible = items.where(isLearnable).toList();
     if (eligible.isEmpty || questionCount <= 0) return const [];
     final weak = _weakSkill(state);
-    final ranked = [...eligible]
-      ..sort((a, b) {
+    final ranked = [...eligible]..sort((a, b) {
         final sa = _priority(a, state, weak, seed);
         final sb = _priority(b, state, weak, seed);
         return sb.compareTo(sa);
@@ -73,24 +72,23 @@ class AssessmentEngine {
       for (final e in scores.entries)
         e.key: e.value.reduce((a, b) => a + b) / e.value.length,
     };
-    final weak =
-        skillScores.entries
-            .where((e) => e.value < .7)
-            .map((e) => e.key)
-            .toList()
-          ..sort(
-            (a, b) => (skillScores[a] ?? 0).compareTo(skillScores[b] ?? 0),
-          );
+    final weak = skillScores.entries
+        .where((e) => e.value < .7)
+        .map((e) => e.key)
+        .toList()
+      ..sort(
+        (a, b) => (skillScores[a] ?? 0).compareTo(skillScores[b] ?? 0),
+      );
     final score = valid.isEmpty
         ? 0.0
         : ((valid.fold<double>(0, (sum, r) {
-                    final item = _findItem(items, r.itemId);
-                    return sum +
-                        (item == null || !r.correct ? 0 : (r.hinted ? .7 : 1));
-                  }) /
-                  valid.length *
-                  100)
-              .clamp(0, 100));
+                  final item = _findItem(items, r.itemId);
+                  return sum +
+                      (item == null || !r.correct ? 0 : (r.hinted ? .7 : 1));
+                }) /
+                valid.length *
+                100)
+            .clamp(0, 100));
     return AssessmentResult(
       id: id ?? 't_${at.microsecondsSinceEpoch}',
       at: at,
@@ -127,7 +125,8 @@ class AssessmentEngine {
     T item,
     String questionId,
     LanguageExerciseStrategy exerciseStrategy,
-  ) => questionFor(item, questionId, exerciseStrategy).skill;
+  ) =>
+      questionFor(item, questionId, exerciseStrategy).skill;
 
   static double _priority(
     LearningContent x,

@@ -111,8 +111,8 @@ final class PairRuleInputRequirement {
     required this.role,
     this.acceptsLimited = false,
     this.acceptsNotApplicable = false,
-  }) : assert(inputKey != ''),
-       assert(role != LanguageRole.user);
+  })  : assert(inputKey != ''),
+        assert(role != LanguageRole.user);
 }
 
 /// Mechanics-only rule metadata.
@@ -130,8 +130,8 @@ final class PairRule {
     required this.candidateKind,
     required List<PairRuleInputRequirement> requiredInputs,
   }) : requiredInputs = List<PairRuleInputRequirement>.unmodifiable(
-         requiredInputs,
-       ) {
+          requiredInputs,
+        ) {
     _requireNonEmpty(ruleId, 'ruleId');
     _requireNonEmpty(ruleVersion, 'ruleVersion');
     _requireNonEmpty(candidateKind, 'candidateKind');

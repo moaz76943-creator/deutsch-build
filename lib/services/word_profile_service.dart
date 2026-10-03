@@ -18,13 +18,12 @@ class WordProfileService {
     DateTime? now,
   }) {
     final at = now ?? DateTime.now();
-    final attempts =
-        (itemAttempts ??
-                state.meaningAttempts
-                    .where((x) => x.itemId == item.id)
-                    .toList(growable: false))
-            .where((attempt) => attempt.isMeaningFacet)
-            .toList(growable: false);
+    final attempts = (itemAttempts ??
+            state.meaningAttempts
+                .where((x) => x.itemId == item.id)
+                .toList(growable: false))
+        .where((attempt) => attempt.isMeaningFacet)
+        .toList(growable: false);
     final due = state.reviewCards[item.id]?.dueAt.isBefore(at) ?? false;
     final evidence = Mastery.forItemRows(
       item.id,
@@ -34,8 +33,8 @@ class WordProfileService {
     final mastery = evidence.skillScores.isEmpty
         ? 0.0
         : (evidence.overall * .70 + evidence.retention * .30)
-              .clamp(0.0, 1.0)
-              .toDouble();
+            .clamp(0.0, 1.0)
+            .toDouble();
     final forms = <String>{};
     final words = <String>{};
     final examples = <String>{};

@@ -50,9 +50,8 @@ class VocabularyCoach {
     if (due) return 1000;
     if (attempts.isEmpty) return 700;
     final errors = attempts.where((a) => !a.correct).length;
-    final recent = attempts.length > 6
-        ? attempts.sublist(attempts.length - 6)
-        : attempts;
+    final recent =
+        attempts.length > 6 ? attempts.sublist(attempts.length - 6) : attempts;
     final recentErrors = recent.where((a) => !a.correct).length;
     final hintCount = attempts.where((a) => a.hinted).length;
     return 500 +

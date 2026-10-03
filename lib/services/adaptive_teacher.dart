@@ -46,9 +46,8 @@ class AdaptiveTeacher {
     for (final skill in skills) {
       scoresBySkill[skill] = _scoreForAttempts(attemptsBySkill[skill]);
     }
-    final recentFailureRate = recentAttemptCount == 0
-        ? 0.0
-        : recentFailureCount / recentAttemptCount;
+    final recentFailureRate =
+        recentAttemptCount == 0 ? 0.0 : recentFailureCount / recentAttemptCount;
     final due = _dueCount(state, at);
     final reviewPressure = _reviewPressure(state, at, due);
     final newContentReadiness = _newContentReadiness(
@@ -106,7 +105,8 @@ class AdaptiveTeacher {
         type: TeacherActionType.consolidation,
         skill: weak,
         title: 'تثبيت المهارة',
-        reason: 'المهارة تتحسن، لكنها تحتاج تنويعًا ومزيدًا من الاسترجاع قبل رفع الصعوبة.',
+        reason:
+            'المهارة تتحسن، لكنها تحتاج تنويعًا ومزيدًا من الاسترجاع قبل رفع الصعوبة.',
         itemCount: 6,
         confidence: _confidence(state),
         reviewPressure: reviewPressure,
@@ -194,9 +194,8 @@ class AdaptiveTeacher {
         if (!a.correct) recentFailureCount++;
       }
     }
-    final failureRatio = recentAttemptCount == 0
-        ? 0.0
-        : recentFailureCount / recentAttemptCount;
+    final failureRatio =
+        recentAttemptCount == 0 ? 0.0 : recentFailureCount / recentAttemptCount;
     return (dueRatio * .6 + failureRatio * .4).clamp(0.0, 1.0);
   }
 

@@ -23,9 +23,9 @@ import 'conversation_pages.dart';
 import 'progress_pages.dart';
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
-  textDirection: TextDirection.rtl,
-  child: child ?? const SizedBox.shrink(),
-);
+      textDirection: TextDirection.rtl,
+      child: child ?? const SizedBox.shrink(),
+    );
 
 class DeutschAppV35 extends StatefulWidget {
   final LearnerRepository repo;
@@ -54,37 +54,37 @@ class _AppState extends State<DeutschAppV35> {
 
   @override
   Widget build(BuildContext c) => ListenableBuilder(
-    listenable: widget.dependencies.neuroSettings,
-    builder: (context, child) {
-      final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
+        listenable: widget.dependencies.neuroSettings,
+        builder: (context, child) {
+          final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
 
-      ThemeData lightTheme = AppDesignSystem.light();
-      ThemeData darkTheme = AppDesignSystem.dark();
+          ThemeData lightTheme = AppDesignSystem.light();
+          ThemeData darkTheme = AppDesignSystem.dark();
 
-      if (isNeuroMode) {
-        lightTheme = lightTheme.applyNeuroAccessibility();
-        darkTheme = darkTheme.applyNeuroAccessibility();
-      }
+          if (isNeuroMode) {
+            lightTheme = lightTheme.applyNeuroAccessibility();
+            darkTheme = darkTheme.applyNeuroAccessibility();
+          }
 
-      return NeuroAccessibilityMode(
-        isEnabled: isNeuroMode,
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Deutsch بالعربي',
-          themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-          theme: lightTheme,
-          darkTheme: darkTheme,
-          builder: rtlAppBuilder,
-          home: HomeV35(
-            repo: widget.repo,
-            auth: widget.auth,
-            dependencies: widget.dependencies,
-            onTheme: () => setState(() => dark = !dark),
-          ),
-        ),
+          return NeuroAccessibilityMode(
+            isEnabled: isNeuroMode,
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'Deutsch بالعربي',
+              themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+              theme: lightTheme,
+              darkTheme: darkTheme,
+              builder: rtlAppBuilder,
+              home: HomeV35(
+                repo: widget.repo,
+                auth: widget.auth,
+                dependencies: widget.dependencies,
+                onTheme: () => setState(() => dark = !dark),
+              ),
+            ),
+          );
+        },
       );
-    },
-  );
 }
 
 class HomeV35 extends StatefulWidget {
@@ -137,7 +137,6 @@ class _HomeState extends State<HomeV35> {
 
   @override
   Widget build(BuildContext c) {
-
     return Scaffold(
       extendBody: true,
       appBar: tab == 0
@@ -302,500 +301,521 @@ class _HomeState extends State<HomeV35> {
   }
 
   Widget _learnTab(BuildContext c) => ListView(
-    padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
-    children: [
-      _sectionTitle(
-        c,
-        'تعلم بطريقة منظمة',
-        'كل أداة هنا مرتبطة بمسار التعلم، وليست قائمة أدوات منفصلة.',
-      ),
-      _featureCard(
-        c,
-        'جلسة التعلم الأساسية',
-        'تعرّف → فهم → استماع → إنتاج → نقل → احتفاظ',
-        Icons.school_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => CoreSession(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              onDone: refresh,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              contentIntelligence:
-                  widget.dependencies.languagePack.contentIntelligence,
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+        children: [
+          _sectionTitle(
+            c,
+            'تعلم بطريقة منظمة',
+            'كل أداة هنا مرتبطة بمسار التعلم، وليست قائمة أدوات منفصلة.',
+          ),
+          _featureCard(
+            c,
+            'جلسة التعلم الأساسية',
+            'تعرّف → فهم → استماع → إنتاج → نقل → احتفاظ',
+            Icons.school_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => CoreSession(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  onDone: refresh,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  contentIntelligence:
+                      widget.dependencies.languagePack.contentIntelligence,
+                ),
+              ),
+            ),
+            primary: true,
+          ),
+          _featureCard(
+            c,
+            'المفردات',
+            '${state.learned.length}/${widget.dependencies.corpus.length} مكتسبة',
+            Icons.menu_book_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => VocabularyV35(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  onDone: refresh,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  dependencies: widget.dependencies,
+                ),
+              ),
             ),
           ),
-        ),
-        primary: true,
-      ),
-      _featureCard(
-        c,
-        'المفردات',
-        '${state.learned.length}/${widget.dependencies.corpus.length} مكتسبة',
-        Icons.menu_book_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => VocabularyV35(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              onDone: refresh,
-              presentation: widget.dependencies.languagePack.presentation,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              dependencies: widget.dependencies,
+          _featureCard(
+            c,
+            'عائلات الكلمات',
+            'اربط الكلمات الألمانية باشتقاقاتها الموثّقة دون تخمين',
+            Icons.account_tree_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => WordFamiliesPage(
+                  repository: widget.dependencies.wordFamilyRepository,
+                  corpus: widget.dependencies.corpus,
+                  learnedIds: state.learned.toSet(),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'عائلات الكلمات',
-        'اربط الكلمات الألمانية باشتقاقاتها الموثّقة دون تخمين',
-        Icons.account_tree_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => WordFamiliesPage(
-              repository: widget.dependencies.wordFamilyRepository,
-              corpus: widget.dependencies.corpus,
-              learnedIds: state.learned.toSet(),
+          _featureCard(
+            c,
+            'مكتبة المفردات',
+            'بحث سريع في مفرداتك المكتسبة',
+            Icons.library_books_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => OfflineLexiconHub(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  searchIndex: widget.dependencies.searchIndex,
+                  verbIndex: widget.dependencies.verbIndex,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'مكتبة المفردات',
-        'بحث سريع في مفرداتك المكتسبة',
-        Icons.library_books_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => OfflineLexiconHub(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              searchIndex: widget.dependencies.searchIndex,
-              verbIndex: widget.dependencies.verbIndex,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
+          _featureCard(
+            c,
+            'الأقسام والفئات',
+            'تعلم حسب الموضوع والمجال',
+            Icons.category_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => CategoriesPage(
+                  repo: widget.repo,
+                  searchIndex: widget.dependencies.searchIndex,
+                  presentation: widget.dependencies.languagePack.presentation,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'الأقسام والفئات',
-        'تعلم حسب الموضوع والمجال',
-        Icons.category_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => CategoriesPage(
-              repo: widget.repo,
-              searchIndex: widget.dependencies.searchIndex,
-              presentation: widget.dependencies.languagePack.presentation,
+          _featureCard(
+            c,
+            'الأفعال والتصريف',
+            'تدريب عملي على تصريف الأفعال',
+            Icons.translate_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => VerbConjugationPage(
+                  repo: widget.repo,
+                  verbIndex: widget.dependencies.verbIndex,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'الأفعال والتصريف',
-        'تدريب عملي على تصريف الأفعال',
-        Icons.translate_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => VerbConjugationPage(
-              repo: widget.repo,
-              verbIndex: widget.dependencies.verbIndex,
+          _featureCard(
+            c,
+            'القراءة التفاعلية',
+            'نصوص وأسئلة مرتبطة بالمفردات',
+            Icons.menu_book_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => ReadingPracticePage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  searchIndex: widget.dependencies.searchIndex,
+                  verbIndex: widget.dependencies.verbIndex,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'القراءة التفاعلية',
-        'نصوص وأسئلة مرتبطة بالمفردات',
-        Icons.menu_book_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => ReadingPracticePage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              searchIndex: widget.dependencies.searchIndex,
-              verbIndex: widget.dependencies.verbIndex,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
+          _featureCard(
+            c,
+            'البحث والقاموس',
+            'ابحث بالألمانية أو العربية',
+            Icons.search,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => SearchDictionaryPage(
+                  repo: widget.repo,
+                  searchIndex: widget.dependencies.searchIndex,
+                  verbIndex: widget.dependencies.verbIndex,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'البحث والقاموس',
-        'ابحث بالألمانية أو العربية',
-        Icons.search,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => SearchDictionaryPage(
-              repo: widget.repo,
-              searchIndex: widget.dependencies.searchIndex,
-              verbIndex: widget.dependencies.verbIndex,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
+          _featureCard(
+            c,
+            'ألمانيا الحقيقية',
+            'مواقف عملية خارج الكتاب',
+            Icons.location_city_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => GermanyRealityPage(
+                  repo: widget.repo,
+                  onDone: refresh,
+                  presentation: widget.dependencies.languagePack.presentation,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'ألمانيا الحقيقية',
-        'مواقف عملية خارج الكتاب',
-        Icons.location_city_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => GermanyRealityPage(
-              repo: widget.repo,
-              onDone: refresh,
-              presentation: widget.dependencies.languagePack.presentation,
+          _featureCard(
+            c,
+            'مركز القواعد',
+            'القواعد النحوية من A1 إلى C2',
+            Icons.rule_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => GrammarHubPage(
+                  dependencies: widget.dependencies,
+                  learnerState: state,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'مركز القواعد',
-        'القواعد النحوية من A1 إلى C2',
-        Icons.rule_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => GrammarHubPage(
-              dependencies: widget.dependencies,
-              learnerState: state,
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
+        ],
+      );
 
   Widget _practiceTab(BuildContext c) => ListView(
-    padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
-    children: [
-      _sectionTitle(
-        c,
-        'التدريب والتصحيح',
-        'حوّل الأخطاء إلى تمارين علاجية بدل الاكتفاء بمعرفة النتيجة.',
-      ),
-      _featureCard(
-        c,
-        'اختبار تحديد المستوى',
-        'ابدأ بخط أساس واضح',
-        Icons.assessment_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => PlacementPage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              onDone: refresh,
-              presentation: widget.dependencies.languagePack.presentation,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              audioRuntime: widget.dependencies.audioRuntime,
-              languageCode: widget.dependencies.languagePack.languageCode,
-              sourceLanguageCode: widget.dependencies.languagePack.sourceLocale,
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+        children: [
+          _sectionTitle(
+            c,
+            'التدريب والتصحيح',
+            'حوّل الأخطاء إلى تمارين علاجية بدل الاكتفاء بمعرفة النتيجة.',
+          ),
+          _featureCard(
+            c,
+            'اختبار تحديد المستوى',
+            'ابدأ بخط أساس واضح',
+            Icons.assessment_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => PlacementPage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  onDone: refresh,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  audioRuntime: widget.dependencies.audioRuntime,
+                  languageCode: widget.dependencies.languagePack.languageCode,
+                  sourceLanguageCode:
+                      widget.dependencies.languagePack.sourceLocale,
+                ),
+              ),
+            ),
+            primary: true,
+          ),
+          _featureCard(
+            c,
+            'التقييم الذكي',
+            'قياس تطورك عبر مهارات متعددة',
+            Icons.quiz_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => SmartAssessmentPage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  contentIntelligence:
+                      widget.dependencies.languagePack.contentIntelligence,
+                ),
+              ),
             ),
           ),
-        ),
-        primary: true,
-      ),
-      _featureCard(
-        c,
-        'التقييم الذكي',
-        'قياس تطورك عبر مهارات متعددة',
-        Icons.quiz_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => SmartAssessmentPage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              contentIntelligence:
-                  widget.dependencies.languagePack.contentIntelligence,
+          _featureCard(
+            c,
+            'مدرب الأخطاء',
+            'اكتشف سبب الخطأ وأعد التدريب',
+            Icons.auto_fix_high_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => MistakeCoachPage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'مدرب الأخطاء',
-        'اكتشف سبب الخطأ وأعد التدريب',
-        Icons.auto_fix_high_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => MistakeCoachPage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
+          _featureCard(
+            c,
+            'تحليل الأخطاء',
+            'خريطة لنقاط الضعف المتكررة',
+            Icons.healing_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => MistakeDashboardPage(repo: widget.repo),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'تحليل الأخطاء',
-        'خريطة لنقاط الضعف المتكررة',
-        Icons.healing_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => MistakeDashboardPage(repo: widget.repo),
-          ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'مختبر النطق والاستماع',
-        'تمييز صوتي + فحص ميكروفون محلي بلا سحابة',
-        Icons.mic_none_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => OfflinePronunciationLabPage(
-              repo: widget.repo,
-              dependencies: widget.dependencies,
-              onDone: refresh,
+          _featureCard(
+            c,
+            'مختبر النطق والاستماع',
+            'تمييز صوتي + فحص ميكروفون محلي بلا سحابة',
+            Icons.mic_none_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => OfflinePronunciationLabPage(
+                  repo: widget.repo,
+                  dependencies: widget.dependencies,
+                  onDone: refresh,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'وضع التنقل',
-        'مراجعة SRS صوتية: كلمة → معنى → مثال',
-        Icons.directions_walk_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => HandsFreeCommutePage(
-              repo: widget.repo,
-              dependencies: widget.dependencies,
-              onDone: refresh,
+          _featureCard(
+            c,
+            'وضع التنقل',
+            'مراجعة SRS صوتية: كلمة → معنى → مثال',
+            Icons.directions_walk_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => HandsFreeCommutePage(
+                  repo: widget.repo,
+                  dependencies: widget.dependencies,
+                  onDone: refresh,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      PremiumButton(
-        repo: widget.repo,
-        label: 'تصحيح الكتابة • Premium',
-        icon: Icons.edit_note,
-        onOpen: () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => WritingCoachPage(
-              repo: widget.repo,
-              onDone: refresh,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              aiGateway: widget.dependencies.aiGateway,
-              privacySettings: widget.dependencies.privacySettings,
+          PremiumButton(
+            repo: widget.repo,
+            label: 'تصحيح الكتابة • Premium',
+            icon: Icons.edit_note,
+            onOpen: () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => WritingCoachPage(
+                  repo: widget.repo,
+                  onDone: refresh,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  aiGateway: widget.dependencies.aiGateway,
+                  privacySettings: widget.dependencies.privacySettings,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      const SizedBox(height: 8),
-      PremiumButton(
-        repo: widget.repo,
-        label: 'المحادثة والمواقف • Premium',
-        icon: Icons.forum_outlined,
-        onOpen: () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => ConversationPage(
-              repo: widget.repo,
-              onDone: refresh,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              aiGateway: widget.dependencies.aiGateway,
-              privacySettings: widget.dependencies.privacySettings,
+          const SizedBox(height: 8),
+          PremiumButton(
+            repo: widget.repo,
+            label: 'المحادثة والمواقف • Premium',
+            icon: Icons.forum_outlined,
+            onOpen: () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => ConversationPage(
+                  repo: widget.repo,
+                  onDone: refresh,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  aiGateway: widget.dependencies.aiGateway,
+                  privacySettings: widget.dependencies.privacySettings,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      const SizedBox(height: 8),
-      _featureCard(
-        c,
-        'محادثة ألمانية بالصوت',
-        'تحدث ثم راجع تقييمك',
-        Icons.record_voice_over_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => VoiceConversationPage(
-              repo: widget.repo,
-              onDone: refresh,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
+          const SizedBox(height: 8),
+          _featureCard(
+            c,
+            'محادثة ألمانية بالصوت',
+            'تحدث ثم راجع تقييمك',
+            Icons.record_voice_over_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => VoiceConversationPage(
+                  repo: widget.repo,
+                  onDone: refresh,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    ],
-  );
+        ],
+      );
 
   Widget _progressTab(BuildContext c) => ListView(
-    padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
-    children: [
-      _sectionTitle(
-        c,
-        'تقدمك ومسارك',
-        'التقدم ليس رقمًا واحدًا؛ نراقب الاستدعاء والاستماع والإنتاج والنقل.',
-      ),
-      _featureCard(
-        c,
-        'المدرس الذكي وخطة اليوم',
-        'أفضل خطوة تالية مبنية على أدائك',
-        Icons.psychology_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => LearningDashboardPage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              searchIndex: widget.dependencies.searchIndex,
-              verbIndex: widget.dependencies.verbIndex,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              contentIntelligence:
-                  widget.dependencies.languagePack.contentIntelligence,
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+        children: [
+          _sectionTitle(
+            c,
+            'تقدمك ومسارك',
+            'التقدم ليس رقمًا واحدًا؛ نراقب الاستدعاء والاستماع والإنتاج والنقل.',
+          ),
+          _featureCard(
+            c,
+            'المدرس الذكي وخطة اليوم',
+            'أفضل خطوة تالية مبنية على أدائك',
+            Icons.psychology_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => LearningDashboardPage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  searchIndex: widget.dependencies.searchIndex,
+                  verbIndex: widget.dependencies.verbIndex,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  contentIntelligence:
+                      widget.dependencies.languagePack.contentIntelligence,
+                ),
+              ),
+            ),
+            primary: true,
+          ),
+          _featureCard(
+            c,
+            'تطوري ومستواي',
+            'اعرض اتجاه تقدمك',
+            Icons.trending_up_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => ProgressPage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  contentIntelligence:
+                      widget.dependencies.languagePack.contentIntelligence,
+                ),
+              ),
             ),
           ),
-        ),
-        primary: true,
-      ),
-      _featureCard(
-        c,
-        'تطوري ومستواي',
-        'اعرض اتجاه تقدمك',
-        Icons.trending_up_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => ProgressPage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              contentIntelligence:
-                  widget.dependencies.languagePack.contentIntelligence,
+          _featureCard(
+            c,
+            'الإنجازات و XP',
+            'السلسلة اليومية والشارات والمعلم التالي',
+            Icons.workspace_premium_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => GamificationDashboardPage(
+                  repository: widget.dependencies.gamificationRepository,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'الإنجازات و XP',
-        'السلسلة اليومية والشارات والمعلم التالي',
-        Icons.workspace_premium_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => GamificationDashboardPage(
-              repository: widget.dependencies.gamificationRepository,
+          _featureCard(
+            c,
+            'تقرير الأسبوع',
+            'محاولات ودقة ومراجعات',
+            Icons.insights_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(builder: (_) => WeeklyPage(state: state)),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'تقرير الأسبوع',
-        'محاولات ودقة ومراجعات',
-        Icons.insights_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(builder: (_) => WeeklyPage(state: state)),
-        ),
-      ),
-      _featureCard(
-        c,
-        'مساري الشخصي',
-        'خطة تعلم تتكيف مع نقاط ضعفك',
-        Icons.route_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => PersonalizedPathPage(
-              repo: widget.repo,
-              corpus: widget.dependencies.corpus,
-              searchIndex: widget.dependencies.searchIndex,
-              verbIndex: widget.dependencies.verbIndex,
-              onDone: refresh,
-              exerciseStrategy:
-                  widget.dependencies.languagePack.exerciseStrategy,
-              presentation: widget.dependencies.languagePack.presentation,
-              textNormalizer: widget.dependencies.languagePack.textNormalizer,
-              contentQuality: widget.dependencies.languagePack.contentQuality,
-              contentIntelligence:
-                  widget.dependencies.languagePack.contentIntelligence,
+          _featureCard(
+            c,
+            'مساري الشخصي',
+            'خطة تعلم تتكيف مع نقاط ضعفك',
+            Icons.route_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => PersonalizedPathPage(
+                  repo: widget.repo,
+                  corpus: widget.dependencies.corpus,
+                  searchIndex: widget.dependencies.searchIndex,
+                  verbIndex: widget.dependencies.verbIndex,
+                  onDone: refresh,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  contentQuality:
+                      widget.dependencies.languagePack.contentQuality,
+                  contentIntelligence:
+                      widget.dependencies.languagePack.contentIntelligence,
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      _featureCard(
-        c,
-        'حالة أدوات التطبيق',
-        'ما هو مفعّل وما يحتاج تطويرًا',
-        Icons.verified_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(builder: (_) => FeatureStatusPage()),
-        ),
-      ),
-      _featureCard(
-        c,
-        'الخصوصية والميزات المتصلة',
-        'تحكم واضح في الميزات السحابية',
-        Icons.privacy_tip_outlined,
-        () => Navigator.push(
-          c,
-          MaterialPageRoute(
-            builder: (_) => PrivacyCenterPage(
-              privacySettings: widget.dependencies.privacySettings,
+          _featureCard(
+            c,
+            'حالة أدوات التطبيق',
+            'ما هو مفعّل وما يحتاج تطويرًا',
+            Icons.verified_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(builder: (_) => FeatureStatusPage()),
             ),
           ),
-        ),
-      ),
-    ],
-  );
+          _featureCard(
+            c,
+            'الخصوصية والميزات المتصلة',
+            'تحكم واضح في الميزات السحابية',
+            Icons.privacy_tip_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => PrivacyCenterPage(
+                  privacySettings: widget.dependencies.privacySettings,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
 
   Widget _sectionTitle(BuildContext c, String title, String subtitle) =>
       Padding(
@@ -805,7 +825,9 @@ class _HomeState extends State<HomeV35> {
           children: [
             Text(
               title,
-              style: Theme.of(c).textTheme.headlineSmall
+              style: Theme.of(c)
+                  .textTheme
+                  .headlineSmall
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 5),
@@ -820,17 +842,18 @@ class _HomeState extends State<HomeV35> {
     IconData icon,
     VoidCallback onTap, {
     bool primary = false,
-  }) => FeatureNavigationCard(
-    title: title,
-    subtitle: subtitle,
-    icon: icon,
-    onTap: onTap,
-    primary: primary,
-  );
+  }) =>
+      FeatureNavigationCard(
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        onTap: onTap,
+        primary: primary,
+      );
 }
-
 
 class DynamicUiVariationHelpers {
   static List<Color> getGradientColors(int seed, bool isDark) => [];
-  static Duration getMicroAnimationDuration(int seed) => const Duration(milliseconds: 300);
+  static Duration getMicroAnimationDuration(int seed) =>
+      const Duration(milliseconds: 300);
 }

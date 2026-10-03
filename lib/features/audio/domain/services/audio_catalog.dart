@@ -14,5 +14,6 @@ final class EmptyAudioCatalog implements AudioCatalog {
   String? recordedAssetFor({
     required String conceptId,
     required AudioVariant variant,
-  }) => null;
+  }) =>
+      null;
 }

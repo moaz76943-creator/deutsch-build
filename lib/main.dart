@@ -55,24 +55,24 @@ Future<void> main() async {
     }
   };
   ErrorWidget.builder = (FlutterErrorDetails details) => Material(
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.error_outline, size: 48),
-            SizedBox(height: 12),
-            Text('حدث خطأ غير متوقع'),
-            SizedBox(height: 6),
-            Text(
-              'يمكنك العودة أو إعادة فتح التطبيق. لم نعرض تفاصيل الخطأ الحساسة.',
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.error_outline, size: 48),
+                SizedBox(height: 12),
+                Text('حدث خطأ غير متوقع'),
+                SizedBox(height: 6),
+                Text(
+                  'يمكنك العودة أو إعادة فتح التطبيق. لم نعرض تفاصيل الخطأ الحساسة.',
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
   await runZonedGuarded(
     () async {
       try {
@@ -211,26 +211,26 @@ class _BootFailureApp extends StatelessWidget {
   const _BootFailureApp();
   @override
   Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: Scaffold(
-      appBar: AppBar(title: const Text('Deutsch بالعربي')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.error_outline, size: 48),
-              SizedBox(height: 12),
-              Text('تعذر فتح التخزين المحلي بأمان. لم يتم فقدان بياناتك.'),
-              SizedBox(height: 8),
-              Text(
-                'أغلق التطبيق وأعد فتحه. إذا استمرت المشكلة، تحقق من مساحة التخزين.',
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          appBar: AppBar(title: const Text('Deutsch بالعربي')),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.error_outline, size: 48),
+                  SizedBox(height: 12),
+                  Text('تعذر فتح التخزين المحلي بأمان. لم يتم فقدان بياناتك.'),
+                  SizedBox(height: 8),
+                  Text(
+                    'أغلق التطبيق وأعد فتحه. إذا استمرت المشكلة، تحقق من مساحة التخزين.',
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 }

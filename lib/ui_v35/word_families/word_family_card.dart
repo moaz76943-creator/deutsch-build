@@ -36,7 +36,9 @@ class WordFamilyCard extends StatelessWidget {
                       base?.concept.lemma ?? family.familyId,
                       semanticRole: LinguisticSemanticRole.word,
                     ),
-                    style: Theme.of(context).textTheme.titleLarge
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -153,9 +155,9 @@ class WordFamilyCard extends StatelessWidget {
       };
 
   String _distanceLabel(GermanSemanticDistance distance) => switch (distance) {
-    GermanSemanticDistance.low => 'قرب دلالي: منخفض',
-    GermanSemanticDistance.medium => 'قرب دلالي: متوسط',
-    GermanSemanticDistance.high => 'قرب دلالي: بعيد',
-    GermanSemanticDistance.unknown => 'قرب دلالي: غير معروف',
-  };
+        GermanSemanticDistance.low => 'قرب دلالي: منخفض',
+        GermanSemanticDistance.medium => 'قرب دلالي: متوسط',
+        GermanSemanticDistance.high => 'قرب دلالي: بعيد',
+        GermanSemanticDistance.unknown => 'قرب دلالي: غير معروف',
+      };
 }

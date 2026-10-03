@@ -94,9 +94,8 @@ final class AppSqlitePolicy {
     );
 
     final foreignKeyRows = await database.rawQuery('PRAGMA foreign_keys');
-    final foreignKeyValue = foreignKeyRows.isEmpty
-        ? null
-        : foreignKeyRows.first.values.first;
+    final foreignKeyValue =
+        foreignKeyRows.isEmpty ? null : foreignKeyRows.first.values.first;
     final expected = foreignKeys ? 1 : 0;
     if (foreignKeyValue != expected) {
       throw const SqlitePolicyException('foreign_key_policy_not_applied');

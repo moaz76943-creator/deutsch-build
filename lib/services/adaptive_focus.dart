@@ -9,9 +9,8 @@ class AdaptiveFocus {
     ReviewCard? reviewCard,
     DateTime? now,
   }) {
-    final rows = attempts
-        .where((a) => a.itemId == itemId)
-        .toList(growable: false);
+    final rows =
+        attempts.where((a) => a.itemId == itemId).toList(growable: false);
     return dimensionForRows(itemId, rows, reviewCard: reviewCard, now: now);
   }
 
