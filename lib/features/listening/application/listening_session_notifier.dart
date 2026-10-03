@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../domain/audio_services.dart';
@@ -60,10 +62,18 @@ class ListeningSessionNotifier extends ChangeNotifier {
     if (drill.type != ListeningDrillType.multipleChoice) {
       throw StateError('Current listening drill is not multiple choice.');
     }
-    final option = drill.options.where((item) => item.id == optionId).firstOrNull;
+
+    ListeningOption? option;
+    for (final candidate in drill.options) {
+      if (candidate.id == optionId) {
+        option = candidate;
+        break;
+      }
+    }
     if (option == null) {
       throw ArgumentError.value(optionId, 'optionId', 'Unknown option.');
     }
+
     return _recordAnswer(
       answer: option.id,
       expected: drill.correctOptionId!,
@@ -160,7 +170,7 @@ class ListeningSessionNotifier extends ChangeNotifier {
 
   @override
   void dispose() {
-    _player.stop();
+    unawaited(_player.stop());
     super.dispose();
   }
 }
