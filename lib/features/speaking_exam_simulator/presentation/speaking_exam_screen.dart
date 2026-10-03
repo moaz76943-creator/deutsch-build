@@ -1,20 +1,14 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-
 import '../../../design_system/design_system.dart';
 import '../application/speaking_exam_notifier.dart';
 import '../domain/speaking_exam_models.dart';
-
 final class SpeakingExamScreen extends StatefulWidget {
   const SpeakingExamScreen({required this.notifier, super.key});
-
   final SpeakingExamNotifier notifier;
-
   @override
   State<SpeakingExamScreen> createState() => _SpeakingExamScreenState();
 }
-
 final class _SpeakingExamScreenState extends State<SpeakingExamScreen> {
   @override
   void initState() {
@@ -24,7 +18,6 @@ final class _SpeakingExamScreenState extends State<SpeakingExamScreen> {
       unawaited(widget.notifier.load());
     }
   }
-
   @override
   Widget build(BuildContext context) => Directionality(
         textDirection: TextDirection.rtl,
@@ -85,12 +78,9 @@ final class _SpeakingExamScreenState extends State<SpeakingExamScreen> {
         ),
       );
 }
-
 final class _FilterBar extends StatelessWidget {
   const _FilterBar({required this.notifier});
-
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderColor: AppColors.secondary.withAlpha(80),
@@ -155,18 +145,15 @@ final class _FilterBar extends StatelessWidget {
         ),
       );
 }
-
 final class _FilterButton extends StatelessWidget {
   const _FilterButton({
     required this.label,
     required this.selected,
     required this.onTap,
   });
-
   final String label;
   final bool selected;
   final VoidCallback onTap;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         onTap: onTap,
@@ -188,16 +175,13 @@ final class _FilterButton extends StatelessWidget {
         ),
       );
 }
-
 final class _ScenarioHeader extends StatelessWidget {
   const _ScenarioHeader({
     required this.scenario,
     required this.notifier,
   });
-
   final SpeakingExamScenario scenario;
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderColor: AppColors.primary.withAlpha(90),
@@ -238,13 +222,10 @@ final class _ScenarioHeader extends StatelessWidget {
         ),
       );
 }
-
 final class _Badge extends StatelessWidget {
   const _Badge({required this.text, required this.color});
-
   final String text;
   final Color color;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderRadius: 16,
@@ -261,12 +242,9 @@ final class _Badge extends StatelessWidget {
         ),
       );
 }
-
 final class _TimerCard extends StatelessWidget {
   const _TimerCard({required this.notifier});
-
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) {
     final phase = notifier.currentPhase;
@@ -281,11 +259,9 @@ final class _TimerCard extends StatelessWidget {
         ),
       );
     }
-
     final timerColor = notifier.secondsRemaining <= 30
         ? Theme.of(context).colorScheme.error
         : AppColors.tertiary;
-
     return AppGlassCard(
       borderColor: AppColors.tertiary.withAlpha(100),
       glowColor: notifier.isRunning ? AppColors.tertiary : null,
@@ -365,12 +341,9 @@ final class _TimerCard extends StatelessWidget {
     );
   }
 }
-
 final class _PhaseStrip extends StatelessWidget {
   const _PhaseStrip({required this.notifier});
-
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) {
     final phases =
@@ -404,18 +377,15 @@ final class _PhaseStrip extends StatelessWidget {
     );
   }
 }
-
 final class _PhasePill extends StatelessWidget {
   const _PhasePill({
     required this.label,
     required this.current,
     required this.completed,
   });
-
   final String label;
   final bool current;
   final bool completed;
-
   @override
   Widget build(BuildContext context) {
     final color = completed
@@ -451,12 +421,9 @@ final class _PhasePill extends StatelessWidget {
     );
   }
 }
-
 final class _GuidanceCard extends StatelessWidget {
   const _GuidanceCard({required this.notifier});
-
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) {
     final phase = notifier.currentPhase;
@@ -482,12 +449,9 @@ final class _GuidanceCard extends StatelessWidget {
     );
   }
 }
-
 final class _PresentationCard extends StatelessWidget {
   const _PresentationCard({required this.scenario});
-
   final SpeakingExamScenario scenario;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderColor: AppColors.primary.withAlpha(80),
@@ -540,16 +504,13 @@ final class _PresentationCard extends StatelessWidget {
         ),
       );
 }
-
 final class _DebateCard extends StatelessWidget {
   const _DebateCard({
     required this.scenario,
     required this.notifier,
   });
-
   final SpeakingExamScenario scenario;
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderColor: AppColors.achievement.withAlpha(85),
@@ -638,7 +599,6 @@ final class _DebateCard extends StatelessWidget {
         ),
       );
 }
-
 final class _StanceButton extends StatelessWidget {
   const _StanceButton({
     required this.label,
@@ -646,12 +606,10 @@ final class _StanceButton extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
-
   final String label;
   final bool selected;
   final Color color;
   final VoidCallback onTap;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         onTap: onTap,
@@ -669,18 +627,15 @@ final class _StanceButton extends StatelessWidget {
         ),
       );
 }
-
 final class _ArgumentList extends StatelessWidget {
   const _ArgumentList({
     required this.title,
     required this.items,
     required this.color,
   });
-
   final String title;
   final List<String> items;
   final Color color;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderRadius: 18,
@@ -707,12 +662,9 @@ final class _ArgumentList extends StatelessWidget {
         ),
       );
 }
-
 final class _PlanningAndQuestionsCard extends StatelessWidget {
   const _PlanningAndQuestionsCard({required this.scenario});
-
   final SpeakingExamScenario scenario;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderColor: AppColors.secondary.withAlpha(85),
@@ -780,12 +732,9 @@ final class _PlanningAndQuestionsCard extends StatelessWidget {
         ),
       );
 }
-
 final class _GermanPill extends StatelessWidget {
   const _GermanPill({required this.text});
-
   final String text;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderRadius: 14,
@@ -798,18 +747,15 @@ final class _GermanPill extends StatelessWidget {
         ),
       );
 }
-
 final class _SectionTitle extends StatelessWidget {
   const _SectionTitle({
     required this.icon,
     required this.title,
     required this.color,
   });
-
   final IconData icon;
   final String title;
   final Color color;
-
   @override
   Widget build(BuildContext context) => Row(
         children: <Widget>[
@@ -825,12 +771,9 @@ final class _SectionTitle extends StatelessWidget {
         ],
       );
 }
-
 final class _NavigationCard extends StatelessWidget {
   const _NavigationCard({required this.notifier});
-
   final SpeakingExamNotifier notifier;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         child: Wrap(
@@ -866,12 +809,9 @@ final class _NavigationCard extends StatelessWidget {
         ),
       );
 }
-
 final class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.onRetry});
-
   final VoidCallback onRetry;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         child: Column(
