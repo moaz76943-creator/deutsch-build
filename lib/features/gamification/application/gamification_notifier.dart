@@ -35,7 +35,7 @@ final class GamificationViewState {
   });
 
   final UserStreak streak;
-  final UserProgressLevel progress;
+  final UserXpRecord progress;
   final List<AchievementBadge> badges;
   final Map<String, double> badgeProgress;
 
@@ -46,7 +46,7 @@ final class GamificationViewState {
     }
     return GamificationViewState(
       streak: snapshot.userStreak,
-      progress: snapshot.userProgressLevel,
+      progress: snapshot.userXpRecord,
       badges: snapshot.achievementBadges,
       badgeProgress: Map<String, double>.unmodifiable(progress),
     );
@@ -107,6 +107,39 @@ final class GamificationNotifier {
     _snapshot = snapshot;
     return GamificationViewState.fromSnapshot(snapshot);
   }
+
+  Future<GamificationUpdate> completeExercise({
+    required String activityId,
+    required DateTime completedAtUtc,
+    required int earnedXp,
+    required int timezoneOffsetMinutes,
+    bool useStreakFreeze = false,
+  }) =>
+      completeSession(
+        sessionId: activityId,
+        completedAtUtc: completedAtUtc,
+        earnedXp: earnedXp,
+        timezoneOffsetMinutes: timezoneOffsetMinutes,
+        useStreakFreeze: useStreakFreeze,
+        facetType: ReviewFacetType.meaningRecall,
+      );
+
+  Future<GamificationUpdate> completeCardReview({
+    required String activityId,
+    required DateTime completedAtUtc,
+    required int earnedXp,
+    required int timezoneOffsetMinutes,
+    bool useStreakFreeze = false,
+    ReviewFacetType facetType = ReviewFacetType.meaningRecall,
+  }) =>
+      completeSession(
+        sessionId: activityId,
+        completedAtUtc: completedAtUtc,
+        earnedXp: earnedXp,
+        timezoneOffsetMinutes: timezoneOffsetMinutes,
+        useStreakFreeze: useStreakFreeze,
+        facetType: facetType,
+      );
 
   Future<GamificationUpdate> completeSession({
     required String sessionId,
