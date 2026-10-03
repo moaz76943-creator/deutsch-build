@@ -7,10 +7,7 @@ import '../application/speaking_exam_notifier.dart';
 import '../domain/speaking_exam_models.dart';
 
 final class SpeakingExamScreen extends StatefulWidget {
-  const SpeakingExamScreen({
-    required this.notifier,
-    super.key,
-  });
+  const SpeakingExamScreen({required this.notifier, super.key});
 
   final SpeakingExamNotifier notifier;
 
@@ -44,11 +41,9 @@ final class _SpeakingExamScreenState extends State<SpeakingExamScreen> {
               builder: (context, _) {
                 final notifier = widget.notifier;
                 final scenario = notifier.currentScenario;
-
                 if (notifier.isLoading && scenario == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 return SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 36),
                   child: scenario == null
@@ -69,7 +64,7 @@ final class _SpeakingExamScreenState extends State<SpeakingExamScreen> {
                             const SizedBox(height: 14),
                             _PhaseStrip(notifier: notifier),
                             const SizedBox(height: 14),
-                            _PhaseGuidance(notifier: notifier),
+                            _GuidanceCard(notifier: notifier),
                             const SizedBox(height: 14),
                             _PresentationCard(scenario: scenario),
                             const SizedBox(height: 14),
@@ -78,11 +73,9 @@ final class _SpeakingExamScreenState extends State<SpeakingExamScreen> {
                               notifier: notifier,
                             ),
                             const SizedBox(height: 14),
-                            _PlanningCard(scenario: scenario),
+                            _PlanningAndQuestionsCard(scenario: scenario),
                             const SizedBox(height: 14),
-                            _PartnerQuestionsCard(scenario: scenario),
-                            const SizedBox(height: 14),
-                            _BottomActions(notifier: notifier),
+                            _NavigationCard(notifier: notifier),
                           ],
                         ),
                 );
@@ -114,58 +107,45 @@ final class _FilterBar extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: <Widget>[
-                _FilterChip(
+                _FilterButton(
                   label: 'Goethe B1',
-                  selected:
-                      notifier.providerFilter == ExamProvider.goethe &&
+                  selected: notifier.providerFilter == ExamProvider.goethe &&
                       notifier.levelFilter == ExamLevel.b1,
-                  onTap: () => unawaited(
-                    notifier.applyFilter(
-                      provider: ExamProvider.goethe,
-                      level: ExamLevel.b1,
-                    ),
-                  ),
+                  onTap: () => unawaited(notifier.applyFilter(
+                    provider: ExamProvider.goethe,
+                    level: ExamLevel.b1,
+                  )),
                 ),
-                _FilterChip(
+                _FilterButton(
                   label: 'Goethe B2',
-                  selected:
-                      notifier.providerFilter == ExamProvider.goethe &&
+                  selected: notifier.providerFilter == ExamProvider.goethe &&
                       notifier.levelFilter == ExamLevel.b2,
-                  onTap: () => unawaited(
-                    notifier.applyFilter(
-                      provider: ExamProvider.goethe,
-                      level: ExamLevel.b2,
-                    ),
-                  ),
+                  onTap: () => unawaited(notifier.applyFilter(
+                    provider: ExamProvider.goethe,
+                    level: ExamLevel.b2,
+                  )),
                 ),
-                _FilterChip(
+                _FilterButton(
                   label: 'telc B1',
-                  selected:
-                      notifier.providerFilter == ExamProvider.telc &&
+                  selected: notifier.providerFilter == ExamProvider.telc &&
                       notifier.levelFilter == ExamLevel.b1,
-                  onTap: () => unawaited(
-                    notifier.applyFilter(
-                      provider: ExamProvider.telc,
-                      level: ExamLevel.b1,
-                    ),
-                  ),
+                  onTap: () => unawaited(notifier.applyFilter(
+                    provider: ExamProvider.telc,
+                    level: ExamLevel.b1,
+                  )),
                 ),
-                _FilterChip(
+                _FilterButton(
                   label: 'telc B2',
-                  selected:
-                      notifier.providerFilter == ExamProvider.telc &&
+                  selected: notifier.providerFilter == ExamProvider.telc &&
                       notifier.levelFilter == ExamLevel.b2,
-                  onTap: () => unawaited(
-                    notifier.applyFilter(
-                      provider: ExamProvider.telc,
-                      level: ExamLevel.b2,
-                    ),
-                  ),
+                  onTap: () => unawaited(notifier.applyFilter(
+                    provider: ExamProvider.telc,
+                    level: ExamLevel.b2,
+                  )),
                 ),
-                _FilterChip(
+                _FilterButton(
                   label: 'الكل',
-                  selected:
-                      notifier.providerFilter == null &&
+                  selected: notifier.providerFilter == null &&
                       notifier.levelFilter == null,
                   onTap: () => unawaited(notifier.load()),
                 ),
@@ -176,8 +156,8 @@ final class _FilterBar extends StatelessWidget {
       );
 }
 
-final class _FilterChip extends StatelessWidget {
-  const _FilterChip({
+final class _FilterButton extends StatelessWidget {
+  const _FilterButton({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -192,13 +172,14 @@ final class _FilterChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: 18,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        borderColor: selected
-            ? AppColors.secondary
-            : Theme.of(context).dividerColor,
+        borderColor:
+            selected ? AppColors.secondary : Theme.of(context).dividerColor,
         glowColor: selected ? AppColors.secondary : null,
         child: Text(
           label,
-          textDirection: TextDirection.ltr,
+          textDirection: label == 'الكل'
+              ? TextDirection.rtl
+              : TextDirection.ltr,
           style: AppTypography.label.copyWith(
             color: selected
                 ? AppColors.secondary
@@ -229,14 +210,8 @@ final class _ScenarioHeader extends StatelessWidget {
               runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
-                _Badge(
-                  text: scenario.providerLabel,
-                  color: AppColors.primary,
-                ),
-                _Badge(
-                  text: scenario.levelLabel,
-                  color: AppColors.achievement,
-                ),
+                _Badge(text: scenario.providerLabel, color: AppColors.primary),
+                _Badge(text: scenario.levelLabel, color: AppColors.achievement),
                 Text(
                   'سيناريو ' +
                       (notifier.scenarioIndex + 1).toString() +
@@ -251,9 +226,7 @@ final class _ScenarioHeader extends StatelessWidget {
             Text(
               scenario.topicDe,
               textDirection: TextDirection.ltr,
-              style: AppTypography.title.copyWith(
-                color: AppColors.primary,
-              ),
+              style: AppTypography.title.copyWith(color: AppColors.primary),
             ),
             const SizedBox(height: 6),
             Text(
@@ -267,10 +240,7 @@ final class _ScenarioHeader extends StatelessWidget {
 }
 
 final class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.text,
-    required this.color,
-  });
+  const _Badge({required this.text, required this.color});
 
   final String text;
   final Color color;
@@ -305,14 +275,16 @@ final class _TimerCard extends StatelessWidget {
         borderColor: AppColors.mastery.withAlpha(100),
         glowColor: AppColors.mastery,
         child: Text(
-          'اكتملت المحاكاة. راجع ملاحظاتك ثم ابدأ سيناريو جديداً.',
+          'اكتملت المحاكاة. انتقل إلى سيناريو جديد أو راجع إجاباتك.',
           textDirection: TextDirection.rtl,
-          style: AppTypography.title.copyWith(
-            color: AppColors.mastery,
-          ),
+          style: AppTypography.title.copyWith(color: AppColors.mastery),
         ),
       );
     }
+
+    final timerColor = notifier.secondsRemaining <= 30
+        ? Theme.of(context).colorScheme.error
+        : AppColors.tertiary;
 
     return AppGlassCard(
       borderColor: AppColors.tertiary.withAlpha(100),
@@ -334,7 +306,6 @@ final class _TimerCard extends StatelessWidget {
                     textDirection: TextDirection.ltr,
                     style: AppTypography.title,
                   ),
-                  const SizedBox(height: 3),
                   Text(
                     phase.titleAr,
                     textDirection: TextDirection.rtl,
@@ -345,12 +316,7 @@ final class _TimerCard extends StatelessWidget {
               Text(
                 notifier.formattedRemaining,
                 textDirection: TextDirection.ltr,
-                style: AppTypography.display.copyWith(
-                  color: notifier.secondsRemaining <= 30
-                      ? Theme.of(context).colorScheme.error
-                      : AppColors.tertiary,
-                  fontFeatures: const <FontFeature>[],
-                ),
+                style: AppTypography.display.copyWith(color: timerColor),
               ),
             ],
           ),
@@ -372,9 +338,8 @@ final class _TimerCard extends StatelessWidget {
             runSpacing: 8,
             children: <Widget>[
               FilledButton.icon(
-                onPressed: notifier.isRunning
-                    ? notifier.pauseTimer
-                    : notifier.startTimer,
+                onPressed:
+                    notifier.isRunning ? notifier.pauseTimer : notifier.startTimer,
                 icon: Icon(
                   notifier.isRunning
                       ? Icons.pause_rounded
@@ -408,9 +373,8 @@ final class _PhaseStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final phases = notifier.currentScenario?.phases ??
-        const <SpeakingPhaseConfig>[];
-
+    final phases =
+        notifier.currentScenario?.phases ?? const <SpeakingPhaseConfig>[];
     return AppGlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -427,12 +391,11 @@ final class _PhaseStrip extends StatelessWidget {
             children: <Widget>[
               for (var index = 0; index < phases.length; index++)
                 _PhasePill(
-                  phase: phases[index],
-                  index: index,
+                  label: (index + 1).toString() + '. ' + phases[index].titleDe,
                   current: index == notifier.currentPhaseIndex &&
                       !notifier.isCompleted,
-                  completed: notifier.isCompleted ||
-                      index < notifier.currentPhaseIndex,
+                  completed:
+                      notifier.isCompleted || index < notifier.currentPhaseIndex,
                 ),
             ],
           ),
@@ -444,30 +407,27 @@ final class _PhaseStrip extends StatelessWidget {
 
 final class _PhasePill extends StatelessWidget {
   const _PhasePill({
-    required this.phase,
-    required this.index,
+    required this.label,
     required this.current,
     required this.completed,
   });
 
-  final SpeakingPhaseConfig phase;
-  final int index;
+  final String label;
   final bool current;
   final bool completed;
 
   @override
   Widget build(BuildContext context) {
-    final accent = completed
+    final color = completed
         ? AppColors.mastery
         : current
             ? AppColors.tertiary
             : Theme.of(context).colorScheme.outline;
-
     return AppGlassCard(
       borderRadius: 16,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      borderColor: accent.withAlpha(100),
-      glowColor: current ? accent : null,
+      borderColor: color.withAlpha(100),
+      glowColor: current ? color : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -478,13 +438,13 @@ final class _PhasePill extends StatelessWidget {
                     ? Icons.timer_outlined
                     : Icons.circle_outlined,
             size: 16,
-            color: accent,
+            color: color,
           ),
           const SizedBox(width: 6),
           Text(
-            (index + 1).toString() + '. ' + phase.titleDe,
+            label,
             textDirection: TextDirection.ltr,
-            style: AppTypography.label.copyWith(color: accent),
+            style: AppTypography.label.copyWith(color: color),
           ),
         ],
       ),
@@ -492,8 +452,8 @@ final class _PhasePill extends StatelessWidget {
   }
 }
 
-final class _PhaseGuidance extends StatelessWidget {
-  const _PhaseGuidance({required this.notifier});
+final class _GuidanceCard extends StatelessWidget {
+  const _GuidanceCard({required this.notifier});
 
   final SpeakingExamNotifier notifier;
 
@@ -501,7 +461,6 @@ final class _PhaseGuidance extends StatelessWidget {
   Widget build(BuildContext context) {
     final phase = notifier.currentPhase;
     if (phase == null) return const SizedBox.shrink();
-
     return AppGlassCard(
       borderColor: AppColors.secondary.withAlpha(90),
       child: Column(
@@ -510,9 +469,7 @@ final class _PhaseGuidance extends StatelessWidget {
           Text(
             'ماذا تفعل الآن؟',
             textDirection: TextDirection.rtl,
-            style: AppTypography.title.copyWith(
-              color: AppColors.secondary,
-            ),
+            style: AppTypography.title.copyWith(color: AppColors.secondary),
           ),
           const SizedBox(height: 8),
           Text(
@@ -537,10 +494,10 @@ final class _PresentationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            _SectionTitle(
+            const _SectionTitle(
               icon: Icons.record_voice_over_outlined,
-              titleAr: 'بطاقة العرض',
-              accent: AppColors.primary,
+              title: 'بطاقة العرض',
+              color: AppColors.primary,
             ),
             const SizedBox(height: 10),
             Text(
@@ -552,50 +509,32 @@ final class _PresentationCard extends StatelessWidget {
             for (var index = 0;
                 index < scenario.presentationPointsDe.length;
                 index++) ...<Widget>[
-              _BiDiBullet(
-                de: scenario.presentationPointsDe[index],
-                ar: index < scenario.presentationPointsAr.length
-                    ? scenario.presentationPointsAr[index]
-                    : '',
+              AppGlassCard(
+                borderRadius: 16,
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      '• ' + scenario.presentationPointsDe[index],
+                      textDirection: TextDirection.ltr,
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (index < scenario.presentationPointsAr.length) ...<Widget>[
+                      const SizedBox(height: 4),
+                      Text(
+                        scenario.presentationPointsAr[index],
+                        textDirection: TextDirection.rtl,
+                        style: AppTypography.label,
+                      ),
+                    ],
+                  ],
+                ),
               ),
               if (index != scenario.presentationPointsDe.length - 1)
                 const SizedBox(height: 8),
-            ],
-          ],
-        ),
-      );
-}
-
-final class _BiDiBullet extends StatelessWidget {
-  const _BiDiBullet({
-    required this.de,
-    required this.ar,
-  });
-
-  final String de;
-  final String ar;
-
-  @override
-  Widget build(BuildContext context) => AppGlassCard(
-        borderRadius: 16,
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              '• ' + de,
-              textDirection: TextDirection.ltr,
-              style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            if (ar.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 4),
-              Text(
-                ar,
-                textDirection: TextDirection.rtl,
-                style: AppTypography.label,
-              ),
             ],
           ],
         ),
@@ -617,10 +556,10 @@ final class _DebateCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            _SectionTitle(
+            const _SectionTitle(
               icon: Icons.forum_outlined,
-              titleAr: 'بطاقة النقاش والمناظرة',
-              accent: AppColors.achievement,
+              title: 'بطاقة النقاش والمناظرة',
+              color: AppColors.achievement,
             ),
             const SizedBox(height: 10),
             Text(
@@ -636,13 +575,7 @@ final class _DebateCard extends StatelessWidget {
               textDirection: TextDirection.rtl,
               style: AppTypography.body,
             ),
-            const SizedBox(height: 14),
-            Text(
-              'اختر موقفك قبل بدء النقاش',
-              textDirection: TextDirection.rtl,
-              style: AppTypography.label,
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -672,19 +605,17 @@ final class _DebateCard extends StatelessWidget {
             const SizedBox(height: 14),
             LayoutBuilder(
               builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 560;
-                final pro = _ArgumentColumn(
+                final pro = _ArgumentList(
                   title: 'Dafür',
-                  arguments: scenario.proArgumentsDe,
-                  accent: AppColors.mastery,
+                  items: scenario.proArgumentsDe,
+                  color: AppColors.mastery,
                 );
-                final contra = _ArgumentColumn(
+                final contra = _ArgumentList(
                   title: 'Dagegen',
-                  arguments: scenario.contraArgumentsDe,
-                  accent: AppColors.tertiary,
+                  items: scenario.contraArgumentsDe,
+                  color: AppColors.tertiary,
                 );
-
-                if (!wide) {
+                if (constraints.maxWidth < 560) {
                   return Column(
                     children: <Widget>[
                       pro,
@@ -693,7 +624,6 @@ final class _DebateCard extends StatelessWidget {
                     ],
                   );
                 }
-
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -733,43 +663,42 @@ final class _StanceButton extends StatelessWidget {
           label,
           textDirection: TextDirection.ltr,
           style: AppTypography.label.copyWith(
-            color: selected
-                ? color
-                : Theme.of(context).colorScheme.onSurface,
+            color:
+                selected ? color : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       );
 }
 
-final class _ArgumentColumn extends StatelessWidget {
-  const _ArgumentColumn({
+final class _ArgumentList extends StatelessWidget {
+  const _ArgumentList({
     required this.title,
-    required this.arguments,
-    required this.accent,
+    required this.items,
+    required this.color,
   });
 
   final String title;
-  final List<String> arguments;
-  final Color accent;
+  final List<String> items;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => AppGlassCard(
         borderRadius: 18,
-        borderColor: accent.withAlpha(90),
+        borderColor: color.withAlpha(90),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Text(
               title,
               textDirection: TextDirection.ltr,
-              style: AppTypography.title.copyWith(color: accent),
+              style: AppTypography.title.copyWith(color: color),
             ),
             const SizedBox(height: 8),
-            for (final argument in arguments)
+            for (final item in items)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
-                  '• ' + argument,
+                  '• ' + item,
                   textDirection: TextDirection.ltr,
                   style: AppTypography.body,
                 ),
@@ -779,8 +708,8 @@ final class _ArgumentColumn extends StatelessWidget {
       );
 }
 
-final class _PlanningCard extends StatelessWidget {
-  const _PlanningCard({required this.scenario});
+final class _PlanningAndQuestionsCard extends StatelessWidget {
+  const _PlanningAndQuestionsCard({required this.scenario});
 
   final SpeakingExamScenario scenario;
 
@@ -790,10 +719,10 @@ final class _PlanningCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            _SectionTitle(
+            const _SectionTitle(
               icon: Icons.handshake_outlined,
-              titleAr: 'مهمة التخطيط المشترك',
-              accent: AppColors.secondary,
+              title: 'التخطيط المشترك',
+              color: AppColors.secondary,
             ),
             const SizedBox(height: 10),
             Text(
@@ -801,70 +730,33 @@ final class _PlanningCard extends StatelessWidget {
               textDirection: TextDirection.ltr,
               style: AppTypography.title,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               scenario.planningTaskAr,
               textDirection: TextDirection.rtl,
               style: AppTypography.body,
             ),
             const SizedBox(height: 12),
-            const _PhraseBank(),
-          ],
-        ),
-      );
-}
-
-final class _PhraseBank extends StatelessWidget {
-  const _PhraseBank();
-
-  @override
-  Widget build(BuildContext context) {
-    const phrases = <String>[
-      'Ich schlage vor, dass …',
-      'Wie wäre es, wenn …?',
-      'Da stimme ich dir zu.',
-      'Ich sehe das etwas anders.',
-      'Könnten wir stattdessen …?',
-      'Dann einigen wir uns auf …',
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: <Widget>[
-        for (final phrase in phrases)
-          AppGlassCard(
-            borderRadius: 14,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 7,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final phrase in const <String>[
+                  'Ich schlage vor, dass …',
+                  'Wie wäre es, wenn …?',
+                  'Da stimme ich dir zu.',
+                  'Ich sehe das etwas anders.',
+                  'Könnten wir stattdessen …?',
+                  'Dann einigen wir uns auf …',
+                ])
+                  _GermanPill(text: phrase),
+              ],
             ),
-            borderColor: AppColors.secondary.withAlpha(70),
-            child: Text(
-              phrase,
-              textDirection: TextDirection.ltr,
-              style: AppTypography.label,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-final class _PartnerQuestionsCard extends StatelessWidget {
-  const _PartnerQuestionsCard({required this.scenario});
-
-  final SpeakingExamScenario scenario;
-
-  @override
-  Widget build(BuildContext context) => AppGlassCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            _SectionTitle(
+            const SizedBox(height: 16),
+            const _SectionTitle(
               icon: Icons.question_answer_outlined,
-              titleAr: 'أسئلة الشريك',
-              accent: AppColors.tertiary,
+              title: 'أسئلة الشريك',
+              color: AppColors.tertiary,
             ),
             const SizedBox(height: 10),
             for (var index = 0;
@@ -889,35 +781,53 @@ final class _PartnerQuestionsCard extends StatelessWidget {
       );
 }
 
+final class _GermanPill extends StatelessWidget {
+  const _GermanPill({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => AppGlassCard(
+        borderRadius: 14,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        borderColor: AppColors.secondary.withAlpha(70),
+        child: Text(
+          text,
+          textDirection: TextDirection.ltr,
+          style: AppTypography.label,
+        ),
+      );
+}
+
 final class _SectionTitle extends StatelessWidget {
   const _SectionTitle({
     required this.icon,
-    required this.titleAr,
-    required this.accent,
+    required this.title,
+    required this.color,
   });
 
   final IconData icon;
-  final String titleAr;
-  final Color accent;
+  final String title;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => Row(
         children: <Widget>[
-          Icon(icon, color: accent),
+          Icon(icon, color: color),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              titleAr,
+              title,
               textDirection: TextDirection.rtl,
-              style: AppTypography.title.copyWith(color: accent),
+              style: AppTypography.title.copyWith(color: color),
             ),
           ),
         ],
       );
 }
 
-final class _BottomActions extends StatelessWidget {
-  const _BottomActions({required this.notifier});
+final class _NavigationCard extends StatelessWidget {
+  const _NavigationCard({required this.notifier});
 
   final SpeakingExamNotifier notifier;
 
@@ -940,18 +850,15 @@ final class _BottomActions extends StatelessWidget {
               ),
             ),
             FilledButton.icon(
-              onPressed: notifier.isCompleted
-                  ? notifier.nextScenario
-                  : notifier.nextPhase,
+              onPressed:
+                  notifier.isCompleted ? notifier.nextScenario : notifier.nextPhase,
               icon: Icon(
                 notifier.isCompleted
                     ? Icons.skip_next_rounded
                     : Icons.arrow_back_rounded,
               ),
               label: Text(
-                notifier.isCompleted
-                    ? 'سيناريو جديد'
-                    : 'المرحلة التالية',
+                notifier.isCompleted ? 'سيناريو جديد' : 'المرحلة التالية',
                 textDirection: TextDirection.rtl,
               ),
             ),
