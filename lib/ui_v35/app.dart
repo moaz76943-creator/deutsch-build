@@ -603,6 +603,15 @@ class _HomeState extends State<HomeV35> {
           ),
           _featureCard(
             c,
+            'الصيدلية والأدوية',
+            'مواقف عملية للوصفات والاستشارة والجرعات داخل الصيدلية',
+            Icons.local_pharmacy_outlined,
+            () => Navigator.of(c).push(
+              widget.dependencies.pharmacyMedicationModuleFactory.createRoute(),
+            ),
+          ),
+          _featureCard(
+            c,
             'مركز القواعد',
             'القواعد النحوية من A1 إلى C2',
             Icons.rule_outlined,
