@@ -8,6 +8,7 @@ import '../language/german/german_word_family_repository.dart';
 import '../features/audio/domain/services/i_audio_runtime.dart';
 import '../features/pronunciation/domain/services/pronunciation_signal_probe.dart';
 import '../features/gamification/gamification_repository.dart';
+import '../features/app_settings/application/settings_controller.dart';
 import 'search_index.dart';
 import 'ai_gateway.dart';
 import 'verb_index.dart';
@@ -31,6 +32,7 @@ final class AppDependencies<T extends LearningContent> {
     required this.favoritesRepository,
     required this.preferencesService,
     required this.grammarHubService,
+    this.settingsController = const UnavailableSettingsController(),
     this.gamificationRepository = const UnavailableGamificationRepository(),
     this.audioRuntime = const UnavailableAudioRuntime(),
     this.sourceAudioRuntime = const UnavailableAudioRuntime(),
@@ -51,6 +53,7 @@ final class AppDependencies<T extends LearningContent> {
   final FavoritesRepository favoritesRepository;
   final PreferencesService preferencesService;
   final GrammarHubRepository grammarHubService;
+  final SettingsController settingsController;
   final GamificationRepository gamificationRepository;
   final IAudioRuntime audioRuntime;
   final IAudioRuntime sourceAudioRuntime;

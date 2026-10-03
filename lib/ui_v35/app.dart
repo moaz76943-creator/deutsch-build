@@ -10,6 +10,7 @@ import '../models/learner.dart';
 import '../features/gamification/domain/gamification_models.dart';
 import '../features/dashboard/application/dashboard_analytics_builder.dart';
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
+import '../features/app_settings/presentation/app_settings_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
 import '../services/progress_snapshot_service.dart';
@@ -33,6 +34,29 @@ Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
       child: child ?? const SizedBox.shrink(),
     );
 
+final class _PreferenceTextScaler extends TextScaler {
+  const _PreferenceTextScaler(this.base, this.factor);
+
+  final TextScaler base;
+  final double factor;
+
+  @override
+  double scale(double fontSize) => base.scale(fontSize) * factor;
+
+  @override
+  double get textScaleFactor => scale(14) / 14;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _PreferenceTextScaler &&
+          other.base == base &&
+          other.factor == factor;
+
+  @override
+  int get hashCode => Object.hash(base, factor);
+}
+
 class DeutschAppV35 extends StatefulWidget {
   final LearnerRepository repo;
   final AuthSessionController auth;
@@ -55,12 +79,16 @@ class _AppState extends State<DeutschAppV35> {
     widget.dependencies.audioRuntime.shutdown();
     widget.dependencies.sourceAudioRuntime.shutdown();
     widget.dependencies.gamificationRepository.close();
+    widget.dependencies.settingsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext c) => ListenableBuilder(
-        listenable: widget.dependencies.neuroSettings,
+        listenable: Listenable.merge(<Listenable>[
+          widget.dependencies.neuroSettings,
+          widget.dependencies.settingsController,
+        ]),
         builder: (context, child) {
           final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
 
@@ -80,7 +108,20 @@ class _AppState extends State<DeutschAppV35> {
               themeMode: dark ? ThemeMode.dark : ThemeMode.light,
               theme: lightTheme,
               darkTheme: darkTheme,
-              builder: rtlAppBuilder,
+              builder: (builderContext, child) {
+                final media = MediaQuery.of(builderContext);
+                final scale = widget
+                    .dependencies.settingsController.preferences.textScaleFactor;
+                return Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: MediaQuery(
+                    data: media.copyWith(
+                      textScaler: _PreferenceTextScaler(media.textScaler, scale),
+                    ),
+                    child: child ?? const SizedBox.shrink(),
+                  ),
+                );
+              },
               home: HomeV35(
                 repo: widget.repo,
                 auth: widget.auth,
@@ -186,11 +227,14 @@ class _HomeState extends State<HomeV35> {
                   onPressed: () => Navigator.push(
                     c,
                     MaterialPageRoute(
-                      builder: (_) => SettingsV35(
-                        repo: widget.repo,
-                        privacySettings: widget.dependencies.privacySettings,
-                        neuroSettings: widget.dependencies.neuroSettings,
-                        onCleared: refresh,
+                      builder: (_) => AppSettingsScreen(
+                        notifier: widget.dependencies.settingsController,
+                        accessibilityListenable: widget.dependencies.neuroSettings,
+                        cognitiveAccessibilityEnabled:
+                            () => widget.dependencies.neuroSettings.isEnabled,
+                        onCognitiveAccessibilityChanged:
+                            widget.dependencies.neuroSettings.setEnabled,
+                        onProgressReset: refresh,
                       ),
                     ),
                   ),
