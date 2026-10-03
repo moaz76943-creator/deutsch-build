@@ -84,6 +84,7 @@ final class EmailBuilderNotifier extends ChangeNotifier {
     final generation = ++_generation;
     _isLoading = true;
     _activeScenario = scenario;
+    _availableBlocks = const <EmailTemplateBlock>[];
     _selectedBlocks = <LetterSection, EmailTemplateBlock>{};
     _registerMismatchSections = <LetterSection>{};
     _invalidPhraseSections = <LetterSection>{};
@@ -111,7 +112,6 @@ final class EmailBuilderNotifier extends ChangeNotifier {
       );
     }
 
-    final generation = ++_generation;
     _selectedBlocks = Map<LetterSection, EmailTemplateBlock>.from(
       _selectedBlocks,
     )..[block.section] = block;
@@ -126,8 +126,7 @@ final class EmailBuilderNotifier extends ChangeNotifier {
       scenarioId: scenario.id,
       blockId: block.id,
     );
-    if (generation != _generation ||
-        _activeScenario?.id != scenario.id ||
+    if (_activeScenario?.id != scenario.id ||
         _selectedBlocks[block.section]?.id != block.id) {
       return;
     }
@@ -163,11 +162,11 @@ final class EmailBuilderNotifier extends ChangeNotifier {
 
     final ordered = _orderedSelectedBlocks();
 
-    final generation = ++_generation;
+    final fingerprint = _selectionFingerprint();
     final structurallyValid =
         await _repository.validateStructure(ordered);
-    if (generation != _generation ||
-        _activeScenario?.id != scenario.id) {
+    if (_activeScenario?.id != scenario.id ||
+        fingerprint != _selectionFingerprint()) {
       return;
     }
 
@@ -194,6 +193,12 @@ final class EmailBuilderNotifier extends ChangeNotifier {
       if (block != null) ordered.add(block);
     }
     return ordered;
+  }
+
+  String _selectionFingerprint() {
+    return LetterSection.values
+        .map((section) => _selectedBlocks[section]?.id ?? '-')
+        .join('|');
   }
 
   Future<void> _activateScenario(
