@@ -363,7 +363,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يبدي موقفًا',
       arabicUsageExplanation:
           'مفيد في النقاش المهني عند التعبير عن موقف مبرر وهادئ.',
-      trainingSentence: 'Bitte nehmen Sie kurz zu dem Vorschlag Stellung ___.',
+      trainingSentence: 'Wir sollten zu dem Vorschlag kurz Stellung ___.',
     ),
     NvvChallengeItem(
       id: 'verbesserungsvorschlag_machen',
