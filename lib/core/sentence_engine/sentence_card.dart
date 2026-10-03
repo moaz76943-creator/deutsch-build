@@ -126,14 +126,11 @@ final class _SentenceCardState extends State<SentenceCard> {
         child: AppDirectionalText(
           token.text,
           languageCode: 'de',
-          style: AppTypography.body.copyWith(
-            fontWeight: token.lexeme == null
-                ? FontWeight.w500
-                : FontWeight.w800,
-            color: token.lexeme == null
-                ? null
-                : _grammarAccent(token),
-          ),
+          style: token.lexeme == null
+              ? AppTypography.body
+              : AppTypography.label.copyWith(
+                  color: _grammarAccent(token),
+                ),
         ),
       ),
     );
