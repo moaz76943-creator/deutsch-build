@@ -5,6 +5,12 @@ import '../../models/learner.dart';
 import '../../services/grammar_hub_service.dart';
 import '../../services/app_dependencies.dart';
 import '../../core/text/directional_text.dart';
+import '../../design_system/app_colors.dart';
+import '../../design_system/app_glass_card.dart';
+import '../../design_system/app_typography.dart';
+import '../../features/grammar/data/local_grammar_drill_repository.dart';
+import '../../features/grammar/domain/grammar_drill_models.dart';
+import '../../features/grammar/presentation/screens/grammar_drill_screen.dart';
 import '../shared/text/bidi_text.dart';
 import 'grammar_topic_detail_page.dart';
 
@@ -55,6 +61,30 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
     }
   }
 
+  GrammarLevel? get _drillLevel => switch (_selectedLevel) {
+        'A1' => GrammarLevel.a1,
+        'A2' => GrammarLevel.a2,
+        'B1' => GrammarLevel.b1,
+        _ => null,
+      };
+
+  void _openInteractiveDrills() {
+    final level = _drillLevel;
+    if (level == null) return;
+    const repository = LocalGrammarDrillRepository();
+    final exercises = repository.forLevel(level);
+    if (exercises.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GrammarDrillScreen(
+          exercises: exercises,
+          levelLabel: level.code,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +119,46 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                     ),
                   );
                 }).toList(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: AppGlassCard(
+                glowColor: AppColors.primary,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.extension_rounded,
+                      color: AppColors.primary,
+                      size: 30,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'تدريب القواعد التفاعلي',
+                            style: AppTypography.title,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _drillLevel == null
+                                ? 'بنك التمارين التكيفي متاح حاليًا من A1 إلى B1.'
+                                : 'رتّب الجمل، صرّف الأفعال، وتدرّب على Akkusativ وDativ.',
+                            style: AppTypography.body,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    FilledButton(
+                      onPressed:
+                          _drillLevel == null ? null : _openInteractiveDrills,
+                      child: const Text('ابدأ'),
+                    ),
+                  ],
+                ),
               ),
             ),
             const Divider(),
