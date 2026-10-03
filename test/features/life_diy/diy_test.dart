@@ -124,7 +124,9 @@ void main() {
       expect(orchestrator.domain, DiyDomain.servicesRental);
       expect(find.textContaining('Bohrhammer'), findsWidgets);
 
-      await tester.tap(find.byKey(const ValueKey<String>('diy-size-6')));
+      final sizeSix = find.byKey(const ValueKey<String>('diy-size-6'));
+      await tester.ensureVisible(sizeSix);
+      await tester.tap(sizeSix);
       await tester.pump();
 
       expect(orchestrator.screwDiameterMm, 6);
