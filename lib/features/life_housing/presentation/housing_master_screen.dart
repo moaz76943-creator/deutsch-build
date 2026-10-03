@@ -84,7 +84,7 @@ final class _HeroCard extends StatelessWidget {
     return AppGlassCard(
       padding: HousingDesignTokens.cardPadding,
       borderRadius: HousingDesignTokens.cardRadius,
-      borderColor: AppColors.primary.withAlpha(90),
+      borderColor: AppColors.primary.withAlpha(HousingDesignTokens.heroBorderAlpha),
       glowColor: AppColors.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,7 +92,7 @@ final class _HeroCard extends StatelessWidget {
           Row(
             children: <Widget>[
               const Icon(
-                Icons.home_work_outlined,
+                Icons.home,
                 color: AppColors.primary,
                 size: HousingDesignTokens.iconM,
               ),
@@ -184,8 +184,8 @@ final class _CategoryCard extends StatelessWidget {
         children: <Widget>[
           Icon(
             category == HousingCategory.apartmentHunting
-                ? Icons.apartment_rounded
-                : Icons.handyman_outlined,
+                ? Icons.apartment
+                : Icons.build,
             color: accent,
             size: HousingDesignTokens.iconM,
           ),
@@ -245,7 +245,7 @@ final class _LevelFilter extends StatelessWidget {
                     style: AppTypography.label,
                   ),
                   selected: orchestrator.level == level,
-                  selectedColor: AppColors.primary.withAlpha(36),
+                  selectedColor: AppColors.primary.withAlpha(HousingDesignTokens.selectedFillAlpha),
                   side: BorderSide(
                     color: orchestrator.level == level
                         ? AppColors.primary
@@ -272,7 +272,7 @@ final class _QuickActionBar extends StatelessWidget {
 
     return AppGlassCard(
       padding: HousingDesignTokens.cardPadding,
-      borderColor: AppColors.tertiary.withAlpha(80),
+      borderColor: AppColors.tertiary.withAlpha(HousingDesignTokens.accentBorderAlpha),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -296,7 +296,7 @@ final class _QuickActionBar extends StatelessWidget {
                         onTap: () => orchestrator.runQuickAction(action),
                         padding: HousingDesignTokens.compactCardPadding,
                         borderRadius: HousingDesignTokens.compactCardRadius,
-                        borderColor: AppColors.tertiary.withAlpha(80),
+                        borderColor: AppColors.tertiary.withAlpha(HousingDesignTokens.accentBorderAlpha),
                         child: Row(
                           children: <Widget>[
                             Icon(
@@ -336,11 +336,11 @@ final class _QuickActionBar extends StatelessWidget {
   }
 
   IconData _quickActionIcon(HousingQuickAction action) => switch (action) {
-        HousingQuickAction.contactLandlord => Icons.mail_outline_rounded,
-        HousingQuickAction.askAboutKaution => Icons.receipt_long_outlined,
-        HousingQuickAction.reportPlumbing => Icons.plumbing_outlined,
-        HousingQuickAction.reportHeating => Icons.thermostat_outlined,
-        HousingQuickAction.arrangeInternet => Icons.router_outlined,
+        HousingQuickAction.contactLandlord => Icons.mail,
+        HousingQuickAction.askAboutKaution => Icons.receipt,
+        HousingQuickAction.reportPlumbing => Icons.water_drop,
+        HousingQuickAction.reportHeating => Icons.thermostat,
+        HousingQuickAction.arrangeInternet => Icons.wifi,
       };
 }
 
@@ -356,7 +356,7 @@ final class _QuickActionResult extends StatelessWidget {
 
     return AppGlassCard(
       padding: HousingDesignTokens.cardPadding,
-      borderColor: AppColors.mastery.withAlpha(100),
+      borderColor: AppColors.mastery.withAlpha(HousingDesignTokens.strongBorderAlpha),
       glowColor: AppColors.mastery,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -364,7 +364,7 @@ final class _QuickActionResult extends StatelessWidget {
           Row(
             children: <Widget>[
               const Icon(
-                Icons.flash_on_outlined,
+                Icons.flash_on,
                 color: AppColors.mastery,
                 size: HousingDesignTokens.iconS,
               ),
@@ -378,7 +378,7 @@ final class _QuickActionResult extends StatelessWidget {
               ),
               IconButton(
                 onPressed: orchestrator.clearQuickAction,
-                icon: const Icon(Icons.close_rounded),
+                icon: const Icon(Icons.close),
                 tooltip: 'إغلاق',
               ),
             ],
@@ -448,7 +448,7 @@ final class _PhraseCard extends StatelessWidget {
 
     return AppGlassCard(
       padding: HousingDesignTokens.cardPadding,
-      borderColor: accent.withAlpha(72),
+      borderColor: accent.withAlpha(HousingDesignTokens.subtleBorderAlpha),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
