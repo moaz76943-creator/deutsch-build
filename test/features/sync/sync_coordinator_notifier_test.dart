@@ -56,7 +56,7 @@ final class _Connectivity implements ConnectivityService {
   _Connectivity(this.online);
 
   bool online;
-  final StreamController<bool> controller = StreamController<bool>.broadcast();
+  final StreamController<bool> controller = StreamController<bool>.broadcast(sync: true);
 
   @override
   Future<bool> isOnline() async => online;
