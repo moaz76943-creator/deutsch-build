@@ -11,6 +11,8 @@ import '../features/gamification/domain/gamification_models.dart';
 import '../features/dashboard/application/dashboard_analytics_builder.dart';
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
 import '../features/app_settings/presentation/app_settings_screen.dart';
+import '../features/verb_conjugation/data/local_verb_repository.dart';
+import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
@@ -453,9 +455,8 @@ class _HomeState extends State<HomeV35> {
             () => Navigator.push(
               c,
               MaterialPageRoute(
-                builder: (_) => VerbConjugationPage(
-                  repo: widget.repo,
-                  verbIndex: widget.dependencies.verbIndex,
+                builder: (_) => VerbConjugationScreen(
+                  repository: LocalVerbRepository(),
                 ),
               ),
             ),
