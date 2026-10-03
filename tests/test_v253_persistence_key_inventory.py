@@ -23,4 +23,5 @@ def test_privacy_audit_resolves_const_backed_persistence_keys():
         'offline_active_pack_v1',
         'offline_manifest_revision_v1',
         'offline_manifest_acceptance_v2',
+        'search_custom_word_notes_v1',
     }
