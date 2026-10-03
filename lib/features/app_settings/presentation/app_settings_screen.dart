@@ -11,11 +11,17 @@ import 'widgets/glass_slider_tile.dart';
 final class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({
     required this.notifier,
+    required this.accessibilityListenable,
+    required this.cognitiveAccessibilityEnabled,
+    required this.onCognitiveAccessibilityChanged,
     this.onProgressReset,
     super.key,
   });
 
   final SettingsController notifier;
+  final Listenable accessibilityListenable;
+  final bool Function() cognitiveAccessibilityEnabled;
+  final Future<void> Function(bool) onCognitiveAccessibilityChanged;
   final VoidCallback? onProgressReset;
 
   @override
@@ -43,7 +49,10 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
         elevation: 0,
       ),
       body: ListenableBuilder(
-        listenable: widget.notifier,
+        listenable: Listenable.merge(<Listenable>[
+          widget.notifier,
+          widget.accessibilityListenable,
+        ]),
         builder: (context, _) {
           final notifier = widget.notifier;
           final preferences = notifier.preferences;
@@ -101,6 +110,13 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 value: preferences.showAutomaticTranslation,
                 onChanged: (value) => _runSave(
                   notifier.setShowAutomaticTranslation(value),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _CognitiveAccessibilityGlassTile(
+                value: widget.cognitiveAccessibilityEnabled(),
+                onChanged: (value) => _runSave(
+                  widget.onCognitiveAccessibilityChanged(value),
                 ),
               ),
               const SizedBox(height: 12),
@@ -258,6 +274,39 @@ final class _TranslationGlassTile extends StatelessWidget {
           style: AppTypography.body,
         ),
         secondary: const Icon(Icons.translate_outlined),
+        value: value,
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+final class _CognitiveAccessibilityGlassTile extends StatelessWidget {
+  const _CognitiveAccessibilityGlassTile({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return AppGlassCard(
+      borderColor:
+          dark ? AppColors.glassBorderDark : AppColors.glassBorderLight,
+      backgroundColor:
+          dark ? AppColors.darkSurface : AppColors.lightSurface,
+      glowColor: AppColors.achievement,
+      child: SwitchListTile.adaptive(
+        contentPadding: EdgeInsets.zero,
+        title: Text('وضعية التيسير المعرفي', style: AppTypography.title),
+        subtitle: Text(
+          'يحسّن التباعد ويبسّط العرض لتقليل الإجهاد البصري.',
+          style: AppTypography.body,
+        ),
+        secondary: const Icon(Icons.accessibility_new_outlined),
         value: value,
         onChanged: onChanged,
       ),
