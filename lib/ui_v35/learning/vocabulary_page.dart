@@ -29,7 +29,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
   List<Map<String, dynamic>> _customEntries = [];
   String _filter = 'all';
   ViewMode _viewMode = ViewMode.list;
-  final SafeTtsController _tts = SafeTtsController();
   final PageController _pageController = PageController();
 
   @override
@@ -41,7 +40,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
 
   @override
   void dispose() {
-    _tts.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -68,6 +66,20 @@ class _VocabularyV35State extends State<VocabularyV35> {
     await UiPreferences(
       widget.dependencies.preferencesService,
     ).setViewMode(mode);
+  }
+
+  void _speakSource(ContentItem item) {
+    unawaited(
+      widget.dependencies.audioRuntime
+          .play(
+            AudioRequest(
+              text: item.sourceText,
+              languageCode: widget.dependencies.languagePack.targetLocale,
+              conceptId: item.id,
+            ),
+          )
+          .then<void>((_) {}),
+    );
   }
 
   void _showAddCustomDialog() {
@@ -240,7 +252,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.volume_up_outlined),
-                  onPressed: () => safeSpeak(_tts, x.sourceText),
+                  onPressed: () => _speakSource(x),
                 ),
                 IconButton(
                   icon: Icon(
@@ -337,7 +349,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
             ),
           ),
           child: InkWell(
-            onTap: () => safeSpeak(_tts, x.sourceText),
+            onTap: () => _speakSource(x),
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -433,7 +445,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
             );
             _loadData();
           },
-          onSpeak: () => safeSpeak(_tts, items[i].sourceText),
+          onSpeak: () => _speakSource(items[i]),
           articleColor: _getArticleColor(items[i].grammaticalMarker),
         );
       },
