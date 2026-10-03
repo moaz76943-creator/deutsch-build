@@ -371,7 +371,6 @@ final class _PracticeCard extends StatelessWidget {
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 hintText: phrase.topic.germanLabel,
-                border: const OutlineInputBorder(),
               ),
               onSubmitted: (_) => onCheck(),
             ),
