@@ -137,6 +137,17 @@ that runs `scripts/local_quality_gate.sh`.
 The AI collaboration workflow adds a separate architecture/code-review signal. It must not
 pretend to replace the canonical quality gate and must not fabricate a human approval.
 
+The repository-side AI review status name is `ai-architecture-review`. Before any provider
+activation, the keyless local preflight `python tests/ai_bridge_preflight.py --repo-root .`
+must statically verify workflow/policy consistency, fail-closed billing activation, secret-step
+gating, untrusted-context boundaries, and the absence of PR-head checkout in the secret-backed
+review job. This preflight must not execute provider network calls and must not require API keys.
+
+Making `ai-architecture-review` a server-required status, changing repository secrets/variables,
+or enabling `AI_COLLABORATION_BILLING_APPROVED` remains an explicit human gate. The preflight
+does not authorize those server-side changes and does not supersede the zero-additional-billing
+policy.
+
 A PR is integration-ready only when all applicable requirements are true:
 
 - the canonical quality gate passed on the exact PR head;
