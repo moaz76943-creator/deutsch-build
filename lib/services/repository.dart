@@ -9,6 +9,8 @@ import '../models/diagnostic_placement.dart';
 import '../core/date_utils.dart';
 import '../features/gamification/domain/gamification_models.dart';
 import '../features/gamification/domain/gamification_review_sink.dart';
+import '../features/error_pattern_agent/domain/error_diagnostic_repository.dart';
+import '../features/error_pattern_agent/domain/error_pattern_models.dart';
 
 /// Local learner-state storage. This app deliberately has no network trust boundary.
 /// Persisted values are treated as untrusted input and are bounded before use.
@@ -18,10 +20,12 @@ class LearnerRepository {
     this.prefs, {
     required this.persistence,
     this.gamificationReviewSink = const NoopGamificationReviewSink(),
+    this.errorDiagnosticSink = const NoopErrorDiagnosticSink(),
   });
 
   final LearnerPersistence persistence;
   final GamificationReviewSink gamificationReviewSink;
+  final ErrorDiagnosticSink errorDiagnosticSink;
   static const key = 'v34_state';
   static const legacyFavoriteKey = 'verb_favorites_v1';
   static const maxAttempts = LearnerPersistence.maxAttempts;
@@ -165,6 +169,29 @@ class LearnerRepository {
     }
   }
 
+  Future<void> _recordDiagnosticFailure({
+    required LearningContent item,
+    required String answer,
+    required DateTime at,
+  }) async {
+    try {
+      await errorDiagnosticSink.recordFailure(
+        LearningFailureSignal(
+          source: ErrorEventSource.flashcard,
+          skillTag: item.skill,
+          expected: item.grammaticalMarker.trim().isNotEmpty
+              ? item.grammaticalMarker
+              : item.sourceText,
+          actual: answer,
+          focus: item.sourceText,
+          occurredAt: at,
+        ),
+      );
+    } on Object {
+      // Diagnostic telemetry is secondary to durable learner progress.
+    }
+  }
+
   Future<void> record({
     required LearningContent item,
     required String answer,
@@ -230,6 +257,13 @@ class LearnerRepository {
           ),
         );
         await _recordGamificationReview(attempt, requestedXp: xpReward);
+        if (!correct) {
+          await _recordDiagnosticFailure(
+            item: item,
+            answer: answer,
+            at: now,
+          );
+        }
       });
 
   Future<void> recordConversationAttempt({
@@ -346,6 +380,13 @@ extension FacetReviewRepository on LearnerRepository {
         ),
       );
       await _recordGamificationReview(attempt, requestedXp: xpReward);
+      if (!correct) {
+        await _recordDiagnosticFailure(
+          item: item,
+          answer: answer,
+          at: now,
+        );
+      }
     });
   }
 }

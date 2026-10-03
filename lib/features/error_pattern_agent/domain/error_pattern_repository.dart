@@ -1,9 +1,4 @@
-import 'error_pattern_models.dart';
-
-abstract class ErrorPatternRepository {
-  Future<void> logError(ErrorLogEntry entry);
-
-  Future<List<ErrorLogEntry>> getRecentErrors({int limit = 50});
-
-  Future<BlindSpotSummary?> analyzeBlindSpots();
-}
+@Deprecated(
+  'Compatibility export: use error_diagnostic_repository.dart directly.',
+)
+export 'error_diagnostic_repository.dart';

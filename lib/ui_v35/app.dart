@@ -10,6 +10,7 @@ import '../models/learner.dart';
 import '../features/gamification/domain/gamification_models.dart';
 import '../features/dashboard/application/dashboard_analytics_builder.dart';
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
+import '../features/error_pattern_agent/presentation/blind_spot_radar_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
 import '../services/progress_snapshot_service.dart';
@@ -55,6 +56,7 @@ class _AppState extends State<DeutschAppV35> {
     widget.dependencies.audioRuntime.shutdown();
     widget.dependencies.sourceAudioRuntime.shutdown();
     widget.dependencies.gamificationRepository.close();
+    widget.dependencies.errorPatternAgent?.dispose();
     super.dispose();
   }
 
@@ -606,6 +608,21 @@ class _HomeState extends State<HomeV35> {
               ),
             ),
           ),
+          if (widget.dependencies.errorPatternAgent != null)
+            _featureCard(
+              c,
+              'رادار النقاط العمياء',
+              'تشخيص لغوي لأكثر أنماط الخطأ تكراراً مع علاج مباشر',
+              Icons.radar_rounded,
+              () => Navigator.push(
+                c,
+                MaterialPageRoute(
+                  builder: (_) => BlindSpotRadarScreen(
+                    notifier: widget.dependencies.errorPatternAgent!,
+                  ),
+                ),
+              ),
+            ),
           _featureCard(
             c,
             'مختبر النطق والاستماع',
