@@ -1,8 +1,13 @@
+import 'diagnostic_placement.dart';
+import '../core/srs_facets.dart';
+
 class Attempt {
   final String id, itemId, skill, answer;
   final bool correct, hinted;
   final int seconds;
   final DateTime at;
+  final ReviewFacetType facetType;
+  final String? variantKey;
   const Attempt({
     required this.id,
     required this.itemId,
@@ -12,7 +17,13 @@ class Attempt {
     required this.hinted,
     required this.seconds,
     required this.at,
+    this.facetType = ReviewFacetType.meaningRecall,
+    this.variantKey,
   });
+  bool get isMeaningFacet =>
+      facetType == ReviewFacetType.meaningRecall &&
+      ReviewFacetKey.normalizeVariant(variantKey) == null;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'itemId': itemId,
@@ -22,6 +33,9 @@ class Attempt {
     'hinted': hinted,
     'seconds': seconds,
     'at': at.toIso8601String(),
+    'facetType': facetType.wireName,
+    if (ReviewFacetKey.normalizeVariant(variantKey) != null)
+      'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
   };
   factory Attempt.fromJson(Map<String, dynamic> j) => Attempt(
     id: j['id'] ?? '',
@@ -32,6 +46,8 @@ class Attempt {
     hinted: j['hinted'] == true,
     seconds: (j['seconds'] as num?)?.toInt() ?? 5,
     at: DateTime.tryParse(j['at'] ?? '') ?? DateTime.now(),
+    facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
+    variantKey: ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
   );
 }
 
@@ -82,6 +98,8 @@ enum MemoryState { newCard, learning, relearning, young, mature }
 
 class ReviewCard {
   final String itemId;
+  final ReviewFacetType facetType;
+  final String? variantKey;
   final int repetitions, intervalDays, lapses, successes, failures;
   final double difficulty, stabilityDays;
   final DateTime dueAt;
@@ -89,6 +107,8 @@ class ReviewCard {
 
   const ReviewCard({
     required this.itemId,
+    this.facetType = ReviewFacetType.meaningRecall,
+    this.variantKey,
     this.repetitions = 0,
     this.intervalDays = 0,
     this.lapses = 0,
@@ -99,6 +119,16 @@ class ReviewCard {
     required this.dueAt,
     this.lastReviewedAt,
   });
+
+  String get conceptId => itemId;
+
+  ReviewFacetKey get facetKey => ReviewFacetKey(
+    conceptId: itemId,
+    facetType: facetType,
+    variantKey: variantKey,
+  );
+
+  String get storageKey => facetKey.storageKey;
 
   MemoryState get memoryState {
     if (repetitions <= 0 && lapses > 0) return MemoryState.relearning;
@@ -125,6 +155,8 @@ class ReviewCard {
     DateTime? lastReviewedAt,
   }) => ReviewCard(
     itemId: itemId,
+    facetType: facetType,
+    variantKey: variantKey,
     repetitions: repetitions ?? this.repetitions,
     intervalDays: intervalDays ?? this.intervalDays,
     lapses: lapses ?? this.lapses,
@@ -138,6 +170,9 @@ class ReviewCard {
 
   Map<String, dynamic> toJson() => {
     'itemId': itemId,
+    'facetType': facetType.wireName,
+    if (ReviewFacetKey.normalizeVariant(variantKey) != null)
+      'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
     'repetitions': repetitions,
     'intervalDays': intervalDays,
     'lapses': lapses,
@@ -162,6 +197,8 @@ class ReviewCard {
     if (last != null && last.isBefore(DateTime(2000))) last = now;
     return ReviewCard(
       itemId: id,
+      facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
+      variantKey: ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
       repetitions: _boundInt(_int(j['repetitions']), 0, 1000),
       intervalDays: _boundInt(_int(j['intervalDays']), 0, 3650),
       lapses: _boundInt(_int(j['lapses']), 0, 1000),
@@ -191,6 +228,7 @@ class LearnerState {
   final Map<String, ReviewCard> reviewCards;
   final List<Attempt> attempts;
   final List<AssessmentHistory> assessmentHistory;
+  final List<PlacementDiagnosticRecord> placementHistory;
   final DateTime updatedAt;
   const LearnerState({
     this.xp = 0,
@@ -201,8 +239,43 @@ class LearnerState {
     this.reviewCards = const {},
     this.attempts = const [],
     this.assessmentHistory = const [],
+    this.placementHistory = const [],
     required this.updatedAt,
   });
+  Iterable<ReviewCard> get meaningReviewCards sync* {
+    for (final card in reviewCards.values) {
+      if (card.facetKey.isLegacyMeaningKey) yield card;
+    }
+  }
+
+  Iterable<Attempt> get meaningAttempts sync* {
+    for (final attempt in attempts) {
+      if (attempt.isMeaningFacet) yield attempt;
+    }
+  }
+
+  ReviewCard? reviewCardForFacet(
+    String conceptId, {
+    ReviewFacetType facetType = ReviewFacetType.meaningRecall,
+    String? variantKey,
+  }) {
+    final key = ReviewFacetKey(
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
+    );
+    if (!key.isValid) return null;
+    return reviewCards[key.storageKey];
+  }
+
+  Iterable<ReviewCard> reviewCardsForConcept(String conceptId) sync* {
+    final normalized = conceptId.trim();
+    if (normalized.isEmpty) return;
+    for (final card in reviewCards.values) {
+      if (card.itemId == normalized) yield card;
+    }
+  }
+
   LearnerState copyWith({
     int? xp,
     int? streak,
@@ -212,6 +285,7 @@ class LearnerState {
     Map<String, ReviewCard>? reviewCards,
     List<Attempt>? attempts,
     List<AssessmentHistory>? assessmentHistory,
+    List<PlacementDiagnosticRecord>? placementHistory,
   }) => LearnerState(
     xp: xp ?? this.xp,
     streak: streak ?? this.streak,
@@ -221,6 +295,7 @@ class LearnerState {
     reviewCards: reviewCards ?? this.reviewCards,
     attempts: attempts ?? this.attempts,
     assessmentHistory: assessmentHistory ?? this.assessmentHistory,
+    placementHistory: placementHistory ?? this.placementHistory,
     updatedAt: DateTime.now(),
   );
 }

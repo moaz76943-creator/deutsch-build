@@ -37,7 +37,11 @@ def test_writing_analyzer_uses_injected_language_normalizer():
     assert "import '../language/language_text_normalizer.dart';" in src
     assert 'LanguageTextNormalizer textNormalizer' in src
     assert re.search(r'\bTextNormalizer\b', src) is None
-    assert 'WritingAnalyzer.analyze(t, textNormalizer:' in ui
+    assert re.search(
+        r'WritingAnalyzer\.analyze\(\s*t\s*,\s*textNormalizer:\s*widget\.textNormalizer\s*,?\s*\)',
+        ui,
+        re.DOTALL,
+    )
 
 
 def test_no_shared_normalization_consumer_imports_legacy_facade():

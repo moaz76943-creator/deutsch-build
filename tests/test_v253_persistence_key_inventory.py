@@ -14,5 +14,9 @@ def test_privacy_audit_resolves_const_backed_persistence_keys():
         'verb_favorites_v1',
         'privacy_cloud_ai_v1',
         'privacy_speech_v1',
-            'vocabulary_view_mode',
+        'vocabulary_view_mode',
+        'offline_pack_registry_v1',
+        'offline_active_pack_v1',
+        'offline_manifest_revision_v1',
+        'offline_manifest_acceptance_v2',
     }

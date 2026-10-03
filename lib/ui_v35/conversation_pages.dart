@@ -123,7 +123,7 @@ class _WritingCoachState extends State<WritingCoachPage> {
   );
 }
 
-class ConversationPage extends StatelessWidget {
+class ConversationPage extends StatefulWidget {
   final LearnerRepository repo;
   final VoidCallback onDone;
   final LanguageExerciseStrategy exerciseStrategy;
@@ -141,62 +141,86 @@ class ConversationPage extends StatelessWidget {
     required this.aiGateway,
     required this.privacySettings,
   });
+
+  @override
+  State<ConversationPage> createState() => _ConversationPageState();
+}
+
+class _ConversationPageState extends State<ConversationPage> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(title: const Text('المحادثة')),
-    body: ListView(
-      padding: const EdgeInsets.all(12),
-      children: [
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.record_voice_over_outlined),
-            title: const Text('محادثة صوتية واقعية'),
-            subtitle: Text(presentation.conversation.targetLanguageInstruction),
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...ConversationEngine(
-          exerciseStrategy: exerciseStrategy,
-          textNormalizer: textNormalizer,
-        ).scenarios.map(
-          (x) => Card(
-            child: ListTile(
-              leading: const Icon(Icons.forum_outlined),
-              title: Text(x.title),
-              subtitle: Text('${x.situation}\n${x.turns.length} جولات'),
-              isThreeLine: true,
-              onTap: () => Navigator.push(
-                c,
-                MaterialPageRoute(
-                  builder: (_) => VoiceConversationPage(
-                    repo: repo,
-                    onDone: onDone,
-                    scenario: x,
-                    exerciseStrategy: exerciseStrategy,
-                    presentation: presentation,
-                    textNormalizer: textNormalizer,
+    body: Builder(
+      builder: (BuildContext context) {
+        final scenarios = ConversationEngine(
+          exerciseStrategy: widget.exerciseStrategy,
+          textNormalizer: widget.textNormalizer,
+        ).scenarios;
+        return ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: scenarios.length + 3,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Card(
+                child: ListTile(
+                  leading: const Icon(Icons.record_voice_over_outlined),
+                  title: const Text('محادثة صوتية واقعية'),
+                  subtitle: Text(
+                    widget.presentation.conversation.targetLanguageInstruction,
+                  ),
+                ),
+              );
+            }
+            if (index == 1) {
+              return const SizedBox(height: 8);
+            }
+            if (index == scenarios.length + 2) {
+              return Column(
+                children: [
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      c,
+                      MaterialPageRoute(
+                        builder: (_) => AiConversationPage(
+                          scenario: 'محادثة عامة',
+                          aiGateway: widget.aiGateway,
+                          privacySettings: widget.privacySettings,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.auto_awesome_outlined),
+                    label: const Text('المحادثة النصية مع AI الاختياري'),
+                  ),
+                ],
+              );
+            }
+            final scenarioIndex = index - 2;
+            final x = scenarios[scenarioIndex];
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.forum_outlined),
+                title: Text(x.title),
+                subtitle: Text('${x.situation}\n${x.turns.length} جولات'),
+                isThreeLine: true,
+                onTap: () => Navigator.push(
+                  c,
+                  MaterialPageRoute(
+                    builder: (_) => VoiceConversationPage(
+                      repo: widget.repo,
+                      onDone: widget.onDone,
+                      scenario: x,
+                      exerciseStrategy: widget.exerciseStrategy,
+                      presentation: widget.presentation,
+                      textNormalizer: widget.textNormalizer,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: () => Navigator.push(
-            c,
-            MaterialPageRoute(
-              builder: (_) => AiConversationPage(
-                scenario: 'محادثة عامة',
-                aiGateway: aiGateway,
-                privacySettings: privacySettings,
-              ),
-            ),
-          ),
-          icon: const Icon(Icons.auto_awesome_outlined),
-          label: const Text('المحادثة النصية مع AI الاختياري'),
-        ),
-      ],
+            );
+          },
+        );
+      },
     ),
   );
 }

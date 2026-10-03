@@ -33,12 +33,21 @@ void main() {
 
   test('should return correct topics by level', () async {
     final a1Topics = await service.getTopicsByLevel('A1');
-    expect(a1Topics.length, equals(1));
+    expect(a1Topics.length, greaterThanOrEqualTo(2));
     expect(a1Topics.first.level, equals('A1'));
+    expect(a1Topics.first.id, equals('a1_nominativ'));
 
     final b2Topics = await service.getTopicsByLevel('B2');
     expect(b2Topics.length, equals(1));
     expect(b2Topics.first.level, equals('B2'));
+  });
+
+  test('should expose canonical rule details for the microscope', () async {
+    final rules = await service.getRulesForTopic('a1_pronouns');
+    expect(rules, isNotEmpty);
+    expect(rules.first.topicId, equals('a1_pronouns'));
+    expect(rules.first.table, isNotEmpty);
+    expect(rules.first.examples, isNotEmpty);
   });
 
   test('should save topic mastery correctly', () async {

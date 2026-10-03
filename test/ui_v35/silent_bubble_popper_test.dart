@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/ui_v35/pages/silent_bubble_popper.dart';
-import 'package:deutsch_bilarabi/services/user_vocabulary_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -52,14 +51,26 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // Tap first word
-    await tester.tap(find.text('Apfel'));
-    await tester.pump(
-      const Duration(milliseconds: 100),
-    ); // trigger animation frame
+    // Bubble positions are randomized and continuously animated, so a text
+    // center can be obscured by another bubble at the instant of a hit test.
+    // This test verifies matching state logic deterministically by invoking
+    // the actual tappable GestureDetector for each matching bubble.
+    final apfelBubble = find.ancestor(
+      of: find.text('Apfel'),
+      matching: find.byType(GestureDetector),
+    );
+    final arabicBubble = find.ancestor(
+      of: find.text('تفاحة'),
+      matching: find.byType(GestureDetector),
+    );
 
-    // Tap matching word
-    await tester.tap(find.text('تفاحة'));
+    expect(apfelBubble, findsOneWidget);
+    expect(arabicBubble, findsOneWidget);
+
+    tester.widget<GestureDetector>(apfelBubble).onTap!();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    tester.widget<GestureDetector>(arabicBubble).onTap!();
     await tester.pump(const Duration(milliseconds: 100));
 
     // Bubbles should be removed

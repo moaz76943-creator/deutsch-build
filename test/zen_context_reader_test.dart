@@ -8,15 +8,13 @@ import 'package:deutsch_bilarabi/models/learner.dart';
 import 'package:deutsch_bilarabi/services/preferences_service.dart';
 import 'package:deutsch_bilarabi/services/learner_persistence.dart';
 import 'package:deutsch_bilarabi/services/search_index.dart';
-import 'package:deutsch_bilarabi/services/verb_index.dart';
 import 'package:deutsch_bilarabi/language/language_text_normalizer.dart';
-import 'package:deutsch_bilarabi/language/language_pack.dart';
 import 'package:deutsch_bilarabi/services/ai_gateway.dart';
 import 'package:deutsch_bilarabi/services/privacy_settings.dart';
 import 'package:deutsch_bilarabi/services/neuro_accessibility_settings.dart';
 import 'package:deutsch_bilarabi/language/german/german_language_pack.dart';
-import 'package:deutsch_bilarabi/services/ai_contract.dart';
 import 'package:deutsch_bilarabi/services/user_vocabulary_service.dart';
+import 'package:deutsch_bilarabi/services/grammar_hub_service.dart';
 
 class MockPreferences implements PreferencesService {
   final Map<String, dynamic> _data = {};
@@ -64,7 +62,6 @@ class MockPreferences implements PreferencesService {
   }
 }
 
-
 class FakeUserVocabularyService implements UserVocabularyService {
   @override
   Future<void> addCustomEntry(Map<String, dynamic> entry) async {}
@@ -75,7 +72,9 @@ class FakeUserVocabularyService implements UserVocabularyService {
   @override
   Future<void> deleteCustomEntry(String id) async {}
   @override
-  Future<List<Map<String, dynamic>>> getCustomEntries({String? targetLanguage}) async => [];
+  Future<List<Map<String, dynamic>>> getCustomEntries({
+    String? targetLanguage,
+  }) async => [];
 }
 
 class FakeFavoritesRepository implements FavoritesRepository {
@@ -123,24 +122,6 @@ class MockAiGateway implements AiGateway {
   bool get enabled => false;
 
   @override
-  Future<Map<String, dynamic>> evaluate({
-    required String expected,
-    required String prompt,
-    required String answer,
-    required Map<String, dynamic> schema,
-  }) async => {};
-
-  @override
-  Future<String> generate({
-    required String prompt,
-    required Map<String, dynamic> schema,
-    String? contextData,
-  }) async => '';
-
-  @override
-  Future<bool> get isAvailable async => false;
-
-  @override
   Future<AiReview> reviewWriting(String text, {String level = 'A1'}) async =>
       const AiReview(corrected: '', issues: [], explanation: '');
 
@@ -153,24 +134,6 @@ class MockAiGateway implements AiGateway {
 }
 
 class MockPrivacySettings implements PrivacySettingsStore {
-  @override
-  bool get telemetryEnabled => false;
-
-  @override
-  Future<void> updateTelemetry(bool v) async {}
-
-  @override
-  bool get personalDataProcessingEnabled => false;
-
-  @override
-  Future<void> updatePersonalDataProcessing(bool v) async {}
-
-  @override
-  bool get hasAcknowledgedPolicy => false;
-
-  @override
-  Future<void> acknowledgePolicy() async {}
-
   @override
   Future<bool> cloudAiEnabled() async => false;
 
@@ -222,6 +185,7 @@ void main() {
       userVocabularyService: FakeUserVocabularyService(),
       favoritesRepository: FakeFavoritesRepository(),
       preferencesService: prefs,
+      grammarHubService: GrammarHubService(),
     );
 
     await tester.pumpWidget(

@@ -18,10 +18,16 @@ _LOCAL_KEY_OWNERS = {
     'verb_favorites_v1': 'lib/services/repository.dart',
     'privacy_cloud_ai_v1': 'lib/services/privacy_settings.dart',
     'privacy_speech_v1': 'lib/services/privacy_settings.dart',
-    'vocabulary_view_mode': 'lib/ui_v35/learning_pages.dart',
+    'vocabulary_view_mode': 'lib/services/ui_preferences.dart',
+    'offline_pack_registry_v1': 'lib/services/pack_manager_service.dart',
+    'offline_active_pack_v1': 'lib/services/pack_manager_service.dart',
+    'offline_manifest_revision_v1': 'lib/services/pack_manager_service.dart',
+    'offline_manifest_acceptance_v2': 'lib/services/pack_manager_service.dart',
 }
 _ALLOWED_LOCAL_KEYS = set(_LOCAL_KEY_OWNERS)
 _SENSITIVE = re.compile(r'(?i)(password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|cookie|session[_-]?token|email|phone|payment|card[_-]?number|billing)')
+_STORAGE_RECEIVER = r'(?:_prefs|prefs|_preferences|preferences)'
+_STORAGE_METHOD = r'(?:getString|getStringList|getBool|getInt|setString|setStringList|setBool|setInt|remove|readText|readTextList|writeText|writeTextList|deleteValue)'
 
 def audit_project(root: Path) -> PrivacyReport:
     errors: list[str] = []
@@ -42,10 +48,16 @@ def audit_project(root: Path) -> PrivacyReport:
         if rel == 'lib/services/privacy_settings.dart':
             for name, value in re.findall(r"static\s+const\s+(\w+Key)\s*=\s*['\"]([^'\"]+)['\"]", text):
                 const_keys[name] = value
-        for match in re.finditer(r"(?:getString|getStringList|getBool|setString|setStringList|setBool|remove)\(\s*['\"]([^'\"]+)['\"]", text):
+        for match in re.finditer(
+            rf"\b{_STORAGE_RECEIVER}\.{_STORAGE_METHOD}\(\s*['\"]([^'\"]+)['\"]",
+            text,
+        ):
             keys.add(match.group(1))
             key_files.setdefault(match.group(1), set()).add(rel)
-        for match in re.finditer(r"(?:getString|getStringList|getBool|setString|setStringList|setBool|remove)\(\s*(\w+Key|key)\s*[,)]", text):
+        for match in re.finditer(
+            rf"\b{_STORAGE_RECEIVER}\.{_STORAGE_METHOD}\(\s*(\w+Key|key)\s*[,)]",
+            text,
+        ):
             value = const_keys.get(match.group(1))
             if value:
                 keys.add(value)

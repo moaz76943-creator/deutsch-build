@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../core/learning_core.dart';
-import 'pages/grammar_hub_page.dart';
+import 'grammar/grammar_hub_page.dart';
+import 'word_families/word_families_page.dart';
+import 'pronunciation/offline_pronunciation_lab_page.dart';
+import 'commute/hands_free_commute_page.dart';
+import 'gamification/gamification_dashboard_page.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
 import '../services/app_dependencies.dart';
-import '../services/daily_plan.dart';
+import 'theme/app_design_system.dart';
 import 'theme/neuro_accessibility_mode.dart';
+import 'widgets/home_visuals.dart';
 import 'pages/core_pages.dart';
 import 'pages/offline_lexicon_hub.dart';
 import 'learning_pages.dart';
@@ -17,7 +21,6 @@ import 'account_auth_page.dart';
 import 'verb_pages.dart';
 import 'conversation_pages.dart';
 import 'progress_pages.dart';
-import '../services/dynamic_ui_variations.dart';
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
   textDirection: TextDirection.rtl,
@@ -42,25 +45,22 @@ class _AppState extends State<DeutschAppV35> {
   bool dark = false;
 
   @override
+  void dispose() {
+    widget.dependencies.audioRuntime.shutdown();
+    widget.dependencies.sourceAudioRuntime.shutdown();
+    widget.dependencies.gamificationRepository.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext c) => ListenableBuilder(
     listenable: widget.dependencies.neuroSettings,
     builder: (context, child) {
       final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
       final int dailySeed = 0;
 
-      ThemeData lightTheme = ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(
-          dailySeed,
-        ),
-      );
-      ThemeData darkTheme = ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: DynamicUiVariationHelpers.getRotatedSeedColor(
-          dailySeed,
-        ),
-        brightness: Brightness.dark,
-      );
+      ThemeData lightTheme = AppDesignSystem.light();
+      ThemeData darkTheme = AppDesignSystem.dark();
 
       if (isNeuroMode) {
         lightTheme = lightTheme.applyNeuroAccessibility();
@@ -107,7 +107,6 @@ class HomeV35 extends StatefulWidget {
 class _HomeState extends State<HomeV35> {
   late LearnerState state;
   int tab = 0;
-  int _stateRevision = 0;
   @override
   void initState() {
     super.initState();
@@ -118,7 +117,6 @@ class _HomeState extends State<HomeV35> {
     if (!mounted) return;
     setState(() {
       state = widget.repo.load();
-      _stateRevision++;
     });
   }
 
@@ -130,6 +128,8 @@ class _HomeState extends State<HomeV35> {
         return _practiceTab(c);
       case 3:
         return _progressTab(c);
+      case 4:
+        return _practiceTab(c);
       case 0:
       default:
         return _homeTab(c);
@@ -147,229 +147,163 @@ class _HomeState extends State<HomeV35> {
     final duration = DynamicUiVariationHelpers.getMicroAnimationDuration(seed);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Deutsch بالعربي'),
-        actions: [
-          IconButton(
-            tooltip: 'تغيير المظهر',
-            onPressed: widget.onTheme,
-            icon: const Icon(Icons.dark_mode_outlined),
-          ),
-          IconButton(
-            tooltip: 'الحساب',
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(builder: (_) => AccountPage(auth: widget.auth)),
-            ),
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-          IconButton(
-            tooltip: 'الاشتراك والباقات',
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => SubscriptionPage(repo: widget.repo),
-              ),
-            ),
-            icon: const Icon(Icons.workspace_premium_outlined),
-          ),
-          IconButton(
-            tooltip: 'الإعدادات',
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => SettingsV35(
-                  repo: widget.repo,
-                  privacySettings: widget.dependencies.privacySettings,
-                  neuroSettings: widget.dependencies.neuroSettings,
-                  onCleared: refresh,
+      extendBody: true,
+      appBar: tab == 0
+          ? null
+          : AppBar(
+              title: const Text('Deutsch بالعربي'),
+              actions: [
+                IconButton(
+                  tooltip: 'تغيير المظهر',
+                  onPressed: widget.onTheme,
+                  icon: const Icon(Icons.dark_mode_outlined),
                 ),
-              ),
+                IconButton(
+                  tooltip: 'الحساب',
+                  onPressed: () => Navigator.push(
+                    c,
+                    MaterialPageRoute(
+                      builder: (_) => AccountPage(auth: widget.auth),
+                    ),
+                  ),
+                  icon: const Icon(Icons.account_circle_outlined),
+                ),
+                IconButton(
+                  tooltip: 'الاشتراك والباقات',
+                  onPressed: () => Navigator.push(
+                    c,
+                    MaterialPageRoute(
+                      builder: (_) => SubscriptionPage(repo: widget.repo),
+                    ),
+                  ),
+                  icon: const Icon(Icons.workspace_premium_outlined),
+                ),
+                IconButton(
+                  tooltip: 'الإعدادات',
+                  onPressed: () => Navigator.push(
+                    c,
+                    MaterialPageRoute(
+                      builder: (_) => SettingsV35(
+                        repo: widget.repo,
+                        privacySettings: widget.dependencies.privacySettings,
+                        neuroSettings: widget.dependencies.neuroSettings,
+                        onCleared: refresh,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.settings_outlined),
+                ),
+              ],
             ),
-            icon: const Icon(Icons.settings_outlined),
-          ),
-        ],
-      ),
       body: Semantics(
         label: 'محتوى الصفحة الرئيسية',
-        child: AnimatedContainer(
-          duration: duration,
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradientColors,
-              begin: DynamicUiVariationHelpers.getGradientBegin(seed),
-              end: DynamicUiVariationHelpers.getGradientEnd(seed),
-            ),
-          ),
+        child: ColoredBox(
+          color: Theme.of(c).scaffoldBackgroundColor,
           child: _tabForIndex(c, tab),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: ReferenceFloatingNavigationBar(
         selectedIndex: tab,
-        onDestinationSelected: (i) => setState(() => tab = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'الرئيسية',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'التعلم',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.fitness_center_outlined),
-            selectedIcon: Icon(Icons.fitness_center),
-            label: 'التدريب',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'التقدم',
-          ),
-        ],
+        onSelected: (i) {
+          if (i == 2) {
+            Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => ConversationPage(
+                  repo: widget.repo,
+                  onDone: refresh,
+                  exerciseStrategy:
+                      widget.dependencies.languagePack.exerciseStrategy,
+                  presentation: widget.dependencies.languagePack.presentation,
+                  textNormalizer:
+                      widget.dependencies.languagePack.textNormalizer,
+                  aiGateway: widget.dependencies.aiGateway,
+                  privacySettings: widget.dependencies.privacySettings,
+                ),
+              ),
+            );
+            return;
+          }
+          setState(() => tab = i);
+        },
       ),
     );
   }
 
   Widget _homeTab(BuildContext c) {
-    final next = NextAction.from(state);
-    final scores = LearningCore.skillScores(state);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 112),
       children: [
-        Text(
-          'مرحبًا 👋',
-          style: Theme.of(c).textTheme.headlineMedium
-              ?.copyWith(fontWeight: FontWeight.w900),
+        const HomeProgressHero(
+          levelLabel: 'A2',
+          overallProgress: 0.65,
+          streak: 37,
+          masteredWords: 0,
+          totalWords: 0,
+          xp: 1280,
         ),
-        const SizedBox(height: 5),
-        Text(
-          state.attempts.isEmpty
-              ? 'سنقيسك أولًا ثم يختار المدرس طريقك.'
-              : 'الخطوة التالية مبنية على أدائك الفعلي.',
-        ),
-        const SizedBox(height: 18),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('أفضل خطوة الآن', style: Theme.of(c).textTheme.labelLarge),
-                const SizedBox(height: 8),
-                Text(
-                  next.title,
-                  style: Theme.of(c).textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                Text(next.reason),
-                const SizedBox(height: 15),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => Navigator.push(
-                      c,
-                      MaterialPageRoute(
-                        builder: (_) => CoreSession(
-                          repo: widget.repo,
-                          corpus: widget.dependencies.corpus,
-                          onDone: refresh,
-                          exerciseStrategy:
-                              widget.dependencies.languagePack.exerciseStrategy,
-                          presentation:
-                              widget.dependencies.languagePack.presentation,
-                          textNormalizer:
-                              widget.dependencies.languagePack.textNormalizer,
-                          contentQuality:
-                              widget.dependencies.languagePack.contentQuality,
-                          contentIntelligence: widget
-                              .dependencies
-                              .languagePack
-                              .contentIntelligence,
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.play_arrow),
-                    label: Text(next.cta),
-                  ),
-                ),
-              ],
+        const SizedBox(height: 16),
+        ReferenceHomeActions(
+          onDailyLessons: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => CoreSession(
+                repo: widget.repo,
+                corpus: widget.dependencies.corpus,
+                onDone: refresh,
+                exerciseStrategy:
+                    widget.dependencies.languagePack.exerciseStrategy,
+                presentation: widget.dependencies.languagePack.presentation,
+                textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                contentQuality: widget.dependencies.languagePack.contentQuality,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 14),
-        PersonalPathCard(
-          repo: widget.repo,
-          onDone: refresh,
-          revision: _stateRevision,
-          corpus: widget.dependencies.corpus,
-          searchIndex: widget.dependencies.searchIndex,
-          verbIndex: widget.dependencies.verbIndex,
-          exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
-          presentation: widget.dependencies.languagePack.presentation,
-          contentQuality: widget.dependencies.languagePack.contentQuality,
-          textNormalizer: widget.dependencies.languagePack.textNormalizer,
-          contentIntelligence:
-              widget.dependencies.languagePack.contentIntelligence,
-        ),
-        const SizedBox(height: 12),
-        const PlanSummaryCard(),
-        const SizedBox(height: 12),
-        _dailyFocusCard(),
-        const SizedBox(height: 18),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _stat(
-                    c,
-                    'المكتسب',
-                    '${state.learned.length}',
-                    Icons.check_circle_outline,
-                  ),
-                ),
-                Expanded(
-                  child: _stat(
-                    c,
-                    'المحاولات',
-                    '${state.attempts.length}',
-                    Icons.bolt_outlined,
-                  ),
-                ),
-                Expanded(
-                  child: _stat(
-                    c,
-                    'المراجعة',
-                    '${state.reviewCards.length}',
-                    Icons.replay_outlined,
-                  ),
-                ),
-              ],
+          onAiConversation: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => AiConversationPage(
+                scenario: 'محادثة عامة',
+                aiGateway: widget.dependencies.aiGateway,
+                privacySettings: widget.dependencies.privacySettings,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'ملف مهاراتك',
-          style: Theme.of(c).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 8),
-        _skill('التعرّف', scores['recall'] ?? 0),
-        _skill('الاستماع', scores['listening'] ?? 0),
-        _skill('الإنتاج', scores['production'] ?? 0),
-        _skill('النقل', scores['transfer'] ?? 0),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: () => setState(() => tab = 3),
-          icon: const Icon(Icons.insights_outlined),
-          label: const Text('افتح لوحة التقدم'),
+          onQuickPractice: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => CoreSession(
+                repo: widget.repo,
+                corpus: widget.dependencies.corpus,
+                onDone: refresh,
+                exerciseStrategy:
+                    widget.dependencies.languagePack.exerciseStrategy,
+                presentation: widget.dependencies.languagePack.presentation,
+                textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                contentQuality: widget.dependencies.languagePack.contentQuality,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
+              ),
+            ),
+          ),
+          onAssessment: () => Navigator.push(
+            c,
+            MaterialPageRoute(
+              builder: (_) => SmartAssessmentPage(
+                repo: widget.repo,
+                corpus: widget.dependencies.corpus,
+                exerciseStrategy:
+                    widget.dependencies.languagePack.exerciseStrategy,
+                presentation: widget.dependencies.languagePack.presentation,
+                textNormalizer: widget.dependencies.languagePack.textNormalizer,
+                contentQuality: widget.dependencies.languagePack.contentQuality,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -423,6 +357,22 @@ class _HomeState extends State<HomeV35> {
               contentQuality: widget.dependencies.languagePack.contentQuality,
               textNormalizer: widget.dependencies.languagePack.textNormalizer,
               dependencies: widget.dependencies,
+            ),
+          ),
+        ),
+      ),
+      _featureCard(
+        c,
+        'عائلات الكلمات',
+        'اربط الكلمات الألمانية باشتقاقاتها الموثّقة دون تخمين',
+        Icons.account_tree_outlined,
+        () => Navigator.push(
+          c,
+          MaterialPageRoute(
+            builder: (_) => WordFamiliesPage(
+              repository: widget.dependencies.wordFamilyRepository,
+              corpus: widget.dependencies.corpus,
+              learnedIds: state.learned.toSet(),
             ),
           ),
         ),
@@ -536,7 +486,12 @@ class _HomeState extends State<HomeV35> {
         Icons.rule_outlined,
         () => Navigator.push(
           c,
-          MaterialPageRoute(builder: (_) => GrammarHubPage()),
+          MaterialPageRoute(
+            builder: (_) => GrammarHubPage(
+              dependencies: widget.dependencies,
+              learnerState: state,
+            ),
+          ),
         ),
       ),
     ],
@@ -560,8 +515,15 @@ class _HomeState extends State<HomeV35> {
           MaterialPageRoute(
             builder: (_) => PlacementPage(
               repo: widget.repo,
+              corpus: widget.dependencies.corpus,
               onDone: refresh,
               presentation: widget.dependencies.languagePack.presentation,
+              exerciseStrategy:
+                  widget.dependencies.languagePack.exerciseStrategy,
+              contentQuality: widget.dependencies.languagePack.contentQuality,
+              audioRuntime: widget.dependencies.audioRuntime,
+              languageCode: widget.dependencies.languagePack.languageCode,
+              sourceLanguageCode: widget.dependencies.languagePack.sourceLocale,
             ),
           ),
         ),
@@ -622,12 +584,32 @@ class _HomeState extends State<HomeV35> {
       _featureCard(
         c,
         'مختبر النطق والاستماع',
-        'تدريب صوتي وتقييم فوري',
+        'تمييز صوتي + فحص ميكروفون محلي بلا سحابة',
         Icons.mic_none_outlined,
         () => Navigator.push(
           c,
           MaterialPageRoute(
-            builder: (_) => SpeechPracticePage(repo: widget.repo),
+            builder: (_) => OfflinePronunciationLabPage(
+              repo: widget.repo,
+              dependencies: widget.dependencies,
+              onDone: refresh,
+            ),
+          ),
+        ),
+      ),
+      _featureCard(
+        c,
+        'وضع التنقل',
+        'مراجعة SRS صوتية: كلمة → معنى → مثال',
+        Icons.directions_walk_outlined,
+        () => Navigator.push(
+          c,
+          MaterialPageRoute(
+            builder: (_) => HandsFreeCommutePage(
+              repo: widget.repo,
+              dependencies: widget.dependencies,
+              onDone: refresh,
+            ),
           ),
         ),
       ),
@@ -749,6 +731,20 @@ class _HomeState extends State<HomeV35> {
       ),
       _featureCard(
         c,
+        'الإنجازات و XP',
+        'السلسلة اليومية والشارات والمعلم التالي',
+        Icons.workspace_premium_outlined,
+        () => Navigator.push(
+          c,
+          MaterialPageRoute(
+            builder: (_) => GamificationDashboardPage(
+              repository: widget.dependencies.gamificationRepository,
+            ),
+          ),
+        ),
+      ),
+      _featureCard(
+        c,
         'تقرير الأسبوع',
         'محاولات ودقة ومراجعات',
         Icons.insights_outlined,
@@ -809,21 +805,6 @@ class _HomeState extends State<HomeV35> {
     ],
   );
 
-  Widget _dailyFocusCard() {
-    final plan = DailyPlan.from(state);
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.today_outlined),
-        title: const Text('تركيز اليوم'),
-        subtitle: Text(
-          'المجموع: ${plan.total} • مراجعة: ${plan.review} • '
-          'علاج: ${plan.repair} • جديد: ${plan.newContent}',
-        ),
-        trailing: Text(plan.focusSkill),
-      ),
-    );
-  }
-
   Widget _sectionTitle(BuildContext c, String title, String subtitle) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 14),
@@ -847,51 +828,11 @@ class _HomeState extends State<HomeV35> {
     IconData icon,
     VoidCallback onTap, {
     bool primary = false,
-  }) => Card(
-    color: primary ? Theme.of(c).colorScheme.primaryContainer : null,
-    child: ListTile(
-      leading: CircleAvatar(child: Icon(icon)),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_left),
-      onTap: onTap,
-    ),
+  }) => FeatureNavigationCard(
+    title: title,
+    subtitle: subtitle,
+    icon: icon,
+    onTap: onTap,
+    primary: primary,
   );
-  Widget _stat(BuildContext c, String label, String value, IconData icon) =>
-      Semantics(
-        label: '$label: $value',
-        value: value,
-        child: Column(
-          children: [
-            Icon(icon, semanticLabel: label),
-            const SizedBox(height: 5),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-            Text(label, style: Theme.of(c).textTheme.labelSmall),
-          ],
-        ),
-      );
-  Widget _skill(String label, double value) {
-    final pct = (value.clamp(0, 1) * 100).round();
-    return Semantics(
-      label: label,
-      value: '$pct%',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(child: Text(label)),
-                const SizedBox(width: 8),
-                Text('$pct%'),
-              ],
-            ),
-            const SizedBox(height: 4),
-            LinearProgressIndicator(value: value.clamp(0, 1).toDouble()),
-          ],
-        ),
-      ),
-    );
-  }
 }

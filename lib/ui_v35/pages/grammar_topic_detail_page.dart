@@ -204,7 +204,7 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant
-                .withOpacity(0.5),
+                .withValues(alpha: 0.5),
           ),
         ),
         child: Column(
@@ -238,7 +238,7 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
       margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Theme.of(context).colorScheme.surfaceContainerHighest
-          .withOpacity(0.3),
+          .withValues(alpha: 0.3),
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -260,9 +260,9 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
               Color? tileColor;
               if (isAnswered) {
                 if (idx == check.correctAnswerIndex) {
-                  tileColor = Colors.green.withOpacity(0.2);
+                  tileColor = Colors.green.withValues(alpha: 0.2);
                 } else if (idx == selectedOption) {
-                  tileColor = Colors.red.withOpacity(0.2);
+                  tileColor = Colors.red.withValues(alpha: 0.2);
                 }
               }
 
@@ -320,13 +320,13 @@ class _GrammarTopicDetailPageState extends State<GrammarTopicDetailPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isCorrect
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isCorrect
-                        ? Colors.green.withOpacity(0.5)
-                        : Colors.red.withOpacity(0.5),
+                        ? Colors.green.withValues(alpha: 0.5)
+                        : Colors.red.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Row(

@@ -18,7 +18,10 @@ checks=[
 ('fullBackupContent' in manifest,'Android fullBackupContent is missing.'),
 ('minifyEnabled true' in gradle and 'shrinkResources true' in gradle,'Release R8/resource shrinking is not enabled.'),
 ('proguard-android-optimize.txt' in gradle,'Release optimized R8 rules are missing.'),
+('native <methods>' in read(Path('android/app/proguard-rules.pro')),'JNI/native keep rule is missing.'),
+('-assumenosideeffects class android.util.Log' in read(Path('android/app/proguard-rules.pro')),'Release Android log stripping is missing.'),
 ('secureRelease' in gradle and 'releaseStoreFile' in gradle,'Dedicated release signing is not configured.'),
+('signingConfig signingConfigs.secureRelease' in gradle,'Release build is not strictly bound to secureRelease signing.'),
 ('--obfuscate' in build_script and '--split-debug-info' in build_script,'Dart obfuscation is missing from the central release build.'),
 ('isPrivate' in workflow,'CI has no private-repository gate.'),
 ("github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master'" in workflow,'Release workflow manual dispatch is not restricted to main/master.'),
@@ -33,7 +36,12 @@ checks=[
 ('GRADLE_DISTRIBUTION_SHA256=' in read(Path('toolchain.lock')) and 'verify_distribution_properties' in read(Path('tool/gradle_wrapper_integrity.py')),'Gradle distribution integrity is not pinned.'),
 ('gradle_wrapper_bootstrap.py' in workflow and 'Materialize verified Gradle wrapper' in workflow,'CI does not safely materialize a missing Gradle Wrapper.'),
 ('FLAG_SECURE' in read(Path('android/app/src/main/kotlin/com/deutschbilarabi/app/MainActivity.kt')),'Screen-capture protection is missing.'),
-('ReviewCard' in source and 'Srs.update' in source,'Spaced repetition is not persisted through review cards.'),
+(
+    'ReviewCard' in source
+    and 'UnifiedSrsScheduler' in source
+    and 'unifiedSrsScheduler.schedule' in read(Path('lib/services/repository.dart')),
+    'Spaced repetition is not persisted through the unified review-card scheduler.',
+),
 ('clearLocalData' in read(Path('lib/services/repository.dart')),'Local data management is missing.'),
 ('static const hasPublicLocalEntitlementMutation = false' in read(Path('lib/services/subscription.dart')),'Local premium entitlement mutation remains possible.'),
 ]
@@ -55,7 +63,7 @@ for workflow in (ROOT/'.github/workflows').glob('*.y*ml'):
 
 for pattern,label in [(r'\bhttp://','plaintext URL'),(r'\bhttps://','network URL'),(r'\bAuthorization\s*:','authorization header'),(r'(?:api[_-]?key|client_secret)\s*=\s*[\'\"]','embedded secret')]:
     if re.search(pattern,source,re.I): errors.append(f'Application source contains {label}.')
-if re.search(r'signingConfig\s+signingConfigs\.debug',gradle): errors.append('Release uses debug signing.')
+if 'signingConfigs.debug' in gradle: errors.append('Release configuration references debug signing.')
 if re.search(r'android:exported="true"[^>]*>\s*<intent-filter', manifest, re.S) and 'android.intent.action.MAIN' not in manifest: errors.append('Exported activity has no launcher contract.')
 if errors:
     print('SECURITY AUDIT: FAIL')

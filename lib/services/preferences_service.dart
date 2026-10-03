@@ -22,3 +22,17 @@ class PreferencesService {
   Future<bool> setInt(String key, int value) => _prefs.setInt(key, value);
   Future<bool> remove(String key) => _prefs.remove(key);
 }
+
+extension PreferencesTextStorage on PreferencesService {
+  String? readText(String storageKey) => getString(storageKey);
+
+  List<String>? readTextList(String storageKey) => getStringList(storageKey);
+
+  Future<bool> writeText(String storageKey, String value) =>
+      setString(storageKey, value);
+
+  Future<bool> writeTextList(String storageKey, List<String> value) =>
+      setStringList(storageKey, value);
+
+  Future<bool> deleteValue(String storageKey) => remove(storageKey);
+}

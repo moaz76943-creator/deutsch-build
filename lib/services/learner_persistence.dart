@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import '../models/learner.dart';
+import '../models/diagnostic_placement.dart';
+import '../core/srs_facets.dart';
 import 'preferences_service.dart';
 
 enum LearnerPersistenceFailureCode { payloadTooLarge, writeFailed }
@@ -24,6 +26,7 @@ class LearnerPersistence {
   final String legacyFavoriteKey;
   static const maxAttempts = 2000;
   static const maxCollectionItems = 20000;
+  static const maxReviewStorageKeyLength = 1024;
   static const maxXp = 10000000;
   static const maxStreak = 10000;
   static const maxMistakeProgress = 5000;
@@ -63,12 +66,18 @@ class LearnerPersistence {
       if (cardsRaw is Map) {
         for (final entry in cardsRaw.entries.take(maxCollectionItems)) {
           final key = entry.key.toString().trim();
-          if (key.isEmpty || key.length > 160 || entry.value is! Map) continue;
+          if (key.isEmpty ||
+              key.length > maxReviewStorageKeyLength ||
+              entry.value is! Map) {
+            continue;
+          }
           try {
             final card = ReviewCard.fromJson(
               Map<String, dynamic>.from(entry.value as Map),
             );
-            if (card.itemId == key) reviewCards[key] = card;
+            if (card.facetKey.isValid && card.storageKey == key) {
+              reviewCards[key] = card;
+            }
           } catch (_) {}
         }
       }
@@ -86,6 +95,19 @@ class LearnerPersistence {
           }
         }
       }
+      final placementHistory = <PlacementDiagnosticRecord>[];
+      final placementRaw = j['placementHistory'];
+      if (placementRaw is List) {
+        for (final value in placementRaw.take(20)) {
+          if (value is! Map) continue;
+          try {
+            final record = PlacementDiagnosticRecord.fromJson(
+              Map<String, dynamic>.from(value),
+            );
+            if (record.id.isNotEmpty) placementHistory.add(record);
+          } catch (_) {}
+        }
+      }
       final legacyReview = _boundedStrings(j['review']);
       final migratedCards = {...reviewCards};
       for (final id in legacyReview)
@@ -99,6 +121,7 @@ class LearnerPersistence {
         review: legacyReview,
         attempts: attempts,
         assessmentHistory: history,
+        placementHistory: placementHistory,
         updatedAt: updatedAt,
       );
     } catch (_) {
@@ -178,6 +201,11 @@ class LearnerPersistence {
           .map(_normalizeAssessmentHistory)
           .where((h) => h.id.trim().isNotEmpty)
           .toList(),
+      placementHistory: s.placementHistory
+          .take(20)
+          .map((record) => PlacementDiagnosticRecord.fromJson(record.toJson()))
+          .where((record) => record.id.trim().isNotEmpty)
+          .toList(),
       updatedAt: normalizedUpdatedAt,
     );
   }
@@ -200,6 +228,8 @@ class LearnerPersistence {
       hinted: a.hinted,
       seconds: a.seconds.clamp(0, 3600),
       at: safeAt,
+      facetType: a.facetType,
+      variantKey: ReviewFacetKey.normalizeVariant(a.variantKey),
     );
   }
 
@@ -209,7 +239,7 @@ class LearnerPersistence {
     final result = <String, ReviewCard>{};
     for (final entry in source.entries.take(maxCollectionItems)) {
       final id = entry.key.trim();
-      if (id.isEmpty || id.length > 160) continue;
+      if (id.isEmpty || id.length > maxReviewStorageKeyLength) continue;
       final card = _normalizeReviewCard(id, entry.value);
       if (card != null) result[id] = card;
     }
@@ -218,7 +248,8 @@ class LearnerPersistence {
 
   static ReviewCard? _normalizeReviewCard(String key, ReviewCard card) {
     final normalized = ReviewCard.fromJson(card.toJson());
-    return normalized.itemId == key ? normalized : null;
+    if (!normalized.facetKey.isValid) return null;
+    return normalized.storageKey == key ? normalized : null;
   }
 
   static AssessmentHistory _normalizeAssessmentHistory(AssessmentHistory h) =>
@@ -233,6 +264,7 @@ class LearnerPersistence {
       s.reviewCards.entries.map((e) => MapEntry(e.key, e.value.toJson())),
     ),
     'assessmentHistory': s.assessmentHistory.map((x) => x.toJson()).toList(),
+    'placementHistory': s.placementHistory.map((x) => x.toJson()).toList(),
     'attempts': s.attempts.map((x) => x.toJson()).toList(),
     'updatedAt': s.updatedAt.toIso8601String(),
   };

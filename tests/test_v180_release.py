@@ -1,61 +1,73 @@
 import hashlib
-import re
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / 'content' / 'german'
+CONTENT_JSON = ROOT / 'content' / 'content_items.json'
+VERB_JSON = ROOT / 'content' / 'verb_conjugations.json'
+BASELINE = ROOT / 'tool' / 'content_baseline.lock'
 
 
-def all_content():
-    return '\n'.join(p.read_text(encoding='utf-8') for p in DATA.glob('content*.dart'))
+def _content():
+    return json.loads(CONTENT_JSON.read_text(encoding='utf-8'))
+
+
+def _verbs():
+    return json.loads(VERB_JSON.read_text(encoding='utf-8'))
+
+
+def _baseline():
+    values = {}
+    for line in BASELINE.read_text(encoding='utf-8').splitlines():
+        if '=' in line and not line.startswith('#'):
+            key, value = line.split('=', 1)
+            values[key] = value
+    return values
 
 
 def test_v180_content_is_unique_and_wired():
-    text = all_content()
-    rows = dict(re.findall(r"ContentItem\(id:'([^']+)',german:'([^']*)'", text))
+    rows = {row['id']: row['german'] for row in _content()}
     ids = [f'w{n}' for n in range(16130, 16150)]
     assert all(i in rows for i in ids)
-    assert len(set(rows[i].lower() for i in ids)) == 20
-    assert len(rows) == len(set(rows))
-    all_rows = re.findall(r"ContentItem\(id:'([^']+)',german:'([^']*)'", text)
-    legacy = {g.lower() for i,g in all_rows if i not in ids}
+    assert len({rows[i].lower() for i in ids}) == 20
+    legacy = {g.lower() for i, g in rows.items() if i not in ids}
     assert all(rows[i].lower() not in legacy for i in ids)
 
 
 def test_v180_verbs_have_complete_person_sets():
-    text = (DATA / 'verb_conjugations_v180.dart').read_text(encoding='utf-8')
+    rows = _verbs()
     for infinitive in ('beeinflussen', 'sich erkundigen', 'erwähnen'):
-        block = text[text.index(f'infinitive:"{infinitive}"'):]
-        block = block[:block.find('\n\n') if '\n\n' in block else len(block)]
-        persons = re.findall(r'person:"([^"]+)"', block)
+        block = [row for row in rows if row['infinitive'] == infinitive]
+        persons = [row['person'] for row in block]
         assert persons == ['ich','du','er','sie','es','wir','ihr','sie','Sie']
-        assert all('past:' in line and 'pastExample:' in line for line in block.splitlines() if 'VerbConjugation(' in line)
+        assert all('past' in row and 'pastExample' in row for row in block)
 
 
 def test_v180_repaired_hinausgehen_and_erwidern_are_grammatical_shapes():
-    text = (DATA / 'verb_conjugations_part_09.dart').read_text(encoding='utf-8')
-    assert 'hingeausgeht' not in text
-    assert 'Er hinausgeht hinausgeht heute.' not in text
-    assert 'Ich hinausgehe heute.' not in text
-    assert 'erwideen' not in text
-    assert 'Er erwidet erwidet die Aufgabe.' not in text
-    assert 'Ich gehe heute hinaus.' in text
-    assert 'Ich erwidere die Frage.' in text
-    assert 'Ich verteidige die Stadt.' in text
+    rows = _verbs()
+    serialized = '\n'.join(
+        f"{row['form']}|{row['example']}|{row['pastExample']}" for row in rows
+    )
+    assert 'hingeausgeht' not in serialized
+    assert 'Er hinausgeht hinausgeht heute.' not in serialized
+    assert 'Ich hinausgehe heute.' not in serialized
+    assert 'erwideen' not in serialized
+    assert 'Er erwidet erwidet die Aufgabe.' not in serialized
+    assert 'Ich gehe heute hinaus.' in serialized
+    assert 'Ich erwidere die Frage.' in serialized
+    assert 'Ich verteidige die Stadt.' in serialized
 
 
 def test_v180_baseline_matches_current_corpus():
-    text = all_content()
-    ids = re.findall(r"ContentItem\(id:'([^']+)'", text)
-    german = re.findall(r"ContentItem\(id:'[^']+',german:'([^']*)'", text)
-    baseline = {}
-    for line in (ROOT / 'tool' / 'content_baseline.lock').read_text(encoding='utf-8').splitlines():
-        if '=' in line and not line.startswith('#'):
-            k,v=line.split('=',1); baseline[k]=v
+    content = _content()
+    ids = [row['id'] for row in content]
+    german = [row['german'] for row in content]
+    baseline = _baseline()
     assert len(ids) == int(baseline['CONTENT_ENTRIES'])
     assert len(set(ids)) == int(baseline['UNIQUE_IDS'])
-    assert len(set(x.lower() for x in german)) == int(baseline['UNIQUE_GERMAN'])
+    assert len({x.lower() for x in german}) == int(baseline['UNIQUE_GERMAN'])
     assert hashlib.sha256('\n'.join(sorted(ids)).encode()).hexdigest() == baseline['IDS_SHA256']
+
 
 def test_build_guard_fails_fast_for_missing_wrapper_jar():
     text = (ROOT / 'scripts' / 'build_guard.sh').read_text(encoding='utf-8')

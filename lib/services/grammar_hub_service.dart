@@ -1,7 +1,10 @@
 import 'dart:convert';
 
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+
+import '../models/grammar_microscope.dart';
+import 'canonical_grammar_compiler.dart';
+import 'sqlite_policy.dart';
 
 class GrammarTopic {
   final String id;
@@ -67,14 +70,29 @@ class GrammarQuiz {
   }
 }
 
-class GrammarHubService {
+abstract interface class GrammarHubRepository {
+  Future<List<GrammarTopic>> getTopicsByLevel(String level);
+  Future<GrammarTopic?> getTopicDetail(String topicId);
+  Future<List<GrammarQuiz>> getQuizzesForTopic(String topicId);
+  Future<void> saveTopicMastery(String topicId, bool mastered);
+  Future<void> close();
+}
+
+/// Optional detailed grammar capability used by the Phase 13 microscope.
+/// Keeping this separate preserves compatibility with lightweight hub fakes.
+abstract interface class GrammarMicroscopeRepository {
+  Future<List<GrammarRuleDetail>> getRulesForTopic(String topicId);
+}
+
+class GrammarHubService
+    implements GrammarHubRepository, GrammarMicroscopeRepository {
   static const String _dbName = 'grammar_hub.db';
   Database? _db;
-  final DatabaseFactory? _dbFactory;
+  final AppSqlitePolicy _sqlitePolicy;
   final String? _inMemoryPath;
 
   GrammarHubService({DatabaseFactory? factory, String? path})
-    : _dbFactory = factory,
+    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
       _inMemoryPath = path;
 
   Future<Database> get database async {
@@ -84,300 +102,32 @@ class GrammarHubService {
   }
 
   Future<Database> _initDB() async {
-    String path;
-    if (_inMemoryPath != null) {
-      path = _inMemoryPath;
-    } else {
-      final dbPath = await getDatabasesPath();
-      path = join(dbPath, _dbName);
-    }
-
-    if (_dbFactory != null) {
-      return await _dbFactory!.openDatabase(
-        path,
-        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
-      );
-    }
-
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    final path = await _sqlitePolicy.resolvePath(
+      fileName: _dbName,
+      overridePath: _inMemoryPath,
+    );
+    return _sqlitePolicy.openWritable(
+      path: path,
+      version: CanonicalGrammarCompiler.databaseVersion,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE grammar_topics (
-        id TEXT PRIMARY KEY,
-        level TEXT NOT NULL,
-        title_de TEXT NOT NULL,
-        title_ar TEXT NOT NULL,
-        explanation_markdown TEXT NOT NULL,
-        formula_pattern TEXT,
-        order_index INTEGER NOT NULL,
-        is_mastered INTEGER DEFAULT 0
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE grammar_quizzes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        topic_id TEXT NOT NULL,
-        question TEXT NOT NULL,
-        options_json TEXT NOT NULL,
-        correct_index INTEGER NOT NULL,
-        explanation TEXT NOT NULL,
-        FOREIGN KEY (topic_id) REFERENCES grammar_topics (id) ON DELETE CASCADE
-      )
-    ''');
-
-    await _seedInitialData(db);
+    await CanonicalGrammarCompiler.rebuild(db);
   }
 
-  Future<void> _seedInitialData(Database db) async {
-    // Seed A1
-    await db.insert('grammar_topics', {
-      'id': 'a1_nominativ',
-      'level': 'A1',
-      'title_de': 'Nominativ',
-      'title_ar': 'حالة الرفع',
-      'explanation_markdown': 'Der Nominativ ist die Grundform des Nomens.',
-      'formula_pattern': 'Wer oder Was?',
-      'order_index': 1,
-      'is_mastered': 0,
-    });
-
-    // Seed A1 Quizzes
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'a1_nominativ',
-      'question': 'Welcher Artikel steht im Nominativ für maskulin?',
-      'options_json': json.encode(['der', 'den', 'dem', 'des']),
-      'correct_index': 0,
-      'explanation': '"der" ist der maskuline Artikel im Nominativ.',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'a1_nominativ',
-      'question': 'Welcher Artikel steht im Nominativ für feminin?',
-      'options_json': json.encode(['der', 'die', 'das', 'den']),
-      'correct_index': 1,
-      'explanation': '"die" ist der feminine Artikel im Nominativ.',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'a1_nominativ',
-      'question': 'Welcher Artikel steht im Nominativ für neutral?',
-      'options_json': json.encode(['das', 'der', 'dem', 'den']),
-      'correct_index': 0,
-      'explanation': '"das" ist der neutrale Artikel im Nominativ.',
-    });
-
-    // Seed A2
-    await db.insert('grammar_topics', {
-      'id': 'a2_perfekt',
-      'level': 'A2',
-      'title_de': 'Perfekt',
-      'title_ar': 'الماضي التام',
-      'explanation_markdown':
-          'Das Perfekt wird mit haben/sein + Partizip II gebildet.',
-      'formula_pattern': 'haben/sein + ... + Partizip II',
-      'order_index': 1,
-      'is_mastered': 0,
-    });
-
-    // Seed A2 Quizzes
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'a2_perfekt',
-      'question': 'Wie lautet das Partizip II von "gehen"?',
-      'options_json': json.encode(['gegangen', 'geht', 'geging', 'gegang']),
-      'correct_index': 0,
-      'explanation': 'Das Partizip II von "gehen" ist "gegangen".',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'a2_perfekt',
-      'question': 'Welches Hilfsverb wird für "gehen" im Perfekt verwendet?',
-      'options_json': json.encode(['haben', 'werden', 'sein', 'wollen']),
-      'correct_index': 2,
-      'explanation':
-          'Verben der Bewegung wie "gehen" bilden das Perfekt mit "sein".',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'a2_perfekt',
-      'question': 'Wie lautet das Partizip II von "machen"?',
-      'options_json': json.encode(['macht', 'machte', 'gemacht', 'machen']),
-      'correct_index': 2,
-      'explanation': 'Das Partizip II von "machen" ist "gemacht".',
-    });
-
-    // Seed B1
-    await db.insert('grammar_topics', {
-      'id': 'b1_passiv',
-      'level': 'B1',
-      'title_de': 'Passiv',
-      'title_ar': 'المبني للمجهول',
-      'explanation_markdown':
-          'Das Passiv betont die Handlung, nicht den Täter.',
-      'formula_pattern': 'werden + Partizip II',
-      'order_index': 1,
-      'is_mastered': 0,
-    });
-
-    // Seed B1 Quizzes
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'b1_passiv',
-      'question': 'Welches Hilfsverb bildet das Vorgangspassiv?',
-      'options_json': json.encode(['haben', 'werden', 'sein', 'können']),
-      'correct_index': 1,
-      'explanation':
-          'Das Vorgangspassiv wird mit "werden" + Partizip II gebildet.',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'b1_passiv',
-      'question':
-          'Wie lautet das Partizip II im Passiv-Satz "Das Haus wird ___"?',
-      'options_json': json.encode(['gebaut', 'bauen', 'baut', 'baute']),
-      'correct_index': 0,
-      'explanation': 'Das Partizip II von "bauen" ist "gebaut".',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'b1_passiv',
-      'question': 'Was ist das Zustandspassiv von "Die Tür wird geschlossen"?',
-      'options_json': json.encode([
-        'Die Tür wurde geschlossen',
-        'Die Tür ist geschlossen',
-        'Die Tür schließt',
-        'Die Tür hatte geschlossen',
-      ]),
-      'correct_index': 1,
-      'explanation':
-          'Das Zustandspassiv wird mit "sein" + Partizip II gebildet.',
-    });
-
-    // Seed B2
-    await db.insert('grammar_topics', {
-      'id': 'b2_konjunktiv2',
-      'level': 'B2',
-      'title_de': 'Konjunktiv II',
-      'title_ar': 'صيغة التمني',
-      'explanation_markdown': 'Verwendet für irreale Wünsche und Bedingungen.',
-      'formula_pattern': 'würde + Infinitiv',
-      'order_index': 1,
-      'is_mastered': 0,
-    });
-
-    // Seed B2 Quizzes
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'b2_konjunktiv2',
-      'question': 'Wie lautet der Konjunktiv II von "haben" (ich)?',
-      'options_json': json.encode(['habe', 'hätte', 'hatte', 'hätte gehabt']),
-      'correct_index': 1,
-      'explanation': 'Die Konjunktiv II Form von "haben" ist "hätte".',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'b2_konjunktiv2',
-      'question': 'Wie lautet der Konjunktiv II von "sein" (ich)?',
-      'options_json': json.encode(['wäre', 'war', 'bin', 'wurde']),
-      'correct_index': 0,
-      'explanation': 'Die Konjunktiv II Form von "sein" ist "wäre".',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'b2_konjunktiv2',
-      'question': 'Welche Form wird oft als Ersatzform für den Konjunktiv II verwendet?',
-      'options_json': json.encode([
-        'wäre + Partizip II',
-        'würde + Infinitiv',
-        'hätte + Infinitiv',
-        'wurde + Partizip II',
-      ]),
-      'correct_index': 1,
-      'explanation': 'Die "würde + Infinitiv" Form wird als Ersatzform für schwache Verben und oft im Gesprochenen verwendet.',
-    });
-
-    // Seed C1
-    await db.insert('grammar_topics', {
-      'id': 'c1_partizipialattribute',
-      'level': 'C1',
-      'title_de': 'Partizipialattribute',
-      'title_ar': 'صفات اسم الفاعل والمفعول',
-      'explanation_markdown': 'Erweiterte Attribute mit Partizip I oder II.',
-      'formula_pattern': 'Artikel + Erweiterung + Partizip + Nomen',
-      'order_index': 1,
-      'is_mastered': 0,
-    });
-
-    // Seed C1 Quizzes
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'c1_partizipialattribute',
-      'question': 'Welches Partizip drückt Gleichzeitigkeit/Aktiv aus?',
-      'options_json': json.encode([
-        'Partizip II',
-        'Partizip I',
-        'Infinitiv',
-        'Konjunktiv',
-      ]),
-      'correct_index': 1,
-      'explanation': 'Das Partizip I (z.B. lesend) drückt aus, dass eine Handlung gerade stattfindet (aktiv).',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'c1_partizipialattribute',
-      'question': 'Welches Partizip drückt Vorzeitigkeit/Passiv aus?',
-      'options_json': json.encode([
-        'Partizip I',
-        'Partizip II',
-        'Gerundium',
-        'Supinum',
-      ]),
-      'correct_index': 1,
-      'explanation': 'Das Partizip II (z.B. gelesen) drückt eine abgeschlossene Handlung aus (oft passivisch).',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'c1_partizipialattribute',
-      'question': 'Wie lautet das Partizip I von "schreiben"?',
-      'options_json': json.encode([
-        'geschrieben',
-        'schreibend',
-        'schrieb',
-        'schreiben',
-      ]),
-      'correct_index': 1,
-      'explanation': 'Das Partizip I wird durch Anhängen von "d" an den Infinitiv gebildet: schreibend.',
-    });
-
-    // Seed C2
-    await db.insert('grammar_topics', {
-      'id': 'c2_feste_nomen_verb',
-      'level': 'C2',
-      'title_de': 'Feste Nomen-Verb-Verbindungen',
-      'title_ar': 'المركبات الاسمية الفعلية',
-      'explanation_markdown': 'Feststehende Ausdrücke aus Nomen und Verb.',
-      'formula_pattern': 'Nomen + Verb',
-      'order_index': 1,
-      'is_mastered': 0,
-    });
-
-    // Seed C2 Quizzes
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'c2_feste_nomen_verb',
-      'question': 'Welches Verb passt: "eine Entscheidung ___"?',
-      'options_json': json.encode(['machen', 'tun', 'treffen', 'geben']),
-      'correct_index': 2,
-      'explanation': 'Die korrekte Nomen-Verb-Verbindung ist "eine Entscheidung treffen" (entscheiden).',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'c2_feste_nomen_verb',
-      'question': 'Welches Verb passt: "Abschied ___"?',
-      'options_json': json.encode(['nehmen', 'machen', 'sagen', 'geben']),
-      'correct_index': 0,
-      'explanation': 'Die korrekte Nomen-Verb-Verbindung ist "Abschied nehmen" (sich verabschieden).',
-    });
-    await db.insert('grammar_quizzes', {
-      'topic_id': 'c2_feste_nomen_verb',
-      'question': 'Welches Verb passt: "in Frage ___"?',
-      'options_json': json.encode(['stehen', 'stellen', 'kommen', 'machen']),
-      'correct_index': 2,
-      'explanation': '"in Frage kommen" bedeutet möglich sein / relevant sein.',
-    });
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < CanonicalGrammarCompiler.databaseVersion) {
+      await CanonicalGrammarCompiler.rebuild(db);
+    }
   }
 
   Future<List<GrammarTopic>> getTopicsByLevel(String level) async {
     final db = await database;
     final maps = await db.query(
-      'grammar_topics',
+      'grammar_topic_runtime',
       where: 'level = ?',
       whereArgs: [level],
       orderBy: 'order_index ASC',
@@ -388,7 +138,7 @@ class GrammarHubService {
   Future<GrammarTopic?> getTopicDetail(String topicId) async {
     final db = await database;
     final maps = await db.query(
-      'grammar_topics',
+      'grammar_topic_runtime',
       where: 'id = ?',
       whereArgs: [topicId],
     );
@@ -407,6 +157,96 @@ class GrammarHubService {
     );
     return maps.map((e) => GrammarQuiz.fromMap(e)).toList();
   }
+
+  @override
+  Future<List<GrammarRuleDetail>> getRulesForTopic(String topicId) async {
+    final safeTopicId = topicId.trim();
+    if (safeTopicId.isEmpty || safeTopicId.length > 160) {
+      return const <GrammarRuleDetail>[];
+    }
+
+    final db = await database;
+    final ruleRows = await db.query(
+      'grammar_rules',
+      where: 'topic_id = ?',
+      whereArgs: <Object?>[safeTopicId],
+      orderBy: 'order_index ASC',
+      limit: 100,
+    );
+    final result = <GrammarRuleDetail>[];
+
+    for (final row in ruleRows) {
+      final ruleId = _boundedText(row['id'], maxLength: 160);
+      if (ruleId.isEmpty) continue;
+      final tableRows = await db.query(
+        'grammar_rule_rows',
+        where: 'rule_id = ?',
+        whereArgs: <Object?>[ruleId],
+        orderBy: 'row_index ASC',
+        limit: 100,
+      );
+      final exampleRows = await db.query(
+        'grammar_examples',
+        where: 'rule_id = ?',
+        whereArgs: <Object?>[ruleId],
+        orderBy: 'example_index ASC',
+        limit: 100,
+      );
+
+      result.add(
+        GrammarRuleDetail(
+          id: ruleId,
+          topicId: safeTopicId,
+          title: _boundedText(row['title']),
+          explanationAr: _boundedText(row['explanation_ar']),
+          orderIndex: _safeInt(row['order_index']),
+          table: tableRows
+              .map((entry) => _decodeCells(entry['cells_json']))
+              .where((cells) => cells.isNotEmpty)
+              .toList(growable: false),
+          examples: exampleRows
+              .map(
+                (entry) => GrammarExampleDetail(
+                  german: _boundedText(entry['german']),
+                  arabic: _boundedText(entry['arabic']),
+                ),
+              )
+              .where(
+                (example) =>
+                    example.german.isNotEmpty || example.arabic.isNotEmpty,
+              )
+              .toList(growable: false),
+        ),
+      );
+    }
+    return List<GrammarRuleDetail>.unmodifiable(result);
+  }
+
+  static List<String> _decodeCells(Object? raw) {
+    if (raw is! String || raw.length > 64 * 1024) {
+      return const <String>[];
+    }
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is! List) return const <String>[];
+      return decoded
+          .map((value) => _boundedText(value))
+          .where((value) => value.isNotEmpty)
+          .take(16)
+          .toList(growable: false);
+    } on Object {
+      return const <String>[];
+    }
+  }
+
+  static String _boundedText(Object? raw, {int maxLength = 4000}) {
+    final value = raw?.toString().trim() ?? '';
+    if (value.isEmpty) return '';
+    return value.length <= maxLength ? value : value.substring(0, maxLength);
+  }
+
+  static int _safeInt(Object? raw) =>
+      raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '') ?? 0;
 
   Future<void> saveTopicMastery(String topicId, bool mastered) async {
     final db = await database;

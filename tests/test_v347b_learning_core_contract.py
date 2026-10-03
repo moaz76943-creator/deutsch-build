@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,12 +17,12 @@ def test_learning_core_consumes_language_neutral_contract_not_content_model():
 
 def test_content_dependent_core_operations_accept_explicit_learnability_policy():
     text = CORE.read_text(encoding='utf-8')
-    assert 'bool Function(T item) isLearnable' in text
-    assert 'static List<T> due<T extends LearningContent>(' in text
-    assert 'static T? weakestItemForSkill<T extends LearningContent>(' in text
+    assert re.search(r'bool\s+Function\(T\s+item\)\s+isLearnable', text)
+    assert re.search(r'static\s+List<T>\s+due<T\s+extends\s+LearningContent>\(', text)
+    assert re.search(r'static\s+T\?\s+weakestItemForSkill<T\s+extends\s+LearningContent>\(', text)
 
 
 def test_german_ui_keeps_german_quality_policy_outside_learning_core():
     text = PROGRESS.read_text(encoding='utf-8')
-    assert 'LearningCore.weakestItemForSkill(state, focusSkill, corpus' in text
-    assert 'isLearnable: contentQuality.isLearnable' in text
+    assert re.search(r'LearningCore\.weakestItemForSkill\(\s*state,\s*focusSkill,\s*corpus', text)
+    assert re.search(r'isLearnable:\s*contentQuality\.isLearnable', text)

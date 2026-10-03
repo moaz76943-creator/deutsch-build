@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -12,8 +13,17 @@ def test_repository_accepts_persistence_dependency():
 
 def test_main_composes_repository_persistence_once():
     src = (ROOT / 'lib/main.dart').read_text()
-    assert 'final persistence = LearnerPersistence(prefs' in src
-    assert 'LearnerRepository(prefs, persistence: persistence)' in src
+    assert re.search(
+        r'final persistence\s*=\s*LearnerPersistence\(\s*prefs\s*,',
+        src,
+        re.DOTALL,
+    )
+    assert re.search(
+        r'LearnerRepository\(\s*prefs\s*,\s*persistence:\s*persistence\s*,\s*'
+        r'gamificationReviewSink:\s*gamificationRepository\s*,?\s*\)',
+        src,
+        re.DOTALL,
+    )
 
 
 def test_repository_boundary_does_not_construct_persistence():

@@ -30,7 +30,7 @@ const releaseGates = <ReleaseGate>[
   ReleaseGate(
     'الأمان المحلي',
     true,
-    'لا شبكة، لا INTERNET permission، منع النسخ الاحتياطي، FLAG_SECURE، تحقق من المدخلات، وR8/Obfuscation في Release؛ أي تكامل خارجي يجب أن يكون HTTPS-only.',
+    'الشبكة اختيارية ومقيدة بـ HTTPS، مع منع النسخ الاحتياطي وFLAG_SECURE والتحقق من المدخلات وR8/Obfuscation في Release.',
   ),
   ReleaseGate(
     'Performance',

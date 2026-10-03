@@ -12,10 +12,10 @@ class VocabularyCoach {
   }) {
     final at = now ?? DateTime.now();
     final attempts = <String, List<Attempt>>{};
-    for (final attempt in state.attempts) {
+    for (final attempt in state.meaningAttempts) {
       attempts.putIfAbsent(attempt.itemId, () => []).add(attempt);
     }
-    final due = state.reviewCards.values
+    final due = state.meaningReviewCards
         .where((c) => !c.dueAt.isAfter(at))
         .map((c) => c.itemId)
         .toSet();

@@ -1,151 +1,194 @@
 import 'package:flutter_tts/flutter_tts.dart';
 
-/// Owns one TTS engine and makes rapid speak/stop/shutdown calls lifecycle-safe.
-/// Generation invalidation prevents queued speech from starting after stop/dispose.
+import '../features/audio/domain/entities/audio_playback_result.dart';
+import '../features/audio/domain/entities/audio_request.dart';
+import '../features/audio/domain/services/offline_tts_engine.dart';
+import '../features/audio/offline_audio_runtime.dart';
+import '../language/german/german_speech_profile.dart';
+import '../language/language_speech_profile.dart';
+
+final class FlutterOfflineTtsEngine implements OfflineTtsEngine {
+  FlutterOfflineTtsEngine({FlutterTts? engine})
+    : _engine = engine ?? FlutterTts();
+
+  final FlutterTts _engine;
+  Map<String, String>? _selectedVoice;
+  String? _selectedLanguage;
+  bool _closed = false;
+
+  @override
+  Future<OfflineTtsAvailability> probe(LanguageSpeechProfile profile) async {
+    if (_closed) return OfflineTtsAvailability.unavailable;
+    if (_selectedVoice != null && _selectedLanguage == profile.languageCode) {
+      return OfflineTtsAvailability.ready;
+    }
+    try {
+      final rawVoices = await _engine.getVoices;
+      if (rawVoices is! List) return OfflineTtsAvailability.unavailable;
+      final voice = selectOfflineVoice(rawVoices, profile.preferredTtsLocales);
+      if (voice == null) return OfflineTtsAvailability.unavailable;
+
+      final locale = voice['locale'];
+      if (locale == null || locale.isEmpty) {
+        return OfflineTtsAvailability.unavailable;
+      }
+      final installed = await _engine.isLanguageInstalled(locale);
+      if (installed != true) {
+        return OfflineTtsAvailability.unavailable;
+      }
+
+      _selectedVoice = voice;
+      _selectedLanguage = profile.languageCode;
+      return OfflineTtsAvailability.ready;
+    } on Object {
+      return OfflineTtsAvailability.unavailable;
+    }
+  }
+
+  @override
+  Future<bool> speak({
+    required String text,
+    required LanguageSpeechProfile profile,
+    required double rate,
+  }) async {
+    if (_closed || text.trim().isEmpty) return false;
+    if (await probe(profile) != OfflineTtsAvailability.ready) return false;
+    final voice = _selectedVoice;
+    if (voice == null) return false;
+    try {
+      await _engine.stop();
+      await _engine.setVoice(voice);
+      await _engine.setLanguage(voice['locale']!);
+      await _engine.setSpeechRate(rate.clamp(.1, 1.0));
+      await _engine.setPitch(1.0);
+      await _engine.setVolume(1.0);
+      await _engine.awaitSpeakCompletion(true);
+      final result = await _engine.speak(text.trim());
+      return result == 1 || result == true || result == null;
+    } on Object {
+      return false;
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    if (_closed) return;
+    try {
+      await _engine.stop();
+    } on Object {
+      // Platform failures remain inside the adapter boundary.
+    }
+  }
+
+  @override
+  Future<void> shutdown() async {
+    if (_closed) return;
+    _closed = true;
+    try {
+      await _engine.stop();
+    } on Object {
+      // Platform failures remain inside the adapter boundary.
+    }
+  }
+
+  static Map<String, String>? selectOfflineVoice(
+    List<dynamic> voices,
+    List<String> preferredLocales,
+  ) {
+    final preferred = preferredLocales
+        .map(_normalizeLocale)
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+
+    for (final locale in preferred) {
+      for (final raw in voices) {
+        if (raw is! Map) continue;
+        final normalized = <String, String>{
+          for (final entry in raw.entries)
+            entry.key.toString(): entry.value.toString(),
+        };
+        final voiceLocale = _normalizeLocale(normalized['locale'] ?? '');
+        if (voiceLocale != locale && !voiceLocale.startsWith(locale + '-')) {
+          continue;
+        }
+        final networkRequired = (normalized['network_required'] ?? '')
+            .trim()
+            .toLowerCase();
+        if (networkRequired == 'true' || networkRequired == '1') continue;
+        final features = (normalized['features'] ?? '').toLowerCase();
+        if (features.contains('notinstalled')) continue;
+        final name = normalized['name']?.trim() ?? '';
+        if (name.isEmpty) continue;
+        return <String, String>{'name': name, 'locale': normalized['locale']!};
+      }
+    }
+    return null;
+  }
+
+  static String _normalizeLocale(String value) =>
+      value.trim().replaceAll('_', '-').toLowerCase();
+}
+
+/// Compatibility adapter. New code should receive IAudioRuntime from the
+/// composition root rather than constructing TTS directly in widgets.
 class SafeTtsController {
-  final FlutterTts engine = FlutterTts();
-  Future<void> _tail = Future<void>.value();
+  SafeTtsController({
+    OfflineAudioRuntime? runtime,
+    LanguageSpeechProfile profile = const GermanSpeechProfile(),
+  }) : _profile = profile,
+       _runtime =
+           runtime ??
+           OfflineAudioRuntime(
+             speechProfile: profile,
+             ttsEngine: FlutterOfflineTtsEngine(),
+           );
+
+  final LanguageSpeechProfile _profile;
+  final OfflineAudioRuntime _runtime;
+  AudioPlaybackResult? _lastResult;
   bool _disposed = false;
   bool _operationBusy = false;
-  int _generation = 0;
-  bool? _germanVoiceReady;
-  String? _voiceError;
 
   Future<void> speak(String text, {double rate = .46}) async {
-    final value = text.trim();
-    if (value.isEmpty || _disposed) return;
-    final generation = ++_generation;
-    await _enqueue(() async {
-      if (_disposed || generation != _generation) return;
-      _operationBusy = true;
-      try {
-        await engine.stop();
-        if (_disposed || generation != _generation) return;
-        if (!await _ensureGermanVoice()) return;
-        if (_disposed || generation != _generation) return;
-        await engine.setSpeechRate(rate.clamp(.1, 1.0));
-        await engine.setPitch(1.0);
-        await engine.setVolume(1.0);
-        await engine.awaitSpeakCompletion(true);
-        if (_disposed || generation != _generation) return;
-        await engine.speak(value);
-      } catch (_) {
-        // TTS plugin failures must never escape into the UI.
-      } finally {
-        _operationBusy = false;
-      }
-    });
+    if (_disposed || text.trim().isEmpty) return;
+    _operationBusy = true;
+    try {
+      _lastResult = await _runtime.play(
+        AudioRequest(
+          text: text,
+          languageCode: _profile.languageCode,
+          rate: rate,
+        ),
+      );
+    } finally {
+      _operationBusy = false;
+    }
   }
 
-  Future<void> stop() async {
-    if (_disposed) return;
-    ++_generation;
-    try {
-      await engine.stop();
-    } catch (_) {}
-    await _tail;
-  }
+  Future<void> stop() => _runtime.stop();
 
   Future<void> shutdown() async {
     if (_disposed) return;
     _disposed = true;
-    ++_generation;
-    try {
-      await engine.stop();
-    } catch (_) {}
-    await _tail;
-    try {
-      await engine.stop();
-    } catch (_) {}
+    await _runtime.shutdown();
   }
 
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    ++_generation;
-    // Do not await from a synchronous Flutter dispose callback.
-    Future<void>(() async {
-      try {
-        await engine.stop();
-      } catch (_) {}
-      await _tail;
-      try {
-        await engine.stop();
-      } catch (_) {}
-    });
-  }
-
-  Future<void> _enqueue(Future<void> Function() operation) {
-    final next = _tail.then((_) => operation(), onError: (_) => operation());
-    _tail = next.catchError((_) {});
-    return next.catchError((_) {});
+    Future<void>(() => _runtime.shutdown());
   }
 
   bool get isDisposed => _disposed;
   bool get isBusy => _operationBusy;
-  bool get isGermanVoiceReady => _germanVoiceReady == true;
-  String? get voiceError => _voiceError;
-
-  Future<bool> _ensureGermanVoice() async {
-    if (_germanVoiceReady == true) return true;
-    if (_disposed) return false;
-    try {
-      final languages = await engine.getLanguages;
-      final supported = languages
-          .map((value) => value.toString().replaceAll('_', '-').toLowerCase())
-          .where((value) => value.isNotEmpty)
-          .toList();
-      final locale = supported.contains('de-de')
-          ? 'de-DE'
-          : supported.firstWhere(
-              (value) => value == 'de' || value.startsWith('de-'),
-              orElse: () => '',
-            );
-      if (locale.isEmpty) {
-        _voiceError = 'German TTS voice unavailable';
-        _germanVoiceReady = false;
-        return false;
-      }
-
-      final voices = await engine.getVoices;
-      if (voices is List && voices.isNotEmpty) {
-        dynamic germanVoice;
-        for (final raw in voices) {
-          if (raw is! Map) continue;
-          final voiceLocale =
-              raw['locale']?.toString().replaceAll('_', '-').toLowerCase() ??
-              '';
-          if (voiceLocale == 'de-de' || voiceLocale == locale.toLowerCase()) {
-            germanVoice = raw;
-            break;
-          }
-        }
-        if (germanVoice == null) {
-          _voiceError = 'German TTS voice unavailable';
-          _germanVoiceReady = false;
-          return false;
-        }
-        await engine.setVoice(
-          Map<String, String>.from(
-            germanVoice.map(
-              (key, value) => MapEntry(key.toString(), value.toString()),
-            ),
-          ),
-        );
-      }
-      await engine.setLanguage(locale);
-      _voiceError = null;
-      _germanVoiceReady = true;
-      return true;
-    } catch (_) {
-      _voiceError = 'German TTS voice unavailable';
-      _germanVoiceReady = false;
-      return false;
-    }
-  }
+  bool get isGermanVoiceReady =>
+      _lastResult?.source == AudioPlaybackSource.offlineTts;
+  String? get voiceError =>
+      _lastResult?.source == AudioPlaybackSource.unavailable
+      ? _profile.offlineVoiceUnavailableMessage
+      : null;
 }
 
-/// Backward-compatible helpers use the same per-controller serialization gate.
 class _TtsGate {
   Future<void> tail = Future<void>.value();
   int generation = 0;

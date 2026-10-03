@@ -1,4 +1,5 @@
 from pathlib import Path
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -12,16 +13,13 @@ def test_categories_page_does_not_rebuild_topic_map_inside_build():
 
 def test_learning_core_weakest_skill_avoids_repeated_list_materialization():
     text = (ROOT / 'lib/core/learning_core.dart').read_text()
-    start = text.index('static String weakestSkill')
-    end = text.index('static Map<String,double> skillScores', start)
-    block = text[start:end]
-    assert '.where((x)=>x.skill==skill).toList()' not in block
-    assert 'attemptsBySkill' in block
+    assert 'static String weakestSkill(LearnerState s)' in text
+    assert 'final attemptsBySkill = _attemptsBySkill(s);' in text
+    assert '.where((x)=>x.skill==skill).toList()' not in text
 
 
 def test_learning_core_skill_scores_uses_shared_skill_buckets():
     text = (ROOT / 'lib/core/learning_core.dart').read_text()
-    start = text.index('static Map<String,double> skillScores')
-    end = text.index('static double _clamp', start)
-    block = text[start:end]
-    assert 'attemptsBySkill' in block
+    assert 'static Map<String, double> skillScores(LearnerState s)' in text
+    assert 'final attemptsBySkill = _attemptsBySkill(s);' in text
+    assert 'k: _score(attemptsBySkill[k] ?? const <Attempt>[])' in text

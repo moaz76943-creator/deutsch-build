@@ -1,5 +1,6 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+
+import '../../../../services/sqlite_policy.dart';
 
 import '../models/milestone_badge.dart';
 
@@ -16,6 +17,7 @@ class StreakMilestonesEngine {
 
   static final StreakMilestonesEngine instance = StreakMilestonesEngine._init();
   static Database? _database;
+  static const AppSqlitePolicy _sqlitePolicy = AppSqlitePolicy();
 
   StreakMilestonesEngine._init();
 
@@ -26,10 +28,12 @@ class StreakMilestonesEngine {
   }
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
-
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    final path = await _sqlitePolicy.resolvePath(fileName: filePath);
+    return _sqlitePolicy.openWritable(
+      path: path,
+      version: 1,
+      onCreate: _createDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {

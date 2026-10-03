@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,4 +18,8 @@ def test_search_index_does_not_import_legacy_text_normalizer():
 def test_composition_root_injects_language_normalizer():
     text = (ROOT / "lib/main.dart").read_text()
     assert "final verbIndex = contentPack.verbIndex;" in text
-    assert "SearchIndex(corpus, verbIndex, languagePack.textNormalizer)" in text
+    assert re.search(
+        r'SearchIndex\(\s*corpus\s*,\s*verbIndex\s*,\s*activeLanguagePack\.textNormalizer\s*,?\s*\)',
+        text,
+        re.DOTALL,
+    )

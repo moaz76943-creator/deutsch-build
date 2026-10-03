@@ -1,5 +1,6 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+
+import 'sqlite_policy.dart';
 
 class CustomExample {
   final int id;
@@ -32,6 +33,12 @@ class UserCustomization {
 }
 
 class UserCustomizationService {
+  UserCustomizationService({DatabaseFactory? factory, String? path})
+    : _sqlitePolicy = AppSqlitePolicy(factory: factory),
+      _overridePath = path;
+
+  final AppSqlitePolicy _sqlitePolicy;
+  final String? _overridePath;
   Database? _db;
 
   Future<Database> get db async {
@@ -41,13 +48,15 @@ class UserCustomizationService {
   }
 
   Future<Database> _initDb() async {
-    final databasesPath = await getDatabasesPath();
-    final path = join(databasesPath, 'user_customizations.db');
-    return await openDatabase(
-      path,
+    final path = await _sqlitePolicy.resolvePath(
+      fileName: 'user_customizations.db',
+      overridePath: _overridePath,
+    );
+    return _sqlitePolicy.openWritable(
+      path: path,
       version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
+      onCreate: (database, version) async {
+        await database.execute('''
           CREATE TABLE user_vocab_customizations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             word_id TEXT NOT NULL UNIQUE,
@@ -56,7 +65,7 @@ class UserCustomizationService {
             updated_at TEXT NOT NULL
           )
         ''');
-        await db.execute('''
+        await database.execute('''
           CREATE TABLE user_custom_examples (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             word_id TEXT NOT NULL,

@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 ROOT=Path(__file__).resolve().parents[1]
 P=ROOT/'lib/ui_v35/learning_pages.dart'
 
@@ -16,6 +17,10 @@ def test_smart_assessment_keeps_state_for_question_build_and_history():
     s=text()
     assert 'late LearnerState assessmentState;' in s
     assert 'assessmentState = widget.repo.load();' in s
-    assert 'AssessmentEngine.build(corpus, assessmentState' in s
+    assert re.search(
+        r'AssessmentEngine\.build\(\s*corpus\s*,\s*assessmentState\s*,',
+        s,
+        re.DOTALL,
+    )
     assert 'final corpus = widget.corpus;' in s
     assert 'history: assessmentState.assessmentHistory' in s

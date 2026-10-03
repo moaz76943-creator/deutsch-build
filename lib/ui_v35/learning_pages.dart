@@ -3,6 +3,7 @@ import '../services/app_dependencies.dart';
 import 'package:flutter/material.dart';
 
 import '../core/learning_core.dart';
+import '../core/view_mode.dart';
 import '../core/content_contract.dart';
 import '../language/language_exercise_strategy.dart';
 import '../language/language_presentation.dart';
@@ -11,6 +12,7 @@ import '../models/content.dart';
 import '../models/learner.dart';
 import '../models/assessment.dart';
 import '../services/repository.dart';
+import '../services/ui_preferences.dart';
 import '../services/subscription.dart';
 import '../language/language_text_normalizer.dart';
 import '../language/language_content_intelligence.dart';
@@ -23,9 +25,8 @@ import 'safe_ui.dart';
 import 'dart:math' as math;
 
 import '../services/content_depth.dart';
-import '../core/view_mode.dart';
-import 'flashcard_widget.dart';
-import '../services/ui_preferences.dart';
+
+part 'learning_pages_detail.dart';
 
 class CoreSession extends StatefulWidget {
   final LearnerRepository repo;

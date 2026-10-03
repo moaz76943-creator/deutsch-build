@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,7 @@ def test_verb_pages_use_explicit_verb_index():
 
 def test_app_composes_verb_index_into_verb_page():
     text = APP.read_text(encoding='utf-8')
-    assert "VerbConjugationPage(repo: widget.repo, verbIndex: widget.dependencies.verbIndex)" in text
+    assert re.search(r'VerbConjugationPage\(\s*repo:\s*widget\.repo,\s*verbIndex:\s*widget\.dependencies\.verbIndex,?\s*\)', text)
 
 
 def test_app_dependencies_remains_the_verb_composition_boundary():

@@ -16,7 +16,7 @@ class DailyPlan {
 
   factory DailyPlan.from(LearnerState state, {DateTime? now, int goal = 10}) {
     final boundedGoal = goal.clamp(5, 20).toInt();
-    final due = state.reviewCards.values
+    final due = state.meaningReviewCards
         .where((c) => !c.dueAt.isAfter(now ?? DateTime.now()))
         .length;
     final action = AdaptiveTeacher.next(state, now: now);

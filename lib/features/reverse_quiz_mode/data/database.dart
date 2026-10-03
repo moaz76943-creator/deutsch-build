@@ -1,7 +1,7 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
 
 import '../../../services/database_migration_helper.dart';
+import '../../../services/sqlite_policy.dart';
 
 class ReverseQuizDatabase {
   static const String _dbName = 'reverse_quiz.db';
@@ -10,10 +10,12 @@ class ReverseQuizDatabase {
 
   Database? _db;
   final DatabaseFactory? _dbFactory;
+  final AppSqlitePolicy _sqlitePolicy;
   final String? _inMemoryPath;
 
   ReverseQuizDatabase({DatabaseFactory? factory, String? path})
     : _dbFactory = factory,
+      _sqlitePolicy = AppSqlitePolicy(factory: factory),
       _inMemoryPath = path;
 
   Future<Database> get database async {
@@ -23,26 +25,15 @@ class ReverseQuizDatabase {
   }
 
   Future<Database> _initDB() async {
-    String path;
-    if (_inMemoryPath != null) {
-      path = _inMemoryPath;
-    } else {
-      final dbPath = await getDatabasesPath();
-      path = join(dbPath, _dbName);
-    }
-
-    if (_dbFactory != null) {
-      return await _dbFactory.openDatabase(
-        path,
-        options: OpenDatabaseOptions(version: 1, onCreate: _createDB),
-      );
-    }
-
-    return await openDatabase(
-      path,
+    final path = await _sqlitePolicy.resolvePath(
+      fileName: _dbName,
+      overridePath: _inMemoryPath,
+    );
+    return DatabaseMigrationHelper.open(
+      path: path,
       version: 1,
       onCreate: _createDB,
-      migrationScripts: {},
+      migrationScripts: const <int, List<String>>{},
       factory: _dbFactory,
     );
   }

@@ -8,14 +8,18 @@ class UiPreferences {
   const UiPreferences(this._prefs);
 
   ViewMode? get viewMode {
-    final modeString = _prefs.getString(viewModeKey);
-    if (modeString == 'ViewMode.flashcard') return ViewMode.flashcard;
-    if (modeString == 'ViewMode.grid') return ViewMode.grid;
-    if (modeString == 'ViewMode.list') return ViewMode.list;
+    final stored = _prefs.getString(viewModeKey);
+    if (stored == null || stored.isEmpty) return null;
+    final normalized = stored.startsWith('ViewMode.')
+        ? stored.substring('ViewMode.'.length)
+        : stored;
+    for (final mode in ViewMode.values) {
+      if (mode.name == normalized) return mode;
+    }
     return null;
   }
 
   Future<bool> setViewMode(ViewMode mode) {
-    return _prefs.setString(viewModeKey, mode.toString());
+    return _prefs.setString(viewModeKey, mode.name);
   }
 }

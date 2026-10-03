@@ -1,5 +1,6 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+
+import 'sqlite_policy.dart';
 
 class SmartMistakesLedger {
   static const String _tableName = 'smart_mistakes';
@@ -10,6 +11,7 @@ class SmartMistakesLedger {
 
   static final SmartMistakesLedger instance = SmartMistakesLedger._init();
   static Database? _database;
+  static const AppSqlitePolicy _sqlitePolicy = AppSqlitePolicy();
 
   SmartMistakesLedger._init();
 
@@ -20,10 +22,12 @@ class SmartMistakesLedger {
   }
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
-
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    final path = await _sqlitePolicy.resolvePath(fileName: filePath);
+    return _sqlitePolicy.openWritable(
+      path: path,
+      version: 1,
+      onCreate: _createDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {

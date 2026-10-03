@@ -7,16 +7,15 @@ import '../../lib/models/content.dart';
 import '../../lib/services/app_dependencies.dart';
 import '../../lib/services/preferences_service.dart';
 import '../../lib/services/repository.dart';
-import '../../lib/language/language_pack.dart';
+import '../../lib/features/gamification/domain/gamification_review_sink.dart';
 import '../../lib/language/german/german_language_pack.dart';
 import '../../lib/services/search_index.dart';
 import '../../lib/services/ai_gateway.dart';
 import '../../lib/services/privacy_settings.dart';
 import '../../lib/services/neuro_accessibility_settings.dart';
 import '../../lib/services/user_vocabulary_service.dart';
+import '../../lib/services/grammar_hub_service.dart';
 import '../../lib/ui_v35/learning_pages.dart';
-import '../../lib/core/view_mode.dart';
-import '../../lib/ui_v35/flashcard_widget.dart';
 import '../../lib/models/learner.dart';
 import '../../lib/services/learner_persistence.dart';
 import '../../lib/models/assessment.dart';
@@ -35,6 +34,9 @@ class FakeLearnerRepository implements LearnerRepository {
   @override
   PreferencesService get prefs => throw UnimplementedError();
   @override
+  GamificationReviewSink get gamificationReviewSink =>
+      const NoopGamificationReviewSink();
+  @override
   Future<void> record({
     required LearningContent item,
     required String answer,
@@ -42,6 +44,7 @@ class FakeLearnerRepository implements LearnerRepository {
     required int seconds,
     required bool hinted,
     String? skillOverride,
+    DateTime? at,
   }) async {}
   @override
   Future<void> recordAssessment(AssessmentResult result) async {}
@@ -88,7 +91,9 @@ class FakeUserVocabularyService implements UserVocabularyService {
   @override
   Future<void> deleteCustomEntry(String id) async {}
   @override
-  Future<List<Map<String, dynamic>>> getCustomEntries() async => [];
+  Future<List<Map<String, dynamic>>> getCustomEntries({
+    String? targetLanguage,
+  }) async => [];
 }
 
 class FakeAiGateway implements AiGateway {
@@ -130,6 +135,7 @@ void main() {
       userVocabularyService: FakeUserVocabularyService(),
       favoritesRepository: FakeFavoritesRepository(),
       preferencesService: prefs,
+      grammarHubService: GrammarHubService(),
     );
 
     return MaterialApp(
@@ -172,19 +178,25 @@ void main() {
     expect(find.byType(Card), findsWidgets);
 
     // Switch to Grid mode
-    await tester.tap(find.byIcon(Icons.grid_view));
+    await tester.tap(find.byIcon(Icons.grid_view_outlined));
     await tester.pumpAndSettle();
 
     // Check pref is saved
-    expect(prefs.getString('vocabulary_view_mode'), 'ViewMode.grid');
+    expect(prefs.getString('vocabulary_view_mode'), 'grid');
     expect(find.byType(GridView), findsWidgets);
 
     // Switch to Flashcard mode
-    await tester.tap(find.byIcon(Icons.style));
+    await tester.tap(find.byIcon(Icons.style_outlined));
     await tester.pumpAndSettle();
 
     // Check pref is saved
-    expect(prefs.getString('vocabulary_view_mode'), 'ViewMode.flashcard');
-    expect(find.byType(FlashcardWidget), findsOneWidget);
+    expect(prefs.getString('vocabulary_view_mode'), 'flashcard');
+    expect(find.byType(PageView), findsOneWidget);
+
+    // Explicitly unmount and flush SafeTtsController.dispose(), which schedules
+    // a zero-duration Future from the synchronous widget dispose callback.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
   });
 }

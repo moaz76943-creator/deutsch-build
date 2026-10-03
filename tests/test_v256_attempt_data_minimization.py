@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 PERSIST = (ROOT / 'lib/services/learner_persistence.dart').read_text()
@@ -6,8 +7,17 @@ PERSIST = (ROOT / 'lib/services/learner_persistence.dart').read_text()
 
 def test_attempts_are_normalized_on_load_and_persistence_to_bound_user_text_and_metadata():
     assert '_normalizeAttempt' in PERSIST
-    assert 'final normalized = _normalizeAttempt(Attempt.fromJson' in PERSIST
-    assert 'if (normalized.id.isNotEmpty && normalized.itemId.isNotEmpty) attempts.add(normalized);' in PERSIST
+    assert re.search(
+        r'final normalized\s*=\s*_normalizeAttempt\(\s*Attempt\.fromJson\(',
+        PERSIST,
+        re.DOTALL,
+    )
+    assert re.search(
+        r'if\s*\(normalized\.id\.isNotEmpty\s*&&\s*normalized\.itemId\.isNotEmpty\)\s*'
+        r'attempts\.add\(normalized\)',
+        PERSIST,
+        re.DOTALL,
+    )
     assert '.map(_normalizeAttempt)' in PERSIST
     assert 'answer:' in PERSIST and '1000' in PERSIST
     assert 'itemId: a.itemId.toString().trim().length > 160' in PERSIST

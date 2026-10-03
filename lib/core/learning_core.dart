@@ -42,7 +42,7 @@ class LearningCore {
     DateTime? now,
   }) {
     final at = now ?? DateTime.now();
-    final dueIds = MemoryQueue.rank(s.reviewCards.values, now: at, limit: 30);
+    final dueIds = MemoryQueue.rank(s.meaningReviewCards, now: at, limit: 30);
     final dueItems = <T>[];
     for (final card in dueIds) {
       final item = _byId(corpus, card.itemId);
@@ -81,7 +81,7 @@ class LearningCore {
 
   static Map<String, List<Attempt>> _attemptsBySkill(LearnerState s) {
     final buckets = <String, List<Attempt>>{};
-    for (final attempt in s.attempts) {
+    for (final attempt in s.meaningAttempts) {
       (buckets[attempt.skill] ??= <Attempt>[]).add(attempt);
     }
     return buckets;
@@ -183,7 +183,9 @@ class LearningCore {
       ? 1
       : x;
   static bool proofMastered(LearnerState s, String id) {
-    final a = s.attempts.where((x) => x.itemId == id && x.correct).toList();
+    final a = s.meaningAttempts
+        .where((x) => x.itemId == id && x.correct)
+        .toList();
     final skills = a.map((x) => x.skill).toSet();
     return skills.containsAll([
           'recall',

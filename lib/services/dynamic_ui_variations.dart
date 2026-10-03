@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+
+import 'sqlite_policy.dart';
 
 import 'dart:math';
 
@@ -13,6 +14,7 @@ class DynamicUiVariationsEngine {
   static final DynamicUiVariationsEngine instance =
       DynamicUiVariationsEngine._init();
   static Database? _database;
+  static const AppSqlitePolicy _sqlitePolicy = AppSqlitePolicy();
 
   DynamicUiVariationsEngine._init();
 
@@ -23,10 +25,12 @@ class DynamicUiVariationsEngine {
   }
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
-
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    final path = await _sqlitePolicy.resolvePath(fileName: filePath);
+    return _sqlitePolicy.openWritable(
+      path: path,
+      version: 1,
+      onCreate: _createDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {
@@ -43,7 +47,7 @@ class DynamicUiVariationsEngine {
     final db = await instance.database;
     final now = DateTime.now();
     final today =
-        "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
     final maps = await db.query(
       _tableName,

@@ -1,6 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
 
 import 'services/repository.dart';
 import 'models/content.dart';
@@ -11,6 +16,7 @@ import 'services/ai_gateway_factory.dart';
 import 'models/backend_runtime_config.dart';
 import 'models/account_session.dart';
 import 'models/ai_runtime_config.dart';
+import 'models/pack_security_runtime_config.dart';
 import 'services/authentication_providers.dart';
 import 'services/auth_session_controller.dart';
 import 'services/android_secure_session_storage.dart';
@@ -22,13 +28,31 @@ import 'services/privacy_settings.dart';
 import 'services/neuro_accessibility_settings.dart';
 import 'services/user_vocabulary_service.dart';
 import 'services/grammar_hub_service.dart';
+import 'services/pack_manager_service.dart';
+import 'services/active_pack_runtime_provider.dart';
+import 'services/pack_database_key_store.dart';
+import 'services/pack_database_security.dart';
+import 'services/open_source_license_registry.dart';
+import 'services/tts_service.dart';
+import 'services/runtime_failure_reporter.dart';
+import 'features/audio/data/android_recorded_audio_player.dart';
+import 'features/audio/data/audio_manifest_catalog.dart';
+import 'features/audio/offline_audio_runtime.dart';
+import 'features/pronunciation/data/android_pronunciation_signal_probe.dart';
+import 'features/gamification/sqlite_gamification_repository.dart';
 import 'ui_v35/app.dart';
 import 'language/german/german_language_pack.dart';
+import 'language/arabic/arabic_speech_profile.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerProjectOpenSourceLicenses();
+  const runtimeFailureReporter = NoopRuntimeFailureReporter();
   FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
+    runtimeFailureReporter.recordFlutterError(details);
+    if (!kReleaseMode) {
+      FlutterError.presentError(details);
+    }
   };
   ErrorWidget.builder = (FlutterErrorDetails details) => Material(
     child: Center(
@@ -58,22 +82,80 @@ Future<void> main() async {
           LearnerRepository.key,
           LearnerRepository.legacyFavoriteKey,
         );
-        final repo = LearnerRepository(prefs, persistence: persistence);
+        final databaseRoot = await getDatabasesPath();
+        final gamificationRepository = await SqliteGamificationRepository.open(
+          p.join(databaseRoot, 'gamification_v1.db'),
+        );
+        final repo = LearnerRepository(
+          prefs,
+          persistence: persistence,
+          gamificationReviewSink: gamificationRepository,
+        );
         final languagePack = const GermanLanguagePack();
-        final contentPack = languagePack.contentPack;
+        final packSecurity = PackSecurityRuntimeConfig.fromEnvironment();
+        final manifestVerifier = PackManifestVerifiers.fromSingleBase64Key(
+          keyId: packSecurity.manifestKeyId,
+          publicKeyBase64: packSecurity.manifestPublicKeyBase64,
+        );
+        final packDatabaseKeyStore = AndroidKeystorePackDatabaseKeyStore();
+        const packDatabaseSecurity = SqlCipherPackDatabaseSecurity();
+        final packManager = PackManagerService(
+          prefs,
+          manifestVerifier: manifestVerifier,
+          databaseKeyStore: packDatabaseKeyStore,
+          databaseCipher: packDatabaseSecurity,
+          rootDirectory: Directory(
+            p.join(databaseRoot, 'offline_language_packs'),
+          ),
+        );
+        final runtime = await ActivePackRuntimeProvider(
+          packManager: packManager,
+          languagePack: languagePack,
+          embeddedGrammar: GrammarHubService(),
+          databaseKeyStore: packDatabaseKeyStore,
+          databaseOpener: packDatabaseSecurity,
+        ).resolve();
+        final activeLanguagePack = runtime.languagePack;
+        AudioManifestCatalog audioCatalog;
+        try {
+          audioCatalog = AudioManifestCatalog.parse(
+            await rootBundle.loadString('content/german/audio_manifest.json'),
+          );
+        } on Object {
+          audioCatalog = AudioManifestCatalog.empty();
+        }
+        final audioRuntime = OfflineAudioRuntime(
+          speechProfile: activeLanguagePack.speechProfile,
+          ttsEngine: FlutterOfflineTtsEngine(),
+          catalog: audioCatalog,
+          recordedPlayer: AndroidRecordedAudioPlayer(),
+        );
+        final sourceAudioRuntime = OfflineAudioRuntime(
+          speechProfile: const ArabicSpeechProfile(),
+          ttsEngine: FlutterOfflineTtsEngine(),
+        );
+        final contentPack = activeLanguagePack.contentPack;
         final corpus = contentPack.items;
         final verbIndex = contentPack.verbIndex;
         final searchIndex = SearchIndex(
           corpus,
           verbIndex,
-          languagePack.textNormalizer,
+          activeLanguagePack.textNormalizer,
         );
         final uiSeed = 0;
         final dependencies = AppDependencies<ContentItem>(
+          grammarHubService: runtime.grammarHubService,
+          gamificationRepository: gamificationRepository,
+          audioRuntime: audioRuntime,
+          sourceAudioRuntime: sourceAudioRuntime,
+          pronunciationSignalProbe: const AndroidPronunciationSignalProbe(),
+          wordFamilyRepository: runtime.wordFamilyRepository,
+          packManagerService: packManager,
+          runtimePackState: runtime.state,
           searchIndex: searchIndex,
           verbIndex: verbIndex,
           corpus: corpus,
-          languagePack: languagePack,
+          languagePack: activeLanguagePack,
           aiGateway: AiGatewayFactory.fromRuntimeConfig(
             AiRuntimeConfig.fromEnvironment(),
           ),
@@ -105,13 +187,23 @@ Future<void> main() async {
         );
         await auth.initialize();
         runApp(DeutschAppV35(repo, auth: auth, dependencies: dependencies));
-      } catch (_) {
+      } catch (error, stack) {
+        runtimeFailureReporter.record(
+          error,
+          stack,
+          fatal: true,
+          context: 'bootstrap',
+        );
         runApp(const _BootFailureApp());
       }
     },
     (error, stack) {
-      // Last-resort containment for uncaught async/plugin errors.
-      // Never throw from the error handler itself.
+      runtimeFailureReporter.record(
+        error,
+        stack,
+        fatal: true,
+        context: 'root_zone',
+      );
     },
   );
 }

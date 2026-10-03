@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / 'lib/ui_v35/verb_pages.dart'
@@ -45,5 +46,9 @@ def test_v152_verb_state_owns_tts_dispose():
     state_start = text.index('class _VerbConjugationPageState')
     favorites_start = text.index('class VerbFavoritesPage')
     state = text[state_start:favorites_start]
-    assert 'void dispose(){_tts.dispose();super.dispose();}' in state
+    assert re.search(
+        r'void dispose\(\)\s*\{\s*_tts\.dispose\(\);\s*super\.dispose\(\);\s*\}',
+        state,
+        re.DOTALL,
+    )
     assert text.count('_tts.dispose();') == 1

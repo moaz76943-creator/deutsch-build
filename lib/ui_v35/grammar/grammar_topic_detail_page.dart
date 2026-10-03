@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
 
+import '../../models/content.dart';
+import '../../models/learner.dart';
 import '../../services/grammar_hub_service.dart';
 import '../../services/app_dependencies.dart';
+import '../../core/text/directional_text.dart';
+import '../shared/text/bidi_text.dart';
+import 'grammar_microscope_page.dart';
 import 'grammar_quiz_page.dart';
 
 class GrammarTopicDetailPage extends StatelessWidget {
   final GrammarTopic topic;
-  final AppDependencies dependencies;
+  final AppDependencies<ContentItem> dependencies;
+  final LearnerState? learnerState;
 
   const GrammarTopicDetailPage({
     Key? key,
     required this.topic,
     required this.dependencies,
+    this.learnerState,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(topic.titleDe, style: const TextStyle(fontFamily: 'Inter')),
+        title: BidiText(
+          DirectionalText.german(
+            topic.titleDe,
+            semanticRole: LinguisticSemanticRole.grammarLabel,
+          ),
+          style: const TextStyle(fontFamily: 'Inter'),
+        ),
         centerTitle: true,
       ),
       body: Directionality(
@@ -28,8 +41,11 @@ class GrammarTopicDetailPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                topic.titleAr,
+              BidiText(
+                DirectionalText.arabic(
+                  topic.titleAr,
+                  semanticRole: LinguisticSemanticRole.translation,
+                ),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontFamily: 'Tajawal',
                   fontWeight: FontWeight.bold,
@@ -56,14 +72,16 @@ class GrammarTopicDetailPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        topic.formulaPattern!,
+                      BidiText(
+                        DirectionalText.german(
+                          topic.formulaPattern!,
+                          semanticRole: LinguisticSemanticRole.grammarLabel,
+                        ),
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 16,
                           color: Colors.black87,
                         ),
-                        textDirection: TextDirection.ltr,
                       ),
                     ],
                   ),
@@ -89,7 +107,35 @@ class GrammarTopicDetailPage extends StatelessWidget {
                   style: const TextStyle(fontSize: 16, height: 1.5),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+              if (learnerState != null) ...[
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GrammarMicroscopePage(
+                          topicId: topic.id,
+                          state: learnerState!,
+                          dependencies: dependencies,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.biotech_outlined),
+                  label: const Text(
+                    'مجهر القواعد',
+                    style: TextStyle(fontFamily: 'Tajawal'),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(

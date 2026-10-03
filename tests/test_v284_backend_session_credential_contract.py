@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -43,9 +44,10 @@ def test_no_shared_preferences_in_auth_credential_boundary():
 
 def test_current_session_request_can_carry_opaque_credential():
     text = read("lib/models/backend_authentication_api.dart")
-    assert "currentSession({SecureSessionCredentials? credentials})" in text
+    marker = r'currentSession\(\{\s*SecureSessionCredentials\? credentials\s*,?\s*\}\)'
+    assert re.search(marker, text, re.DOTALL)
     transport = read("lib/models/backend_transport.dart")
-    assert "currentSession({SecureSessionCredentials? credentials})" in transport
+    assert re.search(marker, transport, re.DOTALL)
 
 
 def test_successful_auth_requires_and_stores_credential():

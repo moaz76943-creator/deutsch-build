@@ -57,6 +57,7 @@ void main() {
       neuroSettings: NeuroAccessibilitySettings(prefs),
       userVocabularyService: UserVocabularyService.instance,
       favoritesRepository: FavoritesRepository.instance,
+      preferencesService: prefs,
       grammarHubService: service,
     );
   });

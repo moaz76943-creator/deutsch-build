@@ -7,6 +7,16 @@ def hasReleaseSigning = [
     'releaseKeyPassword',
 ].every { project.hasProperty(it) }
 
+def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
+    taskName.toLowerCase(java.util.Locale.ROOT).contains('release')
+}
+if (releaseTaskRequested && !hasReleaseSigning) {
+    throw new GradleException(
+        'Release signing is mandatory. Configure releaseStoreFile, ' +
+        'releaseStorePassword, releaseKeyAlias, and releaseKeyPassword.'
+    )
+}
+
 android {
     namespace "com.deutschbilarabi.app"
     compileSdk 36
@@ -50,9 +60,13 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig hasReleaseSigning ? signingConfigs.secureRelease : signingConfigs.debug
+            signingConfig signingConfigs.secureRelease
         }
     }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
 
 flutter { source "../.." }

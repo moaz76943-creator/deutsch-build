@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 LIB = ROOT / 'lib'
@@ -18,10 +19,16 @@ def test_modern_ui_does_not_construct_app_wide_dependencies():
 
 def test_main_is_the_content_and_index_composition_root():
     text = MAIN.read_text(encoding='utf-8')
-    assert 'final contentPack = languagePack.contentPack;' in text
+    assert 'final activeLanguagePack = runtime.languagePack;' in text
+    assert 'final contentPack = activeLanguagePack.contentPack;' in text
     assert 'final corpus = contentPack.items;' in text
     assert 'final verbIndex = contentPack.verbIndex;' in text
-    assert 'final searchIndex = SearchIndex(corpus, verbIndex, languagePack.textNormalizer);' in text
+    assert re.search(
+        r'final searchIndex\s*=\s*SearchIndex\(\s*corpus\s*,\s*verbIndex\s*,\s*'
+        r'activeLanguagePack\.textNormalizer\s*,?\s*\);',
+        text,
+        re.DOTALL,
+    )
     assert 'final dependencies = AppDependencies<ContentItem>(' in text
 
 
