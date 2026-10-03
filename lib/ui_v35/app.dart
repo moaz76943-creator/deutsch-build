@@ -14,6 +14,8 @@ import '../features/error_pattern_agent/presentation/blind_spot_radar_screen.dar
 import '../features/app_settings/presentation/app_settings_screen.dart';
 import '../features/life_furniture_home_setup/furniture_home_module.dart';
 import '../features/life_furniture_home_setup/furniture_home_screen.dart';
+import '../features/life_postal_delivery/postal_master_orchestrator.dart';
+import '../features/life_postal_delivery/postal_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
 import '../services/progress_snapshot_service.dart';
@@ -131,6 +133,10 @@ class _AppState extends State<DeutschAppV35> {
                     FurnitureHomeMasterScreen(
                   module: widget.dependencies.furnitureHomeSetupModule,
                 ),
+                PostalDeliveryModule.routeName: (_) => PostalDeliveryMasterHub(
+                      orchestrator: widget.dependencies.postalDeliveryModule
+                          .createOrchestrator(),
+                    ),
               },
               home: HomeV35(
                 repo: widget.repo,

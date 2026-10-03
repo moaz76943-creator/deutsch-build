@@ -18,6 +18,7 @@ import 'neuro_accessibility_settings.dart';
 import 'user_vocabulary_service.dart';
 import 'preferences_service.dart';
 import '../features/life_furniture_home_setup/furniture_home_module.dart';
+import '../features/life_postal_delivery/postal_master_orchestrator.dart';
 
 /// Composition-root dependencies shared by the application surface.
 /// Concrete language models remain outside this shared dependency contract.
@@ -43,6 +44,7 @@ final class AppDependencies<T extends LearningContent> {
     this.packManagerService,
     this.errorPatternAgent,
     this.furnitureHomeSetupModule = const FurnitureHomeSetupModule(),
+    this.postalDeliveryModule = const PostalDeliveryModule(),
     this.runtimePackState = const RuntimePackState.embeddedFallback(),
   });
 
@@ -66,5 +68,6 @@ final class AppDependencies<T extends LearningContent> {
   final PackManagerService? packManagerService;
   final ErrorPatternAgentNotifier? errorPatternAgent;
   final FurnitureHomeSetupModule furnitureHomeSetupModule;
+  final PostalDeliveryModule postalDeliveryModule;
   final RuntimePackState runtimePackState;
 }
