@@ -61,6 +61,26 @@ void main() {
     expect(repository.preferences, notifier.preferences);
   });
 
+  test('queued failed saves restore the last persisted snapshot', () async {
+    final repository = _MemorySettingsRepository();
+    final notifier = SettingsNotifier(
+      repository,
+      _MemoryProgressResetter(),
+    );
+    addTearDown(notifier.dispose);
+    await notifier.initialize();
+    repository.failSave = true;
+
+    final first = notifier.setTextScaleFactor(1.15);
+    final second = notifier.setTextScaleFactor(1.25);
+
+    await expectLater(first, throwsStateError);
+    await expectLater(second, throwsStateError);
+
+    expect(notifier.preferences.textScaleFactor, 1.0);
+    expect(notifier.hasError, isTrue);
+  });
+
   test('failed save restores previous preferences and exposes an error', () async {
     final repository = _MemorySettingsRepository();
     final notifier = SettingsNotifier(
