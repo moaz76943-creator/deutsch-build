@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "program_id": "DEUTSCH-BILARABI-AUTONOMOUS-ENGINE",
-  "generated_from_main_sha": "999fc56f73925d5fac994d6c6fbb8b80a2c25e1d",
+  "generated_from_main_sha": "497369cbf1c180312c4c0021dfaa39c64b6dd310",
   "policy": {
     "source_of_truth": "live_github_then_exact_head_evidence",
     "one_mutable_scope_one_owner": true,
@@ -12,7 +12,13 @@
     "additional_billing": "forbidden_without_explicit_owner_gate",
     "ci_polling": "disabled",
     "canonical_quality_gate": "scripts/local_quality_gate.sh",
-    "full_green_baseline": "946 passed / 0 failed"
+    "full_green_baseline": "946 passed / 0 failed",
+    "canonical_execution_backlog": "tools/automation/backlog.json",
+    "canonical_execution_state_ledger": "tools/automation/pipeline_state.json",
+    "canonical_one_cycle_orchestrator": "tools/automation/run_pipeline.py",
+    "canonical_atomic_dispatch_runner": "tools/automation/autonomous_daemon.py",
+    "canonical_read_only_dispatch_planner": "tools/automation/dispatcher.py",
+    "reconciliation_registry": "tasks/automation_asset_reconciliation.json"
   },
   "states": [
     "READY",
@@ -22,7 +28,8 @@
     "RECONCILIATION_REQUIRED",
     "VERIFIED",
     "INTEGRATED",
-    "SUPERSEDED"
+    "SUPERSEDED",
+    "COMPLETED"
   ],
   "admission_rules": [
     "Refresh live main, open PRs, branches, claims, and dependency state before mutation.",
@@ -34,8 +41,8 @@
     {
       "task_id": "AE-002-AUTOMATION-ASSET-RECONCILIATION",
       "priority": 10,
-      "state": "READY",
-      "owner": null,
+      "state": "COMPLETED",
+      "owner": "ChatGPT_Lead_Engineer",
       "dependencies": [
         "PR-235:INTEGRATED",
         "PR-238:INTEGRATED",
@@ -57,15 +64,34 @@
         "One canonical owner is selected per mutable scope.",
         "No duplicate dispatcher, ledger, queue, or quarantine engine is created."
       ],
-      "exact_next_action": "Refresh live GitHub and inspect existing tools/automation, automation-related PRs/branches, claims, and tests; produce a reconciliation map and claim only an unowned gap."
+      "exact_next_action": "AE-002 complete. Admit AE-003 using the reconciled canonical assets; implement only proven gaps and do not create a second dispatcher, ledger, backlog, quarantine engine, or orchestrator.",
+      "completed_on_main_base_sha": "497369cbf1c180312c4c0021dfaa39c64b6dd310",
+      "evidence": {
+        "registry": "tasks/automation_asset_reconciliation.json",
+        "tooling_directory": "ABSENT; canonical automation root is tools/automation/",
+        "duplicate_dispatcher_or_ledger_found": false,
+        "paid_provider_activation_changed": false,
+        "ci_polling_used": false,
+        "scripts_reviewed": 11,
+        "automation_assets_reviewed": 10,
+        "regression_test_assets_recognized": 8
+      },
+      "reconciliation_summary": [
+        "dispatcher.py is the read-only admission/spec planner; autonomous_daemon.py is the atomic claim/dispatch mutator, so they are complementary rather than duplicate dispatch engines.",
+        "state_manager.py plus pipeline_state.json are the canonical execution ledger; no parallel ledger was found in scripts/.",
+        "run_pipeline.py is the canonical one-cycle orchestrator and composes existing state, dispatch, and gatekeeper assets instead of reimplementing them.",
+        "quarantine_guard.py owns fault isolation and claim-slot release; merge_sequencer.py, rebase_healer.py, and local_integrator.py own bounded integration planning/preflight/application responsibilities.",
+        "tasks/pipeline_queue.json remains the program/admission queue; tools/automation/backlog.json is the executor backlog. Their scopes are explicitly distinct.",
+        "No reviewed automation/script asset enables OpenAI/Gemini provider calls or changes AI_COLLABORATION_BILLING_APPROVED."
+      ]
     },
     {
       "task_id": "AE-003-DURABLE-CONTROL-PLANE",
       "priority": 20,
-      "state": "BLOCKED",
+      "state": "READY",
       "owner": null,
       "dependencies": [
-        "AE-002-AUTOMATION-ASSET-RECONCILIATION:VERIFIED"
+        "AE-002-AUTOMATION-ASSET-RECONCILIATION:COMPLETED"
       ],
       "mutable_scope": [
         "tools/automation/**",
@@ -85,7 +111,16 @@
         "Quarantine releases occupied concurrency slots.",
         "Tests prove no duplicate ownership and no starvation."
       ],
-      "exact_next_action": "After AE-002, implement only the missing canonical gaps using strict TDD and reuse any verified existing automation assets."
+      "exact_next_action": "After AE-002, implement only the missing canonical gaps using strict TDD and reuse any verified existing automation assets.",
+      "reuse_required": [
+        "tools/automation/dispatcher.py",
+        "tools/automation/autonomous_daemon.py",
+        "tools/automation/state_manager.py",
+        "tools/automation/run_pipeline.py",
+        "tools/automation/quarantine_guard.py",
+        "tools/automation/backlog.json",
+        "tools/automation/pipeline_state.json"
+      ]
     },
     {
       "task_id": "AE-004-AI-BRIDGE-ENFORCEMENT-PREFLIGHT",
@@ -162,5 +197,6 @@
       ],
       "exact_next_action": "Select the highest-priority owner-approved product task, assign its mutable scope, and create its continuation capsule before implementation."
     }
-  ]
+  ],
+  "last_reconciled_main_sha": "497369cbf1c180312c4c0021dfaa39c64b6dd310"
 }

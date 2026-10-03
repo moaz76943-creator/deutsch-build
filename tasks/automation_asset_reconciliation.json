@@ -1,0 +1,208 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "AE-002-AUTOMATION-ASSET-RECONCILIATION",
+  "repository": "sali97m-cpu/deutsch-bilarabi",
+  "reconciled_against_main_sha": "497369cbf1c180312c4c0021dfaa39c64b6dd310",
+  "status": "COMPLETED",
+  "policy": {
+    "zero_additional_billing": true,
+    "paid_provider_activation_changed": false,
+    "ci_polling_used": false,
+    "sleep_loop_used": false,
+    "test_weakening": false,
+    "new_dispatcher_created": false,
+    "new_ledger_created": false
+  },
+  "path_reconciliation": {
+    "requested_tooling_path": "tooling/",
+    "requested_tooling_path_status": "ABSENT",
+    "canonical_automation_root": "tools/automation/",
+    "scripts_root": "scripts/"
+  },
+  "canonical_assets": [
+    {
+      "path": "tools/automation/dispatcher.py",
+      "classification": "CURRENT",
+      "role": "read_only_admission_planner",
+      "notes": "Validates backlog/dependencies/path overlap and emits task specs. It does not create branches, claims, PRs, or workflow runs."
+    },
+    {
+      "path": "tools/automation/autonomous_daemon.py",
+      "classification": "CURRENT",
+      "role": "atomic_claim_and_dispatch_runner",
+      "notes": "Owns atomic claim creation, dispatch payload emission, and task transition. One-shot --poll-once is the canonical bounded execution mode for orchestration."
+    },
+    {
+      "path": "tools/automation/state_manager.py",
+      "classification": "CURRENT",
+      "role": "execution_state_ledger",
+      "notes": "Canonical validator/updater for tools/automation/pipeline_state.json."
+    },
+    {
+      "path": "tools/automation/run_pipeline.py",
+      "classification": "CURRENT",
+      "role": "one_cycle_orchestrator",
+      "notes": "Composes state_manager, autonomous_daemon and gatekeeper. It does not define an independent dispatcher or ledger."
+    },
+    {
+      "path": "tools/automation/quarantine_guard.py",
+      "classification": "CURRENT",
+      "role": "fault_isolation_and_claim_release",
+      "notes": "Quarantines delinquent tasks and releases occupied claim slots without mutating base branches."
+    },
+    {
+      "path": "tools/automation/merge_sequencer.py",
+      "classification": "CURRENT",
+      "role": "integration_dependency_planner",
+      "notes": "Builds dependency-aware merge plans from the executor backlog and Git refs."
+    },
+    {
+      "path": "tools/automation/rebase_healer.py",
+      "classification": "CURRENT",
+      "role": "non_mutating_integration_preflight",
+      "notes": "Uses merge-tree simulation and boundary/schema checks; does not rewrite the candidate branch."
+    },
+    {
+      "path": "tools/automation/local_integrator.py",
+      "classification": "CURRENT",
+      "role": "bounded_local_integrator",
+      "notes": "Requires a clean worktree and accepted preflight status. Failure rollback uses git reset --merge to the captured original HEAD; no force push, --hard reset, or unknown-work cleanup was found."
+    },
+    {
+      "path": "tools/automation/backlog.json",
+      "classification": "CURRENT",
+      "role": "executor_backlog",
+      "notes": "Execution-level backlog consumed by dispatcher/daemon/sequencer. Distinct from the high-level program queue in tasks/pipeline_queue.json."
+    },
+    {
+      "path": "tools/automation/pipeline_state.json",
+      "classification": "CURRENT",
+      "role": "executor_state_store",
+      "notes": "Execution task state consumed by state_manager/daemon/quarantine tooling."
+    }
+  ],
+  "runtime_assets": [
+    {
+      "path": "tools/automation/claims.json",
+      "classification": "CURRENT",
+      "persistence": "runtime_generated",
+      "notes": "Created/updated by the atomic dispatch path when needed; not present as a committed canonical seed."
+    },
+    {
+      "path": "tools/automation/dispatches/",
+      "classification": "CURRENT",
+      "persistence": "runtime_generated",
+      "notes": "Per-task dispatch payload directory."
+    },
+    {
+      "path": "tools/automation/quarantine.json",
+      "classification": "CURRENT",
+      "persistence": "runtime_generated",
+      "notes": "Quarantine state owned by quarantine_guard.py."
+    },
+    {
+      "path": "tools/automation/quarantine_audit.log",
+      "classification": "CURRENT",
+      "persistence": "runtime_generated",
+      "notes": "Append-only quarantine audit evidence."
+    }
+  ],
+  "program_control_assets": [
+    {
+      "path": "tasks/pipeline_queue.json",
+      "classification": "CURRENT",
+      "role": "program_admission_queue",
+      "notes": "High-level staged work/admission queue. It must not replace the executor backlog or state ledger."
+    }
+  ],
+  "scripts_review": [
+    {
+      "path": "scripts/local_quality_gate.sh",
+      "classification": "CURRENT",
+      "role": "canonical_quality_gate"
+    },
+    {
+      "path": "scripts/check-release.sh",
+      "classification": "CURRENT",
+      "role": "release_verification_entrypoint",
+      "notes": "Delegates canonical gate before release-specific work."
+    },
+    {
+      "path": "scripts/test.sh",
+      "classification": "CURRENT",
+      "role": "test_entrypoint",
+      "notes": "Delegates canonical gate."
+    },
+    {
+      "path": "scripts/check-fast.sh",
+      "classification": "CURRENT",
+      "role": "fast_non_release_verification"
+    },
+    {
+      "path": "scripts/build.sh",
+      "classification": "CURRENT",
+      "role": "application_build_entrypoint"
+    },
+    {
+      "path": "scripts/build-aab.sh",
+      "classification": "CURRENT",
+      "role": "app_bundle_build_entrypoint"
+    },
+    {
+      "path": "scripts/build_guard.sh",
+      "classification": "CURRENT",
+      "role": "toolchain_build_guard"
+    },
+    {
+      "path": "scripts/doctor.sh",
+      "classification": "CURRENT",
+      "role": "local_environment_diagnostics"
+    },
+    {
+      "path": "scripts/apk_verify.sh",
+      "classification": "CURRENT",
+      "role": "apk_verification"
+    },
+    {
+      "path": "scripts/signing_guard.sh",
+      "classification": "CURRENT",
+      "role": "release_signing_guard"
+    },
+    {
+      "path": "scripts/common.sh",
+      "classification": "CURRENT",
+      "role": "shared_shell_helpers"
+    }
+  ],
+  "regression_assets": [
+    "tools/automation/test_dispatcher.py",
+    "tests/test_agent_state.py",
+    "tests/test_autonomous_daemon.py",
+    "tests/test_dependency_sequencer.py",
+    "tests/test_local_integrator.py",
+    "tests/test_quarantine_guard.py",
+    "tests/test_rebase_healer.py",
+    "tests/test_unified_orchestrator.py"
+  ],
+  "banned_patterns_review": {
+    "max_manual_file_lines_under_1000": true,
+    "test_skip_or_xfail_bypass_found": false,
+    "force_push_or_hard_reset_found": false,
+    "duplicate_dispatcher_found": false,
+    "duplicate_ledger_found": false,
+    "privileged_paid_provider_call_found": false,
+    "notes": [
+      "autonomous_daemon.py contains a standalone continuous mode, but this reconciliation did not execute it; bounded orchestration uses --poll-once through run_pipeline.py.",
+      "local_integrator.py contains a bounded git reset --merge rollback after gate failure and requires a clean tree; this is not a force push or hard reset and must remain constrained to explicitly authorized integration work.",
+      "No tooling/ directory exists; tools/automation/ is the live canonical location."
+    ]
+  },
+  "classifications": {
+    "current": 15,
+    "stale": 0,
+    "superseded": 0,
+    "conflicting": 0,
+    "unknown": 0
+  },
+  "next_action": "AE-003 may proceed using the existing canonical assets. Any proposed new dispatcher, ledger, backlog, quarantine engine, or orchestration runner requires evidence that the recognized implementation cannot satisfy the missing contract."
+}
