@@ -86,6 +86,7 @@ final class PassivNotifier extends ChangeNotifier {
 
   void selectAuxiliary(String value) {
     if (_showExplanation || currentDrill == null) return;
+    _generation++;
     _selectedAuxiliary = value.trim();
     _isCorrect = null;
     notifyListeners();
@@ -93,6 +94,7 @@ final class PassivNotifier extends ChangeNotifier {
 
   void selectPreposition(String value) {
     if (_showExplanation || currentDrill == null) return;
+    _generation++;
     _selectedPreposition = value.trim().toLowerCase();
     _isCorrect = null;
     notifyListeners();
@@ -100,6 +102,7 @@ final class PassivNotifier extends ChangeNotifier {
 
   void selectPartizipII(String value) {
     if (_showExplanation || currentDrill == null) return;
+    _generation++;
     _selectedPartizipII = value.trim();
     _isCorrect = null;
     notifyListeners();
