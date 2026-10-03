@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0.0",
+  "program_id": "DEUTSCH-BILARABI-AUTONOMOUS-ENGINE",
+  "generated_from_main_sha": "999fc56f73925d5fac994d6c6fbb8b80a2c25e1d",
+  "policy": {
+    "source_of_truth": "live_github_then_exact_head_evidence",
+    "one_mutable_scope_one_owner": true,
+    "exact_head_required": true,
+    "destructive_git_operations": "forbidden_without_explicit_authorization",
+    "test_weakening": "forbidden",
+    "duplicate_engines": "forbidden",
+    "additional_billing": "forbidden_without_explicit_owner_gate",
+    "ci_polling": "not_required_for_queue_execution"
+  },
+  "states": [
+    "READY",
+    "CLAIMED",
+    "IN_PROGRESS",
+    "BLOCKED",
+    "RECONCILIATION_REQUIRED",
+    "VERIFIED",
+    "INTEGRATED",
+    "SUPERSEDED"
+  ],
+  "admission_rules": [
+    "Refresh live main, open PRs, branches, claims, and dependency state before mutation.",
+    "If an implementation already owns the requested scope, verify or hand off instead of duplicating it.",
+    "PREP is not IMPLEMENTED; IMPLEMENTED is not VERIFIED; VERIFIED is not INTEGRATED.",
+    "Do not enable provider billing or secrets as an autonomous queue action."
+  ],
+  "tasks": [
+    {
+      "task_id": "AE-002-AUTOMATION-ASSET-RECONCILIATION",
+      "priority": 10,
+      "state": "READY",
+      "owner": null,
+      "dependencies": [
+        "PR-235:INTEGRATED",
+        "PR-238:INTEGRATED",
+        "FOUNDATION-SCAFFOLD:INTEGRATED"
+      ],
+      "mutable_scope": [
+        "tools/automation/**",
+        "tests/test_*automation*.py",
+        "tasks/**"
+      ],
+      "protected_scope": [
+        "main",
+        "scripts/local_quality_gate.sh",
+        ".github/workflows/ai_collaboration_bridge.yml"
+      ],
+      "purpose": "Inventory existing dispatcher, claims, ledger, quarantine, handoff, queue, and recovery assets before any new autonomous implementation.",
+      "acceptance": [
+        "Existing overlapping implementations are classified CURRENT, STALE, SUPERSEDED, CONFLICTING, or UNKNOWN.",
+        "One canonical owner is selected per mutable scope.",
+        "No duplicate dispatcher, ledger, queue, or quarantine engine is created."
+      ],
+      "exact_next_action": "Refresh live GitHub and inspect existing tools/automation, automation-related PRs/branches, claims, and tests; produce a reconciliation map and claim only an unowned gap."
+    },
+    {
+      "task_id": "AE-003-DURABLE-CONTROL-PLANE",
+      "priority": 20,
+      "state": "BLOCKED",
+      "owner": null,
+      "dependencies": [
+        "AE-002-AUTOMATION-ASSET-RECONCILIATION:VERIFIED"
+      ],
+      "mutable_scope": [
+        "tools/automation/**",
+        "tests/test_*automation*.py",
+        "tasks/**"
+      ],
+      "protected_scope": [
+        "main",
+        "lib/**",
+        "scripts/local_quality_gate.sh"
+      ],
+      "purpose": "Complete or consolidate durable claims, queue, checkpoints, dependency admission, quarantine, and recovery around one canonical automation control plane.",
+      "acceptance": [
+        "Atomic claim/release semantics.",
+        "Dependency-aware admission.",
+        "Crash-safe checkpoint/recovery.",
+        "Quarantine releases occupied concurrency slots.",
+        "Tests prove no duplicate ownership and no starvation."
+      ],
+      "exact_next_action": "After AE-002, implement only the missing canonical gaps using strict TDD and reuse any verified existing automation assets."
+    },
+    {
+      "task_id": "AE-004-AI-BRIDGE-ENFORCEMENT-PREFLIGHT",
+      "priority": 30,
+      "state": "READY",
+      "owner": null,
+      "dependencies": [
+        "PR-238:INTEGRATED"
+      ],
+      "mutable_scope": [
+        "docs/architecture/**",
+        "tests/**",
+        ".github/workflows/ai_collaboration_bridge.yml"
+      ],
+      "protected_scope": [
+        "repository secrets",
+        "billing settings",
+        "branch protection/rulesets"
+      ],
+      "purpose": "Verify the integrated collaboration bridge contract without enabling paid provider calls or changing protected server settings.",
+      "acceptance": [
+        "Workflow and policy file remain mutually consistent.",
+        "Untrusted PR-head code is never executed with provider secrets.",
+        "Cost guard remains fail-closed.",
+        "Required future server-side check name is documented as ai-architecture-review."
+      ],
+      "exact_next_action": "Perform a static exact-head review of the integrated workflow and document any server-side configuration still requiring an explicit human gate."
+    },
+    {
+      "task_id": "AE-005-AI-BRIDGE-LIVE-ACTIVATION",
+      "priority": 40,
+      "state": "BLOCKED",
+      "owner": "HUMAN_GATE",
+      "dependencies": [
+        "AE-004-AI-BRIDGE-ENFORCEMENT-PREFLIGHT:VERIFIED"
+      ],
+      "mutable_scope": [],
+      "protected_scope": [
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "AI_COLLABORATION_ENABLED",
+        "AI_COLLABORATION_BILLING_APPROVED",
+        "branch protection/rulesets"
+      ],
+      "purpose": "Activate provider-backed collaboration only after explicit owner authorization, current billing evidence, secrets readiness, and server-side required-check configuration.",
+      "acceptance": [
+        "Owner explicitly authorizes billing state.",
+        "Secrets are stored only in GitHub Actions Secrets.",
+        "Activation variables are configured deliberately.",
+        "ai-architecture-review is made required only through an authorized server-side policy change."
+      ],
+      "exact_next_action": "Wait for explicit human authorization and verified zero-additional-billing evidence; do not autonomously change secrets, billing approval, or branch protection."
+    },
+    {
+      "task_id": "AE-006-NEXT-PRODUCT-WAVE-ADMISSION",
+      "priority": 50,
+      "state": "BLOCKED",
+      "owner": null,
+      "dependencies": [
+        "AE-003-DURABLE-CONTROL-PLANE:VERIFIED"
+      ],
+      "mutable_scope": [],
+      "protected_scope": [
+        "language packs",
+        "pair intelligence",
+        "production release"
+      ],
+      "purpose": "Admit the next product/language wave through the durable control plane instead of ad-hoc parallel execution.",
+      "acceptance": [
+        "Dependencies and ownership are explicit.",
+        "Language directionality is explicit.",
+        "Candidate data is not promoted to canonical without validation.",
+        "Canonical quality gates remain unchanged."
+      ],
+      "exact_next_action": "Select the highest-priority owner-approved product task, assign its mutable scope, and create its continuation capsule before implementation."
+    }
+  ]
+}
