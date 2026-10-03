@@ -69,15 +69,13 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 maximum: 1.0,
                 divisions: 1,
                 icon: Icons.record_voice_over_outlined,
-                onChanged: notifier.isSaving
-                    ? null
-                    : (value) => _runSave(
-                          notifier.setSpeechRatePreset(
-                            value <= 0.875
-                                ? SpeechRatePreset.slow
-                                : SpeechRatePreset.normal,
-                          ),
-                        ),
+                onChanged: (value) => _runSave(
+                  notifier.setSpeechRatePreset(
+                    value <= 0.875
+                        ? SpeechRatePreset.slow
+                        : SpeechRatePreset.normal,
+                  ),
+                ),
               ),
               const SizedBox(height: 14),
               const _SectionHeader(
@@ -94,20 +92,16 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 maximum: LearningPreferences.maximumTextScale,
                 divisions: 9,
                 icon: Icons.text_fields_outlined,
-                onChanged: notifier.isSaving
-                    ? null
-                    : (value) => _runSave(
-                          notifier.setTextScaleFactor(value),
-                        ),
+                onChanged: (value) => _runSave(
+                  notifier.setTextScaleFactor(value),
+                ),
               ),
               const SizedBox(height: 12),
               _TranslationGlassTile(
                 value: preferences.showAutomaticTranslation,
-                onChanged: notifier.isSaving
-                    ? null
-                    : (value) => _runSave(
-                          notifier.setShowAutomaticTranslation(value),
-                        ),
+                onChanged: (value) => _runSave(
+                  notifier.setShowAutomaticTranslation(value),
+                ),
               ),
               const SizedBox(height: 12),
               _PreviewCard(preferences: preferences),
