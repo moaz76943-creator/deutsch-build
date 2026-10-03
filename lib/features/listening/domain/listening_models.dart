@@ -99,25 +99,26 @@ final class ListeningDrill {
         languageCode.trim().isEmpty) {
       throw ArgumentError('Listening drill text fields must not be empty.');
     }
-    switch (type) {
-      case ListeningDrillType.multipleChoice:
-        if (options.length < 2) {
-          throw ArgumentError(
-            'Multiple-choice listening drills require at least two options.',
-          );
-        }
-        final ids = options.map((option) => option.id).toSet();
-        if (ids.length != options.length ||
-            !ids.contains(correctOptionId) ||
-            options.any(
-              (option) => option.id.trim().isEmpty || option.text.trim().isEmpty,
-            )) {
-          throw ArgumentError('Listening drill options are invalid.');
-        }
-      case ListeningDrillType.dictation:
-        if (expectedText == null || expectedText!.trim().isEmpty) {
-          throw ArgumentError('Dictation drills require expected text.');
-        }
+
+    if (type == ListeningDrillType.multipleChoice) {
+      if (options.length < 2) {
+        throw ArgumentError(
+          'Multiple-choice listening drills require at least two options.',
+        );
+      }
+      final ids = options.map((option) => option.id).toSet();
+      if (ids.length != options.length ||
+          !ids.contains(correctOptionId) ||
+          options.any(
+            (option) => option.id.trim().isEmpty || option.text.trim().isEmpty,
+          )) {
+        throw ArgumentError('Listening drill options are invalid.');
+      }
+      return;
+    }
+
+    if (expectedText == null || expectedText!.trim().isEmpty) {
+      throw ArgumentError('Dictation drills require expected text.');
     }
   }
 }
