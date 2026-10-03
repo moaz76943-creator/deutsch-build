@@ -86,6 +86,7 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
         builder: (_) => GrammarDrillScreen(
           exercises: exercises,
           levelLabel: level.code,
+          errorDiagnosticSink: widget.dependencies.errorPatternAgent,
         ),
       ),
     );

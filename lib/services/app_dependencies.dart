@@ -7,6 +7,7 @@ import '../language/language_pack.dart';
 import '../language/german/german_word_family_repository.dart';
 import '../features/audio/domain/services/i_audio_runtime.dart';
 import '../features/pronunciation/domain/services/pronunciation_signal_probe.dart';
+import '../features/error_pattern_agent/application/error_pattern_agent_notifier.dart';
 import '../features/gamification/gamification_repository.dart';
 import 'search_index.dart';
 import 'ai_gateway.dart';
@@ -37,6 +38,7 @@ final class AppDependencies<T extends LearningContent> {
     this.pronunciationSignalProbe = const UnavailablePronunciationSignalProbe(),
     this.wordFamilyRepository = const EmptyGermanWordFamilyRepository(),
     this.packManagerService,
+    this.errorPatternAgent,
     this.runtimePackState = const RuntimePackState.embeddedFallback(),
   });
 
@@ -57,5 +59,6 @@ final class AppDependencies<T extends LearningContent> {
   final PronunciationSignalProbe pronunciationSignalProbe;
   final GermanWordFamilyRepository wordFamilyRepository;
   final PackManagerService? packManagerService;
+  final ErrorPatternAgentNotifier? errorPatternAgent;
   final RuntimePackState runtimePackState;
 }
