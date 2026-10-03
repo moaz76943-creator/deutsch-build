@@ -18,6 +18,7 @@ abstract interface class SettingsController implements Listenable {
   Future<void> setShowAutomaticTranslation(bool value);
   Future<bool> clearCache();
   Future<bool> resetLearningProgress({required bool confirmed});
+  void dispose();
 }
 
 final class UnavailableSettingsController implements SettingsController {
@@ -68,4 +69,7 @@ final class UnavailableSettingsController implements SettingsController {
 
   @override
   void removeListener(VoidCallback listener) {}
+
+  @override
+  void dispose() {}
 }
