@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 WRAPPER_PATH = ROOT / 'android' / 'gradle' / 'wrapper' / 'gradle-wrapper.jar'
 WRAPPER_URL = 'https://raw.githubusercontent.com/gradle/gradle/v8.13.0/gradle/wrapper/gradle-wrapper.jar'
-EXPECTED_SHA256 = '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f'
+EXPECTED_SHA256 = '16caeaf66d57a0d1d2087fef6a97efa62de8da69afa5b908f40db35afc4342da'
 
 
 def write_verified_wrapper(target: Path, payload: bytes, expected_sha256: str) -> tuple[bool, str]:

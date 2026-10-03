@@ -309,7 +309,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
   @override
   void initState() {
     super.initState();
-    _loadViewMode();
+    // // _loadViewMode();
     _loadData();
   }
 

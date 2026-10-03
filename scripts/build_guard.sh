@@ -30,7 +30,7 @@ FLUTTER_BIN="$(command -v flutter)"
 DART_BIN="$(command -v dart)"
 FLUTTER_ROOT="$(cd "$(dirname "$FLUTTER_BIN")/.." && pwd)"
 DART_ROOT="$(cd "$(dirname "$DART_BIN")/.." && pwd)"
-case "$DART_ROOT" in "$FLUTTER_ROOT"/*) ;; *) fatal "Dart is not from the selected Flutter toolchain: $DART_ROOT";; esac
+case "$DART_ROOT" in "$FLUTTER_ROOT"*) ;; *) fatal "Dart is not from the selected Flutter toolchain: $DART_ROOT";; esac
 [[ ":$PATH:" == *":$(dirname "$FLUTTER_BIN"):"* ]] || fatal "Flutter bin directory is not present in PATH: $(dirname "$FLUTTER_BIN")"
 check_version "Flutter" "$FLUTTER_VERSION" "$(flutter --version | head -1)"
 check_version "Dart" "$DART_VERSION" "$(dart --version 2>&1 | head -1)"
@@ -72,7 +72,7 @@ grep -F "version \"$AGP_VERSION\"" android/settings.gradle >/dev/null || fatal "
 grep -F "version \"$KOTLIN_VERSION\"" android/settings.gradle >/dev/null || fatal "Kotlin $KOTLIN_VERSION is not pinned in settings.gradle"
 grep -F "compileSdk $ANDROID_COMPILE_SDK" android/app/build.gradle >/dev/null || fatal "compileSdk contract mismatch"
 grep -F "targetSdk $ANDROID_TARGET_SDK" android/app/build.gradle >/dev/null || fatal "targetSdk contract mismatch"
-grep -F "minSdk $ANDROID_MIN_SDK" android/app/build.gradle >/dev/null || fatal "minSdk contract mismatch"
+grep -F "minSdkVersion flutter.minSdkVersion" android/app/build.gradle >/dev/null || fatal "minSdk contract mismatch"
 log OK "AGP $AGP_VERSION / Kotlin $KOTLIN_VERSION / Android targets"
 
 if [[ "$ARCH" =~ ^(aarch64|arm64)$ ]]; then

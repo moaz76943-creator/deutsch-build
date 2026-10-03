@@ -68,7 +68,7 @@ Future<void> main() async {
           verbIndex,
           languagePack.textNormalizer,
         );
-        final uiSeed = await DynamicUiVariationsEngine.instance.getDailySeed();
+        final uiSeed = 0;
         final dependencies = AppDependencies<ContentItem>(
           searchIndex: searchIndex,
           verbIndex: verbIndex,

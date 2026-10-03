@@ -46,7 +46,7 @@ class _AppState extends State<DeutschAppV35> {
     listenable: widget.dependencies.neuroSettings,
     builder: (context, child) {
       final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
-      final int dailySeed = widget.dependencies.dailyUiSeed;
+      final int dailySeed = 0;
 
       ThemeData lightTheme = ThemeData(
         useMaterial3: true,
@@ -138,7 +138,7 @@ class _HomeState extends State<HomeV35> {
 
   @override
   Widget build(BuildContext c) {
-    final seed = widget.dependencies.dailyUiSeed;
+    final seed = 0;
     final isDark = Theme.of(c).brightness == Brightness.dark;
     final gradientColors = DynamicUiVariationHelpers.getGradientColors(
       seed,

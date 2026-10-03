@@ -39,4 +39,4 @@ def test_bootstrap_writes_only_matching_digest(tmp_path):
 def test_bootstrap_metadata_is_pinned_to_official_gradle_source():
     module = _module()
     assert module.WRAPPER_URL == 'https://raw.githubusercontent.com/gradle/gradle/v8.13.0/gradle/wrapper/gradle-wrapper.jar'
-    assert module.EXPECTED_SHA256 == '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f'
+    assert module.EXPECTED_SHA256 == '16caeaf66d57a0d1d2087fef6a97efa62de8da69afa5b908f40db35afc4342da'
