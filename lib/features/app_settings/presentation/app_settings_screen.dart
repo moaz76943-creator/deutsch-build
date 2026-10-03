@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../design_system/design_system.dart';
-import '../application/settings_notifier.dart';
+import '../application/settings_controller.dart';
 import '../domain/learning_preferences.dart';
 import 'widgets/glass_action_row.dart';
 import 'widgets/glass_slider_tile.dart';
@@ -15,7 +15,7 @@ final class AppSettingsScreen extends StatefulWidget {
     super.key,
   });
 
-  final SettingsNotifier notifier;
+  final SettingsController notifier;
   final VoidCallback? onProgressReset;
 
   @override
@@ -305,7 +305,7 @@ final class _PreviewCard extends StatelessWidget {
 final class _MetricsCard extends StatelessWidget {
   const _MetricsCard({required this.notifier});
 
-  final SettingsNotifier notifier;
+  final SettingsController notifier;
 
   @override
   Widget build(BuildContext context) {
