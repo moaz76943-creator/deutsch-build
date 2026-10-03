@@ -43,10 +43,18 @@ jobs:
       - name: 6. التحقق البرمجي التلقائي الصارم
         run: flutter analyze
 
-      - name: 7. توليد النسخ الخفيفة والمحسنة (Split APKs)
+      - name: 7. فحص الأمان والثغرات التلقائي للمستودع
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL'
+          exit-code: '0'
+
+      - name: 8. توليد النسخ الخفيفة والمحسنة (Split APKs)
         run: flutter build apk --debug --split-per-abi
 
-      - name: 8. تجهيز سجل التعديلات التلقائي (Changelog)
+      - name: 9. تجهيز سجل التعديلات التلقائي (Changelog)
         id: changelog
         run: |
           echo "CHANGES<<EOF" >> $GITHUB_ENV
@@ -54,7 +62,15 @@ jobs:
           echo "" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: 9. نشر النسخ بروابط تحميل مباشرة (.apk)
+      - name: 10. تنظيف الإصدارات القديمة تلقائياً (إبقاء آخر 3 فقط)
+        uses: dev-drprasad/delete-older-releases@v0.3.3
+        with:
+          keep_latest: 3
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 11. نشر النسخ بروابط تحميل مباشرة (.apk)
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
@@ -70,14 +86,3 @@ jobs:
           files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 10. إشعار تيليجرام التلقائي (اختياري)
-        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_TO != ''
-        uses: appleboy/telegram-action@master
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: " تم بناء نسخة جديدة بنجاح! تفضل بتحميلها من الرابط: https://github.com/${{ github.repository }}/releases/tag/latest"
