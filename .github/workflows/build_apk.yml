@@ -1,17 +1,17 @@
-name: Auto Build & Verify APK
+name: Daily & Auto Build APK
 
 on:
+  schedule:
+    # يشتغل يومياً تلقائياً في منتصف الليل بتوقيت السيرفر
+    - cron: '0 0 * * *'
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
   workflow_dispatch:
 
 jobs:
   pipeline:
-    name: Verify and Build
+    name: Verify and Build APK
     runs-on: ubuntu-latest
 
     steps:
