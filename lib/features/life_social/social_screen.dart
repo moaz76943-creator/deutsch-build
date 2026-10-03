@@ -105,7 +105,7 @@ final class _HeaderCard extends StatelessWidget {
         glowColor: AppColors.primary,
         borderColor: AppColors.primary.withAlpha(96),
         backgroundColor: dark ? AppColors.darkSurface : AppColors.lightSurface,
-        child: const Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             AppDirectionalText(
@@ -140,7 +140,7 @@ final class _ToneSelector extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const AppDirectionalText(
+            AppDirectionalText(
               'Anrede · أسلوب المخاطبة',
               languageCode: 'de',
               style: AppTypography.label,
@@ -240,7 +240,7 @@ final class _QuickResponsesBar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const AppDirectionalText(
+            AppDirectionalText(
               'Quick Polite Responses',
               languageCode: 'de',
               style: AppTypography.title,
@@ -282,7 +282,7 @@ final class _PhraseList extends StatelessWidget {
       return AppGlassCard(
         borderColor: AppColors.tertiary.withAlpha(96),
         backgroundColor: dark ? AppColors.darkSurface : AppColors.lightSurface,
-        child: const AppDirectionalText(
+        child: AppDirectionalText(
           'لا توجد نتائج في هذا القسم. جرّب كلمة بحث أخرى.',
           languageCode: 'ar',
           style: AppTypography.body,
