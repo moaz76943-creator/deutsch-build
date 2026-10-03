@@ -1,0 +1,52 @@
+name: Autonomous Merge Arbiter Gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - 'docs/project-record/**'
+      - 'reports/automation/**'
+      - 'tools/agents/state/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autonomous-arbiter-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  zero-drift-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run autonomous-agent unit tests
+        run: python -m unittest discover -s test/automation -p 'test_*.py'
+
+      - name: Enforce zero-drift sentinel on changed files
+        run: >-
+          python tools/agents/anti_cheat_sentinel.py
+          --repo-root .
+          --changed "${{ github.event.pull_request.base.sha }}"
+          --json-report reports/automation/anti_cheat_report.json
+
+      - name: Dry-run merge tree and isolated auto-rebase
+        run: >-
+          python tools/agents/conflict_arbiter.py
+          --repo-root .
+          --base "${{ github.event.pull_request.base.sha }}"
+          --source "${{ github.event.pull_request.head.sha }}"
+          --auto-rebase
+          --json-report reports/automation/arbiter_report.json
