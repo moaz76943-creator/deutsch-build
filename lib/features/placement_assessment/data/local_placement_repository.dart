@@ -267,6 +267,11 @@ final class LocalPlacementRepository implements PlacementRepository {
         final byLevel = leftLevelDistance.compareTo(rightLevelDistance);
         if (byLevel != 0) return byLevel;
 
+        final leftAttempts = skillAttempts[left.skill] ?? 0;
+        final rightAttempts = skillAttempts[right.skill] ?? 0;
+        final byCoverage = leftAttempts.compareTo(rightAttempts);
+        if (byCoverage != 0) return byCoverage;
+
         final leftDifficultyDistance =
             (left.difficultyWeight - targetDifficulty).abs();
         final rightDifficultyDistance =
@@ -274,11 +279,6 @@ final class LocalPlacementRepository implements PlacementRepository {
         final byDifficulty =
             leftDifficultyDistance.compareTo(rightDifficultyDistance);
         if (byDifficulty != 0) return byDifficulty;
-
-        final leftAttempts = skillAttempts[left.skill] ?? 0;
-        final rightAttempts = skillAttempts[right.skill] ?? 0;
-        final byCoverage = leftAttempts.compareTo(rightAttempts);
-        if (byCoverage != 0) return byCoverage;
 
         return left.id.compareTo(right.id);
       });
