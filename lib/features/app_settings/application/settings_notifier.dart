@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../domain/learning_preferences.dart';
@@ -18,6 +20,8 @@ final class SettingsNotifier extends ChangeNotifier implements SettingsControlle
   bool _saving = false;
   bool _busy = false;
   String? _errorCode;
+  Future<void> _writeTail = Future<void>.value();
+  int _saveGeneration = 0;
 
   LearningPreferences get preferences => _preferences;
   StorageMetrics get storageMetrics => _storageMetrics;
@@ -101,24 +105,38 @@ final class SettingsNotifier extends ChangeNotifier implements SettingsControlle
     }
   }
 
-  Future<void> _persist(LearningPreferences next) async {
-    if (_saving) return;
+  Future<void> _persist(LearningPreferences next) {
     final previous = _preferences;
+    final generation = ++_saveGeneration;
+    final completion = Completer<void>();
+
     _preferences = next;
     _saving = true;
     _errorCode = null;
     notifyListeners();
-    try {
-      await _repository.savePreferences(next);
-      _storageMetrics = await _repository.loadStorageMetrics();
-    } catch (_) {
-      _preferences = previous;
-      _errorCode = 'settings_save_failed';
-      notifyListeners();
-      rethrow;
-    } finally {
-      _saving = false;
-      notifyListeners();
-    }
+
+    _writeTail = _writeTail
+        .catchError((Object _) {})
+        .then((_) async {
+      try {
+        await _repository.savePreferences(next);
+        if (generation == _saveGeneration) {
+          _storageMetrics = await _repository.loadStorageMetrics();
+        }
+        completion.complete();
+      } catch (error, stackTrace) {
+        if (generation == _saveGeneration) {
+          _preferences = previous;
+          _errorCode = 'settings_save_failed';
+        }
+        completion.completeError(error, stackTrace);
+      } finally {
+        if (generation == _saveGeneration) {
+          _saving = false;
+          notifyListeners();
+        }
+      }
+    });
+    return completion.future;
   }
 }
