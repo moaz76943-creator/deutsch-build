@@ -185,7 +185,6 @@ String _normalize(String value) {
       .replaceAll('ü', 'ue')
       .replaceAll('ß', 'ss')
       .replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '')
-      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 }
