@@ -17,6 +17,13 @@ final class NvvNotifier extends ChangeNotifier {
   bool _isBusy = false;
   int _currentIndex = -1;
   NvvRegister? _activeRegister;
+  NvvContext? _activeContext;
+
+  ReplacementDirection _replacementDirection =
+      ReplacementDirection.simpleToNvv;
+  String? _replacementAnswer;
+  bool? _replacementCorrect;
+  bool _showReplacementExplanation = false;
 
   NvvChallengeItem? get currentChallenge => _currentChallenge;
   List<String> get displayedOptions => _displayedOptions;
@@ -25,12 +32,14 @@ final class NvvNotifier extends ChangeNotifier {
   bool get showExplanation => _showExplanation;
   bool get isBusy => _isBusy;
   NvvRegister? get activeRegister => _activeRegister;
+  NvvContext? get activeContext => _activeContext;
+  ReplacementDirection get replacementDirection => _replacementDirection;
+  String? get replacementAnswer => _replacementAnswer;
+  bool? get replacementCorrect => _replacementCorrect;
+  bool get showReplacementExplanation => _showReplacementExplanation;
 
   Future<void> checkPair(String selectedVerb) async {
-    final challenge = _currentChallenge;
-    if (challenge == null) {
-      throw StateError('No active Nomen-Verb-Verbindung challenge.');
-    }
+    final challenge = _requireChallenge();
     if (_showExplanation) {
       throw StateError('Current challenge has already been checked.');
     }
@@ -54,6 +63,42 @@ final class NvvNotifier extends ChangeNotifier {
     }
   }
 
+  Future<void> checkReplacement(String candidate) async {
+    final challenge = _requireChallenge();
+    if (_showReplacementExplanation) {
+      throw StateError('Current replacement has already been checked.');
+    }
+
+    final answer = candidate.trim();
+    if (answer.isEmpty) {
+      throw ArgumentError.value(
+        candidate,
+        'candidate',
+        'must not be empty',
+      );
+    }
+
+    _setBusy(true);
+    try {
+      _replacementAnswer = answer;
+      _replacementCorrect = await _repository.validateReplacement(
+        challenge.id,
+        _replacementDirection,
+        answer,
+      );
+      _showReplacementExplanation = true;
+    } finally {
+      _setBusy(false);
+    }
+  }
+
+  void setReplacementDirection(ReplacementDirection direction) {
+    if (_replacementDirection == direction) return;
+    _replacementDirection = direction;
+    _clearReplacementState();
+    notifyListeners();
+  }
+
   Future<void> nextChallenge() async {
     if (_isBusy) return;
 
@@ -62,6 +107,7 @@ final class NvvNotifier extends ChangeNotifier {
       if (_challenges.isEmpty) {
         _challenges = await _repository.getChallenges(
           register: _activeRegister,
+          context: _activeContext,
         );
       }
 
@@ -83,15 +129,48 @@ final class NvvNotifier extends ChangeNotifier {
     _setBusy(true);
     try {
       _activeRegister = register;
+      _activeContext = null;
       _challenges = await _repository.getChallenges(register: register);
-      _currentIndex = _challenges.isEmpty ? -1 : 0;
-      if (_challenges.isEmpty) {
-        _clearChallenge();
-      } else {
-        _activate(_challenges.first);
-      }
+      _activateFirstOrClear();
     } finally {
       _setBusy(false);
+    }
+  }
+
+  Future<void> filterByContext(NvvContext context) async {
+    if (_isBusy) return;
+
+    _setBusy(true);
+    try {
+      _activeContext = context;
+      _activeRegister = null;
+      _challenges = await _repository.getChallenges(context: context);
+      _activateFirstOrClear();
+    } finally {
+      _setBusy(false);
+    }
+  }
+
+  Future<void> clearFilters() async {
+    if (_isBusy) return;
+
+    _setBusy(true);
+    try {
+      _activeRegister = null;
+      _activeContext = null;
+      _challenges = await _repository.getChallenges();
+      _activateFirstOrClear();
+    } finally {
+      _setBusy(false);
+    }
+  }
+
+  void _activateFirstOrClear() {
+    _currentIndex = _challenges.isEmpty ? -1 : 0;
+    if (_challenges.isEmpty) {
+      _clearChallenge();
+    } else {
+      _activate(_challenges.first);
     }
   }
 
@@ -100,6 +179,7 @@ final class NvvNotifier extends ChangeNotifier {
     _selectedVerb = null;
     _isCorrect = null;
     _showExplanation = false;
+    _clearReplacementState();
     _displayedOptions = _buildOptions(challenge);
   }
 
@@ -116,12 +196,27 @@ final class NvvNotifier extends ChangeNotifier {
     return List<String>.unmodifiable(options);
   }
 
+  NvvChallengeItem _requireChallenge() {
+    final challenge = _currentChallenge;
+    if (challenge == null) {
+      throw StateError('No active Nomen-Verb-Verbindung challenge.');
+    }
+    return challenge;
+  }
+
+  void _clearReplacementState() {
+    _replacementAnswer = null;
+    _replacementCorrect = null;
+    _showReplacementExplanation = false;
+  }
+
   void _clearChallenge() {
     _currentChallenge = null;
     _displayedOptions = const <String>[];
     _selectedVerb = null;
     _isCorrect = null;
     _showExplanation = false;
+    _clearReplacementState();
     _currentIndex = -1;
   }
 
