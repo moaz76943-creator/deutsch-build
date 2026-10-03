@@ -49,3 +49,5 @@ flutter:
   assets:
     - content/german/audio_manifest.json
     - content/german/audio/
+    - assets/media/assets_manifest.json
+    - assets/media/images/
