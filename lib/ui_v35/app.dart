@@ -7,6 +7,8 @@ import 'commute/hands_free_commute_page.dart';
 import 'gamification/gamification_dashboard_page.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
+import '../features/gamification/domain/gamification_models.dart';
+import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
 import '../services/app_dependencies.dart';
@@ -105,17 +107,23 @@ class HomeV35 extends StatefulWidget {
 
 class _HomeState extends State<HomeV35> {
   late LearnerState state;
+  late Future<GamificationSnapshot> _homeGamification;
   int tab = 0;
+
   @override
   void initState() {
     super.initState();
     state = widget.repo.load();
+    _homeGamification =
+        widget.dependencies.gamificationRepository.loadSnapshot();
   }
 
   void refresh() {
     if (!mounted) return;
     setState(() {
       state = widget.repo.load();
+      _homeGamification =
+          widget.dependencies.gamificationRepository.loadSnapshot();
     });
   }
 
@@ -222,81 +230,92 @@ class _HomeState extends State<HomeV35> {
   }
 
   Widget _homeTab(BuildContext c) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 112),
-      children: [
-        const HomeProgressHero(
-          levelLabel: 'A2',
-          overallProgress: 0.65,
-          streak: 37,
-          masteredWords: 0,
-          totalWords: 0,
-          xp: 1280,
-        ),
-        const SizedBox(height: 16),
-        ReferenceHomeActions(
-          onDailyLessons: () => Navigator.push(
-            c,
-            MaterialPageRoute(
-              builder: (_) => CoreSession(
-                repo: widget.repo,
-                corpus: widget.dependencies.corpus,
-                onDone: refresh,
-                exerciseStrategy:
-                    widget.dependencies.languagePack.exerciseStrategy,
-                presentation: widget.dependencies.languagePack.presentation,
-                textNormalizer: widget.dependencies.languagePack.textNormalizer,
-                contentQuality: widget.dependencies.languagePack.contentQuality,
-                contentIntelligence:
-                    widget.dependencies.languagePack.contentIntelligence,
-              ),
-            ),
-          ),
-          onAiConversation: () => Navigator.push(
-            c,
-            MaterialPageRoute(
-              builder: (_) => AiConversationPage(
-                scenario: 'محادثة عامة',
-                aiGateway: widget.dependencies.aiGateway,
-                privacySettings: widget.dependencies.privacySettings,
-              ),
-            ),
-          ),
-          onQuickPractice: () => Navigator.push(
-            c,
-            MaterialPageRoute(
-              builder: (_) => CoreSession(
-                repo: widget.repo,
-                corpus: widget.dependencies.corpus,
-                onDone: refresh,
-                exerciseStrategy:
-                    widget.dependencies.languagePack.exerciseStrategy,
-                presentation: widget.dependencies.languagePack.presentation,
-                textNormalizer: widget.dependencies.languagePack.textNormalizer,
-                contentQuality: widget.dependencies.languagePack.contentQuality,
-                contentIntelligence:
-                    widget.dependencies.languagePack.contentIntelligence,
-              ),
-            ),
-          ),
-          onAssessment: () => Navigator.push(
-            c,
-            MaterialPageRoute(
-              builder: (_) => SmartAssessmentPage(
-                repo: widget.repo,
-                corpus: widget.dependencies.corpus,
-                exerciseStrategy:
-                    widget.dependencies.languagePack.exerciseStrategy,
-                presentation: widget.dependencies.languagePack.presentation,
-                textNormalizer: widget.dependencies.languagePack.textNormalizer,
-                contentQuality: widget.dependencies.languagePack.contentQuality,
-                contentIntelligence:
-                    widget.dependencies.languagePack.contentIntelligence,
-              ),
-            ),
+    final progress = ProgressSnapshotService.build(
+      state.attempts,
+      state.assessmentHistory,
+    );
+
+    void openCoreSession() {
+      Navigator.push(
+        c,
+        MaterialPageRoute(
+          builder: (_) => CoreSession(
+            repo: widget.repo,
+            corpus: widget.dependencies.corpus,
+            onDone: refresh,
+            exerciseStrategy: widget.dependencies.languagePack.exerciseStrategy,
+            presentation: widget.dependencies.languagePack.presentation,
+            textNormalizer: widget.dependencies.languagePack.textNormalizer,
+            contentQuality: widget.dependencies.languagePack.contentQuality,
+            contentIntelligence:
+                widget.dependencies.languagePack.contentIntelligence,
           ),
         ),
-      ],
+      );
+    }
+
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F172A),
+      ),
+      child: FutureBuilder<GamificationSnapshot>(
+        future: _homeGamification,
+        builder: (context, snapshot) {
+          final profile = snapshot.data?.profile;
+          final streak = profile?.currentStreak ?? state.streak;
+          final xp = profile?.totalXp ?? state.xp;
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 112),
+            physics: const BouncingScrollPhysics(),
+            children: <Widget>[
+              HomeProgressHero(
+                levelLabel: progress.levelLabel,
+                overallProgress: progress.overall,
+                streak: streak,
+                masteredWords: state.learned.length,
+                totalWords: widget.dependencies.corpus.length,
+                xp: xp,
+                onContinue: openCoreSession,
+              ),
+              const SizedBox(height: 28),
+              ReferenceHomeActions(
+                onDailyLessons: openCoreSession,
+                onAiConversation: () => Navigator.push(
+                  c,
+                  MaterialPageRoute(
+                    builder: (_) => AiConversationPage(
+                      scenario: 'محادثة عامة',
+                      aiGateway: widget.dependencies.aiGateway,
+                      privacySettings: widget.dependencies.privacySettings,
+                    ),
+                  ),
+                ),
+                onQuickPractice: openCoreSession,
+                onAssessment: () => Navigator.push(
+                  c,
+                  MaterialPageRoute(
+                    builder: (_) => SmartAssessmentPage(
+                      repo: widget.repo,
+                      corpus: widget.dependencies.corpus,
+                      exerciseStrategy:
+                          widget.dependencies.languagePack.exerciseStrategy,
+                      presentation:
+                          widget.dependencies.languagePack.presentation,
+                      textNormalizer:
+                          widget.dependencies.languagePack.textNormalizer,
+                      contentQuality:
+                          widget.dependencies.languagePack.contentQuality,
+                      contentIntelligence:
+                          widget.dependencies.languagePack.contentIntelligence,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
