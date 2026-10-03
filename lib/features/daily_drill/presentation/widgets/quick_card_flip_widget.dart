@@ -64,6 +64,7 @@ class QuickCardFlipWidget extends StatelessWidget {
                             key: const ValueKey<String>('daily-card-back'),
                             review: review,
                             accent: accent,
+                            sourceLanguageCode: sourceLanguageCode,
                             translationLanguageCode: translationLanguageCode,
                           )
                         : _CardFront(
@@ -108,7 +109,6 @@ class _CardFront extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      key: key,
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         if (article.isNotEmpty) ...<Widget>[
@@ -165,12 +165,14 @@ class _CardBack extends StatelessWidget {
   const _CardBack({
     required this.review,
     required this.accent,
+    required this.sourceLanguageCode,
     required this.translationLanguageCode,
     super.key,
   });
 
   final FlashcardReviewItem review;
   final Color accent;
+  final String sourceLanguageCode;
   final String translationLanguageCode;
 
   @override
@@ -179,7 +181,6 @@ class _CardBack extends StatelessWidget {
     final translatedExample = review.item.exampleTranslationText.trim();
 
     return SingleChildScrollView(
-      key: key,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -198,7 +199,7 @@ class _CardBack extends StatelessWidget {
             const SizedBox(height: 12),
             AppDirectionalText(
               example,
-              languageCode: 'de',
+              languageCode: sourceLanguageCode,
               textAlign: TextAlign.center,
               style: AppTypography.body.copyWith(
                 fontWeight: FontWeight.w800,
