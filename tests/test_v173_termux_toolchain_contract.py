@@ -51,10 +51,10 @@ def test_build_script_is_separate_and_checks_apk_hash():
 
 def test_v173_android_toolchain_is_pinned():
     assert '8.13.2' in SETTINGS.read_text()
-    assert '8.13.2' in BUILD_GRADLE.read_text()
+    assert 'com.android.application" version' not in BUILD_GRADLE.read_text()
     assert 'compileSdk 36' in APP.read_text()
     assert 'targetSdk 36' in APP.read_text()
-    assert 'gradle-8.14-all.zip' in WRAPPER.read_text()
+    assert 'gradle-8.14.5-all.zip' in WRAPPER.read_text()
     wf = WORKFLOW.read_text()
     assert 'java-version: "${{ steps.toolchain.outputs.java }}"' in wf
     assert 'toolchain.lock' in wf

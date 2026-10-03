@@ -3,13 +3,13 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 
 
-def test_android_plugins_are_pinned_to_flutter_324_compatible_versions():
+def test_android_plugins_have_one_canonical_version_source():
     root = (ROOT / "android/build.gradle").read_text()
     settings = (ROOT / "android/settings.gradle").read_text()
-    assert 'com.android.application" version "8.13.2"' in root
-    assert 'org.jetbrains.kotlin.android" version "2.3.0"' in root
     assert 'com.android.application" version "8.13.2"' in settings
     assert 'org.jetbrains.kotlin.android" version "2.3.0"' in settings
+    assert 'com.android.application" version' not in root
+    assert 'org.jetbrains.kotlin.android" version' not in root
 
 
 def test_ci_keeps_toolchain_pins_without_rewriting_gradle_configuration():
@@ -28,4 +28,4 @@ def test_checked_in_gradle_wrapper_scripts_are_present_and_pinned():
     assert (ROOT / "android/gradlew").exists()
     assert (ROOT / "android/gradlew.bat").exists()
     wrapper = (ROOT / "android/gradle/wrapper/gradle-wrapper.properties").read_text()
-    assert "gradle-8.14-all.zip" in wrapper
+    assert "gradle-8.14.5-all.zip" in wrapper
