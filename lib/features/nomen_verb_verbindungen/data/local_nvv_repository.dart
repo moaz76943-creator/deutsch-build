@@ -25,7 +25,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يودّع / يأخذ وداعه',
       arabicUsageExplanation:
           'يستعمل عند توديع شخص أو مكان، وغالبًا يأتي مع von + Dativ.',
-      trainingSentence: 'Am Bahnhof ___ wir Abschied von unseren Freunden.',
+      trainingSentence: 'Wir möchten am Bahnhof Abschied von unseren Freunden ___.',
     ),
     NvvChallengeItem(
       id: 'ruecksicht_nehmen',
@@ -38,7 +38,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يراعي / يأخذ بعين الاعتبار',
       arabicUsageExplanation:
           'تركيب مهم عند طلب مراعاة أشخاص أو ظروف، ويأتي مع auf + Akkusativ.',
-      trainingSentence: 'Bitte ___ Sie Rücksicht auf die anderen Fahrgäste.',
+      trainingSentence: 'Wir sollten Rücksicht auf die anderen Fahrgäste ___.',
     ),
     NvvChallengeItem(
       id: 'bescheid_sagen',
@@ -49,7 +49,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يُخبر / يُعلم',
       arabicUsageExplanation:
           'صيغة يومية طبيعية لإخبار شخص بمعلومة أو نتيجة لاحقًا.',
-      trainingSentence: 'Ich ___ dir morgen Bescheid.',
+      trainingSentence: 'Ich möchte dir morgen Bescheid ___.',
     ),
     NvvChallengeItem(
       id: 'bescheid_geben',
@@ -60,7 +60,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يُبلغ / يعطي خبرًا',
       arabicUsageExplanation:
           'تستعمل كثيرًا في بيئة العمل والمواعيد بمعنى إبلاغ شخص بالمستجدات.',
-      trainingSentence: 'Bitte ___ Sie mir bis Freitag Bescheid.',
+      trainingSentence: 'Können Sie mir bis Freitag Bescheid ___?',
     ),
     NvvChallengeItem(
       id: 'massnahmen_ergreifen',
@@ -84,7 +84,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يكون واردًا أو مناسبًا',
       arabicUsageExplanation:
           'يستخدم عند مناقشة الخيارات التي يمكن قبولها أو التفكير بها.',
-      trainingSentence: 'Für diese Stelle ___ mehrere Bewerber in Frage.',
+      trainingSentence: 'Für diese Stelle können mehrere Bewerber in Frage ___.',
     ),
     NvvChallengeItem(
       id: 'zur_verfuegung_stehen',
@@ -97,7 +97,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يكون متاحًا',
       arabicUsageExplanation:
           'يعني أن شخصًا أو شيئًا متاح للاستخدام أو للمساعدة.',
-      trainingSentence: 'Der Besprechungsraum ___ uns ab zehn Uhr zur Verfügung.',
+      trainingSentence: 'Der Besprechungsraum soll uns ab zehn Uhr zur Verfügung ___.',
     ),
     NvvChallengeItem(
       id: 'zur_verfuegung_stellen',
@@ -110,7 +110,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يوفّر / يضع تحت التصرف',
       arabicUsageExplanation:
           'يختلف عن stehen: هنا شخص أو جهة هي التي توفّر الشيء للآخرين.',
-      trainingSentence: 'Die Firma ___ für den Kurs einen Raum zur Verfügung.',
+      trainingSentence: 'Die Firma kann für den Kurs einen Raum zur Verfügung ___.',
     ),
     NvvChallengeItem(
       id: 'antrag_stellen',
@@ -136,7 +136,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يتواصل مع',
       arabicUsageExplanation:
           'يستعمل عند بدء التواصل، خصوصًا في المراسلات المهنية والرسمية.',
-      trainingSentence: 'Bitte ___ Sie Kontakt mit der Personalabteilung auf.',
+      trainingSentence: 'Wir möchten Kontakt mit der Personalabteilung ___.',
     ),
     NvvChallengeItem(
       id: 'einfluss_nehmen',
@@ -149,7 +149,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يؤثر في',
       arabicUsageExplanation:
           'تركيب شائع في اللغة الأكاديمية والرسمية لوصف التأثير في قرار أو عملية.',
-      trainingSentence: 'Die neuen Regeln ___ Einfluss auf den Ablauf.',
+      trainingSentence: 'Die neuen Regeln können Einfluss auf den Ablauf ___.',
     ),
     NvvChallengeItem(
       id: 'verantwortung_uebernehmen',
@@ -162,7 +162,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يتحمّل المسؤولية عن',
       arabicUsageExplanation:
           'شائع في العمل عند تحديد المسؤولية عن مهمة أو نتيجة.',
-      trainingSentence: 'Mina ___ Verantwortung für das neue Projekt.',
+      trainingSentence: 'Mina möchte Verantwortung für das neue Projekt ___.',
     ),
     NvvChallengeItem(
       id: 'rolle_spielen',
@@ -175,7 +175,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يلعب دورًا / يكون مهمًا',
       arabicUsageExplanation:
           'يستخدم في التفسير والتحليل لبيان أهمية عامل في موضوع ما.',
-      trainingSentence: 'Erfahrung ___ bei dieser Aufgabe eine wichtige Rolle.',
+      trainingSentence: 'Erfahrung kann bei dieser Aufgabe eine wichtige Rolle ___.',
     ),
     NvvChallengeItem(
       id: 'beitrag_leisten',
@@ -214,7 +214,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يقدّم مساعدة',
       arabicUsageExplanation:
           'صيغة رسمية نسبيًا تظهر في التعليمات والتقارير، ويمكن تحديد الموقف بـ bei + Dativ.',
-      trainingSentence: 'Die Kollegin ___ bei der Vorbereitung Hilfe.',
+      trainingSentence: 'Die Kollegin kann bei der Vorbereitung Hilfe ___.',
     ),
     NvvChallengeItem(
       id: 'kritik_ueben',
@@ -227,7 +227,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'ينتقد',
       arabicUsageExplanation:
           'تركيب شائع في النقاشات والتقارير عندما نعبّر عن نقد لشيء محدد.',
-      trainingSentence: 'Der Bericht ___ Kritik an der bisherigen Planung.',
+      trainingSentence: 'Der Bericht kann Kritik an der bisherigen Planung ___.',
     ),
     NvvChallengeItem(
       id: 'vereinbarung_treffen',
@@ -240,7 +240,7 @@ final class LocalNvvRepository implements NvvRepository {
       arabicTranslation: 'يتفق / يعقد اتفاقًا',
       arabicUsageExplanation:
           'يستخدم في العمل والمعاملات عند تثبيت اتفاق مع شخص أو جهة.',
-      trainingSentence: 'Wir ___ eine Vereinbarung mit dem Lieferanten.',
+      trainingSentence: 'Wir wollen eine Vereinbarung mit dem Lieferanten ___.',
     ),
   ];
 
