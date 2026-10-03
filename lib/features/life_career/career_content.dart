@@ -1,0 +1,160 @@
+import 'career_models.dart';
+
+abstract final class ApplicationDocsSubAgent {
+  static const List<CareerPhrase> items = <CareerPhrase>[
+    CareerPhrase(
+      id: 'cv-profile',
+      stage: CareerStage.application,
+      topic: CareerTopic.cv,
+      german: 'Tabellarischer Lebenslauf – Berufserfahrung und Ausbildung',
+      arabic: 'سيرة ذاتية مرتبة على شكل جدول: الخبرة المهنية والتعليم.',
+      noteAr: 'استخدم عناوين قصيرة وواضحة وابدأ بالأحدث عند ترتيب الخبرات.',
+    ),
+    CareerPhrase(
+      id: 'cv-experience',
+      stage: CareerStage.application,
+      topic: CareerTopic.cv,
+      german: 'Berufserfahrung: Kundenberatung und organisatorische Aufgaben',
+      arabic: 'الخبرة المهنية: استشارة العملاء والمهام التنظيمية.',
+    ),
+    CareerPhrase(
+      id: 'cover-opener',
+      stage: CareerStage.application,
+      topic: CareerTopic.coverLetter,
+      german: 'Sehr geehrte Damen und Herren,',
+      arabic: 'السيدات والسادة المحترمون،',
+      noteAr: 'افتتاح رسمي عندما لا تعرف اسم الشخص المسؤول.',
+    ),
+    CareerPhrase(
+      id: 'cover-interest',
+      stage: CareerStage.application,
+      topic: CareerTopic.coverLetter,
+      german: 'mit großem Interesse bewerbe ich mich um die ausgeschriebene Stelle.',
+      arabic: 'أتقدم باهتمام كبير للوظيفة المعلن عنها.',
+    ),
+    CareerPhrase(
+      id: 'cover-closer',
+      stage: CareerStage.application,
+      topic: CareerTopic.coverLetter,
+      german: 'Über die Einladung zu einem persönlichen Gespräch freue ich mich sehr.',
+      arabic: 'يسعدني كثيرًا تلقي دعوة إلى مقابلة شخصية.',
+    ),
+    CareerPhrase(
+      id: 'cover-signoff',
+      stage: CareerStage.application,
+      topic: CareerTopic.coverLetter,
+      german: 'Mit freundlichen Grüßen',
+      arabic: 'مع خالص التحية،',
+    ),
+    CareerPhrase(
+      id: 'open-position',
+      stage: CareerStage.application,
+      topic: CareerTopic.openPosition,
+      german: 'Ich möchte mich erkundigen, ob derzeit eine passende Stelle offen ist.',
+      arabic: 'أود الاستفسار عمّا إذا كانت هناك حاليًا وظيفة مناسبة شاغرة.',
+    ),
+    CareerPhrase(
+      id: 'open-position-docs',
+      stage: CareerStage.application,
+      topic: CareerTopic.openPosition,
+      german: 'Gerne sende ich Ihnen meinen Lebenslauf und meine Zeugnisse zu.',
+      arabic: 'يسرني أن أرسل لكم سيرتي الذاتية وشهاداتي.',
+    ),
+    CareerPhrase(
+      id: 'follow-up-thanks',
+      stage: CareerStage.followUp,
+      topic: CareerTopic.followUp,
+      german: 'Vielen Dank für das angenehme Gespräch und Ihre Zeit.',
+      arabic: 'شكرًا جزيلًا على المقابلة اللطيفة وعلى وقتكم.',
+    ),
+    CareerPhrase(
+      id: 'follow-up-status',
+      stage: CareerStage.followUp,
+      topic: CareerTopic.followUp,
+      german: 'Darf ich höflich nach dem aktuellen Stand des Bewerbungsverfahrens fragen?',
+      arabic: 'هل يمكنني الاستفسار بأدب عن الوضع الحالي لإجراءات التوظيف؟',
+    ),
+    CareerPhrase(
+      id: 'follow-up-interest',
+      stage: CareerStage.followUp,
+      topic: CareerTopic.followUp,
+      german: 'Mein Interesse an der Position besteht weiterhin.',
+      arabic: 'ما زال اهتمامي بالوظيفة قائمًا.',
+    ),
+  ];
+}
+
+abstract final class JobInterviewSubAgent {
+  static const List<CareerPhrase> items = <CareerPhrase>[
+    CareerPhrase(
+      id: 'interview-intro',
+      stage: CareerStage.interview,
+      topic: CareerTopic.selfIntroduction,
+      german: 'Gerne stelle ich mich kurz vor: Ich bin … und arbeite seit … im Bereich …',
+      arabic: 'يسعدني أن أعرّف بنفسي باختصار: أنا … وأعمل منذ … في مجال …',
+      urgent: true,
+    ),
+    CareerPhrase(
+      id: 'interview-strength',
+      stage: CareerStage.interview,
+      topic: CareerTopic.selfIntroduction,
+      german: 'Zu meinen Stärken gehören Zuverlässigkeit, Lernbereitschaft und Teamarbeit.',
+      arabic: 'من نقاط قوتي الاعتمادية والاستعداد للتعلم والعمل الجماعي.',
+      urgent: true,
+    ),
+    CareerPhrase(
+      id: 'interview-experience',
+      stage: CareerStage.interview,
+      topic: CareerTopic.experience,
+      german: 'In meiner bisherigen Tätigkeit war ich für … verantwortlich.',
+      arabic: 'في عملي السابق كنت مسؤولًا عن …',
+      urgent: true,
+    ),
+    CareerPhrase(
+      id: 'interview-achievement',
+      stage: CareerStage.interview,
+      topic: CareerTopic.experience,
+      german: 'Dabei konnte ich meine Erfahrung in … vertiefen und Prozesse zuverlässig unterstützen.',
+      arabic: 'وتمكنت خلال ذلك من تعميق خبرتي في … ودعم سير العمل بشكل موثوق.',
+    ),
+    CareerPhrase(
+      id: 'interview-qualification',
+      stage: CareerStage.interview,
+      topic: CareerTopic.qualifications,
+      german: 'Ich verfüge über praktische Erfahrung in … sowie gute Kenntnisse in …',
+      arabic: 'لدي خبرة عملية في … ومعرفة جيدة في …',
+      urgent: true,
+    ),
+    CareerPhrase(
+      id: 'interview-learning',
+      stage: CareerStage.interview,
+      topic: CareerTopic.qualifications,
+      german: 'Neue Aufgaben eigne ich mir strukturiert und sorgfältig an.',
+      arabic: 'أتعلم المهام الجديدة بطريقة منظمة ودقيقة.',
+    ),
+    CareerPhrase(
+      id: 'interview-hours',
+      stage: CareerStage.interview,
+      topic: CareerTopic.workingHours,
+      german: 'Wie sind die üblichen Arbeitszeiten in dieser Position geregelt?',
+      arabic: 'كيف يتم تنظيم ساعات العمل المعتادة في هذه الوظيفة؟',
+      urgent: true,
+    ),
+    CareerPhrase(
+      id: 'interview-team',
+      stage: CareerStage.interview,
+      topic: CareerTopic.teamStructure,
+      german: 'Wie ist das Team aufgebaut, mit dem ich zusammenarbeiten würde?',
+      arabic: 'كيف يتكوّن الفريق الذي سأعمل معه؟',
+      urgent: true,
+    ),
+    CareerPhrase(
+      id: 'interview-next-steps',
+      stage: CareerStage.interview,
+      topic: CareerTopic.followUp,
+      german: 'Wie sehen die nächsten Schritte im Bewerbungsverfahren aus?',
+      arabic: 'ما الخطوات التالية في إجراءات التوظيف؟',
+      urgent: true,
+    ),
+  ];
+}
