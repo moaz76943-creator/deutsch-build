@@ -10,6 +10,7 @@ import '../models/learner.dart';
 import '../features/gamification/domain/gamification_models.dart';
 import '../features/dashboard/application/dashboard_analytics_builder.dart';
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
+import '../features/app_settings/presentation/app_settings_screen.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
@@ -53,12 +54,16 @@ class _AppState extends State<DeutschAppV35> {
     widget.dependencies.audioRuntime.shutdown();
     widget.dependencies.sourceAudioRuntime.shutdown();
     widget.dependencies.gamificationRepository.close();
+    widget.dependencies.settingsNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext c) => ListenableBuilder(
-        listenable: widget.dependencies.neuroSettings,
+        listenable: Listenable.merge(<Listenable>[
+          widget.dependencies.neuroSettings,
+          widget.dependencies.settingsNotifier,
+        ]),
         builder: (context, child) {
           final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
 
@@ -78,7 +83,20 @@ class _AppState extends State<DeutschAppV35> {
               themeMode: dark ? ThemeMode.dark : ThemeMode.light,
               theme: lightTheme,
               darkTheme: darkTheme,
-              builder: rtlAppBuilder,
+              builder: (builderContext, child) {
+                final media = MediaQuery.of(builderContext);
+                final scale = widget
+                    .dependencies.settingsNotifier.preferences.textScaleFactor;
+                return Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: MediaQuery(
+                    data: media.copyWith(
+                      textScaler: TextScaler.linear(scale),
+                    ),
+                    child: child ?? const SizedBox.shrink(),
+                  ),
+                );
+              },
               home: HomeV35(
                 repo: widget.repo,
                 auth: widget.auth,
@@ -184,11 +202,9 @@ class _HomeState extends State<HomeV35> {
                   onPressed: () => Navigator.push(
                     c,
                     MaterialPageRoute(
-                      builder: (_) => SettingsV35(
-                        repo: widget.repo,
-                        privacySettings: widget.dependencies.privacySettings,
-                        neuroSettings: widget.dependencies.neuroSettings,
-                        onCleared: refresh,
+                      builder: (_) => AppSettingsScreen(
+                        notifier: widget.dependencies.settingsNotifier,
+                        onProgressReset: refresh,
                       ),
                     ),
                   ),
