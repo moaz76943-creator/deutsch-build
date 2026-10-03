@@ -104,13 +104,13 @@ void main() {
 
       expect(find.textContaining('Verhandlungsbasis'), findsWidgets);
 
-      await tester.tap(
-        find.byKey(
-          const ValueKey<String>(
-            'secondhand-domain-donationAndSocialStores',
-          ),
+      final donationDomain = find.byKey(
+        const ValueKey<String>(
+          'secondhand-domain-donationAndSocialStores',
         ),
       );
+      await tester.ensureVisible(donationDomain);
+      await tester.tap(donationDomain);
       await tester.pump();
 
       expect(orchestrator.domain, SecondhandDomain.donationAndSocialStores);
