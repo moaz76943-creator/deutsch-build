@@ -78,7 +78,7 @@ final class _PhraseTile extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             AppDirectionalText(
-              '\${phrase.level.label} · \${phrase.noteArabic}',
+              '${phrase.level.label} · ${phrase.noteArabic}',
               languageCode: 'ar',
               style: AppTypography.label,
             ),
