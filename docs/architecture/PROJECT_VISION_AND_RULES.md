@@ -225,3 +225,21 @@ After mutation:
 - leave durable evidence and a continuation/checkpoint when work is not yet integrated;
 - distinguish `IMPLEMENTED`, `VERIFIED`, and `INTEGRATED`;
 - do not report a PR as merge-safe merely because a subset of checks is green.
+
+
+## 11. Living architectural decision ledger
+
+`docs/architecture/DECISION_LOG.md` is the durable record of accepted architectural decisions,
+their motivation, and rejected alternatives. A new decision or supersession must be recorded there
+rather than living only in a chat, handoff, or implementation diff.
+
+`tools/zero_drift_check.py` is the executable architecture-memory gate and is invoked by the
+canonical quality gate. It must remain local/static and must not require provider APIs, secrets,
+CI polling, or paid services.
+
+Post-merge memory synchronization is implemented by
+`tools/post_merge_decision_sync.py` and
+`.github/workflows/architectural_memory_sync.yml`. The workflow job remains fail-closed unless
+both `ARCHITECTURE_LEDGER_SYNC_ENABLED=true` and
+`ARCHITECTURE_LEDGER_BILLING_APPROVED=true` are explicitly configured. This preserves the
+project's zero-additional-billing policy instead of assuming runner capacity is free.

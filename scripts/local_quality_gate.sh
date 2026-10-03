@@ -28,6 +28,7 @@ python3 tool/privacy_audit.py
 python3 tool/quality_audit.py
 python3 tool/accessibility_audit.py
 python3 tool/architecture_audit.py
+python3 tools/zero_drift_check.py --repo-root "$ROOT"
 python3 tool/weakness_gate.py
 python3 tool/phase17_production_gate.py
 

@@ -112,3 +112,19 @@ When a prohibited pattern is detected:
 5. do not weaken the gate that detected the problem.
 
 No schedule, automation, or AI agent is authorized to override this file silently.
+
+
+## 11. Architectural-memory drift
+
+Forbidden:
+- changing a recorded architecture invariant without adding an explicit superseding ADR;
+- removing `tools/zero_drift_check.py` from the canonical local quality gate;
+- editing the machine-managed post-merge block by a second competing synchronization mechanism;
+- enabling architecture-ledger cloud synchronization without explicit billing approval;
+- treating a post-merge sync stamp as verification evidence for code that was not otherwise verified.
+
+Required pattern:
+- record the decision and rationale in `docs/architecture/DECISION_LOG.md`;
+- keep executable invariants in the Zero Drift Check;
+- use one managed post-merge synchronization path;
+- preserve exact-head and canonical-quality evidence independently from documentation state.
