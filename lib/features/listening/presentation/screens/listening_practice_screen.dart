@@ -31,11 +31,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
   }
 
   Future<void> _recordPronunciation() async {
-    try {
-      await widget.notifier.evaluatePronunciation();
-    } on StateError {
-      return;
-    }
+    await widget.notifier.evaluatePronunciation();
   }
 
   void _submitDictation() {
@@ -56,6 +52,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
       builder: (context, _) {
         final notifier = widget.notifier;
         final drill = notifier.currentDrill;
+        final answer = notifier.lastAnswer;
         return Scaffold(
           appBar: AppBar(
             title: const Text('تدريب الاستماع والنطق'),
@@ -70,10 +67,12 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
                   const SizedBox(height: 12),
                   AudioWaveGlassCard(
                     isBusy: notifier.isPlaying,
-                    onPlayNormal: () => notifier.playCurrent(),
-                    onPlaySlow: () => notifier.playCurrent(
-                      ListeningPlaybackSpeed.slow,
-                    ),
+                    onPlayNormal: () async {
+                      await notifier.playCurrent();
+                    },
+                    onPlaySlow: () async {
+                      await notifier.playCurrent(ListeningPlaybackSpeed.slow);
+                    },
                   ),
                   const SizedBox(height: 12),
                   AppGlassCard(
@@ -95,7 +94,7 @@ class _ListeningPracticeScreenState extends State<ListeningPracticeScreen> {
                       enabled: !notifier.canAdvance,
                       onSubmit: _submitDictation,
                     ),
-                  if (notifier.lastAnswer case final answer?) ...<Widget>[
+                  if (answer != null) ...<Widget>[
                     const SizedBox(height: 12),
                     _AnswerFeedback(answer: answer),
                   ],
