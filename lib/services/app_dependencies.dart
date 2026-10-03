@@ -21,6 +21,7 @@ import 'preferences_service.dart';
 import '../features/life_furniture_home_setup/furniture_home_module.dart';
 import '../features/life_postal_delivery/postal_master_orchestrator.dart';
 
+import '../features/life_restaurant_dining/restaurant_master_orchestrator.dart';
 /// Composition-root dependencies shared by the application surface.
 /// Concrete language models remain outside this shared dependency contract.
 final class AppDependencies<T extends LearningContent> {
@@ -46,6 +47,7 @@ final class AppDependencies<T extends LearningContent> {
     this.errorPatternAgent,
     this.furnitureHomeSetupModule = const FurnitureHomeSetupModule(),
     this.postalDeliveryModule = const PostalDeliveryModule(),
+    this.restaurantDiningFactory = const RestaurantDiningDependencyFactory(),
     this.runtimePackState = const RuntimePackState.embeddedFallback(),
     this.doctorAppointmentOrchestrator =
         const DoctorAppointmentMasterOrchestrator(),
@@ -72,6 +74,7 @@ final class AppDependencies<T extends LearningContent> {
   final ErrorPatternAgentNotifier? errorPatternAgent;
   final FurnitureHomeSetupModule furnitureHomeSetupModule;
   final PostalDeliveryModule postalDeliveryModule;
+  final RestaurantDiningDependencyFactory restaurantDiningFactory;
   final RuntimePackState runtimePackState;
   final DoctorAppointmentMasterOrchestrator doctorAppointmentOrchestrator;
 }

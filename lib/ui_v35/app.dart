@@ -19,6 +19,7 @@ import '../features/life_postal_delivery/postal_master_orchestrator.dart';
 import '../features/life_postal_delivery/postal_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
+import '../features/life_restaurant_dining/restaurant_screen.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
@@ -138,6 +139,11 @@ class _AppState extends State<DeutschAppV35> {
                       orchestrator: widget.dependencies.postalDeliveryModule
                           .createOrchestrator(),
                     ),
+                RestaurantDiningMasterHub.routeName: (_) =>
+                    RestaurantDiningMasterHub(
+                  orchestratorFactory:
+                      widget.dependencies.restaurantDiningFactory.create,
+                ),
               },
               home: HomeV35(
                 repo: widget.repo,
