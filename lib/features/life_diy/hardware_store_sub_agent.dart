@@ -10,7 +10,7 @@ final class HardwareStoreSubAgent {
       id: 'hardware-screws-dowels',
       domain: DiyDomain.materialsHardware,
       german:
-          'Ich brauche Schrauben mit fünf Millimetern Durchmesser und passende Dübel. Können Sie mir etwas für diese Wand empfehlen?',
+          'Ich brauche Schrauben mit einem Durchmesser von fünf Millimetern und passende Dübel. Können Sie mir etwas für diese Wand empfehlen?',
       arabic:
           'أحتاج براغي بقطر خمسة مليمترات وقطع تثبيت مناسبة. هل يمكنك أن تقترح شيئًا مناسبًا لهذا الجدار؟',
       contextDe: 'Nach Schrauben und passenden Dübeln fragen',
