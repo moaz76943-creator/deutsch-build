@@ -14,6 +14,7 @@ final class SettingsNotifier extends ChangeNotifier implements SettingsControlle
   final LearningProgressResetter _progressResetter;
 
   LearningPreferences _preferences = const LearningPreferences();
+  LearningPreferences _persistedPreferences = const LearningPreferences();
   StorageMetrics _storageMetrics =
       const StorageMetrics(localDataBytes: 0);
   bool _initialized = false;
@@ -38,6 +39,7 @@ final class SettingsNotifier extends ChangeNotifier implements SettingsControlle
     notifyListeners();
     try {
       _preferences = await _repository.loadPreferences();
+      _persistedPreferences = _preferences;
       _storageMetrics = await _repository.loadStorageMetrics();
       _initialized = true;
     } on Object {
@@ -106,7 +108,6 @@ final class SettingsNotifier extends ChangeNotifier implements SettingsControlle
   }
 
   Future<void> _persist(LearningPreferences next) {
-    final previous = _preferences;
     final generation = ++_saveGeneration;
     final completion = Completer<void>();
 
@@ -120,13 +121,14 @@ final class SettingsNotifier extends ChangeNotifier implements SettingsControlle
         .then((_) async {
       try {
         await _repository.savePreferences(next);
+        _persistedPreferences = next;
         if (generation == _saveGeneration) {
           _storageMetrics = await _repository.loadStorageMetrics();
         }
         completion.complete();
       } catch (error, stackTrace) {
         if (generation == _saveGeneration) {
-          _preferences = previous;
+          _preferences = _persistedPreferences;
           _errorCode = 'settings_save_failed';
         }
         completion.completeError(error, stackTrace);
