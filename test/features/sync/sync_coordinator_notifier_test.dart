@@ -177,4 +177,39 @@ void main() {
     expect(coordinator.state.status, SyncStatus.upToDate);
     expect(coordinator.state.conflict, isNull);
   });
+
+  test('never acknowledges queued mutations when local snapshot is missing', () async {
+    final repository = _MemorySyncRepository();
+    final queued = SyncQueueItem(
+      id: 'm1',
+      entityKey: 'learner.progress',
+      updatedAtUtc: DateTime.utc(2026, 10, 3, 9),
+      payload: const <String, Object?>{'xp': 120},
+    );
+    repository.queue.add(queued);
+
+    final cloud = _FakeCloud()
+      ..remote = snapshot('remote', DateTime.utc(2026, 10, 3, 8));
+    final connectivity = _Connectivity(true);
+    final coordinator = SyncCoordinatorNotifier(
+      syncKey: 'learner-1',
+      repository: repository,
+      cloud: cloud,
+      connectivity: connectivity,
+    );
+    addTearDown(() async {
+      coordinator.dispose();
+      await connectivity.controller.close();
+    });
+
+    await coordinator.start();
+
+    expect(await repository.pendingMutations(), hasLength(1));
+    expect(repository.snapshot, isNull);
+    expect(coordinator.state.status, SyncStatus.offline);
+    expect(
+      coordinator.state.message,
+      'sync_unavailable_queue_preserved',
+    );
+  });
 }
