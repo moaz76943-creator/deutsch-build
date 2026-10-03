@@ -7,6 +7,15 @@ abstract interface class PartizipRepository {
 
   PartizipExercise? byId(String id);
 
+  String formPartizipI(String infinitive);
+
+  String? partizipIIFor(String infinitive);
+
+  String formAdjective({
+    required String participle,
+    required String ending,
+  });
+
   bool isAnswerCorrect(
     PartizipExercise exercise,
     String candidate,
