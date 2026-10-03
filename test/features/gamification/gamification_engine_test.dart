@@ -127,4 +127,60 @@ void main() {
       containsAll(<String>['xp_100', 'streak_7']),
     );
   });
+
+  test('one-day excused absence consumes freeze and preserves streak', () {
+    final result = GamificationEngine.apply(
+      GamificationProfile(
+        totalXp: 200,
+        currentStreak: 4,
+        longestStreak: 6,
+        lastReviewAtUtc: DateTime.utc(2026, 10, 1, 7),
+        lastLocalDay: '2026-10-01',
+        lastTimezoneOffsetMinutes: 180,
+      ),
+      GamificationReviewEvent(
+        reviewId: 'freeze_1',
+        facetType: ReviewFacetType.meaningRecall,
+        correct: true,
+        hinted: false,
+        requestedXp: 10,
+        occurredAtUtc: DateTime.utc(2026, 10, 3, 7),
+        timezoneOffsetMinutes: 180,
+        useStreakFreeze: true,
+      ),
+    );
+
+    expect(result.profile.currentStreak, 5);
+    expect(result.profile.longestStreak, 6);
+    expect(result.profile.streakFreezeAvailable, isFalse);
+    expect(result.streakFreezeUsed, isTrue);
+  });
+
+  test('streak freeze does not cover more than one missed local day', () {
+    final result = GamificationEngine.apply(
+      GamificationProfile(
+        currentStreak: 8,
+        longestStreak: 8,
+        lastReviewAtUtc: DateTime.utc(2026, 10, 1, 7),
+        lastLocalDay: '2026-10-01',
+        lastTimezoneOffsetMinutes: 180,
+      ),
+      GamificationReviewEvent(
+        reviewId: 'freeze_2',
+        facetType: ReviewFacetType.meaningRecall,
+        correct: true,
+        hinted: false,
+        requestedXp: 10,
+        occurredAtUtc: DateTime.utc(2026, 10, 4, 7),
+        timezoneOffsetMinutes: 180,
+        useStreakFreeze: true,
+      ),
+    );
+
+    expect(result.profile.currentStreak, 1);
+    expect(result.profile.longestStreak, 8);
+    expect(result.profile.streakFreezeAvailable, isTrue);
+    expect(result.streakFreezeUsed, isFalse);
+  });
+
 }
