@@ -24,7 +24,7 @@ final class LocalPrepositionsRepository implements PrepositionsRepository {
       id: 'gegen',
       preposition: 'gegen',
       type: PrepositionType.accusative,
-      meaningAr: 'ضد / باتجاه',
+      meaningAr: 'ضد / نحو',
       level: 'A2',
     ),
     PrepositionItem(
@@ -233,8 +233,8 @@ final class LocalPrepositionsRepository implements PrepositionsRepository {
     PrepositionChallenge(
       id: 'dat-zu-preposition',
       kind: PrepositionChallengeKind.prepositionChoice,
-      sentenceTemplate: 'Wir gehen ___ dem Bahnhof.',
-      translationAr: 'نحن نذهب إلى محطة القطار.',
+      sentenceTemplate: 'Wir gehen ___ meiner Freundin.',
+      translationAr: 'نحن نذهب إلى صديقتي.',
       prepositionId: 'zu',
       correctPreposition: 'zu',
       options: const <String>['zu', 'für', 'durch'],
