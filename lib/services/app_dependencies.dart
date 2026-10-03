@@ -1,4 +1,5 @@
 import 'grammar_hub_service.dart';
+import '../features/life_supermarket_groceries/supermarket_master_orchestrator.dart';
 import 'active_pack_runtime_provider.dart';
 import 'pack_manager_service.dart';
 export 'verb_index.dart' show VerbIndex;
@@ -40,6 +41,7 @@ final class AppDependencies<T extends LearningContent> {
     required this.favoritesRepository,
     required this.preferencesService,
     required this.grammarHubService,
+    this.supermarketGroceriesModule = const SupermarketGroceriesModule(),
     this.settingsController = const UnavailableSettingsController(),
     this.gamificationRepository = const UnavailableGamificationRepository(),
     this.audioRuntime = const UnavailableAudioRuntime(),
@@ -68,6 +70,7 @@ final class AppDependencies<T extends LearningContent> {
   final FavoritesRepository favoritesRepository;
   final PreferencesService preferencesService;
   final GrammarHubRepository grammarHubService;
+  final SupermarketGroceriesModule supermarketGroceriesModule;
   final SettingsController settingsController;
   final GamificationRepository gamificationRepository;
   final IAudioRuntime audioRuntime;

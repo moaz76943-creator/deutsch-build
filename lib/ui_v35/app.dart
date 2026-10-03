@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/life_supermarket_groceries/supermarket_screen.dart';
 
 import 'grammar/grammar_hub_page.dart';
 import 'word_families/word_families_page.dart';
@@ -478,6 +479,20 @@ class _HomeState extends State<HomeV35> {
                   presentation: widget.dependencies.languagePack.presentation,
                   textNormalizer:
                       widget.dependencies.languagePack.textNormalizer,
+                ),
+              ),
+            ),
+          ),
+          _featureCard(
+            c,
+            'السوبرماركت والمواد الغذائية',
+            'المنتجات والمكونات والعروض وإيصالات الدفع في مواقف التسوق اليومية',
+            Icons.shopping_cart_outlined,
+            () => Navigator.push(
+              c,
+              MaterialPageRoute(
+                builder: (_) => SupermarketGroceriesMasterHub(
+                  module: widget.dependencies.supermarketGroceriesModule,
                 ),
               ),
             ),
