@@ -57,7 +57,6 @@ class _AppState extends State<DeutschAppV35> {
     listenable: widget.dependencies.neuroSettings,
     builder: (context, child) {
       final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
-      final int dailySeed = 0;
 
       ThemeData lightTheme = AppDesignSystem.light();
       ThemeData darkTheme = AppDesignSystem.dark();
@@ -138,13 +137,6 @@ class _HomeState extends State<HomeV35> {
 
   @override
   Widget build(BuildContext c) {
-    final seed = 0;
-    final isDark = Theme.of(c).brightness == Brightness.dark;
-    final gradientColors = DynamicUiVariationHelpers.getGradientColors(
-      seed,
-      isDark,
-    );
-    final duration = DynamicUiVariationHelpers.getMicroAnimationDuration(seed);
 
     return Scaffold(
       extendBody: true,
@@ -835,4 +827,10 @@ class _HomeState extends State<HomeV35> {
     onTap: onTap,
     primary: primary,
   );
+}
+
+
+class DynamicUiVariationHelpers {
+  static List<Color> getGradientColors(int seed, bool isDark) => [];
+  static Duration getMicroAnimationDuration(int seed) => const Duration(milliseconds: 300);
 }

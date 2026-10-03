@@ -142,7 +142,6 @@ Future<void> main() async {
           verbIndex,
           activeLanguagePack.textNormalizer,
         );
-        final uiSeed = 0;
         final dependencies = AppDependencies<ContentItem>(
           grammarHubService: runtime.grammarHubService,
           gamificationRepository: gamificationRepository,
