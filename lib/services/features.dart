@@ -46,4 +46,9 @@ const featureRegistry = <AppFeature>[
     true,
   ),
   AppFeature('APK/Android QA', 'يتطلب بناء Android فعليًا واختبار جهاز', false),
+  AppFeature(
+    'السكن والإيجار',
+    'عقد الإيجار والتكاليف ومحضر التسليم والبلاغ عن العيوب.',
+    true,
+  ),
 ];
