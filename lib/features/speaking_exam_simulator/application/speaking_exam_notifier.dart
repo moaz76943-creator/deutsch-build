@@ -57,7 +57,7 @@ final class SpeakingExamNotifier extends ChangeNotifier {
     if (phase == null || phase.duration.inSeconds <= 0) return 0;
     final elapsed =
         phase.duration.inSeconds - _secondsRemaining;
-    return (elapsed / phase.duration.inSeconds).clamp(0.0, 1.0);
+    return (elapsed / phase.duration.inSeconds).clamp(0.0, 1.0).toDouble();
   }
 
   String get formattedRemaining {
