@@ -9,6 +9,42 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const repository = LocalPartizipRepository();
 
+  test('forms Partizip I and adjective forms for the target examples', () {
+    expect(repository.formPartizipI('lächeln'), 'lächelnd');
+    expect(repository.formPartizipI('fließen'), 'fließend');
+    expect(
+      repository.formAdjective(participle: 'lächelnd', ending: '-es'),
+      'lächelndes',
+    );
+    expect(
+      repository.formAdjective(participle: 'fließend', ending: 'es'),
+      'fließendes',
+    );
+  });
+
+  test('resolves curated Partizip II and adjective form', () {
+    expect(repository.partizipIIFor('schreiben'), 'geschrieben');
+    expect(
+      repository.formAdjective(participle: 'geschrieben', ending: 'es'),
+      'geschriebenes',
+    );
+  });
+
+  test('contains exact Partizip I and II adjective examples', () {
+    expect(
+      repository.byId('p1_child_smiling')!.correctAttribute,
+      'lächelndes Kind',
+    );
+    expect(
+      repository.byId('p1_water_flowing')!.correctAttribute,
+      'fließendes Wasser',
+    );
+    expect(
+      repository.byId('p2_book_written')!.correctAttribute,
+      'geschriebenes Buch',
+    );
+  });
+
   test('Partizip I keeps an active or simultaneous meaning', () {
     final item = repository.byId('p1_machine_running')!;
 
@@ -44,10 +80,7 @@ void main() {
         'Wissenschaftler',
       ],
     );
-    expect(
-      repository.isTokenOrderCorrect(item, item.attributeTokens),
-      isTrue,
-    );
+    expect(repository.isTokenOrderCorrect(item, item.attributeTokens), isTrue);
     expect(
       repository.isTokenOrderCorrect(
         item,
@@ -70,8 +103,11 @@ void main() {
     final item = repository.byId('p2_book_read')!;
 
     expect(item.correctAttribute, 'das häufig gelesene Fachbuch');
-    expect(repository.isAnswerCorrect(item, 'das häufig gelesene Fachbuch'), isTrue);
-    expect(repository.isAnswerCorrect(item, 'das häufig gelesen Fachbuch'), isFalse);
+    expect(repository.isAnswerCorrect(item, item.correctAttribute), isTrue);
+    expect(
+      repository.isAnswerCorrect(item, 'das häufig gelesen Fachbuch'),
+      isFalse,
+    );
   });
 
   test('repository filters by participle kind', () {
@@ -99,6 +135,8 @@ void main() {
     expect(notifier.state.checked, isFalse);
     expect(notifier.state.input, isEmpty);
     expect(notifier.state.current.id, isNot(first.id));
+
+    notifier.dispose();
   });
 
   test('notifier filters by Partizip II and resets state', () {
@@ -115,9 +153,13 @@ void main() {
       ),
       isTrue,
     );
+
+    notifier.dispose();
   });
 
-  testWidgets('screen uses glass cards and robust bidirectional text', (tester) async {
+  testWidgets('screen uses AppGlassCard and explicit German/Arabic BiDi', (
+    tester,
+  ) async {
     final notifier = PartizipNotifier(repository);
 
     await tester.pumpWidget(
@@ -126,6 +168,9 @@ void main() {
 
     expect(find.byType(AppGlassCard), findsWidgets);
     expect(find.byType(Directionality), findsWidgets);
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
+    expect(find.byType(ListView), findsOneWidget);
+    expect(find.text('Partizip I & II als Adjektive'), findsOneWidget);
+
+    notifier.dispose();
   });
 }
