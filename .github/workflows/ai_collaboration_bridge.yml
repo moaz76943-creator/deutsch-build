@@ -24,7 +24,7 @@ name: AI Collaboration Bridge
 
 on:
   issues:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, labeled]
   issue_comment:
     types: [created]
   pull_request:
@@ -450,3 +450,175 @@ jobs:
             exit 1
           fi
           echo "AI architecture collaboration passed."
+
+  inline-static-review:
+    name: Inline static review
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout trusted base without credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Build read-only PR snapshot
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -Eeuo pipefail
+
+          mkdir -p .review-input/head
+          gh api --paginate --slurp \
+            "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/files?per_page=100" \
+            > .review-input/pages.json
+          jq '[.[][]]' .review-input/pages.json > .review-input/files.raw.json
+          : > .review-input/files.ndjson
+
+          while IFS= read -r encoded; do
+            row="$(printf '%s' "$encoded" | base64 --decode)"
+            path="$(printf '%s' "$row" | jq -r '.filename')"
+            status="$(printf '%s' "$row" | jq -r '.status')"
+            snapshot=""
+
+            case "$path" in
+              *.dart|*.py|*.sh|*.bash|*.yml|*.yaml|*.json|*.md|*.gradle|*.properties|*.toml|*.xml|*.txt)
+                text_candidate=true
+                ;;
+              *)
+                text_candidate=false
+                ;;
+            esac
+
+            if [[ "$status" != "removed" && "$text_candidate" == "true" ]]; then
+              snapshot="$(printf '%s' "$path" | sha256sum | awk '{print $1}')"
+              if ! gh api --method GET \
+                -H 'Accept: application/vnd.github.raw+json' \
+                "repos/$GITHUB_REPOSITORY/contents/$path" \
+                -f ref="$HEAD_SHA" \
+                > ".review-input/head/$snapshot"; then
+                rm -f ".review-input/head/$snapshot"
+                snapshot=""
+              fi
+            fi
+
+            if [[ -n "$snapshot" ]]; then
+              printf '%s' "$row" | jq --arg snapshot "$snapshot" '. + {snapshot: $snapshot}' \
+                >> .review-input/files.ndjson
+            else
+              printf '%s' "$row" | jq '. + {snapshot: null}' \
+                >> .review-input/files.ndjson
+            fi
+          done < <(jq -r '.[] | @base64' .review-input/files.raw.json)
+
+          jq -s '.' .review-input/files.ndjson > .review-input/files.json
+
+      - name: Analyze changed lines
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/automation/inline_reviewer.py \
+            --files-json .review-input/files.json \
+            --head-root .review-input/head \
+            --output .review-input/comments.json
+
+      - name: Publish inline review comments
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -Eeuo pipefail
+
+          total="$(jq 'length' .review-input/comments.json)"
+          if (( total == 0 )); then
+            echo "No deterministic inline findings."
+            exit 0
+          fi
+
+          for ((offset=0; offset<total; offset+=40)); do
+            jq --argjson offset "$offset" \
+              '{
+                event: "COMMENT",
+                body: "Deterministic inline review: 1000-line boundary, Presentation speech imports, and lint suppressions.",
+                comments: .[$offset:($offset + 40)]
+              }' \
+              .review-input/comments.json > .review-input/review.json
+
+            gh api --method POST \
+              "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/reviews" \
+              --input .review-input/review.json \
+              >/dev/null
+          done
+
+  rfc-draft-from-feature-issue:
+    name: Feature RFC / ADR draft
+    if: >-
+      github.event_name == 'issues' &&
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'dependabot[bot]' &&
+      (
+        contains(github.event.issue.labels.*.name, 'feature') ||
+        startsWith(github.event.issue.title, '[Feature]') ||
+        startsWith(github.event.issue.title, 'Feature:')
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout trusted default branch without credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Generate RFC draft under docs architecture
+        id: rfc
+        shell: bash
+        env:
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -Eeuo pipefail
+
+          output="docs/architecture/RFC-DRAFT-issue-$NUMBER.md"
+          python3 tools/automation/rfc_draft_generator.py \
+            --event "$GITHUB_EVENT_PATH" \
+            --policy docs/architecture/PROJECT_VISION_AND_RULES.md \
+            --output "$output"
+          echo "output=$output" >> "$GITHUB_OUTPUT"
+
+      - name: Publish RFC draft to feature Issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number }}
+          OUTPUT: ${{ steps.rfc.outputs.output }}
+        run: |
+          set -Eeuo pipefail
+
+          {
+            printf '<!-- rfc-draft-engine -->\n'
+            printf '## RFC / ADR draft\n\n'
+            printf 'Proposed repository path: `%s`\n\n' "$OUTPUT"
+            cat "$OUTPUT"
+            printf '\n\n---\n'
+            printf 'Draft only: explicitly review/adopt it before recording an architectural decision.\n'
+          } > .rfc-comment.md
+
+          gh api --method POST \
+            "repos/$GITHUB_REPOSITORY/issues/$NUMBER/comments" \
+            --raw-field body="$(cat .rfc-comment.md)" \
+            >/dev/null
+
