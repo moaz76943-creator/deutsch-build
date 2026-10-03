@@ -8,7 +8,8 @@ abstract final class PhonetikCatalog {
       titleDe: 'ich-Laut / ach-Laut',
       titleAr: 'الفرق بين صوتي ch',
       articulationAr:
-          'في ich-Laut [ç] يرتفع وسط اللسان نحو الحنك من دون إغلاق كامل. '
+          'في ich-Laut [ç] يرتفع وسط اللسان نحو الحنك من دون إغلاق كامل، ويظهر بعد '
+          'أصوات أمامية مثل i وe وä وö وü وبعد كثير من الحروف الساكنة. '
           'في ach-Laut [x] يكون الاحتكاك أبعد إلى الخلف بعد أصوات مثل a وo وu وau.',
       examples: <PhonetikExample>[
         PhonetikExample(
