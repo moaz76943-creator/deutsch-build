@@ -215,9 +215,11 @@ class ReviewCard {
 
   static int _int(Object? v) =>
       v is num ? v.toInt() : int.tryParse(v?.toString() ?? '') ?? 0;
-  static double _double(Object? v, double fallback) => v is num
-      ? v.toDouble()
-      : double.tryParse(v?.toString() ?? '') ?? fallback;
+  static double _double(Object? v, double fallback) {
+    final parsed =
+        v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '');
+    return parsed == null || !parsed.isFinite ? fallback : parsed;
+  }
   static int _boundInt(int v, int min, int max) =>
       v < min ? min : (v > max ? max : v);
   static double _boundDouble(double v, double min, double max) =>
