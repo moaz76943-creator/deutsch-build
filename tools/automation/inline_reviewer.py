@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Deterministic PR diff analyzer for inline architecture review comments.
+"""Deterministic PR diff analyzer for blocking inline architecture findings.
 
-This module consumes changed-file metadata plus read-only PR-head file snapshots.
-It never executes code from the pull request.
+The reviewer reads changed-file metadata plus read-only PR-head snapshots. It never
+executes pull-request code. Findings are anchored to RIGHT-side diff lines so GitHub
+can publish them as inline review comments.
 """
 
 from __future__ import annotations
@@ -80,6 +81,35 @@ def _comment(path: str, line: int, body: str) -> dict[str, Any]:
     return {"path": path, "line": line, "side": "RIGHT", "body": body}
 
 
+def _full_content_violations(
+    path: str,
+    content: str,
+) -> list[tuple[str, int, str]]:
+    violations: list[tuple[str, int, str]] = []
+    presentation = _is_presentation(path)
+
+    for source_line, text in enumerate(content.splitlines(), start=1):
+        if _IGNORE_LINT.match(text):
+            violations.append(
+                (
+                    "lint",
+                    source_line,
+                    "⚠️ **Lint suppression:** analyzer/lint ignore directives are forbidden. "
+                    "Fix the underlying warning instead of suppressing it.",
+                )
+            )
+        if presentation and _AUDIO_IMPORT.match(text):
+            violations.append(
+                (
+                    "audio",
+                    source_line,
+                    "⚠️ **Presentation boundary:** device-facing speech packages such as "
+                    "`flutter_tts` and `speech_to_text` must remain behind services/controllers.",
+                )
+            )
+    return violations
+
+
 def analyze_file(
     *,
     path: str,
@@ -94,51 +124,64 @@ def analyze_file(
     if status == "removed":
         content = None
 
+    right_lines, additions = _right_side_lines(patch)
+    addition_set = set(additions)
+    fallback_anchor = _anchor_line(patch)
     findings: list[dict[str, Any]] = []
-    right_lines, _ = _right_side_lines(patch)
-
-    for line_no, text, is_added in right_lines:
-        if not is_added:
-            continue
-        if _IGNORE_LINT.match(text):
-            findings.append(
-                _comment(
-                    path,
-                    line_no,
-                    "⚠️ **Lint suppression:** an analyzer/lint ignore was added here. "
-                    "Remove the suppression and fix the underlying warning instead.",
-                )
-            )
-        if _is_presentation(path) and _AUDIO_IMPORT.match(text):
-            findings.append(
-                _comment(
-                    path,
-                    line_no,
-                    "⚠️ **Presentation boundary:** device-facing speech packages such as "
-                    "`flutter_tts` and `speech_to_text` must remain behind services/controllers.",
-                )
-            )
+    seen_rules: set[tuple[str, int]] = set()
 
     if content is not None:
-        line_count = len(content.splitlines())
-        if line_count > MAX_FILE_LINES:
-            anchor = _anchor_line(patch)
-            if anchor is not None:
+        for rule, source_line, body in _full_content_violations(path, content):
+            anchor = source_line if source_line in addition_set else fallback_anchor
+            if anchor is None:
+                continue
+            if source_line not in addition_set:
+                body = f"{body} Existing violation is at source line {source_line}."
+            key = (rule, source_line)
+            if key not in seen_rules:
+                findings.append(_comment(path, anchor, body))
+                seen_rules.add(key)
+    else:
+        for line_no, text, is_added in right_lines:
+            if not is_added:
+                continue
+            if _IGNORE_LINT.match(text):
                 findings.append(
                     _comment(
                         path,
-                        anchor,
-                        f"⚠️ **File-size boundary:** this changed file is {line_count} lines "
-                        f"(maximum: {MAX_FILE_LINES}). Split by coherent responsibility.",
+                        line_no,
+                        "⚠️ **Lint suppression:** analyzer/lint ignore directives are forbidden. "
+                        "Fix the underlying warning instead of suppressing it.",
+                    )
+                )
+            if _is_presentation(path) and _AUDIO_IMPORT.match(text):
+                findings.append(
+                    _comment(
+                        path,
+                        line_no,
+                        "⚠️ **Presentation boundary:** device-facing speech packages such as "
+                        "`flutter_tts` and `speech_to_text` must remain behind services/controllers.",
                     )
                 )
 
+    if content is not None:
+        line_count = len(content.splitlines())
+        if line_count > MAX_FILE_LINES and fallback_anchor is not None:
+            findings.append(
+                _comment(
+                    path,
+                    fallback_anchor,
+                    f"⚠️ **File-size boundary:** this changed file is {line_count} lines "
+                    f"(maximum: {MAX_FILE_LINES}). Split by coherent responsibility.",
+                )
+            )
+
     deduped: list[dict[str, Any]] = []
-    seen: set[tuple[str, int, str]] = set()
+    seen_comments: set[tuple[str, int, str]] = set()
     for item in findings:
         key = (item["path"], item["line"], item["body"])
-        if key not in seen:
-            seen.add(key)
+        if key not in seen_comments:
+            seen_comments.add(key)
             deduped.append(item)
     return deduped
 
@@ -184,7 +227,7 @@ def analyze_changed_files(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Generate deterministic inline PR review comments"
+        description="Generate deterministic blocking inline PR review comments"
     )
     parser.add_argument("--files-json", required=True, type=Path)
     parser.add_argument("--head-root", required=True, type=Path)

@@ -561,8 +561,19 @@ jobs:
               >/dev/null
           done
 
-  rfc-draft-from-feature-issue:
-    name: Feature RFC / ADR draft
+      - name: Enforce inline review findings
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          total="$(jq 'length' .review-input/comments.json)"
+          if (( total != 0 )); then
+            echo "::error::Inline review found $total blocking architecture violation(s)."
+            exit 1
+          fi
+          echo "Inline review found no blocking violations."
+
+  adr-draft-from-feature-issue:
+    name: Feature ADR draft
     if: >-
       github.event_name == 'issues' &&
       github.actor != 'github-actions[bot]' &&
@@ -584,33 +595,35 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      - name: Generate RFC draft under docs architecture
-        id: rfc
+      - name: Generate ADR draft under docs architecture
+        id: adr
         shell: bash
         env:
           NUMBER: ${{ github.event.issue.number }}
         run: |
           set -Eeuo pipefail
 
-          output="docs/architecture/RFC-DRAFT-issue-$NUMBER.md"
+          output="docs/architecture/ADR-DRAFT-issue-$NUMBER.md"
           python3 tools/automation/rfc_draft_generator.py \
             --event "$GITHUB_EVENT_PATH" \
             --policy docs/architecture/PROJECT_VISION_AND_RULES.md \
+            --srs-doc docs/V118_SMART_SRS_INTELLIGENCE.md \
+            --template docs/architecture/ADR_DRAFT_TEMPLATE.md \
             --output "$output"
           echo "output=$output" >> "$GITHUB_OUTPUT"
 
-      - name: Publish RFC draft to feature Issue
+      - name: Publish ADR draft to feature Issue
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBER: ${{ github.event.issue.number }}
-          OUTPUT: ${{ steps.rfc.outputs.output }}
+          OUTPUT: ${{ steps.adr.outputs.output }}
         run: |
           set -Eeuo pipefail
 
           {
-            printf '<!-- rfc-draft-engine -->\n'
-            printf '## RFC / ADR draft\n\n'
+            printf '<!-- adr-draft-engine -->\n'
+            printf '## ADR draft\n\n'
             printf 'Proposed repository path: `%s`\n\n' "$OUTPUT"
             cat "$OUTPUT"
             printf '\n\n---\n'

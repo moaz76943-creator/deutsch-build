@@ -33,6 +33,40 @@ def test_flags_speech_to_text_in_nested_presentation_folder():
     assert "Presentation boundary" in findings[0]["body"]
 
 
+def test_existing_ignore_in_changed_file_is_blocking():
+    patch = """@@ -2,1 +2,2 @@
+ void oldCode() {}
++void newCode() {}
+"""
+    findings = analyze_file(
+        path="lib/services/example.dart",
+        patch=patch,
+        content="// ignore_for_file: avoid_print\nvoid oldCode() {}\nvoid newCode() {}\n",
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["line"] == 3
+    assert "source line 1" in findings[0]["body"]
+    assert "Lint suppression" in findings[0]["body"]
+
+
+def test_existing_audio_import_in_changed_presentation_file_is_blocking():
+    patch = """@@ -2,1 +2,2 @@
+ class VoicePanel {}
++class VoicePanelState {}
+"""
+    findings = analyze_file(
+        path="lib/features/conversation/presentation/voice_panel.dart",
+        patch=patch,
+        content="import 'package:flutter_tts/flutter_tts.dart';\nclass VoicePanel {}\nclass VoicePanelState {}\n",
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["line"] == 3
+    assert "source line 1" in findings[0]["body"]
+    assert "Presentation boundary" in findings[0]["body"]
+
+
 def test_removed_violation_is_not_reported():
     patch = """@@ -1,2 +1,1 @@
 -import 'package:flutter_tts/flutter_tts.dart';
