@@ -89,11 +89,11 @@ void main() {
     expect(find.byKey(const ValueKey('sports-search')), findsOneWidget);
     expect(find.byKey(const ValueKey('sports-pause-bar')), findsOneWidget);
 
-    await tester.tap(
-      find.byKey(
-        const ValueKey('sports-facility-communityClub'),
-      ),
+    final clubFilter = find.byKey(
+      const ValueKey('sports-facility-communityClub'),
     );
+    await tester.ensureVisible(clubFilter);
+    await tester.tap(clubFilter);
     await tester.pump();
 
     expect(orchestrator.facility, SportsFacilityType.communityClub);
@@ -104,7 +104,9 @@ void main() {
       isTrue,
     );
 
-    await tester.tap(find.byKey(const ValueKey('sports-level-b1')));
+    final b1Filter = find.byKey(const ValueKey('sports-level-b1'));
+    await tester.ensureVisible(b1Filter);
+    await tester.tap(b1Filter);
     await tester.pump();
 
     expect(orchestrator.level, SportsLevel.b1);
