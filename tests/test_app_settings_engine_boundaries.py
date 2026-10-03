@@ -72,7 +72,24 @@ def test_runtime_applies_text_scale_and_speech_rate_provider():
         ROOT / "lib" / "features" / "audio" / "offline_audio_runtime.dart"
     ).read_text(encoding="utf-8")
 
-    assert "TextScaler.linear(scale)" in app
+    assert "_PreferenceTextScaler(media.textScaler, scale)" in app
     assert "settingsController.preferences.textScaleFactor" in app
     assert "speechRateProvider" in audio
     assert "_resolveSpeechRate(request)" in audio
+
+
+def test_settings_preserve_accessibility_and_preference_aware_vocabulary_audio():
+    screen = (
+        FEATURE / "presentation" / "app_settings_screen.dart"
+    ).read_text(encoding="utf-8")
+    app = (ROOT / "lib" / "ui_v35" / "app.dart").read_text(encoding="utf-8")
+    vocabulary = (
+        ROOT / "lib" / "ui_v35" / "learning" / "vocabulary_page.dart"
+    ).read_text(encoding="utf-8")
+
+    assert "cognitiveAccessibilityEnabled" in screen
+    assert "onCognitiveAccessibilityChanged" in screen
+    assert "neuroSettings.setEnabled" in app
+    assert "audioRuntime.play" in vocabulary
+    assert "AudioRequest(" in vocabulary
+    assert "SafeTtsController" not in vocabulary
