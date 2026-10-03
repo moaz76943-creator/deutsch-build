@@ -27,7 +27,7 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
   void initState() {
     super.initState();
     if (!widget.notifier.isInitialized) {
-      unawaited(widget.notifier.initialize());
+      _runSave(widget.notifier.initialize());
     }
   }
 
@@ -71,7 +71,7 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 icon: Icons.record_voice_over_outlined,
                 onChanged: notifier.isSaving
                     ? null
-                    : (value) => unawaited(
+                    : (value) => _runSave(
                           notifier.setSpeechRatePreset(
                             value <= 0.875
                                 ? SpeechRatePreset.slow
@@ -96,7 +96,7 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 icon: Icons.text_fields_outlined,
                 onChanged: notifier.isSaving
                     ? null
-                    : (value) => unawaited(
+                    : (value) => _runSave(
                           notifier.setTextScaleFactor(value),
                         ),
               ),
@@ -105,7 +105,7 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 value: preferences.showAutomaticTranslation,
                 onChanged: notifier.isSaving
                     ? null
-                    : (value) => unawaited(
+                    : (value) => _runSave(
                           notifier.setShowAutomaticTranslation(value),
                         ),
               ),
@@ -153,6 +153,10 @@ final class _AppSettingsScreenState extends State<AppSettingsScreen> {
         },
       ),
     );
+  }
+
+  void _runSave(Future<void> operation) {
+    unawaited(operation.catchError((Object _) {}));
   }
 
   Future<void> _clearCache() async {
