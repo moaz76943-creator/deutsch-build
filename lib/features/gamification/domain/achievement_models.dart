@@ -5,15 +5,22 @@ final class UserStreak {
     required this.currentDays,
     required this.longestDays,
     required this.lastActivityDate,
-    required this.freezeAvailable,
-  });
+    bool? freezeAvailable,
+    int? streakFreezesAvailable,
+  })  : assert(
+          streakFreezesAvailable == null || streakFreezesAvailable >= 0,
+          'streakFreezesAvailable cannot be negative',
+        ),
+        streakFreezesAvailable = streakFreezesAvailable ??
+            (freezeAvailable == true ? 1 : 0),
+        freezeAvailable = freezeAvailable ??
+            ((streakFreezesAvailable ?? 0) > 0);
 
   final int currentDays;
   final int longestDays;
   final DateTime? lastActivityDate;
   final bool freezeAvailable;
-
-  int get streakFreezesAvailable => freezeAvailable ? 1 : 0;
+  final int streakFreezesAvailable;
 
   List<bool> get recentSevenDayActivity {
     final activeDays = currentDays.clamp(0, 7).toInt();
@@ -33,7 +40,7 @@ final class UserStreak {
       lastActivityDate: day == null
           ? null
           : DateTime.tryParse('${day}T00:00:00Z')?.toUtc(),
-      freezeAvailable: profile.streakFreezeAvailable,
+      streakFreezesAvailable: profile.streakFreezeAvailable ? 1 : 0,
     );
   }
 }
