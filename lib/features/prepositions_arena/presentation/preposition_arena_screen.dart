@@ -214,7 +214,7 @@ class _ProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           LinearProgressIndicator(
-            value: total == 0 ? 0 : current / total,
+            value: total == 0 ? 0.0 : current / total,
             minHeight: 7,
             borderRadius: BorderRadius.circular(8),
             color: AppColors.primary,
