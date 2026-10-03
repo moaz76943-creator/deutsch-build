@@ -7,34 +7,59 @@ import 'sentence_models.dart';
 import 'sentence_tts.dart';
 
 abstract final class _SentenceUiTokens {
-  static const double pageInset = 16;
   static const double sectionGap = 14;
   static const double contentGap = 10;
   static const double tokenGap = 8;
   static const double sheetInset = 18;
-  static const double tokenRadius = 18;
 }
 
-final class SentenceCard extends StatefulWidget {
-  const SentenceCard({
+final class InteractiveSentenceCard extends StatefulWidget {
+  const InteractiveSentenceCard({
     required this.sentence,
     required this.engine,
-    this.ttsHook,
+    this.audioController,
     this.onCopied,
     super.key,
   });
 
   final SentenceEntry sentence;
   final SentenceAnalysisEngine engine;
-  final SentenceTtsHook? ttsHook;
+  final AudioPlaybackController? audioController;
   final ValueChanged<String>? onCopied;
 
   @override
-  State<SentenceCard> createState() => _SentenceCardState();
+  State<InteractiveSentenceCard> createState() =>
+      _InteractiveSentenceCardState();
 }
 
-final class _SentenceCardState extends State<SentenceCard> {
+final class _InteractiveSentenceCardState
+    extends State<InteractiveSentenceCard> {
   bool _showTranslation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.audioController?.addListener(_onAudioStateChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant InteractiveSentenceCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.audioController != widget.audioController) {
+      oldWidget.audioController?.removeListener(_onAudioStateChanged);
+      widget.audioController?.addListener(_onAudioStateChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.audioController?.removeListener(_onAudioStateChanged);
+    super.dispose();
+  }
+
+  void _onAudioStateChanged(AudioPlaybackSnapshot _) {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,15 +83,15 @@ final class _SentenceCardState extends State<SentenceCard> {
             children: <Widget>[
               _ActionRow(
                 translationVisible: _showTranslation,
-                ttsEnabled: widget.ttsHook?.isOfflineReady ?? false,
+                audioController: widget.audioController,
                 onToggleTranslation: () {
                   setState(() {
                     _showTranslation = !_showTranslation;
                   });
                 },
                 onCopy: _copySentence,
-                onSpeak: _speakSentence,
-                onShowSyntax: _showSyntaxBreakdown,
+                onTogglePlayback: _togglePlayback,
+                onShowGrammar: _showGrammarBreakdown,
               ),
               const SizedBox(height: _SentenceUiTokens.sectionGap),
               AppDirectionalText(
@@ -89,7 +114,7 @@ final class _SentenceCardState extends State<SentenceCard> {
                   spacing: _SentenceUiTokens.tokenGap,
                   runSpacing: _SentenceUiTokens.tokenGap,
                   children: <Widget>[
-                    for (final token in tokens) _buildToken(token),
+                    for (final token in tokens) _buildToken(context, token),
                   ],
                 ),
               ),
@@ -100,7 +125,7 @@ final class _SentenceCardState extends State<SentenceCard> {
     );
   }
 
-  Widget _buildToken(SentenceToken token) {
+  Widget _buildToken(BuildContext context, SentenceToken token) {
     if (token.isPunctuation) {
       return Padding(
         padding: const EdgeInsets.symmetric(
@@ -114,24 +139,19 @@ final class _SentenceCardState extends State<SentenceCard> {
       );
     }
 
-    return InkWell(
+    final accent = _grammarAccent(token);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ActionChip(
       key: ValueKey<String>('sentence-token-${token.index}'),
-      borderRadius: BorderRadius.circular(_SentenceUiTokens.tokenRadius),
-      onTap: () => _showTokenInspector(token),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: _SentenceUiTokens.contentGap,
-          vertical: _SentenceUiTokens.tokenGap,
-        ),
-        child: AppDirectionalText(
-          token.text,
-          languageCode: 'de',
-          style: token.lexeme == null
-              ? AppTypography.body
-              : AppTypography.label.copyWith(
-                  color: _grammarAccent(token),
-                ),
-        ),
+      onPressed: () => _showTokenInspector(token),
+      side: BorderSide(color: accent),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      label: AppDirectionalText(
+        token.text,
+        languageCode: 'de',
+        style: token.lexeme == null
+            ? AppTypography.body
+            : AppTypography.label.copyWith(color: accent),
       ),
     );
   }
@@ -153,10 +173,16 @@ final class _SentenceCardState extends State<SentenceCard> {
     widget.onCopied?.call(widget.sentence.german);
   }
 
-  Future<void> _speakSentence() async {
-    final hook = widget.ttsHook;
-    if (hook == null || !hook.isOfflineReady) return;
-    await hook.speak(widget.sentence.german, languageCode: 'de-DE');
+  Future<void> _togglePlayback() async {
+    final controller = widget.audioController;
+    if (controller == null || !controller.isAvailable) return;
+
+    if (controller.state == AudioPlaybackState.playing) {
+      await controller.stop();
+      return;
+    }
+
+    await controller.play(widget.sentence.german, languageCode: 'de-DE');
   }
 
   Future<void> _showTokenInspector(SentenceToken token) =>
@@ -181,23 +207,89 @@ final class _SentenceCardState extends State<SentenceCard> {
         ),
       );
 
-  Future<void> _showSyntaxBreakdown() => showModalBottomSheet<void>(
+  Future<void> _showGrammarBreakdown() => showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
-        builder: (sheetContext) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(_SentenceUiTokens.sheetInset),
-              child: AppGlassCard(
-                glowColor: AppColors.secondary,
-                borderColor: AppColors.secondary,
-                child: _SyntaxBreakdown(
-                  segments: widget.sentence.syntaxBreakdown,
-                  onClose: () => Navigator.of(sheetContext).pop(),
-                ),
-              ),
+        builder: (sheetContext) => SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(_SentenceUiTokens.sheetInset),
+            child: GrammarBreakdownSheet(
+              sentence: widget.sentence,
+              pattern: widget.engine.detectWordOrderPattern(widget.sentence),
+              onClose: () => Navigator.of(sheetContext).pop(),
             ),
+          ),
+        ),
+      );
+}
+
+final class GrammarBreakdownSheet extends StatelessWidget {
+  const GrammarBreakdownSheet({
+    required this.sentence,
+    required this.pattern,
+    this.onClose,
+    super.key,
+  });
+
+  final SentenceEntry sentence;
+  final SentenceWordOrderPattern pattern;
+  final VoidCallback? onClose;
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AppGlassCard(
+          glowColor: AppColors.secondary,
+          borderColor: AppColors.secondary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _SheetHeader(
+                title: 'تحليل ترتيب الجملة',
+                languageCode: 'ar',
+                onClose: onClose,
+              ),
+              const SizedBox(height: _SentenceUiTokens.contentGap),
+              ExpansionTile(
+                key: const ValueKey<String>('sentence-word-order-rule'),
+                initiallyExpanded: true,
+                title: AppDirectionalText(
+                  pattern.labelDe,
+                  languageCode: 'de',
+                  style: AppTypography.label,
+                ),
+                children: <Widget>[
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: AppDirectionalText(
+                      pattern.explanationAr,
+                      languageCode: 'ar',
+                      style: AppTypography.body,
+                    ),
+                  ),
+                ],
+              ),
+              ExpansionTile(
+                key: const ValueKey<String>('sentence-grammar-segments'),
+                initiallyExpanded: true,
+                title: AppDirectionalText(
+                  'مكوّنات الجملة',
+                  languageCode: 'ar',
+                  style: AppTypography.label,
+                ),
+                children: sentence.syntaxBreakdown.isEmpty
+                    ? <Widget>[
+                        const _DetailLine(
+                          text: 'لا يوجد تحليل نحوي مخزن لهذه الجملة.',
+                          languageCode: 'ar',
+                        ),
+                      ]
+                    : <Widget>[
+                        for (final segment in sentence.syntaxBreakdown)
+                          _SyntaxSegmentLine(segment: segment),
+                      ],
+              ),
+            ],
           ),
         ),
       );
@@ -206,63 +298,83 @@ final class _SentenceCardState extends State<SentenceCard> {
 final class _ActionRow extends StatelessWidget {
   const _ActionRow({
     required this.translationVisible,
-    required this.ttsEnabled,
+    required this.audioController,
     required this.onToggleTranslation,
     required this.onCopy,
-    required this.onSpeak,
-    required this.onShowSyntax,
+    required this.onTogglePlayback,
+    required this.onShowGrammar,
   });
 
   final bool translationVisible;
-  final bool ttsEnabled;
+  final AudioPlaybackController? audioController;
   final VoidCallback onToggleTranslation;
   final Future<void> Function() onCopy;
-  final Future<void> Function() onSpeak;
-  final Future<void> Function() onShowSyntax;
+  final Future<void> Function() onTogglePlayback;
+  final Future<void> Function() onShowGrammar;
 
   @override
-  Widget build(BuildContext context) => Wrap(
-        alignment: WrapAlignment.start,
-        spacing: _SentenceUiTokens.tokenGap,
-        runSpacing: _SentenceUiTokens.tokenGap,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: <Widget>[
-          IconButton(
-            key: const ValueKey<String>('sentence-translation-toggle'),
-            tooltip: translationVisible
-                ? 'إخفاء الترجمة'
-                : 'إظهار الترجمة',
-            onPressed: onToggleTranslation,
-            icon: Icon(
-              translationVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.translate_outlined,
-            ),
+  Widget build(BuildContext context) {
+    final controller = audioController;
+    final snapshot = controller?.snapshot;
+    final audioEnabled = controller?.isAvailable ?? false;
+
+    return Wrap(
+      alignment: WrapAlignment.start,
+      spacing: _SentenceUiTokens.tokenGap,
+      runSpacing: _SentenceUiTokens.tokenGap,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: <Widget>[
+        IconButton(
+          key: const ValueKey<String>('sentence-translation-toggle'),
+          tooltip:
+              translationVisible ? 'إخفاء الترجمة' : 'إظهار الترجمة',
+          onPressed: onToggleTranslation,
+          icon: Icon(
+            translationVisible
+                ? Icons.visibility_off_outlined
+                : Icons.translate_outlined,
           ),
-          IconButton(
-            key: const ValueKey<String>('sentence-copy-button'),
-            tooltip: 'نسخ الجملة',
-            onPressed: () async => onCopy(),
-            icon: const Icon(Icons.copy_outlined),
+        ),
+        IconButton(
+          key: const ValueKey<String>('sentence-copy-button'),
+          tooltip: 'نسخ الجملة',
+          onPressed: () async => onCopy(),
+          icon: const Icon(Icons.copy_outlined),
+        ),
+        IconButton(
+          key: const ValueKey<String>('sentence-tts-button'),
+          tooltip: snapshot?.isPlaying == true ? 'إيقاف الصوت' : 'تشغيل الصوت',
+          onPressed: audioEnabled ? () async => onTogglePlayback() : null,
+          icon: Icon(
+            snapshot?.isPlaying == true
+                ? Icons.stop_circle_outlined
+                : Icons.volume_up_outlined,
           ),
-          IconButton(
-            key: const ValueKey<String>('sentence-tts-button'),
-            tooltip: 'نطق محلي',
-            onPressed: ttsEnabled ? () async => onSpeak() : null,
-            icon: const Icon(Icons.volume_up_outlined),
+        ),
+        TextButton(
+          key: const ValueKey<String>('sentence-speed-toggle'),
+          onPressed: audioEnabled ? controller!.toggleSpeed : null,
+          child: Text(snapshot?.speed.label ?? AudioPlaybackSpeed.normal.label),
+        ),
+        TextButton.icon(
+          key: const ValueKey<String>('sentence-syntax-button'),
+          onPressed: () async => onShowGrammar(),
+          icon: const Icon(Icons.account_tree_outlined),
+          label: AppDirectionalText(
+            'تحليل الجملة',
+            languageCode: 'ar',
+            style: AppTypography.label,
           ),
-          TextButton.icon(
-            key: const ValueKey<String>('sentence-syntax-button'),
-            onPressed: () async => onShowSyntax(),
-            icon: const Icon(Icons.account_tree_outlined),
-            label: AppDirectionalText(
-              'تحليل الجملة',
-              languageCode: 'ar',
-              style: AppTypography.label,
-            ),
+        ),
+        if (snapshot != null)
+          AppDirectionalText(
+            snapshot.state.labelAr,
+            languageCode: 'ar',
+            style: AppTypography.label,
           ),
-        ],
-      );
+      ],
+    );
+  }
 }
 
 final class _TokenInspector extends StatelessWidget {
@@ -296,6 +408,11 @@ final class _TokenInspector extends StatelessWidget {
             languageCode: 'de',
           ),
           _DetailLine(text: 'Perfekt: ${verb.perfect}', languageCode: 'de'),
+          if (verb.prepositions.isNotEmpty)
+            _DetailLine(
+              text: 'Präpositionen: ${verb.prepositions.join(', ')}',
+              languageCode: 'de',
+            ),
         ] else if (noun != null) ...<Widget>[
           _DetailLine(text: noun.article.label, languageCode: 'de'),
           _DetailLine(text: 'Plural: ${noun.plural}', languageCode: 'de'),
@@ -325,50 +442,34 @@ final class _TokenInspector extends StatelessWidget {
   }
 }
 
-final class _SyntaxBreakdown extends StatelessWidget {
-  const _SyntaxBreakdown({
-    required this.segments,
-    required this.onClose,
-  });
+final class _SyntaxSegmentLine extends StatelessWidget {
+  const _SyntaxSegmentLine({required this.segment});
 
-  final List<SyntaxSegment> segments;
-  final VoidCallback onClose;
+  final SyntaxSegment segment;
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          _SheetHeader(
-            title: 'Syntax · Satzbau',
-            languageCode: 'de',
-            onClose: onClose,
-          ),
-          const SizedBox(height: _SentenceUiTokens.sectionGap),
-          if (segments.isEmpty)
-            const _DetailLine(
-              text: 'لا يوجد تحليل نحوي مخزن لهذه الجملة.',
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: _SentenceUiTokens.contentGap),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            AppDirectionalText(
+              segment.labelAr,
               languageCode: 'ar',
-            )
-          else
-            for (final segment in segments) ...<Widget>[
-              AppDirectionalText(
-                segment.labelDe,
-                languageCode: 'de',
-                style: AppTypography.label,
-              ),
-              AppDirectionalText(
-                segment.labelAr,
-                languageCode: 'ar',
-                style: AppTypography.label,
-              ),
-              AppDirectionalText(
-                segment.text,
-                languageCode: 'de',
-                style: AppTypography.body,
-              ),
-              const SizedBox(height: _SentenceUiTokens.contentGap),
-            ],
-        ],
+              style: AppTypography.label,
+            ),
+            AppDirectionalText(
+              segment.labelDe,
+              languageCode: 'de',
+              style: AppTypography.label,
+            ),
+            AppDirectionalText(
+              segment.text,
+              languageCode: 'de',
+              style: AppTypography.body,
+            ),
+          ],
+        ),
       );
 }
 
@@ -381,7 +482,7 @@ final class _SheetHeader extends StatelessWidget {
 
   final String title;
   final String languageCode;
-  final VoidCallback onClose;
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -393,12 +494,13 @@ final class _SheetHeader extends StatelessWidget {
               style: AppTypography.title,
             ),
           ),
-          IconButton(
-            key: const ValueKey<String>('sentence-sheet-close'),
-            tooltip: 'إغلاق',
-            onPressed: onClose,
-            icon: const Icon(Icons.close),
-          ),
+          if (onClose != null)
+            IconButton(
+              key: const ValueKey<String>('sentence-sheet-close'),
+              tooltip: 'إغلاق',
+              onPressed: onClose,
+              icon: const Icon(Icons.close),
+            ),
         ],
       );
 }
@@ -414,13 +516,59 @@ final class _DetailLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(
-          bottom: _SentenceUiTokens.tokenGap,
-        ),
+        padding: const EdgeInsets.only(bottom: _SentenceUiTokens.tokenGap),
         child: AppDirectionalText(
           text,
           languageCode: languageCode,
           style: AppTypography.body,
         ),
+      );
+}
+
+@Deprecated('Use InteractiveSentenceCard instead.')
+final class SentenceCard extends StatefulWidget {
+  const SentenceCard({
+    required this.sentence,
+    required this.engine,
+    this.ttsHook,
+    this.onCopied,
+    super.key,
+  });
+
+  final SentenceEntry sentence;
+  final SentenceAnalysisEngine engine;
+  final SentenceTtsHook? ttsHook;
+  final ValueChanged<String>? onCopied;
+
+  @override
+  State<SentenceCard> createState() => _SentenceCardState();
+}
+
+final class _SentenceCardState extends State<SentenceCard> {
+  AudioPlaybackController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncController();
+  }
+
+  @override
+  void didUpdateWidget(covariant SentenceCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.ttsHook != widget.ttsHook) _syncController();
+  }
+
+  void _syncController() {
+    final hook = widget.ttsHook;
+    _controller = hook == null ? null : AudioPlaybackController(hook: hook);
+  }
+
+  @override
+  Widget build(BuildContext context) => InteractiveSentenceCard(
+        sentence: widget.sentence,
+        engine: widget.engine,
+        audioController: _controller,
+        onCopied: widget.onCopied,
       );
 }
