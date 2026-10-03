@@ -54,7 +54,7 @@ class _AppState extends State<DeutschAppV35> {
     widget.dependencies.audioRuntime.shutdown();
     widget.dependencies.sourceAudioRuntime.shutdown();
     widget.dependencies.gamificationRepository.close();
-    widget.dependencies.settingsNotifier.dispose();
+    widget.dependencies.settingsController.dispose();
     super.dispose();
   }
 
@@ -62,7 +62,7 @@ class _AppState extends State<DeutschAppV35> {
   Widget build(BuildContext c) => ListenableBuilder(
         listenable: Listenable.merge(<Listenable>[
           widget.dependencies.neuroSettings,
-          widget.dependencies.settingsNotifier,
+          widget.dependencies.settingsController,
         ]),
         builder: (context, child) {
           final isNeuroMode = widget.dependencies.neuroSettings.isEnabled;
@@ -86,7 +86,7 @@ class _AppState extends State<DeutschAppV35> {
               builder: (builderContext, child) {
                 final media = MediaQuery.of(builderContext);
                 final scale = widget
-                    .dependencies.settingsNotifier.preferences.textScaleFactor;
+                    .dependencies.settingsController.preferences.textScaleFactor;
                 return Directionality(
                   textDirection: TextDirection.rtl,
                   child: MediaQuery(
@@ -203,7 +203,7 @@ class _HomeState extends State<HomeV35> {
                     c,
                     MaterialPageRoute(
                       builder: (_) => AppSettingsScreen(
-                        notifier: widget.dependencies.settingsNotifier,
+                        notifier: widget.dependencies.settingsController,
                         onProgressReset: refresh,
                       ),
                     ),
