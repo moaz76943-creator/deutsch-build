@@ -2,7 +2,6 @@ name: Pro Automated Build & Release
 
 on:
   schedule:
-    # فحص وبناء يومي منتصف كل ليلة
     - cron: '0 0 * * *'
   push:
     branches:
@@ -14,12 +13,14 @@ permissions:
 
 jobs:
   build:
-    name: Build, Optimize & Release
+    name: Build, Secure, Optimize & Release
     runs-on: ubuntu-latest
 
     steps:
       - name: 1. جلب الكود من المستودع
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 2. إعداد بيئة Java 17
         uses: actions/setup-java@v4
@@ -27,38 +28,56 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 3. تفعيل الكاش الذكي لتسريع Gradle بنسبة 70%
+      - name: 3. تفعيل الكاش الذكي لتسريع أندرويد و Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: 4. إعداد بيئة Flutter
+      - name: 4. إعداد بيئة Flutter المستقرة
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 5. تنزيل حزم فلاتر
+      - name: 5. تنزيل وتحديث الحزم المتوافقة
         run: flutter pub get
 
       - name: 6. التحقق البرمجي التلقائي الصارم
         run: flutter analyze
 
-      - name: 7. بناء ملف APK قابل للتثبيت المباشر
-        run: flutter build apk --debug
+      - name: 7. توليد النسخ الخفيفة والمحسنة (Split APKs)
+        run: flutter build apk --debug --split-per-abi
 
-      - name: 8. رفع نسخة احتياطية من الملف (Artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: deutsch-bilarabi-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 14
+      - name: 8. تجهيز سجل التعديلات التلقائي (Changelog)
+        id: changelog
+        run: |
+          echo "CHANGES<<EOF" >> $GITHUB_ENV
+          git log -1 --pretty=format:"* %s (%h)" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-      - name: 9. إنشاء رابط تحميل مباشر دائم (.apk بدون ضغط zip)
+      - name: 9. نشر النسخ بروابط تحميل مباشرة (.apk)
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: latest
           name: "أحدث نسخة تجريبية جاهزة للتثبيت"
-          body: "تم البناء والفحص التلقائي بنجاح. هذا الملف جاهز للتثبيت المباشر على الهاتف دون الحاجة لفك الضغط."
-          files: build/app/outputs/flutter-apk/app-debug.apk
+          body: |
+            ### 🚀 آخر التحديثات في هذه النسخة:
+            ${{ env.CHANGES }}
+
+            ---
+            * **app-arm64-v8a-debug.apk**: النسخة الخفيفة الموصى بها للهواتف الحديثة.
+            * **app-armeabi-v7a-debug.apk**: نسخة الأجهزة القديمة.
+          files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 10. إشعار تيليجرام التلقائي (اختياري)
+        if: env.TELEGRAM_TOKEN != '' && env.TELEGRAM_TO != ''
+        uses: appleboy/telegram-action@master
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: " تم بناء نسخة جديدة بنجاح! تفضل بتحميلها من الرابط: https://github.com/${{ github.repository }}/releases/tag/latest"
