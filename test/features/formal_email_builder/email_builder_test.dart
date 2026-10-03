@@ -102,10 +102,10 @@ void main() {
       expect(notifier.registerMismatchSections, isEmpty);
       expect(
         notifier.previewText.indexOf('Sehr geehrte Damen und Herren,'),
-        lessThan(notifier.previewText.indexOf('Ich schreibe Ihnen')),
+        lessThan(notifier.previewText.indexOf('ich schreibe Ihnen')),
       );
       expect(
-        notifier.previewText.indexOf('Ich schreibe Ihnen'),
+        notifier.previewText.indexOf('ich schreibe Ihnen'),
         lessThan(notifier.previewText.indexOf('Mit freundlichen Grüßen')),
       );
     });
