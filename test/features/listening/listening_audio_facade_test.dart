@@ -32,7 +32,7 @@ void main() {
 
     expect(service.request?.text, 'Wie geht es dir?');
     expect(service.request?.languageCode, 'de');
-    expect(service.request?.rate, .8);
+    expect(service.request?.speedFactor, .8);
     expect(service.request?.variant, AudioPlaybackVariant.listening);
   });
 }
