@@ -19,6 +19,8 @@ import '../features/life_postal_delivery/postal_master_orchestrator.dart';
 import '../features/life_postal_delivery/postal_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
+import '../features/life_haircut_barbershop/application/haircut_master_orchestrator.dart';
+import '../features/life_haircut_barbershop/presentation/haircut_master_screen.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
@@ -138,6 +140,10 @@ class _AppState extends State<DeutschAppV35> {
                       orchestrator: widget.dependencies.postalDeliveryModule
                           .createOrchestrator(),
                     ),
+                HaircutBarbershopModule.routeName: (_) =>
+                    HaircutMasterScreen(
+                  module: widget.dependencies.haircutBarbershopModule,
+                ),
               },
               home: HomeV35(
                 repo: widget.repo,
@@ -552,6 +558,16 @@ class _HomeState extends State<HomeV35> {
             () => Navigator.pushNamed(
               c,
               FurnitureHomeSetupModule.routeName,
+            ),
+          ),
+          _featureCard(
+            c,
+            'الحلاقة والعناية',
+            'المواعيد والقصة الكلاسيكية واللحية وغسل الشعر والدفع',
+            Icons.content_cut_outlined,
+            () => Navigator.pushNamed(
+              c,
+              HaircutBarbershopModule.routeName,
             ),
           ),
           _featureCard(
