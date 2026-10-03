@@ -17,7 +17,6 @@ final class SyncConflictResolver {
     required SyncConflictResolutionStrategy strategy,
   }) {
     final newer = remote.updatedAtUtc.isAfter(local.updatedAtUtc) ? remote : local;
-    final older = identical(newer, local) ? remote : local;
 
     final mergedSrs = _mergeSrs(local.srs, remote.srs);
     final mergedAchievements = <String>{
