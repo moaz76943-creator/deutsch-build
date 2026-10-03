@@ -53,16 +53,3 @@ final class SignalAudioRecorderService implements AudioRecorderService {
     return const AudioRecordingResult.available();
   }
 }
-
-final class ListeningAudioService implements AudioService {
-  const ListeningAudioService({
-    required this.player,
-    required this.recorder,
-  });
-
-  @override
-  final AudioPlayerService player;
-
-  @override
-  final AudioRecorderService recorder;
-}
