@@ -12,6 +12,8 @@ import '../features/dashboard/application/dashboard_analytics_builder.dart';
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
 import '../features/error_pattern_agent/presentation/blind_spot_radar_screen.dart';
 import '../features/app_settings/presentation/app_settings_screen.dart';
+import '../features/life_furniture_home_setup/furniture_home_module.dart';
+import '../features/life_furniture_home_setup/furniture_home_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
 import '../services/progress_snapshot_service.dart';
@@ -123,6 +125,12 @@ class _AppState extends State<DeutschAppV35> {
                     child: child ?? const SizedBox.shrink(),
                   ),
                 );
+              },
+              routes: <String, WidgetBuilder>{
+                FurnitureHomeSetupModule.routeName: (_) =>
+                    FurnitureHomeMasterScreen(
+                  module: widget.dependencies.furnitureHomeSetupModule,
+                ),
               },
               home: HomeV35(
                 repo: widget.repo,
@@ -527,6 +535,16 @@ class _HomeState extends State<HomeV35> {
                       widget.dependencies.languagePack.textNormalizer,
                 ),
               ),
+            ),
+          ),
+          _featureCard(
+            c,
+            'الأثاث والمنزل',
+            'شراء الأثاث والتوصيل والضمان وتجهيز المنزل',
+            Icons.chair_outlined,
+            () => Navigator.pushNamed(
+              c,
+              FurnitureHomeSetupModule.routeName,
             ),
           ),
           _featureCard(
