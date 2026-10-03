@@ -1,0 +1,357 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../../../design_system/design_system.dart';
+import '../application/settings_notifier.dart';
+import '../domain/learning_preferences.dart';
+import 'widgets/glass_action_row.dart';
+import 'widgets/glass_slider_tile.dart';
+
+final class AppSettingsScreen extends StatefulWidget {
+  const AppSettingsScreen({
+    required this.notifier,
+    this.onProgressReset,
+    super.key,
+  });
+
+  final SettingsNotifier notifier;
+  final VoidCallback? onProgressReset;
+
+  @override
+  State<AppSettingsScreen> createState() => _AppSettingsScreenState();
+}
+
+final class _AppSettingsScreenState extends State<AppSettingsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.notifier.isInitialized) {
+      unawaited(widget.notifier.initialize());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      backgroundColor:
+          dark ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: AppBar(
+        title: Text('إعدادات التعلم', style: AppTypography.title),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: ListenableBuilder(
+        listenable: widget.notifier,
+        builder: (context, _) {
+          final notifier = widget.notifier;
+          final preferences = notifier.preferences;
+          if (!notifier.isInitialized && notifier.isBusy) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            children: <Widget>[
+              const _SectionHeader(
+                title: 'الصوت والنطق',
+                subtitle: 'اضبط سرعة النطق الألماني لكل الجلسات.',
+              ),
+              GlassSliderTile(
+                title: 'سرعة النطق',
+                subtitle: 'بطيء للتدريب الدقيق أو عادي للاستماع الطبيعي.',
+                value: preferences.speechRate,
+                valueLabel: preferences.speechRatePreset == SpeechRatePreset.slow
+                    ? 'بطيء 0.75×'
+                    : 'عادي 1.0×',
+                minimum: 0.75,
+                maximum: 1.0,
+                divisions: 1,
+                icon: Icons.record_voice_over_outlined,
+                onChanged: notifier.isSaving
+                    ? null
+                    : (value) => unawaited(
+                          notifier.setSpeechRatePreset(
+                            value <= 0.875
+                                ? SpeechRatePreset.slow
+                                : SpeechRatePreset.normal,
+                          ),
+                        ),
+              ),
+              const SizedBox(height: 14),
+              const _SectionHeader(
+                title: 'الخط والعرض',
+                subtitle: 'غيّر حجم النص والترجمة فورًا على مستوى التطبيق.',
+              ),
+              GlassSliderTile(
+                title: 'حجم النص',
+                subtitle: 'تدرج ثابت يحافظ على قابلية القراءة دون كسر التخطيط.',
+                value: preferences.textScaleFactor,
+                valueLabel:
+                    (preferences.textScaleFactor * 100).round().toString() + '%',
+                minimum: LearningPreferences.minimumTextScale,
+                maximum: LearningPreferences.maximumTextScale,
+                divisions: 9,
+                icon: Icons.text_fields_outlined,
+                onChanged: notifier.isSaving
+                    ? null
+                    : (value) => unawaited(
+                          notifier.setTextScaleFactor(value),
+                        ),
+              ),
+              const SizedBox(height: 12),
+              _TranslationGlassTile(
+                value: preferences.showAutomaticTranslation,
+                onChanged: notifier.isSaving
+                    ? null
+                    : (value) => unawaited(
+                          notifier.setShowAutomaticTranslation(value),
+                        ),
+              ),
+              const SizedBox(height: 12),
+              _PreviewCard(preferences: preferences),
+              const SizedBox(height: 20),
+              const _SectionHeader(
+                title: 'إدارة البيانات',
+                subtitle: 'عمليات محلية فقط مع تأكيد صريح قبل حذف التقدم.',
+              ),
+              _MetricsCard(notifier: notifier),
+              const SizedBox(height: 12),
+              GlassActionRow(
+                icon: Icons.cleaning_services_outlined,
+                title: 'تفريغ الذاكرة المؤقتة',
+                subtitle:
+                    'يمسح نسخة الإعدادات المؤقتة ويحتفظ بخياراتك المحفوظة.',
+                actionLabel: 'تفريغ',
+                busy: notifier.isBusy,
+                onPressed: notifier.isBusy ? null : _clearCache,
+              ),
+              const SizedBox(height: 12),
+              GlassActionRow(
+                icon: Icons.restart_alt,
+                title: 'إعادة ضبط تقدم التعلم',
+                subtitle:
+                    'يحذف XP والمراجعات والمحاولات والمفضلة المحلية عبر المستودع الرسمي.',
+                actionLabel: 'إعادة ضبط',
+                destructive: true,
+                busy: notifier.isBusy,
+                onPressed: notifier.isBusy ? null : _confirmProgressReset,
+              ),
+              if (notifier.hasError) ...<Widget>[
+                const SizedBox(height: 12),
+                Text(
+                  'تعذر إكمال آخر عملية. لم يتم اعتماد تغيير غير محفوظ.',
+                  style: AppTypography.body.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _clearCache() async {
+    final ok = await widget.notifier.clearCache();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'تم تفريغ الذاكرة المؤقتة للإعدادات.'
+              : 'تعذر تفريغ الذاكرة المؤقتة.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmProgressReset() async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('إعادة ضبط تقدم التعلم؟'),
+            content: const Text(
+              'سيتم حذف XP والمراجعات والمحاولات والمفضلة من هذا الجهاز. لا يمكن التراجع عن العملية.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('إلغاء'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('إعادة ضبط'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+
+    final reset = await widget.notifier.resetLearningProgress(
+      confirmed: true,
+    );
+    if (!mounted) return;
+    if (reset) widget.onProgressReset?.call();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          reset
+              ? 'تمت إعادة ضبط تقدم التعلم المحلي.'
+              : 'تعذر إعادة ضبط تقدم التعلم بالكامل.',
+        ),
+      ),
+    );
+  }
+}
+
+final class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(title, style: AppTypography.title),
+          const SizedBox(height: 3),
+          Text(subtitle, style: AppTypography.body),
+        ],
+      ),
+    );
+  }
+}
+
+final class _TranslationGlassTile extends StatelessWidget {
+  const _TranslationGlassTile({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return AppGlassCard(
+      borderColor:
+          dark ? AppColors.glassBorderDark : AppColors.glassBorderLight,
+      backgroundColor:
+          dark ? AppColors.darkSurface : AppColors.lightSurface,
+      glowColor: AppColors.secondary,
+      child: SwitchListTile.adaptive(
+        contentPadding: EdgeInsets.zero,
+        title: Text('الترجمة التلقائية', style: AppTypography.title),
+        subtitle: Text(
+          'أظهر الترجمة تلقائيًا أثناء التعلم أو أخفها لزيادة الاستدعاء.',
+          style: AppTypography.body,
+        ),
+        secondary: const Icon(Icons.translate_outlined),
+        value: value,
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+final class _PreviewCard extends StatelessWidget {
+  const _PreviewCard({required this.preferences});
+
+  final LearningPreferences preferences;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return AppGlassCard(
+      borderColor:
+          dark ? AppColors.glassBorderDark : AppColors.glassBorderLight,
+      backgroundColor:
+          dark ? AppColors.darkSurface : AppColors.lightSurface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('معاينة مباشرة', style: AppTypography.label),
+          const SizedBox(height: 8),
+          const Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(
+              'Ich lerne jeden Tag Deutsch.',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+          if (preferences.showAutomaticTranslation) ...<Widget>[
+            const SizedBox(height: 6),
+            const Text('أنا أتعلم الألمانية كل يوم.'),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+final class _MetricsCard extends StatelessWidget {
+  const _MetricsCard({required this.notifier});
+
+  final SettingsNotifier notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = notifier.storageMetrics;
+    final size = metrics.localDataBytes < 1024
+        ? metrics.localDataBytes.toString() + ' B'
+        : metrics.localDataKilobytes.toStringAsFixed(1) + ' KB';
+    final clearText = _formatDate(metrics.lastCacheClearAt);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+
+    return AppGlassCard(
+      borderColor:
+          dark ? AppColors.glassBorderDark : AppColors.glassBorderLight,
+      backgroundColor:
+          dark ? AppColors.darkSurface : AppColors.lightSurface,
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.storage_outlined, color: AppColors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('بيانات الإعدادات المحلية', style: AppTypography.title),
+                const SizedBox(height: 4),
+                Text('الحجم: ' + size, style: AppTypography.body),
+                Text('آخر تفريغ: ' + clearText, style: AppTypography.body),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatDate(DateTime? value) {
+    if (value == null) return 'لم يتم التفريغ بعد';
+    final local = value.toLocal();
+    return local.year.toString().padLeft(4, '0') +
+        '-' +
+        local.month.toString().padLeft(2, '0') +
+        '-' +
+        local.day.toString().padLeft(2, '0') +
+        ' ' +
+        local.hour.toString().padLeft(2, '0') +
+        ':' +
+        local.minute.toString().padLeft(2, '0');
+  }
+}
