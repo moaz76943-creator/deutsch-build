@@ -22,16 +22,47 @@ enum GermanCase {
       };
 }
 
+enum SentenceWordOrderPattern {
+  svo,
+  subordinateVerbFinal,
+  modalBracket,
+  custom;
+
+  String get labelDe => switch (this) {
+        SentenceWordOrderPattern.svo => 'SVO / V2',
+        SentenceWordOrderPattern.subordinateVerbFinal =>
+          'Nebensatz · Verb am Ende',
+        SentenceWordOrderPattern.modalBracket =>
+          'Modalverb · Satzklammer',
+        SentenceWordOrderPattern.custom => 'Satzbau',
+      };
+
+  String get explanationAr => switch (this) {
+        SentenceWordOrderPattern.svo =>
+          'في الجملة الرئيسية يأتي الفعل المصرف غالبًا في الموقع الثاني، مع ترتيب واضح للفاعل وبقية الجملة.',
+        SentenceWordOrderPattern.subordinateVerbFinal =>
+          'في الجملة الفرعية مثل weil أو dass ينتقل الفعل المصرف عادةً إلى نهاية الجملة.',
+        SentenceWordOrderPattern.modalBracket =>
+          'الفعل الناقص يكون مصرفًا في الموقع الثاني، بينما يأتي المصدر في نهاية الجملة ليكوّنا قوس الجملة.',
+        SentenceWordOrderPattern.custom =>
+          'راجع أجزاء الجملة أدناه لفهم موقع كل عنصر وعلاقته ببقية الجملة.',
+      };
+}
+
 final class VerbConjugation {
   const VerbConjugation({
     required this.present,
     required this.preterite,
     required this.perfect,
+    this.prepositions = const <String>[],
+    this.isModal = false,
   });
 
   final String present;
   final String preterite;
   final String perfect;
+  final List<String> prepositions;
+  final bool isModal;
 }
 
 final class NounGrammar {
@@ -50,6 +81,7 @@ final class SentenceLexeme {
   const SentenceLexeme({
     required this.lemma,
     this.forms = const <String>{},
+    this.phoneticAliases = const <String>{},
     this.verb,
     this.noun,
     this.syntaxRoleDe,
@@ -58,6 +90,7 @@ final class SentenceLexeme {
 
   final String lemma;
   final Set<String> forms;
+  final Set<String> phoneticAliases;
   final VerbConjugation? verb;
   final NounGrammar? noun;
   final String? syntaxRoleDe;
@@ -86,6 +119,8 @@ final class SentenceEntry {
     required this.translationAr,
     this.lexicon = const <SentenceLexeme>[],
     this.syntaxBreakdown = const <SyntaxSegment>[],
+    this.phoneticAliases = const <String>[],
+    this.wordOrderPattern = SentenceWordOrderPattern.custom,
   });
 
   final String id;
@@ -93,6 +128,8 @@ final class SentenceEntry {
   final String translationAr;
   final List<SentenceLexeme> lexicon;
   final List<SyntaxSegment> syntaxBreakdown;
+  final List<String> phoneticAliases;
+  final SentenceWordOrderPattern wordOrderPattern;
 }
 
 final class SentenceToken {
