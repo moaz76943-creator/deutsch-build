@@ -1,3 +1,4 @@
+import 'package:deutsch_bilarabi/core/content_contract.dart';
 import 'package:deutsch_bilarabi/core/memory.dart';
 import 'package:deutsch_bilarabi/features/daily_drill/application/daily_drill_controller.dart';
 import 'package:deutsch_bilarabi/features/daily_drill/domain/daily_drill_models.dart';
@@ -14,7 +15,7 @@ final class _FakeRepository implements DailyDrillRepository {
   @override
   List<FlashcardReviewItem> dueReviews({
     required LearnerState state,
-    required Iterable<ContentItem> corpus,
+    required Iterable<LearningContent> corpus,
     required DateTime now,
     int limit = 10,
   }) =>
@@ -26,7 +27,7 @@ final class _FakeSink implements DailyDrillReviewSink {
 
   @override
   Future<DailyDrillReviewReceipt> record({
-    required ContentItem item,
+    required LearningContent item,
     required bool correct,
     required int seconds,
   }) async {
@@ -81,7 +82,7 @@ void main() {
 
     controller.start(
       learnerState: LearnerState(updatedAt: now),
-      corpus: const <ContentItem>[first, second],
+      corpus: const <LearningContent>[first, second],
       now: now,
     );
 
@@ -90,7 +91,10 @@ void main() {
     expect(controller.state.currentItem?.item.id, first.id);
     expect(controller.state.revealed, isFalse);
     expect(
-      () => controller.gradeCurrent(correct: true, elapsed: const Duration(seconds: 2)),
+      () => controller.gradeCurrent(
+        correct: true,
+        elapsed: const Duration(seconds: 2),
+      ),
       throwsStateError,
     );
   });
@@ -107,7 +111,7 @@ void main() {
     final now = DateTime.utc(2026, 10, 3, 17);
     controller.start(
       learnerState: LearnerState(updatedAt: now),
-      corpus: const <ContentItem>[first, second],
+      corpus: const <LearningContent>[first, second],
       now: now,
     );
 
@@ -146,7 +150,7 @@ void main() {
 
     controller.start(
       learnerState: LearnerState(updatedAt: now),
-      corpus: const <ContentItem>[first],
+      corpus: const <LearningContent>[first],
       now: now,
     );
 
