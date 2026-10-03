@@ -1,5 +1,14 @@
 enum NvvRegister { everyday, formalWorkplace, academicOfficial }
 
+enum NvvContext {
+  office,
+  academics,
+  healthcare,
+  constructiveFeedback,
+}
+
+enum ReplacementDirection { simpleToNvv, nvvToSimple }
+
 final class NvvChallengeItem {
   const NvvChallengeItem({
     required this.id,
@@ -10,6 +19,8 @@ final class NvvChallengeItem {
     required this.arabicTranslation,
     required this.arabicUsageExplanation,
     required this.trainingSentence,
+    this.context = NvvContext.office,
+    this.level = 'B2',
     this.preposition,
     this.caseHint,
   })  : assert(id.length > 0),
@@ -19,6 +30,7 @@ final class NvvChallengeItem {
         assert(arabicTranslation.length > 0),
         assert(arabicUsageExplanation.length > 0),
         assert(trainingSentence.length > 0),
+        assert(level == 'B2'),
         assert(
           (preposition == null && caseHint == null) ||
               (preposition != null && caseHint != null),
@@ -26,6 +38,8 @@ final class NvvChallengeItem {
 
   final String id;
   final NvvRegister register;
+  final NvvContext context;
+  final String level;
 
   /// Nominal element including its determiner where natural.
   final String nominalPart;
@@ -47,6 +61,18 @@ final class NvvChallengeItem {
 
   /// Realistic sentence containing "___" as the answer slot.
   final String trainingSentence;
+
+  String get nvvPhrase => '$nominalPart $correctVerb';
+
+  String replacementPrompt(ReplacementDirection direction) => switch (direction) {
+        ReplacementDirection.simpleToNvv => simpleEquivalent,
+        ReplacementDirection.nvvToSimple => nvvPhrase,
+      };
+
+  String replacementAnswer(ReplacementDirection direction) => switch (direction) {
+        ReplacementDirection.simpleToNvv => nvvPhrase,
+        ReplacementDirection.nvvToSimple => simpleEquivalent,
+      };
 
   String? get grammarHint {
     final prep = preposition;
