@@ -35,6 +35,7 @@ def test_grammar_layers_are_present():
         FEATURE / "domain" / "grammar_drill_evaluator.dart",
         FEATURE / "data" / "local_grammar_drill_repository.dart",
         FEATURE / "application" / "grammar_drill_notifier.dart",
+        FEATURE / "application" / "sentence_token_bank.dart",
         FEATURE / "presentation" / "widgets" / "interactive_sentence_builder_widget.dart",
         FEATURE / "presentation" / "screens" / "grammar_drill_screen.dart",
     )

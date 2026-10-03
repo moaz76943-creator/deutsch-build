@@ -268,9 +268,12 @@ class _CaseSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final caseColor = exercise.targetCase == GrammarCase.accusative
-        ? AppColors.tertiary
-        : AppColors.secondary;
+    final caseColor = switch (exercise.targetCase) {
+      GrammarCase.nominative => AppColors.primary,
+      GrammarCase.accusative => AppColors.tertiary,
+      GrammarCase.dative => AppColors.secondary,
+      GrammarCase.genitive => AppColors.achievement,
+    };
     return AppGlassCard(
       glowColor: caseColor,
       child: Column(

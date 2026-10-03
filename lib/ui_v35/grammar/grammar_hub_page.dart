@@ -68,10 +68,16 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
         _ => null,
       };
 
+  GrammarDrillRepository? get _activeDrillRepository =>
+      LocalGrammarDrillRepository.forDirectedPair(
+        sourceLocale: widget.dependencies.languagePack.sourceLocale,
+        targetLocale: widget.dependencies.languagePack.targetLocale,
+      );
+
   void _openInteractiveDrills() {
     final level = _drillLevel;
-    if (level == null) return;
-    const repository = LocalGrammarDrillRepository();
+    final repository = _activeDrillRepository;
+    if (level == null || repository == null) return;
     final exercises = repository.forLevel(level);
     if (exercises.isEmpty) return;
     Navigator.push(
@@ -143,9 +149,11 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _drillLevel == null
-                                ? 'بنك التمارين التكيفي متاح حاليًا من A1 إلى B1.'
-                                : 'رتّب الجمل، صرّف الأفعال، وتدرّب على Akkusativ وDativ.',
+                            _activeDrillRepository == null
+                                ? 'لا توجد حزمة تمارين معتمدة لزوج اللغة النشط.'
+                                : _drillLevel == null
+                                    ? 'بنك التمارين متاح حاليًا من A1 إلى B1.'
+                                    : 'رتّب الجمل، صرّف الأفعال، وتدرّب على الحالات الإعرابية.',
                             style: AppTypography.body,
                           ),
                         ],
@@ -153,8 +161,10 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                     ),
                     const SizedBox(width: 10),
                     FilledButton(
-                      onPressed:
-                          _drillLevel == null ? null : _openInteractiveDrills,
+                      onPressed: _activeDrillRepository == null ||
+                              _drillLevel == null
+                          ? null
+                          : _openInteractiveDrills,
                       child: const Text('ابدأ'),
                     ),
                   ],

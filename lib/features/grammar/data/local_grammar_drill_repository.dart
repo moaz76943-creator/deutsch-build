@@ -3,6 +3,21 @@ import '../domain/grammar_drill_models.dart';
 final class LocalGrammarDrillRepository implements GrammarDrillRepository {
   const LocalGrammarDrillRepository();
 
+  static GrammarDrillRepository? forDirectedPair({
+    required String sourceLocale,
+    required String targetLocale,
+  }) {
+    final source = _languageCode(sourceLocale);
+    final target = _languageCode(targetLocale);
+    if (source == 'ar' && target == 'de') {
+      return const LocalGrammarDrillRepository();
+    }
+    return null;
+  }
+
+  static String _languageCode(String locale) =>
+      locale.trim().toLowerCase().split(RegExp('[-_]')).first;
+
   static const List<GrammarDrill> _drills = <GrammarDrill>[
     SentenceReorderExercise(
       id: 'a1-order-heute-deutsch',

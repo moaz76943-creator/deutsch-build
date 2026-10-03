@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../design_system/app_colors.dart';
 import '../../../../design_system/app_glass_card.dart';
+import '../../application/sentence_token_bank.dart';
 import '../../domain/grammar_drill_models.dart';
 
-class InteractiveSentenceBuilderWidget extends StatelessWidget {
+class InteractiveSentenceBuilderWidget extends StatefulWidget {
   const InteractiveSentenceBuilderWidget({
     required this.exercise,
     required this.orderedTokenIds,
@@ -21,16 +22,41 @@ class InteractiveSentenceBuilderWidget extends StatelessWidget {
   final bool enabled;
 
   @override
+  State<InteractiveSentenceBuilderWidget> createState() =>
+      _InteractiveSentenceBuilderWidgetState();
+}
+
+class _InteractiveSentenceBuilderWidgetState
+    extends State<InteractiveSentenceBuilderWidget> {
+  late List<GrammarToken> _tokenBank;
+
+  @override
+  void initState() {
+    super.initState();
+    _tokenBank = SentenceTokenBank.shuffled(widget.exercise);
+  }
+
+  @override
+  void didUpdateWidget(
+    covariant InteractiveSentenceBuilderWidget oldWidget,
+  ) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.exercise.id != widget.exercise.id) {
+      _tokenBank = SentenceTokenBank.shuffled(widget.exercise);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final byId = <String, GrammarToken>{
-      for (final token in exercise.tokens) token.id: token,
+      for (final token in widget.exercise.tokens) token.id: token,
     };
-    final selected = orderedTokenIds
+    final selected = widget.orderedTokenIds
         .map((id) => byId[id])
         .whereType<GrammarToken>()
         .toList(growable: false);
-    final available = exercise.tokens
-        .where((token) => !orderedTokenIds.contains(token.id))
+    final available = _tokenBank
+        .where((token) => !widget.orderedTokenIds.contains(token.id))
         .toList(growable: false);
 
     return AppGlassCard(
@@ -39,18 +65,19 @@ class InteractiveSentenceBuilderWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            exercise.instructionAr,
+            widget.exercise.instructionAr,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            exercise.translationAr,
+            widget.exercise.translationAr,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           DragTarget<String>(
-            onWillAcceptWithDetails: (_) => enabled,
-            onAcceptWithDetails: (details) => onAddToken(details.data),
+            onWillAcceptWithDetails: (_) => widget.enabled,
+            onAcceptWithDetails: (details) =>
+                widget.onAddToken(details.data),
             builder: (context, candidates, rejected) => AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               constraints: const BoxConstraints(minHeight: 82),
@@ -81,8 +108,8 @@ class InteractiveSentenceBuilderWidget extends StatelessWidget {
                           _TokenChip(
                             token: token,
                             selected: true,
-                            enabled: enabled,
-                            onTap: () => onRemoveToken(token.id),
+                            enabled: widget.enabled,
+                            onTap: () => widget.onRemoveToken(token.id),
                           ),
                       ],
               ),
@@ -101,7 +128,7 @@ class InteractiveSentenceBuilderWidget extends StatelessWidget {
                     child: _TokenChip(
                       token: token,
                       selected: false,
-                      enabled: enabled,
+                      enabled: widget.enabled,
                     ),
                   ),
                   childWhenDragging: Opacity(
@@ -115,8 +142,10 @@ class InteractiveSentenceBuilderWidget extends StatelessWidget {
                   child: _TokenChip(
                     token: token,
                     selected: false,
-                    enabled: enabled,
-                    onTap: enabled ? () => onAddToken(token.id) : null,
+                    enabled: widget.enabled,
+                    onTap: widget.enabled
+                        ? () => widget.onAddToken(token.id)
+                        : null,
                   ),
                 ),
             ],

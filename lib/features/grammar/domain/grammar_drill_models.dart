@@ -8,8 +8,10 @@ enum GrammarLevel {
 }
 
 enum GrammarCase {
+  nominative('Nominativ'),
   accusative('Akkusativ'),
-  dative('Dativ');
+  dative('Dativ'),
+  genitive('Genitiv');
 
   final String label;
   const GrammarCase(this.label);

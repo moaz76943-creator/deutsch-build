@@ -1,4 +1,5 @@
 import 'package:deutsch_bilarabi/features/grammar/application/grammar_drill_notifier.dart';
+import 'package:deutsch_bilarabi/features/grammar/application/sentence_token_bank.dart';
 import 'package:deutsch_bilarabi/features/grammar/data/local_grammar_drill_repository.dart';
 import 'package:deutsch_bilarabi/features/grammar/domain/grammar_drill_evaluator.dart';
 import 'package:deutsch_bilarabi/features/grammar/domain/grammar_drill_models.dart';
@@ -9,6 +10,37 @@ void main() {
   const evaluator = GrammarDrillEvaluator();
 
   group('LocalGrammarDrillRepository', () {
+    test('resolves only the approved Arabic to German directed pair', () {
+      expect(
+        LocalGrammarDrillRepository.forDirectedPair(
+          sourceLocale: 'ar',
+          targetLocale: 'de-DE',
+        ),
+        isA<LocalGrammarDrillRepository>(),
+      );
+      expect(
+        LocalGrammarDrillRepository.forDirectedPair(
+          sourceLocale: 'en',
+          targetLocale: 'de-DE',
+        ),
+        isNull,
+      );
+      expect(
+        LocalGrammarDrillRepository.forDirectedPair(
+          sourceLocale: 'ar',
+          targetLocale: 'fr-FR',
+        ),
+        isNull,
+      );
+    });
+
+    test('domain models all four German grammatical cases', () {
+      expect(
+        GrammarCase.values.map((value) => value.label),
+        containsAll(<String>['Nominativ', 'Akkusativ', 'Dativ', 'Genitiv']),
+      );
+    });
+
     test('provides all required drill types for every supported level', () {
       for (final level in GrammarLevel.values) {
         final drills = repository.forLevel(level);
@@ -42,6 +74,14 @@ void main() {
   group('GrammarDrillEvaluator sentence reorder', () {
     final exercise = repository.byId('a1-order-heute-deutsch')
         as SentenceReorderExercise;
+
+    test('token bank is shuffled independently of the canonical answer', () {
+      final shuffled = SentenceTokenBank.shuffled(exercise, seed: 7);
+      final shuffledIds = shuffled.map((token) => token.id).toList();
+
+      expect(shuffledIds.toSet(), exercise.correctTokenIds.toSet());
+      expect(shuffledIds, isNot(equals(exercise.correctTokenIds)));
+    });
 
     test('accepts the canonical token order', () {
       final result = evaluator.evaluate(
