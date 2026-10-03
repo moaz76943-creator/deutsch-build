@@ -200,7 +200,7 @@ class _DailyDrillHeader extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           LinearProgressIndicator(
-            value: progress.clamp(0.0, 1.0),
+            value: progress.clamp(0.0, 1.0).toDouble(),
             minHeight: 7,
             borderRadius: BorderRadius.circular(8),
             color: AppColors.primary,
