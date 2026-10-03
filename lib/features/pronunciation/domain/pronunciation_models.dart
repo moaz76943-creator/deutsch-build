@@ -52,10 +52,7 @@ final class PronunciationTrial<T extends LearningContent> {
   final T rightItem;
   final int round;
 
-  List<String> get options => <String>[
-    contrast.leftToken,
-    contrast.rightToken,
-  ];
+  List<String> get options => <String>[contrast.leftToken, contrast.rightToken];
 }
 
 final class PronunciationPerceptionResult {
@@ -103,9 +100,7 @@ final class PronunciationSignalFeatures {
       voicedDurationMs: asInt('voicedDurationMs').clamp(0, 5000).toInt(),
       rms: asDouble('rms').clamp(0.0, 1.0).toDouble(),
       peak: asDouble('peak').clamp(0.0, 1.0).toDouble(),
-      zeroCrossingRate: asDouble(
-        'zeroCrossingRate',
-      ).clamp(0.0, 1.0).toDouble(),
+      zeroCrossingRate: asDouble('zeroCrossingRate').clamp(0.0, 1.0).toDouble(),
     );
   }
 }

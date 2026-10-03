@@ -136,7 +136,8 @@ final class CanonicalLinguisticStore {
   }
 
   Future<List<String>> listGermanWordFamilyIds({int limit = 200}) async {
-    if (limit <= 0 || !await _hasTable(CanonicalLinguisticSchema.wordFamiliesTable)) {
+    if (limit <= 0 ||
+        !await _hasTable(CanonicalLinguisticSchema.wordFamiliesTable)) {
       return const <String>[];
     }
     final rows = await db.rawQuery(

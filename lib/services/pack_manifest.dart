@@ -33,23 +33,19 @@ final class LanguagePackDescriptor {
   final int installedSizeBytes;
 
   factory LanguagePackDescriptor.fromJson(Map<String, dynamic> json) {
-    _rejectUnknownKeys(
-      json,
-      const <String>{
-        'id',
-        'languageCode',
-        'displayName',
-        'version',
-        'contractVersion',
-        'bundleFormat',
-        'archiveUrl',
-        'sha256',
-        'contentSha256',
-        'archiveSizeBytes',
-        'installedSizeBytes',
-      },
-      'pack descriptor',
-    );
+    _rejectUnknownKeys(json, const <String>{
+      'id',
+      'languageCode',
+      'displayName',
+      'version',
+      'contractVersion',
+      'bundleFormat',
+      'archiveUrl',
+      'sha256',
+      'contentSha256',
+      'archiveSizeBytes',
+      'installedSizeBytes',
+    }, 'pack descriptor');
     final id = _requiredString(json, 'id');
     if (!RegExp(r'^[a-z0-9][a-z0-9._-]{1,63}$').hasMatch(id)) {
       throw const FormatException('Invalid pack id.');
@@ -77,7 +73,9 @@ final class LanguagePackDescriptor {
       throw const FormatException('Pack archive exceeds mobile safety limit.');
     }
     if (installedSize > maxInstalledSizeBytes) {
-      throw const FormatException('Installed pack exceeds mobile safety limit.');
+      throw const FormatException(
+        'Installed pack exceeds mobile safety limit.',
+      );
     }
     return LanguagePackDescriptor(
       id: id,
@@ -157,18 +155,14 @@ final class PackManifest {
       throw const FormatException('Pack manifest must be a JSON object.');
     }
     final json = decoded.cast<String, dynamic>();
-    _rejectUnknownKeys(
-      json,
-      const <String>{
-        'schemaVersion',
-        'manifestRevision',
-        'algorithm',
-        'keyId',
-        'packs',
-        'signature',
-      },
-      'manifest',
-    );
+    _rejectUnknownKeys(json, const <String>{
+      'schemaVersion',
+      'manifestRevision',
+      'algorithm',
+      'keyId',
+      'packs',
+      'signature',
+    }, 'manifest');
     final schemaVersion = _requiredPositiveInt(json, 'schemaVersion');
     if (schemaVersion != supportedSchemaVersion) {
       throw FormatException(
@@ -305,8 +299,8 @@ final class InstalledLanguagePack {
           .clamp(0, 1 << 50)
           .toInt(),
       installedAt: installedAt.toUtc(),
-      manifestRevision:
-          ((json['manifestRevision'] as num?)?.toInt() ?? 0).clamp(0, 1 << 31),
+      manifestRevision: ((json['manifestRevision'] as num?)?.toInt() ?? 0)
+          .clamp(0, 1 << 31),
       manifestKeyId: (json['manifestKeyId'] ?? '').toString(),
       manifestSignature: (json['manifestSignature'] ?? '').toString(),
       databaseEncrypted: json['databaseEncrypted'] == true,
@@ -372,10 +366,7 @@ final class Ed25519PackManifestVerifier implements PackManifestVerifier {
       payload,
       signature: Signature(
         signatureBytes,
-        publicKey: SimplePublicKey(
-          publicKeyBytes,
-          type: KeyPairType.ed25519,
-        ),
+        publicKey: SimplePublicKey(publicKeyBytes, type: KeyPairType.ed25519),
       ),
     );
     if (!valid) {

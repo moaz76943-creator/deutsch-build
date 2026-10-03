@@ -186,8 +186,8 @@ void main() {
       'interference_risk': 0,
     });
 
-    final family =
-        await CanonicalLinguisticStore(db).readGermanWordFamily('fahren');
+    final family = await CanonicalLinguisticStore(db)
+        .readGermanWordFamily('fahren');
 
     expect(family?.baseConceptId, 'verb.fahren');
     expect(family?.baseMember?.concept.lemma, 'fahren');
@@ -201,5 +201,4 @@ void main() {
 
     await db.close();
   });
-
 }

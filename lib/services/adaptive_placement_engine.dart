@@ -73,8 +73,7 @@ final class AdaptivePlacementEngine {
               item.grammaticalMarker.trim().isEmpty
           ? 400
           : 0;
-      final score =
-          complexityDistance + priorPenalty + dimensionPenalty + tie;
+      final score = complexityDistance + priorPenalty + dimensionPenalty + tie;
       if (selected == null || score < selectedScore) {
         selected = item;
         selectedQuestion = question;
@@ -136,16 +135,14 @@ final class AdaptivePlacementEngine {
 
     final dimensionScores = <DiagnosticDimension, double>{
       for (final entry in buckets.entries)
-        entry.key:
-            entry.value.reduce((a, b) => a + b) / entry.value.length,
+        entry.key: entry.value.reduce((a, b) => a + b) / entry.value.length,
     };
     final score = scored.isEmpty
         ? 0.0
         : (evidence / scored.length * 100).clamp(0.0, 100.0).toDouble();
-    final weak = dimensionScores.entries
-        .where((entry) => entry.value < .65)
-        .toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
+    final weak =
+        dimensionScores.entries.where((entry) => entry.value < .65).toList()
+          ..sort((a, b) => a.value.compareTo(b.value));
 
     final skippedDimensions = <DiagnosticDimension>{
       for (final response in bounded)
@@ -158,9 +155,7 @@ final class AdaptivePlacementEngine {
     final coverage = (dimensionScores.length / availableCount)
         .clamp(0.0, 1.0)
         .toDouble();
-    final sample = (scored.length / boundedMax)
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final sample = (scored.length / boundedMax).clamp(0.0, 1.0).toDouble();
     final confidence = (coverage * sample).clamp(0.0, 1.0).toDouble();
 
     return PlacementDiagnosticResult(
@@ -173,9 +168,7 @@ final class AdaptivePlacementEngine {
       dimensionScores: Map<DiagnosticDimension, double>.unmodifiable(
         dimensionScores,
       ),
-      weakDimensions: weak
-          .map((entry) => entry.key)
-          .toList(growable: false),
+      weakDimensions: weak.map((entry) => entry.key).toList(growable: false),
       reviewItemIds: List<String>.unmodifiable(reviewIds.take(20)),
     );
   }

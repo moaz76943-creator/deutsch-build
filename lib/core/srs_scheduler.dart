@@ -23,17 +23,9 @@ final class UnifiedSrsScheduler implements SrsScheduler {
     required bool correct,
     required bool hinted,
     DateTime? now,
-  }) => Srs.update(
-    current,
-    correct: correct,
-    hinted: hinted,
-    now: now,
-  );
+  }) => Srs.update(current, correct: correct, hinted: hinted, now: now);
 
-  int xpRewardForReview({
-    required bool correct,
-    required bool hinted,
-  }) {
+  int xpRewardForReview({required bool correct, required bool hinted}) {
     if (!correct) return 2;
     return hinted ? 6 : 10;
   }

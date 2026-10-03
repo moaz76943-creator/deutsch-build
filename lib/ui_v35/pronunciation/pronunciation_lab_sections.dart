@@ -33,9 +33,8 @@ class PronunciationPerceptionCard extends StatelessWidget {
         children: [
           Text(
             contrast.titleAr,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -152,9 +151,8 @@ class PronunciationProductionCard extends StatelessWidget {
           children: [
             Text(
               'الإنتاج المحلي',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -174,7 +172,9 @@ class PronunciationProductionCard extends StatelessWidget {
             FilledButton.icon(
               onPressed: busy ? null : onCapture,
               icon: const Icon(Icons.mic_none_outlined),
-              label: Text(busy ? 'جارٍ الالتقاط المحلي...' : 'افحص نطقي محليًا'),
+              label: Text(
+                busy ? 'جارٍ الالتقاط المحلي...' : 'افحص نطقي محليًا',
+              ),
             ),
             if (feedback != null) ...[
               const SizedBox(height: 12),
@@ -244,9 +244,8 @@ class PronunciationConfusionPanel extends StatelessWidget {
           children: [
             Text(
               'خريطة الالتباس الصوتي',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             for (final stat in stats.take(4))

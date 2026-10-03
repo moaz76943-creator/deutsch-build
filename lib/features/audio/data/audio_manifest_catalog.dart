@@ -41,11 +41,7 @@ final class AudioManifestCatalog implements AudioCatalog {
       final variants = <AudioVariant, String>{};
       _addVariant(variants, AudioVariant.word, entry['word']);
       _addVariant(variants, AudioVariant.sentence, entry['sentence']);
-      _addVariant(
-        variants,
-        AudioVariant.pronunciation,
-        entry['pronunciation'],
-      );
+      _addVariant(variants, AudioVariant.pronunciation, entry['pronunciation']);
       result[id] = Map<AudioVariant, String>.unmodifiable(variants);
     }
 
@@ -98,9 +94,7 @@ final class AudioManifestCatalog implements AudioCatalog {
         value.contains('//')) {
       throw const FormatException('audio_manifest_base_path_invalid');
     }
-    return value.endsWith('/')
-        ? value.substring(0, value.length - 1)
-        : value;
+    return value.endsWith('/') ? value.substring(0, value.length - 1) : value;
   }
 
   static String _safeRelativeAudioPath(Object? raw) {
@@ -116,14 +110,7 @@ final class AudioManifestCatalog implements AudioCatalog {
       throw const FormatException('audio_manifest_path_invalid');
     }
     final lower = value.toLowerCase();
-    const allowed = <String>{
-      '.aac',
-      '.flac',
-      '.m4a',
-      '.mp3',
-      '.ogg',
-      '.wav',
-    };
+    const allowed = <String>{'.aac', '.flac', '.m4a', '.mp3', '.ogg', '.wav'};
     if (!allowed.any(lower.endsWith)) {
       throw const FormatException('audio_manifest_extension_invalid');
     }

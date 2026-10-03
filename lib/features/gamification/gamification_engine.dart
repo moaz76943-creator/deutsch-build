@@ -12,7 +12,8 @@ abstract final class GamificationEngine {
     final eventUtc = event.occurredAtUtc.toUtc();
     final safeOffset = event.timezoneOffsetMinutes.clamp(-840, 840).toInt();
     final malformedOffset = safeOffset != event.timezoneOffsetMinutes;
-    final backwardClock = current.lastReviewAtUtc != null &&
+    final backwardClock =
+        current.lastReviewAtUtc != null &&
         eventUtc.isBefore(
           current.lastReviewAtUtc!.toUtc().subtract(_backwardClockTolerance),
         );
@@ -43,9 +44,7 @@ abstract final class GamificationEngine {
     );
     final awardedXp = event.requestedXp.clamp(0, 100).toInt();
     final nextProfile = GamificationProfile(
-      totalXp: (current.totalXp + awardedXp)
-          .clamp(0, 100000000)
-          .toInt(),
+      totalXp: (current.totalXp + awardedXp).clamp(0, 100000000).toInt(),
       currentStreak: streak,
       longestStreak: streak > current.longestStreak
           ? streak
@@ -57,8 +56,7 @@ abstract final class GamificationEngine {
     );
     final newlyUnlocked = <MilestoneBadge>[
       for (final badge in badges)
-        if (!alreadyUnlocked.contains(badge.id) &&
-            badge.isReached(nextProfile))
+        if (!alreadyUnlocked.contains(badge.id) && badge.isReached(nextProfile))
           badge,
     ];
 
@@ -70,11 +68,7 @@ abstract final class GamificationEngine {
     );
   }
 
-  static int _nextStreak(
-    int current,
-    String? previousDay,
-    String localDay,
-  ) {
+  static int _nextStreak(int current, String? previousDay, String localDay) {
     if (previousDay == null || previousDay.isEmpty) return 1;
     if (previousDay == localDay) return current <= 0 ? 1 : current;
 

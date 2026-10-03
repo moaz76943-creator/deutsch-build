@@ -91,9 +91,7 @@ abstract final class AppDesignSystem {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: textTheme.titleLarge?.copyWith(
-          color: scheme.onSurface,
-        ),
+        titleTextStyle: textTheme.titleLarge?.copyWith(color: scheme.onSurface),
       ),
       cardTheme: CardThemeData(
         color: surface,
@@ -141,9 +139,7 @@ abstract final class AppDesignSystem {
         backgroundColor: scheme.primaryContainer,
         foregroundColor: scheme.onPrimaryContainer,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       inputDecorationTheme: InputDecorationThemeData(
         filled: true,
@@ -172,9 +168,7 @@ abstract final class AppDesignSystem {
       ),
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: cardBorder),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
       dividerTheme: DividerThemeData(

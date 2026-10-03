@@ -1,9 +1,6 @@
 import '../../../../language/language_speech_profile.dart';
 
-enum OfflineTtsAvailability {
-  ready,
-  unavailable,
-}
+enum OfflineTtsAvailability { ready, unavailable }
 
 abstract interface class OfflineTtsEngine {
   Future<OfflineTtsAvailability> probe(LanguageSpeechProfile profile);

@@ -11,8 +11,7 @@ import 'package:deutsch_bilarabi/services/preferences_service.dart';
 import 'package:deutsch_bilarabi/services/repository.dart';
 
 final class _Sink implements GamificationReviewSink {
-  final List<GamificationReviewEvent> events =
-      <GamificationReviewEvent>[];
+  final List<GamificationReviewEvent> events = <GamificationReviewEvent>[];
   bool cleared = false;
 
   @override
@@ -68,10 +67,7 @@ void main() {
     expect(sink.events.single.facetType, ReviewFacetType.listening);
     expect(
       sink.events.single.requestedXp,
-      unifiedSrsScheduler.xpRewardForReview(
-        correct: true,
-        hinted: true,
-      ),
+      unifiedSrsScheduler.xpRewardForReview(correct: true, hinted: true),
     );
     expect(sink.events.single.requestedXp, 6);
   });

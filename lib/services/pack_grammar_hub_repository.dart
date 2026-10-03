@@ -200,8 +200,9 @@ final class PackGrammarHubRepository
     if (!await _hasMicroscopeSchema()) {
       final fallback = _fallback;
       if (fallback is GrammarMicroscopeRepository) {
-        return (fallback as GrammarMicroscopeRepository)
-            .getRulesForTopic(safeTopicId);
+        return (fallback as GrammarMicroscopeRepository).getRulesForTopic(
+          safeTopicId,
+        );
       }
       return const <GrammarRuleDetail>[];
     }
@@ -263,8 +264,9 @@ final class PackGrammarHubRepository
     } on Object {
       final fallback = _fallback;
       if (fallback is GrammarMicroscopeRepository) {
-        return (fallback as GrammarMicroscopeRepository)
-            .getRulesForTopic(safeTopicId);
+        return (fallback as GrammarMicroscopeRepository).getRulesForTopic(
+          safeTopicId,
+        );
       }
       return const <GrammarRuleDetail>[];
     }

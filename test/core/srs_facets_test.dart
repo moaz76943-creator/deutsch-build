@@ -56,10 +56,7 @@ void main() {
       same(meaning),
     );
     expect(
-      state.reviewCardForFacet(
-        'noun.tisch',
-        facetType: ReviewFacetType.gender,
-      ),
+      state.reviewCardForFacet('noun.tisch', facetType: ReviewFacetType.gender),
       same(gender),
     );
     expect(

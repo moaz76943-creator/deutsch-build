@@ -43,10 +43,7 @@ void main() {
     final state = repository.load();
     expect(state.reviewCards, hasLength(1));
     expect(
-      state.reviewCardForFacet(
-        item.id,
-        facetType: ReviewFacetType.gender,
-      ),
+      state.reviewCardForFacet(item.id, facetType: ReviewFacetType.gender),
       isNotNull,
     );
     expect(state.reviewCards[item.id], isNull);
@@ -81,6 +78,9 @@ void main() {
 
     final state = repository.load();
     expect(state.reviewCards.keys, <String>['noun.tisch']);
-    expect(state.reviewCards['noun.tisch']?.facetType, ReviewFacetType.meaningRecall);
+    expect(
+      state.reviewCards['noun.tisch']?.facetType,
+      ReviewFacetType.meaningRecall,
+    );
   });
 }

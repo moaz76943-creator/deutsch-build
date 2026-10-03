@@ -47,13 +47,9 @@ final class AndroidKeystorePackDatabaseKeyStore
     try {
       return await _channel.invokeMethod<T>(method);
     } on PlatformException catch (error) {
-      throw PackDatabaseKeyStoreException(
-        'pack_key_store_' + error.code,
-      );
+      throw PackDatabaseKeyStoreException('pack_key_store_' + error.code);
     } on MissingPluginException {
-      throw const PackDatabaseKeyStoreException(
-        'pack_key_store_unavailable',
-      );
+      throw const PackDatabaseKeyStoreException('pack_key_store_unavailable');
     }
   }
 

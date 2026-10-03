@@ -7,8 +7,9 @@ final class PackSecurityRuntimeConfig {
   factory PackSecurityRuntimeConfig.fromEnvironment() =>
       const PackSecurityRuntimeConfig(
         manifestKeyId: String.fromEnvironment('PACK_MANIFEST_KEY_ID'),
-        manifestPublicKeyBase64:
-            String.fromEnvironment('PACK_MANIFEST_PUBLIC_KEY_B64'),
+        manifestPublicKeyBase64: String.fromEnvironment(
+          'PACK_MANIFEST_PUBLIC_KEY_B64',
+        ),
       );
 
   final String manifestKeyId;

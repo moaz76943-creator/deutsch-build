@@ -214,10 +214,7 @@ class _VocabularyV35State extends State<VocabularyV35> {
             children: [
               if (x.exampleText.isNotEmpty)
                 ListTile(
-                  title: Text(
-                    x.exampleText,
-                    textDirection: TextDirection.ltr,
-                  ),
+                  title: Text(x.exampleText, textDirection: TextDirection.ltr),
                   subtitle: Text(x.exampleTranslationText),
                 ),
               if (x.grammaticalMarker.isNotEmpty)
@@ -532,7 +529,6 @@ class _VocabularyV35State extends State<VocabularyV35> {
       ),
     );
   }
-
 }
 
 class _FlashcardWidget extends StatefulWidget {

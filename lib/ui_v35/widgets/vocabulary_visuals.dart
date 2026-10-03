@@ -41,8 +41,7 @@ class VocabularyWordHeader extends StatelessWidget {
                 runSpacing: 6,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: <Widget>[
-                  if (article.trim().isNotEmpty)
-                    ArticleBadge(article: article),
+                  if (article.trim().isNotEmpty) ArticleBadge(article: article),
                   Text(
                     german,
                     textDirection: TextDirection.ltr,
@@ -67,17 +66,15 @@ class VocabularyWordHeader extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 arabic,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
               if (topic.trim().isNotEmpty) ...<Widget>[
                 const SizedBox(height: 5),
                 Text(
                   topic,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
               ],
             ],
@@ -162,9 +159,7 @@ class VocabularyGridCard extends StatelessWidget {
                     ArticleBadge(article: article, compact: true),
                   const Spacer(),
                   IconButton(
-                    tooltip: isFavorite
-                        ? 'إزالة من المفضلة'
-                        : 'إضافة للمفضلة',
+                    tooltip: isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة',
                     visualDensity: VisualDensity.compact,
                     icon: Icon(
                       isFavorite
@@ -185,9 +180,8 @@ class VocabularyGridCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textDirection: TextDirection.ltr,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900),
               ),
               if (hint.isNotEmpty) ...<Widget>[
                 const SizedBox(height: 3),
@@ -217,9 +211,8 @@ class VocabularyGridCard extends StatelessWidget {
                       topic,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                      style: Theme.of(context).textTheme.labelSmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -267,11 +260,7 @@ class _VocabularyActionButton extends StatelessWidget {
         child: SizedBox(
           width: compact ? 34 : 40,
           height: compact ? 34 : 40,
-          child: Icon(
-            icon,
-            size: compact ? 18 : 20,
-            color: color,
-          ),
+          child: Icon(icon, size: compact ? 18 : 20, color: color),
         ),
       ),
     ),

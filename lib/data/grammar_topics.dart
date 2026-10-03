@@ -7,6 +7,5 @@ import 'canonical_grammar_catalog.dart';
 /// runtime compiles that source into SQLite through CanonicalGrammarCompiler.
 @Deprecated('Use CanonicalGrammarCatalog or GrammarHubRepository.')
 abstract final class GrammarTopicsData {
-  static const List<GrammarTopic> allTopics =
-      CanonicalGrammarCatalog.allTopics;
+  static const List<GrammarTopic> allTopics = CanonicalGrammarCatalog.allTopics;
 }

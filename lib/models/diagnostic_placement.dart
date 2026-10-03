@@ -97,21 +97,19 @@ final class PlacementDiagnosticResult {
 
   bool get isCefrCertification => false;
 
-  PlacementDiagnosticRecord toRecord({
-    required DateTime at,
-    String? id,
-  }) => PlacementDiagnosticRecord(
-    id: id ?? 'placement_${at.microsecondsSinceEpoch}',
-    at: at,
-    answered: answered,
-    scoredAnswers: scoredAnswers,
-    score: score,
-    confidence: confidence,
-    band: band,
-    dimensionScores: dimensionScores,
-    weakDimensions: weakDimensions,
-    reviewItemIds: reviewItemIds,
-  );
+  PlacementDiagnosticRecord toRecord({required DateTime at, String? id}) =>
+      PlacementDiagnosticRecord(
+        id: id ?? 'placement_${at.microsecondsSinceEpoch}',
+        at: at,
+        answered: answered,
+        scoredAnswers: scoredAnswers,
+        score: score,
+        confidence: confidence,
+        band: band,
+        dimensionScores: dimensionScores,
+        weakDimensions: weakDimensions,
+        reviewItemIds: reviewItemIds,
+      );
 }
 
 final class PlacementDiagnosticRecord {
@@ -214,14 +212,16 @@ final class PlacementDiagnosticRecord {
   }
 
   static int _boundedInt(Object? raw, int min, int max) {
-    final value =
-        raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '');
+    final value = raw is num
+        ? raw.toInt()
+        : int.tryParse(raw?.toString() ?? '');
     return (value ?? min).clamp(min, max).toInt();
   }
 
   static double _boundedDouble(Object? raw, double min, double max) {
-    final value =
-        raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
+    final value = raw is num
+        ? raw.toDouble()
+        : double.tryParse(raw?.toString() ?? '');
     return (value ?? min).clamp(min, max).toDouble();
   }
 }

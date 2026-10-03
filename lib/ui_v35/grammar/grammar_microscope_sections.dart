@@ -6,10 +6,7 @@ import '../../services/grammar_microscope_service.dart';
 import '../shared/text/bidi_text.dart';
 
 class GrammarMicroscopeEvidenceSection extends StatelessWidget {
-  const GrammarMicroscopeEvidenceSection({
-    super.key,
-    required this.snapshot,
-  });
+  const GrammarMicroscopeEvidenceSection({super.key, required this.snapshot});
 
   final GrammarMicroscopeSnapshot snapshot;
 
@@ -33,9 +30,8 @@ class GrammarMicroscopeEvidenceSection extends StatelessWidget {
       children: [
         Text(
           'لماذا قد تكون هذه القاعدة مفيدة الآن؟',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
         Text(
@@ -64,9 +60,8 @@ class GrammarMicroscopeEvidenceSection extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             'أمثلة من بطاقات تحتاج مراجعة',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           for (final item in snapshot.weakItems)
@@ -106,10 +101,7 @@ class GrammarMicroscopeEvidenceSection extends StatelessWidget {
 }
 
 class GrammarMicroscopeRulesSection extends StatelessWidget {
-  const GrammarMicroscopeRulesSection({
-    super.key,
-    required this.snapshot,
-  });
+  const GrammarMicroscopeRulesSection({super.key, required this.snapshot});
 
   final GrammarMicroscopeSnapshot snapshot;
 
@@ -119,9 +111,7 @@ class GrammarMicroscopeRulesSection extends StatelessWidget {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Text(
-            'تفاصيل القاعدة غير متاحة في مصدر القواعد النشط حاليًا.',
-          ),
+          child: Text('تفاصيل القاعدة غير متاحة في مصدر القواعد النشط حاليًا.'),
         ),
       );
     }
@@ -131,9 +121,8 @@ class GrammarMicroscopeRulesSection extends StatelessWidget {
       children: [
         Text(
           'تفكيك القاعدة',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 10),
         for (final rule in snapshot.rules) _GrammarRuleCard(rule: rule),
@@ -160,9 +149,8 @@ class _GrammarRuleCard extends StatelessWidget {
               rule.title,
               semanticRole: LinguisticSemanticRole.grammarLabel,
             ),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           BidiText(
@@ -197,8 +185,7 @@ class _GrammarRuleCard extends StatelessWidget {
                           child: BidiText(
                             _directional(
                               cell,
-                              semanticRole:
-                                  LinguisticSemanticRole.grammarLabel,
+                              semanticRole: LinguisticSemanticRole.grammarLabel,
                             ),
                           ),
                         ),
@@ -211,9 +198,8 @@ class _GrammarRuleCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'أمثلة',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+              style: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             for (final example in rule.examples)

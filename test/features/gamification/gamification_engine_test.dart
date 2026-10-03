@@ -101,11 +101,7 @@ void main() {
         lastLocalDay: '2026-10-02',
         lastTimezoneOffsetMinutes: 780,
       ),
-      event(
-        'r6',
-        DateTime.utc(2026, 10, 2, 2),
-        offsetMinutes: -720,
-      ),
+      event('r6', DateTime.utc(2026, 10, 2, 2), offsetMinutes: -720),
     );
 
     expect(result.clockAnomaly, isTrue);
