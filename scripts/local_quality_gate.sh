@@ -36,6 +36,12 @@ log CHECK "Content pack and ingestion contracts"
 python3 tool/content_pack.py validate
 python3 tool/content_ingestion.py validate
 
+log CHECK "Licensed media manifest contract"
+python3 tools/agents/asset_pipeline_agent.py \
+  --repo-root "$ROOT" \
+  --manifest assets/media/assets_manifest.json \
+  --verify-only
+
 TMP_DIR="$(mktemp -d)"
 cleanup_tmp() {
   python3 - "$TMP_DIR" <<'PY'
