@@ -11,7 +11,12 @@ abstract final class HousingDesignTokens {
   static const double compactCardRadius = 20;
   static const double iconS = 20;
   static const double iconM = 28;
-  static const double quickActionMinWidth = 156;
+
+  static const int selectedFillAlpha = 36;
+  static const int subtleBorderAlpha = 72;
+  static const int accentBorderAlpha = 80;
+  static const int heroBorderAlpha = 90;
+  static const int strongBorderAlpha = 100;
 
   static const EdgeInsetsDirectional screenPadding =
       EdgeInsetsDirectional.fromSTEB(spaceM, spaceM, spaceM, spaceXl);
