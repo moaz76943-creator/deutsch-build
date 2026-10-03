@@ -20,7 +20,11 @@ final class SeparableVerbsNotifier extends ChangeNotifier {
 
   VerbPrefixDrillItem? get currentVerb {
     if (_visibleDrills.isEmpty) return null;
-    return _visibleDrills[_currentIndex.clamp(0, _visibleDrills.length - 1)];
+    final safeIndex =
+        _currentIndex >= 0 && _currentIndex < _visibleDrills.length
+            ? _currentIndex
+            : 0;
+    return _visibleDrills[safeIndex];
   }
 
   String get interactiveSentence =>
