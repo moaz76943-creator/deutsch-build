@@ -9,6 +9,7 @@ enum StorageBucket {
   srsIntervals('srs_intervals_v1'),
   errorBank('error_bank_v1'),
   gamification('gamification_v1'),
+  syncPendingMutations('sync_pending_mutations_v1'),
   notificationPreferences('notification_preferences_v1');
 
   const StorageBucket(this.storageKey);

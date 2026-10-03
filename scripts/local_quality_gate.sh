@@ -7,13 +7,18 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/common.sh"
 load_toolchain
 cd "$ROOT"
+SKIP_FLUTTER_CHECK="${SKIP_FLUTTER_CHECK:-0}"
 
 log CHECK "Canonical local quality gate"
 snapshot_lockfile
 
-log CHECK "Locked Flutter dependencies"
-flutter pub get --enforce-lockfile
-assert_lockfile_unchanged
+if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]; then
+  log SKIP "Flutter SDK checks disabled by SKIP_FLUTTER_CHECK=1"
+else
+  log CHECK "Locked Flutter dependencies"
+  flutter pub get --enforce-lockfile
+  assert_lockfile_unchanged
+fi
 
 log TEST "Python regression suite"
 python3 -m pytest -q tests
@@ -61,11 +66,15 @@ python3 tool/content_compiler.py parity --output-dir "$TMP_DIR/generated"
 log CHECK "Materialize Flutter runtime content"
 python3 tool/content_compiler.py compile --output-dir lib/data/generated
 
-log TEST "Flutter analyze"
-flutter analyze
+if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]; then
+  log SKIP "Flutter analyze/test skipped because Flutter SDK is unavailable"
+else
+  log TEST "Flutter analyze"
+  flutter analyze
 
-log TEST "Flutter tests"
-flutter test
+  log TEST "Flutter tests"
+  flutter test
+fi
 
 assert_lockfile_unchanged
 log OK "LOCAL QUALITY GATE: PASS"
