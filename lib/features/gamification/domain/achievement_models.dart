@@ -22,13 +22,30 @@ final class UserStreak {
   final bool freezeAvailable;
   final int streakFreezesAvailable;
 
-  List<bool> get recentSevenDayActivity {
-    final activeDays = currentDays.clamp(0, 7).toInt();
+  List<bool> get recentSevenDayActivity =>
+      recentSevenDayActivityAt(lastActivityDate ?? DateTime.utc(1970));
+
+  List<bool> recentSevenDayActivityAt(DateTime referenceDate) {
+    final last = lastActivityDate;
+    if (last == null || currentDays <= 0) {
+      return List<bool>.unmodifiable(List<bool>.filled(7, false));
+    }
+
+    final referenceDay = DateTime.utc(
+      referenceDate.year,
+      referenceDate.month,
+      referenceDate.day,
+    );
+    final lastDay = DateTime.utc(last.year, last.month, last.day);
+    final firstActiveDay = lastDay.subtract(
+      Duration(days: currentDays.clamp(1, 10000).toInt() - 1),
+    );
+
     return List<bool>.unmodifiable(
-      List<bool>.generate(
-        7,
-        (index) => index >= 7 - activeDays,
-      ),
+      List<bool>.generate(7, (index) {
+        final day = referenceDay.subtract(Duration(days: 6 - index));
+        return !day.isBefore(firstActiveDay) && !day.isAfter(lastDay);
+      }),
     );
   }
 
