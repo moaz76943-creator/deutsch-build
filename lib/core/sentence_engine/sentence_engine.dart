@@ -7,6 +7,10 @@ final class SentenceAnalysisEngine {
   static final RegExp _wordPattern = RegExp(
     r"^[A-Za-zÄÖÜäöüßẞ0-9]",
   );
+  static final RegExp _subordinateMarkerPattern = RegExp(
+    r'\b(weil|dass|wenn|obwohl|damit|während|bevor|nachdem|falls|ob)\b',
+    caseSensitive: false,
+  );
 
   List<SentenceToken> analyze(SentenceEntry sentence) {
     final grammarByForm = <String, SentenceLexeme>{};
@@ -39,35 +43,105 @@ final class SentenceAnalysisEngine {
     return List<SentenceToken>.unmodifiable(result);
   }
 
+  SentenceWordOrderPattern detectWordOrderPattern(SentenceEntry sentence) {
+    if (sentence.wordOrderPattern != SentenceWordOrderPattern.custom) {
+      return sentence.wordOrderPattern;
+    }
+
+    if (_subordinateMarkerPattern.hasMatch(sentence.german)) {
+      return SentenceWordOrderPattern.subordinateVerbFinal;
+    }
+
+    final hasModal = sentence.lexicon.any(
+      (lexeme) => lexeme.verb?.isModal ?? false,
+    );
+    if (hasModal) return SentenceWordOrderPattern.modalBracket;
+
+    final hasVerb = sentence.lexicon.any((lexeme) => lexeme.isVerb);
+    if (hasVerb) return SentenceWordOrderPattern.svo;
+
+    return SentenceWordOrderPattern.custom;
+  }
+
   static String normalizeToken(String value) =>
       value.trim().toLowerCase().replaceAll('ẞ', 'ß');
 }
 
-final class FuzzySentenceSearch {
-  FuzzySentenceSearch(Iterable<SentenceEntry> sentences)
+final class SentenceFuzzySearchService {
+  SentenceFuzzySearchService(Iterable<SentenceEntry> sentences)
       : _sentences = List<SentenceEntry>.unmodifiable(sentences);
 
   final List<SentenceEntry> _sentences;
+
+  static const Map<String, String> _arabicToLatin = <String, String>{
+    'ا': 'a',
+    'أ': 'a',
+    'إ': 'i',
+    'آ': 'a',
+    'ب': 'b',
+    'ت': 't',
+    'ث': 'th',
+    'ج': 'j',
+    'ح': 'h',
+    'خ': 'ch',
+    'د': 'd',
+    'ذ': 'd',
+    'ر': 'r',
+    'ز': 'z',
+    'س': 's',
+    'ش': 'sch',
+    'ص': 's',
+    'ض': 'd',
+    'ط': 't',
+    'ظ': 'z',
+    'ع': '',
+    'غ': 'g',
+    'ف': 'f',
+    'ق': 'k',
+    'ك': 'k',
+    'ل': 'l',
+    'م': 'm',
+    'ن': 'n',
+    'ه': 'h',
+    'ة': 'a',
+    'و': 'u',
+    'ؤ': 'u',
+    'ي': 'i',
+    'ى': 'a',
+    'ئ': 'i',
+    'ء': '',
+    'َ': '',
+    'ُ': '',
+    'ِ': '',
+    'ْ': '',
+    'ّ': '',
+    'ً': '',
+    'ٌ': '',
+    'ٍ': '',
+  };
 
   List<SentenceSearchHit> search(
     String query, {
     int limit = 20,
   }) {
-    final normalizedQuery = _normalize(query);
+    final normalizedQuery = _normalizeSearch(query);
     if (normalizedQuery.isEmpty) return const <SentenceSearchHit>[];
 
     final cappedLimit = limit.clamp(1, 100).toInt();
     final hits = <SentenceSearchHit>[];
 
     for (final sentence in _sentences) {
-      final germanScore = _score(normalizedQuery, _normalize(sentence.german));
-      final translationScore =
-          _score(normalizedQuery, _normalize(sentence.translationAr));
-      final score =
-          germanScore > translationScore ? germanScore : translationScore;
+      var bestScore = 0.0;
+      for (final candidate in _candidateTexts(sentence)) {
+        final normalizedCandidate = _normalizeSearch(candidate);
+        if (normalizedCandidate.isEmpty) continue;
+        final score = _score(normalizedQuery, normalizedCandidate);
+        if (score > bestScore) bestScore = score;
+        if (bestScore >= .999) break;
+      }
 
-      if (score >= .42) {
-        hits.add(SentenceSearchHit(sentence: sentence, score: score));
+      if (bestScore >= .42) {
+        hits.add(SentenceSearchHit(sentence: sentence, score: bestScore));
       }
     }
 
@@ -77,9 +151,19 @@ final class FuzzySentenceSearch {
       return left.sentence.id.compareTo(right.sentence.id);
     });
 
-    return List<SentenceSearchHit>.unmodifiable(
-      hits.take(cappedLimit),
-    );
+    return List<SentenceSearchHit>.unmodifiable(hits.take(cappedLimit));
+  }
+
+  static Iterable<String> _candidateTexts(SentenceEntry sentence) sync* {
+    yield sentence.german;
+    yield sentence.translationAr;
+    yield* sentence.phoneticAliases;
+
+    for (final lexeme in sentence.lexicon) {
+      yield lexeme.lemma;
+      yield* lexeme.forms;
+      yield* lexeme.phoneticAliases;
+    }
   }
 
   static double _score(String query, String candidate) {
@@ -130,8 +214,8 @@ final class FuzzySentenceSearch {
     for (var row = 1; row <= left.length; row++) {
       final current = <int>[row];
       for (var column = 1; column <= right.length; column++) {
-        final substitution =
-            previous[column - 1] + (left[row - 1] == right[column - 1] ? 0 : 1);
+        final substitution = previous[column - 1] +
+            (left[row - 1] == right[column - 1] ? 0 : 1);
         final insertion = current[column - 1] + 1;
         final deletion = previous[column] + 1;
 
@@ -146,15 +230,36 @@ final class FuzzySentenceSearch {
     return previous.last;
   }
 
-  static String _normalize(String value) {
+  static String _normalizeSearch(String value) {
     var normalized = value.toLowerCase();
     normalized = normalized
         .replaceAll('ä', 'a')
         .replaceAll('ö', 'o')
         .replaceAll('ü', 'u')
         .replaceAll('ß', 'ss');
-    normalized = normalized.replaceAll(RegExp(r'[^a-z0-9ء-ي ]'), ' ');
+
+    final buffer = StringBuffer();
+    for (final rune in normalized.runes) {
+      final character = String.fromCharCode(rune);
+      buffer.write(_arabicToLatin[character] ?? character);
+    }
+
+    normalized = buffer.toString().replaceAll(RegExp(r'[^a-z0-9 ]'), ' ');
     normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
     return normalized;
   }
+}
+
+@Deprecated('Use SentenceFuzzySearchService instead.')
+final class FuzzySentenceSearch {
+  FuzzySentenceSearch(Iterable<SentenceEntry> sentences)
+      : _delegate = SentenceFuzzySearchService(sentences);
+
+  final SentenceFuzzySearchService _delegate;
+
+  List<SentenceSearchHit> search(
+    String query, {
+    int limit = 20,
+  }) =>
+      _delegate.search(query, limit: limit);
 }
