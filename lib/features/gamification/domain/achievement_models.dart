@@ -13,6 +13,18 @@ final class UserStreak {
   final DateTime? lastActivityDate;
   final bool freezeAvailable;
 
+  int get streakFreezesAvailable => freezeAvailable ? 1 : 0;
+
+  List<bool> get recentSevenDayActivity {
+    final activeDays = currentDays.clamp(0, 7).toInt();
+    return List<bool>.unmodifiable(
+      List<bool>.generate(
+        7,
+        (index) => index >= 7 - activeDays,
+      ),
+    );
+  }
+
   factory UserStreak.fromProfile(GamificationProfile profile) {
     final day = profile.lastLocalDay;
     return UserStreak(
@@ -33,36 +45,40 @@ final class AchievementBadge {
     required this.description,
     required this.icon,
     required this.unlockedAt,
+    this.unlockCondition = '',
   });
 
   final String id;
   final String name;
   final String description;
   final String icon;
+  final String unlockCondition;
   final DateTime? unlockedAt;
 
   bool get isUnlocked => unlockedAt != null;
 }
 
-final class UserProgressLevel {
-  const UserProgressLevel({
-    required this.xp,
+class UserXpRecord {
+  const UserXpRecord({
+    required this.totalXp,
     required this.currentLevel,
     required this.levelFloorXp,
     required this.nextLevelXp,
     required this.progressToNextLevel,
   });
 
-  final int xp;
+  final int totalXp;
   final int currentLevel;
   final int levelFloorXp;
   final int nextLevelXp;
   final double progressToNextLevel;
 
-  factory UserProgressLevel.fromProfile(GamificationProfile profile) {
+  int get xp => totalXp;
+
+  factory UserXpRecord.fromProfile(GamificationProfile profile) {
     final progress = profile.xpProgress;
-    return UserProgressLevel(
-      xp: progress.totalXp,
+    return UserXpRecord(
+      totalXp: progress.totalXp,
       currentLevel: progress.level,
       levelFloorXp: progress.levelFloorXp,
       nextLevelXp: progress.nextLevelXp,
@@ -71,9 +87,34 @@ final class UserProgressLevel {
   }
 }
 
+@Deprecated('Use UserXpRecord.')
+final class UserProgressLevel extends UserXpRecord {
+  const UserProgressLevel({
+    required super.totalXp,
+    required super.currentLevel,
+    required super.levelFloorXp,
+    required super.nextLevelXp,
+    required super.progressToNextLevel,
+  });
+
+  factory UserProgressLevel.fromProfile(GamificationProfile profile) {
+    final record = UserXpRecord.fromProfile(profile);
+    return UserProgressLevel(
+      totalXp: record.totalXp,
+      currentLevel: record.currentLevel,
+      levelFloorXp: record.levelFloorXp,
+      nextLevelXp: record.nextLevelXp,
+      progressToNextLevel: record.progressToNextLevel,
+    );
+  }
+}
+
 extension GamificationSnapshotProjection on GamificationSnapshot {
   UserStreak get userStreak => UserStreak.fromProfile(profile);
 
+  UserXpRecord get userXpRecord => UserXpRecord.fromProfile(profile);
+
+  @Deprecated('Use userXpRecord.')
   UserProgressLevel get userProgressLevel =>
       UserProgressLevel.fromProfile(profile);
 
@@ -88,11 +129,21 @@ extension GamificationSnapshotProjection on GamificationSnapshot {
           name: badge.titleAr,
           description: badge.descriptionAr,
           icon: _iconForBadge(badge.id),
+          unlockCondition: _unlockCondition(badge),
           unlockedAt: unlockedById[badge.id],
         ),
       ),
     );
   }
+}
+
+String _unlockCondition(MilestoneBadge badge) {
+  final conditions = <String>[];
+  final xp = badge.xpThreshold;
+  if (xp != null) conditions.add('اجمع $xp XP');
+  final streak = badge.streakThreshold;
+  if (streak != null) conditions.add('حافظ على سلسلة $streak أيام');
+  return conditions.isEmpty ? 'أكمل إنجاز التعلم المحدد' : conditions.join(' و ');
 }
 
 String _iconForBadge(String id) {
