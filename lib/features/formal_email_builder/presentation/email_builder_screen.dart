@@ -135,10 +135,10 @@ final class _ScenarioSelector extends StatelessWidget {
                       }
                     },
             ),
-            if (notifier.activeScenario case final scenario?) ...<Widget>[
+            if (notifier.activeScenario != null) ...<Widget>[
               const SizedBox(height: 12),
               Text(
-                scenario.promptDe,
+                notifier.activeScenario!.promptDe,
                 textDirection: TextDirection.ltr,
                 style: AppTypography.body,
               ),
