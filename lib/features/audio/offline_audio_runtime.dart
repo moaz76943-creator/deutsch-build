@@ -15,12 +15,14 @@ final class OfflineAudioRuntime implements IAudioRuntime {
     required this.ttsEngine,
     this.catalog = const EmptyAudioCatalog(),
     this.recordedPlayer = const UnavailableRecordedAudioPlayer(),
+    this.speechRateProvider,
   });
 
   final LanguageSpeechProfile speechProfile;
   final OfflineTtsEngine ttsEngine;
   final AudioCatalog catalog;
   final RecordedAudioPlayer recordedPlayer;
+  final double Function()? speechRateProvider;
 
   final StreamController<AudioPlaybackState> _states =
       StreamController<AudioPlaybackState>.broadcast();
@@ -100,10 +102,7 @@ final class OfflineAudioRuntime implements IAudioRuntime {
       final spoken = await ttsEngine.speak(
         text: request.text.trim(),
         profile: speechProfile,
-        rate: (request.rate ?? speechProfile.defaultSpeechRate).clamp(
-          .1,
-          1.0,
-        ),
+        rate: _resolveSpeechRate(request),
       );
       if (!spoken) {
         _emit(AudioPlaybackState.error);
@@ -127,6 +126,17 @@ final class OfflineAudioRuntime implements IAudioRuntime {
     });
     _tail = next;
     return completer.future;
+  }
+
+  double _resolveSpeechRate(AudioRequest request) {
+    try {
+      final preferred = request.rate ??
+          speechRateProvider?.call() ??
+          speechProfile.defaultSpeechRate;
+      return preferred.clamp(.1, 1.0).toDouble();
+    } on Object {
+      return speechProfile.defaultSpeechRate.clamp(.1, 1.0).toDouble();
+    }
   }
 
   @override
