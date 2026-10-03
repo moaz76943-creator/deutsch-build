@@ -94,6 +94,19 @@ print(json.dumps({"state":"DISPATCHED","task_id":task["task_id"]}))
 ''',
     )
     _write_executable(
+        automation / "runtime.py",
+        '''#!/usr/bin/env python3
+import subprocess, sys
+from pathlib import Path
+component=sys.argv[1]
+script={
+    "state": Path(__file__).with_name("state_manager.py"),
+    "dispatch": Path(__file__).with_name("autonomous_daemon.py"),
+}[component]
+raise SystemExit(subprocess.run([sys.executable, str(script), *sys.argv[2:]]).returncode)
+''',
+    )
+    _write_executable(
         gatekeeper / "gatekeeper.py",
         '''#!/usr/bin/env python3
 import argparse, json

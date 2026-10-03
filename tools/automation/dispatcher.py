@@ -5,6 +5,9 @@ The dispatcher is intentionally read-only with respect to Git and GitHub. It
 observes local branch names and claim snapshots, evaluates dependency readiness,
 and emits a deterministic issue/PR specification for the next safe task. It
 never creates branches, claims, pull requests, or workflow runs itself.
+
+Canonical CLI routing is owned by tools/automation/runtime.py. Direct execution
+remains a compatibility shim and delegates to the same main(argv) implementation.
 """
 
 from __future__ import annotations
@@ -296,14 +299,14 @@ class Dispatcher:
         )
 
 
-def _main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Select the next isolated backlog task")
     parser.add_argument("--backlog", type=Path, default=DEFAULT_BACKLOG)
     parser.add_argument("--repo", type=Path, default=Path("."))
     parser.add_argument("--claims", type=Path)
     parser.add_argument("--claim-id", default="TOOLING-DISPATCHER-001")
     parser.add_argument("--json", action="store_true", dest="as_json")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     backlog = load_backlog(args.backlog)
     branches = GitBranchSnapshot.from_local_git(args.repo)
@@ -328,4 +331,4 @@ def _main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(_main())
+    raise SystemExit(main())

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atomic shared task-state ledger for cooperating automation agents."""
+"""Atomic shared task-state ledger for cooperating automation agents.\n\nCanonical CLI routing is tools/automation/runtime.py; direct execution remains\na compatibility entrypoint for this implementation module.\n"""
 
 from __future__ import annotations
 

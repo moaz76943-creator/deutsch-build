@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-driving, fail-closed dispatcher for the shared automation pipeline."""
+"""Self-driving, fail-closed dispatcher for the shared automation pipeline.\n\nCanonical CLI routing is tools/automation/runtime.py; direct execution remains\na compatibility entrypoint for this implementation module.\n"""
 
 from __future__ import annotations
 

@@ -48,8 +48,7 @@ class PipelineOrchestrator:
         self.backlog_file = self.automation_dir / "backlog.json"
         self.claims_file = self.automation_dir / "claims.json"
         self.dispatch_dir = self.automation_dir / "dispatches"
-        self.state_manager = self.automation_dir / "state_manager.py"
-        self.daemon = self.automation_dir / "autonomous_daemon.py"
+        self.runtime = self.automation_dir / "runtime.py"
         self.gatekeeper = self.repo_root / "tools" / "gatekeeper" / "gatekeeper.py"
         self.gate_report = self.automation_dir / ".pipeline_gate_summary.json"
 
@@ -85,15 +84,16 @@ class PipelineOrchestrator:
 
     def _validate_state(self) -> dict[str, Any]:
         return self._run_tool(
-            "state_manager",
-            self.state_manager,
-            ["--state", str(self.state_file), "validate"],
+            "automation_runtime",
+            self.runtime,
+            ["state", "--state", str(self.state_file), "validate"],
         )
 
     def _daemon_args(self, mode: str) -> list[str]:
         if mode not in {"--dry-run", "--poll-once"}:
             raise ValueError(f"unsupported daemon mode: {mode}")
         return [
+            "dispatch",
             "--backlog",
             str(self.backlog_file),
             "--state-file",
@@ -137,14 +137,14 @@ class PipelineOrchestrator:
             return {"state": "COMPLETE", "task_count": len(before["tasks"])}
 
         resolution = self._run_tool(
-            "autonomous_daemon",
-            self.daemon,
+            "automation_runtime",
+            self.runtime,
             self._daemon_args("--dry-run"),
         )
         resolution_state = resolution.get("state")
         if resolution_state not in {"DRY_RUN", "NO_CANDIDATE"}:
             raise PipelineToolError(
-                f"autonomous_daemon returned unexpected dry-run state: {resolution_state!r}"
+                f"automation runtime returned unexpected dry-run state: {resolution_state!r}"
             )
 
         gate = self._run_gatekeeper()
@@ -159,11 +159,11 @@ class PipelineOrchestrator:
 
         planned_task = resolution.get("task_id")
         if not isinstance(planned_task, str) or not planned_task:
-            raise PipelineToolError("autonomous_daemon dry-run omitted task_id")
+            raise PipelineToolError("automation runtime dry-run omitted task_id")
 
         committed = self._run_tool(
-            "autonomous_daemon",
-            self.daemon,
+            "automation_runtime",
+            self.runtime,
             self._daemon_args("--poll-once"),
         )
         committed_state = committed.get("state")
@@ -172,12 +172,12 @@ class PipelineOrchestrator:
             return {"state": "IDLE", "gate": gate, "planned_task_id": planned_task}
         if committed_state != "DISPATCHED":
             raise PipelineToolError(
-                f"autonomous_daemon returned unexpected commit state: {committed_state!r}"
+                f"automation runtime returned unexpected commit state: {committed_state!r}"
             )
 
         dispatched_task = committed.get("task_id")
         if not isinstance(dispatched_task, str) or not dispatched_task:
-            raise PipelineToolError("autonomous_daemon dispatch omitted task_id")
+            raise PipelineToolError("automation runtime dispatch omitted task_id")
 
         self._validate_state()
         return {
