@@ -28,4 +28,4 @@ def test_checked_in_gradle_wrapper_scripts_are_present_and_pinned():
     assert (ROOT / "android/gradlew").exists()
     assert (ROOT / "android/gradlew.bat").exists()
     wrapper = (ROOT / "android/gradle/wrapper/gradle-wrapper.properties").read_text()
-    assert "gradle-8.13-all.zip" in wrapper
+    assert "gradle-8.14-all.zip" in wrapper

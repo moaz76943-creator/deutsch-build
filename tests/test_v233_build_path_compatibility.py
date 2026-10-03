@@ -15,5 +15,7 @@ def test_build_paths_share_toolchain_and_keep_apk_commands():
 def test_ci_workflows_run_build_path_compatibility_gate():
     build_workflow = (ROOT / '.github' / 'workflows' / 'build-apk.yml').read_text()
     quality_workflow = (ROOT / '.github' / 'workflows' / 'quality.yml').read_text()
-    assert 'python3 tool/v233_build_path_compatibility.py' in build_workflow
-    assert 'python3 tool/v233_build_path_compatibility.py' in quality_workflow
+    gate = (ROOT / 'scripts' / 'local_quality_gate.sh').read_text()
+    for workflow in (build_workflow, quality_workflow):
+        assert 'bash scripts/local_quality_gate.sh' in workflow
+    assert 'python3 tool/v233_build_path_compatibility.py' in gate

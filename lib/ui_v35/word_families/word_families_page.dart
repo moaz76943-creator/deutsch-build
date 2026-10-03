@@ -72,20 +72,35 @@ class _WordFamiliesPageState extends State<WordFamiliesPage> {
           return LayoutBuilder(
             builder: (context, constraints) {
               final columns = constraints.maxWidth >= 760 ? 2 : 1;
-              return GridView.builder(
+              final rowCount = (families.length + columns - 1) ~/ columns;
+              return ListView.separated(
                 padding: const EdgeInsets.all(16),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  mainAxisExtent: 360,
-                ),
-                itemCount: families.length,
-                itemBuilder: (context, index) => WordFamilyCard(
-                  family: families[index],
-                  contentById: contentById,
-                  learnedIds: widget.learnedIds,
-                ),
+                itemCount: rowCount,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, rowIndex) {
+                  final cards = <Widget>[];
+                  for (var column = 0; column < columns; column++) {
+                    if (column > 0) {
+                      cards.add(const SizedBox(width: 12));
+                    }
+                    final familyIndex = rowIndex * columns + column;
+                    cards.add(
+                      Expanded(
+                        child: familyIndex < families.length
+                            ? WordFamilyCard(
+                                family: families[familyIndex],
+                                contentById: contentById,
+                                learnedIds: widget.learnedIds,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    );
+                  }
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: cards,
+                  );
+                },
               );
             },
           );

@@ -23,7 +23,7 @@ checks=[
 ('secureRelease' in gradle and 'releaseStoreFile' in gradle,'Dedicated release signing is not configured.'),
 ('signingConfig signingConfigs.secureRelease' in gradle,'Release build is not strictly bound to secureRelease signing.'),
 ('--obfuscate' in build_script and '--split-debug-info' in build_script,'Dart obfuscation is missing from the central release build.'),
-('isPrivate' in workflow,'CI has no private-repository gate.'),
+("github.event.repository.private == true" in workflow,'CI has no private-repository gate.'),
 ("github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master'" in workflow,'Release workflow manual dispatch is not restricted to main/master.'),
 ("github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository" in quality,'Private quality workflow lacks an external-PR execution boundary.'),
 ('persist-credentials: false' in workflow and 'persist-credentials: false' in quality,'Checkout persists credentials.'),

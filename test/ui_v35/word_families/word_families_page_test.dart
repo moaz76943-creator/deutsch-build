@@ -89,7 +89,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('fahren'), findsOneWidget);
+      expect(find.text('fahren'), findsNWidgets(2));
       expect(find.text('der Fahrer'), findsOneWidget);
       expect(find.text('سائق'), findsOneWidget);
       expect(find.text('اسم الفاعل'), findsOneWidget);

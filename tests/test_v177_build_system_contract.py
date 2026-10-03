@@ -39,5 +39,7 @@ def test_doctor_is_diagnostic_only():
 
 def test_test_script_runs_project_tests():
     text = read("test.sh")
-    assert "flutter test" in text
+    gate = read("local_quality_gate.sh")
+    assert "local_quality_gate.sh" in text
+    assert "flutter test" in gate
     assert "pubspec.lock" in text or "scripts/common.sh" in text

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-import '../../lib/core/widgets/glass_card.dart';
+import '../../lib/ui_v35/widgets/glass_card.dart';
 import '../../lib/ui_v35/theme/app_design_system.dart';
 import '../../lib/ui_v35/widgets/home_visuals.dart';
 
@@ -30,6 +30,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('reference-home-hero')), findsOneWidget);
     expect(find.byType(GlassCard), findsWidgets);
@@ -42,7 +43,7 @@ void main() {
     expect(find.text('متابعة التعلّم الآن'), findsOneWidget);
 
     await tester.tap(find.text('متابعة التعلّم الآن'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(continueCount, 1);
   });
 
@@ -62,6 +63,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('daily-lessons-card')), findsOneWidget);
     expect(find.byKey(const Key('ai-conversation-card')), findsOneWidget);

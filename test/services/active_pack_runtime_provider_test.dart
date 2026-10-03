@@ -60,6 +60,7 @@ void main() {
       languagePack: const GermanLanguagePack(),
       embeddedGrammar: fallbackGrammar,
       databaseFactory: databaseFactoryFfi,
+      databaseKeyStore: const _TestPackDatabaseKeyStore(),
     ).resolve();
 
     final languagePack = runtime.languagePack;

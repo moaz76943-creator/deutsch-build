@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/preferences_service.dart';
+import '../../services/ui_preferences.dart';
 
 class CalmOnboardingSetupScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -50,12 +51,14 @@ class _CalmOnboardingSetupScreenState extends State<CalmOnboardingSetupScreen> {
           break;
       }
 
-      await Future.wait([
-        prefs.setInt('daily_study_time_minutes', minutes),
-        prefs.setInt('pomodoro_timer_minutes', minutes),
-        prefs.setInt('daily_new_cards_quota', newCardsQuota),
-        prefs.setInt('daily_review_limit', reviewLimit),
-      ]);
+      final saved = await UiPreferences(prefs).setDailyStudyProfile(
+        minutes: minutes,
+        newCardsQuota: newCardsQuota,
+        reviewLimit: reviewLimit,
+      );
+      if (!saved) {
+        throw StateError('Study preferences could not be persisted.');
+      }
 
       if (mounted) {
         if (widget.onComplete != null) {

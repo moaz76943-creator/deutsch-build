@@ -13,7 +13,7 @@ def _module():
     return module
 
 
-def test_properties_pin_expected_gradle_813_distribution():
+def test_properties_pin_expected_locked_gradle_distribution():
     module = _module()
     props = ROOT / 'android' / 'gradle' / 'wrapper' / 'gradle-wrapper.properties'
     ok, message = module.verify_distribution_properties(props, ROOT / 'toolchain.lock')

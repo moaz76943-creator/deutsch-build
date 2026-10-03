@@ -32,20 +32,18 @@ def test_v153_personal_path_card_is_stateful_and_plan_is_cached():
     assert 'didUpdateWidget' in card
 
 
-def test_v153_home_passes_state_revision_to_personal_path_card():
+def test_v153_home_refreshes_dynamic_state_and_gamification_snapshot():
     text = APP.read_text()
-    assert 'int _stateRevision = 0;' in text
-    assert re.search(
-        r'setState\(\(\)\s*\{\s*state\s*=\s*widget\.repo\.load\(\);\s*_stateRevision\+\+;\s*\}\);',
-        text,
-        re.DOTALL,
-    )
-    assert re.search(
-        r'PersonalPathCard\(\s*repo:\s*widget\.repo\s*,\s*onDone:\s*refresh\s*,\s*'
-        r'revision:\s*_stateRevision\s*,\s*corpus:\s*widget\.dependencies\.corpus',
-        text,
-        re.DOTALL,
-    )
+    refresh = text[text.index('  void refresh()'):text.index('  Widget _tabForIndex')]
+    assert 'state = widget.repo.load();' in refresh
+    assert 'widget.dependencies.gamificationRepository.loadSnapshot()' in refresh
+
+    home = text[text.index('  Widget _homeTab'):text.index('  Widget _learnTab')]
+    assert 'ProgressSnapshotService.build(' in home
+    assert 'profile?.currentStreak ?? state.streak' in home
+    assert 'profile?.totalXp ?? state.xp' in home
+    assert 'masteredWords: state.learned.length' in home
+    assert 'totalWords: widget.dependencies.corpus.length' in home
 
 
 def test_v153_learning_engine_groups_attempts_once_for_item_priority_and_history():

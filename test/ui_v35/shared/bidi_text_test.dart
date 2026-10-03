@@ -19,8 +19,18 @@ void main() {
       ),
     );
 
-    final german = tester.widget<Text>(find.byKey(const Key('de')));
-    final arabic = tester.widget<Text>(find.byKey(const Key('ar')));
+    final german = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('de')),
+        matching: find.byType(Text),
+      ),
+    );
+    final arabic = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('ar')),
+        matching: find.byType(Text),
+      ),
+    );
     expect(german.textDirection, TextDirection.ltr);
     expect(arabic.textDirection, TextDirection.rtl);
   });

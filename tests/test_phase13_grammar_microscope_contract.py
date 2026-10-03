@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,11 @@ def test_phase13_microscope_reads_canonical_runtime_grammar():
     assert "getRulesForTopic" in pack
     assert "fallback is GrammarMicroscopeRepository" in pack
     assert "as GrammarMicroscopeRepository" in pack
-    assert ".getRulesForTopic(safeTopicId)" in pack
+    assert re.search(
+        r"\.getRulesForTopic\(\s*safeTopicId\s*,?\s*\)",
+        pack,
+        re.DOTALL,
+    )
     assert "CanonicalGrammarCatalog" not in service
 
 

@@ -49,6 +49,7 @@ def test_content_pack_validation_rejects_shape_changes():
 def test_ci_workflows_validate_editable_content_packs():
     build_workflow = (ROOT / ".github/workflows/build-apk.yml").read_text(encoding="utf-8")
     quality_workflow = (ROOT / ".github/workflows/quality.yml").read_text(encoding="utf-8")
-    expected = "python3 tool/content_pack.py validate"
-    assert expected in build_workflow
-    assert expected in quality_workflow
+    gate = (ROOT / "scripts/local_quality_gate.sh").read_text(encoding="utf-8")
+    for workflow in (build_workflow, quality_workflow):
+        assert "bash scripts/local_quality_gate.sh" in workflow
+    assert "python3 tool/content_pack.py validate" in gate

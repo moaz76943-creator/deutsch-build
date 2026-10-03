@@ -8,12 +8,12 @@ def test_pubspec_requires_flutter_324_compatible_dart():
     assert 'sdk: ">=3.5.0 <4.0.0"' in text
 
 
-def test_gradle_wrapper_is_pinned_to_89():
+def test_gradle_wrapper_is_pinned_to_814():
     p = ROOT / "android/gradle/wrapper/gradle-wrapper.properties"
     assert p.exists()
     text = p.read_text()
-    assert "gradle-8.13-all.zip" in text
-    assert "distributionSha256Sum" not in text or "distributionSha256Sum=" in text
+    assert "gradle-8.14-all.zip" in text
+    assert "distributionSha256Sum=efe9a3d147d948d7528a9887fa35abcf24ca1a43ad06439996490f77569b02d1" in text
 
 
 def test_ci_reads_pinned_toolchain_without_repairing_pub_cache():

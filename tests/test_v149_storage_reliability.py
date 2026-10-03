@@ -15,5 +15,19 @@ def test_storage_limit_error_is_not_swallowed_by_repository_queue():
     )
     assert '_writeQueue = next.then<void>((_) {}).catchError((_) {});' in TEXT
 def test_every_mutating_operation_still_uses_serialized_enqueue():
-    for method in ['save(', 'clearLocalData(', 'recordAssessment(', 'recordWritingMistake(', 'toggleFavoriteVerb(', 'record(', 'recordConversationAttempt(']: assert method in TEXT
-    assert TEXT.count('=> _enqueue(() async {') >= 6
+    methods = (
+        'save',
+        'clearLocalData',
+        'recordAssessment',
+        'recordWritingMistake',
+        'toggleFavoriteVerb',
+        'record',
+        'recordConversationAttempt',
+    )
+    for method in methods:
+        assert re.search(
+            rf'Future<[^>]+>\s+{method}\b.*?'
+            rf'=>\s*_enqueue(?:<[^>]+>)?\s*\(',
+            TEXT,
+            re.DOTALL,
+        ), method

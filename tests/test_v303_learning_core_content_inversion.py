@@ -4,7 +4,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / 'lib/core/learning_core.dart'
 LEARNING = ROOT / 'lib/ui_v35/learning_pages.dart'
+LEARNING_PARTS = ROOT / 'lib/ui_v35/learning'
 PROGRESS = ROOT / 'lib/ui_v35/progress_pages.dart'
+
+def learning_text():
+    return LEARNING.read_text(encoding='utf-8') + '\n' + '\n'.join(
+        path.read_text(encoding='utf-8')
+        for path in sorted(LEARNING_PARTS.glob('*.dart'))
+    )
 
 
 def test_learning_core_has_no_runtime_dependency_on_content_engine_singleton():
@@ -20,7 +27,7 @@ def test_content_dependent_learning_operations_receive_corpus_explicitly():
 
 
 def test_callers_pass_their_content_boundary_into_learning_core():
-    learning = LEARNING.read_text(encoding='utf-8')
+    learning = learning_text()
     progress = PROGRESS.read_text(encoding='utf-8')
     assert re.search(r'LearningCore\.weakestItemForSkill\(\s*state,\s*focusSkill,\s*corpus,\s*isLearnable:\s*contentQuality\.isLearnable,?\s*\)', progress, re.DOTALL)
     assert 'LearningCore.weakestSkill(s)' in learning  # skill-only operation stays corpus-free

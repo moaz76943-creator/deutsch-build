@@ -109,8 +109,8 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 500));
       await tester.pump();
 
-      // The B1 topic (Passiv) should be rendered
-      expect(find.text('Passiv'), findsOneWidget);
+      // The canonical B1 topic title should be rendered.
+      expect(find.text('Das Passiv'), findsOneWidget);
       expect(find.text('Nominativ'), findsNothing); // A1 topic should be gone
     });
   });

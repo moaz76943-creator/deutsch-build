@@ -29,7 +29,7 @@ def test_termux_install_script_exists_and_is_resumable():
     assert '-C -' in text
 
 
-def test_termux_install_script_uses_java_21_and_no_p7zip_requirement():
+def test_termux_install_script_uses_locked_java_major_and_no_p7zip_requirement():
     text = INSTALL.read_text()
     assert 'openjdk-${JAVA_MAJOR}' in text
     assert 'p7zip' not in text
@@ -54,7 +54,7 @@ def test_v173_android_toolchain_is_pinned():
     assert '8.13.2' in BUILD_GRADLE.read_text()
     assert 'compileSdk 36' in APP.read_text()
     assert 'targetSdk 36' in APP.read_text()
-    assert 'gradle-8.13-all.zip' in WRAPPER.read_text()
+    assert 'gradle-8.14-all.zip' in WRAPPER.read_text()
     wf = WORKFLOW.read_text()
     assert 'java-version: "${{ steps.toolchain.outputs.java }}"' in wf
     assert 'toolchain.lock' in wf

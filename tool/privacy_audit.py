@@ -19,6 +19,10 @@ _LOCAL_KEY_OWNERS = {
     'privacy_cloud_ai_v1': 'lib/services/privacy_settings.dart',
     'privacy_speech_v1': 'lib/services/privacy_settings.dart',
     'vocabulary_view_mode': 'lib/services/ui_preferences.dart',
+    'daily_study_time_minutes': 'lib/services/ui_preferences.dart',
+    'pomodoro_timer_minutes': 'lib/services/ui_preferences.dart',
+    'daily_new_cards_quota': 'lib/services/ui_preferences.dart',
+    'daily_review_limit': 'lib/services/ui_preferences.dart',
     'offline_pack_registry_v1': 'lib/services/pack_manager_service.dart',
     'offline_active_pack_v1': 'lib/services/pack_manager_service.dart',
     'offline_manifest_revision_v1': 'lib/services/pack_manager_service.dart',
@@ -44,9 +48,19 @@ def audit_project(root: Path) -> PrivacyReport:
         if 'package:shared_preferences/shared_preferences.dart' in text and rel != 'lib/services/preferences_service.dart':
             direct_prefs.append(rel)
         # Inventory literal keys and simple file-local const-backed keys.
-        const_keys = dict(re.findall(r"(?:static\s+)?const\s+(\w+Key|key)\s*=\s*['\"]([^'\"]+)['\"]", text))
+        const_keys = dict(
+            re.findall(
+                r"(?:static\s+)?const(?:\s+[A-Za-z_][A-Za-z0-9_<>,?]*)?\s+"
+                r"(\w+Key|key)\s*=\s*['\"]([^'\"]+)['\"]",
+                text,
+            )
+        )
         if rel == 'lib/services/privacy_settings.dart':
-            for name, value in re.findall(r"static\s+const\s+(\w+Key)\s*=\s*['\"]([^'\"]+)['\"]", text):
+            for name, value in re.findall(
+                r"static\s+const(?:\s+[A-Za-z_][A-Za-z0-9_<>,?]*)?\s+"
+                r"(\w+Key)\s*=\s*['\"]([^'\"]+)['\"]",
+                text,
+            ):
                 const_keys[name] = value
         for match in re.finditer(
             rf"\b{_STORAGE_RECEIVER}\.{_STORAGE_METHOD}\(\s*['\"]([^'\"]+)['\"]",

@@ -1,14 +1,18 @@
+import 'dart:io';
+
 import 'package:deutsch_bilarabi/services/canonical_linguistic_schema.dart';
 import 'package:deutsch_bilarabi/services/pack_database_security.dart';
 import 'package:deutsch_bilarabi/services/pack_german_word_family_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   setUpAll(sqfliteFfiInit);
 
   test('pack repository reads only canonical explicit word families', () async {
-    final path = inMemoryDatabasePath;
+    final root = await Directory.systemTemp.createTemp('word_family_pack_');
+    final path = p.join(root.path, 'content.sqlite');
     final database = await databaseFactoryFfi.openDatabase(path);
     await CanonicalLinguisticSchema.migrateLegacyFlatSchema(database);
 
@@ -81,5 +85,7 @@ void main() {
     expect(families, hasLength(1));
     expect(families.single.baseMember?.concept.lemma, 'fahren');
     expect(families.single.members.last.concept.lemma, 'Fahrer');
+
+    await root.delete(recursive: true);
   });
 }

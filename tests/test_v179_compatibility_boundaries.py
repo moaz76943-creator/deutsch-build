@@ -57,4 +57,13 @@ def test_current_ui_imports_tts_service_boundary_not_plugin():
         text = path.read_text(encoding="utf-8")
         assert "package:flutter_tts/flutter_tts.dart" not in text, path
         if "SafeTtsController" in text:
-            assert "safe_ui.dart" in text or "tts_service.dart" in text
+            if "safe_ui.dart" in text or "tts_service.dart" in text:
+                continue
+            part = re.search(r"part of ['\"]([^'\"]+)['\"];", text)
+            assert part is not None, path
+            library = (path.parent / part.group(1)).resolve()
+            library_text = library.read_text(encoding="utf-8")
+            assert (
+                "safe_ui.dart" in library_text
+                or "tts_service.dart" in library_text
+            ), path

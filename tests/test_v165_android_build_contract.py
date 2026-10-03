@@ -8,7 +8,7 @@ def read(rel):
 
 def test_android_gradle_contract_is_repo_pinned():
     props = read("android/gradle/wrapper/gradle-wrapper.properties")
-    assert "gradle-8.13-all.zip" in props
+    assert "gradle-8.14-all.zip" in props
     assert "distributionUrl" in props
 
 def test_android_app_declares_namespace_and_compile_sdk():

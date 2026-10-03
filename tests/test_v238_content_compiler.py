@@ -48,11 +48,13 @@ def test_compiler_is_deterministic_and_keeps_runtime_source_untouched():
 def test_ci_invokes_content_compiler_parity_gate():
     build = (ROOT / '.github/workflows/build-apk.yml').read_text(encoding='utf-8')
     quality = (ROOT / '.github/workflows/quality.yml').read_text(encoding='utf-8')
-    assert 'content_compiler.py' in build
-    assert 'content_compiler.py' in quality
+    gate = (ROOT / 'scripts/local_quality_gate.sh').read_text(encoding='utf-8')
+    for workflow in (build, quality):
+        assert 'bash scripts/local_quality_gate.sh' in workflow
+    assert 'content_compiler.py' in gate
+    assert 'parity --output-dir' in gate
 
 def test_ci_content_compiler_uses_runner_temp_without_forced_recursive_delete():
-    for rel in ('.github/workflows/build-apk.yml', '.github/workflows/quality.yml'):
-        text = (ROOT / rel).read_text(encoding='utf-8')
-        assert 'mktemp -d' in text
-        assert 'rm -rf "$RUNNER_TEMP/deutsch-content-generated"' not in text
+    gate = (ROOT / 'scripts/local_quality_gate.sh').read_text(encoding='utf-8')
+    assert 'mktemp -d' in gate
+    assert 'rm -rf "$RUNNER_TEMP/deutsch-content-generated"' not in gate

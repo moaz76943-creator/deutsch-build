@@ -16,8 +16,8 @@ def test_single_toolchain_contract_exists_and_matches_reference():
     expected = {
         "FLUTTER_VERSION": "3.44.9",
         "DART_VERSION": "3.12.2",
-        "JAVA_MAJOR": "21",
-        "GRADLE_VERSION": "8.13",
+        "JAVA_MAJOR": "17",
+        "GRADLE_VERSION": "8.14",
         "AGP_VERSION": "8.13.2",
         "KOTLIN_VERSION": "2.3.0",
         "ANDROID_COMPILE_SDK": "36",

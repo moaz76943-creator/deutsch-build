@@ -2,8 +2,12 @@ from pathlib import Path
 import re
 ROOT=Path(__file__).resolve().parents[1]
 P=ROOT/'lib/ui_v35/learning_pages.dart'
+PARTS=ROOT/'lib/ui_v35/learning'
 
-def text(): return P.read_text(encoding='utf-8')
+def text():
+    chunks=[P.read_text(encoding='utf-8')]
+    chunks.extend(path.read_text(encoding='utf-8') for path in sorted(PARTS.glob('*.dart')))
+    return '\n'.join(chunks)
 
 def test_core_session_keeps_one_session_state_snapshot():
     s=text()

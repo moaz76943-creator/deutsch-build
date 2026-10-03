@@ -20,14 +20,18 @@ concurrency:
 
 jobs:
   release:
-    # isPrivate gate: removed private repo restriction to allow manual and main branch triggers
-    if: github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master'
+    if: github.event.repository.private == true && (github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
 
       - name: Read toolchain.lock
         id: toolchain
@@ -58,27 +62,17 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Install Python test tooling
+        run: python3 -m pip install --upgrade pip pytest
+
       - name: Materialize verified Gradle wrapper
         run: python3 tool/gradle_wrapper_bootstrap.py
 
       - name: Verify immutable Gradle wrapper
         run: python3 tool/gradle_wrapper_integrity.py
 
-      - name: Run release quality gates
-        run: |
-          python3 tool/v233_build_path_compatibility.py
-          python3 tool/privacy_audit.py
-          python3 tool/security_audit.py
-          python3 tool/quality_audit.py
-          python3 tool/accessibility_audit.py
-          python3 tool/architecture_audit.py
-          python3 tool/weakness_gate.py
-          python3 tool/content_pack.py validate
-          python3 tool/content_ingestion.py validate
-          tmp_dir="$(mktemp -d)"
-          trap 'rm -rf "$tmp_dir"' EXIT
-          python3 tool/content_compiler.py compile --output-dir "$tmp_dir/generated"
-          python3 tool/content_compiler.py parity --output-dir "$tmp_dir/generated"
+      - name: Run canonical quality gate
+        run: bash scripts/local_quality_gate.sh
 
       - name: Materialize release signing material
         env:

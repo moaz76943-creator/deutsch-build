@@ -4,7 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-import '../../core/widgets/glass_card.dart';
+import 'glass_card.dart';
 import '../theme/app_design_system.dart';
 
 class HomeProgressHero extends StatelessWidget {

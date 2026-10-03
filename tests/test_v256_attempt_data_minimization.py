@@ -13,8 +13,9 @@ def test_attempts_are_normalized_on_load_and_persistence_to_bound_user_text_and_
         re.DOTALL,
     )
     assert re.search(
-        r'if\s*\(normalized\.id\.isNotEmpty\s*&&\s*normalized\.itemId\.isNotEmpty\)\s*'
-        r'attempts\.add\(normalized\)',
+        r'if\s*\(normalized\.id\.isNotEmpty\s*&&\s*'
+        r'normalized\.itemId\.isNotEmpty\)\s*'
+        r'attempts\.add\(\s*normalized\s*\)',
         PERSIST,
         re.DOTALL,
     )

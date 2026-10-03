@@ -67,8 +67,10 @@ def test_phase17_production_aab_is_obfuscated_and_signature_checked():
 def test_phase17_gate_is_wired_to_release_paths():
     build = read("scripts/build.sh")
     check_release = read("scripts/check-release.sh")
+    gate = read("scripts/local_quality_gate.sh")
     assert "phase17_production_gate.py" in build
-    assert "phase17_production_gate.py" in check_release
+    assert "local_quality_gate.sh" in check_release
+    assert "python3 tool/phase17_production_gate.py" in gate
 
 
 def test_phase17_zero_new_dependencies_and_file_size_contract():

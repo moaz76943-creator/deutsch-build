@@ -48,17 +48,18 @@ def test_language_pack_exposes_language_presentation_and_german_pack_wires_it():
 
 def test_conversation_ui_consumes_presentation_instead_of_owning_conversation_language_copy():
     text = CONVERSATION.read_text(encoding='utf-8')
-    assert "import '../language/language_presentation.dart';" in text
-    assert 'required this.presentation' in text
-    assert 'widget.presentation.conversation.fallbackScenario' in text
-    assert 'presentation.conversation.targetLanguageInstruction' in text
-    assert 'widget.presentation.conversation.speechPermissionError' in text
+    compact = ''.join(text.split())
+    assert "import'../language/language_presentation.dart';" in compact
+    assert 'requiredthis.presentation' in compact
+    assert 'widget.presentation.conversation.fallbackScenario' in compact
+    assert 'widget.presentation.conversation.targetLanguageInstruction' in compact
+    assert 'widget.presentation.conversation.speechPermissionError' in compact
     assert "promptGerman:'Wie geht es Ihnen?'" not in text
     assert "expected:['Mir geht es gut.']" not in text
-    assert 'تحدث بالألمانية، وسيقارن التطبيق' not in text
-    assert 'إعداد اللغة الألمانية' not in text
+    assert 'تحدثبالألمانية،وسيقارنالتطبيق' not in compact
+    assert 'إعداداللغةالألمانية' not in compact
 
 
 def test_composition_root_passes_language_presentation_to_conversation_ui():
-    text = APP.read_text(encoding='utf-8')
-    assert 'presentation: widget.dependencies.languagePack.presentation' in text
+    compact = ''.join(APP.read_text(encoding='utf-8').split())
+    assert 'presentation:widget.dependencies.languagePack.presentation' in compact

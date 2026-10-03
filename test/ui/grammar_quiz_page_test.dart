@@ -120,7 +120,7 @@ void main() {
 
       // Feedback and next button should appear
       expect(
-        find.text('"der" ist der maskuline Artikel im Nominativ.'),
+        find.text('"der" هو أداة التعريف للمذكر في Nominativ.'),
         findsOneWidget,
       );
       expect(find.text('Next Question'), findsOneWidget);

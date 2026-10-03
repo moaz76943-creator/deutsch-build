@@ -13,4 +13,6 @@ def test_privacy_gate_passes_for_current_app():
 
 def test_release_workflow_runs_privacy_gate():
     workflow = (ROOT / '.github/workflows/build-apk.yml').read_text(encoding='utf-8')
-    assert 'python3 tool/privacy_audit.py' in workflow
+    gate = (ROOT / 'scripts/local_quality_gate.sh').read_text(encoding='utf-8')
+    assert 'bash scripts/local_quality_gate.sh' in workflow
+    assert 'python3 tool/privacy_audit.py' in gate

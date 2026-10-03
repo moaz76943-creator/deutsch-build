@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SHARED_UI = [
     ROOT / 'lib/ui/app.dart',
     ROOT / 'lib/ui_v35/learning_pages.dart',
+    *sorted((ROOT / 'lib/ui_v35/learning').glob('*.dart')),
     ROOT / 'lib/ui_v35/pages/core_pages.dart',
     ROOT / 'lib/ui_v35/progress_pages.dart',
 ]
@@ -22,7 +23,9 @@ def test_shared_ui_no_longer_reads_language_shaped_content_fields_directly():
 def test_shared_ui_uses_language_presentation_for_target_language_copy():
     presentation = (ROOT / 'lib/language/language_presentation.dart').read_text()
     german = (ROOT / 'lib/language/german/german_language_presentation.dart').read_text()
-    learning = (ROOT / 'lib/ui_v35/learning_pages.dart').read_text()
+    learning = (ROOT / 'lib/ui_v35/learning_pages.dart').read_text() + '\n' + '\n'.join(
+        path.read_text() for path in sorted((ROOT / 'lib/ui_v35/learning').glob('*.dart'))
+    )
     core = (ROOT / 'lib/ui_v35/pages/core_pages.dart').read_text()
     assert 'LanguagePresentation' in core
     for getter in ('targetLanguageName', 'pronunciationTooltip', 'grammaticalMarkerLabel', 'pluralLabel'):

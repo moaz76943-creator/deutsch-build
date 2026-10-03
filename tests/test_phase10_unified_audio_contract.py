@@ -17,13 +17,18 @@ def test_phase10_composition_root_owns_unified_audio_runtime():
     assert "IAudioRuntime audioRuntime" in deps
 
 
-def test_phase10_uses_existing_locked_dependencies_only():
+def test_phase10_uses_current_declared_audio_dependencies_and_offline_assets():
     pubspec = read("pubspec.yaml")
-    assert "flutter_tts: ^4.2.3" in pubspec
-    assert "audioplayers:" not in pubspec
+    assert "flutter_tts: ^4.2.5" in pubspec
+    assert "audioplayers: ^6.8.1" in pubspec
     assert "just_audio:" not in pubspec
     assert "content/german/audio_manifest.json" in pubspec
     assert "content/german/audio/" in pubspec
+
+    runtime = read("lib/features/audio/offline_audio_runtime.dart")
+    assert "IAudioRuntime" in runtime
+    assert "recordedPlayer.playAsset" in runtime
+    assert "package:audioplayers/" not in runtime
 
 
 def test_phase10_android_declares_tts_discovery_and_local_player_bridge():
