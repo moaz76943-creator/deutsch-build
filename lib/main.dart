@@ -160,7 +160,7 @@ Future<void> main() async {
         );
         final dependencies = AppDependencies<ContentItem>(
           grammarHubService: runtime.grammarHubService,
-          settingsNotifier: settingsNotifier,
+          settingsController: settingsNotifier,
           gamificationRepository: gamificationRepository,
           audioRuntime: audioRuntime,
           sourceAudioRuntime: sourceAudioRuntime,
