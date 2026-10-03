@@ -11,7 +11,7 @@ import '../features/gamification/domain/gamification_models.dart';
 import '../features/dashboard/application/dashboard_analytics_builder.dart';
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
 import '../features/error_pattern_agent/presentation/blind_spot_radar_screen.dart';
-import '../features/app_settings/presentation/app_settings_screen.dart';
+import '../features/app_settings/presentation/app_settings_screen.dart';\nimport '../features/life_hardware_store_diy/hardware_store_module.dart';
 import '../features/life_doctor_appointment/presentation/doctor_appointment_master_hub.dart';
 import '../features/life_furniture_home_setup/furniture_home_module.dart';
 import '../features/life_furniture_home_setup/furniture_home_screen.dart';
@@ -19,7 +19,6 @@ import '../features/life_postal_delivery/postal_master_orchestrator.dart';
 import '../features/life_postal_delivery/postal_screen.dart';
 import '../features/verb_conjugation/data/local_verb_repository.dart';
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
-import '../features/life_restaurant_dining/restaurant_screen.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
@@ -115,7 +114,7 @@ class _AppState extends State<DeutschAppV35> {
               title: 'Deutsch بالعربي',
               themeMode: dark ? ThemeMode.dark : ThemeMode.light,
               theme: lightTheme,
-              darkTheme: darkTheme,
+              darkTheme: darkTheme,\n              routes: HardwareStoreModule.routes(),
               builder: (builderContext, child) {
                 final media = MediaQuery.of(builderContext);
                 final scale = widget
@@ -139,11 +138,6 @@ class _AppState extends State<DeutschAppV35> {
                       orchestrator: widget.dependencies.postalDeliveryModule
                           .createOrchestrator(),
                     ),
-                RestaurantDiningMasterHub.routeName: (_) =>
-                    RestaurantDiningMasterHub(
-                  orchestratorFactory:
-                      widget.dependencies.restaurantDiningFactory.create,
-                ),
               },
               home: HomeV35(
                 repo: widget.repo,
