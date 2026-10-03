@@ -16,35 +16,62 @@ final class SyncSrsRecord {
     required this.lapses,
     required this.successes,
     required this.failures,
+    this.intervalDays = 0,
+    this.difficulty = 1.3,
+    this.stabilityDays = 0,
+    this.lastReviewedAtUtc,
   });
 
   final String key;
   final DateTime updatedAtUtc;
   final DateTime dueAtUtc;
   final int repetitions;
+  final int intervalDays;
   final int lapses;
   final int successes;
   final int failures;
+  final double difficulty;
+  final double stabilityDays;
+  final DateTime? lastReviewedAtUtc;
 
   Map<String, Object?> toJson() => <String, Object?>{
         'key': key,
         'updatedAtUtc': updatedAtUtc.toUtc().toIso8601String(),
         'dueAtUtc': dueAtUtc.toUtc().toIso8601String(),
         'repetitions': repetitions,
+        'intervalDays': intervalDays,
         'lapses': lapses,
         'successes': successes,
         'failures': failures,
+        'difficulty': difficulty,
+        'stabilityDays': stabilityDays,
+        if (lastReviewedAtUtc != null)
+          'lastReviewedAtUtc': lastReviewedAtUtc!.toUtc().toIso8601String(),
       };
 
   factory SyncSrsRecord.fromJson(Map<String, Object?> json) {
+    final lastRaw = json['lastReviewedAtUtc'];
+    DateTime? lastReviewed;
+    if (lastRaw is String) {
+      lastReviewed = DateTime.tryParse(lastRaw)?.toUtc();
+    }
     return SyncSrsRecord(
       key: _requiredText(json['key'], 'key'),
       updatedAtUtc: _requiredUtc(json['updatedAtUtc'], 'updatedAtUtc'),
       dueAtUtc: _requiredUtc(json['dueAtUtc'], 'dueAtUtc'),
       repetitions: _boundedInt(json['repetitions'], 0, 10000),
+      intervalDays: _boundedInt(json['intervalDays'], 0, 3650),
       lapses: _boundedInt(json['lapses'], 0, 10000),
       successes: _boundedInt(json['successes'], 0, 100000),
       failures: _boundedInt(json['failures'], 0, 100000),
+      difficulty: _boundedDouble(json['difficulty'], .5, 2.5, 1.3),
+      stabilityDays: _boundedDouble(
+        json['stabilityDays'],
+        0,
+        3650,
+        0,
+      ),
+      lastReviewedAtUtc: lastReviewed,
     );
   }
 }
@@ -100,17 +127,20 @@ final class SyncProgressSnapshot {
     );
   }
 
-  Map<String, Object?> toJson() => <String, Object?>{
-        'revision': revision,
-        'updatedAtUtc': updatedAtUtc.toIso8601String(),
-        'currentStreak': currentStreak,
-        'longestStreak': longestStreak,
-        'totalXp': totalXp,
-        'srs': <String, Object?>{
-          for (final entry in srs.entries) entry.key: entry.value.toJson(),
-        },
-        'achievementIds': achievementIds.toList(growable: false)..sort(),
-      };
+  Map<String, Object?> toJson() {
+    final achievements = achievementIds.toList(growable: false)..sort();
+    return <String, Object?>{
+      'revision': revision,
+      'updatedAtUtc': updatedAtUtc.toIso8601String(),
+      'currentStreak': currentStreak,
+      'longestStreak': longestStreak,
+      'totalXp': totalXp,
+      'srs': <String, Object?>{
+        for (final entry in srs.entries) entry.key: entry.value.toJson(),
+      },
+      'achievementIds': achievements,
+    };
+  }
 
   factory SyncProgressSnapshot.fromJson(Map<String, Object?> json) {
     final rawSrs = json['srs'];
@@ -120,7 +150,7 @@ final class SyncProgressSnapshot {
         if (entry.key is! String || entry.value is! Map) continue;
         final value = <String, Object?>{
           for (final child in (entry.value as Map).entries)
-            if (child.key is String) child.key as String: child.value,
+            if (child.key is String) (child.key as String): child.value,
         };
         try {
           parsedSrs[entry.key as String] = SyncSrsRecord.fromJson(value);
@@ -190,7 +220,9 @@ final class SyncQueueItem {
     final payload = <String, Object?>{};
     if (rawPayload is Map) {
       for (final entry in rawPayload.entries) {
-        if (entry.key is String) payload[entry.key as String] = entry.value;
+        if (entry.key is String) {
+          payload[entry.key as String] = entry.value;
+        }
       }
     }
     return SyncQueueItem(
@@ -248,4 +280,15 @@ int _boundedInt(Object? value, int min, int max) {
   final parsed = value is num ? value.toInt() : int.tryParse('$value');
   final safe = parsed ?? min;
   return safe.clamp(min, max).toInt();
+}
+
+double _boundedDouble(
+  Object? value,
+  double min,
+  double max,
+  double fallback,
+) {
+  final parsed = value is num ? value.toDouble() : double.tryParse('$value');
+  if (parsed == null || !parsed.isFinite) return fallback;
+  return parsed.clamp(min, max).toDouble();
 }
