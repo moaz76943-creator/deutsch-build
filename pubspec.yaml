@@ -28,6 +28,9 @@ dependencies:
   font_awesome_flutter: ^11.0.0
   fl_chart: ^1.2.0
   flutter_animate: ^4.5.2
+  audioplayers: ^6.8.1
+  cached_network_image: ^4.0.3
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
