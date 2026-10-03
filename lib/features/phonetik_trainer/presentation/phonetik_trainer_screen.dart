@@ -208,7 +208,8 @@ final class _FocusCard extends StatelessWidget {
       };
 
   static String _choiceLanguageCode(String choice) {
-    final hasArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(choice);
+    final hasArabic =
+        choice.runes.any((rune) => rune >= 0x0600 && rune <= 0x06FF);
     return hasArabic ? 'ar' : 'de';
   }
 }
