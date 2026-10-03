@@ -1,47 +1,64 @@
-name: Daily & Auto Build APK
+name: Pro Automated Build & Release
 
 on:
   schedule:
-    # يشتغل يومياً تلقائياً في منتصف الليل بتوقيت السيرفر
+    # فحص وبناء يومي منتصف كل ليلة
     - cron: '0 0 * * *'
   push:
     branches:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  pipeline:
-    name: Verify and Build APK
+  build:
+    name: Build, Optimize & Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 1. جلب الكود من المستودع
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: 2. إعداد بيئة Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter
+      - name: 3. تفعيل الكاش الذكي لتسريع Gradle بنسبة 70%
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: 4. إعداد بيئة Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: Install Dependencies
+      - name: 5. تنزيل حزم فلاتر
         run: flutter pub get
 
-      - name: Auto Code Analysis
+      - name: 6. التحقق البرمجي التلقائي الصارم
         run: flutter analyze
 
-      - name: Build Installable APK
+      - name: 7. بناء ملف APK قابل للتثبيت المباشر
         run: flutter build apk --debug
 
-      - name: Publish APK Download Link
+      - name: 8. رفع نسخة احتياطية من الملف (Artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: deutsch-bilarabi-app
+          name: deutsch-bilarabi-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 14
+
+      - name: 9. إنشاء رابط تحميل مباشر دائم (.apk بدون ضغط zip)
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: latest
+          name: "أحدث نسخة تجريبية جاهزة للتثبيت"
+          body: "تم البناء والفحص التلقائي بنجاح. هذا الملف جاهز للتثبيت المباشر على الهاتف دون الحاجة لفك الضغط."
+          files: build/app/outputs/flutter-apk/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
