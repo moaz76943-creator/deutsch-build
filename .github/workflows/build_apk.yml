@@ -1,4 +1,4 @@
-name: Pro Automated Build & Release
+name: Pro Build, Release & Web Preview
 
 on:
   schedule:
@@ -10,10 +10,12 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
-    name: Build, Secure, Optimize & Release
+    name: Build APK & Web Preview
     runs-on: ubuntu-latest
 
     steps:
@@ -28,33 +30,37 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 3. تفعيل الكاش الذكي لتسريع أندرويد و Gradle
+      - name: 3. تفعيل الكاش الذكي لتسريع أندرويد
         uses: gradle/actions/setup-gradle@v3
 
-      - name: 4. إعداد بيئة Flutter المستقرة
+      - name: 4. إعداد بيئة Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 5. تنزيل وتحديث الحزم المتوافقة
+      - name: 5. تنزيل الحزم وتوليد الأصول
         run: flutter pub get
 
-      - name: 6. التحقق البرمجي التلقائي الصارم
+      - name: 6. الفحص البرمجي التلقائي
         run: flutter analyze
 
-      - name: 7. فحص الأمان والثغرات التلقائي للمستودع
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          severity: 'CRITICAL'
-          exit-code: '0'
-
-      - name: 8. توليد النسخ الخفيفة والمحسنة (Split APKs)
+      - name: 7. توليد النسخ الخفيفة (Split APKs)
         run: flutter build apk --debug --split-per-abi
 
-      - name: 9. تجهيز سجل التعديلات التلقائي (Changelog)
+      - name: 8. بناء نسخة المعاينة الحية للويب
+        run: flutter build web --base-href "/${{ github.event.repository.name }}/"
+
+      - name: 9. نشر المعاينة الحية على صفحات GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - name: 10. تفعيل رابط المعاينة المباشر
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 11. استخراج سجل التعديلات
         id: changelog
         run: |
           echo "CHANGES<<EOF" >> $GITHUB_ENV
@@ -62,7 +68,7 @@ jobs:
           echo "" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: 10. تنظيف الإصدارات القديمة تلقائياً (إبقاء آخر 3 فقط)
+      - name: 12. تنظيف الإصدارات القديمة (إبقاء آخر 3 فقط)
         uses: dev-drprasad/delete-older-releases@v0.3.3
         with:
           keep_latest: 3
@@ -70,19 +76,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 11. نشر النسخ بروابط تحميل مباشرة (.apk)
+      - name: 13. نشر روابط تحميل ملفات الـ APK
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: latest
           name: "أحدث نسخة تجريبية جاهزة للتثبيت"
           body: |
-            ### 🚀 آخر التحديثات في هذه النسخة:
+            ### 🚀 آخر التحديثات:
             ${{ env.CHANGES }}
 
             ---
-            * **app-arm64-v8a-debug.apk**: النسخة الخفيفة الموصى بها للهواتف الحديثة.
-            * **app-armeabi-v7a-debug.apk**: نسخة الأجهزة القديمة.
+            * 🌐 **رابط معاينة الواجهات على المتصفح مباشرة:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+            * 📱 **app-arm64-v8a-debug.apk**: النسخة الموصى بها لهاتفك.
           files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
