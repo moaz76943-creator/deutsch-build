@@ -9,12 +9,12 @@ def read(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
-def test_tts_plugin_has_one_service_boundary():
-    service = ROOT / "lib/services/tts_service.dart"
-    assert service.exists(), "TTS adapter service must exist"
-    assert "package:flutter_tts/flutter_tts.dart" in service.read_text(encoding="utf-8")
+def test_tts_plugin_has_one_infrastructure_boundary():
+    adapter = ROOT / "lib/core/infrastructure/audio/flutter_tts_audio_engine.dart"
+    assert adapter.exists(), "TTS infrastructure adapter must exist"
+    assert "package:flutter_tts/flutter_tts.dart" in adapter.read_text(encoding="utf-8")
     for path in LIB.rglob("*.dart"):
-        if path == service:
+        if path == adapter:
             continue
         text = path.read_text(encoding="utf-8")
         assert "package:flutter_tts/flutter_tts.dart" not in text, path
@@ -27,10 +27,12 @@ def test_tts_compatibility_shim_does_not_expose_plugin_type():
     assert "FlutterTts" not in text
 
 
-def test_speech_and_preferences_are_the_only_platform_plugin_boundaries():
+def test_speech_and_preferences_have_single_platform_plugin_boundaries():
     boundaries = {
         "shared_preferences": {ROOT / "lib/services/preferences_service.dart"},
-        "speech_to_text": {ROOT / "lib/services/speech_service.dart"},
+        "speech_to_text": {
+            ROOT / "lib/core/infrastructure/audio/speech_to_text_engine.dart"
+        },
     }
     for package, allowed in boundaries.items():
         needle = f"package:{package}/"

@@ -1,102 +1,29 @@
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../core/infrastructure/audio/speech_to_text_engine.dart';
 
-class SpeechResult {
-  final String recognizedWords;
-  final bool finalResult;
-  const SpeechResult({
-    required this.recognizedWords,
-    required this.finalResult,
-  });
-}
+export '../core/infrastructure/audio/speech_to_text_engine.dart'
+    show SpeechResult;
 
-/// Isolates speech_to_text lifecycle quirks from UI consumers.
-///
-/// A generation token makes late plugin callbacks harmless after stop/dispose,
-/// while the operation guard prevents overlapping listen/initialize calls.
-class SpeechService {
+/// Compatibility facade. Plugin ownership lives exclusively in Infrastructure.
+final class SpeechService {
   final String localeId;
-  final stt.SpeechToText engine = stt.SpeechToText();
-  SpeechService({this.localeId = 'de_DE'});
 
-  bool initialized = false;
-  bool _disposed = false;
-  bool _operationBusy = false;
-  int _generation = 0;
+  SpeechService({this.localeId = 'de_DE', SpeechToTextEngine? engine})
+      : _engine = engine ?? SpeechToTextEngine(localeId: localeId);
 
-  Future<bool> initialize() async {
-    if (_disposed || _operationBusy) return false;
-    _operationBusy = true;
-    try {
-      initialized = await engine.initialize();
-      return !_disposed && initialized;
-    } catch (_) {
-      initialized = false;
-      return false;
-    } finally {
-      _operationBusy = false;
-    }
-  }
+  final SpeechToTextEngine _engine;
+
+  bool get initialized => _engine.initialized;
+
+  Future<bool> initialize() => _engine.initialize();
 
   Future<bool> listen({
     required void Function(SpeechResult result) onResult,
-  }) async {
-    if (_disposed || _operationBusy) return false;
-    _operationBusy = true;
-    final generation = ++_generation;
-    try {
-      if (!initialized) {
-        initialized = await engine.initialize();
-      }
-      if (_disposed || !initialized) return false;
-      await engine.listen(
-        listenOptions: stt.SpeechListenOptions(localeId: localeId),
-        onResult: (result) {
-          if (_disposed || generation != _generation) return;
-          try {
-            onResult(
-              SpeechResult(
-                recognizedWords: result.recognizedWords,
-                finalResult: result.finalResult,
-              ),
-            );
-          } catch (_) {
-            // Consumer callback errors must not escape the plugin boundary.
-          }
-        },
-      );
-      return !_disposed;
-    } catch (_) {
-      initialized = false;
-      return false;
-    } finally {
-      _operationBusy = false;
-    }
-  }
+  }) =>
+      _engine.listen(onResult: onResult);
 
-  Future<void> stop() async {
-    if (_disposed) return;
-    ++_generation;
-    try {
-      await engine.stop();
-    } catch (_) {}
-  }
+  Future<void> stop() => _engine.stop();
 
-  bool get isListening {
-    if (_disposed) return false;
-    try {
-      return engine.isListening;
-    } catch (_) {
-      return false;
-    }
-  }
+  bool get isListening => _engine.isListening;
 
-  void dispose() {
-    if (_disposed) return;
-    _disposed = true;
-    ++_generation;
-    initialized = false;
-    try {
-      engine.stop().catchError((_) {});
-    } catch (_) {}
-  }
+  void dispose() => _engine.dispose();
 }
