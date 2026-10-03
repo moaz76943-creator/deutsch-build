@@ -47,79 +47,86 @@ final class OfflineAudioRuntime implements IAudioRuntime {
 
     final generation = ++_generation;
     final completer = Completer<AudioPlaybackResult>();
-    final next = _tail.then((_) async {
-      if (_closed || generation != _generation) {
-        completer.complete(
-          const AudioPlaybackResult.unavailable('audio_request_superseded'),
-        );
-        return;
-      }
-      _emit(AudioPlaybackState.loading);
-
-      final conceptId = request.conceptId?.trim();
-      if (conceptId != null && conceptId.isNotEmpty) {
-        final asset = catalog.recordedAssetFor(
-          conceptId: conceptId,
-          variant: request.variant,
-        );
-        if (asset != null) {
-          try {
-            _emit(AudioPlaybackState.playing);
-            if (await recordedPlayer.playAsset(asset)) {
-              _emit(AudioPlaybackState.completed);
-              _emit(AudioPlaybackState.idle);
-              completer.complete(const AudioPlaybackResult.recorded());
-              return;
-            }
-          } on Object {
-            // A broken local asset may fall through to verified offline TTS.
+    final next = _tail
+        .then((_) async {
+          if (_closed || generation != _generation) {
+            completer.complete(
+              const AudioPlaybackResult.unavailable('audio_request_superseded'),
+            );
+            return;
           }
-        }
-      }
+          _emit(AudioPlaybackState.loading);
 
-      if (_closed || generation != _generation) {
-        _emit(AudioPlaybackState.idle);
-        completer.complete(
-          const AudioPlaybackResult.unavailable('audio_request_superseded'),
-        );
-        return;
-      }
+          final conceptId = request.conceptId?.trim();
+          if (conceptId != null && conceptId.isNotEmpty) {
+            final asset = catalog.recordedAssetFor(
+              conceptId: conceptId,
+              variant: request.variant,
+            );
+            if (asset != null) {
+              try {
+                _emit(AudioPlaybackState.playing);
+                if (await recordedPlayer.playAsset(asset)) {
+                  _emit(AudioPlaybackState.completed);
+                  _emit(AudioPlaybackState.idle);
+                  completer.complete(const AudioPlaybackResult.recorded());
+                  return;
+                }
+              } on Object {
+                // A broken local asset may fall through to verified offline TTS.
+              }
+            }
+          }
 
-      final availability = await ttsEngine.probe(speechProfile);
-      if (availability != OfflineTtsAvailability.ready) {
-        _emit(AudioPlaybackState.error);
-        completer.complete(
-          const AudioPlaybackResult.unavailable(
-            'offline_tts_voice_unavailable',
-          ),
-        );
-        return;
-      }
+          if (_closed || generation != _generation) {
+            _emit(AudioPlaybackState.idle);
+            completer.complete(
+              const AudioPlaybackResult.unavailable('audio_request_superseded'),
+            );
+            return;
+          }
 
-      _emit(AudioPlaybackState.playing);
-      final spoken = await ttsEngine.speak(
-        text: request.text.trim(),
-        profile: speechProfile,
-        rate: (request.rate ?? speechProfile.defaultSpeechRate).clamp(.1, 1.0),
-      );
-      if (!spoken) {
-        _emit(AudioPlaybackState.error);
-        completer.complete(
-          const AudioPlaybackResult.unavailable('offline_tts_playback_failed'),
-        );
-        return;
-      }
-      _emit(AudioPlaybackState.completed);
-      _emit(AudioPlaybackState.idle);
-      completer.complete(const AudioPlaybackResult.offlineTts());
-    }).catchError((Object _) {
-      if (!completer.isCompleted) {
-        _emit(AudioPlaybackState.error);
-        completer.complete(
-          const AudioPlaybackResult.unavailable('audio_runtime_failure'),
-        );
-      }
-    });
+          final availability = await ttsEngine.probe(speechProfile);
+          if (availability != OfflineTtsAvailability.ready) {
+            _emit(AudioPlaybackState.error);
+            completer.complete(
+              const AudioPlaybackResult.unavailable(
+                'offline_tts_voice_unavailable',
+              ),
+            );
+            return;
+          }
+
+          _emit(AudioPlaybackState.playing);
+          final spoken = await ttsEngine.speak(
+            text: request.text.trim(),
+            profile: speechProfile,
+            rate: (request.rate ?? speechProfile.defaultSpeechRate).clamp(
+              .1,
+              1.0,
+            ),
+          );
+          if (!spoken) {
+            _emit(AudioPlaybackState.error);
+            completer.complete(
+              const AudioPlaybackResult.unavailable(
+                'offline_tts_playback_failed',
+              ),
+            );
+            return;
+          }
+          _emit(AudioPlaybackState.completed);
+          _emit(AudioPlaybackState.idle);
+          completer.complete(const AudioPlaybackResult.offlineTts());
+        })
+        .catchError((Object _) {
+          if (!completer.isCompleted) {
+            _emit(AudioPlaybackState.error);
+            completer.complete(
+              const AudioPlaybackResult.unavailable('audio_runtime_failure'),
+            );
+          }
+        });
     _tail = next;
     return completer.future;
   }

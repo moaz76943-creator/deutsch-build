@@ -4,8 +4,7 @@ import 'package:deutsch_bilarabi/services/pack_manifest.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const publicKeyBase64 =
-      '11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=';
+  const publicKeyBase64 = '11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=';
   const signedManifest =
       '{"schemaVersion":2,"manifestRevision":7,"algorithm":"Ed25519",'
       '"keyId":"test-rfc8032","packs":[{"id":"de-core",'

@@ -12,7 +12,6 @@ abstract interface class IAudioRuntime {
   Future<void> shutdown();
 }
 
-
 final class UnavailableAudioRuntime implements IAudioRuntime {
   const UnavailableAudioRuntime();
 

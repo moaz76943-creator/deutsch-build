@@ -89,9 +89,9 @@ FROM grammar_topics
   ];
 
   static Future<void> rebuild(Database db) async {
-    const GermanLinguisticValidator()
-        .validateCanonicalGrammar()
-        .throwIfInvalid(context: 'canonical grammar catalog');
+    const GermanLinguisticValidator().validateCanonicalGrammar().throwIfInvalid(
+      context: 'canonical grammar catalog',
+    );
     await db.execute('PRAGMA foreign_keys = ON');
     final mastered = await _existingMastery(db);
 

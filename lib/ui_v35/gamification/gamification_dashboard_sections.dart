@@ -5,10 +5,7 @@ import '../../features/gamification/domain/gamification_models.dart';
 import '../shared/text/bidi_text.dart';
 
 class GamificationSummaryGrid extends StatelessWidget {
-  const GamificationSummaryGrid({
-    super.key,
-    required this.snapshot,
-  });
+  const GamificationSummaryGrid({super.key, required this.snapshot});
 
   final GamificationSnapshot snapshot;
 
@@ -90,10 +87,7 @@ class GamificationSummaryGrid extends StatelessWidget {
 }
 
 class GamificationNextMilestoneCard extends StatelessWidget {
-  const GamificationNextMilestoneCard({
-    super.key,
-    required this.snapshot,
-  });
+  const GamificationNextMilestoneCard({super.key, required this.snapshot});
 
   final GamificationSnapshot snapshot;
 
@@ -137,9 +131,8 @@ class GamificationNextMilestoneCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               badge.titleAr,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
             Text(badge.descriptionAr),
@@ -163,10 +156,7 @@ class GamificationNextMilestoneCard extends StatelessWidget {
 }
 
 class GamificationBadgeList extends StatelessWidget {
-  const GamificationBadgeList({
-    super.key,
-    required this.snapshot,
-  });
+  const GamificationBadgeList({super.key, required this.snapshot});
 
   final GamificationSnapshot snapshot;
 
@@ -181,9 +171,8 @@ class GamificationBadgeList extends StatelessWidget {
           children: [
             Text(
               'الشارات',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             for (final badge in snapshot.badges)
@@ -261,10 +250,7 @@ class _MetricCard extends StatelessWidget {
               semanticRole: LinguisticSemanticRole.number,
             ),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
           ),
         ],
       ),

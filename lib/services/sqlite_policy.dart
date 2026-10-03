@@ -48,10 +48,7 @@ final class AppSqlitePolicy {
     final options = OpenDatabaseOptions(
       version: version,
       onConfigure: (database) async {
-        await _configureConnection(
-          database,
-          foreignKeys: foreignKeys,
-        );
+        await _configureConnection(database, foreignKeys: foreignKeys);
         if (onConfigure != null) {
           await onConfigure(database);
         }

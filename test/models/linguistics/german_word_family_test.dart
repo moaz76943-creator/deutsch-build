@@ -25,23 +25,26 @@ void main() {
     expect(member.isBase, isFalse);
   });
 
-  test('potentially confusing relatives remain explicit rather than merged', () {
-    const member = GermanWordFamilyMember(
-      concept: LinguisticConcept(
-        id: 'verb.erfahren',
-        senseId: 'erfahren.learn',
-        lemma: 'erfahren',
-        partOfSpeech: LinguisticPartOfSpeech.verb,
-        register: LanguageRegister.neutral,
-        cefr: CefrLevel.a2,
-      ),
-      relationType: GermanWordFamilyRelationType.semanticRelative,
-      semanticDistance: GermanSemanticDistance.high,
-      pedagogicalLevel: CefrLevel.a2,
-      interferenceRisk: true,
-    );
+  test(
+    'potentially confusing relatives remain explicit rather than merged',
+    () {
+      const member = GermanWordFamilyMember(
+        concept: LinguisticConcept(
+          id: 'verb.erfahren',
+          senseId: 'erfahren.learn',
+          lemma: 'erfahren',
+          partOfSpeech: LinguisticPartOfSpeech.verb,
+          register: LanguageRegister.neutral,
+          cefr: CefrLevel.a2,
+        ),
+        relationType: GermanWordFamilyRelationType.semanticRelative,
+        semanticDistance: GermanSemanticDistance.high,
+        pedagogicalLevel: CefrLevel.a2,
+        interferenceRisk: true,
+      );
 
-    expect(member.semanticDistance, GermanSemanticDistance.high);
-    expect(member.interferenceRisk, isTrue);
-  });
+      expect(member.semanticDistance, GermanSemanticDistance.high);
+      expect(member.interferenceRisk, isTrue);
+    },
+  );
 }

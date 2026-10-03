@@ -1,8 +1,4 @@
-enum AudioVariant {
-  word,
-  sentence,
-  pronunciation,
-}
+enum AudioVariant { word, sentence, pronunciation }
 
 final class AudioRequest {
   const AudioRequest({

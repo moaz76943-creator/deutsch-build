@@ -277,10 +277,7 @@ final class _ManifestAcceptance {
     required this.keyId,
   });
 
-  const _ManifestAcceptance.empty()
-    : revision = 0,
-      signature = '',
-      keyId = '';
+  const _ManifestAcceptance.empty() : revision = 0, signature = '', keyId = '';
 
   final int revision;
   final String signature;
@@ -294,8 +291,7 @@ class PackManagerService extends ChangeNotifier {
     PackManifestVerifier? manifestVerifier,
     PackDatabaseKeyStore databaseKeyStore =
         const UnavailablePackDatabaseKeyStore(),
-    PackDatabaseCipher databaseCipher =
-        const UnavailablePackDatabaseCipher(),
+    PackDatabaseCipher databaseCipher = const UnavailablePackDatabaseCipher(),
     PackDownloader? downloader,
     PackArchiveExtractor extractor = const JsonGzipPackExtractor(),
     DateTime Function()? clock,
@@ -312,8 +308,7 @@ class PackManagerService extends ChangeNotifier {
   static const String installedRegistryKey = 'offline_pack_registry_v1';
   static const String activePackKey = 'offline_active_pack_v1';
   static const String manifestRevisionKey = 'offline_manifest_revision_v1';
-  static const String manifestAcceptanceKey =
-      'offline_manifest_acceptance_v2';
+  static const String manifestAcceptanceKey = 'offline_manifest_acceptance_v2';
 
   final PreferencesService _prefs;
   final Directory rootDirectory;

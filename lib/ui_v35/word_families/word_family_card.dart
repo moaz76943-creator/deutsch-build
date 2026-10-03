@@ -36,9 +36,8 @@ class WordFamilyCard extends StatelessWidget {
                       base?.concept.lemma ?? family.familyId,
                       semanticRole: LinguisticSemanticRole.word,
                     ),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 Text('${family.members.length}'),
@@ -59,19 +58,14 @@ class WordFamilyCard extends StatelessWidget {
               ),
             ],
             const Divider(height: 24),
-            ...family.members.map(
-              (member) => _memberRow(context, member),
-            ),
+            ...family.members.map((member) => _memberRow(context, member)),
           ],
         ),
       ),
     );
   }
 
-  Widget _memberRow(
-    BuildContext context,
-    GermanWordFamilyMember member,
-  ) {
+  Widget _memberRow(BuildContext context, GermanWordFamilyMember member) {
     final content = contentById[member.concept.id];
     final article = content?.article.trim() ?? '';
     final german = article.isEmpty
@@ -83,7 +77,9 @@ class WordFamilyCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
@@ -137,24 +133,24 @@ class WordFamilyCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(String label) => Chip(
-    visualDensity: VisualDensity.compact,
-    label: Text(label),
-  );
+  Widget _chip(String label) =>
+      Chip(visualDensity: VisualDensity.compact, label: Text(label));
 
-  String _relationLabel(GermanWordFamilyRelationType relation) => switch (relation) {
-    GermanWordFamilyRelationType.base => 'الأساس',
-    GermanWordFamilyRelationType.agentNoun => 'اسم الفاعل',
-    GermanWordFamilyRelationType.eventNoun => 'اسم حدث',
-    GermanWordFamilyRelationType.derivedNoun => 'اسم مشتق',
-    GermanWordFamilyRelationType.derivedAdjective => 'صفة مشتقة',
-    GermanWordFamilyRelationType.prefixedVerb => 'فعل ببادئة',
-    GermanWordFamilyRelationType.compound => 'مركب',
-    GermanWordFamilyRelationType.semanticRelative => 'قريب دلاليًا',
-    GermanWordFamilyRelationType.historicalRelative => 'قرابة تاريخية',
-    GermanWordFamilyRelationType.notPedagogicallyLinked => 'لا يربط تعليميًا',
-    GermanWordFamilyRelationType.unknown => 'علاقة غير معروفة',
-  };
+  String _relationLabel(GermanWordFamilyRelationType relation) =>
+      switch (relation) {
+        GermanWordFamilyRelationType.base => 'الأساس',
+        GermanWordFamilyRelationType.agentNoun => 'اسم الفاعل',
+        GermanWordFamilyRelationType.eventNoun => 'اسم حدث',
+        GermanWordFamilyRelationType.derivedNoun => 'اسم مشتق',
+        GermanWordFamilyRelationType.derivedAdjective => 'صفة مشتقة',
+        GermanWordFamilyRelationType.prefixedVerb => 'فعل ببادئة',
+        GermanWordFamilyRelationType.compound => 'مركب',
+        GermanWordFamilyRelationType.semanticRelative => 'قريب دلاليًا',
+        GermanWordFamilyRelationType.historicalRelative => 'قرابة تاريخية',
+        GermanWordFamilyRelationType.notPedagogicallyLinked =>
+          'لا يربط تعليميًا',
+        GermanWordFamilyRelationType.unknown => 'علاقة غير معروفة',
+      };
 
   String _distanceLabel(GermanSemanticDistance distance) => switch (distance) {
     GermanSemanticDistance.low => 'قرب دلالي: منخفض',

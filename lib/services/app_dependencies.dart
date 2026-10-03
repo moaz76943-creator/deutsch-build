@@ -31,12 +31,10 @@ final class AppDependencies<T extends LearningContent> {
     required this.favoritesRepository,
     required this.preferencesService,
     required this.grammarHubService,
-    this.gamificationRepository =
-        const UnavailableGamificationRepository(),
+    this.gamificationRepository = const UnavailableGamificationRepository(),
     this.audioRuntime = const UnavailableAudioRuntime(),
     this.sourceAudioRuntime = const UnavailableAudioRuntime(),
-    this.pronunciationSignalProbe =
-        const UnavailablePronunciationSignalProbe(),
+    this.pronunciationSignalProbe = const UnavailablePronunciationSignalProbe(),
     this.wordFamilyRepository = const EmptyGermanWordFamilyRepository(),
     this.packManagerService,
     this.runtimePackState = const RuntimePackState.embeddedFallback(),

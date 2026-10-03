@@ -19,17 +19,18 @@ final class CommuteReviewQueueBuilder<T extends LearningContent> {
   }) {
     final clock = now ?? DateTime.now();
     final safeLimit = limit.clamp(1, 100).toInt();
-    final cards = state.reviewCards.values
-        .where((card) => _supportedFacet(card.facetType))
-        .where((card) => !card.dueAt.isAfter(clock))
-        .toList(growable: false)
-      ..sort((a, b) {
-        final due = a.dueAt.compareTo(b.dueAt);
-        if (due != 0) return due;
-        final id = a.itemId.compareTo(b.itemId);
-        if (id != 0) return id;
-        return a.facetType.index.compareTo(b.facetType.index);
-      });
+    final cards =
+        state.reviewCards.values
+            .where((card) => _supportedFacet(card.facetType))
+            .where((card) => !card.dueAt.isAfter(clock))
+            .toList(growable: false)
+          ..sort((a, b) {
+            final due = a.dueAt.compareTo(b.dueAt);
+            if (due != 0) return due;
+            final id = a.itemId.compareTo(b.itemId);
+            if (id != 0) return id;
+            return a.facetType.index.compareTo(b.facetType.index);
+          });
 
     final result = <CommuteReviewItem<T>>[];
     for (final card in cards) {

@@ -17,9 +17,7 @@ final class FlutterOfflineTtsEngine implements OfflineTtsEngine {
   bool _closed = false;
 
   @override
-  Future<OfflineTtsAvailability> probe(
-    LanguageSpeechProfile profile,
-  ) async {
+  Future<OfflineTtsAvailability> probe(LanguageSpeechProfile profile) async {
     if (_closed) return OfflineTtsAvailability.unavailable;
     if (_selectedVoice != null && _selectedLanguage == profile.languageCode) {
       return OfflineTtsAvailability.ready;
@@ -27,10 +25,7 @@ final class FlutterOfflineTtsEngine implements OfflineTtsEngine {
     try {
       final rawVoices = await _engine.getVoices;
       if (rawVoices is! List) return OfflineTtsAvailability.unavailable;
-      final voice = selectOfflineVoice(
-        rawVoices,
-        profile.preferredTtsLocales,
-      );
+      final voice = selectOfflineVoice(rawVoices, profile.preferredTtsLocales);
       if (voice == null) return OfflineTtsAvailability.unavailable;
 
       final locale = voice['locale'];
@@ -116,17 +111,15 @@ final class FlutterOfflineTtsEngine implements OfflineTtsEngine {
         if (voiceLocale != locale && !voiceLocale.startsWith(locale + '-')) {
           continue;
         }
-        final networkRequired =
-            (normalized['network_required'] ?? '').trim().toLowerCase();
+        final networkRequired = (normalized['network_required'] ?? '')
+            .trim()
+            .toLowerCase();
         if (networkRequired == 'true' || networkRequired == '1') continue;
         final features = (normalized['features'] ?? '').toLowerCase();
         if (features.contains('notinstalled')) continue;
         final name = normalized['name']?.trim() ?? '';
         if (name.isEmpty) continue;
-        return <String, String>{
-          'name': name,
-          'locale': normalized['locale']!,
-        };
+        return <String, String>{'name': name, 'locale': normalized['locale']!};
       }
     }
     return null;

@@ -11,8 +11,6 @@ final class AdaptivePlacementService {
     DateTime? at,
   }) async {
     final timestamp = at ?? DateTime.now();
-    await repository.recordPlacementDiagnostic(
-      result.toRecord(at: timestamp),
-    );
+    await repository.recordPlacementDiagnostic(result.toRecord(at: timestamp));
   }
 }

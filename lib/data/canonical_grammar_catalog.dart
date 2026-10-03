@@ -12,8 +12,7 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'a1_nominativ_articles',
           title: 'أدوات التعريف في حالة الرفع',
-          explanationAr:
-              'في Nominativ نستخدم der للمذكر، die للمؤنث والجمع، وdas للمحايد.',
+          explanationAr: 'في Nominativ نستخدم der للمذكر، die للمؤنث والجمع، وdas للمحايد.',
           table: [
             ['Maskulin', 'der'],
             ['Feminin', 'die'],
@@ -300,8 +299,7 @@ abstract final class CanonicalGrammarCatalog {
         GrammarRule(
           id: 'b2_konjunktiv2_core',
           title: 'Konjunktiv II في الاستعمال',
-          explanationAr:
-              'توجد صيغ شائعة مثل wäre وhätte، كما تُستخدم würde + Infinitiv كثيرًا.',
+          explanationAr: 'توجد صيغ شائعة مثل wäre وhätte، كما تُستخدم würde + Infinitiv كثيرًا.',
           table: [
             ['haben', 'hätte'],
             ['sein', 'wäre'],
@@ -343,14 +341,12 @@ abstract final class CanonicalGrammarCatalog {
       level: 'C1',
       titleDe: 'Partizipialattribute',
       titleAr: 'صفات اسم الفاعل والمفعول',
-      summaryAr:
-          'سمات موسعة تستخدم Partizip I أو Partizip II قبل الاسم.',
+      summaryAr: 'سمات موسعة تستخدم Partizip I أو Partizip II قبل الاسم.',
       rules: [
         GrammarRule(
           id: 'c1_partizipialattribute_core',
           title: 'Partizip I وPartizip II كصفة',
-          explanationAr:
-              'Partizip I يميل إلى معنى متزامن/فاعل، وPartizip II إلى معنى مكتمل أو مفعولي بحسب السياق.',
+          explanationAr: 'Partizip I يميل إلى معنى متزامن/فاعل، وPartizip II إلى معنى مكتمل أو مفعولي بحسب السياق.',
           table: [
             ['Partizip I', 'lesend'],
             ['Partizip II', 'gelesen'],
@@ -360,10 +356,12 @@ abstract final class CanonicalGrammarCatalog {
       miniChecks: [
         MiniCheckQuestion(
           id: 'q_c1_partizipialattribute_1',
-          questionText: 'Welches Partizip drückt oft Gleichzeitigkeit/Aktiv aus?',
+          questionText:
+              'Welches Partizip drückt oft Gleichzeitigkeit/Aktiv aus?',
           options: ['Partizip II', 'Partizip I', 'Infinitiv', 'Konjunktiv'],
           correctAnswerIndex: 1,
-          explanationAr: 'Partizip I مثل lesend يعبّر غالبًا عن حدث متزامن وفاعل.',
+          explanationAr:
+              'Partizip I مثل lesend يعبّر غالبًا عن حدث متزامن وفاعل.',
         ),
         MiniCheckQuestion(
           id: 'q_c1_partizipialattribute_2',
@@ -379,14 +377,12 @@ abstract final class CanonicalGrammarCatalog {
       level: 'C2',
       titleDe: 'Feste Nomen-Verb-Verbindungen',
       titleAr: 'التراكيب الاسمية الفعلية الثابتة',
-      summaryAr:
-          'تراكيب ثابتة من اسم وفعل يجب تعلمها كوحدة دلالية واستعمالية.',
+      summaryAr: 'تراكيب ثابتة من اسم وفعل يجب تعلمها كوحدة دلالية واستعمالية.',
       rules: [
         GrammarRule(
           id: 'c2_feste_nomen_verb_core',
           title: 'Nomen-Verb-Verbindungen',
-          explanationAr:
-              'لا يمكن استبدال الفعل بحرية دائمًا؛ التركيب الاصطلاحي هو الذي يحدد الاختيار.',
+          explanationAr: 'لا يمكن استبدال الفعل بحرية دائمًا؛ التركيب الاصطلاحي هو الذي يحدد الاختيار.',
           table: [
             ['eine Entscheidung', 'treffen'],
             ['Abschied', 'nehmen'],
@@ -418,6 +414,5 @@ abstract final class CanonicalGrammarCatalog {
         ),
       ],
     ),
-
   ];
 }

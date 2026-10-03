@@ -201,19 +201,15 @@ class _AdaptivePlacementPageState extends State<AdaptivePlacementPage> {
     }
 
     final question = current.question;
-    final progress = (_responses.length + 1) /
-        AdaptivePlacementEngine.defaultMaxQuestions;
+    final progress =
+        (_responses.length + 1) / AdaptivePlacementEngine.defaultMaxQuestions;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.placementPresentation.title),
-      ),
+      appBar: AppBar(title: Text(widget.placementPresentation.title)),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
-          LinearProgressIndicator(
-            value: progress.clamp(0.0, 1.0).toDouble(),
-          ),
+          LinearProgressIndicator(value: progress.clamp(0.0, 1.0).toDouble()),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -229,9 +225,8 @@ class _AdaptivePlacementPageState extends State<AdaptivePlacementPage> {
               languageCode: widget.sourceLanguageCode,
               semanticRole: LinguisticSemanticRole.explanation,
             ),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
           if (current.dimension == DiagnosticDimension.listening) ...[
             const SizedBox(height: 14),

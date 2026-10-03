@@ -25,29 +25,19 @@ class PlacementResultPanel extends StatelessWidget {
       Text(
         'نتيجة التشخيص',
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w900,
-        ),
+        style: Theme.of(context).textTheme.headlineSmall
+            ?.copyWith(fontWeight: FontWeight.w900),
       ),
       const SizedBox(height: 8),
       Text(
         _bandLabel(result.band),
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
+        style: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(fontWeight: FontWeight.w800),
       ),
       const SizedBox(height: 18),
-      _metric(
-        context,
-        'الدقة',
-        '${result.score.round()}%',
-      ),
-      _metric(
-        context,
-        'ثقة التشخيص',
-        '${(result.confidence * 100).round()}%',
-      ),
+      _metric(context, 'الدقة', '${result.score.round()}%'),
+      _metric(context, 'ثقة التشخيص', '${(result.confidence * 100).round()}%'),
       _metric(
         context,
         'إجابات محسوبة',
@@ -56,9 +46,8 @@ class PlacementResultPanel extends StatelessWidget {
       const SizedBox(height: 14),
       Text(
         'تفصيل المهارات',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-        ),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.w900),
       ),
       const SizedBox(height: 8),
       ...DiagnosticDimension.values
@@ -92,10 +81,7 @@ class PlacementResultPanel extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 12),
-      FilledButton(
-        onPressed: onClose,
-        child: const Text('متابعة التعلم'),
-      ),
+      FilledButton(onPressed: onClose, child: const Text('متابعة التعلم')),
     ],
   );
 
@@ -104,9 +90,8 @@ class PlacementResultPanel extends StatelessWidget {
       title: Text(label),
       trailing: Text(
         value,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-        ),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.w900),
       ),
     ),
   );

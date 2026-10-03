@@ -15,11 +15,7 @@ import 'package:deutsch_bilarabi/services/preferences_service.dart';
 import 'package:deutsch_bilarabi/services/repository.dart';
 
 final class _FakeAudioRuntime implements IAudioRuntime {
-  _FakeAudioRuntime(
-    this.label,
-    this.events, {
-    this.failureReason,
-  });
+  _FakeAudioRuntime(this.label, this.events, {this.failureReason});
 
   final String label;
   final List<String> events;
@@ -56,11 +52,7 @@ void main() {
     final prefs = await PreferencesService.instance();
     return LearnerRepository(
       prefs,
-      persistence: LearnerPersistence(
-        prefs,
-        key,
-        '${key}_favorites',
-      ),
+      persistence: LearnerPersistence(prefs, key, '${key}_favorites'),
     );
   }
 
@@ -132,10 +124,7 @@ void main() {
     expect(result.failed, isTrue);
     expect(result.stage, CommutePlaybackStage.sourceMeaning);
     expect(result.reason, 'offline_tts_voice_unavailable');
-    expect(events, <String>[
-      'target:de:Staat',
-      'source:ar:دولة',
-    ]);
+    expect(events, <String>['target:de:Staat', 'source:ar:دولة']);
   });
 
   test('known and unknown actions write the exact Phase 11 facet', () async {
@@ -183,10 +172,9 @@ void main() {
     expect(state.attempts.last.facetType, ReviewFacetType.listening);
     expect(state.attempts.last.correct, isFalse);
     expect(
-      state.reviewCardForFacet(
-        item.id,
-        facetType: ReviewFacetType.listening,
-      )?.lastReviewedAt,
+      state
+          .reviewCardForFacet(item.id, facetType: ReviewFacetType.listening)
+          ?.lastReviewedAt,
       isNotNull,
     );
   });

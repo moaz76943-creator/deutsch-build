@@ -21,8 +21,7 @@ class GrammarMicroscopePage extends StatefulWidget {
   final AppDependencies<ContentItem> dependencies;
 
   @override
-  State<GrammarMicroscopePage> createState() =>
-      _GrammarMicroscopePageState();
+  State<GrammarMicroscopePage> createState() => _GrammarMicroscopePageState();
 }
 
 class _GrammarMicroscopePageState extends State<GrammarMicroscopePage> {
@@ -31,13 +30,12 @@ class _GrammarMicroscopePageState extends State<GrammarMicroscopePage> {
   @override
   void initState() {
     super.initState();
-    _snapshot = GrammarMicroscopeService(
-      widget.dependencies.grammarHubService,
-    ).load(
-      topicId: widget.topicId,
-      state: widget.state,
-      corpus: widget.dependencies.corpus,
-    );
+    _snapshot = GrammarMicroscopeService(widget.dependencies.grammarHubService)
+        .load(
+          topicId: widget.topicId,
+          state: widget.state,
+          corpus: widget.dependencies.corpus,
+        );
   }
 
   @override
@@ -78,9 +76,8 @@ class _GrammarMicroscopePageState extends State<GrammarMicroscopePage> {
                   snapshot.topic.titleDe,
                   semanticRole: LinguisticSemanticRole.grammarLabel,
                 ),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 4),
               BidiText(

@@ -33,27 +33,30 @@ void main() {
     expect(snapshot.unlockedBadgeIds, contains('xp_100'));
   });
 
-  test('duplicate review id is idempotent and cannot double-award XP', () async {
-    final repository = await SqliteGamificationRepository.openWithFactory(
-      databaseFactoryFfi,
-      inMemoryDatabasePath,
-    );
-    addTearDown(repository.close);
-    final event = GamificationReviewEvent(
-      reviewId: 'same_review',
-      facetType: ReviewFacetType.listening,
-      correct: true,
-      hinted: false,
-      requestedXp: 10,
-      occurredAtUtc: DateTime.utc(2026, 10, 2, 8),
-      timezoneOffsetMinutes: 180,
-    );
+  test(
+    'duplicate review id is idempotent and cannot double-award XP',
+    () async {
+      final repository = await SqliteGamificationRepository.openWithFactory(
+        databaseFactoryFfi,
+        inMemoryDatabasePath,
+      );
+      addTearDown(repository.close);
+      final event = GamificationReviewEvent(
+        reviewId: 'same_review',
+        facetType: ReviewFacetType.listening,
+        correct: true,
+        hinted: false,
+        requestedXp: 10,
+        occurredAtUtc: DateTime.utc(2026, 10, 2, 8),
+        timezoneOffsetMinutes: 180,
+      );
 
-    await repository.recordReview(event);
-    await repository.recordReview(event);
+      await repository.recordReview(event);
+      await repository.recordReview(event);
 
-    expect((await repository.loadSnapshot()).profile.totalXp, 10);
-  });
+      expect((await repository.loadSnapshot()).profile.totalXp, 10);
+    },
+  );
 
   test('clear removes gamification events badges and profile totals', () async {
     final repository = await SqliteGamificationRepository.openWithFactory(

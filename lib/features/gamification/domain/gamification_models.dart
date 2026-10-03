@@ -155,10 +155,7 @@ final class GamificationReviewEvent {
 }
 
 final class UnlockedMilestone {
-  const UnlockedMilestone({
-    required this.badgeId,
-    required this.unlockedAtUtc,
-  });
+  const UnlockedMilestone({required this.badgeId, required this.unlockedAtUtc});
 
   final String badgeId;
   final DateTime unlockedAtUtc;

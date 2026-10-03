@@ -11,10 +11,7 @@ void main() {
     );
 
     expect(
-      catalog.recordedAssetFor(
-        conceptId: 'de-1',
-        variant: AudioVariant.word,
-      ),
+      catalog.recordedAssetFor(conceptId: 'de-1', variant: AudioVariant.word),
       'content/german/audio/de-1.mp3',
     );
     expect(

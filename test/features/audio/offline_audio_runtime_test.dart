@@ -75,11 +75,7 @@ void main() {
     );
 
     final result = await runtime.play(
-      const AudioRequest(
-        conceptId: 'de-1',
-        text: 'Haus',
-        languageCode: 'de',
-      ),
+      const AudioRequest(conceptId: 'de-1', text: 'Haus', languageCode: 'de'),
     );
 
     expect(result.source, AudioPlaybackSource.recorded);
@@ -111,22 +107,25 @@ void main() {
     await runtime.shutdown();
   });
 
-  test('no offline voice fails explicitly without pretending playback', () async {
-    final tts = _Tts(availability: OfflineTtsAvailability.unavailable);
-    final runtime = OfflineAudioRuntime(
-      speechProfile: const GermanSpeechProfile(),
-      ttsEngine: tts,
-    );
+  test(
+    'no offline voice fails explicitly without pretending playback',
+    () async {
+      final tts = _Tts(availability: OfflineTtsAvailability.unavailable);
+      final runtime = OfflineAudioRuntime(
+        speechProfile: const GermanSpeechProfile(),
+        ttsEngine: tts,
+      );
 
-    final result = await runtime.play(
-      const AudioRequest(text: 'Haus', languageCode: 'de'),
-    );
+      final result = await runtime.play(
+        const AudioRequest(text: 'Haus', languageCode: 'de'),
+      );
 
-    expect(result.source, AudioPlaybackSource.unavailable);
-    expect(result.reason, 'offline_tts_voice_unavailable');
-    expect(tts.speaks, 0);
-    await runtime.shutdown();
-  });
+      expect(result.source, AudioPlaybackSource.unavailable);
+      expect(result.reason, 'offline_tts_voice_unavailable');
+      expect(tts.speaks, 0);
+      await runtime.shutdown();
+    },
+  );
 
   test('language mismatch never pivots through another language', () async {
     final tts = _Tts(availability: OfflineTtsAvailability.ready);

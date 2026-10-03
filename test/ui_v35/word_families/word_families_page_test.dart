@@ -17,85 +17,88 @@ final class _FamilyRepository implements GermanWordFamilyRepository {
 }
 
 void main() {
-  testWidgets('grid renders German and Arabic without mixed string heuristics',
-      (tester) async {
-    const base = LinguisticConcept(
-      id: 'verb.fahren',
-      senseId: 'fahren.travel',
-      lemma: 'fahren',
-      partOfSpeech: LinguisticPartOfSpeech.verb,
-      register: LanguageRegister.neutral,
-      cefr: CefrLevel.a1,
-    );
-    const driver = LinguisticConcept(
-      id: 'noun.fahrer',
-      senseId: 'fahrer.person',
-      lemma: 'Fahrer',
-      partOfSpeech: LinguisticPartOfSpeech.noun,
-      register: LanguageRegister.neutral,
-      cefr: CefrLevel.a1,
-    );
-    const family = GermanWordFamily(
-      familyId: 'fahren',
-      baseConceptId: 'verb.fahren',
-      members: <GermanWordFamilyMember>[
-        GermanWordFamilyMember(
-          concept: base,
-          relationType: GermanWordFamilyRelationType.base,
-          semanticDistance: GermanSemanticDistance.low,
-          pedagogicalLevel: CefrLevel.a1,
-          interferenceRisk: false,
-        ),
-        GermanWordFamilyMember(
-          concept: driver,
-          relationType: GermanWordFamilyRelationType.agentNoun,
-          suffix: 'er',
-          semanticDistance: GermanSemanticDistance.low,
-          pedagogicalLevel: CefrLevel.a1,
-          interferenceRisk: false,
-        ),
-      ],
-    );
+  testWidgets(
+    'grid renders German and Arabic without mixed string heuristics',
+    (tester) async {
+      const base = LinguisticConcept(
+        id: 'verb.fahren',
+        senseId: 'fahren.travel',
+        lemma: 'fahren',
+        partOfSpeech: LinguisticPartOfSpeech.verb,
+        register: LanguageRegister.neutral,
+        cefr: CefrLevel.a1,
+      );
+      const driver = LinguisticConcept(
+        id: 'noun.fahrer',
+        senseId: 'fahrer.person',
+        lemma: 'Fahrer',
+        partOfSpeech: LinguisticPartOfSpeech.noun,
+        register: LanguageRegister.neutral,
+        cefr: CefrLevel.a1,
+      );
+      const family = GermanWordFamily(
+        familyId: 'fahren',
+        baseConceptId: 'verb.fahren',
+        members: <GermanWordFamilyMember>[
+          GermanWordFamilyMember(
+            concept: base,
+            relationType: GermanWordFamilyRelationType.base,
+            semanticDistance: GermanSemanticDistance.low,
+            pedagogicalLevel: CefrLevel.a1,
+            interferenceRisk: false,
+          ),
+          GermanWordFamilyMember(
+            concept: driver,
+            relationType: GermanWordFamilyRelationType.agentNoun,
+            suffix: 'er',
+            semanticDistance: GermanSemanticDistance.low,
+            pedagogicalLevel: CefrLevel.a1,
+            interferenceRisk: false,
+          ),
+        ],
+      );
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WordFamiliesPage(
-          repository: _FamilyRepository(<GermanWordFamily>[family]),
-          corpus: <ContentItem>[
-            ContentItem(
-              id: 'verb.fahren',
-              german: 'fahren',
-              arabic: 'يقود / يذهب',
-              sentence: '',
-              sentenceAr: '',
-              topic: 'transport',
-              skill: 'recall',
-            ),
-            ContentItem(
-              id: 'noun.fahrer',
-              german: 'Fahrer',
-              arabic: 'سائق',
-              sentence: '',
-              sentenceAr: '',
-              topic: 'transport',
-              skill: 'recall',
-              article: 'der',
-            ),
-          ],
-          learnedIds: <String>{'verb.fahren'},
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: WordFamiliesPage(
+            repository: _FamilyRepository(<GermanWordFamily>[family]),
+            corpus: <ContentItem>[
+              ContentItem(
+                id: 'verb.fahren',
+                german: 'fahren',
+                arabic: 'يقود / يذهب',
+                sentence: '',
+                sentenceAr: '',
+                topic: 'transport',
+                skill: 'recall',
+              ),
+              ContentItem(
+                id: 'noun.fahrer',
+                german: 'Fahrer',
+                arabic: 'سائق',
+                sentence: '',
+                sentenceAr: '',
+                topic: 'transport',
+                skill: 'recall',
+                article: 'der',
+              ),
+            ],
+            learnedIds: <String>{'verb.fahren'},
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('fahren'), findsOneWidget);
-    expect(find.text('der Fahrer'), findsOneWidget);
-    expect(find.text('سائق'), findsOneWidget);
-    expect(find.text('اسم الفاعل'), findsOneWidget);
-  });
+      expect(find.text('fahren'), findsOneWidget);
+      expect(find.text('der Fahrer'), findsOneWidget);
+      expect(find.text('سائق'), findsOneWidget);
+      expect(find.text('اسم الفاعل'), findsOneWidget);
+    },
+  );
 
-  testWidgets('empty repository refuses to invent morphological families',
-      (tester) async {
+  testWidgets('empty repository refuses to invent morphological families', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: WordFamiliesPage(

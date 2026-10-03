@@ -1,10 +1,7 @@
 import '../core/srs_facets.dart';
 
 final class GrammarExampleDetail {
-  const GrammarExampleDetail({
-    required this.german,
-    required this.arabic,
-  });
+  const GrammarExampleDetail({required this.german, required this.arabic});
 
   final String german;
   final String arabic;

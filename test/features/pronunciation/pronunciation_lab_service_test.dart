@@ -58,73 +58,75 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  test('uses Phase 10 audio and records pronunciation as its own SRS facet',
-      () async {
-    final prefs = await PreferencesService.instance();
-    final repo = LearnerRepository(
-      prefs,
-      persistence: LearnerPersistence(
+  test(
+    'uses Phase 10 audio and records pronunciation as its own SRS facet',
+    () async {
+      final prefs = await PreferencesService.instance();
+      final repo = LearnerRepository(
         prefs,
-        'phase14_state',
-        'phase14_favorites',
-      ),
-    );
-    final audio = _AudioRuntime();
-    const corpus = <ContentItem>[
-      ContentItem(
-        id: 'staat',
-        german: 'Staat',
-        arabic: 'دولة',
-        sentence: '',
-        sentenceAr: '',
-        topic: 'test',
-        skill: 'recall',
-      ),
-      ContentItem(
-        id: 'stadt',
-        german: 'die Stadt',
-        arabic: 'المدينة',
-        sentence: '',
-        sentenceAr: '',
-        topic: 'test',
-        skill: 'recall',
-      ),
-    ];
-    final service = PronunciationLabService<ContentItem>(
-      repository: repo,
-      audioRuntime: audio,
-      signalProbe: _SignalProbe(),
-      languageCode: 'de',
-      corpus: corpus,
-    );
-    final contrast = service
-        .availableContrasts(GermanPronunciationCatalog.contrasts)
-        .single;
-    final trial = service.buildTrial(contrast, round: 0)!;
+        persistence: LearnerPersistence(
+          prefs,
+          'phase14_state',
+          'phase14_favorites',
+        ),
+      );
+      final audio = _AudioRuntime();
+      const corpus = <ContentItem>[
+        ContentItem(
+          id: 'staat',
+          german: 'Staat',
+          arabic: 'دولة',
+          sentence: '',
+          sentenceAr: '',
+          topic: 'test',
+          skill: 'recall',
+        ),
+        ContentItem(
+          id: 'stadt',
+          german: 'die Stadt',
+          arabic: 'المدينة',
+          sentence: '',
+          sentenceAr: '',
+          topic: 'test',
+          skill: 'recall',
+        ),
+      ];
+      final service = PronunciationLabService<ContentItem>(
+        repository: repo,
+        audioRuntime: audio,
+        signalProbe: _SignalProbe(),
+        languageCode: 'de',
+        corpus: corpus,
+      );
+      final contrast = service
+          .availableContrasts(GermanPronunciationCatalog.contrasts)
+          .single;
+      final trial = service.buildTrial(contrast, round: 0)!;
 
-    final playback = await service.playTarget(trial, slow: true);
-    expect(playback.played, isTrue);
-    expect(audio.lastRequest?.variant, AudioVariant.pronunciation);
-    expect(audio.lastRequest?.conceptId, trial.target.item.id);
+      final playback = await service.playTarget(trial, slow: true);
+      expect(playback.played, isTrue);
+      expect(audio.lastRequest?.variant, AudioVariant.pronunciation);
+      expect(audio.lastRequest?.conceptId, trial.target.item.id);
 
-    final result = await service.answerPerception(
-      trial,
-      selectedToken: trial.target.token,
-      seconds: 4,
-    );
-    expect(result.correct, isTrue);
+      final result = await service.answerPerception(
+        trial,
+        selectedToken: trial.target.token,
+        seconds: 4,
+      );
+      expect(result.correct, isTrue);
 
-    final state = repo.load();
-    final card = state.reviewCardForFacet(
-      trial.target.item.id,
-      facetType: ReviewFacetType.pronunciation,
-      variantKey: 'contrast:${trial.contrast.id}:perception',
-    );
-    expect(card, isNotNull);
-    expect(state.attempts.last.facetType, ReviewFacetType.pronunciation);
+      final state = repo.load();
+      final card = state.reviewCardForFacet(
+        trial.target.item.id,
+        facetType: ReviewFacetType.pronunciation,
+        variantKey: 'contrast:${trial.contrast.id}:perception',
+      );
+      expect(card, isNotNull);
+      expect(state.attempts.last.facetType, ReviewFacetType.pronunciation);
 
-    final production = await service.captureProduction(trial);
-    expect(production.signalAvailable, isTrue);
-    expect(production.phonemeAccuracyAvailable, isFalse);
-  });
+      final production = await service.captureProduction(trial);
+      expect(production.signalAvailable, isTrue);
+      expect(production.phonemeAccuracyAvailable, isFalse);
+    },
+  );
 }
