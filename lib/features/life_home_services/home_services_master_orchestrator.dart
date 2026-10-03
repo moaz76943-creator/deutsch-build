@@ -58,7 +58,7 @@ final class HomeServicesMasterOrchestrator extends ChangeNotifier {
           'Vor der Anfahrt einen verbindlichen Festpreis inklusive Anfahrt '
           'und möglicher Zuschläge vereinbaren.',
       arabic:
-          'اتفق قبل وصول الفني على سعر ثابت وملزم يشمل أجرة الوصول وأي رسوم إضافية محتملة.',
+          'اتفق قبل وصول الفني على السعر الثابت والملزم الذي يشمل أجرة الوصول وأي رسوم إضافية محتملة.',
     ),
     ConsumerProtectionWarning(
       id: 'identity-before-work',
