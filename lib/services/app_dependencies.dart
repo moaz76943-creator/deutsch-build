@@ -10,6 +10,7 @@ import '../features/pronunciation/domain/services/pronunciation_signal_probe.dar
 import '../features/error_pattern_agent/application/error_pattern_agent_notifier.dart';
 import '../features/gamification/gamification_repository.dart';
 import '../features/app_settings/application/settings_controller.dart';
+import '../features/life_doctor_appointment/application/doctor_appointment_master_orchestrator.dart';
 import 'search_index.dart';
 import 'ai_gateway.dart';
 import 'verb_index.dart';
@@ -46,6 +47,8 @@ final class AppDependencies<T extends LearningContent> {
     this.furnitureHomeSetupModule = const FurnitureHomeSetupModule(),
     this.postalDeliveryModule = const PostalDeliveryModule(),
     this.runtimePackState = const RuntimePackState.embeddedFallback(),
+    this.doctorAppointmentOrchestrator =
+        const DoctorAppointmentMasterOrchestrator(),
   });
 
   final SearchIndex<T> searchIndex;
@@ -70,4 +73,5 @@ final class AppDependencies<T extends LearningContent> {
   final FurnitureHomeSetupModule furnitureHomeSetupModule;
   final PostalDeliveryModule postalDeliveryModule;
   final RuntimePackState runtimePackState;
+  final DoctorAppointmentMasterOrchestrator doctorAppointmentOrchestrator;
 }
