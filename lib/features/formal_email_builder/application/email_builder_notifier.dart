@@ -161,10 +161,7 @@ final class EmailBuilderNotifier extends ChangeNotifier {
       return;
     }
 
-    final ordered = <EmailTemplateBlock>[
-      for (final section in LetterSection.values)
-        if (_selectedBlocks[section] case final block?) block,
-    ];
+    final ordered = _orderedSelectedBlocks();
 
     final generation = ++_generation;
     final structurallyValid =
@@ -188,6 +185,15 @@ final class EmailBuilderNotifier extends ChangeNotifier {
     _invalidPhraseSections = <LetterSection>{};
     _isStructureValid = null;
     notifyListeners();
+  }
+
+  List<EmailTemplateBlock> _orderedSelectedBlocks() {
+    final ordered = <EmailTemplateBlock>[];
+    for (final section in LetterSection.values) {
+      final block = _selectedBlocks[section];
+      if (block != null) ordered.add(block);
+    }
+    return ordered;
   }
 
   Future<void> _activateScenario(
