@@ -33,15 +33,20 @@ def test_presentation_has_no_device_audio_or_recording_imports():
             assert package not in text, f"{path}: {package}"
 
 
-def test_domain_defines_required_audio_boundaries():
+def test_domain_defines_feature_audio_boundaries_without_duplicate_audio_service():
     text = (FEATURE / "domain" / "audio_services.dart").read_text(encoding="utf-8")
     for contract in (
-        "abstract interface class AudioService",
         "abstract interface class AudioPlayerService",
         "abstract interface class AudioRecorderService",
         "abstract interface class AudioPlayerFacade",
     ):
         assert contract in text
+    assert "abstract interface class AudioService" not in text
+
+    canonical = (
+        ROOT / "lib" / "core" / "infrastructure" / "audio" / "audio_service.dart"
+    ).read_text(encoding="utf-8")
+    assert "abstract interface class AudioService" in canonical
 
 
 def test_infrastructure_reuses_canonical_audio_and_pronunciation_boundaries():
