@@ -65,8 +65,8 @@ final class AchievementBadge {
   bool get isUnlocked => unlockedAt != null;
 }
 
-class UserXpRecord {
-  const UserXpRecord({
+class UserProgressLevel {
+  const UserProgressLevel({
     required this.totalXp,
     required this.currentLevel,
     required this.levelFloorXp,
@@ -82,6 +82,27 @@ class UserXpRecord {
 
   int get xp => totalXp;
 
+  factory UserProgressLevel.fromProfile(GamificationProfile profile) {
+    final progress = profile.xpProgress;
+    return UserProgressLevel(
+      totalXp: progress.totalXp,
+      currentLevel: progress.level,
+      levelFloorXp: progress.levelFloorXp,
+      nextLevelXp: progress.nextLevelXp,
+      progressToNextLevel: progress.progressToNextLevel,
+    );
+  }
+}
+
+final class UserXpRecord extends UserProgressLevel {
+  const UserXpRecord({
+    required super.totalXp,
+    required super.currentLevel,
+    required super.levelFloorXp,
+    required super.nextLevelXp,
+    required super.progressToNextLevel,
+  });
+
   factory UserXpRecord.fromProfile(GamificationProfile profile) {
     final progress = profile.xpProgress;
     return UserXpRecord(
@@ -94,34 +115,11 @@ class UserXpRecord {
   }
 }
 
-@Deprecated('Use UserXpRecord.')
-final class UserProgressLevel extends UserXpRecord {
-  const UserProgressLevel({
-    required super.totalXp,
-    required super.currentLevel,
-    required super.levelFloorXp,
-    required super.nextLevelXp,
-    required super.progressToNextLevel,
-  });
-
-  factory UserProgressLevel.fromProfile(GamificationProfile profile) {
-    final record = UserXpRecord.fromProfile(profile);
-    return UserProgressLevel(
-      totalXp: record.totalXp,
-      currentLevel: record.currentLevel,
-      levelFloorXp: record.levelFloorXp,
-      nextLevelXp: record.nextLevelXp,
-      progressToNextLevel: record.progressToNextLevel,
-    );
-  }
-}
-
 extension GamificationSnapshotProjection on GamificationSnapshot {
   UserStreak get userStreak => UserStreak.fromProfile(profile);
 
   UserXpRecord get userXpRecord => UserXpRecord.fromProfile(profile);
 
-  @Deprecated('Use userXpRecord.')
   UserProgressLevel get userProgressLevel =>
       UserProgressLevel.fromProfile(profile);
 
