@@ -7,16 +7,20 @@ final class StreakStatusWidget extends StatelessWidget {
   const StreakStatusWidget({
     required this.streak,
     this.onTap,
+    this.referenceDate,
     super.key,
   });
 
   final UserStreak streak;
   final VoidCallback? onTap;
+  final DateTime? referenceDate;
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final recentDays = streak.recentSevenDayActivity;
+    final recentDays = streak.recentSevenDayActivityAt(
+      referenceDate ?? DateTime.now(),
+    );
 
     return AppGlassCard(
       onTap: onTap,
