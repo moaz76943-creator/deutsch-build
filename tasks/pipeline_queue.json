@@ -10,7 +10,9 @@
     "test_weakening": "forbidden",
     "duplicate_engines": "forbidden",
     "additional_billing": "forbidden_without_explicit_owner_gate",
-    "ci_polling": "not_required_for_queue_execution"
+    "ci_polling": "disabled",
+    "canonical_quality_gate": "scripts/local_quality_gate.sh",
+    "full_green_baseline": "946 passed / 0 failed"
   },
   "states": [
     "READY",

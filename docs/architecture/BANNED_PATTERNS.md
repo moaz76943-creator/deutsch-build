@@ -32,12 +32,14 @@ Forbidden:
 - duplicating a model/service/page/engine to avoid repairing the canonical implementation;
 - permanent compatibility shims without an explicit migration/removal contract.
 
-## 3. Presentation size and duplication
+## 3. Architectural file-size ceiling and duplication
 
-All authored presentation files must remain **strictly below 1000 lines**.
+All manually maintained source, presentation, workflow, automation, configuration, and architecture files must remain **strictly below 1000 lines**.
+
+Machine-generated artifacts may exceed the ceiling only when they are reproducibly generated from canonical inputs and are never used as a manual patch surface.
 
 Forbidden:
-- allowing a presentation file to reach or exceed 1000 lines;
+- allowing a manually maintained file to reach or exceed 1000 lines;
 - creating `*_v2.dart`, duplicate public pages/classes/routes, or parallel UI engines to evade the line cap;
 - splitting files without splitting responsibility;
 - reintroducing Theme, GlassCard, or equivalent presentation infrastructure into `lib/core/`.

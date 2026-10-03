@@ -34,12 +34,15 @@ State labels are explicit: `PREP`, `IMPLEMENTED`, `VERIFIED`, `INTEGRATED`, `BLO
 Historical baseline failures targeted by the liquidation work: **17**.
 Current code/architecture regression count from the owner's exact-head local verification: **0**.
 
-Owner-supplied local verification evidence for `00fb58fd16ff4021a74dc0af9dc86721806f6c07`:
-- 943 tests passed.
-- 3 remaining test failures were caused by missing local OpenSSL tooling in Termux.
-- Those 3 failures were classified as execution-environment/tool availability failures, not application, Core, architecture, or UI regressions.
+Owner-supplied final local verification evidence after OpenSSL was installed:
+- `scripts/local_quality_gate.sh`: **FULL GREEN PASS**
+- Python regression suite: **946 passed / 0 failed**
+- Build-path and Gradle integrity: **PASS**
+- Security, privacy, quality, and architecture audits: **PASS**
+- Historical legacy contracts: **14/14 green**
+- Accepted failures: **0**
 
-Therefore the project records the #235 code baseline as **Full Green in code scope**, while environment-specific OpenSSL availability remains external to the application repair itself.
+The earlier 943+3 environment-limited run is superseded by this final 946/0 verification result.
 
 ### PR #238 — AI collaboration bridge
 
@@ -52,6 +55,12 @@ Therefore the project records the #235 code baseline as **Full Green in code sco
 - The bridge never auto-approves and never mutates application source.
 - Provider context truncation fails closed.
 - OpenAI requests use `store: false`.
+
+## 2.1 Foundation state baseline
+
+`FOUNDATION_STATE_MAIN_SHA = 1c3794e52052dde2c5cd18d102d7e78f809f4f4a`
+
+This SHA is the integrated `main` state containing PRs #235, #238, and the initial state/queue scaffold from PR #239. The commit that updates this record is its direct successor.
 
 ## 3. Current architecture invariants
 
