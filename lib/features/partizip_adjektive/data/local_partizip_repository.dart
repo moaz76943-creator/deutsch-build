@@ -6,6 +6,22 @@ final class LocalPartizipRepository implements PartizipRepository {
 
   static const List<PartizipExercise> _exercises = <PartizipExercise>[
     PartizipExercise(
+      id: 'p1_child_smiling',
+      infinitive: 'lächeln',
+      participle: 'lächelnd',
+      kind: PartizipKind.partizipI,
+      scope: PartizipAttributeScope.simple,
+      noun: 'Kind',
+      correctAttribute: 'lächelndes Kind',
+      sourceSentenceDe:
+          'Ein lächelndes Kind begrüßt seine Lehrerin am Morgen.',
+      translationAr:
+          'طفل مبتسم يحيّي معلمته في الصباح.',
+      explanationAr:
+          'Partizip I يصف فعلاً نشطاً ومتزامناً: الطفل هو الذي يبتسم، لذلك تتحول lächelnd إلى lächelndes قبل Kind.',
+      attributeTokens: <String>['lächelndes', 'Kind'],
+    ),
+    PartizipExercise(
       id: 'p1_plant_growing',
       infinitive: 'wachsen',
       participle: 'wachsend',
@@ -118,27 +134,35 @@ final class LocalPartizipRepository implements PartizipRepository {
     ),
     PartizipExercise(
       id: 'p1_water_flowing',
-      infinitive: 'strömen',
-      participle: 'strömend',
+      infinitive: 'fließen',
+      participle: 'fließend',
       kind: PartizipKind.partizipI,
-      scope: PartizipAttributeScope.extended,
+      scope: PartizipAttributeScope.simple,
       noun: 'Wasser',
-      correctAttribute: 'das gleichmäßig durch das Rohr strömende Wasser',
+      correctAttribute: 'fließendes Wasser',
       sourceSentenceDe:
-          'Das gleichmäßig durch das Rohr strömende Wasser wird am Ausgang analysiert.',
+          'Fließendes Wasser wird für den Versuch in einem sauberen Behälter gesammelt.',
       translationAr:
-          'الماء الذي يتدفق بانتظام عبر الأنبوب يُحلل عند المخرج.',
+          'يُجمع الماء الجاري للتجربة في وعاء نظيف.',
       explanationAr:
-          'الماء هو الذي يتدفق، لذلك Partizip I مناسب، وكل تفاصيل التدفق تسبق strömende ثم الاسم Wasser.',
-      attributeTokens: <String>[
-        'das',
-        'gleichmäßig',
-        'durch',
-        'das',
-        'Rohr',
-        'strömende',
-        'Wasser',
-      ],
+          'الماء هو الذي يتدفق، لذلك نستخدم Partizip I fließend ثم نهاية الصفة -es قبل Wasser.',
+      attributeTokens: <String>['fließendes', 'Wasser'],
+    ),
+    PartizipExercise(
+      id: 'p2_book_written',
+      infinitive: 'schreiben',
+      participle: 'geschrieben',
+      kind: PartizipKind.partizipII,
+      scope: PartizipAttributeScope.simple,
+      noun: 'Buch',
+      correctAttribute: 'geschriebenes Buch',
+      sourceSentenceDe:
+          'Ein klar geschriebenes Buch erleichtert den Einstieg in das Thema.',
+      translationAr:
+          'كتاب مكتوب بوضوح يسهّل الدخول إلى الموضوع.',
+      explanationAr:
+          'Partizip II يصف نتيجة فعل الكتابة: الكتاب تمت كتابته، لذلك تتحول geschrieben إلى geschriebenes قبل Buch.',
+      attributeTokens: <String>['geschriebenes', 'Buch'],
     ),
     PartizipExercise(
       id: 'p2_temperature_measured',
@@ -296,6 +320,56 @@ final class LocalPartizipRepository implements PartizipRepository {
       List<PartizipExercise>.unmodifiable(
         _exercises.where((exercise) => exercise.kind == kind),
       );
+
+  @override
+  String formPartizipI(String infinitive) {
+    final normalized = infinitive.trim();
+    if (normalized.isEmpty) {
+      throw ArgumentError.value(
+        infinitive,
+        'infinitive',
+        'must not be empty',
+      );
+    }
+    return '${normalized}d';
+  }
+
+  @override
+  String? partizipIIFor(String infinitive) {
+    final normalized = infinitive.trim().toLowerCase();
+    for (final exercise in _exercises) {
+      if (exercise.kind == PartizipKind.partizipII &&
+          exercise.infinitive.toLowerCase() == normalized) {
+        return exercise.participle;
+      }
+    }
+    return null;
+  }
+
+  @override
+  String formAdjective({
+    required String participle,
+    required String ending,
+  }) {
+    final base = participle.trim();
+    final suffix = ending.trim().replaceFirst(RegExp(r'^-'), '');
+    if (base.isEmpty) {
+      throw ArgumentError.value(
+        participle,
+        'participle',
+        'must not be empty',
+      );
+    }
+    const endings = <String>{'e', 'en', 'em', 'er', 'es'};
+    if (!endings.contains(suffix)) {
+      throw ArgumentError.value(
+        ending,
+        'ending',
+        'must be a German adjective ending',
+      );
+    }
+    return '$base$suffix';
+  }
 
   @override
   bool isAnswerCorrect(
