@@ -19,6 +19,7 @@ class LearnerDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = _DashboardStrings.forLanguageCode(languageCode);
     final direction = AppTextDirection.forLanguageCode(languageCode);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final background =
@@ -31,23 +32,29 @@ class LearnerDashboardView extends StatelessWidget {
       textDirection: direction,
       child: Scaffold(
         backgroundColor: background,
+        appBar: AppBar(
+          title: Text(strings.dashboardTitle),
+          backgroundColor: Colors.transparent,
+        ),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
               final horizontal = constraints.maxWidth >= 720 ? 28.0 : 16.0;
               return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(horizontal, 20, horizontal, 32),
+                padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _Header(
                       analytics: analytics,
+                      strings: strings,
                       textColor: textColor,
                       secondaryText: secondaryText,
                     ),
                     const SizedBox(height: 18),
                     _StatsGrid(
                       analytics: analytics,
+                      strings: strings,
                       availableWidth:
                           constraints.maxWidth - (horizontal * 2),
                       textColor: textColor,
@@ -56,12 +63,14 @@ class LearnerDashboardView extends StatelessWidget {
                     const SizedBox(height: 18),
                     _ProgressCard(
                       analytics: analytics,
+                      strings: strings,
                       textColor: textColor,
                       secondaryText: secondaryText,
                     ),
                     const SizedBox(height: 18),
                     _ErrorBankCard(
                       analytics: analytics,
+                      strings: strings,
                       textColor: textColor,
                       secondaryText: secondaryText,
                       onStartQuickReview: onStartQuickReview,
@@ -80,11 +89,13 @@ class LearnerDashboardView extends StatelessWidget {
 class _Header extends StatelessWidget {
   const _Header({
     required this.analytics,
+    required this.strings,
     required this.textColor,
     required this.secondaryText,
   });
 
   final LearnerDashboardAnalytics analytics;
+  final _DashboardStrings strings;
   final Color textColor;
   final Color secondaryText;
 
@@ -113,14 +124,14 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'لوحة تقدّمك',
+                  strings.progressTitle,
                   style: AppTypography.title.copyWith(color: textColor),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   analytics.dailyReview.isEmpty
-                      ? 'لا توجد عناصر متعثرة مستحقة الآن.'
-                      : 'لديك ${analytics.dailyReview.length} عناصر ذات أولوية للمراجعة.',
+                      ? strings.noDueItems
+                      : strings.dueItems(analytics.dailyReview.length),
                   style: AppTypography.body.copyWith(color: secondaryText),
                 ),
               ],
@@ -135,12 +146,14 @@ class _Header extends StatelessWidget {
 class _StatsGrid extends StatelessWidget {
   const _StatsGrid({
     required this.analytics,
+    required this.strings,
     required this.availableWidth,
     required this.textColor,
     required this.secondaryText,
   });
 
   final LearnerDashboardAnalytics analytics;
+  final _DashboardStrings strings;
   final double availableWidth;
   final Color textColor;
   final Color secondaryText;
@@ -152,25 +165,25 @@ class _StatsGrid extends StatelessWidget {
     final width = (availableWidth - gap * (columns - 1)) / columns;
     final items = <_StatData>[
       _StatData(
-        label: 'معدل الحفظ',
+        label: strings.retention,
         value: '${(analytics.retentionRate * 100).round()}%',
         icon: Icons.memory_rounded,
         accent: AppColors.secondary,
       ),
       _StatData(
-        label: 'الكلمات المتقنة',
+        label: strings.masteredWords,
         value: '${analytics.masteredWords}',
         icon: Icons.verified_rounded,
         accent: AppColors.mastery,
       ),
       _StatData(
-        label: 'أيام السلسلة',
+        label: strings.streakDays,
         value: '${analytics.currentStreakDays}',
         icon: Icons.local_fire_department_rounded,
         accent: AppColors.streak,
       ),
       _StatData(
-        label: 'مرحلة التقدم',
+        label: strings.progressBand,
         value: analytics.progressBand,
         icon: Icons.route_rounded,
         accent: AppColors.achievement,
@@ -215,11 +228,13 @@ class _StatsGrid extends StatelessWidget {
 class _ProgressCard extends StatelessWidget {
   const _ProgressCard({
     required this.analytics,
+    required this.strings,
     required this.textColor,
     required this.secondaryText,
   });
 
   final LearnerDashboardAnalytics analytics;
+  final _DashboardStrings strings;
   final Color textColor;
   final Color secondaryText;
 
@@ -235,7 +250,7 @@ class _ProgressCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'التقدم من A1 إلى B1',
+                  strings.curriculumProgress,
                   style: AppTypography.title.copyWith(color: textColor),
                 ),
               ),
@@ -258,8 +273,11 @@ class _ProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'مؤشر الإتقان الحالي: ${analytics.progressBand} · '
-            '${analytics.trackedItems} عنصرًا متابعًا',
+            strings.progressSummary(
+              analytics.progressBand,
+              analytics.trackedItems,
+              (analytics.masteryIndex * 100).round(),
+            ),
             style: AppTypography.body.copyWith(color: secondaryText),
           ),
         ],
@@ -271,12 +289,14 @@ class _ProgressCard extends StatelessWidget {
 class _ErrorBankCard extends StatelessWidget {
   const _ErrorBankCard({
     required this.analytics,
+    required this.strings,
     required this.textColor,
     required this.secondaryText,
     required this.onStartQuickReview,
   });
 
   final LearnerDashboardAnalytics analytics;
+  final _DashboardStrings strings;
   final Color textColor;
   final Color secondaryText;
   final ValueChanged<List<String>>? onStartQuickReview;
@@ -299,7 +319,7 @@ class _ErrorBankCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'بنك الأخطاء',
+                  strings.errorBank,
                   style: AppTypography.title.copyWith(color: textColor),
                 ),
               ),
@@ -307,9 +327,7 @@ class _ErrorBankCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            queue.isEmpty
-                ? 'لا توجد كلمات متعثرة ضمن قائمة اليوم.'
-                : 'مرتبة تلقائيًا حسب الأولوية ومؤشر الإتقان.',
+            queue.isEmpty ? strings.noStrugglingWords : strings.priorityNote,
             style: AppTypography.body.copyWith(color: secondaryText),
           ),
           if (queue.isNotEmpty) ...[
@@ -317,6 +335,7 @@ class _ErrorBankCard extends StatelessWidget {
             for (final item in queue.take(5)) ...[
               _ReviewRow(
                 item: item,
+                strings: strings,
                 textColor: textColor,
                 secondaryText: secondaryText,
                 onTap: onStartQuickReview == null
@@ -331,7 +350,7 @@ class _ErrorBankCard extends StatelessWidget {
                   ? null
                   : () => onStartQuickReview!(ids),
               icon: const Icon(Icons.bolt_rounded),
-              label: const Text('ابدأ مراجعة سريعة'),
+              label: Text(strings.quickReview),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -349,12 +368,14 @@ class _ErrorBankCard extends StatelessWidget {
 class _ReviewRow extends StatelessWidget {
   const _ReviewRow({
     required this.item,
+    required this.strings,
     required this.textColor,
     required this.secondaryText,
     this.onTap,
   });
 
   final AdaptiveReviewItem item;
+  final _DashboardStrings strings;
   final Color textColor;
   final Color secondaryText;
   final VoidCallback? onTap;
@@ -385,8 +406,7 @@ class _ReviewRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'أولوية $priority · مراجعة خلال '
-                  '${item.reviewIntervalDays} يوم',
+                  strings.reviewRow(priority, item.reviewIntervalDays),
                   style: AppTypography.label.copyWith(color: secondaryText),
                 ),
               ],
@@ -416,4 +436,108 @@ final class _StatData {
     required this.icon,
     required this.accent,
   });
+}
+
+final class _DashboardStrings {
+  final String dashboardTitle;
+  final String progressTitle;
+  final String noDueItems;
+  final String retention;
+  final String masteredWords;
+  final String streakDays;
+  final String progressBand;
+  final String curriculumProgress;
+  final String errorBank;
+  final String noStrugglingWords;
+  final String priorityNote;
+  final String quickReview;
+  final String Function(int) dueItems;
+  final String Function(String, int, int) progressSummary;
+  final String Function(int, int) reviewRow;
+
+  const _DashboardStrings({
+    required this.dashboardTitle,
+    required this.progressTitle,
+    required this.noDueItems,
+    required this.retention,
+    required this.masteredWords,
+    required this.streakDays,
+    required this.progressBand,
+    required this.curriculumProgress,
+    required this.errorBank,
+    required this.noStrugglingWords,
+    required this.priorityNote,
+    required this.quickReview,
+    required this.dueItems,
+    required this.progressSummary,
+    required this.reviewRow,
+  });
+
+  static _DashboardStrings forLanguageCode(String languageCode) {
+    final code =
+        languageCode.trim().toLowerCase().split(RegExp('[-_]')).first;
+    if (code == 'ar') return _arabic;
+    if (code == 'de') return _german;
+    return _english;
+  }
+
+  static final _arabic = _DashboardStrings(
+    dashboardTitle: 'لوحة المتعلم',
+    progressTitle: 'لوحة تقدّمك',
+    noDueItems: 'لا توجد عناصر متعثرة مستحقة الآن.',
+    retention: 'معدل الاحتفاظ',
+    masteredWords: 'الكلمات المتقنة',
+    streakDays: 'أيام السلسلة',
+    progressBand: 'نطاق المنهج',
+    curriculumProgress: 'تغطية المنهج من A1 إلى B1',
+    errorBank: 'بنك الأخطاء',
+    noStrugglingWords: 'لا توجد كلمات متعثرة مستحقة اليوم.',
+    priorityNote: 'مرتبة حسب الأولوية من العناصر المستحقة اليوم فقط.',
+    quickReview: 'ابدأ مراجعة سريعة',
+    dueItems: (count) => 'لديك $count عناصر ذات أولوية للمراجعة اليوم.',
+    progressSummary: (band, tracked, mastery) =>
+        'نطاق المنهج الحالي: $band · $tracked عنصرًا متابعًا · مؤشر الإتقان $mastery%',
+    reviewRow: (priority, interval) =>
+        'أولوية $priority · الفاصل التالي بعد المراجعة: $interval يوم',
+  );
+
+  static final _german = _DashboardStrings(
+    dashboardTitle: 'Lernübersicht',
+    progressTitle: 'Dein Lernfortschritt',
+    noDueItems: 'Heute sind keine schwierigen Elemente fällig.',
+    retention: 'Behaltensrate',
+    masteredWords: 'Gemeisterte Wörter',
+    streakDays: 'Lerntage',
+    progressBand: 'Curriculum-Band',
+    curriculumProgress: 'Curriculum-Abdeckung A1 bis B1',
+    errorBank: 'Fehlerbank',
+    noStrugglingWords: 'Heute sind keine schwierigen Wörter fällig.',
+    priorityNote: 'Nur heute fällige Elemente, nach Priorität sortiert.',
+    quickReview: 'Schnellwiederholung starten',
+    dueItems: (count) => '$count priorisierte Elemente sind heute fällig.',
+    progressSummary: (band, tracked, mastery) =>
+        'Aktuelles Curriculum-Band: $band · $tracked Elemente verfolgt · Beherrschung $mastery%',
+    reviewRow: (priority, interval) =>
+        'Priorität $priority · nächstes Intervall nach Review: $interval Tage',
+  );
+
+  static final _english = _DashboardStrings(
+    dashboardTitle: 'Learner dashboard',
+    progressTitle: 'Your learning progress',
+    noDueItems: 'No struggling items are due now.',
+    retention: 'Retention rate',
+    masteredWords: 'Mastered words',
+    streakDays: 'Streak days',
+    progressBand: 'Curriculum band',
+    curriculumProgress: 'A1 to B1 curriculum coverage',
+    errorBank: 'Error bank',
+    noStrugglingWords: 'No struggling words are due today.',
+    priorityNote: 'Only items due today, ordered by priority.',
+    quickReview: 'Start quick review',
+    dueItems: (count) => '$count priority items are due for review today.',
+    progressSummary: (band, tracked, mastery) =>
+        'Current curriculum band: $band · $tracked tracked items · mastery index $mastery%',
+    reviewRow: (priority, interval) =>
+        'Priority $priority · next interval after review: $interval days',
+  );
 }

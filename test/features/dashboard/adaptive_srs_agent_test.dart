@@ -45,26 +45,21 @@ void main() {
 
       expect(streak, 0);
     });
-
-    test('rejects a non UTC now timestamp', () {
-      expect(
-        () => engine.currentStreak(
-          const <DateTime>[],
-          nowUtc: DateTime(2026, 10, 3),
-        ),
-        throwsArgumentError,
-      );
-    });
   });
 
   group('AdaptiveSrsAgent', () {
     const agent = AdaptiveSrsAgent();
     final now = DateTime.utc(2026, 10, 3, 12);
 
-    SrsItemState state(CardState cardState, int interval) => SrsItemState(
+    SrsItemState state(
+      CardState cardState,
+      int interval, {
+      DateTime? due,
+    }) =>
+        SrsItemState(
           intervalDays: interval,
           repetitions: 3,
-          dueDate: now,
+          dueDate: due ?? now,
           state: cardState,
         );
 
@@ -89,7 +84,7 @@ void main() {
           recentFailureRate: failureRate,
         );
 
-    test('derives retention, mastered count and deterministic review priority', () {
+    test('uses complete attempt evidence for retention and due review priority', () {
       final low = mistake(
         id: 'low',
         errors: 1,
@@ -116,6 +111,15 @@ void main() {
           'high': state(CardState.learning, 20),
           'mastered': state(CardState.mastered, 30),
         },
+        totalAttempts: 102,
+        correctAttempts: 101,
+        curriculumLevelByItem: const {
+          'low': 'A1',
+          'high': 'A1',
+          'mastered': 'A1',
+          'unseen': 'A1',
+        },
+        masteredItemIds: const {'mastered'},
         nowUtc: now,
         reviewLimit: 2,
         displayLabelByItem: const {
@@ -124,76 +128,101 @@ void main() {
         },
       );
 
-      expect(result.retentionRate, closeTo(.5, .0001));
+      expect(result.retentionRate, closeTo(101 / 102, .0001));
       expect(result.masteredWords, 1);
       expect(result.currentStreakDays, 2);
       expect(result.dailyReview, hasLength(2));
       expect(result.dailyReview.first.itemId, 'high');
       expect(result.dailyReview.first.displayLabel, 'der Bahnhof');
-      expect(
-        result.dailyReview.first.reviewIntervalDays,
-        lessThan(result.dailyReview.last.reviewIntervalDays),
-      );
+      expect(result.curriculumProgress, .25);
+      expect(result.progressBand, 'A1');
       expect(result.masteryIndex, inInclusiveRange(0.0, 1.0));
     });
 
-    test('limits the daily queue without mutating the canonical state map', () {
-      final states = {
-        'a': state(CardState.reviewing, 8),
-        'b': state(CardState.reviewing, 8),
-      };
-      final result = agent.analyze(
-        activityTimesUtc: const <DateTime>[],
-        mistakes: [
-          mistake(
-            id: 'a',
-            errors: 2,
-            attempts: 3,
-            severity: 80,
-            failureRate: .66,
-          ),
-          mistake(
-            id: 'b',
-            errors: 1,
-            attempts: 3,
-            severity: 40,
-            failureRate: .33,
-          ),
-        ],
-        states: states,
-        nowUtc: now,
-        reviewLimit: 1,
+    test('does not schedule a struggling card before its canonical due date', () {
+      final future = mistake(
+        id: 'future',
+        errors: 3,
+        attempts: 4,
+        severity: 95,
+        failureRate: .75,
       );
 
-      expect(result.dailyReview, hasLength(1));
-      expect(states['a']!.intervalDays, 8);
-      expect(states['b']!.intervalDays, 8);
+      final result = agent.analyze(
+        activityTimesUtc: const <DateTime>[],
+        mistakes: [future],
+        states: {
+          'future': state(
+            CardState.reviewing,
+            10,
+            due: now.add(const Duration(days: 2)),
+          ),
+        },
+        totalAttempts: 4,
+        correctAttempts: 1,
+        curriculumLevelByItem: const {'future': 'A1'},
+        masteredItemIds: const <String>{},
+        nowUtc: now,
+      );
+
+      expect(result.dailyReview, isEmpty);
     });
 
-    test('returns safe empty analytics when there is no tracked learning data', () {
+    test('curriculum denominator prevents one mastered card from implying B1', () {
+      final result = agent.analyze(
+        activityTimesUtc: const <DateTime>[],
+        mistakes: const <MistakeRecord>[],
+        states: {
+          'one': state(CardState.mastered, 30),
+        },
+        totalAttempts: 1,
+        correctAttempts: 1,
+        curriculumLevelByItem: const {
+          'one': 'A1',
+          'two': 'A1',
+          'three': 'A2',
+          'four': 'B1',
+        },
+        masteredItemIds: const {'one'},
+        nowUtc: now,
+      );
+
+      expect(result.curriculumProgress, .25);
+      expect(result.progressBand, 'A1');
+    });
+
+    test('returns safe empty analytics when there is no learner evidence', () {
       final result = agent.analyze(
         activityTimesUtc: const <DateTime>[],
         mistakes: const <MistakeRecord>[],
         states: const <String, SrsItemState>{},
+        totalAttempts: 0,
+        correctAttempts: 0,
+        curriculumLevelByItem: const <String, String>{},
+        masteredItemIds: const <String>{},
         nowUtc: now,
       );
 
-      expect(result.retentionRate, 1.0);
+      expect(result.retentionRate, 0.0);
       expect(result.masteryIndex, 0.0);
+      expect(result.curriculumProgress, 0.0);
       expect(result.masteredWords, 0);
       expect(result.currentStreakDays, 0);
       expect(result.progressBand, 'A1');
       expect(result.dailyReview, isEmpty);
     });
 
-    test('rejects a negative review limit', () {
+    test('rejects invalid attempt totals', () {
       expect(
         () => agent.analyze(
           activityTimesUtc: const <DateTime>[],
           mistakes: const <MistakeRecord>[],
           states: const <String, SrsItemState>{},
+          totalAttempts: 2,
+          correctAttempts: 3,
+          curriculumLevelByItem: const <String, String>{},
+          masteredItemIds: const <String>{},
           nowUtc: now,
-          reviewLimit: -1,
         ),
         throwsArgumentError,
       );

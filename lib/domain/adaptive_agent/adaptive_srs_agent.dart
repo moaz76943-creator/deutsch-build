@@ -26,6 +26,7 @@ final class AdaptiveReviewItem {
 final class LearnerDashboardAnalytics {
   final double retentionRate;
   final double masteryIndex;
+  final double curriculumProgress;
   final int masteredWords;
   final int currentStreakDays;
   final int trackedItems;
@@ -35,6 +36,7 @@ final class LearnerDashboardAnalytics {
   const LearnerDashboardAnalytics({
     required this.retentionRate,
     required this.masteryIndex,
+    required this.curriculumProgress,
     required this.masteredWords,
     required this.currentStreakDays,
     required this.trackedItems,
@@ -42,13 +44,13 @@ final class LearnerDashboardAnalytics {
     required this.dailyReview,
   });
 
-  double get a1ToB1Progress => masteryIndex;
+  double get a1ToB1Progress => curriculumProgress;
 }
 
-/// Read-only adaptive policy that projects canonical SRS and mistake-bank data.
+/// Read-only adaptive policy over canonical SRS, attempts, and mistake evidence.
 ///
-/// Persistence remains owned by the established learning repositories. This
-/// agent only derives analytics and a deterministic daily review queue.
+/// Persistence remains owned by the established learner repositories. The agent
+/// derives analytics and a deterministic due-only daily review queue.
 final class AdaptiveSrsAgent {
   final AdaptiveErrorBank errorBank;
   final DailyStreakEngine streakEngine;
@@ -62,6 +64,10 @@ final class AdaptiveSrsAgent {
     required Iterable<DateTime> activityTimesUtc,
     required Iterable<MistakeRecord> mistakes,
     required Map<String, SrsItemState> states,
+    required int totalAttempts,
+    required int correctAttempts,
+    required Map<String, String> curriculumLevelByItem,
+    required Set<String> masteredItemIds,
     required DateTime nowUtc,
     int timezoneOffsetMinutes = 0,
     int reviewLimit = 10,
@@ -74,16 +80,27 @@ final class AdaptiveSrsAgent {
     if (reviewLimit < 0) {
       throw ArgumentError.value(reviewLimit, 'reviewLimit', 'must be >= 0');
     }
+    if (totalAttempts < 0 || correctAttempts < 0) {
+      throw ArgumentError('attempt counts must be non-negative');
+    }
+    if (correctAttempts > totalAttempts) {
+      throw ArgumentError('correctAttempts cannot exceed totalAttempts');
+    }
 
     final mistakeList = List<MistakeRecord>.unmodifiable(mistakes);
-    final retention = _retentionRate(mistakeList);
     final mastery = _masteryIndex(states, mistakeList, nowUtc);
+    final dueMistakes = <MistakeRecord>[
+      for (final mistake in mistakeList)
+        if (_isDue(states[mistake.itemId], nowUtc)) mistake,
+    ];
     final signals = errorBank.prioritize(
-      mistakeList,
+      dueMistakes,
       states,
       reviewedAtUtc: nowUtc,
       skillByItem: skillByItem,
     );
+    final curriculum =
+        _curriculumProgress(curriculumLevelByItem, masteredItemIds);
 
     final queue = <AdaptiveReviewItem>[
       for (final signal in signals.take(reviewLimit))
@@ -98,32 +115,24 @@ final class AdaptiveSrsAgent {
     ];
 
     return LearnerDashboardAnalytics(
-      retentionRate: retention,
+      retentionRate:
+          totalAttempts == 0 ? 0.0 : correctAttempts / totalAttempts,
       masteryIndex: mastery,
-      masteredWords:
-          states.values.where((state) => state.state == CardState.mastered).length,
+      curriculumProgress: curriculum.progress,
+      masteredWords: masteredItemIds.length,
       currentStreakDays: streakEngine.currentStreak(
         activityTimesUtc,
         nowUtc: nowUtc,
         timezoneOffsetMinutes: timezoneOffsetMinutes,
       ),
       trackedItems: states.length,
-      progressBand: _progressBand(mastery),
+      progressBand: curriculum.band,
       dailyReview: List<AdaptiveReviewItem>.unmodifiable(queue),
     );
   }
 
-  double _retentionRate(List<MistakeRecord> mistakes) {
-    var attempts = 0;
-    var errors = 0;
-    for (final mistake in mistakes) {
-      attempts += math.max(0, mistake.attemptCount);
-      errors += math.max(0, mistake.errorCount);
-    }
-    if (attempts == 0) return 1.0;
-    final retained = (attempts - math.min(errors, attempts)) / attempts;
-    return retained.clamp(0.0, 1.0).toDouble();
-  }
+  bool _isDue(SrsItemState? state, DateTime nowUtc) =>
+      state != null && !state.dueDate.toUtc().isAfter(nowUtc);
 
   double _masteryIndex(
     Map<String, SrsItemState> states,
@@ -154,9 +163,55 @@ final class AdaptiveSrsAgent {
     return (total / states.length).clamp(0.0, 1.0).toDouble();
   }
 
-  String _progressBand(double mastery) {
-    if (mastery < 1 / 3) return 'A1';
-    if (mastery < 2 / 3) return 'A2';
-    return 'B1';
+  _CurriculumProgress _curriculumProgress(
+    Map<String, String> levelByItem,
+    Set<String> masteredItemIds,
+  ) {
+    final eligible = levelByItem.entries.where(
+      (entry) => const {'A1', 'A2', 'B1'}.contains(entry.value),
+    );
+    final totals = <String, int>{'A1': 0, 'A2': 0, 'B1': 0};
+    final mastered = <String, int>{'A1': 0, 'A2': 0, 'B1': 0};
+    var total = 0;
+    var masteredTotal = 0;
+
+    for (final entry in eligible) {
+      totals[entry.value] = (totals[entry.value] ?? 0) + 1;
+      total++;
+      if (masteredItemIds.contains(entry.key)) {
+        mastered[entry.value] = (mastered[entry.value] ?? 0) + 1;
+        masteredTotal++;
+      }
+    }
+
+    if (total == 0) {
+      return const _CurriculumProgress(progress: 0, band: 'A1');
+    }
+
+    double coverage(String level) {
+      final denominator = totals[level] ?? 0;
+      if (denominator == 0) return 0;
+      return (mastered[level] ?? 0) / denominator;
+    }
+
+    final band = coverage('A1') < .80
+        ? 'A1'
+        : coverage('A2') < .80
+            ? 'A2'
+            : 'B1';
+    return _CurriculumProgress(
+      progress: (masteredTotal / total).clamp(0.0, 1.0).toDouble(),
+      band: band,
+    );
   }
+}
+
+final class _CurriculumProgress {
+  final double progress;
+  final String band;
+
+  const _CurriculumProgress({
+    required this.progress,
+    required this.band,
+  });
 }

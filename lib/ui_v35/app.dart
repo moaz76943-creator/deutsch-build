@@ -8,6 +8,8 @@ import 'gamification/gamification_dashboard_page.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
 import '../features/gamification/domain/gamification_models.dart';
+import '../features/dashboard/application/dashboard_analytics_builder.dart';
+import '../features/dashboard/presentation/learner_dashboard_view.dart';
 import '../services/progress_snapshot_service.dart';
 import '../services/repository.dart';
 import '../services/auth_session_controller.dart';
@@ -709,29 +711,50 @@ class _HomeState extends State<HomeV35> {
           ),
           _featureCard(
             c,
-            'المدرس الذكي وخطة اليوم',
-            'أفضل خطوة تالية مبنية على أدائك',
+            'لوحة المتعلم وخطة اليوم',
+            'تحليلات دقيقة + مراجعة SRS تكيفية حسب العناصر المستحقة',
             Icons.psychology_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => LearningDashboardPage(
-                  repo: widget.repo,
-                  corpus: widget.dependencies.corpus,
-                  searchIndex: widget.dependencies.searchIndex,
-                  verbIndex: widget.dependencies.verbIndex,
-                  exerciseStrategy:
-                      widget.dependencies.languagePack.exerciseStrategy,
-                  presentation: widget.dependencies.languagePack.presentation,
-                  textNormalizer:
-                      widget.dependencies.languagePack.textNormalizer,
-                  contentQuality:
-                      widget.dependencies.languagePack.contentQuality,
-                  contentIntelligence:
-                      widget.dependencies.languagePack.contentIntelligence,
+            () {
+              final bundle = DashboardAnalyticsBuilder.build(
+                state: widget.repo.load(),
+                corpus: widget.dependencies.corpus,
+                contentIntelligence:
+                    widget.dependencies.languagePack.contentIntelligence,
+                nowUtc: DateTime.now().toUtc(),
+                timezoneOffsetMinutes: DateTime.now().timeZoneOffset.inMinutes,
+              );
+              Navigator.push(
+                c,
+                MaterialPageRoute(
+                  builder: (dashboardContext) => LearnerDashboardView(
+                    analytics: bundle.analytics,
+                    languageCode: widget.dependencies.languagePack.sourceLocale,
+                    onStartQuickReview: (ids) {
+                      final candidates = [
+                        for (final id in ids)
+                          if (bundle.mistakesByItem[id] != null)
+                            bundle.mistakesByItem[id]!,
+                      ];
+                      if (candidates.isEmpty) return;
+                      Navigator.push(
+                        dashboardContext,
+                        MaterialPageRoute(
+                          builder: (_) => MistakeRepairPage(
+                            repo: widget.repo,
+                            mistake: candidates.first,
+                            corpus: widget.dependencies.corpus,
+                            exerciseStrategy:
+                                widget.dependencies.languagePack.exerciseStrategy,
+                            contentQuality:
+                                widget.dependencies.languagePack.contentQuality,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
             primary: true,
           ),
           _featureCard(
