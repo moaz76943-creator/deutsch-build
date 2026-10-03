@@ -1,98 +1,67 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import 'package:deutsch_bilarabi/features/notifications/domain/notification_contracts.dart';
+import 'package:deutsch_bilarabi/features/notifications/domain/notification_models.dart';
 import 'package:deutsch_bilarabi/features/notifications/domain/offline_notification_scheduler.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 
-import 'offline_notification_scheduler_test.mocks.dart';
+final class _FakeNotificationService implements NotificationServiceContract {
+  int initializeCalls = 0;
+  int cancelCalls = 0;
+  List<ScheduledNotificationItem> scheduled = <ScheduledNotificationItem>[];
 
-@GenerateMocks([FlutterLocalNotificationsPlugin])
+  @override
+  Future<void> initialize() async {
+    initializeCalls += 1;
+  }
+
+  @override
+  Future<void> replaceAll(List<ScheduledNotificationItem> items) async {
+    scheduled = List<ScheduledNotificationItem>.from(items);
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    cancelCalls += 1;
+  }
+}
+
 void main() {
-  late MockFlutterLocalNotificationsPlugin mockPlugin;
-  late OfflineNotificationScheduler scheduler;
-
-  setUp(() {
-    mockPlugin = MockFlutterLocalNotificationsPlugin();
-    scheduler = OfflineNotificationScheduler(plugin: mockPlugin);
-
-    // Set a predictable local timezone for testing
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('UTC'));
-  });
-
   group('OfflineNotificationScheduler', () {
-    test('initialize calls plugin initialize', () async {
-      when(
-        mockPlugin.initialize(
-          settings: anyNamed('settings'),
-          onDidReceiveNotificationResponse: anyNamed(
-            'onDidReceiveNotificationResponse',
-          ),
-          onDidReceiveBackgroundNotificationResponse: anyNamed(
-            'onDidReceiveBackgroundNotificationResponse',
-          ),
-        ),
-      ).thenAnswer((_) async => true);
+    test('delegates initialization through domain service contract', () async {
+      final service = _FakeNotificationService();
+      final scheduler = OfflineNotificationScheduler(service);
 
       await scheduler.initialize();
 
-      verify(
-        mockPlugin.initialize(
-          settings: anyNamed('settings'),
-          onDidReceiveNotificationResponse: anyNamed(
-            'onDidReceiveNotificationResponse',
-          ),
-          onDidReceiveBackgroundNotificationResponse: anyNamed(
-            'onDidReceiveBackgroundNotificationResponse',
-          ),
-        ),
-      ).called(1);
+      expect(service.initializeCalls, 1);
     });
 
-    test(
-      'scheduleDailyReminder calls zonedSchedule with correct parameters',
-      () async {
-        when(
-          mockPlugin.zonedSchedule(
-            id: anyNamed('id'),
-            title: anyNamed('title'),
-            body: anyNamed('body'),
-            scheduledDate: anyNamed('scheduledDate'),
-            notificationDetails: anyNamed('notificationDetails'),
-            androidScheduleMode: anyNamed('androidScheduleMode'),
-            matchDateTimeComponents: anyNamed('matchDateTimeComponents'),
-          ),
-        ).thenAnswer((_) async {});
+    test('replaces schedule without platform dependency in domain', () async {
+      final service = _FakeNotificationService();
+      final scheduler = OfflineNotificationScheduler(service);
+      final item = ScheduledNotificationItem(
+        id: 1,
+        title: 'وقت الدراسة',
+        body: 'راجع الألمانية اليوم.',
+        scheduledAtLocal: DateTime(2026, 10, 4, 19),
+        tone: NotificationTone.gentle,
+        repeatDaily: true,
+      );
 
-        const timeOfDay = TimeOfDay(hour: 14, minute: 30);
-        await scheduler.scheduleDailyReminder(timeOfDay);
+      await scheduler.replaceSchedule(<ScheduledNotificationItem>[item]);
 
-        verify(
-          mockPlugin.zonedSchedule(
-            id: 0,
-            title: 'وقت الدراسة',
-            body: 'حان وقت مراجعة مفرداتك الألمانية!',
-            scheduledDate: argThat(
-              isA<tz.TZDateTime>(),
-              named: 'scheduledDate',
-            ),
-            notificationDetails: anyNamed('notificationDetails'),
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-            matchDateTimeComponents: DateTimeComponents.time,
-          ),
-        ).called(1);
-      },
-    );
+      expect(service.scheduled, hasLength(1));
+      expect(service.scheduled.single.id, 1);
+      expect(service.scheduled.single.repeatDaily, isTrue);
+    });
 
-    test('cancelAllReminders calls cancelAll', () async {
-      when(mockPlugin.cancelAll()).thenAnswer((_) async {});
+    test('delegates cancellation through facade', () async {
+      final service = _FakeNotificationService();
+      final scheduler = OfflineNotificationScheduler(service);
 
-      await scheduler.cancelAllReminders();
+      await scheduler.cancelAll();
 
-      verify(mockPlugin.cancelAll()).called(1);
+      expect(service.cancelCalls, 1);
     });
   });
 }

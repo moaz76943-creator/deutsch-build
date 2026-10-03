@@ -8,7 +8,8 @@ enum StorageBucket {
   learnerProgress('learner_progress_v1'),
   srsIntervals('srs_intervals_v1'),
   errorBank('error_bank_v1'),
-  gamification('gamification_v1');
+  gamification('gamification_v1'),
+  notificationPreferences('notification_preferences_v1');
 
   const StorageBucket(this.storageKey);
 
