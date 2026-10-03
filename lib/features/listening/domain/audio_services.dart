@@ -51,12 +51,6 @@ abstract interface class AudioRecorderService {
   });
 }
 
-abstract interface class AudioService {
-  AudioPlayerService get player;
-
-  AudioRecorderService get recorder;
-}
-
 abstract interface class AudioPlayerFacade {
   Future<bool> playDrill(
     ListeningDrill drill, {
