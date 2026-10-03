@@ -3,8 +3,9 @@ import 'package:flutter/foundation.dart';
 import '../domain/learning_preferences.dart';
 import '../domain/settings_repository.dart';
 import '../domain/storage_metrics.dart';
+import 'settings_controller.dart';
 
-final class SettingsNotifier extends ChangeNotifier {
+final class SettingsNotifier extends ChangeNotifier implements SettingsController {
   SettingsNotifier(this._repository, this._progressResetter);
 
   final SettingsRepository _repository;
