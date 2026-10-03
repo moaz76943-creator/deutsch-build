@@ -166,10 +166,14 @@ final class SyncCoordinatorNotifier extends ChangeNotifier {
       final local = await _repository.loadSnapshot();
       final remote = await _cloud.fetchSnapshot(syncKey);
 
+      if (local == null && pending.isNotEmpty) {
+        throw StateError('Pending mutations require a local snapshot.');
+      }
+
       if (local == null && remote == null) {
         _state = _state.copyWith(
           status: SyncStatus.upToDate,
-          pendingCount: pending.length,
+          pendingCount: 0,
           lastSyncedAtUtc: DateTime.now().toUtc(),
           clearConflict: true,
           clearMessage: true,
@@ -180,9 +184,6 @@ final class SyncCoordinatorNotifier extends ChangeNotifier {
 
       if (local == null && remote != null) {
         await _repository.saveSnapshot(remote);
-        await _repository.acknowledge(
-          pending.map((item) => item.id).toSet(),
-        );
         _state = _state.copyWith(
           status: SyncStatus.upToDate,
           pendingCount: 0,
