@@ -1,14 +1,19 @@
 final class SrsCorpusContract {
   const SrsCorpusContract._();
 
+  /// Schema of the derived, language-neutral runtime SRS corpus.
   static const int schemaVersion = 1;
-  static const int expectedContentRows = 14813;
-  static const int expectedVerbRows = 11718;
 
   static const String metadataTable = 'srs_corpus_metadata';
   static const String contentTable = 'srs_corpus_content';
   static const String acceptedTable = 'srs_corpus_accepted';
   static const String verbTable = 'srs_corpus_verb_rows';
+
+  static const String metadataSchemaVersionKey = 'schemaVersion';
+  static const String metadataStateKey = 'state';
+  static const String metadataContentRowsKey = 'contentRows';
+  static const String metadataVerbRowsKey = 'verbRows';
+  static const String metadataSourceContentSha256Key = 'sourceContentSha256';
 
   static const Set<String> requiredIndexes = <String>{
     'idx_srs_content_topic_skill_id',
@@ -89,20 +94,56 @@ ON srs_corpus_verb_rows(infinitive, person, content_id)
   ];
 }
 
+/// Cardinality declared by an admitted language pack.
+///
+/// Content rows must be non-empty. Verb rows may legitimately be zero for
+/// languages/packs that do not expose conjugation rows through the legacy
+/// migration surface.
+final class SrsCorpusCardinality {
+  SrsCorpusCardinality({
+    required this.contentRows,
+    required this.verbRows,
+  }) {
+    if (contentRows < 1) {
+      throw ArgumentError.value(
+        contentRows,
+        'contentRows',
+        'must be positive',
+      );
+    }
+    if (verbRows < 0) {
+      throw ArgumentError.value(
+        verbRows,
+        'verbRows',
+        'must not be negative',
+      );
+    }
+  }
+
+  final int contentRows;
+  final int verbRows;
+}
+
 final class SrsCorpusVerification {
   const SrsCorpusVerification({
     required this.schemaVersion,
     required this.contentRows,
     required this.verbRows,
+    required this.expectedContentRows,
+    required this.expectedVerbRows,
+    required this.sourceContentSha256,
     required this.indexes,
   });
 
   final int schemaVersion;
   final int contentRows;
   final int verbRows;
+  final int expectedContentRows;
+  final int expectedVerbRows;
+  final String sourceContentSha256;
   final Set<String> indexes;
 
   bool get hasExpectedCardinality =>
-      contentRows == SrsCorpusContract.expectedContentRows &&
-      verbRows == SrsCorpusContract.expectedVerbRows;
+      contentRows == expectedContentRows &&
+      verbRows == expectedVerbRows;
 }

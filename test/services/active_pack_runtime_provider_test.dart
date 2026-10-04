@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:deutsch_bilarabi/features/srs/corpus_sqlite_contract.dart';
 import 'package:deutsch_bilarabi/language/german/german_language_pack.dart';
 import 'package:deutsch_bilarabi/services/active_pack_runtime_provider.dart';
 import 'package:deutsch_bilarabi/services/grammar_hub_service.dart';
@@ -12,6 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+const int _fixtureContentRows = 130;
+const int _fixtureVerbRows = 12;
 
 final class _TestPackDatabaseKeyStore implements PackDatabaseKeyStore {
   const _TestPackDatabaseKeyStore();
@@ -79,13 +81,15 @@ void main() {
       expect(runtime.hasIndexedCorpus, isTrue);
 
       final repository = runtime.corpusRepository!;
+      expect(repository.verification.contentRows, _fixtureContentRows);
+      expect(repository.verification.verbRows, _fixtureVerbRows);
       expect(
-        repository.verification.contentRows,
-        SrsCorpusContract.expectedContentRows,
+        repository.verification.expectedContentRows,
+        _fixtureContentRows,
       );
       expect(
-        repository.verification.verbRows,
-        SrsCorpusContract.expectedVerbRows,
+        repository.verification.expectedVerbRows,
+        _fixtureVerbRows,
       );
       expect(repository.verification.hasExpectedCardinality, isTrue);
 
@@ -119,6 +123,52 @@ void main() {
       final mastered =
           await runtime.grammarHubService.getTopicDetail('pack_a1');
       expect(mastered?.isMastered, isTrue);
+
+      await runtime.closeCorpus();
+      await runtime.grammarHubService.close();
+      manager.dispose();
+      await root.delete(recursive: true);
+    },
+  );
+
+  test(
+    'pack metadata content cardinality mismatch fails closed',
+    () async {
+      final root =
+          await Directory.systemTemp.createTemp('cardinality_mismatch_');
+      final sqlitePath = _sqlitePath(root, 'de-core');
+      await _createCanonicalPackDatabase(
+        sqlitePath,
+        includeGrammar: true,
+        declaredContentRows: _fixtureContentRows + 1,
+      );
+      SharedPreferences.setMockInitialValues(
+        _installedPreferences('de-core'),
+      );
+      final preferences = await PreferencesService.instance();
+      final manager = PackManagerService(
+        preferences,
+        rootDirectory: root,
+      );
+      final fallbackGrammar = GrammarHubService(
+        factory: databaseFactoryFfi,
+        path: p.join(root.path, 'fallback_cardinality.db'),
+      );
+
+      final runtime = await ActivePackRuntimeProvider(
+        packManager: manager,
+        languagePack: const GermanLanguagePack(),
+        embeddedGrammar: fallbackGrammar,
+        databaseFactory: databaseFactoryFfi,
+        databaseKeyStore: const _TestPackDatabaseKeyStore(),
+      ).resolve();
+
+      expect(runtime.state.origin, RuntimeContentOrigin.embeddedFallback);
+      expect(
+        runtime.state.fallbackReason,
+        'pack_content_cardinality_mismatch',
+      );
+      expect(runtime.corpusRepository, isNull);
 
       await runtime.closeCorpus();
       await runtime.grammarHubService.close();
@@ -344,6 +394,10 @@ String _sqlitePath(Directory root, String packId) =>
 Future<void> _createCanonicalPackDatabase(
   String path, {
   required bool includeGrammar,
+  int contentRows = _fixtureContentRows,
+  int verbRows = _fixtureVerbRows,
+  int? declaredContentRows,
+  int? declaredVerbRows,
 }) async {
   await Directory(p.dirname(path)).create(recursive: true);
   final db = await databaseFactoryFfi.openDatabase(path);
@@ -361,6 +415,8 @@ Future<void> _createCanonicalPackDatabase(
 
   for (final entry in <String, String>{
     'schemaVersion': '1',
+    'contentRows': (declaredContentRows ?? contentRows).toString(),
+    'verbRows': (declaredVerbRows ?? verbRows).toString(),
     'packId': 'de-core',
     'languageCode': 'de',
     'version': '1.0.0',
@@ -376,22 +432,21 @@ Future<void> _createCanonicalPackDatabase(
     );
   }
 
-  const verbItems = SrsCorpusContract.expectedVerbRows ~/ 6;
+  final verbItems = verbRows ~/ 6;
   expect(
     verbItems * 6,
-    SrsCorpusContract.expectedVerbRows,
-    reason: 'Canonical verb rows must be divisible into six-person sets.',
+    verbRows,
+    reason: 'Fixture verb rows must be divisible into six-person sets.',
+  );
+  expect(
+    verbItems,
+    lessThanOrEqualTo(contentRows),
+    reason: 'Each six-row verb set requires one lexicon item.',
   );
 
   const batchSize = 256;
-  for (
-    var start = 0;
-    start < SrsCorpusContract.expectedContentRows;
-    start += batchSize
-  ) {
-    final end = (start + batchSize)
-        .clamp(0, SrsCorpusContract.expectedContentRows)
-        .toInt();
+  for (var start = 0; start < contentRows; start += batchSize) {
+    final end = (start + batchSize).clamp(0, contentRows).toInt();
     final batch = db.batch();
 
     for (var index = start; index < end; index += 1) {
@@ -484,10 +539,7 @@ Future<void> _createCanonicalPackDatabase(
   final countRows = await db.rawQuery(
     'SELECT COUNT(*) AS count FROM lexicon',
   );
-  expect(
-    countRows.single['count'],
-    SrsCorpusContract.expectedContentRows,
-  );
+  expect(countRows.single['count'], contentRows);
 
   await db.close();
 }

@@ -66,21 +66,60 @@ final class IndexedSrsCorpusRepository {
   final Database _database;
   final SrsCorpusVerification verification;
 
-  static Future<IndexedSrsCorpusRepository> open(Database database) async {
-    final verification = await verifyDatabase(database);
+  static Future<IndexedSrsCorpusRepository> open(
+    Database database, {
+    required SrsCorpusCardinality expectedCardinality,
+    required String sourceContentSha256,
+  }) async {
+    final verification = await verifyDatabase(
+      database,
+      expectedCardinality: expectedCardinality,
+      sourceContentSha256: sourceContentSha256,
+    );
     return IndexedSrsCorpusRepository._(database, verification);
   }
 
   static Future<SrsCorpusVerification> verifyDatabase(
-    Database database,
-  ) async {
+    Database database, {
+    required SrsCorpusCardinality expectedCardinality,
+    required String sourceContentSha256,
+  }) async {
     final metadata = await _metadata(database);
     if (metadata['state'] != 'ready') {
       throw StateError('srs_corpus_not_ready');
     }
-    final schemaVersion = int.tryParse(metadata['schemaVersion'] ?? '');
+    final schemaVersion = int.tryParse(
+      metadata[SrsCorpusContract.metadataSchemaVersionKey] ?? '',
+    );
     if (schemaVersion != SrsCorpusContract.schemaVersion) {
       throw StateError('srs_corpus_schema_mismatch');
+    }
+
+    final declaredContentRows = _requiredMetadataInt(
+      metadata,
+      SrsCorpusContract.metadataContentRowsKey,
+      allowZero: false,
+    );
+    final declaredVerbRows = _requiredMetadataInt(
+      metadata,
+      SrsCorpusContract.metadataVerbRowsKey,
+      allowZero: true,
+    );
+    if (declaredContentRows != expectedCardinality.contentRows ||
+        declaredVerbRows != expectedCardinality.verbRows) {
+      throw StateError('srs_corpus_declared_cardinality_mismatch');
+    }
+
+    final expectedSha256 = sourceContentSha256.trim().toLowerCase();
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(expectedSha256)) {
+      throw StateError('srs_corpus_source_sha256_invalid');
+    }
+    final declaredSha256 =
+        metadata[SrsCorpusContract.metadataSourceContentSha256Key]
+            ?.trim()
+            .toLowerCase();
+    if (declaredSha256 != expectedSha256) {
+      throw StateError('srs_corpus_source_sha256_mismatch');
     }
 
     final contentRows = await _count(
@@ -92,14 +131,16 @@ final class IndexedSrsCorpusRepository {
       SrsCorpusContract.verbTable,
     );
 
-    if (contentRows != SrsCorpusContract.expectedContentRows) {
+    if (contentRows != expectedCardinality.contentRows) {
       throw StateError(
-        'srs_corpus_content_cardinality_mismatch:$contentRows',
+        'srs_corpus_content_cardinality_mismatch:'
+        '$contentRows/${expectedCardinality.contentRows}',
       );
     }
-    if (verbRows != SrsCorpusContract.expectedVerbRows) {
+    if (verbRows != expectedCardinality.verbRows) {
       throw StateError(
-        'srs_corpus_verb_cardinality_mismatch:$verbRows',
+        'srs_corpus_verb_cardinality_mismatch:'
+        '$verbRows/${expectedCardinality.verbRows}',
       );
     }
 
@@ -119,6 +160,9 @@ final class IndexedSrsCorpusRepository {
       schemaVersion: schemaVersion!,
       contentRows: contentRows,
       verbRows: verbRows,
+      expectedContentRows: expectedCardinality.contentRows,
+      expectedVerbRows: expectedCardinality.verbRows,
+      sourceContentSha256: expectedSha256,
       indexes: Set<String>.unmodifiable(indexes),
     );
   }
@@ -278,6 +322,19 @@ ORDER BY content_id ASC, ordinal ASC
         if (row['key'] != null && row['value'] != null)
           row['key'].toString(): row['value'].toString(),
     };
+  }
+
+  static int _requiredMetadataInt(
+    Map<String, String> metadata,
+    String key, {
+    required bool allowZero,
+  }) {
+    final value = int.tryParse(metadata[key] ?? '');
+    final minimum = allowZero ? 0 : 1;
+    if (value == null || value < minimum) {
+      throw StateError('srs_corpus_metadata_invalid:$key');
+    }
+    return value;
   }
 
   static Future<int> _count(Database database, String table) async {

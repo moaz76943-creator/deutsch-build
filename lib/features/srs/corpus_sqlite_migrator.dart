@@ -16,9 +16,9 @@ final class SrsCorpusMigrationReport {
   final int verbRows;
   final int acceptedRows;
 
-  bool get complete =>
-      contentRows == SrsCorpusContract.expectedContentRows &&
-      verbRows == SrsCorpusContract.expectedVerbRows;
+  bool matches(SrsCorpusCardinality expected) =>
+      contentRows == expected.contentRows &&
+      verbRows == expected.verbRows;
 }
 
 /// Deterministically migrates the admitted legacy SQLite lexicon table into
@@ -34,8 +34,16 @@ final class SrsCorpusSqliteMigrator {
   Future<SrsCorpusMigrationReport> migrate({
     required Database source,
     required Database target,
+    required SrsCorpusCardinality expectedCardinality,
+    required String sourceContentSha256,
   }) async {
-    await _requireLegacySource(source);
+    final normalizedSourceContentSha256 = _requireSha256(
+      sourceContentSha256,
+    );
+    await _requireLegacySource(
+      source,
+      expectedCardinality: expectedCardinality,
+    );
     await _requireEmptyTarget(target);
 
     await target.execute('PRAGMA foreign_keys=ON');
@@ -43,20 +51,26 @@ final class SrsCorpusSqliteMigrator {
       await target.execute(statement);
     }
 
-    await target.insert(
-      SrsCorpusContract.metadataTable,
-      const <String, Object?>{
-        'key': 'schemaVersion',
-        'value': '1',
-      },
-    );
-    await target.insert(
-      SrsCorpusContract.metadataTable,
-      const <String, Object?>{
-        'key': 'state',
-        'value': 'building',
-      },
-    );
+    final metadata = <String, String>{
+      SrsCorpusContract.metadataSchemaVersionKey:
+          SrsCorpusContract.schemaVersion.toString(),
+      SrsCorpusContract.metadataStateKey: 'building',
+      SrsCorpusContract.metadataContentRowsKey:
+          expectedCardinality.contentRows.toString(),
+      SrsCorpusContract.metadataVerbRowsKey:
+          expectedCardinality.verbRows.toString(),
+      SrsCorpusContract.metadataSourceContentSha256Key:
+          normalizedSourceContentSha256,
+    };
+    for (final entry in metadata.entries) {
+      await target.insert(
+        SrsCorpusContract.metadataTable,
+        <String, Object?>{
+          'key': entry.key,
+          'value': entry.value,
+        },
+      );
+    }
 
     var contentRows = 0;
     var verbRows = 0;
@@ -210,14 +224,16 @@ final class SrsCorpusSqliteMigrator {
       if (rows.length < pageSize) break;
     }
 
-    if (contentRows != SrsCorpusContract.expectedContentRows) {
+    if (contentRows != expectedCardinality.contentRows) {
       throw StateError(
-        'srs_corpus_content_cardinality_mismatch:$contentRows',
+        'srs_corpus_content_cardinality_mismatch:'
+        '$contentRows/${expectedCardinality.contentRows}',
       );
     }
-    if (verbRows != SrsCorpusContract.expectedVerbRows) {
+    if (verbRows != expectedCardinality.verbRows) {
       throw StateError(
-        'srs_corpus_verb_cardinality_mismatch:$verbRows',
+        'srs_corpus_verb_cardinality_mismatch:'
+        '$verbRows/${expectedCardinality.verbRows}',
       );
     }
 
@@ -231,11 +247,14 @@ final class SrsCorpusSqliteMigrator {
       SrsCorpusContract.metadataTable,
       const <String, Object?>{'value': 'ready'},
       where: 'key = ?',
-      whereArgs: const <Object?>['state'],
+      whereArgs: const <Object?>[SrsCorpusContract.metadataStateKey],
     );
 
-    final verification =
-        await IndexedSrsCorpusRepository.verifyDatabase(target);
+    final verification = await IndexedSrsCorpusRepository.verifyDatabase(
+      target,
+      expectedCardinality: expectedCardinality,
+      sourceContentSha256: normalizedSourceContentSha256,
+    );
     if (!verification.hasExpectedCardinality) {
       throw StateError('srs_corpus_verification_failed');
     }
@@ -247,13 +266,27 @@ final class SrsCorpusSqliteMigrator {
     );
   }
 
-  Future<void> _requireLegacySource(Database source) async {
+  Future<void> _requireLegacySource(
+    Database source, {
+    required SrsCorpusCardinality expectedCardinality,
+  }) async {
     final rows = await source.rawQuery(
       "SELECT name FROM sqlite_master "
       "WHERE type = 'table' AND name = 'lexicon'",
     );
     if (rows.length != 1) {
       throw StateError('srs_corpus_legacy_lexicon_missing');
+    }
+    final countRows = await source.rawQuery(
+      'SELECT COUNT(*) AS count FROM lexicon',
+    );
+    final raw = countRows.length == 1 ? countRows.single['count'] : null;
+    final actual = raw is int ? raw : int.tryParse(raw?.toString() ?? '');
+    if (actual != expectedCardinality.contentRows) {
+      throw StateError(
+        'srs_corpus_source_content_cardinality_mismatch:'
+        '$actual/${expectedCardinality.contentRows}',
+      );
     }
   }
 
@@ -265,6 +298,14 @@ final class SrsCorpusSqliteMigrator {
     if (rows.isNotEmpty) {
       throw StateError('srs_corpus_target_not_empty');
     }
+  }
+
+  String _requireSha256(String raw) {
+    final normalized = raw.trim().toLowerCase();
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(normalized)) {
+      throw StateError('srs_corpus_source_sha256_invalid');
+    }
+    return normalized;
   }
 
   Map<String, dynamic> _decodeFields(Object? raw) {

@@ -127,9 +127,16 @@ def build_sqlite_bytes(
             )
 
             pack = document["pack"]
+            content_rows = len(document["lexicon"])
+            verb_rows = sum(
+                len(entry["fields"].get("verbRows", []))
+                for entry in document["lexicon"]
+            )
             metadata = {
                 "schemaVersion": str(document["schemaVersion"]),
                 "canonicalSchemaVersion": str(canonical_schema_version),
+                "contentRows": str(content_rows),
+                "verbRows": str(verb_rows),
                 "packId": pack["id"],
                 "languageCode": pack["languageCode"],
                 "version": pack["version"],

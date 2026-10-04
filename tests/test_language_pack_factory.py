@@ -124,6 +124,10 @@ def test_factory_builds_runtime_bundle_sqlite_checksum_and_catalog(tmp_path):
     }
     assert descriptor["installedSizeBytes"] == sum(map(len, files.values()))
 
+    pack_metadata = json.loads(files["metadata/pack.json"].decode("utf-8"))
+    assert pack_metadata["contentRows"] == 1
+    assert pack_metadata["verbRows"] == 0
+
     sqlite_path = tmp_path / "runtime.sqlite"
     sqlite_path.write_bytes(files["content/content.sqlite"])
     connection = sqlite3.connect(sqlite_path)
@@ -131,6 +135,12 @@ def test_factory_builds_runtime_bundle_sqlite_checksum_and_catalog(tmp_path):
         assert connection.execute(
             "SELECT value FROM metadata WHERE key='packId'"
         ).fetchone() == ("sample-core",)
+        assert connection.execute(
+            "SELECT value FROM metadata WHERE key='contentRows'"
+        ).fetchone() == ("1",)
+        assert connection.execute(
+            "SELECT value FROM metadata WHERE key='verbRows'"
+        ).fetchone() == ("0",)
         assert connection.execute(
             "SELECT surface, direction FROM lexicon WHERE id='home.house'"
         ).fetchone() == ("Haus", "ltr")

@@ -6,6 +6,7 @@ import 'package:sqflite_common/sqlite_api.dart'
     show Database, DatabaseFactory, OpenDatabaseOptions;
 import 'package:sqflite_sqlcipher/sqflite.dart' as sqlcipher;
 
+import '../features/srs/corpus_sqlite_contract.dart';
 import '../features/srs/corpus_sqlite_migrator.dart';
 import '../features/srs/corpus_sqlite_repository.dart';
 import '../language/language_pack.dart';
@@ -187,12 +188,16 @@ final class ActivePackRuntimeProvider {
         sqlitePath,
         password: databaseKey,
       );
-      await _validateMetadata(source, installed);
+      final expectedCardinality = await _validateMetadata(
+        source,
+        installed,
+      );
 
       final prepared = await _openOrBuildCorpus(
         source: source,
         installed: installed,
         databaseKey: databaseKey,
+        expectedCardinality: expectedCardinality,
       );
       corpusDatabase = prepared.database;
 
@@ -245,6 +250,7 @@ final class ActivePackRuntimeProvider {
     required Database source,
     required InstalledLanguagePack installed,
     required String databaseKey,
+    required SrsCorpusCardinality expectedCardinality,
   }) async {
     final runtimeDirectory = Directory(
       p.join(
@@ -278,6 +284,8 @@ final class ActivePackRuntimeProvider {
       final existing = await _tryOpenVerifiedCorpus(
         path: finalFile.path,
         databaseKey: databaseKey,
+        expectedCardinality: expectedCardinality,
+        sourceContentSha256: contentIdentity,
       );
       if (existing != null) {
         return existing;
@@ -294,8 +302,10 @@ final class ActivePackRuntimeProvider {
       final report = await const SrsCorpusSqliteMigrator().migrate(
         source: source,
         target: target,
+        expectedCardinality: expectedCardinality,
+        sourceContentSha256: contentIdentity,
       );
-      if (!report.complete) {
+      if (!report.matches(expectedCardinality)) {
         throw const RuntimePackAdmissionException(
           'srs_corpus_migration_incomplete',
         );
@@ -311,6 +321,8 @@ final class ActivePackRuntimeProvider {
       final prepared = await _tryOpenVerifiedCorpus(
         path: finalFile.path,
         databaseKey: databaseKey,
+        expectedCardinality: expectedCardinality,
+        sourceContentSha256: contentIdentity,
       );
       if (prepared == null) {
         throw const RuntimePackAdmissionException(
@@ -341,6 +353,8 @@ final class ActivePackRuntimeProvider {
   Future<_PreparedCorpus?> _tryOpenVerifiedCorpus({
     required String path,
     required String databaseKey,
+    required SrsCorpusCardinality expectedCardinality,
+    required String sourceContentSha256,
   }) async {
     Database? database;
     try {
@@ -348,8 +362,11 @@ final class ActivePackRuntimeProvider {
         path: path,
         databaseKey: databaseKey,
       );
-      final repository =
-          await IndexedSrsCorpusRepository.open(database);
+      final repository = await IndexedSrsCorpusRepository.open(
+        database,
+        expectedCardinality: expectedCardinality,
+        sourceContentSha256: sourceContentSha256,
+      );
       return _PreparedCorpus(
         database: database,
         repository: repository,
@@ -415,7 +432,7 @@ final class ActivePackRuntimeProvider {
         : factory.databaseExists(path);
   }
 
-  Future<void> _validateMetadata(
+  Future<SrsCorpusCardinality> _validateMetadata(
     Database database,
     InstalledLanguagePack installed,
   ) async {
@@ -440,6 +457,51 @@ final class ActivePackRuntimeProvider {
         'pack_metadata_mismatch',
       );
     }
+
+    final contentRows = _requiredMetadataInt(
+      metadata,
+      'contentRows',
+      allowZero: false,
+    );
+    final verbRows = _requiredMetadataInt(
+      metadata,
+      'verbRows',
+      allowZero: true,
+    );
+
+    final countRows = await database.rawQuery(
+      'SELECT COUNT(*) AS count FROM lexicon',
+    );
+    final rawCount =
+        countRows.length == 1 ? countRows.single['count'] : null;
+    final actualContentRows = rawCount is int
+        ? rawCount
+        : int.tryParse(rawCount?.toString() ?? '');
+    if (actualContentRows != contentRows) {
+      throw const RuntimePackAdmissionException(
+        'pack_content_cardinality_mismatch',
+      );
+    }
+
+    return SrsCorpusCardinality(
+      contentRows: contentRows,
+      verbRows: verbRows,
+    );
+  }
+
+  int _requiredMetadataInt(
+    Map<String, String> metadata,
+    String key, {
+    required bool allowZero,
+  }) {
+    final value = int.tryParse(metadata[key] ?? '');
+    final minimum = allowZero ? 0 : 1;
+    if (value == null || value < minimum) {
+      throw const RuntimePackAdmissionException(
+        'pack_cardinality_metadata_invalid',
+      );
+    }
+    return value;
   }
 
   Future<bool> _hasTable(Database database, String name) async {

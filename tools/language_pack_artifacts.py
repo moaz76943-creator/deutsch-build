@@ -26,9 +26,16 @@ def runtime_envelope(
     sqlite_bytes: bytes,
 ) -> tuple[bytes, int]:
     pack = document["pack"]
+    content_rows = len(document["lexicon"])
+    verb_rows = sum(
+        len(entry["fields"].get("verbRows", []))
+        for entry in document["lexicon"]
+    )
     metadata = canonical_json_bytes(
         {
             "schemaVersion": document["schemaVersion"],
+            "contentRows": content_rows,
+            "verbRows": verb_rows,
             "packId": pack["id"],
             "languageCode": pack["languageCode"],
             "displayName": pack["displayName"],
