@@ -21,6 +21,8 @@ abstract final class AgentTopics {
   static const String grammarResponse = 'grammar.response';
   static const String ttsRequest = 'tts.request';
   static const String ttsPrepared = 'tts.prepared';
+  static const String ttsCompleted = 'tts.completed';
+  static const String ttsFailed = 'tts.failed';
 }
 
 enum AgentRole {

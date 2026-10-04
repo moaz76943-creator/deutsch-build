@@ -48,6 +48,8 @@ final class SystemAgentRuntime {
           AgentTopics.grammarEngineChanged,
           AgentTopics.grammarResponse,
           AgentTopics.ttsPrepared,
+          AgentTopics.ttsCompleted,
+          AgentTopics.ttsFailed,
         },
       ),
     );
@@ -172,6 +174,12 @@ final class SystemAgentRuntime {
       _systemEndpoint
           .events(AgentTopics.ttsPrepared)
           .map(TtsVoiceDispatch.fromEvent);
+
+  Stream<AgentEvent> get ttsCompletions =>
+      _systemEndpoint.events(AgentTopics.ttsCompleted);
+
+  Stream<AgentEvent> get ttsFailures =>
+      _systemEndpoint.events(AgentTopics.ttsFailed);
 
   void requestLearningPair({
     required String sourceLanguageTag,

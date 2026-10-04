@@ -179,7 +179,11 @@ Future<void> main() async {
   _expect(dispatch.text, 'Guten Morgen', 'TTS text is preserved');
   _expect(dispatch.targetLanguageTag, 'de-DE', 'TTS target language');
   _expect(dispatch.speed, 0.85, 'TTS speed is preserved');
-  _expect(dispatch.backend, 'unbound', 'cloud backend remains unbound');
+  _expect(
+    dispatch.backend,
+    'flutter_tts.offline.v1',
+    'production Flutter TTS backend is bound',
+  );
 
   await voiceSub.cancel();
   await grammarSub.cancel();
