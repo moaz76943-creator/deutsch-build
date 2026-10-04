@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'content_card.dart';
+import 'content_cas_manifest.dart';
 import 'validation_cache.dart';
 
 typedef LanguagePackGenerator = Future<List<int>> Function(
@@ -14,11 +15,13 @@ final class LanguagePackRequest {
     required this.packId,
     required this.languageCode,
     required this.source,
+    this.requireManifestVerification = false,
   });
 
   final String packId;
   final String languageCode;
   final String source;
+  final bool requireManifestVerification;
 }
 
 final class LanguagePackAudit {
@@ -61,11 +64,13 @@ final class ParallelContentPipeline {
   const ParallelContentPipeline({
     required this.generator,
     required this.cache,
+    this.manifest,
     this.maxParallel = 4,
   });
 
   final LanguagePackGenerator generator;
   final ContentValidationCache cache;
+  final ContentCasManifest? manifest;
   final int maxParallel;
 
   Stream<LanguagePackAudit> run(
@@ -127,6 +132,23 @@ final class ParallelContentPipeline {
         field: 'language pack',
       );
       packChecksum = await ValidationFingerprint.bytes(bytes);
+
+      ContentCasEntry? manifestEntry;
+      if (request.requireManifestVerification) {
+        final activeManifest = manifest;
+        if (activeManifest == null) {
+          throw const FormatException(
+            'content CAS manifest is required',
+          );
+        }
+        manifestEntry = activeManifest.verifySource(
+          source: request.source,
+          packId: packId,
+          languageCode: languageCode,
+          checksum: packChecksum,
+        );
+      }
+
       final packCacheKey = 'pack:$languageCode:$packId';
       if (cache.isValidated(
         key: packCacheKey,
@@ -138,15 +160,16 @@ final class ParallelContentPipeline {
           valid: true,
           packChecksum: packChecksum,
           wholePackCacheHit: true,
-          cardCount: 0,
+          cardCount: manifestEntry?.cardCount ?? 0,
           validatedCards: 0,
-          cachedCards: 0,
+          cachedCards: manifestEntry?.cardCount ?? 0,
           errorCode: null,
         );
       }
 
       final decoded = utf8.decode(bytes, allowMalformed: false);
       final root = jsonDecode(decoded);
+      _rejectEmptyStrings(root, 'pack root');
       if (root is! Map) {
         throw const FormatException('pack root must be an object');
       }
@@ -173,6 +196,13 @@ final class ParallelContentPipeline {
       if (rawCards is! List || rawCards.isEmpty) {
         throw const FormatException(
           'cards must be a non-empty array',
+        );
+      }
+
+      if (manifestEntry != null &&
+          rawCards.length != manifestEntry.cardCount) {
+        throw const FormatException(
+          'content CAS card count mismatch',
         );
       }
 
@@ -277,6 +307,40 @@ final class ParallelContentPipeline {
         cachedCards: 0,
         errorCode: 'content_pipeline_failure',
       );
+    }
+  }
+
+  static void _rejectEmptyStrings(
+    Object? value,
+    String path,
+  ) {
+    if (value is String) {
+      if (value.trim().isEmpty) {
+        throw FormatException('$path must not be empty');
+      }
+      if (!PipelineContentCard.isStrictUtf8String(value)) {
+        throw FormatException(
+          '$path must round-trip through strict UTF-8',
+        );
+      }
+      return;
+    }
+    if (value is List) {
+      for (var index = 0; index < value.length; index += 1) {
+        _rejectEmptyStrings(value[index], '$path[$index]');
+      }
+      return;
+    }
+    if (value is Map) {
+      for (final entry in value.entries) {
+        if (entry.key is! String) {
+          throw FormatException('$path keys must be strings');
+        }
+        _rejectEmptyStrings(
+          entry.value,
+          '$path.' + entry.key.toString(),
+        );
+      }
     }
   }
 

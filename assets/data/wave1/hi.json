@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "pack": {
+    "id": "wave1-hi-core",
+    "languageCode": "hi"
+  },
+  "cards": [
+    {
+      "id": "wave1-hi-core-001",
+      "semanticId": "greeting.hello",
+      "languageCode": "hi",
+      "text": "नमस्ते!",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "greeting",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-002",
+      "semanticId": "farewell.goodbye",
+      "languageCode": "hi",
+      "text": "फिर मिलेंगे।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "farewell",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-003",
+      "semanticId": "courtesy.please",
+      "languageCode": "hi",
+      "text": "कृपया।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-004",
+      "semanticId": "courtesy.thanks",
+      "languageCode": "hi",
+      "text": "धन्यवाद।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-005",
+      "semanticId": "courtesy.excuse",
+      "languageCode": "hi",
+      "text": "माफ़ कीजिए।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-006",
+      "semanticId": "help.need",
+      "languageCode": "hi",
+      "text": "मुझे मदद चाहिए।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "help",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-007",
+      "semanticId": "transport.station",
+      "languageCode": "hi",
+      "text": "रेलवे स्टेशन कहाँ है?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "transport",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-008",
+      "semanticId": "shopping.price",
+      "languageCode": "hi",
+      "text": "इसकी कीमत कितनी है?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "shopping",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-009",
+      "semanticId": "food.water",
+      "languageCode": "hi",
+      "text": "मुझे पानी चाहिए।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "food",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-010",
+      "semanticId": "location.restroom",
+      "languageCode": "hi",
+      "text": "शौचालय कहाँ है?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "location",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-011",
+      "semanticId": "emergency.doctor",
+      "languageCode": "hi",
+      "text": "मुझे डॉक्टर चाहिए।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "emergency",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-012",
+      "semanticId": "language.understand",
+      "languageCode": "hi",
+      "text": "मुझे समझ नहीं आया।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-013",
+      "semanticId": "language.slower",
+      "languageCode": "hi",
+      "text": "कृपया धीरे बोलिए।",
+      "register": "formal",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-014",
+      "semanticId": "language.repeat",
+      "languageCode": "hi",
+      "text": "क्या आप इसे फिर से कह सकते हैं?",
+      "register": "formal",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-015",
+      "semanticId": "transport.ticket",
+      "languageCode": "hi",
+      "text": "मुझे एक टिकट चाहिए।",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "transport",
+        "wave": "1"
+      }
+    },
+    {
+      "id": "wave1-hi-core-016",
+      "semanticId": "location.hotel",
+      "languageCode": "hi",
+      "text": "मेरा होटल कहाँ है?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "location",
+        "wave": "1"
+      }
+    }
+  ]
+}

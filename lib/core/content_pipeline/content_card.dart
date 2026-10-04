@@ -136,6 +136,9 @@ final class PipelineContentCard {
     if (value is! String) {
       throw FormatException('$key must be a string');
     }
+    if (value.trim().isEmpty) {
+      throw FormatException('$key must not be empty');
+    }
     return value;
   }
 
@@ -211,6 +214,9 @@ final class PipelineContentCard {
     String field,
   ) {
     if (value == null) return;
+    if (value.trim().isEmpty) {
+      throw ArgumentError.value(value, field, 'must not be empty');
+    }
     if (!isStrictUtf8String(value)) {
       throw ArgumentError.value(
         value,
