@@ -24,6 +24,9 @@ concurrency:
 
 jobs:
   pulse:
+    if: >-
+      ${{ vars.AGENTS_PULSE_ENABLED == 'true' &&
+          vars.AGENTS_PULSE_ZERO_COST_APPROVED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
