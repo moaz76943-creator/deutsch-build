@@ -33,6 +33,7 @@ abstract final class WorkerJobTypes {
   static const String checksum128 = 'checksum.128';
   static const String sha256 = 'checksum.sha256';
   static const String fuzzyRank = 'fuzzy.rank';
+  static const String srsSchedule = 'srs.schedule';
 }
 
 abstract final class WorkerStatuses {

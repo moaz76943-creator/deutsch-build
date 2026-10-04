@@ -1,3 +1,5 @@
+import '../../models/learner.dart';
+
 final class PairProgressCard {
   const PairProgressCard({
     required this.pairKey,
@@ -6,6 +8,7 @@ final class PairProgressCard {
     required this.correctCount,
     required this.incorrectCount,
     required this.lastReviewedAt,
+    required this.reviewCard,
   });
 
   final String pairKey;
@@ -14,6 +17,7 @@ final class PairProgressCard {
   final int correctCount;
   final int incorrectCount;
   final DateTime lastReviewedAt;
+  final ReviewCard? reviewCard;
 }
 
 final class PairProgressSnapshot {

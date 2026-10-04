@@ -4,7 +4,6 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import '../core/srs_facets.dart';
-import '../core/srs_scheduler.dart';
 import '../models/learner.dart';
 import 'database_migration_helper.dart';
 import 'spaced_repetition_service.dart';
@@ -242,34 +241,9 @@ class ProgressTrackerService {
     if (!key.isValid) {
       throw ArgumentError('Invalid facet review key.');
     }
-
-    final now = at ?? DateTime.now();
-    final current = await getFacetReviewCard(
-          conceptId: key.conceptId,
-          facetType: key.facetType,
-          variantKey: key.normalizedVariantKey,
-        ) ??
-        ReviewCard(
-          itemId: key.conceptId.trim(),
-          facetType: key.facetType,
-          variantKey: key.normalizedVariantKey,
-          dueAt: now,
-        );
-    final updated = unifiedSrsScheduler.schedule(
-      current,
-      correct: correct,
-      hinted: hinted,
-      now: now,
+    throw StateError(
+      'legacy_srs_store_retired_use_pair_progress',
     );
-
-    final db = await database;
-    await DatabaseMigrationHelper.executeAtomic(db, (txn) async {
-      await txn.insert(
-        _tableNameSpacedRepetition,
-        _rowForCard(updated),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
   }
 
   Future<void> processSpacedRepetitionReview({
@@ -279,11 +253,8 @@ class ProgressTrackerService {
     if (quality < 0 || quality > 5) {
       throw ArgumentError('Quality must be between 0 and 5.');
     }
-    await processFacetReview(
-      conceptId: itemId,
-      facetType: ReviewFacetType.meaningRecall,
-      correct: quality >= 3,
-      hinted: quality == 3,
+    throw StateError(
+      'legacy_srs_store_retired_use_pair_progress',
     );
   }
 

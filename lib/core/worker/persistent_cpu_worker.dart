@@ -5,11 +5,23 @@ import 'dart:isolate';
 
 import 'package:cryptography/cryptography.dart';
 
+import '../../models/learner.dart';
+import '../srs.dart';
 import '../storage/validation_hash_cache.dart';
 import 'worker_contract.dart';
 
 final class PersistentCpuWorker {
   static const int maxPendingJobs = 256;
+  static PersistentCpuWorker? _activeWorker;
+
+  static PersistentCpuWorker? get active {
+    final worker = _activeWorker;
+    return worker == null ||
+            worker.isClosed ||
+            !worker._accepting
+        ? null
+        : worker;
+  }
 
   PersistentCpuWorker._({
     required Isolate isolate,
@@ -35,6 +47,14 @@ final class PersistentCpuWorker {
         'initialEpoch',
         'must not be negative',
       );
+    }
+
+    final existing = active;
+    if (existing != null) {
+      if (initialEpoch > existing.currentEpoch) {
+        existing.advanceEpoch(initialEpoch);
+      }
+      return existing;
     }
 
     final bootstrap = ReceivePort('phase13b.cpu.bootstrap');
@@ -71,13 +91,15 @@ final class PersistentCpuWorker {
       throw StateError('CPU worker did not provide a command port.');
     }
 
-    return PersistentCpuWorker._(
+    final worker = PersistentCpuWorker._(
       isolate: isolate,
       commandPort: command,
       responsePort: responses,
       exitPort: exits,
       initialEpoch: initialEpoch,
     );
+    _activeWorker = worker;
+    return worker;
   }
 
   final Isolate _isolate;
@@ -243,6 +265,9 @@ final class PersistentCpuWorker {
     _responsePort.close();
     _exitPort.close();
     _isolate.kill(priority: Isolate.immediate);
+    if (identical(_activeWorker, this)) {
+      _activeWorker = null;
+    }
   }
 
   void _dispatchNext() {
@@ -509,6 +534,12 @@ Future<Map<String, Object?>> _executeWireJob(Object? raw) async {
           epoch: epoch,
           payload: _rankFuzzy(payload),
         );
+      case WorkerJobTypes.srsSchedule:
+        return _okWire(
+          id: id,
+          epoch: epoch,
+          payload: _scheduleSrs(payload),
+        );
       default:
         return _errorWire(
           id: id,
@@ -535,6 +566,49 @@ Future<Map<String, Object?>> _executeWireJob(Object? raw) async {
       code: 'worker_exception',
     );
   }
+}
+
+Map<String, Object?> _scheduleSrs(Object? payload) {
+  final map = _payloadMap(payload);
+  final cardValue = map['card'];
+  final correct = map['correct'];
+  final hinted = map['hinted'];
+  final nowValue = map['now'];
+  if (cardValue is! Map ||
+      correct is! bool ||
+      hinted is! bool ||
+      nowValue is! String ||
+      nowValue.length > 64) {
+    throw const FormatException('srs payload is invalid');
+  }
+
+  final cardJson = <String, dynamic>{};
+  for (final entry in cardValue.entries) {
+    if (entry.key is! String) {
+      throw const FormatException('srs card keys must be strings');
+    }
+    cardJson[entry.key as String] = entry.value;
+  }
+
+  final current = ReviewCard.fromJson(cardJson);
+  final now = DateTime.tryParse(nowValue)?.toUtc();
+  if (current.itemId.trim().isEmpty ||
+      current.itemId.length > 160 ||
+      !current.facetKey.isValid ||
+      now == null ||
+      now.isBefore(DateTime.utc(2000)) ||
+      now.isAfter(DateTime.utc(2100))) {
+    throw const FormatException('srs payload is invalid');
+  }
+
+  return Map<String, Object?>.from(
+    Srs.update(
+      current,
+      correct: correct,
+      hinted: hinted,
+      now: now,
+    ).toJson(),
+  );
 }
 
 Object? _decodePayload(Object? payload) {

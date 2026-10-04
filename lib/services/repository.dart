@@ -4,6 +4,9 @@ import 'learner_persistence.dart';
 import '../models/learner.dart';
 import '../core/srs_facets.dart';
 import '../core/srs_scheduler.dart';
+import '../core/models/language_catalog_models.dart';
+import '../core/progress/offline_pair_progress_engine.dart';
+import '../core/progress/pair_progress_models.dart';
 import '../models/assessment.dart';
 import '../models/diagnostic_placement.dart';
 import '../core/date_utils.dart';
@@ -26,6 +29,9 @@ class LearnerRepository {
   final LearnerPersistence persistence;
   final GamificationReviewSink gamificationReviewSink;
   final ErrorDiagnosticSink errorDiagnosticSink;
+
+  OfflinePairProgressEngine? _pairProgressEngine;
+  ResolvedLanguagePair? _activeResolvedPair;
   static const key = 'v34_state';
   static const legacyFavoriteKey = 'verb_favorites_v1';
   static const maxAttempts = LearnerPersistence.maxAttempts;
@@ -68,8 +74,131 @@ class LearnerRepository {
 
   LearnerState _loadFromPrefs() => persistence.load();
 
+  bool get hasPairProgressAuthority =>
+      _pairProgressEngine != null && _activeResolvedPair != null;
+
+  Future<void> bindPairProgressAuthority({
+    required OfflinePairProgressEngine engine,
+    required ResolvedLanguagePair pair,
+    bool migrateLegacy = false,
+    int migratedAchievementPoints = 0,
+  }) =>
+      _enqueue(() async {
+        if (migratedAchievementPoints < 0 ||
+            migratedAchievementPoints > maxXp) {
+          throw ArgumentError.value(
+            migratedAchievementPoints,
+            'migratedAchievementPoints',
+            'must be 0..$maxXp',
+          );
+        }
+
+        final state = load();
+        final hasLegacyProgress = state.reviewCards.isNotEmpty ||
+            state.learned.isNotEmpty ||
+            state.review.isNotEmpty;
+        if (hasLegacyProgress && !migrateLegacy) {
+          throw StateError(
+            'legacy_pair_progress_requires_explicit_migration',
+          );
+        }
+
+        if (migrateLegacy && hasLegacyProgress) {
+          await _migrateLegacyProgress(
+            state,
+            engine: engine,
+            pair: pair,
+            migratedAchievementPoints:
+                migratedAchievementPoints,
+          );
+        }
+
+        _pairProgressEngine = engine;
+        _activeResolvedPair = pair;
+
+        if (migrateLegacy && hasLegacyProgress) {
+          await _saveNow(
+            state.copyWith(
+              learned: <String>{},
+              review: <String>{},
+              reviewCards: <String, ReviewCard>{},
+            ),
+          );
+        }
+      });
+
+  Future<PairProgressSnapshot> loadPairProgress() async {
+    final authority = _requirePairProgressAuthority();
+    return authority.engine.loadPair(authority.pair);
+  }
+
+  Future<ReviewCard?> loadPairReviewCard(
+    String conceptId, {
+    ReviewFacetType facetType = ReviewFacetType.meaningRecall,
+    String? variantKey,
+  }) {
+    final authority = _requirePairProgressAuthority();
+    return authority.engine.loadReviewCard(
+      authority.pair,
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
+    );
+  }
+
+  Future<void> _migrateLegacyProgress(
+    LearnerState state, {
+    required OfflinePairProgressEngine engine,
+    required ResolvedLanguagePair pair,
+    required int migratedAchievementPoints,
+  }) async {
+    final cards = <String, ReviewCard>{...state.reviewCards};
+    final now = DateTime.now();
+
+    for (final id in <String>{...state.learned, ...state.review}) {
+      final normalized = id.trim();
+      if (normalized.isEmpty || normalized.length > 160) {
+        continue;
+      }
+      cards.putIfAbsent(
+        normalized,
+        () => ReviewCard(
+          itemId: normalized,
+          dueAt: now,
+        ),
+      );
+    }
+
+    await engine.migrateLegacySnapshot(
+      pair: pair,
+      reviewCards: cards.values,
+      learnedConceptIds: state.learned,
+      achievementPoints: migratedAchievementPoints,
+    );
+  }
+
+  _PairProgressAuthority _requirePairProgressAuthority() {
+    final engine = _pairProgressEngine;
+    final pair = _activeResolvedPair;
+    if (engine == null || pair == null) {
+      throw StateError('pair_progress_authority_not_bound');
+    }
+    return _PairProgressAuthority(engine: engine, pair: pair);
+  }
+
+  LearnerState _withoutLegacyPairProgress(LearnerState state) {
+    if (!hasPairProgressAuthority) return state;
+    return state.copyWith(
+      learned: <String>{},
+      review: <String>{},
+      reviewCards: <String, ReviewCard>{},
+    );
+  }
+
   Future<void> save(LearnerState s) => _enqueue(() async {
-        final persisted = persistence.normalize(s);
+        final persisted = persistence.normalize(
+          _withoutLegacyPairProgress(s),
+        );
         await persistence.save(persisted);
         _cachedState = persisted;
       });
@@ -82,6 +211,12 @@ class LearnerRepository {
 
   Future<bool> clearLocalData() => _enqueue<bool>(() async {
         try {
+          final authority = hasPairProgressAuthority
+              ? _requirePairProgressAuthority()
+              : null;
+          if (authority != null) {
+            await authority.engine.clearAll();
+          }
           final learnerCleared = await persistence.clearLocalData();
           await gamificationReviewSink.clearGamification();
           return learnerCleared;
@@ -142,7 +277,9 @@ class LearnerRepository {
       });
 
   Future<void> _saveNow(LearnerState s) async {
-    final persisted = persistence.normalize(s);
+    final persisted = persistence.normalize(
+      _withoutLegacyPairProgress(s),
+    );
     await persistence.save(persisted);
     _cachedState = persisted;
   }
@@ -202,61 +339,80 @@ class LearnerRepository {
     DateTime? at,
   }) =>
       _enqueue(() async {
-        final s = load();
+        final authority = _requirePairProgressAuthority();
+        final state = load();
         final now = at ?? DateTime.now();
         final attempt = Attempt(
           id: 'a_${now.microsecondsSinceEpoch}',
           itemId: item.id,
           skill: skillOverride ?? item.skill,
-          answer: answer.length > 1000 ? answer.substring(0, 1000) : answer,
+          answer: answer.length > 1000
+              ? answer.substring(0, 1000)
+              : answer,
           correct: correct,
           hinted: hinted,
           seconds: seconds.clamp(0, 3600),
           at: now,
         );
-        final a = [...s.attempts, attempt];
-        final bounded =
-            a.length > maxAttempts ? a.sublist(a.length - maxAttempts) : a;
-        final review = {...s.review};
-        final cards = {...s.reviewCards};
+        final attempts = <Attempt>[...state.attempts, attempt];
+        final bounded = attempts.length > maxAttempts
+            ? attempts.sublist(attempts.length - maxAttempts)
+            : attempts;
+        final last =
+            state.attempts.isEmpty ? null : state.attempts.last.at;
+        final today = now.toUtcMidnight;
+        final sameDay =
+            last != null && last.toUtcMidnight == today;
+        final yesterday = last != null &&
+            today.difference(last.toUtcMidnight).inDays == 1;
+        final nextStreak = state.attempts.isEmpty
+            ? 1
+            : (sameDay
+                ? state.streak
+                : (yesterday ? state.streak + 1 : 1));
+        final xpReward = unifiedSrsScheduler.xpRewardForReview(
+          correct: correct,
+          hinted: hinted,
+        );
+        final pairSnapshot =
+            await authority.engine.loadPair(authority.pair);
         final currentCard =
-            cards[item.id] ?? ReviewCard(itemId: item.id, dueAt: now);
-        final updatedCard = unifiedSrsScheduler.schedule(
+            await authority.engine.loadReviewCard(
+                  authority.pair,
+                  conceptId: item.id,
+                ) ??
+                ReviewCard(
+                  itemId: item.id,
+                  dueAt: now,
+                );
+        final updatedCard =
+            await unifiedSrsScheduler.schedule(
           currentCard,
           correct: correct,
           hinted: hinted,
           now: now,
         );
-        cards[item.id] = updatedCard;
-        if (correct && updatedCard.repetitions >= 2)
-          review.remove(item.id);
-        else
-          review.add(item.id);
-        final learned = {...s.learned};
-        if (correct) learned.add(item.id);
-        final last = s.attempts.isEmpty ? null : s.attempts.last.at;
-        final today = now.toUtcMidnight;
-        final sameDay = last != null && last.toUtcMidnight == today;
-        final yesterday =
-            last != null && today.difference(last.toUtcMidnight).inDays == 1;
-        final nextStreak = s.attempts.isEmpty
-            ? 1
-            : (sameDay ? s.streak : (yesterday ? s.streak + 1 : 1));
-        final xpReward = unifiedSrsScheduler.xpRewardForReview(
+        await authority.engine.persistScheduledReview(
+          pair: authority.pair,
+          reviewCard: updatedCard,
+          learned: correct,
+          level: pairSnapshot.level,
+          achievementDelta: xpReward,
           correct: correct,
-          hinted: hinted,
+          reviewedAt: now,
         );
+
         await _saveNow(
-          s.copyWith(
-            xp: (s.xp + xpReward).clamp(0, maxXp),
+          state.copyWith(
+            xp: (state.xp + xpReward).clamp(0, maxXp),
             streak: nextStreak.clamp(0, maxStreak),
-            learned: learned,
-            review: review,
-            reviewCards: cards,
             attempts: bounded,
           ),
         );
-        await _recordGamificationReview(attempt, requestedXp: xpReward);
+        await _recordGamificationReview(
+          attempt,
+          requestedXp: xpReward,
+        );
         if (!correct) {
           await _recordDiagnosticFailure(
             item: item,
@@ -332,10 +488,12 @@ extension FacetReviewRepository on LearnerRepository {
     }
 
     return _enqueue(() async {
+      final authority = _requirePairProgressAuthority();
       final state = load();
       final now = at ?? DateTime.now();
-      final safeAnswer =
-          answer.length > 1000 ? answer.substring(0, 1000) : answer;
+      final safeAnswer = answer.length > 1000
+          ? answer.substring(0, 1000)
+          : answer;
       final attempt = Attempt(
         id: 'f_${now.microsecondsSinceEpoch}',
         itemId: item.id,
@@ -349,37 +507,59 @@ extension FacetReviewRepository on LearnerRepository {
         variantKey: key.normalizedVariantKey,
       );
       final attempts = <Attempt>[...state.attempts, attempt];
-      final bounded = attempts.length > LearnerRepository.maxAttempts
-          ? attempts.sublist(attempts.length - LearnerRepository.maxAttempts)
-          : attempts;
-
-      final cards = <String, ReviewCard>{...state.reviewCards};
-      final current = cards[key.storageKey] ??
-          ReviewCard(
-            itemId: item.id,
-            facetType: facetType,
-            variantKey: key.normalizedVariantKey,
-            dueAt: now,
-          );
-      cards[key.storageKey] = unifiedSrsScheduler.schedule(
-        current,
-        correct: correct,
-        hinted: hinted,
-        now: now,
-      );
-
+      final bounded =
+          attempts.length > LearnerRepository.maxAttempts
+              ? attempts.sublist(
+                  attempts.length - LearnerRepository.maxAttempts,
+                )
+              : attempts;
       final xpReward = unifiedSrsScheduler.xpRewardForReview(
         correct: correct,
         hinted: hinted,
       );
+      final pairSnapshot =
+          await authority.engine.loadPair(authority.pair);
+      final currentCard =
+          await authority.engine.loadReviewCard(
+                authority.pair,
+                conceptId: item.id,
+                facetType: facetType,
+                variantKey: key.normalizedVariantKey,
+              ) ??
+              ReviewCard(
+                itemId: item.id,
+                facetType: facetType,
+                variantKey: key.normalizedVariantKey,
+                dueAt: now,
+              );
+      final updatedCard =
+          await unifiedSrsScheduler.schedule(
+        currentCard,
+        correct: correct,
+        hinted: hinted,
+        now: now,
+      );
+      await authority.engine.persistScheduledReview(
+        pair: authority.pair,
+        reviewCard: updatedCard,
+        learned: correct,
+        level: pairSnapshot.level,
+        achievementDelta: xpReward,
+        correct: correct,
+        reviewedAt: now,
+      );
+
       await _saveNow(
         state.copyWith(
-          xp: (state.xp + xpReward).clamp(0, LearnerRepository.maxXp),
-          reviewCards: cards,
+          xp: (state.xp + xpReward)
+              .clamp(0, LearnerRepository.maxXp),
           attempts: bounded,
         ),
       );
-      await _recordGamificationReview(attempt, requestedXp: xpReward);
+      await _recordGamificationReview(
+        attempt,
+        requestedXp: xpReward,
+      );
       if (!correct) {
         await _recordDiagnosticFailure(
           item: item,
@@ -389,6 +569,16 @@ extension FacetReviewRepository on LearnerRepository {
       }
     });
   }
+}
+
+final class _PairProgressAuthority {
+  const _PairProgressAuthority({
+    required this.engine,
+    required this.pair,
+  });
+
+  final OfflinePairProgressEngine engine;
+  final ResolvedLanguagePair pair;
 }
 
 extension PlacementDiagnosticRepository on LearnerRepository {
