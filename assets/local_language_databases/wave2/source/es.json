@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "pack": {
+    "id": "wave2-es-core",
+    "languageCode": "es"
+  },
+  "cards": [
+    {
+      "id": "wave2-es-core-001",
+      "semanticId": "greeting.hello",
+      "languageCode": "es",
+      "text": "¡Hola!",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "greeting",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-002",
+      "semanticId": "farewell.goodbye",
+      "languageCode": "es",
+      "text": "Adiós.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "farewell",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-003",
+      "semanticId": "courtesy.please",
+      "languageCode": "es",
+      "text": "Por favor.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-004",
+      "semanticId": "courtesy.thanks",
+      "languageCode": "es",
+      "text": "Gracias.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-005",
+      "semanticId": "courtesy.excuse",
+      "languageCode": "es",
+      "text": "Disculpe.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-006",
+      "semanticId": "help.need",
+      "languageCode": "es",
+      "text": "Necesito ayuda.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "help",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-007",
+      "semanticId": "transport.station",
+      "languageCode": "es",
+      "text": "¿Dónde está la estación de tren?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "transport",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-008",
+      "semanticId": "shopping.price",
+      "languageCode": "es",
+      "text": "¿Cuánto cuesta esto?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "shopping",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-009",
+      "semanticId": "food.water",
+      "languageCode": "es",
+      "text": "Quisiera agua, por favor.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "food",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-010",
+      "semanticId": "location.restroom",
+      "languageCode": "es",
+      "text": "¿Dónde está el baño?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "location",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-011",
+      "semanticId": "emergency.doctor",
+      "languageCode": "es",
+      "text": "Necesito un médico.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "emergency",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-012",
+      "semanticId": "language.understand",
+      "languageCode": "es",
+      "text": "No entiendo.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-013",
+      "semanticId": "language.slower",
+      "languageCode": "es",
+      "text": "Hable más despacio, por favor.",
+      "register": "formal",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-014",
+      "semanticId": "language.repeat",
+      "languageCode": "es",
+      "text": "¿Puede repetirlo, por favor?",
+      "register": "formal",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-015",
+      "semanticId": "transport.ticket",
+      "languageCode": "es",
+      "text": "Necesito un billete.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "transport",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave2-es-core-016",
+      "semanticId": "location.hotel",
+      "languageCode": "es",
+      "text": "¿Dónde está mi hotel?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "location",
+        "wave": "2",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "wave2-local-agent-candidate"
+      }
+    }
+  ]
+}

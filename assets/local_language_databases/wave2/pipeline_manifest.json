@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "maxParallel": 5,
+  "cachePath": ".agent-pulse-cache/wave2_content_validation_cache.json",
+  "packs": [
+    {
+      "id": "wave2-es-core",
+      "languageCode": "es",
+      "path": "assets/local_language_databases/wave2/source/es.json"
+    },
+    {
+      "id": "wave2-fr-core",
+      "languageCode": "fr",
+      "path": "assets/local_language_databases/wave2/source/fr.json"
+    },
+    {
+      "id": "wave2-it-core",
+      "languageCode": "it",
+      "path": "assets/local_language_databases/wave2/source/it.json"
+    },
+    {
+      "id": "wave2-pt-core",
+      "languageCode": "pt",
+      "path": "assets/local_language_databases/wave2/source/pt.json"
+    },
+    {
+      "id": "wave2-nl-core",
+      "languageCode": "nl",
+      "path": "assets/local_language_databases/wave2/source/nl.json"
+    }
+  ]
+}
