@@ -1,0 +1,62 @@
+name: Agents Pulse
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/core/agents/**'
+      - 'lib/core/orchestration/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lib/core/agents/**'
+      - 'lib/core/orchestration/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agents-pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Restore compiled headless pulse
+        id: pulse-cache
+        uses: actions/cache@v4
+        with:
+          path: .agent-pulse-cache/run_agents
+          key: agents-pulse-v1-dart-3.13.0-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tool/run_agents.dart', 'lib/core/orchestration/**/*.dart', 'lib/core/agents/**/*.dart') }}
+
+      - name: Setup Dart
+        if: steps.pulse-cache.outputs.cache-hit != 'true'
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.13.0'
+
+      - name: Compile pure Dart runner
+        if: steps.pulse-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .agent-pulse-cache
+          dart compile exe tool/run_agents.dart -o .agent-pulse-cache/run_agents
+
+      - name: Run headless agent pulse
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x .agent-pulse-cache/run_agents
+          ./.agent-pulse-cache/run_agents

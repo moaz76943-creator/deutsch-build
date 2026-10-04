@@ -1,3 +1,4 @@
+import 'agent_batch_processing.dart';
 import 'event_bus.dart';
 import 'orchestration_models.dart';
 import 'service_container.dart';
@@ -46,6 +47,34 @@ final class AgentEndpoint implements AgentReferenceBoundary {
       payload: payload,
       context: snapshot,
       targetRoles: targetRoles,
+    );
+  }
+
+  AgentEventBatchDispatcher createBatchDispatcher({
+    int maxBatchSize = 16,
+    int maxPending = 256,
+    Duration flushDelay = const Duration(milliseconds: 2),
+  }) {
+    _ensureActive();
+    return AgentEventBatchDispatcher(
+      queue: AgentBatchQueue<AgentBatchEvent>(
+        maxBatchSize: maxBatchSize,
+        maxPending: maxPending,
+        flushDelay: flushDelay,
+        dedupeKeyOf: (event) => event.dedupeKey,
+        processBatch: (events) async {
+          verifyGuardedAgentBatch(events);
+          for (final event in events) {
+            publish(
+              topic: event.topic,
+              payload: event.payload,
+              context: event.context,
+              targetRoles: event.targetRoles,
+            );
+          }
+          await Future<void>.delayed(Duration.zero);
+        },
+      ),
     );
   }
 

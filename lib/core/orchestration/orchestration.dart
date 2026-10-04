@@ -1,3 +1,5 @@
+export 'agent_data_integrity.dart';
+export 'agent_batch_processing.dart';
 export 'event_bus.dart';
 export 'orchestration_kernel.dart';
 export 'orchestration_models.dart';
