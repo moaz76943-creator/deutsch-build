@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/adaptive_glass_surface.dart';
 import '../application/verb_conjugation_engine.dart';
 import '../domain/verb_conjugation_models.dart';
 
@@ -82,8 +83,10 @@ class _VerbSearchPanelState extends State<VerbSearchPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
+    return AdaptiveGlassSurface(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: <Widget>[
         TextField(
           controller: _controller,
           onChanged: _onChanged,
@@ -126,7 +129,8 @@ class _VerbSearchPanelState extends State<VerbSearchPanel> {
               );
             },
           ),
-      ],
+        ],
+      ),
     );
   }
 }

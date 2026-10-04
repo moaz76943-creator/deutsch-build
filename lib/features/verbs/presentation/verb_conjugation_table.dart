@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/adaptive_glass_surface.dart';
 import '../domain/verb_conjugation_models.dart';
 
 class VerbConjugationTable extends StatelessWidget {
@@ -18,11 +19,8 @@ class VerbConjugationTable extends StatelessWidget {
     return Semantics(
       container: true,
       label: verb.infinitive + ', ' + verb.meaning,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+      child: AdaptiveGlassSurface(
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Text(
@@ -75,7 +73,6 @@ class VerbConjugationTable extends StatelessWidget {
               ],
             ],
           ),
-        ),
       ),
     );
   }
