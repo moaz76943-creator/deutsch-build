@@ -6,7 +6,7 @@ import 'orchestration_models.dart';
 import 'service_container.dart';
 
 Future<void> main() async {
-  final bus = AgentEventBus();
+  final bus = AgentEventBus.isolated();
   final services = ServiceContainer();
   final kernel = OrchestrationKernel(
     eventBus: bus,

@@ -7,6 +7,11 @@ abstract final class AgentTopics {
   static const String routeSelected = 'route.selected';
   static const String cardsRequest = 'cards.request';
   static const String contextUpdated = 'context.updated';
+  static const String learningProgress = 'learning.progress';
+  static const String learningMistake = 'learning.mistake';
+  static const String memorySnapshot = 'memory.snapshot';
+  static const String systemError = 'system.error';
+  static const String systemRecovery = 'system.recovery';
 }
 
 enum AgentRole {
@@ -14,6 +19,9 @@ enum AgentRole {
   design,
   routing,
   cards,
+  memory,
+  recovery,
+  system,
 }
 
 final class AgentDescriptor {
@@ -21,6 +29,7 @@ final class AgentDescriptor {
     required String id,
     required this.role,
     required Set<String> subscriptions,
+    this.observesTargetedEvents = false,
   })  : id = id.trim(),
         subscriptions = Set<String>.unmodifiable(
           subscriptions.map(_validatedTopic),
@@ -43,6 +52,7 @@ final class AgentDescriptor {
   final String id;
   final AgentRole role;
   final Set<String> subscriptions;
+  final bool observesTargetedEvents;
 
   bool subscribesTo(String topic) => subscriptions.contains(topic);
 }
