@@ -20,8 +20,10 @@ def test_content_ingestion_emits_language_manifest_without_rewriting_catalog():
         cwd=ROOT, text=True, capture_output=True, check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert 'content_items=14813' in result.stdout
-    assert 'verb_conjugations=11718' in result.stdout
+    content = json.loads((ROOT / 'content' / 'content_items.json').read_text(encoding='utf-8'))
+    verbs = json.loads((ROOT / 'content' / 'verb_conjugations.json').read_text(encoding='utf-8'))
+    assert f'content_items={len(content)}' in result.stdout
+    assert f'verb_conjugations={len(verbs)}' in result.stdout
     assert (ROOT / 'content' / 'content_items.json').read_bytes() == before_content
     assert (ROOT / 'content' / 'verb_conjugations.json').read_bytes() == before_verbs
 

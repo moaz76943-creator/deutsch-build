@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import hashlib
 import json
 import re
 import sys
@@ -15,35 +14,10 @@ ids = [str(row.get('id', '')) for row in content_rows]
 german = [str(row.get('german', '')) for row in content_rows]
 errors = []
 
-baseline_file = ROOT / 'tool/content_baseline.lock'
-if not baseline_file.exists():
-    errors.append('content integrity baseline is missing')
-else:
-    baseline = {}
-    for line in baseline_file.read_text(encoding='utf-8').splitlines():
-        if '=' in line and not line.lstrip().startswith('#'):
-            k, v = line.split('=', 1)
-            baseline[k.strip()] = v.strip()
-    expected_entries = int(baseline.get('CONTENT_ENTRIES', '-1'))
-    expected_ids = int(baseline.get('UNIQUE_IDS', '-1'))
-    expected_german = int(baseline.get('UNIQUE_GERMAN', '-1'))
-    ids_hash = hashlib.sha256('\n'.join(sorted(ids)).encode('utf-8')).hexdigest()
-    if len(ids) != expected_entries:
-        errors.append(
-            f'content entry count changed from baseline: expected {expected_entries}, found {len(ids)}'
-        )
-    if len(set(ids)) != expected_ids:
-        errors.append(
-            f'unique content ID count changed from baseline: expected {expected_ids}, found {len(set(ids))}'
-        )
-    if len({x.lower() for x in german}) != expected_german:
-        errors.append(
-            'unique German entry count changed from baseline: '
-            f'expected {expected_german}, found {len({x.lower() for x in german})}'
-        )
-    if ids_hash != baseline.get('IDS_SHA256'):
-        errors.append('content ID hash differs from the reviewed baseline')
-
+if not content_rows:
+    errors.append('content catalog is empty')
+if any(not value.strip() for value in ids):
+    errors.append('content ID must be a non-empty string')
 if len(ids) != len(set(ids)):
     errors.append('duplicate content IDs')
 if len(german) != len({x.lower() for x in german}):

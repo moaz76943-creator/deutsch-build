@@ -156,6 +156,8 @@ final class IndexedSrsCorpusRepository {
       throw StateError('srs_corpus_required_index_missing');
     }
 
+    await _verifySqliteIntegrity(database);
+
     return SrsCorpusVerification(
       schemaVersion: schemaVersion!,
       contentRows: contentRows,
@@ -335,6 +337,22 @@ ORDER BY content_id ASC, ordinal ASC
       throw StateError('srs_corpus_metadata_invalid:$key');
     }
     return value;
+  }
+
+  static Future<void> _verifySqliteIntegrity(Database database) async {
+    final integrityRows = await database.rawQuery('PRAGMA quick_check');
+    final integrityOk = integrityRows.length == 1 &&
+        integrityRows.single.values.any(
+          (value) => value?.toString().toLowerCase() == 'ok',
+        );
+    if (!integrityOk) {
+      throw StateError('srs_corpus_integrity_check_failed');
+    }
+
+    final foreignKeyRows = await database.rawQuery('PRAGMA foreign_key_check');
+    if (foreignKeyRows.isNotEmpty) {
+      throw StateError('srs_corpus_foreign_key_check_failed');
+    }
   }
 
   static Future<int> _count(Database database, String table) async {

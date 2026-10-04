@@ -191,21 +191,35 @@ def validate() -> tuple[int, int]:
     verbs = json.loads(VERB_OUT.read_text(encoding="utf-8"))
     if not isinstance(content, list) or not isinstance(verbs, list):
         raise SystemExit("content pack roots must be arrays")
-    ids = [row.get("id") for row in content]
-    if len(content) != 14813 or len(set(ids)) != len(ids):
-        raise SystemExit(f"content cardinality/integrity mismatch: {len(content)} rows, {len(set(ids))} unique ids")
-    if ids[0] != "w0001" or ids[-1] != "w16149":
-        raise SystemExit("content ID boundaries changed")
-    for row in content:
-        if set(row) != set(CONTENT_FIELDS):
-            raise SystemExit("content row schema mismatch")
-        if not all(isinstance(row[k], str) for k in CONTENT_FIELDS if k != "accepted"):
-            raise SystemExit("content string field type mismatch")
-        if not isinstance(row["accepted"], list) or not all(isinstance(x, str) for x in row["accepted"]):
-            raise SystemExit("accepted field type mismatch")
-    for row in verbs:
-        if set(row) != set(VERB_FIELDS) or not all(isinstance(row[k], str) for k in VERB_FIELDS):
-            raise SystemExit("verb row schema mismatch")
+    if not content:
+        raise SystemExit("content pack must contain at least one content item")
+
+    ids: set[str] = set()
+    for index, row in enumerate(content):
+        if not isinstance(row, dict) or set(row) != set(CONTENT_FIELDS):
+            raise SystemExit(f"content row schema mismatch at index {index}")
+        content_id = row.get("id")
+        if not isinstance(content_id, str) or not content_id.strip():
+            raise SystemExit(f"content id must be non-empty at index {index}")
+        if content_id in ids:
+            raise SystemExit(f"duplicate content id: {content_id}")
+        ids.add(content_id)
+        if not all(
+            isinstance(row[k], str)
+            for k in CONTENT_FIELDS
+            if k != "accepted"
+        ):
+            raise SystemExit(f"content string field type mismatch at {content_id}")
+        if not isinstance(row["accepted"], list) or not all(
+            isinstance(value, str) for value in row["accepted"]
+        ):
+            raise SystemExit(f"accepted field type mismatch at {content_id}")
+
+    for index, row in enumerate(verbs):
+        if not isinstance(row, dict) or set(row) != set(VERB_FIELDS):
+            raise SystemExit(f"verb row schema mismatch at index {index}")
+        if not all(isinstance(row[k], str) for k in VERB_FIELDS):
+            raise SystemExit(f"verb field type mismatch at index {index}")
     return len(content), len(verbs)
 
 

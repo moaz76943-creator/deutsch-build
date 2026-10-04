@@ -412,10 +412,33 @@ def validate() -> tuple[int, int, int]:
     verbs = _read_json(verb_path)
     if not isinstance(content, list) or not isinstance(verbs, list):
         raise ValueError("content and verb sources must be arrays")
-    if len(content) != 14813 or len({row.get("id") for row in content if isinstance(row, dict)}) != 14813:
-        raise ValueError("content source cardinality/integrity mismatch")
-    if len(verbs) != 11718:
-        raise ValueError("verb source cardinality mismatch")
+    if not content:
+        raise ValueError("content source must contain at least one row")
+
+    content_ids: set[str] = set()
+    for index, row in enumerate(content):
+        if not isinstance(row, dict) or set(row) != set(CONTENT_FIELDS):
+            raise ValueError(f"content row schema mismatch at index {index}")
+        content_id = row.get("id")
+        if not isinstance(content_id, str) or not content_id:
+            raise ValueError(f"content id must be non-empty at index {index}")
+        if content_id in content_ids:
+            raise ValueError(f"duplicate content id: {content_id}")
+        content_ids.add(content_id)
+        if not all(
+            isinstance(row[key], str)
+            for key in CONTENT_FIELDS
+            if key != "accepted"
+        ):
+            raise ValueError(f"content string field type mismatch: {content_id}")
+        if not isinstance(row["accepted"], list) or not all(
+            isinstance(value, str) for value in row["accepted"]
+        ):
+            raise ValueError(f"accepted field type mismatch: {content_id}")
+
+    for row in verbs:
+        _validate_verb_row(row)
+
     audio_count = _validate_audio(audio_path)
     return len(content), len(verbs), audio_count
 

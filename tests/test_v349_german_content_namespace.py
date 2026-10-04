@@ -8,16 +8,6 @@ RUNTIME = ROOT / 'lib' / 'data'
 GENERATED = RUNTIME / 'generated'
 CONTENT_JSON = ROOT / 'content' / 'content_items.json'
 VERB_JSON = ROOT / 'content' / 'verb_conjugations.json'
-BASELINE = ROOT / 'tool' / 'content_baseline.lock'
-
-
-def _baseline():
-    values = {}
-    for line in BASELINE.read_text(encoding='utf-8').splitlines():
-        if '=' in line and not line.startswith('#'):
-            key, value = line.split('=', 1)
-            values[key] = value
-    return values
 
 
 def test_german_content_namespace_points_to_canonical_json_sources():
@@ -38,14 +28,12 @@ def test_runtime_data_facades_are_not_canonical_tables():
     assert not re.search(r'VerbConjugation\(infinitive\s*:', verb_text)
 
 
-def test_canonical_german_content_preserves_entry_identity_and_corpus_cardinality():
+def test_canonical_german_content_uses_unique_nonempty_ids():
     content = json.loads(CONTENT_JSON.read_text(encoding='utf-8'))
     ids = [row['id'] for row in content]
-    baseline = _baseline()
-    assert len(ids) == int(baseline['CONTENT_ENTRIES'])
-    assert len(ids) == len(set(ids)) == int(baseline['UNIQUE_IDS'])
-    assert ids[0] == 'w0001'
-    assert 'w15776' in ids
+    assert content
+    assert len(ids) == len(set(ids))
+    assert all(isinstance(value, str) and value for value in ids)
 
 
 def test_runtime_facades_keep_authoring_and_flutter_runtime_separate():

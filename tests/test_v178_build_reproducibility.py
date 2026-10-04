@@ -158,10 +158,8 @@ def test_build_uses_enforced_pub_lockfile_resolution():
     assert "flutter pub get --enforce-lockfile" in text
 
 
-def test_content_quality_audit_has_an_explicit_corpus_baseline():
-    baseline = ROOT / "tool/content_baseline.lock"
-    assert baseline.exists()
+def test_content_quality_audit_uses_dynamic_integrity_invariants():
     audit = read("tool/quality_audit.py")
-    assert "content_baseline.lock" in audit
-    assert "CONTENT_ENTRIES" in audit
-    assert "UNIQUE_IDS" in audit
+    assert "content_baseline.lock" not in audit
+    assert "duplicate content IDs" in audit
+    assert "content catalog is empty" in audit

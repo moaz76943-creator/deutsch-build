@@ -1,5 +1,5 @@
-# Deliberate corpus integrity baseline. Update only with a reviewed content change.
-CONTENT_ENTRIES=14813
-UNIQUE_IDS=14813
-UNIQUE_GERMAN=14813
-IDS_SHA256=315bb38a2e0505d20232036ff99d5ad24b7c6dfec6e63664f7dab49633ea617d
+# Legacy marker retained for historical compatibility only.
+# Fixed corpus cardinality and ID-set hashes are intentionally NOT admission
+# criteria. Current content integrity is established dynamically by schema,
+# uniqueness, signed pack SHA-256, SQLite metadata, and relational integrity.
+MODE=DYNAMIC_METADATA

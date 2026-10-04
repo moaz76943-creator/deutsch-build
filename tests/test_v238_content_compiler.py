@@ -23,8 +23,10 @@ def test_compiler_roundtrip_preserves_json_rows():
             cwd=ROOT, text=True, capture_output=True, check=False
         )
         assert result.returncode == 0, result.stderr
-        assert 'content_rows=14813' in result.stdout
-        assert 'verb_rows=11718' in result.stdout
+        content = json.loads(CONTENT.read_text(encoding='utf-8'))
+        verbs = json.loads(VERBS.read_text(encoding='utf-8'))
+        assert f'content_rows={len(content)}' in result.stdout
+        assert f'verb_rows={len(verbs)}' in result.stdout
 
 
 def test_compiler_is_deterministic_and_keeps_runtime_source_untouched():

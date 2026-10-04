@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:deutsch_bilarabi/features/srs/corpus_sqlite_contract.dart';
 import 'package:deutsch_bilarabi/language/german/german_language_pack.dart';
 import 'package:deutsch_bilarabi/services/active_pack_runtime_provider.dart';
 import 'package:deutsch_bilarabi/services/grammar_hub_service.dart';
@@ -172,6 +173,85 @@ void main() {
 
       await runtime.closeCorpus();
       await runtime.grammarHubService.close();
+      manager.dispose();
+      await root.delete(recursive: true);
+    },
+  );
+
+  test(
+    'derived corpus with broken foreign key is discarded and rebuilt',
+    () async {
+      final root = await Directory.systemTemp.createTemp('derived_fk_');
+      final sqlitePath = _sqlitePath(root, 'de-core');
+      await _createCanonicalPackDatabase(
+        sqlitePath,
+        includeGrammar: false,
+      );
+      SharedPreferences.setMockInitialValues(
+        _installedPreferences('de-core'),
+      );
+      final preferences = await PreferencesService.instance();
+      final manager = PackManagerService(
+        preferences,
+        rootDirectory: root,
+      );
+      final fallbackGrammar = GrammarHubService(
+        factory: databaseFactoryFfi,
+        path: p.join(root.path, 'fallback_fk.db'),
+      );
+
+      final first = await ActivePackRuntimeProvider(
+        packManager: manager,
+        languagePack: const GermanLanguagePack(),
+        embeddedGrammar: fallbackGrammar,
+        databaseFactory: databaseFactoryFfi,
+        databaseKeyStore: const _TestPackDatabaseKeyStore(),
+      ).resolve();
+      expect(first.state.origin, RuntimeContentOrigin.activePack);
+      await first.closeCorpus();
+
+      final contentSha = List<String>.filled(64, 'b').join();
+      final derivedPath = p.join(
+        root.path,
+        'packs',
+        'de-core',
+        'runtime',
+        ActivePackRuntimeProvider.derivedCorpusFilePrefix +
+            contentSha +
+            '.sqlite',
+      );
+      final derived = await databaseFactoryFfi.openDatabase(derivedPath);
+      await derived.execute('PRAGMA foreign_keys=OFF');
+      await derived.insert(
+        SrsCorpusContract.acceptedTable,
+        <String, Object>{
+          'content_id': 'missing.content.id',
+          'ordinal': 0,
+          'form': 'orphan',
+        },
+      );
+      await derived.close();
+
+      final second = await ActivePackRuntimeProvider(
+        packManager: manager,
+        languagePack: const GermanLanguagePack(),
+        embeddedGrammar: fallbackGrammar,
+        databaseFactory: databaseFactoryFfi,
+        databaseKeyStore: const _TestPackDatabaseKeyStore(),
+      ).resolve();
+
+      expect(second.state.origin, RuntimeContentOrigin.activePack);
+      final repaired = await databaseFactoryFfi.openDatabase(derivedPath);
+      final orphanRows = await repaired.query(
+        SrsCorpusContract.acceptedTable,
+        where: 'content_id = ?',
+        whereArgs: const <Object?>['missing.content.id'],
+      );
+      expect(orphanRows, isEmpty);
+      await repaired.close();
+
+      await second.closeCorpus();
+      await second.grammarHubService.close();
       manager.dispose();
       await root.delete(recursive: true);
     },
