@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'package:deutsch_bilarabi/features/phase3_integration/life_feature_text.dart';
 
 import '../../design_system/design_system.dart';
 import 'environment_master_orchestrator.dart';

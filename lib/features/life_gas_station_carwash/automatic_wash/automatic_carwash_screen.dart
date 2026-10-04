@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'package:deutsch_bilarabi/features/phase3_integration/life_feature_text.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_glass_card.dart';
-import '../../../design_system/app_typography.dart';
+import '../../../design_system/app_typography.dart' hide AppDirectionalText;
 import 'automatic_carwash_agent.dart';
 import 'automatic_carwash_models.dart';
 

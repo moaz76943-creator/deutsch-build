@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-
+import 'package:flutter/material.dart' hide Text;
+import 'package:deutsch_bilarabi/features/phase3_integration/life_feature_text.dart';
 import '../../../design_system/design_system.dart';
 import '../application/bureaucracy_master_orchestrator.dart';
 import '../domain/bureaucracy_models.dart';
-
 abstract final class _BureaucracyUiTokens {
   static const double pageInset = 16;
   static const double topInset = 18;
@@ -16,32 +15,25 @@ abstract final class _BureaucracyUiTokens {
   static const double icon = 28;
   static const double statusIcon = 22;
 }
-
 final class LifeBureaucracyScreen extends StatefulWidget {
   const LifeBureaucracyScreen({
     required this.orchestrator,
     super.key,
   });
-
   final BureaucracyMasterOrchestrator orchestrator;
-
   @override
   State<LifeBureaucracyScreen> createState() =>
       _LifeBureaucracyScreenState();
 }
-
 final class _LifeBureaucracyScreenState
     extends State<LifeBureaucracyScreen> {
   final TextEditingController _searchController = TextEditingController();
-
   BureaucracyMasterOrchestrator get orchestrator => widget.orchestrator;
-
   @override
   void initState() {
     super.initState();
     orchestrator.addListener(_refresh);
   }
-
   @override
   void didUpdateWidget(covariant LifeBureaucracyScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -50,23 +42,19 @@ final class _LifeBureaucracyScreenState
     orchestrator.addListener(_refresh);
     _searchController.text = orchestrator.query;
   }
-
   @override
   void dispose() {
     orchestrator.removeListener(_refresh);
     _searchController.dispose();
     super.dispose();
   }
-
   void _refresh() {
     if (mounted) setState(() {});
   }
-
   void _selectCategory(BureaucracyCategory category) {
     _searchController.clear();
     orchestrator.setCategory(category);
   }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -76,7 +64,6 @@ final class _LifeBureaucracyScreenState
     final border =
         isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight;
     final activeGuide = orchestrator.activeGuide;
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -156,13 +143,10 @@ final class _LifeBureaucracyScreenState
     );
   }
 }
-
 final class _HeaderCard extends StatelessWidget {
   const _HeaderCard({required this.surface, required this.border});
-
   final Color surface;
   final Color border;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         backgroundColor: surface,
@@ -204,7 +188,6 @@ final class _HeaderCard extends StatelessWidget {
         ),
       );
 }
-
 final class _CategorySelector extends StatelessWidget {
   const _CategorySelector({
     required this.activeCategory,
@@ -212,12 +195,10 @@ final class _CategorySelector extends StatelessWidget {
     required this.border,
     required this.onSelected,
   });
-
   final BureaucracyCategory activeCategory;
   final Color surface;
   final Color border;
   final ValueChanged<BureaucracyCategory> onSelected;
-
   @override
   Widget build(BuildContext context) => Wrap(
         spacing: _BureaucracyUiTokens.contentGap,
@@ -260,18 +241,15 @@ final class _CategorySelector extends StatelessWidget {
         ],
       );
 }
-
 final class _RegisterCard extends StatelessWidget {
   const _RegisterCard({
     required this.register,
     required this.surface,
     required this.border,
   });
-
   final BureaucracyRegister register;
   final Color surface;
   final Color border;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         backgroundColor: surface,
@@ -308,7 +286,6 @@ final class _RegisterCard extends StatelessWidget {
         ),
       );
 }
-
 final class _SearchCard extends StatelessWidget {
   const _SearchCard({
     required this.controller,
@@ -318,19 +295,16 @@ final class _SearchCard extends StatelessWidget {
     required this.onChanged,
     required this.onClear,
   });
-
   final TextEditingController controller;
   final String query;
   final Color surface;
   final Color border;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
-
   @override
   Widget build(BuildContext context) {
     final direction =
         _containsArabic(query) ? TextDirection.rtl : TextDirection.ltr;
-
     return AppGlassCard(
       backgroundColor: surface,
       borderColor: border,
@@ -365,11 +339,9 @@ final class _SearchCard extends StatelessWidget {
       ),
     );
   }
-
   static bool _containsArabic(String value) =>
       value.runes.any((rune) => rune >= 0x0600 && rune <= 0x06FF);
 }
-
 final class _GuidesSection extends StatelessWidget {
   const _GuidesSection({
     required this.guides,
@@ -378,13 +350,11 @@ final class _GuidesSection extends StatelessWidget {
     required this.border,
     required this.onSelected,
   });
-
   final List<BureaucracyGuide> guides;
   final BureaucracyGuide? activeGuide;
   final Color surface;
   final Color border;
   final ValueChanged<String> onSelected;
-
   @override
   Widget build(BuildContext context) {
     if (guides.isEmpty) {
@@ -398,7 +368,6 @@ final class _GuidesSection extends StatelessWidget {
         ),
       );
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -442,18 +411,15 @@ final class _GuidesSection extends StatelessWidget {
     );
   }
 }
-
 final class _GuideDetailsCard extends StatelessWidget {
   const _GuideDetailsCard({
     required this.guide,
     required this.surface,
     required this.border,
   });
-
   final BureaucracyGuide guide;
   final Color surface;
   final Color border;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         backgroundColor: surface,
@@ -489,7 +455,6 @@ final class _GuideDetailsCard extends StatelessWidget {
         ),
       );
 }
-
 final class _PanicChecklistCard extends StatelessWidget {
   const _PanicChecklistCard({
     required this.guide,
@@ -499,19 +464,16 @@ final class _PanicChecklistCard extends StatelessWidget {
     required this.isReady,
     required this.onChanged,
   });
-
   final BureaucracyGuide guide;
   final ChecklistSnapshot checklist;
   final Color surface;
   final Color border;
   final bool Function(String documentId) isReady;
   final void Function(String documentId, bool ready) onChanged;
-
   @override
   Widget build(BuildContext context) {
     final accent =
         checklist.isReady ? AppColors.mastery : AppColors.tertiary;
-
     return AppGlassCard(
       backgroundColor: surface,
       borderColor: accent,
@@ -557,7 +519,6 @@ final class _PanicChecklistCard extends StatelessWidget {
     );
   }
 }
-
 final class _DocumentChecklistRow extends StatelessWidget {
   const _DocumentChecklistRow({
     required this.document,
@@ -566,13 +527,11 @@ final class _DocumentChecklistRow extends StatelessWidget {
     required this.border,
     required this.onTap,
   });
-
   final OfficialDocument document;
   final bool ready;
   final Color surface;
   final Color border;
   final VoidCallback onTap;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         onTap: onTap,
@@ -616,16 +575,13 @@ final class _DocumentChecklistRow extends StatelessWidget {
         ),
       );
 }
-
 final class _LocalRequirementsNote extends StatelessWidget {
   const _LocalRequirementsNote({
     required this.surface,
     required this.border,
   });
-
   final Color surface;
   final Color border;
-
   @override
   Widget build(BuildContext context) => AppGlassCard(
         backgroundColor: surface,

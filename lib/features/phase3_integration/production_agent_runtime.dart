@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import '../../core/agents/polyglot_agent_models.dart';
 import '../../core/curriculum/advanced_vocabulary.dart';
 import '../../core/orchestration/orchestration.dart';
 import 'life_curriculum_catalog.dart';
+import 'life_feature_runtime.dart';
 
 final class VocabularyProjectionDeckRegistry {
   VocabularyProjectionDeckRegistry(
@@ -89,6 +91,7 @@ final class Phase3AgentRuntime {
     required LifeCurriculumCatalog catalog,
     required VocabularyProjectionDeckRegistry decks,
   }) {
+    LifeFeatureRuntime.ensureSharedStarted();
     final eventBus = AgentEventBus();
     final services = ServiceContainer();
     services.registerSingleton(_catalogToken, catalog);
@@ -105,28 +108,42 @@ final class Phase3AgentRuntime {
         subscriptions: <String>{
           AgentTopics.routeSelected,
           AgentTopics.contextUpdated,
+          AgentTopics.localizationChanged,
+          AgentTopics.ttsPrepared,
+          AgentTopics.grammarResponse,
         },
+        observesTargetedEvents: true,
       ),
     );
     final designEndpoint = kernel.connect(
       AgentDescriptor(
         id: 'phase3.design-agent',
         role: AgentRole.design,
-        subscriptions: <String>{AgentTopics.designRequest},
+        subscriptions: <String>{
+          AgentTopics.designRequest,
+          AgentTopics.localizationChanged,
+        },
       ),
     );
     final routingEndpoint = kernel.connect(
       AgentDescriptor(
         id: 'phase3.routing-agent',
         role: AgentRole.routing,
-        subscriptions: <String>{AgentTopics.routeRequest},
+        subscriptions: <String>{
+          AgentTopics.routeRequest,
+          AgentTopics.localizationChanged,
+        },
       ),
     );
     final cardsEndpoint = kernel.connect(
       AgentDescriptor(
         id: 'phase3.cards-agent',
         role: AgentRole.cards,
-        subscriptions: <String>{AgentTopics.cardsRequest},
+        subscriptions: <String>{
+          AgentTopics.cardsRequest,
+          AgentTopics.localizationChanged,
+        },
+        observesTargetedEvents: true,
       ),
     );
 
@@ -238,6 +255,63 @@ final class Phase3AgentRuntime {
     );
   }
 
+  Future<TtsVoiceDispatch> requestSpeech({
+    required String text,
+    required String targetLanguageTag,
+    double speed = 1.0,
+  }) async {
+    _ensureOpen();
+    final request = TtsVoiceRequest(
+      text: text,
+      targetLanguageTag: targetLanguageTag,
+      speed: speed,
+    );
+    final correlationId = _nextCorrelation('tts');
+    final response = _taskEndpoint
+        .events(AgentTopics.ttsPrepared)
+        .firstWhere(
+          (event) => event.context.correlationId == correlationId,
+        )
+        .timeout(const Duration(seconds: 2));
+
+    _taskEndpoint.publish(
+      topic: AgentTopics.ttsRequest,
+      targetRoles: const <AgentRole>{AgentRole.voice},
+      context: AgentContextSnapshot.empty(correlationId),
+      payload: request.toEventPayload(),
+    );
+
+    return TtsVoiceDispatch.fromEvent(await response);
+  }
+
+  Future<GrammarAgentResult> requestGrammar({
+    required UniversalGrammarCapability capability,
+    int seed = 0,
+    int count = 6,
+  }) async {
+    _ensureOpen();
+    final correlationId = _nextCorrelation('grammar');
+    final response = _taskEndpoint
+        .events(AgentTopics.grammarResponse)
+        .firstWhere(
+          (event) => event.context.correlationId == correlationId,
+        )
+        .timeout(const Duration(seconds: 2));
+
+    _taskEndpoint.publish(
+      topic: AgentTopics.grammarRequest,
+      targetRoles: const <AgentRole>{AgentRole.grammar},
+      context: AgentContextSnapshot.empty(correlationId),
+      payload: <String, Object?>{
+        'capability': capability.wireName,
+        'seed': seed,
+        'count': count.clamp(1, 20).toInt(),
+      },
+    );
+
+    return GrammarAgentResult.fromEvent(await response);
+  }
+
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
@@ -282,24 +356,37 @@ final class Phase3AgentRuntime {
 
 final class _DesignProductionAgent {
   _DesignProductionAgent(this.endpoint) {
-    _subscription = endpoint
-        .events(AgentTopics.designRequest)
-        .listen(_handle);
+    _subscription = endpoint.allEvents.listen(_accept);
   }
 
   final AgentEndpoint endpoint;
   late final StreamSubscription<AgentEvent> _subscription;
+  String _direction = 'rtl';
 
-  void _handle(AgentEvent event) {
+  void _accept(AgentEvent event) {
+    switch (event.topic) {
+      case AgentTopics.localizationChanged:
+        final direction = event.payload['direction'];
+        if (direction is String && (direction == 'ltr' || direction == 'rtl')) {
+          _direction = direction;
+        }
+        return;
+      case AgentTopics.designRequest:
+        _handleDesign(event);
+        return;
+    }
+  }
+
+  void _handleDesign(AgentEvent event) {
     endpoint.publish(
       topic: AgentTopics.contextUpdated,
       targetRoles: const <AgentRole>{AgentRole.task},
       context: event.context,
-      payload: const <String, Object?>{
+      payload: <String, Object?>{
         'kind': 'design.ready',
         'navigation': 'bottom',
         'flashcardMode': '3d',
-        'direction': 'rtl',
+        'direction': _direction,
         'density': 'comfortable',
       },
     );
@@ -311,16 +398,40 @@ final class _DesignProductionAgent {
 final class _RoutingProductionAgent {
   _RoutingProductionAgent(this.endpoint)
       : _catalog = endpoint.resolve(Phase3AgentRuntime._catalogToken) {
-    _subscription = endpoint
-        .events(AgentTopics.routeRequest)
-        .listen(_handle);
+    _subscription = endpoint.allEvents.listen(_accept);
   }
 
   final AgentEndpoint endpoint;
   final LifeCurriculumCatalog _catalog;
   late final StreamSubscription<AgentEvent> _subscription;
 
-  void _handle(AgentEvent event) {
+  String _userLocale = 'ar';
+  String _sourceLocale = 'ar';
+  String _targetLocale = 'de';
+  String _direction = 'rtl';
+
+  void _accept(AgentEvent event) {
+    switch (event.topic) {
+      case AgentTopics.localizationChanged:
+        _applyLocalization(event);
+        return;
+      case AgentTopics.routeRequest:
+        _handleRoute(event);
+        return;
+    }
+  }
+
+  void _applyLocalization(AgentEvent event) {
+    _userLocale = _locale(event.payload['userLocale'], _userLocale);
+    _sourceLocale = _locale(event.payload['sourceLocale'], _sourceLocale);
+    _targetLocale = _locale(event.payload['targetLocale'], _targetLocale);
+    final direction = event.payload['direction'];
+    if (direction is String && (direction == 'ltr' || direction == 'rtl')) {
+      _direction = direction;
+    }
+  }
+
+  void _handleRoute(AgentEvent event) {
     final featureKey = event.payload['featureKey'];
     final link = featureKey is String ? _catalog.find(featureKey) : null;
 
@@ -337,6 +448,10 @@ final class _RoutingProductionAgent {
               'ok': true,
               'featureKey': link.featureKey,
               'curriculumTaskId': link.curriculumTaskId,
+              'userLocale': _userLocale,
+              'sourceLocale': _sourceLocale,
+              'targetLocale': _targetLocale,
+              'direction': _direction,
             },
     );
   }
@@ -347,16 +462,35 @@ final class _RoutingProductionAgent {
 final class _CardsProductionAgent {
   _CardsProductionAgent(this.endpoint)
       : _decks = endpoint.resolve(Phase3AgentRuntime._decksToken) {
-    _subscription = endpoint
-        .events(AgentTopics.cardsRequest)
-        .listen(_handle);
+    _subscription = endpoint.allEvents.listen(_accept);
   }
 
   final AgentEndpoint endpoint;
   final VocabularyProjectionDeckRegistry _decks;
   late final StreamSubscription<AgentEvent> _subscription;
 
-  void _handle(AgentEvent event) {
+  String _sourceLocale = 'ar';
+  String _targetLocale = 'de';
+
+  void _accept(AgentEvent event) {
+    switch (event.topic) {
+      case AgentTopics.localizationChanged:
+        _sourceLocale = _locale(
+          event.payload['sourceLocale'],
+          _sourceLocale,
+        );
+        _targetLocale = _locale(
+          event.payload['targetLocale'],
+          _targetLocale,
+        );
+        return;
+      case AgentTopics.cardsRequest:
+        _handleCards(event);
+        return;
+    }
+  }
+
+  void _handleCards(AgentEvent event) {
     final deckId = event.payload['deckId'];
     if (deckId is! String || !_decks.contains(deckId)) {
       endpoint.publish(
@@ -380,9 +514,16 @@ final class _CardsProductionAgent {
         'kind': 'cards.ready',
         'deckId': deckId,
         'cardCount': deck.length,
+        'sourceLocale': _sourceLocale,
+        'targetLocale': _targetLocale,
       },
     );
   }
 
   Future<void> close() => _subscription.cancel();
+}
+
+String _locale(Object? value, String fallback) {
+  if (value is! String || value.trim().isEmpty) return fallback;
+  return value.trim();
 }
