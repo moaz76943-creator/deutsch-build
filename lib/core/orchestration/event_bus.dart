@@ -19,6 +19,8 @@ final class AgentEventBus {
   bool _closed = false;
 
   int get publishedCount => _sequence;
+  int get pairEpoch => _transport.pairEpoch;
+  int get droppedStaleCount => _transport.droppedStaleCount;
   bool get isClosed => _closed;
   bool get usesApplicationTransport => !_ownsTransport;
 
@@ -33,13 +35,48 @@ final class AgentEventBus {
       throw StateError('Cannot publish to a closed AgentEventBus.');
     }
 
+    final normalizedTopic = topic.trim().toLowerCase();
+    var stampedContext = context;
+
+    if (normalizedTopic == AgentTopics.localizationChangeRequested) {
+      if (context.pairEpoch != 0 && context.pairEpoch != _transport.pairEpoch) {
+        return _dropStale(
+          source: source,
+          topic: normalizedTopic,
+          payload: payload,
+          context: context,
+          targetRoles: targetRoles,
+        );
+      }
+      _transport.pairEpoch += 1;
+      stampedContext = context.withTemporal(pairEpoch: _transport.pairEpoch);
+    } else {
+      final eventEpoch =
+          context.pairEpoch == 0 ? _transport.pairEpoch : context.pairEpoch;
+      stampedContext = context.withTemporal(pairEpoch: eventEpoch);
+      if (eventEpoch != _transport.pairEpoch) {
+        return _dropStale(
+          source: source,
+          topic: normalizedTopic,
+          payload: payload,
+          context: stampedContext,
+          targetRoles: targetRoles,
+        );
+      }
+    }
+
+    final sequence = ++_sequence;
+    if (stampedContext.generation == 0) {
+      stampedContext = stampedContext.withTemporal(generation: sequence);
+    }
+
     final event = AgentEvent(
-      sequence: ++_sequence,
-      topic: topic,
+      sequence: sequence,
+      topic: normalizedTopic,
       sourceAgentId: source.id,
       sourceRole: source.role,
       targetRoles: targetRoles,
-      context: context,
+      context: stampedContext,
       payload: payload,
     );
     _transport.add(event);
@@ -70,7 +107,7 @@ final class AgentEventBus {
             event.sourceAgentId != subscriber.id &&
             subscriber.subscribesTo(event.topic) &&
             (event.isAddressedTo(subscriber.role) ||
-              subscriber.observesTargetedEvents),
+                subscriber.observesTargetedEvents),
       );
 
   Future<void> close() async {
@@ -80,11 +117,36 @@ final class AgentEventBus {
       await _transport.close();
     }
   }
+
+  AgentEvent _dropStale({
+    required AgentDescriptor source,
+    required String topic,
+    required Map<String, Object?> payload,
+    required AgentContextSnapshot context,
+    required Set<AgentRole> targetRoles,
+  }) {
+    _transport.droppedStaleCount += 1;
+    final sequence = ++_sequence;
+    final stamped = context.generation == 0
+        ? context.withTemporal(generation: sequence)
+        : context;
+    return AgentEvent(
+      sequence: sequence,
+      topic: topic,
+      sourceAgentId: source.id,
+      sourceRole: source.role,
+      targetRoles: targetRoles,
+      context: stamped,
+      payload: payload,
+    );
+  }
 }
 
 final class _EventTransport {
   final StreamController<AgentEvent> _controller =
       StreamController<AgentEvent>.broadcast(sync: true);
+  int pairEpoch = 0;
+  int droppedStaleCount = 0;
   bool _closed = false;
 
   Stream<AgentEvent> get stream => _controller.stream;

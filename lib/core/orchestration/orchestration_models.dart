@@ -76,6 +76,8 @@ final class AgentContextSnapshot {
   AgentContextSnapshot({
     required String correlationId,
     Map<String, Object?> values = const <String, Object?>{},
+    this.pairEpoch = 0,
+    this.generation = 0,
   })  : correlationId = correlationId.trim(),
         values = _freezeMap(values) {
     if (this.correlationId.isEmpty) {
@@ -85,18 +87,55 @@ final class AgentContextSnapshot {
         'Correlation id must not be empty.',
       );
     }
+    if (pairEpoch < 0) {
+      throw ArgumentError.value(
+        pairEpoch,
+        'pairEpoch',
+        'Pair epoch must not be negative.',
+      );
+    }
+    if (generation < 0) {
+      throw ArgumentError.value(
+        generation,
+        'generation',
+        'Generation must not be negative.',
+      );
+    }
   }
 
-  factory AgentContextSnapshot.empty(String correlationId) =>
-      AgentContextSnapshot(correlationId: correlationId);
+  factory AgentContextSnapshot.empty(
+    String correlationId, {
+    int pairEpoch = 0,
+    int generation = 0,
+  }) =>
+      AgentContextSnapshot(
+        correlationId: correlationId,
+        pairEpoch: pairEpoch,
+        generation: generation,
+      );
 
   final String correlationId;
   final Map<String, Object?> values;
+  final int pairEpoch;
+  final int generation;
 
   AgentContextSnapshot merge(Map<String, Object?> delta) =>
       AgentContextSnapshot(
         correlationId: correlationId,
         values: <String, Object?>{...values, ...delta},
+        pairEpoch: pairEpoch,
+        generation: generation,
+      );
+
+  AgentContextSnapshot withTemporal({
+    int? pairEpoch,
+    int? generation,
+  }) =>
+      AgentContextSnapshot(
+        correlationId: correlationId,
+        values: values,
+        pairEpoch: pairEpoch ?? this.pairEpoch,
+        generation: generation ?? this.generation,
       );
 }
 

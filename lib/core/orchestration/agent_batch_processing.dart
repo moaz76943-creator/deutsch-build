@@ -256,6 +256,16 @@ final class AgentBatchEvent {
   bool get requiresIntegrity =>
       topic == AgentTopics.grammarRequest ||
       topic == AgentTopics.cardsRequest;
+
+  AgentBatchEvent withContext(AgentContextSnapshot nextContext) =>
+      AgentBatchEvent(
+        dedupeKey: dedupeKey,
+        topic: topic,
+        context: nextContext,
+        targetRoles: targetRoles,
+        payload: payload,
+        integrityRecord: integrityRecord,
+      );
 }
 
 final class AgentBatchIntegrityException implements Exception {
@@ -296,17 +306,35 @@ void verifyGuardedAgentBatch(List<AgentBatchEvent> events) {
 final class AgentEventBatchDispatcher {
   AgentEventBatchDispatcher({
     required AgentBatchQueue<AgentBatchEvent> queue,
-  }) : _queue = queue;
+    int Function()? currentPairEpoch,
+  })  : _queue = queue,
+        _currentPairEpoch = currentPairEpoch ?? _zeroEpoch;
 
   final AgentBatchQueue<AgentBatchEvent> _queue;
+  final int Function() _currentPairEpoch;
+  int _generation = 0;
 
   AgentBatchQueueStats get stats => _queue.stats;
+  int get generation => _generation;
 
-  Future<void> submit(AgentBatchEvent event) => _queue.submit(event);
+  Future<void> submit(AgentBatchEvent event) {
+    _generation += 1;
+    final context = event.context.withTemporal(
+      pairEpoch: event.context.pairEpoch == 0
+          ? _currentPairEpoch()
+          : event.context.pairEpoch,
+      generation: event.context.generation == 0
+          ? _generation
+          : event.context.generation,
+    );
+    return _queue.submit(event.withContext(context));
+  }
 
   Future<void> flush() => _queue.flush();
 
   Future<void> close() => _queue.close();
+
+  static int _zeroEpoch() => 0;
 }
 
 String _requiredToken(String value, String field) {

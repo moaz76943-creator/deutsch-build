@@ -57,6 +57,7 @@ final class AgentEndpoint implements AgentReferenceBoundary {
   }) {
     _ensureActive();
     return AgentEventBatchDispatcher(
+      currentPairEpoch: () => _eventBus.pairEpoch,
       queue: AgentBatchQueue<AgentBatchEvent>(
         maxBatchSize: maxBatchSize,
         maxPending: maxPending,
