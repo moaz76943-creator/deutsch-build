@@ -12,6 +12,9 @@ abstract final class AgentTopics {
   static const String memorySnapshot = 'memory.snapshot';
   static const String systemError = 'system.error';
   static const String systemRecovery = 'system.recovery';
+  static const String localizationChangeRequested =
+      'localization.change_requested';
+  static const String localizationChanged = 'localization.changed';
 }
 
 enum AgentRole {
@@ -22,6 +25,7 @@ enum AgentRole {
   memory,
   recovery,
   system,
+  localization,
 }
 
 final class AgentDescriptor {
