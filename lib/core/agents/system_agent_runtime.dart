@@ -4,6 +4,8 @@ import '../orchestration/orchestration.dart';
 import '../storage/offline_progress_service.dart';
 import '../storage/runtime_local_state_container.dart';
 import '../storage/validation_hash_cache.dart';
+import '../worker/persistent_cpu_worker.dart';
+import '../worker/worker_contract.dart';
 import 'memory_models.dart';
 import 'polyglot_agent_models.dart';
 import 'sys_error_recovery_fallback.dart';
@@ -26,6 +28,7 @@ final class SystemAgentRuntime {
     required OfflineProgressService progressService,
     required ValidationHashCache validationCache,
     required AgentEventBatchDispatcher batchDispatcher,
+    required PersistentCpuWorker cpuWorker,
   })  : _eventBus = eventBus,
         _kernel = kernel,
         _systemEndpoint = systemEndpoint,
@@ -37,7 +40,8 @@ final class SystemAgentRuntime {
         _localState = localState,
         _progressService = progressService,
         _validationCache = validationCache,
-        _batchDispatcher = batchDispatcher;
+        _batchDispatcher = batchDispatcher,
+        _cpuWorker = cpuWorker;
 
   static Future<SystemAgentRuntime> start({
     required MemoryAgentStore memoryStore,
@@ -51,7 +55,12 @@ final class SystemAgentRuntime {
     );
 
     final eventBus = AgentEventBus();
-    final kernel = OrchestrationKernel(
+    final cpuWorker = await PersistentCpuWorker.start(
+      initialEpoch: eventBus.pairEpoch,
+    );
+
+    try {
+      final kernel = OrchestrationKernel(
       eventBus: eventBus,
       services: ServiceContainer(),
     );
@@ -64,6 +73,7 @@ final class SystemAgentRuntime {
           AgentTopics.memorySnapshot,
           AgentTopics.systemRecovery,
           AgentTopics.learningProgress,
+          AgentTopics.localizationChangeRequested,
           AgentTopics.polyglotMatrixChanged,
           AgentTopics.grammarEngineChanged,
           AgentTopics.grammarResponse,
@@ -129,6 +139,7 @@ final class SystemAgentRuntime {
     final memoryAgent = await SysMemoryAgent.start(
       endpoint: memoryEndpoint,
       store: localState.namespace('memory'),
+      cpuWorker: cpuWorker,
     );
     await progressService.hydrateFromMemory(memoryAgent.snapshot);
     final recoveryAgent = SysErrorRecoveryFallback.start(
@@ -162,13 +173,25 @@ final class SystemAgentRuntime {
       progressService: progressService,
       validationCache: validationCache,
       batchDispatcher: batchDispatcher,
+      cpuWorker: cpuWorker,
     );
     runtime._pairProgressSubscription =
         runtime.polyglotMatrixChanges.listen(runtime._persistActivePair);
     runtime._externalProgressSubscription = systemEndpoint
         .events(AgentTopics.learningProgress)
         .listen(runtime._persistExternalProgress);
-    return runtime;
+    runtime._pairEpochSubscription = systemEndpoint
+        .events(AgentTopics.localizationChangeRequested)
+        .listen(
+          (event) => runtime._cpuWorker.advanceEpoch(
+            event.context.pairEpoch,
+          ),
+        );
+      return runtime;
+    } on Object {
+      await cpuWorker.close();
+      rethrow;
+    }
   }
 
   final AgentEventBus _eventBus;
@@ -183,11 +206,14 @@ final class SystemAgentRuntime {
   final OfflineProgressService _progressService;
   final ValidationHashCache _validationCache;
   final AgentEventBatchDispatcher _batchDispatcher;
+  final PersistentCpuWorker _cpuWorker;
 
   late final StreamSubscription<PolyglotMatrixState>
       _pairProgressSubscription;
   late final StreamSubscription<AgentEvent>
       _externalProgressSubscription;
+  late final StreamSubscription<AgentEvent>
+      _pairEpochSubscription;
 
   int _sequence = 0;
   bool _closed = false;
@@ -204,6 +230,9 @@ final class SystemAgentRuntime {
   int get validationCacheHits => _validationCache.hits;
   int get validationCacheMisses => _validationCache.misses;
   int get validationCacheEntries => _validationCache.entryCount;
+  int get pairEpoch => _eventBus.pairEpoch;
+  int get workerPendingJobs => _cpuWorker.pendingCount;
+  bool get workerClosed => _cpuWorker.isClosed;
 
   Stream<RecoveryDirective> get recoveryDirectives =>
       _systemEndpoint
@@ -248,7 +277,7 @@ final class SystemAgentRuntime {
       'targetLanguageTag',
     );
 
-    _systemEndpoint.publish(
+    final event = _systemEndpoint.publish(
       topic: AgentTopics.localizationChangeRequested,
       targetRoles: const <AgentRole>{AgentRole.localization},
       context: AgentContextSnapshot.empty(
@@ -259,7 +288,109 @@ final class SystemAgentRuntime {
         'targetLocale': target,
       },
     );
+    _cpuWorker.advanceEpoch(event.context.pairEpoch);
+  }
 
+  LanguagePackRepository createLanguagePackRepository({
+    required LanguagePackTextLoader loadText,
+    String assetRoot = 'assets/lang_data',
+  }) {
+    _ensureOpen();
+    return LanguagePackRepository(
+      loadText: loadText,
+      assetRoot: assetRoot,
+      cpuWorker: _cpuWorker,
+    );
+  }
+
+  Future<WorkerResult<R>?> dispatchWorkerJob<R>(
+    WorkerJob<Object?> job,
+  ) async {
+    _ensureOpen();
+    final result = await _cpuWorker.submit<R>(job);
+    if (_closed ||
+        result.epoch != pairEpoch ||
+        result.status == WorkerStatuses.stale) {
+      return null;
+    }
+    return result;
+  }
+
+  Future<WorkerResult<R>?> runCpuJob<R>({
+    required String type,
+    required Object? payload,
+    String? id,
+  }) =>
+      dispatchWorkerJob<R>(
+        WorkerJob<Object?>(
+          id: id ?? _nextCorrelation('cpu'),
+          type: type,
+          epoch: pairEpoch,
+          payload: payload,
+        ),
+      );
+
+  Future<Object?> decodePayload(String encoded) async {
+    final result = await runCpuJob<Object?>(
+      type: WorkerJobTypes.jsonDecode,
+      payload: <String, Object?>{'encoded': encoded},
+    );
+    return _workerPayload(result);
+  }
+
+  Future<String?> computeChecksum128({
+    required String scopeKey,
+    required String content,
+    required String validatorVersion,
+  }) async {
+    final result = await runCpuJob<String>(
+      type: WorkerJobTypes.checksum128,
+      payload: <String, Object?>{
+        'scopeKey': scopeKey,
+        'content': content,
+        'validatorVersion': validatorVersion,
+      },
+    );
+    return _workerPayload(result);
+  }
+
+  Future<String?> computeSha256(String content) async {
+    final result = await runCpuJob<String>(
+      type: WorkerJobTypes.sha256,
+      payload: <String, Object?>{'content': content},
+    );
+    return _workerPayload(result);
+  }
+
+  Future<List<Map<String, Object?>>?> rankFuzzyCandidates({
+    required String query,
+    required List<Map<String, Object?>> candidates,
+    int limit = 20,
+  }) async {
+    final result = await runCpuJob<Object?>(
+      type: WorkerJobTypes.fuzzyRank,
+      payload: <String, Object?>{
+        'query': query,
+        'candidates': candidates,
+        'limit': limit.clamp(1, 100).toInt(),
+      },
+    );
+    final payload = _workerPayload(result);
+    if (payload == null) return null;
+    if (payload is! List) {
+      throw StateError('CPU worker returned an invalid fuzzy result.');
+    }
+    return List<Map<String, Object?>>.unmodifiable(
+      payload.whereType<Map>().map(
+            (row) => Map<String, Object?>.unmodifiable(
+              <String, Object?>{
+                for (final entry in row.entries)
+                  if (entry.key is String)
+                    entry.key as String: entry.value,
+              },
+            ),
+          ),
+    );
   }
 
   Future<GrammarAgentResult> requestGrammar({
@@ -532,6 +663,7 @@ final class SystemAgentRuntime {
     _closed = true;
     await _pairProgressSubscription.cancel();
     await _externalProgressSubscription.cancel();
+    await _pairEpochSubscription.cancel();
     await _batchDispatcher.close();
     await _memoryAgent.flush();
     await _progressService.flush();
@@ -544,6 +676,7 @@ final class SystemAgentRuntime {
     await _progressService.close();
     await _validationCache.close();
     await _localState.close();
+    await _cpuWorker.close();
     await _kernel.close();
   }
 
@@ -604,6 +737,16 @@ final class SystemAgentRuntime {
       }),
       context: 'validation.active_pair',
     );
+  }
+
+  R? _workerPayload<R>(WorkerResult<R>? result) {
+    if (result == null) return null;
+    if (result.status != WorkerStatuses.ok) {
+      throw StateError(
+        'CPU worker failed: ${result.errorCode ?? result.status}.',
+      );
+    }
+    return result.payload;
   }
 
   static int _defaultProgressPoints(

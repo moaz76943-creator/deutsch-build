@@ -29,8 +29,14 @@ final class PolyglotLanguagePack {
 
   String get directedPair => '$sourceLanguage->$targetLanguage';
 
-  static PolyglotLanguagePack parse(String encoded) {
-    final raw = jsonDecode(encoded);
+  // Headless compatibility path. Runtime loading uses the persistent worker.
+  static PolyglotLanguagePack parse(String encoded) =>
+      fromDecoded(jsonDecode(encoded));
+
+  static PolyglotLanguagePack fromDecoded(
+    Object? raw, {
+    String? computedChecksum,
+  }) {
     if (raw is! Map) {
       throw const FormatException('Language pack root must be an object.');
     }
@@ -100,11 +106,12 @@ final class PolyglotLanguagePack {
     }
 
     final unsigned = Map<String, Object?>.from(root)..remove('checksum');
-    final expectedChecksum = ContentChecksum.compute(
-      scopeKey: '$expectedPair|pack',
-      content: jsonEncode(unsigned),
-      validatorVersion: validatorVersion,
-    );
+    final expectedChecksum = computedChecksum ??
+        ContentChecksum.compute(
+          scopeKey: '$expectedPair|pack',
+          content: jsonEncode(unsigned),
+          validatorVersion: validatorVersion,
+        );
     if (expectedChecksum != checksum) {
       throw const FormatException('Language pack checksum mismatch.');
     }
@@ -271,8 +278,14 @@ final class PolyglotLanguagePackCatalog {
   final List<LanguagePackCatalogEntry> entries;
   final String checksum;
 
-  static PolyglotLanguagePackCatalog parse(String encoded) {
-    final raw = jsonDecode(encoded);
+  // Headless compatibility path. Runtime loading uses the persistent worker.
+  static PolyglotLanguagePackCatalog parse(String encoded) =>
+      fromDecoded(jsonDecode(encoded));
+
+  static PolyglotLanguagePackCatalog fromDecoded(
+    Object? raw, {
+    String? computedChecksum,
+  }) {
     if (raw is! Map) {
       throw const FormatException(
         'Language pack catalog root must be an object.',
@@ -345,12 +358,13 @@ final class PolyglotLanguagePackCatalog {
     }
 
     final unsigned = Map<String, Object?>.from(root)..remove('checksum');
-    final expectedChecksum = ContentChecksum.compute(
-      scopeKey: 'polyglot-catalog|$languageCount'
-          'x$directedPairCount',
-      content: jsonEncode(unsigned),
-      validatorVersion: validatorVersion,
-    );
+    final expectedChecksum = computedChecksum ??
+        ContentChecksum.compute(
+          scopeKey: 'polyglot-catalog|$languageCount'
+              'x$directedPairCount',
+          content: jsonEncode(unsigned),
+          validatorVersion: validatorVersion,
+        );
     if (expectedChecksum != checksum) {
       throw const FormatException(
         'Language pack catalog checksum mismatch.',

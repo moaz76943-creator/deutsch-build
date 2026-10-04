@@ -278,41 +278,38 @@ final class MemoryAgentSnapshot {
         },
       );
 
-  static MemoryAgentSnapshot decode(String encoded) {
-    if (encoded.trim().isEmpty) return MemoryAgentSnapshot.empty();
-    try {
-      final decoded = jsonDecode(encoded);
-      if (decoded is! Map || _int(decoded['schemaVersion']) != schemaVersion) {
-        return MemoryAgentSnapshot.empty();
-      }
-
-      final tasks = <String, TaskMemoryRecord>{};
-      final rawTasks = decoded['tasks'];
-      if (rawTasks is List) {
-        for (final raw in rawTasks.take(maxTaskRecords)) {
-          final record = TaskMemoryRecord.fromJson(raw);
-          if (record != null) tasks[record.taskId] = record;
-        }
-      }
-
-      final weaknesses = <String, WeaknessMemoryRecord>{};
-      final rawWeaknesses = decoded['weaknesses'];
-      if (rawWeaknesses is List) {
-        for (final raw in rawWeaknesses.take(maxWeaknessRecords)) {
-          final record = WeaknessMemoryRecord.fromJson(raw);
-          if (record != null) weaknesses[record.weaknessKey] = record;
-        }
-      }
-
-      return MemoryAgentSnapshot._(
-        tasks: tasks,
-        weaknesses: weaknesses,
-        updatedAtEpochMs:
-            _int(decoded['updatedAtEpochMs']).clamp(0, 4102444800000).toInt(),
-      );
-    } on Object {
+  static MemoryAgentSnapshot fromDecoded(Object? decoded) {
+    if (decoded is! Map ||
+        _int(decoded['schemaVersion']) != schemaVersion) {
       return MemoryAgentSnapshot.empty();
     }
+
+    final tasks = <String, TaskMemoryRecord>{};
+    final rawTasks = decoded['tasks'];
+    if (rawTasks is List) {
+      for (final raw in rawTasks.take(maxTaskRecords)) {
+        final record = TaskMemoryRecord.fromJson(raw);
+        if (record != null) tasks[record.taskId] = record;
+      }
+    }
+
+    final weaknesses = <String, WeaknessMemoryRecord>{};
+    final rawWeaknesses = decoded['weaknesses'];
+    if (rawWeaknesses is List) {
+      for (final raw in rawWeaknesses.take(maxWeaknessRecords)) {
+        final record = WeaknessMemoryRecord.fromJson(raw);
+        if (record != null) weaknesses[record.weaknessKey] = record;
+      }
+    }
+
+    return MemoryAgentSnapshot._(
+      tasks: tasks,
+      weaknesses: weaknesses,
+      updatedAtEpochMs:
+          _int(decoded['updatedAtEpochMs'])
+              .clamp(0, 4102444800000)
+              .toInt(),
+    );
   }
 
   MemoryAgentSnapshot _copy({

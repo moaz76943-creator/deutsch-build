@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import '../orchestration/orchestration.dart';
+import '../worker/persistent_cpu_worker.dart';
+import '../worker/worker_contract.dart';
 import 'memory_models.dart';
 
 final class SysMemoryAgent {
@@ -13,6 +15,7 @@ final class SysMemoryAgent {
   static Future<SysMemoryAgent> start({
     required AgentEndpoint endpoint,
     required MemoryAgentStore store,
+    required PersistentCpuWorker cpuWorker,
   }) async {
     String? encoded;
     try {
@@ -20,9 +23,20 @@ final class SysMemoryAgent {
     } on Object {
       encoded = null;
     }
-    final initial = encoded == null
-        ? MemoryAgentSnapshot.empty()
-        : MemoryAgentSnapshot.decode(encoded);
+    var initial = MemoryAgentSnapshot.empty();
+    if (encoded != null && encoded.trim().isNotEmpty) {
+      final result = await cpuWorker.submit<Object?>(
+        WorkerJob<Map<String, Object?>>(
+          id: 'memory.hydrate',
+          type: WorkerJobTypes.jsonDecode,
+          epoch: cpuWorker.currentEpoch,
+          payload: <String, Object?>{'encoded': encoded},
+        ),
+      );
+      if (result.status == WorkerStatuses.ok) {
+        initial = MemoryAgentSnapshot.fromDecoded(result.payload);
+      }
+    }
     final agent = SysMemoryAgent._(
       endpoint: endpoint,
       store: store,
