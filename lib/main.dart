@@ -23,6 +23,7 @@ import 'services/pack_manager_service.dart';
 import 'services/preferences_service.dart';
 import 'services/repository.dart';
 import 'services/runtime_failure_reporter.dart';
+import 'ui/bridge/agent_ui_bridge.dart';
 import 'ui/phase3/phase3_production_shell.dart';
 
 SystemAgentRuntime? _systemAgentRuntime;
@@ -104,10 +105,15 @@ Future<void> main() async {
 
         final corpus = await _resolveActiveCorpus(prefs);
 
+        final uiBridge = AgentUIBridge.attach(systemAgents);
         runApp(
           _ActivatedPhase3App(
             corpus: corpus,
-            systemAgents: systemAgents,
+            bridge: uiBridge,
+            shutdown: () => _shutdownActivatedRuntime(
+              runtime: systemAgents,
+              bridge: uiBridge,
+            ),
           ),
         );
       } catch (error, stack) {
@@ -303,6 +309,17 @@ Future<void> _dispatchRecoveryError({
   }
 }
 
+Future<void> _shutdownActivatedRuntime({
+  required SystemAgentRuntime runtime,
+  required AgentUIBridge bridge,
+}) async {
+  await bridge.close();
+  await runtime.close();
+  if (identical(_systemAgentRuntime, runtime)) {
+    _systemAgentRuntime = null;
+  }
+}
+
 final class _PreferencesMemoryAgentStore implements MemoryAgentStore {
   const _PreferencesMemoryAgentStore(this.preferences);
 
@@ -343,11 +360,13 @@ final class _SeedTaskAggregate {
 final class _ActivatedPhase3App extends StatefulWidget {
   const _ActivatedPhase3App({
     required this.corpus,
-    required this.systemAgents,
+    required this.bridge,
+    required this.shutdown,
   });
 
   final List<LearningContent> corpus;
-  final SystemAgentRuntime systemAgents;
+  final AgentUIBridge bridge;
+  final Future<void> Function() shutdown;
 
   @override
   State<_ActivatedPhase3App> createState() =>
@@ -355,36 +374,18 @@ final class _ActivatedPhase3App extends StatefulWidget {
 }
 
 final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
-  late final StreamSubscription<RecoveryDirective> _recoverySubscription;
-
-  RecoveryDirective? _safeDirective;
+  RecoveryDirective? _dismissedRecovery;
   int _shellGeneration = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _recoverySubscription =
-        widget.systemAgents.recoveryDirectives.listen(_handleRecovery);
-  }
-
-  @override
   void dispose() {
-    unawaited(_recoverySubscription.cancel());
-    unawaited(widget.systemAgents.close());
-    if (identical(_systemAgentRuntime, widget.systemAgents)) {
-      _systemAgentRuntime = null;
-    }
+    unawaited(widget.shutdown());
     super.dispose();
   }
 
-  void _handleRecovery(RecoveryDirective directive) {
-    if (!mounted || directive.mode != RecoveryMode.safeShell) return;
-    setState(() => _safeDirective = directive);
-  }
-
-  void _resumeFromSafeState() {
+  void _resumeFromSafeState(RecoveryDirective directive) {
     setState(() {
-      _safeDirective = null;
+      _dismissedRecovery = directive;
       _shellGeneration += 1;
     });
   }
@@ -407,15 +408,27 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
           textDirection: TextDirection.rtl,
           child: child ?? const SizedBox.shrink(),
         ),
-        home: _safeDirective == null
-            ? Phase3ProductionShell(
-                key: ValueKey<int>(_shellGeneration),
-                corpus: widget.corpus,
-              )
-            : _RecoverySafeHome(
-                directive: _safeDirective!,
-                onResume: _resumeFromSafeState,
-              ),
+        home: AgentUIBridgeBuilder(
+          bridge: widget.bridge,
+          builder: (context, uiState) {
+            final candidate = uiState.recovery;
+            final directive = candidate != null &&
+                    candidate.mode == RecoveryMode.safeShell &&
+                    !identical(candidate, _dismissedRecovery)
+                ? candidate
+                : null;
+            if (directive != null) {
+              return _RecoverySafeHome(
+                directive: directive,
+                onResume: () => _resumeFromSafeState(directive),
+              );
+            }
+            return Phase3ProductionShell(
+              key: ValueKey<int>(_shellGeneration),
+              corpus: widget.corpus,
+            );
+          },
+        ),
       );
 }
 
