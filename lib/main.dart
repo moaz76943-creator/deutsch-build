@@ -12,6 +12,8 @@ import 'core/curriculum/canonical_curriculum_50.dart';
 import 'core/curriculum/curriculum_models.dart';
 import 'core/infrastructure/audio/flutter_tts_audio_engine.dart';
 import 'features/audio/offline_audio_runtime.dart';
+import 'features/learning/data/local_learning_recovery_pair_progress_lease.dart';
+import 'features/learning/presentation/local_learning_recovery_runtime_host.dart';
 import 'features/placement/application/placement_test_notifier.dart';
 import 'features/placement/data/learner_placement_profile_repository.dart';
 import 'features/placement/data/local_placement_repository.dart';
@@ -159,8 +161,17 @@ Future<_ActivatedPhase3App> _activateProduction({
     memoryStore: _PreferencesMemoryAgentStore(prefs),
   );
   _systemAgentRuntime = systemAgents;
+  LocalLearningRecoveryPairProgressLease? recoveryPairProgress;
 
   try {
+    const activeLanguagePack = GermanLanguagePack();
+    recoveryPairProgress = await LocalLearningRecoveryPairProgressLease.bind(
+      repository: learnerRepository,
+      sourceLanguageId: activeLanguagePack.sourceLocale,
+      targetLanguageId: activeLanguagePack.languageCode,
+      sourceIsRtl: true,
+      targetIsRtl: false,
+    );
     final durableState = await learnerRepository.reloadPersisted();
     await _seedMemoryOnce(
       runtime: systemAgents,
@@ -173,13 +184,26 @@ Future<_ActivatedPhase3App> _activateProduction({
     return _ActivatedPhase3App(
       corpus: corpus,
       bridge: uiBridge,
+      preferences: prefs,
+      learnerRepository: learnerRepository,
       startTaskOrder: _placementStartTaskOrder(routeState),
-      shutdown: () => _shutdownActivatedRuntime(
-        runtime: systemAgents,
-        bridge: uiBridge,
-      ),
+      shutdown: () async {
+        await recoveryPairProgress?.close();
+        await _shutdownActivatedRuntime(
+          runtime: systemAgents,
+          bridge: uiBridge,
+        );
+      },
     );
   } catch (_) {
+    final pairProgress = recoveryPairProgress;
+    if (pairProgress != null) {
+      try {
+        await pairProgress.close();
+      } on Object {
+        // Preserve the original activation failure.
+      }
+    }
     await systemAgents.close().catchError((_) {});
     if (identical(_systemAgentRuntime, systemAgents)) {
       _systemAgentRuntime = null;
@@ -599,12 +623,16 @@ final class _ActivatedPhase3App extends StatefulWidget {
   const _ActivatedPhase3App({
     required this.corpus,
     required this.bridge,
+    required this.preferences,
+    required this.learnerRepository,
     required this.startTaskOrder,
     required this.shutdown,
   });
 
   final List<LearningContent> corpus;
   final AgentUIBridge bridge;
+  final PreferencesService preferences;
+  final LearnerRepository learnerRepository;
   final int startTaskOrder;
   final Future<void> Function() shutdown;
 
@@ -663,10 +691,15 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
                 onResume: () => _resumeFromSafeState(directive),
               );
             }
-            return Phase3ProductionShell(
-              key: ValueKey<int>(_shellGeneration),
+            return LocalLearningRecoveryRuntimeHost(
+              repository: widget.learnerRepository,
+              preferences: widget.preferences,
               corpus: widget.corpus,
-              startTaskOrder: widget.startTaskOrder,
+              child: Phase3ProductionShell(
+                key: ValueKey<int>(_shellGeneration),
+                corpus: widget.corpus,
+                startTaskOrder: widget.startTaskOrder,
+              ),
             );
           },
         ),
