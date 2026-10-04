@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/content_contract.dart';
+import '../../core/curriculum/advanced_vocabulary.dart';
 import '../../core/curriculum/canonical_curriculum_50.dart';
 import '../../core/curriculum/curriculum_models.dart';
 import '../../core/curriculum/learning_path_engine.dart';
