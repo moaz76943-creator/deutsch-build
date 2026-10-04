@@ -15,6 +15,12 @@ abstract final class AgentTopics {
   static const String localizationChangeRequested =
       'localization.change_requested';
   static const String localizationChanged = 'localization.changed';
+  static const String polyglotMatrixChanged = 'polyglot.matrix_changed';
+  static const String grammarRequest = 'grammar.request';
+  static const String grammarEngineChanged = 'grammar.engine_changed';
+  static const String grammarResponse = 'grammar.response';
+  static const String ttsRequest = 'tts.request';
+  static const String ttsPrepared = 'tts.prepared';
 }
 
 enum AgentRole {
@@ -26,6 +32,9 @@ enum AgentRole {
   recovery,
   system,
   localization,
+  polyglot,
+  grammar,
+  voice,
 }
 
 final class AgentDescriptor {
