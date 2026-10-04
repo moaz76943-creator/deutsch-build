@@ -1,20 +1,21 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:sqflite_common/sqlite_api.dart'
+    show Database, DatabaseFactory, OpenDatabaseOptions;
+import 'package:sqflite_sqlcipher/sqflite.dart' as sqlcipher;
 
+import '../features/srs/corpus_sqlite_migrator.dart';
+import '../features/srs/corpus_sqlite_repository.dart';
 import '../language/language_pack.dart';
 import '../language/german/german_word_family_repository.dart';
-import '../language/runtime_language_pack.dart';
-import '../models/content.dart';
-import '../models/verb_conjugation.dart';
 import 'grammar_hub_service.dart';
 import 'pack_grammar_hub_repository.dart';
 import 'pack_german_word_family_repository.dart';
 import 'pack_manager_service.dart';
 import 'pack_database_key_store.dart';
 import 'pack_database_security.dart';
-import 'verb_index.dart';
 
 enum RuntimeContentOrigin { activePack, embeddedFallback }
 
@@ -43,17 +44,31 @@ final class RuntimePackResolution {
     required this.grammarHubService,
     required this.state,
     this.wordFamilyRepository = const EmptyGermanWordFamilyRepository(),
-  });
+    this.corpusRepository,
+    Database? corpusDatabase,
+  }) : _corpusDatabase = corpusDatabase;
 
   final LanguagePack languagePack;
   final GrammarHubRepository grammarHubService;
   final GermanWordFamilyRepository wordFamilyRepository;
   final RuntimePackState state;
+
+  /// Indexed SQLite corpus. Null means no admitted local corpus is active.
+  final IndexedSrsCorpusRepository? corpusRepository;
+  final Database? _corpusDatabase;
+
+  bool get hasIndexedCorpus => corpusRepository != null;
+
+  Future<void> closeCorpus() async {
+    final database = _corpusDatabase;
+    if (database != null) {
+      await database.close();
+    }
+  }
 }
 
 /// Admission boundary for authenticity/integrity decisions before the SQLite
-/// database is trusted. Phase 6 can attach Ed25519 verification here without
-/// changing runtime composition.
+/// database is trusted.
 abstract interface class RuntimePackAdmissionGate {
   Future<void> verify({
     required InstalledLanguagePack pack,
@@ -87,15 +102,19 @@ final class RegisteredRuntimePackAdmissionGate
 
 final class RuntimePackAdmissionException implements Exception {
   const RuntimePackAdmissionException(this.code);
+
   final String code;
 
   @override
   String toString() => 'RuntimePackAdmissionException($code)';
 }
 
-/// Resolves the active installed pack into a LanguagePack content override.
-/// Any admission, schema, metadata, or SQLite failure returns the embedded
-/// language pack unchanged as the last-known-good runtime.
+/// Resolves an admitted language pack to indexed local SQLite.
+///
+/// The signed/encrypted pack database remains immutable. Its legacy lexicon is
+/// migrated in bounded pages into a derived indexed SRS database. Production
+/// callers read content through [corpusRepository]; no full lexicon is
+/// materialized into Dart objects here.
 final class ActivePackRuntimeProvider {
   ActivePackRuntimeProvider({
     required this.packManager,
@@ -113,9 +132,7 @@ final class ActivePackRuntimeProvider {
                 ? const SqlCipherPackDatabaseSecurity()
                 : FactoryBackedPackDatabaseOpener(databaseFactory));
 
-  static const int maxRuntimeLexiconRows = 100000;
-  static const int maxAcceptedForms = 32;
-  static const int maxTextLength = 4000;
+  static const String derivedCorpusFilePrefix = 'srs-corpus-v1-';
 
   final PackManagerService packManager;
   final LanguagePack embeddedLanguagePack;
@@ -148,43 +165,42 @@ final class ActivePackRuntimeProvider {
       'content.sqlite',
     );
 
-    Database? db;
+    Database? source;
+    Database? corpusDatabase;
     try {
-      await admissionGate.verify(pack: installed, sqlitePath: sqlitePath);
+      await admissionGate.verify(
+        pack: installed,
+        sqlitePath: sqlitePath,
+      );
       if (!await _databaseExists(sqlitePath)) {
         throw const RuntimePackAdmissionException('pack_sqlite_missing');
       }
+
       final databaseKey = await _databaseKeyStore.readKey();
-      if (databaseKey == null) {
-        throw const RuntimePackAdmissionException('pack_database_key_missing');
+      if (databaseKey == null || databaseKey.trim().isEmpty) {
+        throw const RuntimePackAdmissionException(
+          'pack_database_key_missing',
+        );
       }
-      db = await _databaseOpener.openReadOnly(
+
+      source = await _databaseOpener.openReadOnly(
         sqlitePath,
         password: databaseKey,
       );
-      await _validateMetadata(db, installed);
-      final loaded = await _loadContent(db);
-      if (loaded.corpus.isEmpty) {
-        throw const RuntimePackAdmissionException('pack_corpus_empty');
-      }
+      await _validateMetadata(source, installed);
 
-      final verbIndex = VerbIndex.fromRows(
-        textNormalizer: embeddedLanguagePack.textNormalizer,
-        rows: loaded.verbRows,
+      final prepared = await _openOrBuildCorpus(
+        source: source,
+        installed: installed,
+        databaseKey: databaseKey,
       );
-      final activeLanguagePack = RuntimeLanguagePack(
-        base: embeddedLanguagePack,
-        runtimeContentPack: RuntimeLanguageContentPack(
-          items: loaded.corpus,
-          verbIndex: verbIndex,
-        ),
-      );
+      corpusDatabase = prepared.database;
 
-      await db.close();
-      db = null;
+      await source.close();
+      source = null;
 
       return RuntimePackResolution(
-        languagePack: activeLanguagePack,
+        languagePack: embeddedLanguagePack,
         grammarHubService: PackGrammarHubRepository(
           databasePath: sqlitePath,
           packId: activeId,
@@ -197,42 +213,218 @@ final class ActivePackRuntimeProvider {
           databaseOpener: _databaseOpener,
           databasePassword: databaseKey,
         ),
+        corpusRepository: prepared.repository,
+        corpusDatabase: corpusDatabase,
         state: RuntimePackState(
           origin: RuntimeContentOrigin.activePack,
           activePackId: activeId,
         ),
       );
     } on RuntimePackAdmissionException catch (error) {
+      if (corpusDatabase != null) {
+        await corpusDatabase.close();
+      }
       return _fallback(error.code, activeId);
     } on Object {
+      if (corpusDatabase != null) {
+        await corpusDatabase.close();
+      }
       return _fallback('active_pack_runtime_invalid', activeId);
     } finally {
-      if (db != null) {
+      if (source != null) {
         try {
-          await db.close();
+          await source.close();
         } on Object {
-          // Best-effort cleanup must not replace the original failure reason.
+          // Cleanup must not replace the original failure reason.
         }
       }
     }
   }
 
+  Future<_PreparedCorpus> _openOrBuildCorpus({
+    required Database source,
+    required InstalledLanguagePack installed,
+    required String databaseKey,
+  }) async {
+    final runtimeDirectory = Directory(
+      p.join(
+        packManager.rootDirectory.path,
+        'packs',
+        installed.id,
+        'runtime',
+      ),
+    );
+    await runtimeDirectory.create(recursive: true);
+
+    final contentIdentity = installed.contentSha256.toLowerCase();
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(contentIdentity)) {
+      throw const RuntimePackAdmissionException(
+        'pack_content_sha256_invalid',
+      );
+    }
+    final finalFile = File(
+      p.join(
+        runtimeDirectory.path,
+        '$derivedCorpusFilePrefix$contentIdentity.sqlite',
+      ),
+    );
+    final buildingFile = File(finalFile.path + '.building');
+
+    if (await buildingFile.exists()) {
+      await buildingFile.delete();
+    }
+
+    if (await finalFile.exists()) {
+      final existing = await _tryOpenVerifiedCorpus(
+        path: finalFile.path,
+        databaseKey: databaseKey,
+      );
+      if (existing != null) {
+        return existing;
+      }
+      await finalFile.delete();
+    }
+
+    Database? target;
+    try {
+      target = await _openWritableDerivedDatabase(
+        path: buildingFile.path,
+        databaseKey: databaseKey,
+      );
+      final report = await const SrsCorpusSqliteMigrator().migrate(
+        source: source,
+        target: target,
+      );
+      if (!report.complete) {
+        throw const RuntimePackAdmissionException(
+          'srs_corpus_migration_incomplete',
+        );
+      }
+      await target.close();
+      target = null;
+
+      if (await finalFile.exists()) {
+        await finalFile.delete();
+      }
+      await buildingFile.rename(finalFile.path);
+
+      final prepared = await _tryOpenVerifiedCorpus(
+        path: finalFile.path,
+        databaseKey: databaseKey,
+      );
+      if (prepared == null) {
+        throw const RuntimePackAdmissionException(
+          'srs_corpus_verification_failed',
+        );
+      }
+      return prepared;
+    } on RuntimePackAdmissionException {
+      rethrow;
+    } on Object {
+      throw const RuntimePackAdmissionException(
+        'srs_corpus_migration_failed',
+      );
+    } finally {
+      if (target != null) {
+        try {
+          await target.close();
+        } on Object {
+          // Cleanup boundary only.
+        }
+      }
+      if (await buildingFile.exists()) {
+        await buildingFile.delete();
+      }
+    }
+  }
+
+  Future<_PreparedCorpus?> _tryOpenVerifiedCorpus({
+    required String path,
+    required String databaseKey,
+  }) async {
+    Database? database;
+    try {
+      database = await _openDerivedReadOnly(
+        path: path,
+        databaseKey: databaseKey,
+      );
+      final repository =
+          await IndexedSrsCorpusRepository.open(database);
+      return _PreparedCorpus(
+        database: database,
+        repository: repository,
+      );
+    } on Object {
+      if (database != null) {
+        try {
+          await database.close();
+        } on Object {
+          // Invalid derived corpus is discarded by the caller.
+        }
+      }
+      return null;
+    }
+  }
+
+  Future<Database> _openWritableDerivedDatabase({
+    required String path,
+    required String databaseKey,
+  }) {
+    final factory = databaseFactory;
+    if (factory != null) {
+      return factory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          singleInstance: false,
+        ),
+      );
+    }
+    return sqlcipher.openDatabase(
+      path,
+      password: databaseKey,
+      singleInstance: false,
+    );
+  }
+
+  Future<Database> _openDerivedReadOnly({
+    required String path,
+    required String databaseKey,
+  }) {
+    final factory = databaseFactory;
+    if (factory != null) {
+      return factory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          readOnly: true,
+          singleInstance: false,
+        ),
+      );
+    }
+    return sqlcipher.openDatabase(
+      path,
+      password: databaseKey,
+      readOnly: true,
+      singleInstance: false,
+    );
+  }
+
   Future<bool> _databaseExists(String path) {
     final factory = databaseFactory;
     return factory == null
-        ? databaseExists(path)
+        ? sqflite.databaseExists(path)
         : factory.databaseExists(path);
   }
 
   Future<void> _validateMetadata(
-    Database db,
+    Database database,
     InstalledLanguagePack installed,
   ) async {
-    if (!await _hasTable(db, 'metadata') || !await _hasTable(db, 'lexicon')) {
+    if (!await _hasTable(database, 'metadata') ||
+        !await _hasTable(database, 'lexicon')) {
       throw const RuntimePackAdmissionException('pack_schema_missing');
     }
 
-    final rows = await db.query('metadata', limit: 64);
+    final rows = await database.query('metadata', limit: 64);
     final metadata = <String, String>{
       for (final row in rows)
         if (row['key'] != null && row['value'] != null)
@@ -244,218 +436,24 @@ final class ActivePackRuntimeProvider {
             installed.languageCode.toLowerCase() ||
         metadata['version'] != installed.version ||
         metadata['contractVersion'] != installed.contractVersion) {
-      throw const RuntimePackAdmissionException('pack_metadata_mismatch');
-    }
-  }
-
-  Future<_LoadedPackContent> _loadContent(Database db) async {
-    final rows = await db.query(
-      'lexicon',
-      columns: const <String>['id', 'surface', 'part_of_speech', 'fields_json'],
-      orderBy: 'id ASC',
-      limit: maxRuntimeLexiconRows + 1,
-    );
-    if (rows.length > maxRuntimeLexiconRows) {
-      throw const RuntimePackAdmissionException('pack_lexicon_too_large');
-    }
-
-    final ids = <String>{};
-    final corpus = <ContentItem>[];
-    final verbRows = <VerbConjugation>[];
-
-    for (final row in rows) {
-      final id = _boundedRequired(row['id'], 'id', maxLength: 160);
-      if (!ids.add(id)) {
-        throw const RuntimePackAdmissionException('pack_duplicate_content_id');
-      }
-      final source = _boundedRequired(
-        row['surface'],
-        'surface',
-        maxLength: maxTextLength,
-      );
-      final fields = _decodeFields(row['fields_json']);
-      final translation = _firstString(
-          fields,
-          const <String>[
-            'translation',
-            'translationText',
-            'arabic',
-          ],
-          required: true);
-
-      corpus.add(
-        ContentItem(
-          id: id,
-          german: source,
-          arabic: translation,
-          sentence: _firstString(fields, const <String>['example', 'sentence']),
-          sentenceAr: _firstString(fields, const <String>[
-            'exampleTranslation',
-            'sentenceAr',
-          ]),
-          topic: _firstString(
-              fields,
-              const <String>[
-                'topic',
-              ],
-              fallback: 'pack'),
-          skill: _firstString(
-              fields,
-              const <String>[
-                'skill',
-              ],
-              fallback: 'recall'),
-          article: _firstString(fields, const <String>[
-            'article',
-            'grammaticalMarker',
-          ]),
-          plural: _firstString(fields, const <String>['plural']),
-          accepted: _acceptedForms(fields['accepted']),
-        ),
-      );
-
-      final partOfSpeech = row['part_of_speech']?.toString().toLowerCase();
-      if (partOfSpeech == 'verb') {
-        verbRows.addAll(
-          _verbRows(
-            fields['verbRows'],
-            fallbackInfinitive: source,
-            fallbackTranslation: translation,
-          ),
-        );
-      }
-    }
-
-    return _LoadedPackContent(
-      corpus: List<ContentItem>.unmodifiable(corpus),
-      verbRows: List<VerbConjugation>.unmodifiable(verbRows),
-    );
-  }
-
-  Map<String, dynamic> _decodeFields(Object? raw) {
-    if (raw is! String || raw.length > 256 * 1024) {
-      throw const RuntimePackAdmissionException('pack_fields_invalid');
-    }
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        throw const RuntimePackAdmissionException('pack_fields_invalid');
-      }
-      return Map<String, dynamic>.from(decoded);
-    } on RuntimePackAdmissionException {
-      rethrow;
-    } on Object {
-      throw const RuntimePackAdmissionException('pack_fields_invalid');
-    }
-  }
-
-  String _firstString(
-    Map<String, dynamic> fields,
-    List<String> keys, {
-    bool required = false,
-    String fallback = '',
-  }) {
-    for (final key in keys) {
-      final value = fields[key];
-      if (value is String) {
-        final clean = value.trim();
-        if (clean.isNotEmpty && clean.length <= maxTextLength) {
-          return clean;
-        }
-      }
-    }
-    if (required) {
       throw const RuntimePackAdmissionException(
-        'pack_required_translation_missing',
+        'pack_metadata_mismatch',
       );
     }
-    return fallback;
   }
 
-  List<String> _acceptedForms(Object? raw) {
-    if (raw is! List) return const <String>[];
-    return raw
-        .whereType<String>()
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty && value.length <= 200)
-        .take(maxAcceptedForms)
-        .toList(growable: false);
-  }
-
-  List<VerbConjugation> _verbRows(
-    Object? raw, {
-    required String fallbackInfinitive,
-    required String fallbackTranslation,
-  }) {
-    if (raw is! List) return const <VerbConjugation>[];
-    if (raw.length > 128) {
-      throw const RuntimePackAdmissionException('pack_verb_rows_too_large');
-    }
-    return raw.map((entry) {
-      if (entry is! Map) {
-        throw const RuntimePackAdmissionException('pack_verb_row_invalid');
-      }
-      final row = Map<String, dynamic>.from(entry);
-      return VerbConjugation(
-        infinitive: _mapString(
-          row,
-          'infinitive',
-          fallback: fallbackInfinitive,
-        ),
-        arabic: _mapString(row, 'arabic', fallback: fallbackTranslation),
-        group: _mapString(row, 'group', fallback: 'pack'),
-        person: _mapString(row, 'person', required: true),
-        personAr: _mapString(row, 'personAr'),
-        form: _mapString(row, 'form', required: true),
-        past: _mapString(row, 'past'),
-        pastArabic: _mapString(row, 'pastArabic'),
-        example: _mapString(row, 'example'),
-        exampleAr: _mapString(row, 'exampleAr'),
-        pastExample: _mapString(row, 'pastExample'),
-        pastExampleAr: _mapString(row, 'pastExampleAr'),
-      );
-    }).toList(growable: false);
-  }
-
-  String _mapString(
-    Map<String, dynamic> map,
-    String key, {
-    bool required = false,
-    String fallback = '',
-  }) {
-    final raw = map[key];
-    if (raw is String) {
-      final clean = raw.trim();
-      if (clean.isNotEmpty && clean.length <= maxTextLength) {
-        return clean;
-      }
-    }
-    if (required) {
-      throw const RuntimePackAdmissionException('pack_verb_row_invalid');
-    }
-    return fallback;
-  }
-
-  String _boundedRequired(Object? raw, String field, {required int maxLength}) {
-    if (raw is! String) {
-      throw RuntimePackAdmissionException('pack_' + field + '_invalid');
-    }
-    final value = raw.trim();
-    if (value.isEmpty || value.length > maxLength) {
-      throw RuntimePackAdmissionException('pack_' + field + '_invalid');
-    }
-    return value;
-  }
-
-  Future<bool> _hasTable(Database db, String name) async {
-    final rows = await db.rawQuery(
+  Future<bool> _hasTable(Database database, String name) async {
+    final rows = await database.rawQuery(
       'SELECT name FROM sqlite_master WHERE type = ? AND name = ?',
       <Object?>['table', name],
     );
     return rows.isNotEmpty;
   }
 
-  RuntimePackResolution _fallback(String reason, [String? attemptedPackId]) =>
+  RuntimePackResolution _fallback(
+    String reason, [
+    String? attemptedPackId,
+  ]) =>
       RuntimePackResolution(
         languagePack: embeddedLanguagePack,
         grammarHubService: embeddedGrammar,
@@ -466,9 +464,228 @@ final class ActivePackRuntimeProvider {
       );
 }
 
-final class _LoadedPackContent {
-  const _LoadedPackContent({required this.corpus, required this.verbRows});
+final class _PreparedCorpus {
+  const _PreparedCorpus({
+    required this.database,
+    required this.repository,
+  });
 
-  final List<ContentItem> corpus;
-  final List<VerbConjugation> verbRows;
+  final Database database;
+  final IndexedSrsCorpusRepository repository;
+}
+).hasMatch(contentIdentity)) {
+      throw const RuntimePackAdmissionException(
+        'pack_content_sha256_invalid',
+      );
+    }
+    final finalFile = File(
+      p.join(
+        runtimeDirectory.path,
+        '$derivedCorpusFilePrefix$contentIdentity.sqlite',
+      ),
+    );
+    final buildingFile = File(finalFile.path + '.building');
+
+    if (await buildingFile.exists()) {
+      await buildingFile.delete();
+    }
+
+    if (await finalFile.exists()) {
+      final existing = await _tryOpenVerifiedCorpus(
+        path: finalFile.path,
+        databaseKey: databaseKey,
+      );
+      if (existing != null) {
+        return existing;
+      }
+      await finalFile.delete();
+    }
+
+    Database? target;
+    try {
+      target = await _openWritableDerivedDatabase(
+        path: buildingFile.path,
+        databaseKey: databaseKey,
+      );
+      final report = await const SrsCorpusSqliteMigrator().migrate(
+        source: source,
+        target: target,
+      );
+      if (!report.complete) {
+        throw const RuntimePackAdmissionException(
+          'srs_corpus_migration_incomplete',
+        );
+      }
+      await target.close();
+      target = null;
+
+      if (await finalFile.exists()) {
+        await finalFile.delete();
+      }
+      await buildingFile.rename(finalFile.path);
+
+      final prepared = await _tryOpenVerifiedCorpus(
+        path: finalFile.path,
+        databaseKey: databaseKey,
+      );
+      if (prepared == null) {
+        throw const RuntimePackAdmissionException(
+          'srs_corpus_verification_failed',
+        );
+      }
+      return prepared;
+    } on RuntimePackAdmissionException {
+      rethrow;
+    } on Object {
+      throw const RuntimePackAdmissionException(
+        'srs_corpus_migration_failed',
+      );
+    } finally {
+      if (target != null) {
+        try {
+          await target.close();
+        } on Object {
+          // Cleanup boundary only.
+        }
+      }
+      if (await buildingFile.exists()) {
+        await buildingFile.delete();
+      }
+    }
+  }
+
+  Future<_PreparedCorpus?> _tryOpenVerifiedCorpus({
+    required String path,
+    required String databaseKey,
+  }) async {
+    Database? database;
+    try {
+      database = await _openDerivedReadOnly(
+        path: path,
+        databaseKey: databaseKey,
+      );
+      final repository =
+          await IndexedSrsCorpusRepository.open(database);
+      return _PreparedCorpus(
+        database: database,
+        repository: repository,
+      );
+    } on Object {
+      if (database != null) {
+        try {
+          await database.close();
+        } on Object {
+          // Invalid derived corpus is discarded by the caller.
+        }
+      }
+      return null;
+    }
+  }
+
+  Future<Database> _openWritableDerivedDatabase({
+    required String path,
+    required String databaseKey,
+  }) {
+    final factory = databaseFactory;
+    if (factory != null) {
+      return factory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          singleInstance: false,
+        ),
+      );
+    }
+    return sqlcipher.openDatabase(
+      path,
+      password: databaseKey,
+      singleInstance: false,
+    );
+  }
+
+  Future<Database> _openDerivedReadOnly({
+    required String path,
+    required String databaseKey,
+  }) {
+    final factory = databaseFactory;
+    if (factory != null) {
+      return factory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          readOnly: true,
+          singleInstance: false,
+        ),
+      );
+    }
+    return sqlcipher.openDatabase(
+      path,
+      password: databaseKey,
+      readOnly: true,
+      singleInstance: false,
+    );
+  }
+
+  Future<bool> _databaseExists(String path) {
+    final factory = databaseFactory;
+    return factory == null
+        ? sqflite.databaseExists(path)
+        : factory.databaseExists(path);
+  }
+
+  Future<void> _validateMetadata(
+    Database database,
+    InstalledLanguagePack installed,
+  ) async {
+    if (!await _hasTable(database, 'metadata') ||
+        !await _hasTable(database, 'lexicon')) {
+      throw const RuntimePackAdmissionException('pack_schema_missing');
+    }
+
+    final rows = await database.query('metadata', limit: 64);
+    final metadata = <String, String>{
+      for (final row in rows)
+        if (row['key'] != null && row['value'] != null)
+          row['key'].toString(): row['value'].toString(),
+    };
+
+    if (metadata['packId'] != installed.id ||
+        metadata['languageCode']?.toLowerCase() !=
+            installed.languageCode.toLowerCase() ||
+        metadata['version'] != installed.version ||
+        metadata['contractVersion'] != installed.contractVersion) {
+      throw const RuntimePackAdmissionException(
+        'pack_metadata_mismatch',
+      );
+    }
+  }
+
+  Future<bool> _hasTable(Database database, String name) async {
+    final rows = await database.rawQuery(
+      'SELECT name FROM sqlite_master WHERE type = ? AND name = ?',
+      <Object?>['table', name],
+    );
+    return rows.isNotEmpty;
+  }
+
+  RuntimePackResolution _fallback(
+    String reason, [
+    String? attemptedPackId,
+  ]) =>
+      RuntimePackResolution(
+        languagePack: embeddedLanguagePack,
+        grammarHubService: embeddedGrammar,
+        state: RuntimePackState.embeddedFallback(
+          activePackId: attemptedPackId,
+          fallbackReason: reason,
+        ),
+      );
+}
+
+final class _PreparedCorpus {
+  const _PreparedCorpus({
+    required this.database,
+    required this.repository,
+  });
+
+  final Database database;
+  final IndexedSrsCorpusRepository repository;
 }

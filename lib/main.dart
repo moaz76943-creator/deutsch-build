@@ -21,6 +21,7 @@ import 'features/placement/data/placement_audio_runtime_adapter.dart';
 import 'features/placement/presentation/placement_test_screen.dart';
 import 'language/german/german_language_pack.dart';
 import 'language/german/german_speech_profile.dart';
+import 'models/content.dart';
 import 'models/learner.dart';
 import 'models/pack_security_runtime_config.dart';
 import 'services/active_pack_runtime_provider.dart';
@@ -93,33 +94,7 @@ Future<void> main() async {
     () async {
       try {
         _verifyProductionContract();
-        final prefs = await PreferencesService.instance();
-        final learnerRepository = LearnerRepository(
-          prefs,
-          persistence: LearnerPersistence(
-            prefs,
-            LearnerRepository.key,
-            LearnerRepository.legacyFavoriteKey,
-          ),
-        );
-        final state = learnerRepository.load();
-
-        if (_needsPlacementOnboarding(state)) {
-          runApp(
-            _PlacementBootstrapApp(
-              prefs: prefs,
-              learnerRepository: learnerRepository,
-            ),
-          );
-          return;
-        }
-
-        runApp(
-          await _activateProduction(
-            prefs: prefs,
-            learnerRepository: learnerRepository,
-          ),
-        );
+        runApp(const _RenderFirstBootstrapApp());
       } catch (error, stack) {
         runtimeFailureReporter.record(
           error,
@@ -162,6 +137,7 @@ Future<_ActivatedPhase3App> _activateProduction({
   );
   _systemAgentRuntime = systemAgents;
   LocalLearningRecoveryPairProgressLease? recoveryPairProgress;
+  _ResolvedCorpusSession? corpusSession;
 
   try {
     const activeLanguagePack = GermanLanguagePack();
@@ -177,17 +153,21 @@ Future<_ActivatedPhase3App> _activateProduction({
       runtime: systemAgents,
       state: durableState,
     );
-    final corpus = await _resolveActiveCorpus(prefs);
+    final resolvedCorpusSession =
+        await _resolveActiveCorpusSession(prefs);
+    corpusSession = resolvedCorpusSession;
     final uiBridge = AgentUIBridge.attach(systemAgents);
     final routeState = await learnerRepository.reloadPersisted();
 
     return _ActivatedPhase3App(
-      corpus: corpus,
+      corpus: resolvedCorpusSession.initialCorpus,
       bridge: uiBridge,
       preferences: prefs,
       learnerRepository: learnerRepository,
       startTaskOrder: _placementStartTaskOrder(routeState),
       shutdown: () async {
+        await resolvedCorpusSession.resolution.closeCorpus();
+        await resolvedCorpusSession.resolution.grammarHubService.close();
         await recoveryPairProgress?.close();
         await _shutdownActivatedRuntime(
           runtime: systemAgents,
@@ -196,6 +176,15 @@ Future<_ActivatedPhase3App> _activateProduction({
       },
     );
   } catch (_) {
+    final session = corpusSession;
+    if (session != null) {
+      try {
+        await session.resolution.closeCorpus();
+        await session.resolution.grammarHubService.close();
+      } on Object {
+        // Preserve the original activation failure.
+      }
+    }
     final pairProgress = recoveryPairProgress;
     if (pairProgress != null) {
       try {
@@ -228,9 +217,21 @@ int _placementStartTaskOrder(LearnerState state) {
   return 1;
 }
 
-Future<List<LearningContent>> _resolveActiveCorpus(
+final class _ResolvedCorpusSession {
+  const _ResolvedCorpusSession({
+    required this.resolution,
+    required this.initialCorpus,
+  });
+
+  final RuntimePackResolution resolution;
+  final List<LearningContent> initialCorpus;
+}
+
+Future<_ResolvedCorpusSession> _resolveActiveCorpusSession(
   PreferencesService prefs,
 ) async {
+  const initialWindowSize = 128;
+
   final databaseRoot = await getDatabasesPath();
   final languagePack = const GermanLanguagePack();
   final packSecurity = PackSecurityRuntimeConfig.fromEnvironment();
@@ -259,8 +260,52 @@ Future<List<LearningContent>> _resolveActiveCorpus(
     databaseOpener: packDatabaseSecurity,
   ).resolve();
 
-  return List<LearningContent>.unmodifiable(
-    resolution.languagePack.contentPack.items,
+  final repository = resolution.corpusRepository;
+  if (repository == null) {
+    await resolution.grammarHubService.close();
+    throw StateError(
+      'indexed_corpus_unavailable:'
+      '${resolution.state.fallbackReason ?? 'unknown'}',
+    );
+  }
+
+  final verification = repository.verification;
+  if (!verification.hasExpectedCardinality) {
+    await resolution.closeCorpus();
+    await resolution.grammarHubService.close();
+    throw StateError('indexed_corpus_cardinality_mismatch');
+  }
+
+  final page = await repository.fetchPage(
+    limit: initialWindowSize,
+  );
+  if (page.isEmpty) {
+    await resolution.closeCorpus();
+    await resolution.grammarHubService.close();
+    throw StateError('indexed_corpus_initial_window_empty');
+  }
+
+  final initialCorpus = page
+      .map(
+        (item) => ContentItem(
+          id: item.id,
+          german: item.german,
+          arabic: item.arabic,
+          sentence: item.sentence,
+          sentenceAr: item.sentenceAr,
+          topic: item.topic,
+          skill: item.skill,
+          article: item.article,
+          plural: item.plural,
+          accepted: item.accepted,
+        ),
+      )
+      .cast<LearningContent>()
+      .toList(growable: false);
+
+  return _ResolvedCorpusSession(
+    resolution: resolution,
+    initialCorpus: List<LearningContent>.unmodifiable(initialCorpus),
   );
 }
 
@@ -434,6 +479,165 @@ final class _SeedTaskAggregate {
       latestEpochMs = occurredAt;
     }
   }
+}
+
+final class _RenderFirstBootstrapApp extends StatefulWidget {
+  const _RenderFirstBootstrapApp();
+
+  @override
+  State<_RenderFirstBootstrapApp> createState() =>
+      _RenderFirstBootstrapAppState();
+}
+
+final class _RenderFirstBootstrapAppState
+    extends State<_RenderFirstBootstrapApp> {
+  Widget? _resolved;
+  bool _loading = false;
+  Object? _bootstrapError;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_bootstrap());
+    });
+  }
+
+  Future<void> _bootstrap() async {
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      _bootstrapError = null;
+    });
+
+    try {
+      final prefs = await PreferencesService.instance();
+      final learnerRepository = LearnerRepository(
+        prefs,
+        persistence: LearnerPersistence(
+          prefs,
+          LearnerRepository.key,
+          LearnerRepository.legacyFavoriteKey,
+        ),
+      );
+      final state = learnerRepository.load();
+
+      late final Widget next;
+      if (_needsPlacementOnboarding(state)) {
+        next = _PlacementBootstrapApp(
+          prefs: prefs,
+          learnerRepository: learnerRepository,
+        );
+      } else {
+        next = await _activateProduction(
+          prefs: prefs,
+          learnerRepository: learnerRepository,
+        );
+      }
+
+      if (!mounted) {
+        if (next is _ActivatedPhase3App) {
+          await next.shutdown();
+        }
+        return;
+      }
+      setState(() {
+        _resolved = next;
+        _loading = false;
+      });
+    } catch (error) {
+      await _dispatchRecoveryError(
+        error: error,
+        context: 'render_first.bootstrap',
+        fatal: false,
+      );
+      if (!mounted) return;
+      setState(() {
+        _bootstrapError = error;
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final resolved = _resolved;
+    if (resolved != null) return resolved;
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: _productionUi.showDebugBanner,
+      title: _productionUi.appName,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.dark,
+      ),
+      builder: (context, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: child ?? const SizedBox.shrink(),
+      ),
+      home: _bootstrapError == null
+          ? const _RenderFirstLoading()
+          : _RenderFirstFailure(
+              onRetry: () => unawaited(_bootstrap()),
+            ),
+    );
+  }
+}
+
+final class _RenderFirstLoading extends StatelessWidget {
+  const _RenderFirstLoading();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: Center(
+          child: SizedBox.square(
+            dimension: 28,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+        ),
+      );
+}
+
+final class _RenderFirstFailure extends StatelessWidget {
+  const _RenderFirstFailure({
+    required this.onRetry,
+  });
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Icon(Icons.storage_rounded, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'تعذر فتح المحتوى المحلي الموثق.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
 }
 
 final class _PlacementBootstrapApp extends StatefulWidget {
