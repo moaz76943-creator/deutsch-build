@@ -45,6 +45,7 @@ def test_phase10_android_declares_tts_discovery_and_local_player_bridge():
     assert "MediaPlayer" in player
     assert "getLookupKeyForAsset" in player
     assert "http" not in player.lower()
+    assert "android.permission.INTERNET" not in manifest
 
 
 def test_phase10_recorded_audio_is_manifest_driven_not_path_guessed():
@@ -62,3 +63,17 @@ def test_phase10_recorded_audio_is_manifest_driven_not_path_guessed():
 def test_phase10_keeps_ui_files_under_limit():
     for path in (ROOT / "lib/ui_v35").rglob("*.dart"):
         assert len(path.read_text(encoding="utf-8").splitlines()) <= 1000, path
+
+
+def test_v11_hybrid_pronunciation_uses_existing_offline_runtime():
+    service = read("lib/features/audio/hybrid_pronunciation_service.dart")
+    runtime = read("lib/features/audio/offline_audio_runtime.dart")
+    tts = read("lib/core/infrastructure/audio/flutter_tts_audio_engine.dart")
+    lab = read("lib/features/pronunciation/pronunciation_lab_service.dart")
+
+    assert "IAudioRuntime" in service
+    assert "AudioVariant.pronunciation" in service
+    assert "recordedPlayer.playAsset" in runtime
+    assert "ttsEngine.probe" in runtime
+    assert "_isStrictlyOfflineVoice" in tts
+    assert "HybridPronunciationService" in lab

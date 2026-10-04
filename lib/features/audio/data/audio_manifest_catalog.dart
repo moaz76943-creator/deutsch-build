@@ -60,7 +60,12 @@ final class AudioManifestCatalog implements AudioCatalog {
     required String conceptId,
     required AudioVariant variant,
   }) {
-    final relative = _entries[conceptId]?[variant];
+    final variants = _entries[conceptId];
+    if (variants == null) return null;
+    final relative = variants[variant] ??
+        (variant == AudioVariant.pronunciation
+            ? variants[AudioVariant.word]
+            : null);
     if (relative == null) return null;
     return baseAssetPath + '/' + relative;
   }

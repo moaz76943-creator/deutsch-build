@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -11,6 +12,9 @@ import 'core/content_contract.dart';
 import 'core/curriculum/canonical_curriculum_50.dart';
 import 'core/curriculum/curriculum_models.dart';
 import 'core/infrastructure/audio/flutter_tts_audio_engine.dart';
+import 'features/audio/data/android_recorded_audio_player.dart';
+import 'features/audio/data/audio_manifest_catalog.dart';
+import 'features/audio/domain/services/i_audio_runtime.dart';
 import 'features/audio/offline_audio_runtime.dart';
 import 'features/learning/data/local_learning_recovery_pair_progress_lease.dart';
 import 'features/learning/presentation/local_learning_recovery_runtime_host.dart';
@@ -138,9 +142,11 @@ Future<_ActivatedPhase3App> _activateProduction({
   _systemAgentRuntime = systemAgents;
   LocalLearningRecoveryPairProgressLease? recoveryPairProgress;
   _ResolvedCorpusSession? corpusSession;
+  IAudioRuntime? activatedAudioRuntime;
 
   try {
     const activeLanguagePack = GermanLanguagePack();
+    final audioCatalogFuture = _loadGermanAudioCatalog();
     recoveryPairProgress = await LocalLearningRecoveryPairProgressLease.bind(
       repository: learnerRepository,
       sourceLanguageId: activeLanguagePack.sourceLocale,
@@ -158,14 +164,23 @@ Future<_ActivatedPhase3App> _activateProduction({
     corpusSession = resolvedCorpusSession;
     final uiBridge = AgentUIBridge.attach(systemAgents);
     final routeState = await learnerRepository.reloadPersisted();
+    final audioRuntime = OfflineAudioRuntime(
+      speechProfile: activeLanguagePack.speechProfile,
+      ttsEngine: FlutterOfflineTtsEngine(),
+      catalog: await audioCatalogFuture,
+      recordedPlayer: AndroidRecordedAudioPlayer(),
+    );
+    activatedAudioRuntime = audioRuntime;
 
     return _ActivatedPhase3App(
       corpus: resolvedCorpusSession.initialCorpus,
+      audioRuntime: audioRuntime,
       bridge: uiBridge,
       preferences: prefs,
       learnerRepository: learnerRepository,
       startTaskOrder: _placementStartTaskOrder(routeState),
       shutdown: () async {
+        await audioRuntime.shutdown();
         await resolvedCorpusSession.resolution.closeCorpus();
         await resolvedCorpusSession.resolution.grammarHubService.close();
         await recoveryPairProgress?.close();
@@ -176,6 +191,14 @@ Future<_ActivatedPhase3App> _activateProduction({
       },
     );
   } catch (_) {
+    final audio = activatedAudioRuntime;
+    if (audio != null) {
+      try {
+        await audio.shutdown();
+      } on Object {
+        // Preserve the original activation failure.
+      }
+    }
     final session = corpusSession;
     if (session != null) {
       try {
@@ -198,6 +221,17 @@ Future<_ActivatedPhase3App> _activateProduction({
       _systemAgentRuntime = null;
     }
     rethrow;
+  }
+}
+
+Future<AudioManifestCatalog> _loadGermanAudioCatalog() async {
+  try {
+    final raw = await rootBundle.loadString(
+      'content/german/audio_manifest.json',
+    );
+    return AudioManifestCatalog.parse(raw);
+  } on Object {
+    return AudioManifestCatalog.empty();
   }
 }
 
@@ -270,7 +304,7 @@ Future<_ResolvedCorpusSession> _resolveActiveCorpusSession(
   }
 
   final verification = repository.verification;
-  if (!verification.hasExpectedCardinality) {
+  if (!verification.hasDeclaredCardinality) {
     await resolution.closeCorpus();
     await resolution.grammarHubService.close();
     throw StateError('indexed_corpus_cardinality_mismatch');
@@ -826,6 +860,7 @@ final class _PlacementActivationFailure extends StatelessWidget {
 final class _ActivatedPhase3App extends StatefulWidget {
   const _ActivatedPhase3App({
     required this.corpus,
+    required this.audioRuntime,
     required this.bridge,
     required this.preferences,
     required this.learnerRepository,
@@ -834,6 +869,7 @@ final class _ActivatedPhase3App extends StatefulWidget {
   });
 
   final List<LearningContent> corpus;
+  final IAudioRuntime audioRuntime;
   final AgentUIBridge bridge;
   final PreferencesService preferences;
   final LearnerRepository learnerRepository;
@@ -902,6 +938,7 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
               child: Phase3ProductionShell(
                 key: ValueKey<int>(_shellGeneration),
                 corpus: widget.corpus,
+                audioRuntime: widget.audioRuntime,
                 startTaskOrder: widget.startTaskOrder,
               ),
             );

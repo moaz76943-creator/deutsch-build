@@ -132,11 +132,7 @@ final class FlutterOfflineTtsEngine
         if (voiceLocale != locale && !voiceLocale.startsWith('$locale-')) {
           continue;
         }
-        final networkRequired =
-            (normalized['network_required'] ?? '').trim().toLowerCase();
-        if (networkRequired == 'true' || networkRequired == '1') continue;
-        final features = (normalized['features'] ?? '').toLowerCase();
-        if (features.contains('notinstalled')) continue;
+        if (!_isStrictlyOfflineVoice(normalized)) continue;
         final name = normalized['name']?.trim() ?? '';
         if (name.isEmpty) continue;
         return <String, String>{
@@ -146,6 +142,29 @@ final class FlutterOfflineTtsEngine
       }
     }
     return null;
+  }
+
+  static bool _isStrictlyOfflineVoice(Map<String, String> voice) {
+    const networkKeys = <String>[
+      'network_required',
+      'networkRequired',
+      'requiresNetwork',
+    ];
+    for (final key in networkKeys) {
+      final value = (voice[key] ?? '').trim().toLowerCase();
+      if (value == 'true' || value == '1' || value == 'yes') {
+        return false;
+      }
+    }
+
+    final features = (voice['features'] ?? '').trim().toLowerCase();
+    if (features.contains('notinstalled') ||
+        features.contains('networktts') ||
+        features.contains('network_tts') ||
+        features.contains('requiresnetwork')) {
+      return false;
+    }
+    return true;
   }
 
   static String _normalizeLocale(String value) =>

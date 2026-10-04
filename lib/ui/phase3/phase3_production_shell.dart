@@ -6,6 +6,9 @@ import '../../core/content_contract.dart';
 import '../../core/curriculum/advanced_vocabulary.dart';
 import '../../core/curriculum/canonical_curriculum_50.dart';
 import '../../core/curriculum/curriculum_models.dart';
+import '../../core/design/flashcards_3d/flashcard_3d_models.dart';
+import '../../features/audio/domain/services/i_audio_runtime.dart';
+import '../../features/audio/hybrid_pronunciation_service.dart';
 import '../../features/phase3_integration/life_curriculum_catalog.dart';
 import '../../features/phase3_integration/production_agent_runtime.dart';
 import 'language_selection_screen.dart';
@@ -18,6 +21,7 @@ import 'phase6_l10n_controller.dart';
 final class Phase3ProductionShell extends StatefulWidget {
   const Phase3ProductionShell({
     required this.corpus,
+    required this.audioRuntime,
     this.routeRegistry,
     this.localizationController,
     this.deckId = 'main-vocabulary',
@@ -26,6 +30,7 @@ final class Phase3ProductionShell extends StatefulWidget {
   }) : assert(startTaskOrder >= 1 && startTaskOrder <= 50);
 
   final List<LearningContent> corpus;
+  final IAudioRuntime audioRuntime;
   final LifeTaskRouteRegistry? routeRegistry;
   final Phase6L10nController? localizationController;
   final String deckId;
@@ -43,6 +48,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   late final LifeCurriculumCatalog _catalog;
   late final List<VocabularyFlashcardProjection> _projections;
   late final Phase3AgentRuntime _runtime;
+  late final HybridPronunciationService _pronunciationAudio;
   late final Future<Phase10PresentationBridge> _phase10BridgeFuture;
   late final List<CurriculumTask> _routedTasks;
 
@@ -73,6 +79,9 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
           widget.deckId: _projections,
         },
       ),
+    );
+    _pronunciationAudio = HybridPronunciationService(
+      audioRuntime: widget.audioRuntime,
     );
     _phase10BridgeFuture = Phase10PresentationBridge.start();
     unawaited(_loadDesign());
@@ -144,6 +153,31 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
               emptyText: _l10n.text('cards.empty'),
               projections: _projections,
               presentationBridge: presentationBridge,
+              onAudio: (card, face) {
+                final language = face == Flashcard3DFace.front
+                    ? card.frontLanguageCode
+                    : card.backLanguageCode;
+                final targetLanguage = _l10n
+                    .snapshot.targetLocale.languageCode
+                    .toLowerCase()
+                    .split(RegExp('[-_]'))
+                    .first;
+                final cardLanguage = language
+                    .toLowerCase()
+                    .split(RegExp('[-_]'))
+                    .first;
+                if (targetLanguage != cardLanguage) return;
+                final text = face == Flashcard3DFace.front
+                    ? card.frontText
+                    : card.backText;
+                unawaited(
+                  _pronunciationAudio.play(
+                    conceptId: card.id,
+                    text: text,
+                    languageCode: language,
+                  ),
+                );
+              },
             ),
           ),
         ),

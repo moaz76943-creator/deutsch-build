@@ -1,8 +1,8 @@
 import '../../core/content_contract.dart';
 import '../../core/srs_facets.dart';
 import '../../features/audio/domain/entities/audio_playback_result.dart';
-import '../../features/audio/domain/entities/audio_request.dart';
 import '../../features/audio/domain/services/i_audio_runtime.dart';
+import '../../features/audio/hybrid_pronunciation_service.dart';
 import '../../models/learner.dart';
 import '../../services/repository.dart';
 import 'domain/pronunciation_models.dart';
@@ -17,12 +17,16 @@ final class PronunciationLabService<T extends LearningContent> {
     required this.signalProbe,
     required this.languageCode,
     required Iterable<T> corpus,
-  }) : engine = PronunciationLabEngine<T>(corpus);
+  })  : _pronunciationAudio = HybridPronunciationService(
+          audioRuntime: audioRuntime,
+        ),
+        engine = PronunciationLabEngine<T>(corpus);
 
   final LearnerRepository repository;
   final IAudioRuntime audioRuntime;
   final PronunciationSignalProbe signalProbe;
   final String languageCode;
+  final HybridPronunciationService _pronunciationAudio;
   final PronunciationLabEngine<T> engine;
 
   List<PronunciationContrast> availableContrasts(
@@ -43,14 +47,11 @@ final class PronunciationLabService<T extends LearningContent> {
     PronunciationTrial<T> trial, {
     bool slow = false,
   }) =>
-      audioRuntime.play(
-        AudioRequest(
-          text: trial.target.token,
-          languageCode: languageCode,
-          conceptId: trial.target.item.id,
-          variant: AudioVariant.pronunciation,
-          rate: slow ? .34 : .48,
-        ),
+      _pronunciationAudio.play(
+        conceptId: trial.target.item.id,
+        text: trial.target.token,
+        languageCode: languageCode,
+        slow: slow,
       );
 
   Future<PronunciationPerceptionResult> answerPerception(

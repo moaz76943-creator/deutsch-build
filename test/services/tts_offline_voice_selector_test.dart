@@ -38,4 +38,31 @@ void main() {
 
     expect(voice, isNull);
   });
+  test('offline selector rejects alternate network capability markers', () {
+    final voice = FlutterOfflineTtsEngine.selectOfflineVoice(
+      <dynamic>[
+        <String, Object>{
+          'name': 'de-network-camel',
+          'locale': 'de-DE',
+          'networkRequired': true,
+        },
+        <String, Object>{
+          'name': 'de-feature-network',
+          'locale': 'de-DE',
+          'network_required': false,
+          'features': '[networkTts]',
+        },
+        <String, Object>{
+          'name': 'de-local',
+          'locale': 'de-DE',
+          'network_required': false,
+          'features': '[embeddedTts]',
+        },
+      ],
+      const <String>['de-DE'],
+    );
+
+    expect(voice?['name'], 'de-local');
+  });
+
 }

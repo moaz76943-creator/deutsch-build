@@ -19,7 +19,7 @@ void main() {
         conceptId: 'de-1',
         variant: AudioVariant.pronunciation,
       ),
-      isNull,
+      'content/german/audio/de-1.mp3',
     );
   });
 
