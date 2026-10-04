@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
+import 'canonical_content_gate.dart';
 import 'content_card.dart';
 import 'content_cas_manifest.dart';
 import 'validation_cache.dart';
@@ -35,6 +36,7 @@ final class LanguagePackAudit {
     required this.validatedCards,
     required this.cachedCards,
     required this.errorCode,
+    this.promotion = const ContentPromotionBatch.empty(),
   });
 
   final String packId;
@@ -46,6 +48,7 @@ final class LanguagePackAudit {
   final int validatedCards;
   final int cachedCards;
   final String? errorCode;
+  final ContentPromotionBatch promotion;
 
   Map<String, Object?> toJson() => <String, Object?>{
         'packId': packId,
@@ -56,6 +59,12 @@ final class LanguagePackAudit {
         'cardCount': cardCount,
         'validatedCards': validatedCards,
         'cachedCards': cachedCards,
+        'canonicalCards': promotion.canonicalCount,
+        'quarantinedCards': promotion.quarantineCount,
+        if (promotion.quarantine.isNotEmpty)
+          'quarantine': promotion.quarantine
+              .map((entry) => entry.toAuditJson())
+              .toList(growable: false),
         'errorCode': errorCode,
       };
 }
@@ -65,12 +74,14 @@ final class ParallelContentPipeline {
     required this.generator,
     required this.cache,
     this.manifest,
+    this.canonicalGate = const CanonicalContentGate(),
     this.maxParallel = 4,
   });
 
   final LanguagePackGenerator generator;
   final ContentValidationCache cache;
   final ContentCasManifest? manifest;
+  final CanonicalContentGate canonicalGate;
   final int maxParallel;
 
   Stream<LanguagePackAudit> run(
@@ -150,22 +161,10 @@ final class ParallelContentPipeline {
       }
 
       final packCacheKey = 'pack:$languageCode:$packId';
-      if (cache.isValidated(
+      final wholePackCacheHit = cache.isValidated(
         key: packCacheKey,
         checksum: packChecksum,
-      )) {
-        return LanguagePackAudit(
-          packId: packId,
-          languageCode: languageCode,
-          valid: true,
-          packChecksum: packChecksum,
-          wholePackCacheHit: true,
-          cardCount: manifestEntry?.cardCount ?? 0,
-          validatedCards: 0,
-          cachedCards: manifestEntry?.cardCount ?? 0,
-          errorCode: null,
-        );
-      }
+      );
 
       final decoded = utf8.decode(bytes, allowMalformed: false);
       final root = jsonDecode(decoded);
@@ -209,6 +208,7 @@ final class ParallelContentPipeline {
       var validatedCards = 0;
       var cachedCards = 0;
       final seenCardIds = <String>{};
+      final parsedCards = <PipelineContentCard>[];
 
       for (final rawCard in rawCards) {
         final cardJson = _stringKeyedMap(rawCard, 'card');
@@ -230,6 +230,14 @@ final class ParallelContentPipeline {
           );
         }
 
+        final card = PipelineContentCard.fromJson(cardJson);
+        if (_normalizeLanguage(card.languageCode) != languageCode) {
+          throw FormatException(
+            'card language mismatch: ' + cardId,
+          );
+        }
+        parsedCards.add(card);
+
         final checksum =
             await ValidationFingerprint.jsonValue(cardJson);
         final cardCacheKey =
@@ -239,21 +247,16 @@ final class ParallelContentPipeline {
           checksum: checksum,
         )) {
           cachedCards += 1;
-          continue;
-        }
-
-        final card = PipelineContentCard.fromJson(cardJson);
-        if (_normalizeLanguage(card.languageCode) != languageCode) {
-          throw FormatException(
-            'card language mismatch: ' + cardId,
+        } else {
+          cache.remember(
+            key: cardCacheKey,
+            checksum: checksum,
           );
+          validatedCards += 1;
         }
-        cache.remember(
-          key: cardCacheKey,
-          checksum: checksum,
-        );
-        validatedCards += 1;
       }
+
+      final promotion = canonicalGate.classify(parsedCards);
 
       cache.remember(
         key: packCacheKey,
@@ -265,11 +268,12 @@ final class ParallelContentPipeline {
         languageCode: languageCode,
         valid: true,
         packChecksum: packChecksum,
-        wholePackCacheHit: false,
+        wholePackCacheHit: wholePackCacheHit,
         cardCount: rawCards.length,
         validatedCards: validatedCards,
         cachedCards: cachedCards,
         errorCode: null,
+        promotion: promotion,
       );
     } on FormatException catch (error) {
       return LanguagePackAudit(
