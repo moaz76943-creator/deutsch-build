@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/content_contract.dart';
 import '../../core/curriculum/advanced_vocabulary.dart';
+import '../../core/curriculum/canonical_curriculum_50.dart';
 import '../../core/curriculum/curriculum_models.dart';
 import '../../features/phase3_integration/life_curriculum_catalog.dart';
 import '../../features/phase3_integration/production_agent_runtime.dart';
@@ -20,13 +21,15 @@ final class Phase3ProductionShell extends StatefulWidget {
     this.routeRegistry,
     this.localizationController,
     this.deckId = 'main-vocabulary',
+    this.startTaskOrder = 1,
     super.key,
-  });
+  }) : assert(startTaskOrder >= 1 && startTaskOrder <= 50);
 
   final List<LearningContent> corpus;
   final LifeTaskRouteRegistry? routeRegistry;
   final Phase6L10nController? localizationController;
   final String deckId;
+  final int startTaskOrder;
 
   @override
   State<Phase3ProductionShell> createState() =>
@@ -41,6 +44,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   late final List<VocabularyFlashcardProjection> _projections;
   late final Phase3AgentRuntime _runtime;
   late final Future<Phase10PresentationBridge> _phase10BridgeFuture;
+  late final List<CurriculumTask> _routedTasks;
 
   Phase3DesignProfile? _design;
   int _index = 0;
@@ -55,6 +59,12 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     _routes = widget.routeRegistry ??
         LifeTaskRouteRegistry(localizationController: _l10n);
     _catalog = _routes.catalog;
+    _routedTasks = List<CurriculumTask>.unmodifiable(
+      CanonicalCurriculum50.tasks.where(
+        (task) => task.order >= widget.startTaskOrder,
+      ),
+    );
+    _index = widget.startTaskOrder > 1 ? 1 : 0;
     _projections = VocabularyProjectionFactory.fromContentList(widget.corpus);
     _runtime = Phase3AgentRuntime.start(
       catalog: _catalog,
@@ -347,6 +357,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
             progressStream: bridge.progressStream,
             fallbackSourceLanguageTag: _l10n.pair.source.id,
             fallbackTargetLanguageTag: _l10n.pair.target.id,
+            tasks: _routedTasks,
             onTaskTap: _openCurriculumTask,
           );
         },

@@ -85,14 +85,14 @@ void main() {
     expect(result.proficiencyScore, inInclusiveRange(38, 78));
   });
 
-  test('consistently correct answers place learner at B1', () {
+  test('consistently correct answers place learner at B2', () {
     final session = _run(engine, List<bool>.filled(9, true));
     final result = engine.resultFor(session);
 
     expect(session.completed, isTrue);
     expect(session.answers.length, 5);
-    expect(result.level, PlacementLevel.b1);
-    expect(result.proficiencyScore, greaterThanOrEqualTo(78));
+    expect(result.level, PlacementLevel.b2);
+    expect(result.proficiencyScore, greaterThanOrEqualTo(80));
   });
 
   test('recommendations reflect missed skill evidence', () {
@@ -108,4 +108,23 @@ void main() {
       isTrue,
     );
   });
+
+  test('adaptive evidence can place learner at B1', () {
+    final session = _run(
+      engine,
+      <bool>[true, true, false, false, true, true, false, false, true],
+    );
+    final result = engine.resultFor(session);
+
+    expect(result.level, PlacementLevel.b1);
+    expect(result.proficiencyScore, inInclusiveRange(55, 80));
+  });
+
+  test('placement levels map to canonical curriculum entry points', () {
+    expect(PlacementLevel.a1.recommendedStartTaskOrder, 1);
+    expect(PlacementLevel.a2.recommendedStartTaskOrder, 21);
+    expect(PlacementLevel.b1.recommendedStartTaskOrder, 31);
+    expect(PlacementLevel.b2.recommendedStartTaskOrder, 41);
+  });
+
 }

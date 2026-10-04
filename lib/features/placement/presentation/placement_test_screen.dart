@@ -6,11 +6,12 @@ import '../../../design_system/app_audio_button.dart';
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_glass_card.dart';
 import '../../../design_system/app_typography.dart';
+import '../../learning/presentation/widgets/smart_orb.dart';
 import '../application/placement_test_notifier.dart';
 import '../domain/placement_models.dart';
 import 'placement_result_screen.dart';
 
-class PlacementTestScreen extends StatefulWidget {
+class PlacementTestScreen extends StatelessWidget {
   const PlacementTestScreen({
     required this.notifier,
     required this.onStartLearning,
@@ -21,29 +22,22 @@ class PlacementTestScreen extends StatefulWidget {
   final VoidCallback onStartLearning;
 
   @override
-  State<PlacementTestScreen> createState() => _PlacementTestScreenState();
-}
-
-class _PlacementTestScreenState extends State<PlacementTestScreen> {
-  @override
-  void initState() {
-    super.initState();
-    unawaited(widget.notifier.start());
-  }
-
-  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.notifier,
+      animation: notifier,
       builder: (context, _) {
-        final state = widget.notifier.state;
+        final state = notifier.state;
         final result = state.result;
         if (result != null) {
           return PlacementResultScreen(
             result: result,
             isApplyingResult: state.isApplyingResult,
-            onStartLearning: widget.onStartLearning,
+            onStartLearning: onStartLearning,
           );
+        }
+
+        if (!state.hasStarted) {
+          return _buildOnboarding(context, state);
         }
 
         final question = state.currentQuestion;
@@ -56,6 +50,112 @@ class _PlacementTestScreenState extends State<PlacementTestScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildOnboarding(
+    BuildContext context,
+    PlacementTestState state,
+  ) {
+    final selected = state.learningGoal;
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
+          children: <Widget>[
+            Center(
+              child: SmartOrb(
+                state: SmartOrbDomainState(
+                  feedback: selected == null
+                      ? SmartOrbFeedback.neutral
+                      : SmartOrbFeedback.guidance,
+                ),
+                size: 118,
+                semanticsLabel: 'مرشد تحديد المستوى',
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'ابدأ من المستوى المناسب لك',
+              textAlign: TextAlign.center,
+              style: AppTypography.display,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'اختر هدفك أولاً. بعدها سنطرح اختباراً قصيراً متكيّفاً من A1 إلى B2.',
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: AppTypography.body,
+            ),
+            const SizedBox(height: 18),
+            for (final goal in const <PlacementLearningGoal>[
+              PlacementLearningGoal.dailyLife,
+              PlacementLearningGoal.work,
+              PlacementLearningGoal.studyExam,
+              PlacementLearningGoal.travel,
+            ]) ...<Widget>[
+              AppGlassCard(
+                onTap: state.isLoading ? null : () => notifier.selectGoal(goal),
+                glowColor: selected == goal
+                    ? AppColors.primary
+                    : AppColors.secondary,
+                borderColor: selected == goal
+                    ? AppColors.primary
+                    : AppColors.secondary.withAlpha(48),
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      _goalIcon(goal),
+                      color: selected == goal
+                          ? AppColors.primary
+                          : AppColors.secondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _goalLabel(goal),
+                        style: AppTypography.title,
+                        textDirection: TextDirection.rtl,
+                      ),
+                    ),
+                    if (selected == goal)
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.primary,
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: selected == null || state.isLoading
+                  ? null
+                  : () => unawaited(notifier.start()),
+              icon: state.isLoading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_awesome_rounded),
+              label: Text(
+                state.isLoading ? 'جاري تجهيز الأسئلة…' : 'ابدأ الاختبار السريع',
+              ),
+            ),
+            if (state.errorMessage != null) ...<Widget>[
+              const SizedBox(height: 12),
+              Text(
+                state.errorMessage!,
+                textAlign: TextAlign.center,
+                style: AppTypography.label.copyWith(
+                  color: AppColors.articleDie,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -85,6 +185,24 @@ class _PlacementTestScreenState extends State<PlacementTestScreen> {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: <Widget>[
+        Center(
+          child: SmartOrb(
+            state: SmartOrbDomainState(
+              isSpeaking: state.isPlayingAudio,
+              feedback: _orbFeedback(state),
+            ),
+            size: 104,
+            semanticsLabel: 'مرشد السؤال الحالي',
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          _orbGuidance(state),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+          style: AppTypography.label,
+        ),
+        const SizedBox(height: 14),
         AppGlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           glowColor: AppColors.primary,
@@ -148,9 +266,7 @@ class _PlacementTestScreenState extends State<PlacementTestScreen> {
                     AppAudioButton(
                       onPressed: state.isPlayingAudio
                           ? null
-                          : () => unawaited(
-                                widget.notifier.replayCurrentAudio(),
-                              ),
+                          : () => unawaited(notifier.replayCurrentAudio()),
                       semanticLabel: 'إعادة الاستماع',
                       isBusy: state.isPlayingAudio,
                       activeColor: AppColors.secondary,
@@ -159,8 +275,8 @@ class _PlacementTestScreenState extends State<PlacementTestScreen> {
                     Expanded(
                       child: Text(
                         state.audioUnavailable
-                            ? 'الصوت غير متاح حالياً؛ يمكنك متابعة السؤال نصياً.'
-                            : 'يمكنك إعادة الاستماع قبل اختيار الإجابة.',
+                            ? 'الصوت غير متاح حالياً؛ تابع بقية الاختبار.'
+                            : 'استمع ثم اختر الإجابة الأقرب.',
                         textDirection: TextDirection.rtl,
                         style: AppTypography.body,
                       ),
@@ -176,9 +292,7 @@ class _PlacementTestScreenState extends State<PlacementTestScreen> {
           AppGlassCard(
             onTap: state.isLoading || state.isApplyingResult
                 ? null
-                : () => unawaited(
-                      widget.notifier.submitOption(option.id),
-                    ),
+                : () => unawaited(notifier.submitOption(option.id)),
             glowColor: AppColors.secondary,
             borderColor: AppColors.secondary.withAlpha(55),
             child: Row(
@@ -218,6 +332,35 @@ class _PlacementTestScreenState extends State<PlacementTestScreen> {
       ],
     );
   }
+
+  SmartOrbFeedback _orbFeedback(PlacementTestState state) {
+    if (state.lastAnswerCorrect == true) return SmartOrbFeedback.success;
+    if (state.lastAnswerCorrect == false) return SmartOrbFeedback.incorrect;
+    return SmartOrbFeedback.guidance;
+  }
+
+  String _orbGuidance(PlacementTestState state) {
+    if (state.isPlayingAudio) return 'استمع الآن؛ لا حاجة للاستعجال.';
+    if (state.lastAnswerCorrect == true) return 'إجابة جيدة. سنرفع الصعوبة تدريجياً.';
+    if (state.lastAnswerCorrect == false) return 'سنكيّف السؤال التالي مع مستواك.';
+    return 'اختر الإجابة الأقرب لما تعرفه الآن.';
+  }
+
+  String _goalLabel(PlacementLearningGoal goal) => switch (goal) {
+        PlacementLearningGoal.dailyLife => 'الحياة اليومية والتواصل',
+        PlacementLearningGoal.work => 'العمل والمسار المهني',
+        PlacementLearningGoal.studyExam => 'الدراسة والاستعداد للامتحانات',
+        PlacementLearningGoal.travel => 'السفر والمواقف العملية',
+        PlacementLearningGoal.general => 'تعلّم عام',
+      };
+
+  IconData _goalIcon(PlacementLearningGoal goal) => switch (goal) {
+        PlacementLearningGoal.dailyLife => Icons.forum_outlined,
+        PlacementLearningGoal.work => Icons.work_outline_rounded,
+        PlacementLearningGoal.studyExam => Icons.school_outlined,
+        PlacementLearningGoal.travel => Icons.luggage_outlined,
+        PlacementLearningGoal.general => Icons.language_rounded,
+      };
 
   Color _patternColor(PlacementQuestionPattern pattern) => switch (pattern) {
         PlacementQuestionPattern.listening => AppColors.secondary,

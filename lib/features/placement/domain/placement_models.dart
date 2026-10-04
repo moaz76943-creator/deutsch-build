@@ -1,18 +1,35 @@
 enum PlacementLevel {
   a1(0, 'A1'),
   a2(1, 'A2'),
-  b1(2, 'B1');
+  b1(2, 'B1'),
+  b2(3, 'B2');
 
   const PlacementLevel(this.rank, this.label);
 
   final int rank;
   final String label;
 
-  static PlacementLevel fromRank(int rank) => switch (rank.clamp(0, 2)) {
+  int get recommendedStartTaskOrder => switch (this) {
+        PlacementLevel.a1 => 1,
+        PlacementLevel.a2 => 21,
+        PlacementLevel.b1 => 31,
+        PlacementLevel.b2 => 41,
+      };
+
+  static PlacementLevel fromRank(int rank) => switch (rank.clamp(0, 3)) {
         0 => PlacementLevel.a1,
         1 => PlacementLevel.a2,
-        _ => PlacementLevel.b1,
+        2 => PlacementLevel.b1,
+        _ => PlacementLevel.b2,
       };
+}
+
+enum PlacementLearningGoal {
+  general,
+  dailyLife,
+  work,
+  studyExam,
+  travel,
 }
 
 enum PlacementQuestionPattern {
@@ -143,6 +160,7 @@ final class PlacementResult {
     required this.reviewItemIds,
     required this.initialReviewIntervalDays,
     required this.initialSrsDifficulty,
+    this.learningGoal,
   });
 
   final PlacementLevel level;
@@ -154,4 +172,21 @@ final class PlacementResult {
   final List<String> reviewItemIds;
   final int initialReviewIntervalDays;
   final double initialSrsDifficulty;
+  final PlacementLearningGoal? learningGoal;
+
+  PlacementResult copyWith({
+    PlacementLearningGoal? learningGoal,
+  }) =>
+      PlacementResult(
+        level: level,
+        proficiencyScore: proficiencyScore,
+        confidence: confidence,
+        answeredCount: answeredCount,
+        correctCount: correctCount,
+        recommendations: recommendations,
+        reviewItemIds: reviewItemIds,
+        initialReviewIntervalDays: initialReviewIntervalDays,
+        initialSrsDifficulty: initialSrsDifficulty,
+        learningGoal: learningGoal ?? this.learningGoal,
+      );
 }

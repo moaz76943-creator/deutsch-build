@@ -24,6 +24,8 @@ def test_domain_owns_adaptive_scoring_without_flutter_dependency():
         "PlacementLevel.a1",
         "PlacementLevel.a2",
         "PlacementLevel.b1",
+        "PlacementLevel.b2",
+        "PlacementLearningGoal",
     ):
         assert token in domain_text
     assert "package:flutter/" not in domain_text
@@ -37,6 +39,8 @@ def test_presentation_uses_glass_tokens_and_not_scoring_logic():
     assert "AppGlassCard" in text
     assert "AppColors" in text
     assert "AppTypography" in text
+    assert "SmartOrb" in text
+    assert "SmartOrbDomainState" in text
     assert "AdaptivePlacementEngine" not in text
     assert "flutter_tts" not in text
     assert "audioplayers" not in text
@@ -57,11 +61,16 @@ def test_data_adapters_reuse_existing_profile_srs_and_audio_boundaries():
     assert "AudioRequest" in audio
 
 
-def test_local_repository_contains_all_three_levels_and_audio_questions():
+def test_local_repository_contains_all_four_levels_and_audio_questions():
     text = (
         FEATURE / "data" / "local_placement_repository.dart"
     ).read_text(encoding="utf-8")
-    for token in ("PlacementLevel.a1", "PlacementLevel.a2", "PlacementLevel.b1"):
+    for token in (
+        "PlacementLevel.a1",
+        "PlacementLevel.a2",
+        "PlacementLevel.b1",
+        "PlacementLevel.b2",
+    ):
         assert text.count(token) >= 4
     assert "PlacementQuestionPattern.listening" in text
     assert "audioText:" in text
@@ -73,3 +82,22 @@ def test_local_gate_supports_explicit_flutter_sdk_skip():
     )
     assert 'SKIP_FLUTTER_CHECK="${SKIP_FLUTTER_CHECK:-0}"' in gate
     assert 'if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]' in gate
+
+
+def test_phase19_onboarding_renders_before_corpus_and_routes_progress():
+    main = (ROOT / "lib" / "main.dart").read_text(encoding="utf-8")
+    profile = (
+        FEATURE / "data" / "learner_placement_profile_repository.dart"
+    ).read_text(encoding="utf-8")
+    shell = (
+        ROOT / "lib" / "ui" / "phase3" / "phase3_production_shell.dart"
+    ).read_text(encoding="utf-8")
+
+    assert "_needsPlacementOnboarding(state)" in main
+    onboarding = main.index("_PlacementBootstrapApp(")
+    corpus = main.index("final corpus = await _resolveActiveCorpus(prefs);")
+    assert onboarding < corpus
+    assert "recommendedStartTaskOrder" in profile
+    assert "curriculumStartLevel" in profile
+    assert "task.order >= widget.startTaskOrder" in shell
+    assert "_index = widget.startTaskOrder > 1 ? 1 : 0;" in shell

@@ -78,7 +78,7 @@ final class AdaptivePlacementEngine {
     final unanimous = recent.every((answer) => answer.correct) ||
         recent.every((answer) => !answer.correct);
     final decisiveAbility =
-        session.abilityEstimate <= .25 || session.abilityEstimate >= 1.75;
+        session.abilityEstimate <= .35 || session.abilityEstimate >= 2.65;
     return unanimous && decisiveAbility;
   }
 
@@ -88,7 +88,7 @@ final class AdaptivePlacementEngine {
     }
 
     final score =
-        (session.abilityEstimate / 2 * 100).clamp(0.0, 100.0).toDouble();
+        (session.abilityEstimate / 3 * 100).clamp(0.0, 100.0).toDouble();
     final level = _levelForScore(score);
     final correct = session.answers.where((answer) => answer.correct).length;
     final wrong = session.answers.where((answer) => !answer.correct).toList();
@@ -112,11 +112,13 @@ final class AdaptivePlacementEngine {
         PlacementLevel.a1 => 1,
         PlacementLevel.a2 => 2,
         PlacementLevel.b1 => 3,
+        PlacementLevel.b2 => 4,
       },
       initialSrsDifficulty: switch (level) {
         PlacementLevel.a1 => 1.70,
         PlacementLevel.a2 => 1.40,
         PlacementLevel.b1 => 1.15,
+        PlacementLevel.b2 => 1.0,
       },
     );
   }
@@ -127,22 +129,23 @@ final class AdaptivePlacementEngine {
     required bool correct,
   }) {
     final target = correct
-        ? math.min(2.0, difficulty + .65)
+        ? math.min(3.0, difficulty + .65)
         : math.max(0.0, difficulty - .65);
-    return (current * .55 + target * .45).clamp(0.0, 2.0).toDouble();
+    return (current * .55 + target * .45).clamp(0.0, 3.0).toDouble();
   }
 
   PlacementLevel _levelForScore(double score) {
-    if (score < 38) return PlacementLevel.a1;
-    if (score < 78) return PlacementLevel.a2;
-    return PlacementLevel.b1;
+    if (score < 30) return PlacementLevel.a1;
+    if (score < 55) return PlacementLevel.a2;
+    if (score < 80) return PlacementLevel.b1;
+    return PlacementLevel.b2;
   }
 
   double _confidence(AssessmentSession session) {
     final sample =
         (session.answers.length / session.maxQuestions).clamp(0.0, 1.0);
-    final decisive = session.abilityEstimate <= .25 ||
-        session.abilityEstimate >= 1.75;
+    final decisive = session.abilityEstimate <= .35 ||
+        session.abilityEstimate >= 2.65;
     final evidenceBoost = session.answers.length >= minQuestionsBeforeEarlyStop
         ? (decisive ? .25 : .12)
         : 0.0;
@@ -174,6 +177,8 @@ final class AdaptivePlacementEngine {
           'ابدأ من A2 مع مراجعة انتقائية لثغرات A1 التي ظهرت في الاختبار.',
         PlacementLevel.b1 =>
           'ابدأ من B1 مع مراجعات قصيرة للمهارات التي أخطأت فيها فقط.',
+        PlacementLevel.b2 =>
+          'ابدأ من B2 مع مراجعة مركزة فقط للثغرات التي كشفها الاختبار.',
       },
     ];
     for (final entry in ranked.take(2)) {

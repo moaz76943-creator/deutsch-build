@@ -9,6 +9,8 @@ final class PlacementTestState {
     this.session,
     this.currentQuestion,
     this.result,
+    this.learningGoal,
+    this.lastAnswerCorrect,
     this.isLoading = false,
     this.isApplyingResult = false,
     this.isPlayingAudio = false,
@@ -19,6 +21,8 @@ final class PlacementTestState {
   final AssessmentSession? session;
   final PlacementQuestion? currentQuestion;
   final PlacementResult? result;
+  final PlacementLearningGoal? learningGoal;
+  final bool? lastAnswerCorrect;
   final bool isLoading;
   final bool isApplyingResult;
   final bool isPlayingAudio;
@@ -26,6 +30,7 @@ final class PlacementTestState {
   final String? errorMessage;
 
   double get progress => session?.progress ?? 0;
+  bool get hasStarted => session != null;
 }
 
 class PlacementTestNotifier extends ChangeNotifier {
@@ -52,9 +57,20 @@ class PlacementTestNotifier extends ChangeNotifier {
 
   PlacementTestState get state => _state;
 
+  void selectGoal(PlacementLearningGoal goal) {
+    if (_state.hasStarted || _state.isLoading) return;
+    _setState(PlacementTestState(learningGoal: goal));
+  }
+
   Future<void> start() async {
     if (_state.session != null || _state.isLoading) return;
-    _setState(const PlacementTestState(isLoading: true));
+    final goal = _state.learningGoal ?? PlacementLearningGoal.general;
+    _setState(
+      PlacementTestState(
+        learningGoal: goal,
+        isLoading: true,
+      ),
+    );
 
     try {
       final now = _clock();
@@ -68,7 +84,8 @@ class PlacementTestNotifier extends ChangeNotifier {
       );
       if (question == null) {
         _setState(
-          const PlacementTestState(
+          PlacementTestState(
+            learningGoal: goal,
             errorMessage: 'لا توجد أسئلة تشخيصية متاحة حالياً.',
           ),
         );
@@ -78,10 +95,16 @@ class PlacementTestNotifier extends ChangeNotifier {
         PlacementTestState(
           session: session,
           currentQuestion: question,
+          learningGoal: goal,
         ),
       );
     } catch (error) {
-      _setState(PlacementTestState(errorMessage: error.toString()));
+      _setState(
+        PlacementTestState(
+          learningGoal: goal,
+          errorMessage: error.toString(),
+        ),
+      );
     }
   }
 
@@ -100,9 +123,13 @@ class PlacementTestNotifier extends ChangeNotifier {
       question: question,
       selectedOptionId: optionId,
     );
+    final lastAnswerCorrect = updated.answers.last.correct;
 
     if (updated.completed) {
-      await _finish(updated);
+      await _finish(
+        updated,
+        lastAnswerCorrect: lastAnswerCorrect,
+      );
       return;
     }
 
@@ -110,25 +137,44 @@ class PlacementTestNotifier extends ChangeNotifier {
       PlacementTestState(
         session: updated,
         currentQuestion: question,
+        learningGoal: _state.learningGoal,
+        lastAnswerCorrect: lastAnswerCorrect,
         isLoading: true,
       ),
     );
 
-    final next = await _repository.nextQuestion(
-      level: updated.currentLevel,
-      excludeIds: updated.answeredQuestionIds,
-    );
-    if (next == null) {
-      await _finish(updated.copyWith(completed: true));
-      return;
-    }
+    try {
+      final next = await _repository.nextQuestion(
+        level: updated.currentLevel,
+        excludeIds: updated.answeredQuestionIds,
+      );
+      if (next == null) {
+        await _finish(
+          updated.copyWith(completed: true),
+          lastAnswerCorrect: lastAnswerCorrect,
+        );
+        return;
+      }
 
-    _setState(
-      PlacementTestState(
-        session: updated,
-        currentQuestion: next,
-      ),
-    );
+      _setState(
+        PlacementTestState(
+          session: updated,
+          currentQuestion: next,
+          learningGoal: _state.learningGoal,
+          lastAnswerCorrect: lastAnswerCorrect,
+        ),
+      );
+    } catch (error) {
+      _setState(
+        PlacementTestState(
+          session: updated,
+          currentQuestion: question,
+          learningGoal: _state.learningGoal,
+          lastAnswerCorrect: lastAnswerCorrect,
+          errorMessage: error.toString(),
+        ),
+      );
+    }
   }
 
   Future<bool> replayCurrentAudio() async {
@@ -142,6 +188,8 @@ class PlacementTestNotifier extends ChangeNotifier {
         session: _state.session,
         currentQuestion: question,
         result: _state.result,
+        learningGoal: _state.learningGoal,
+        lastAnswerCorrect: _state.lastAnswerCorrect,
         isPlayingAudio: true,
       ),
     );
@@ -153,6 +201,8 @@ class PlacementTestNotifier extends ChangeNotifier {
           session: _state.session,
           currentQuestion: question,
           result: _state.result,
+          learningGoal: _state.learningGoal,
+          lastAnswerCorrect: _state.lastAnswerCorrect,
           audioUnavailable: !played,
         ),
       );
@@ -163,6 +213,8 @@ class PlacementTestNotifier extends ChangeNotifier {
           session: _state.session,
           currentQuestion: question,
           result: _state.result,
+          learningGoal: _state.learningGoal,
+          lastAnswerCorrect: _state.lastAnswerCorrect,
           audioUnavailable: true,
           errorMessage: error.toString(),
         ),
@@ -171,14 +223,22 @@ class PlacementTestNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> _finish(AssessmentSession session) async {
+  Future<void> _finish(
+    AssessmentSession session, {
+    required bool lastAnswerCorrect,
+  }) async {
     final completed =
         session.completed ? session : session.copyWith(completed: true);
-    final result = _engine.resultFor(completed);
+    final goal = _state.learningGoal ?? PlacementLearningGoal.general;
+    final result = _engine.resultFor(completed).copyWith(
+          learningGoal: goal,
+        );
     _setState(
       PlacementTestState(
         session: completed,
         result: result,
+        learningGoal: goal,
+        lastAnswerCorrect: lastAnswerCorrect,
         isApplyingResult: true,
       ),
     );
@@ -189,6 +249,8 @@ class PlacementTestNotifier extends ChangeNotifier {
         PlacementTestState(
           session: completed,
           result: result,
+          learningGoal: goal,
+          lastAnswerCorrect: lastAnswerCorrect,
         ),
       );
     } catch (error) {
@@ -196,6 +258,8 @@ class PlacementTestNotifier extends ChangeNotifier {
         PlacementTestState(
           session: completed,
           result: result,
+          learningGoal: goal,
+          lastAnswerCorrect: lastAnswerCorrect,
           errorMessage: error.toString(),
         ),
       );

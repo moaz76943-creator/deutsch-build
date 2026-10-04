@@ -10,7 +10,15 @@ import 'core/agents/agents.dart';
 import 'core/content_contract.dart';
 import 'core/curriculum/canonical_curriculum_50.dart';
 import 'core/curriculum/curriculum_models.dart';
+import 'core/infrastructure/audio/flutter_tts_audio_engine.dart';
+import 'features/audio/offline_audio_runtime.dart';
+import 'features/placement/application/placement_test_notifier.dart';
+import 'features/placement/data/learner_placement_profile_repository.dart';
+import 'features/placement/data/local_placement_repository.dart';
+import 'features/placement/data/placement_audio_runtime_adapter.dart';
+import 'features/placement/presentation/placement_test_screen.dart';
 import 'language/german/german_language_pack.dart';
+import 'language/german/german_speech_profile.dart';
 import 'models/learner.dart';
 import 'models/pack_security_runtime_config.dart';
 import 'services/active_pack_runtime_provider.dart';
@@ -84,11 +92,6 @@ Future<void> main() async {
       try {
         _verifyProductionContract();
         final prefs = await PreferencesService.instance();
-        final systemAgents = await SystemAgentRuntime.start(
-          memoryStore: _PreferencesMemoryAgentStore(prefs),
-        );
-        _systemAgentRuntime = systemAgents;
-
         final learnerRepository = LearnerRepository(
           prefs,
           persistence: LearnerPersistence(
@@ -97,23 +100,22 @@ Future<void> main() async {
             LearnerRepository.legacyFavoriteKey,
           ),
         );
+        final state = learnerRepository.load();
 
-        await _seedMemoryOnce(
-          runtime: systemAgents,
-          state: learnerRepository.load(),
-        );
-
-        final corpus = await _resolveActiveCorpus(prefs);
-
-        final uiBridge = AgentUIBridge.attach(systemAgents);
-        runApp(
-          _ActivatedPhase3App(
-            corpus: corpus,
-            bridge: uiBridge,
-            shutdown: () => _shutdownActivatedRuntime(
-              runtime: systemAgents,
-              bridge: uiBridge,
+        if (_needsPlacementOnboarding(state)) {
+          runApp(
+            _PlacementBootstrapApp(
+              prefs: prefs,
+              learnerRepository: learnerRepository,
             ),
+          );
+          return;
+        }
+
+        runApp(
+          await _activateProduction(
+            prefs: prefs,
+            learnerRepository: learnerRepository,
           ),
         );
       } catch (error, stack) {
@@ -147,6 +149,59 @@ Future<void> main() async {
       );
     },
   );
+}
+
+Future<_ActivatedPhase3App> _activateProduction({
+  required PreferencesService prefs,
+  required LearnerRepository learnerRepository,
+}) async {
+  final systemAgents = await SystemAgentRuntime.start(
+    memoryStore: _PreferencesMemoryAgentStore(prefs),
+  );
+  _systemAgentRuntime = systemAgents;
+
+  try {
+    final durableState = await learnerRepository.reloadPersisted();
+    await _seedMemoryOnce(
+      runtime: systemAgents,
+      state: durableState,
+    );
+    final corpus = await _resolveActiveCorpus(prefs);
+    final uiBridge = AgentUIBridge.attach(systemAgents);
+    final routeState = await learnerRepository.reloadPersisted();
+
+    return _ActivatedPhase3App(
+      corpus: corpus,
+      bridge: uiBridge,
+      startTaskOrder: _placementStartTaskOrder(routeState),
+      shutdown: () => _shutdownActivatedRuntime(
+        runtime: systemAgents,
+        bridge: uiBridge,
+      ),
+    );
+  } catch (_) {
+    await systemAgents.close().catchError((_) {});
+    if (identical(_systemAgentRuntime, systemAgents)) {
+      _systemAgentRuntime = null;
+    }
+    rethrow;
+  }
+}
+
+bool _needsPlacementOnboarding(LearnerState state) =>
+    state.placementHistory.isEmpty &&
+    state.attempts.isEmpty &&
+    state.assessmentHistory.isEmpty &&
+    state.learned.isEmpty &&
+    state.reviewCards.isEmpty &&
+    state.xp == 0;
+
+int _placementStartTaskOrder(LearnerState state) {
+  for (final record in state.placementHistory) {
+    if (record.curriculumStartLevel == null) continue;
+    return record.recommendedStartTaskOrder.clamp(1, 50).toInt();
+  }
+  return 1;
 }
 
 Future<List<LearningContent>> _resolveActiveCorpus(
@@ -357,15 +412,200 @@ final class _SeedTaskAggregate {
   }
 }
 
+final class _PlacementBootstrapApp extends StatefulWidget {
+  const _PlacementBootstrapApp({
+    required this.prefs,
+    required this.learnerRepository,
+  });
+
+  final PreferencesService prefs;
+  final LearnerRepository learnerRepository;
+
+  @override
+  State<_PlacementBootstrapApp> createState() =>
+      _PlacementBootstrapAppState();
+}
+
+final class _PlacementBootstrapAppState
+    extends State<_PlacementBootstrapApp> {
+  late final OfflineAudioRuntime _placementAudio;
+  late final PlacementTestNotifier _notifier;
+
+  _ActivatedPhase3App? _activated;
+  bool _activating = false;
+  bool _audioClosed = false;
+  Object? _activationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _placementAudio = OfflineAudioRuntime(
+      speechProfile: const GermanSpeechProfile(),
+      ttsEngine: FlutterOfflineTtsEngine(),
+    );
+    _notifier = PlacementTestNotifier(
+      repository: const LocalPlacementRepository(),
+      profileRepository:
+          LearnerPlacementProfileRepository(widget.learnerRepository),
+      audioGateway: PlacementAudioRuntimeAdapter(_placementAudio),
+    );
+  }
+
+  @override
+  void dispose() {
+    _notifier.dispose();
+    unawaited(_closePlacementAudio());
+    super.dispose();
+  }
+
+  Future<void> _closePlacementAudio() async {
+    if (_audioClosed) return;
+    _audioClosed = true;
+    await _placementAudio.shutdown();
+  }
+
+  Future<void> _activate() async {
+    if (_activating) return;
+    setState(() {
+      _activating = true;
+      _activationError = null;
+    });
+
+    try {
+      await _closePlacementAudio();
+      final app = await _activateProduction(
+        prefs: widget.prefs,
+        learnerRepository: widget.learnerRepository,
+      );
+      if (!mounted) {
+        await app.shutdown();
+        return;
+      }
+      setState(() {
+        _activated = app;
+        _activating = false;
+      });
+    } catch (error) {
+      await _dispatchRecoveryError(
+        error: error,
+        context: 'placement.activate',
+        fatal: false,
+      );
+      if (!mounted) return;
+      setState(() {
+        _activationError = error;
+        _activating = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final activated = _activated;
+    if (activated != null) return activated;
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: _productionUi.showDebugBanner,
+      title: _productionUi.appName,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.dark,
+      ),
+      builder: (context, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: child ?? const SizedBox.shrink(),
+      ),
+      home: _activationError != null
+          ? _PlacementActivationFailure(
+              onRetry: () => unawaited(_activate()),
+            )
+          : _activating
+              ? const _PlacementActivationLoading()
+              : PlacementTestScreen(
+                  notifier: _notifier,
+                  onStartLearning: () => unawaited(_activate()),
+                ),
+    );
+  }
+}
+
+final class _PlacementActivationLoading extends StatelessWidget {
+  const _PlacementActivationLoading();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'تم حفظ مستواك. جاري تجهيز مسارك المحلي…',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
+final class _PlacementActivationFailure extends StatelessWidget {
+  const _PlacementActivationFailure({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Icon(Icons.error_outline_rounded, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'تم حفظ نتيجة الاختبار، لكن تعذر تجهيز المحتوى المحلي.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
 final class _ActivatedPhase3App extends StatefulWidget {
   const _ActivatedPhase3App({
     required this.corpus,
     required this.bridge,
+    required this.startTaskOrder,
     required this.shutdown,
   });
 
   final List<LearningContent> corpus;
   final AgentUIBridge bridge;
+  final int startTaskOrder;
   final Future<void> Function() shutdown;
 
   @override
@@ -426,6 +666,7 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
             return Phase3ProductionShell(
               key: ValueKey<int>(_shellGeneration),
               corpus: widget.corpus,
+              startTaskOrder: widget.startTaskOrder,
             );
           },
         ),

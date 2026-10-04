@@ -47,15 +47,18 @@ void main() {
       clock: () => DateTime.utc(2026, 10, 3),
     );
 
+    notifier.selectGoal(PlacementLearningGoal.work);
     await notifier.start();
     expect(notifier.state.currentQuestion?.level, PlacementLevel.a2);
+    expect(notifier.state.learningGoal, PlacementLearningGoal.work);
 
     while (notifier.state.result == null) {
       await notifier.submitOption('yes');
     }
 
-    expect(notifier.state.result?.level, PlacementLevel.b1);
-    expect(profile.applied?.level, PlacementLevel.b1);
+    expect(notifier.state.result?.level, PlacementLevel.b2);
+    expect(profile.applied?.level, PlacementLevel.b2);
+    expect(profile.applied?.learningGoal, PlacementLearningGoal.work);
     expect(notifier.state.isApplyingResult, isFalse);
     notifier.dispose();
   });

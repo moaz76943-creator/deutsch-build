@@ -44,10 +44,15 @@ final class LearnerPlacementProfileRepository
         PlacementLevel.a1 => DiagnosticPlacementBand.foundation,
         PlacementLevel.a2 => DiagnosticPlacementBand.developing,
         PlacementLevel.b1 => DiagnosticPlacementBand.strong,
+        PlacementLevel.b2 => DiagnosticPlacementBand.strong,
       },
       dimensionScores: const <DiagnosticDimension, double>{},
       weakDimensions: const <DiagnosticDimension>[],
       reviewItemIds: result.reviewItemIds,
+      curriculumStartLevel: result.level.label,
+      recommendedStartTaskOrder: result.level.recommendedStartTaskOrder,
+      learningGoal:
+          (result.learningGoal ?? PlacementLearningGoal.general).name,
     );
 
     final history = <PlacementDiagnosticRecord>[

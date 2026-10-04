@@ -124,6 +124,9 @@ final class PlacementDiagnosticRecord {
     required this.dimensionScores,
     required this.weakDimensions,
     required this.reviewItemIds,
+    this.curriculumStartLevel,
+    this.recommendedStartTaskOrder = 1,
+    this.learningGoal,
   });
 
   final String id;
@@ -136,6 +139,9 @@ final class PlacementDiagnosticRecord {
   final Map<DiagnosticDimension, double> dimensionScores;
   final List<DiagnosticDimension> weakDimensions;
   final List<String> reviewItemIds;
+  final String? curriculumStartLevel;
+  final int recommendedStartTaskOrder;
+  final String? learningGoal;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
@@ -153,6 +159,11 @@ final class PlacementDiagnosticRecord {
             .map((dimension) => dimension.wireName)
             .toList(growable: false),
         'reviewItemIds': reviewItemIds.take(20).toList(growable: false),
+        if (curriculumStartLevel != null)
+          'curriculumStartLevel': curriculumStartLevel,
+        'recommendedStartTaskOrder':
+            recommendedStartTaskOrder.clamp(1, 50),
+        if (learningGoal != null) 'learningGoal': learningGoal,
       };
 
   factory PlacementDiagnosticRecord.fromJson(Map<String, dynamic> json) {
@@ -208,7 +219,34 @@ final class PlacementDiagnosticRecord {
       dimensionScores: Map<DiagnosticDimension, double>.unmodifiable(scores),
       weakDimensions: List<DiagnosticDimension>.unmodifiable(weak),
       reviewItemIds: List<String>.unmodifiable(reviewIds),
+      curriculumStartLevel: _placementLevel(
+        json['curriculumStartLevel']?.toString(),
+      ),
+      recommendedStartTaskOrder:
+          _boundedInt(json['recommendedStartTaskOrder'], 1, 50),
+      learningGoal: _learningGoal(json['learningGoal']?.toString()),
     );
+  }
+
+
+  static String? _placementLevel(String? raw) {
+    final value = raw?.trim().toUpperCase();
+    return const <String>{'A1', 'A2', 'B1', 'B2'}.contains(value)
+        ? value
+        : null;
+  }
+
+  static String? _learningGoal(String? raw) {
+    final value = raw?.trim();
+    return const <String>{
+      'general',
+      'dailyLife',
+      'work',
+      'studyExam',
+      'travel',
+    }.contains(value)
+        ? value
+        : null;
   }
 
   static int _boundedInt(Object? raw, int min, int max) {

@@ -101,6 +101,17 @@ class PlacementResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             AppGlassCard(
+              glowColor: AppColors.primary,
+              child: Text(
+                'سيبدأ مسارك من المهمة ${result.level.recommendedStartTaskOrder} '
+                'بدلاً من إعادة المراحل الأسهل. لا تُسجّل المراحل السابقة كمكتملة.',
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
+                style: AppTypography.body,
+              ),
+            ),
+            const SizedBox(height: 14),
+            AppGlassCard(
               glowColor: AppColors.secondary,
               child: Row(
                 children: <Widget>[
@@ -119,6 +130,13 @@ class PlacementResultScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'هذه نقطة بداية تعليمية مبنية على عينة محلية متكيّفة، وليست شهادة CEFR رسمية.',
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.center,
+              style: AppTypography.label,
             ),
             const SizedBox(height: 20),
             FilledButton.icon(

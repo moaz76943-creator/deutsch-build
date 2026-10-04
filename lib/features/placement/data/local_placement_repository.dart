@@ -176,6 +176,79 @@ final class LocalPlacementRepository implements PlacementRepository {
       audioText: 'Das Thema ist wirklich interessant.',
       reviewItemId: 'w0482',
     ),
+
+    PlacementQuestion(
+      id: 'b2-konjunktiv-past',
+      promptArabic: 'أكمل: Wenn ich mehr Zeit gehabt hätte, ___ ich den Kurs abgeschlossen.',
+      level: PlacementLevel.b2,
+      pattern: PlacementQuestionPattern.grammar,
+      options: const <PlacementOption>[
+        PlacementOption(id: 'haette', text: 'hätte'),
+        PlacementOption(id: 'habe', text: 'habe'),
+        PlacementOption(id: 'werde', text: 'werde'),
+      ],
+      correctOptionId: 'haette',
+      skillTag: 'grammar',
+    ),
+    PlacementQuestion(
+      id: 'b2-passive-deadline',
+      promptArabic: 'ما المعنى الأدق: Die Unterlagen müssen bis Freitag eingereicht worden sein.؟',
+      level: PlacementLevel.b2,
+      pattern: PlacementQuestionPattern.translation,
+      options: const <PlacementOption>[
+        PlacementOption(
+          id: 'submitted',
+          text: 'يجب أن تكون المستندات قد قُدّمت بحلول الجمعة.',
+        ),
+        PlacementOption(
+          id: 'submit-later',
+          text: 'يمكن تقديم المستندات بعد الجمعة.',
+        ),
+        PlacementOption(
+          id: 'received',
+          text: 'يجب استلام المستندات يوم الجمعة فقط.',
+        ),
+      ],
+      correctOptionId: 'submitted',
+      skillTag: 'translation',
+    ),
+    PlacementQuestion(
+      id: 'b2-je-desto',
+      promptArabic: 'اختر البنية الصحيحة: ___ länger man übt, ___ sicherer spricht man.',
+      level: PlacementLevel.b2,
+      pattern: PlacementQuestionPattern.grammar,
+      options: const <PlacementOption>[
+        PlacementOption(id: 'je-desto', text: 'Je … desto'),
+        PlacementOption(id: 'weil-dann', text: 'Weil … dann'),
+        PlacementOption(id: 'obwohl-deshalb', text: 'Obwohl … deshalb'),
+      ],
+      correctOptionId: 'je-desto',
+      skillTag: 'grammar',
+    ),
+    PlacementQuestion(
+      id: 'b2-listening-deadline',
+      promptArabic: 'استمع ثم اختر الفكرة الأقرب.',
+      level: PlacementLevel.b2,
+      pattern: PlacementQuestionPattern.listening,
+      options: const <PlacementOption>[
+        PlacementOption(
+          id: 'on-time',
+          text: 'نجح الفريق في تسليم التقرير في الموعد رغم ضيق المهلة.',
+        ),
+        PlacementOption(
+          id: 'late',
+          text: 'تأخر الفريق عن الموعد بسبب قصر المهلة.',
+        ),
+        PlacementOption(
+          id: 'cancelled',
+          text: 'ألغى الفريق إعداد التقرير.',
+        ),
+      ],
+      correctOptionId: 'on-time',
+      skillTag: 'listening',
+      audioText:
+          'Obwohl die Frist knapp bemessen war, gelang es dem Team, den Bericht fristgerecht einzureichen.',
+    ),
   ];
 
   @override
@@ -192,11 +265,11 @@ final class LocalPlacementRepository implements PlacementRepository {
       }
     }
 
-    for (var distance = 1; distance <= 2; distance += 1) {
+    for (var distance = 1; distance <= 3; distance += 1) {
       final lower = level.rank - distance;
       final higher = level.rank + distance;
       for (final candidateRank in <int>[lower, higher]) {
-        if (candidateRank < 0 || candidateRank > 2) continue;
+        if (candidateRank < 0 || candidateRank > 3) continue;
         final candidateLevel = PlacementLevel.fromRank(candidateRank);
         for (final question in _questions) {
           if (question.level == candidateLevel &&
