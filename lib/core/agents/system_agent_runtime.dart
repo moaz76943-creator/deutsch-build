@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import '../orchestration/orchestration.dart';
+import '../storage/offline_progress_service.dart';
+import '../storage/runtime_local_state_container.dart';
+import '../storage/validation_hash_cache.dart';
 import 'memory_models.dart';
 import 'polyglot_agent_models.dart';
 import 'sys_error_recovery_fallback.dart';
@@ -19,6 +22,10 @@ final class SystemAgentRuntime {
     required SysPolyglotMatrixAgent polyglotAgent,
     required SysUniversalGrammarAgent grammarAgent,
     required SysTtsVoiceAgent voiceAgent,
+    required RuntimeLocalStateContainer localState,
+    required OfflineProgressService progressService,
+    required ValidationHashCache validationCache,
+    required AgentEventBatchDispatcher batchDispatcher,
   })  : _eventBus = eventBus,
         _kernel = kernel,
         _systemEndpoint = systemEndpoint,
@@ -26,11 +33,23 @@ final class SystemAgentRuntime {
         _recoveryAgent = recoveryAgent,
         _polyglotAgent = polyglotAgent,
         _grammarAgent = grammarAgent,
-        _voiceAgent = voiceAgent;
+        _voiceAgent = voiceAgent,
+        _localState = localState,
+        _progressService = progressService,
+        _validationCache = validationCache,
+        _batchDispatcher = batchDispatcher;
 
   static Future<SystemAgentRuntime> start({
     required MemoryAgentStore memoryStore,
   }) async {
+    final localState = await RuntimeLocalStateContainer.open(memoryStore);
+    final progressService = await OfflineProgressService.open(
+      localState.namespace('progress'),
+    );
+    final validationCache = await ValidationHashCache.open(
+      localState.namespace('validation'),
+    );
+
     final eventBus = AgentEventBus();
     final kernel = OrchestrationKernel(
       eventBus: eventBus,
@@ -44,6 +63,7 @@ final class SystemAgentRuntime {
         subscriptions: const <String>{
           AgentTopics.memorySnapshot,
           AgentTopics.systemRecovery,
+          AgentTopics.learningProgress,
           AgentTopics.polyglotMatrixChanged,
           AgentTopics.grammarEngineChanged,
           AgentTopics.grammarResponse,
@@ -51,6 +71,7 @@ final class SystemAgentRuntime {
           AgentTopics.ttsCompleted,
           AgentTopics.ttsFailed,
         },
+        observesTargetedEvents: true,
       ),
     );
     final memoryEndpoint = kernel.connect(
@@ -107,8 +128,9 @@ final class SystemAgentRuntime {
 
     final memoryAgent = await SysMemoryAgent.start(
       endpoint: memoryEndpoint,
-      store: memoryStore,
+      store: localState.namespace('memory'),
     );
+    await progressService.hydrateFromMemory(memoryAgent.snapshot);
     final recoveryAgent = SysErrorRecoveryFallback.start(
       endpoint: recoveryEndpoint,
     );
@@ -121,8 +143,13 @@ final class SystemAgentRuntime {
     final voiceAgent = SysTtsVoiceAgent.start(
       endpoint: voiceEndpoint,
     );
+    final batchDispatcher = systemEndpoint.createBatchDispatcher(
+      maxBatchSize: 16,
+      maxPending: 256,
+      flushDelay: const Duration(milliseconds: 2),
+    );
 
-    return SystemAgentRuntime._(
+    final runtime = SystemAgentRuntime._(
       eventBus: eventBus,
       kernel: kernel,
       systemEndpoint: systemEndpoint,
@@ -131,7 +158,17 @@ final class SystemAgentRuntime {
       polyglotAgent: polyglotAgent,
       grammarAgent: grammarAgent,
       voiceAgent: voiceAgent,
+      localState: localState,
+      progressService: progressService,
+      validationCache: validationCache,
+      batchDispatcher: batchDispatcher,
     );
+    runtime._pairProgressSubscription =
+        runtime.polyglotMatrixChanges.listen(runtime._persistActivePair);
+    runtime._externalProgressSubscription = systemEndpoint
+        .events(AgentTopics.learningProgress)
+        .listen(runtime._persistExternalProgress);
+    return runtime;
   }
 
   final AgentEventBus _eventBus;
@@ -142,6 +179,15 @@ final class SystemAgentRuntime {
   final SysPolyglotMatrixAgent _polyglotAgent;
   final SysUniversalGrammarAgent _grammarAgent;
   final SysTtsVoiceAgent _voiceAgent;
+  final RuntimeLocalStateContainer _localState;
+  final OfflineProgressService _progressService;
+  final ValidationHashCache _validationCache;
+  final AgentEventBatchDispatcher _batchDispatcher;
+
+  late final StreamSubscription<PolyglotMatrixState>
+      _pairProgressSubscription;
+  late final StreamSubscription<AgentEvent>
+      _externalProgressSubscription;
 
   int _sequence = 0;
   bool _closed = false;
@@ -151,6 +197,13 @@ final class SystemAgentRuntime {
   MemoryAgentSnapshot get memorySnapshot => _memoryAgent.snapshot;
   PolyglotMatrixState? get polyglotMatrixState => _polyglotAgent.state;
   String? get activeGrammarEngineId => _grammarAgent.activeEngineId;
+  OfflineProgressSnapshot get progressSnapshot => _progressService.snapshot;
+  Stream<OfflineProgressSnapshot> get progressChanges =>
+      _progressService.changes;
+  AgentBatchQueueStats get batchStats => _batchDispatcher.stats;
+  int get validationCacheHits => _validationCache.hits;
+  int get validationCacheMisses => _validationCache.misses;
+  int get validationCacheEntries => _validationCache.entryCount;
 
   Stream<RecoveryDirective> get recoveryDirectives =>
       _systemEndpoint
@@ -206,6 +259,7 @@ final class SystemAgentRuntime {
         'targetLocale': target,
       },
     );
+
   }
 
   Future<GrammarAgentResult> requestGrammar({
@@ -216,6 +270,43 @@ final class SystemAgentRuntime {
     _ensureOpen();
     final boundedCount = count.clamp(1, 20).toInt();
     final correlationId = _nextCorrelation('grammar');
+    final matrix = _polyglotAgent.state;
+    final sourceLanguage = matrix?.sourceLanguageTag ?? 'und';
+    final targetLanguage = matrix?.targetLanguageTag ?? 'und';
+    final payload = <String, Object?>{
+      'capability': capability.wireName,
+      'seed': seed,
+      'count': boundedCount,
+    };
+    final grammarSignature =
+        '${capability.wireName}|$seed|$boundedCount|$targetLanguage';
+    final validation = await _validationCache.validateOnce(
+      scopeKey:
+          '${sourceLanguage.toLowerCase()}->'
+          '${targetLanguage.toLowerCase()}|grammar|'
+          '${capability.wireName}',
+      content: grammarSignature,
+      validatorVersion: 'runtime.grammar.v1',
+      validator: () async {
+        final report = const AgentDataIntegrityVerifier().verify(
+          <AgentDataRecord>[
+            AgentDataRecord(
+              recordId: 'validation.$correlationId',
+              domain: AgentDataDomain.grammar,
+              sourceLanguage: sourceLanguage,
+              targetLanguage: targetLanguage,
+              canonicalKey: capability.wireName,
+              fingerprint: grammarSignature,
+            ),
+          ],
+        );
+        return report.isValid;
+      },
+    );
+    if (!validation.validated) {
+      throw StateError('Grammar request failed integrity validation.');
+    }
+
     final response = _systemEndpoint
         .events(AgentTopics.grammarResponse)
         .firstWhere(
@@ -223,15 +314,23 @@ final class SystemAgentRuntime {
         )
         .timeout(const Duration(seconds: 2));
 
-    _systemEndpoint.publish(
-      topic: AgentTopics.grammarRequest,
-      targetRoles: const <AgentRole>{AgentRole.grammar},
-      context: AgentContextSnapshot.empty(correlationId),
-      payload: <String, Object?>{
-        'capability': capability.wireName,
-        'seed': seed,
-        'count': boundedCount,
-      },
+    await _batchDispatcher.submit(
+      AgentBatchEvent(
+        dedupeKey: correlationId,
+        topic: AgentTopics.grammarRequest,
+        context: AgentContextSnapshot.empty(correlationId),
+        targetRoles: const <AgentRole>{AgentRole.grammar},
+        payload: payload,
+        integrityRecord: AgentDataRecord(
+          recordId: correlationId,
+          domain: AgentDataDomain.grammar,
+          sourceLanguage: sourceLanguage,
+          targetLanguage: targetLanguage,
+          canonicalKey: 'runtime.$correlationId',
+          fingerprint:
+              '${capability.wireName}|$seed|$boundedCount|$targetLanguage',
+        ),
+      ),
     );
 
     return GrammarAgentResult.fromEvent(await response);
@@ -271,21 +370,41 @@ final class SystemAgentRuntime {
     required double score,
     required bool completed,
     required int attempts,
+    int? points,
     int? occurredAtEpochMs,
   }) {
     _ensureOpen();
-    _systemEndpoint.publish(
-      topic: AgentTopics.learningProgress,
-      targetRoles: const <AgentRole>{AgentRole.memory},
-      context: AgentContextSnapshot.empty(_nextCorrelation('progress')),
-      payload: <String, Object?>{
-        'taskId': taskId.trim(),
-        'score': score.clamp(0.0, 1.0).toDouble(),
-        'completed': completed,
-        'attempts': attempts.clamp(0, 1000000).toInt(),
-        'occurredAtEpochMs':
-            occurredAtEpochMs ?? DateTime.now().millisecondsSinceEpoch,
-      },
+    final timestamp =
+        occurredAtEpochMs ?? DateTime.now().millisecondsSinceEpoch;
+    final normalizedTaskId = taskId.trim();
+    final normalizedScore = score.clamp(0.0, 1.0).toDouble();
+    final correlationId = _nextCorrelation('progress');
+
+    _submitBackground(
+      AgentBatchEvent(
+        dedupeKey: correlationId,
+        topic: AgentTopics.learningProgress,
+        context: AgentContextSnapshot.empty(correlationId),
+        targetRoles: const <AgentRole>{AgentRole.memory},
+        payload: <String, Object?>{
+          'taskId': normalizedTaskId,
+          'score': normalizedScore,
+          'completed': completed,
+          'attempts': attempts.clamp(0, 1000000).toInt(),
+          'occurredAtEpochMs': timestamp,
+        },
+      ),
+    );
+    _persistBackground(
+      _progressService.recordTaskProgress(
+        taskId: normalizedTaskId,
+        pointsDelta:
+            points ?? _defaultProgressPoints(normalizedScore, completed),
+        score: normalizedScore,
+        completed: completed,
+        occurredAtEpochMs: timestamp,
+      ),
+      context: 'progress.persist',
     );
   }
 
@@ -296,17 +415,21 @@ final class SystemAgentRuntime {
     int? occurredAtEpochMs,
   }) {
     _ensureOpen();
-    _systemEndpoint.publish(
-      topic: AgentTopics.learningMistake,
-      targetRoles: const <AgentRole>{AgentRole.memory},
-      context: AgentContextSnapshot.empty(_nextCorrelation('mistake')),
-      payload: <String, Object?>{
-        'taskId': taskId.trim(),
-        'weaknessKey': weaknessKey.trim(),
-        'weight': weight.clamp(1, 1000).toInt(),
-        'occurredAtEpochMs':
-            occurredAtEpochMs ?? DateTime.now().millisecondsSinceEpoch,
-      },
+    final correlationId = _nextCorrelation('mistake');
+    _submitBackground(
+      AgentBatchEvent(
+        dedupeKey: correlationId,
+        topic: AgentTopics.learningMistake,
+        context: AgentContextSnapshot.empty(correlationId),
+        targetRoles: const <AgentRole>{AgentRole.memory},
+        payload: <String, Object?>{
+          'taskId': taskId.trim(),
+          'weaknessKey': weaknessKey.trim(),
+          'weight': weight.clamp(1, 1000).toInt(),
+          'occurredAtEpochMs':
+              occurredAtEpochMs ?? DateTime.now().millisecondsSinceEpoch,
+        },
+      ),
     );
   }
 
@@ -316,17 +439,21 @@ final class SystemAgentRuntime {
     int? occurredAtEpochMs,
   }) {
     _ensureOpen();
-    _systemEndpoint.publish(
-      topic: AgentTopics.routeSelected,
-      targetRoles: const <AgentRole>{AgentRole.memory},
-      context: AgentContextSnapshot.empty(_nextCorrelation('route')),
-      payload: <String, Object?>{
-        'ok': true,
-        'featureKey': featureKey.trim(),
-        'curriculumTaskId': taskId.trim(),
-        'occurredAtEpochMs':
-            occurredAtEpochMs ?? DateTime.now().millisecondsSinceEpoch,
-      },
+    final correlationId = _nextCorrelation('route');
+    _submitBackground(
+      AgentBatchEvent(
+        dedupeKey: correlationId,
+        topic: AgentTopics.routeSelected,
+        context: AgentContextSnapshot.empty(correlationId),
+        targetRoles: const <AgentRole>{AgentRole.memory},
+        payload: <String, Object?>{
+          'ok': true,
+          'featureKey': featureKey.trim(),
+          'curriculumTaskId': taskId.trim(),
+          'occurredAtEpochMs':
+              occurredAtEpochMs ?? DateTime.now().millisecondsSinceEpoch,
+        },
+      ),
     );
   }
 
@@ -365,17 +492,178 @@ final class SystemAgentRuntime {
     return RecoveryDirective.fromEvent(await response);
   }
 
-  Future<void> flushMemory() => _memoryAgent.flush();
+  Future<ValidationCacheResult> validateContentOnce({
+    required String scopeType,
+    required String sourceLanguageTag,
+    required String targetLanguageTag,
+    required String canonicalKey,
+    required String content,
+    required String validatorVersion,
+    required Future<bool> Function() validator,
+  }) {
+    _ensureOpen();
+    final source = _requiredLanguageTag(
+      sourceLanguageTag,
+      'sourceLanguageTag',
+    );
+    final target = _requiredLanguageTag(
+      targetLanguageTag,
+      'targetLanguageTag',
+    );
+    final scope = '${source.toLowerCase()}->${target.toLowerCase()}'
+        '|${scopeType.trim().toLowerCase()}|${canonicalKey.trim()}';
+    return _validationCache.validateOnce(
+      scopeKey: scope,
+      content: content,
+      validatorVersion: validatorVersion,
+      validator: validator,
+    );
+  }
+
+  Future<void> flushMemory() async {
+    await _batchDispatcher.flush();
+    await _memoryAgent.flush();
+    await _progressService.flush();
+    await _validationCache.flush();
+  }
 
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
+    await _pairProgressSubscription.cancel();
+    await _externalProgressSubscription.cancel();
+    await _batchDispatcher.close();
+    await _memoryAgent.flush();
+    await _progressService.flush();
+    await _validationCache.flush();
     await _voiceAgent.close();
     await _grammarAgent.close();
     await _polyglotAgent.close();
     await _memoryAgent.close();
     await _recoveryAgent.close();
+    await _progressService.close();
+    await _validationCache.close();
+    await _localState.close();
     await _kernel.close();
+  }
+
+  void _persistExternalProgress(AgentEvent event) {
+    final taskId = event.payload['taskId'];
+    if (taskId is! String || taskId.trim().isEmpty) return;
+
+    final rawScore = event.payload['score'];
+    final score =
+        rawScore is num ? rawScore.toDouble().clamp(0.0, 1.0) : 0.0;
+    final rawPoints = event.payload['points'];
+    final points = rawPoints is num
+        ? rawPoints.toInt()
+        : _defaultProgressPoints(
+            score.toDouble(),
+            event.payload['completed'] == true,
+          );
+    final rawTimestamp = event.payload['occurredAtEpochMs'];
+    final timestamp = rawTimestamp is num
+        ? rawTimestamp.toInt().clamp(0, 4102444800000).toInt()
+        : DateTime.now().millisecondsSinceEpoch;
+
+    _persistBackground(
+      _progressService.recordTaskProgress(
+        taskId: taskId,
+        pointsDelta: points,
+        score: score.toDouble(),
+        completed: event.payload['completed'] == true,
+        occurredAtEpochMs: timestamp,
+      ),
+      context: 'progress.external_event',
+    );
+  }
+
+  void _persistActivePair(PolyglotMatrixState state) {
+    _persistBackground(
+      _progressService.setActivePair(
+        sourceLanguageTag: state.sourceLanguageTag,
+        targetLanguageTag: state.targetLanguageTag,
+      ),
+      context: 'progress.active_pair',
+    );
+    _persistBackground(
+      _validationCache
+          .validateOnce(
+            scopeKey:
+                '${state.sourceLanguageTag.toLowerCase()}->'
+                '${state.targetLanguageTag.toLowerCase()}|pair',
+            content:
+                '${state.sourceLanguageTag}->${state.targetLanguageTag}',
+            validatorVersion: 'runtime.pair.v1',
+            validator: () async => true,
+          )
+          .then<void>((result) {
+        if (!result.validated) {
+          throw StateError('Language pair validation failed.');
+        }
+      }),
+      context: 'validation.active_pair',
+    );
+  }
+
+  static int _defaultProgressPoints(
+    double score,
+    bool completed,
+  ) {
+    final scorePoints = (score.clamp(0.0, 1.0) * 100).round();
+    final completionBonus = completed ? 25 : 0;
+    return (scorePoints + completionBonus).clamp(0, 125).toInt();
+  }
+
+  void _submitBackground(AgentBatchEvent event) {
+    unawaited(
+      _batchDispatcher.submit(event).catchError((Object error) {
+        if (_closed) return;
+        _publishBackgroundFailure(
+          context: 'batch.${event.topic}',
+          error: error,
+        );
+      }),
+    );
+  }
+
+  void _persistBackground(
+    Future<void> operation, {
+    required String context,
+  }) {
+    unawaited(
+      operation.catchError((Object error) {
+        if (_closed) return;
+        _publishBackgroundFailure(
+          context: context,
+          error: error,
+        );
+      }),
+    );
+  }
+
+  void _publishBackgroundFailure({
+    required String context,
+    required Object error,
+  }) {
+    _systemEndpoint.publish(
+      topic: AgentTopics.systemError,
+      targetRoles: const <AgentRole>{AgentRole.recovery},
+      context: AgentContextSnapshot.empty(
+        _nextCorrelation('background-error'),
+      ),
+      payload: <String, Object?>{
+        'context': _boundedText(context, 120, 'runtime.background'),
+        'errorType': error.runtimeType.toString(),
+        'message': _boundedText(
+          error.toString(),
+          240,
+          'Background runtime operation failed',
+        ),
+        'fatal': false,
+        'occurredAtEpochMs': DateTime.now().millisecondsSinceEpoch,
+      },
+    );
   }
 
   String _nextCorrelation(String purpose) {
