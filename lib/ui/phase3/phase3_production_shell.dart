@@ -10,6 +10,8 @@ import '../../features/phase3_integration/production_agent_runtime.dart';
 import 'language_selection_screen.dart';
 import 'life_task_route_registry.dart';
 import 'phase3_flashcards.dart';
+import 'phase10_presentation_bridge.dart';
+import 'phase10_tasks_track.dart';
 import 'phase6_l10n_controller.dart';
 
 final class Phase3ProductionShell extends StatefulWidget {
@@ -38,6 +40,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   late final LifeCurriculumCatalog _catalog;
   late final List<VocabularyFlashcardProjection> _projections;
   late final Phase3AgentRuntime _runtime;
+  late final Future<Phase10PresentationBridge> _phase10BridgeFuture;
 
   Phase3DesignProfile? _design;
   int _index = 0;
@@ -61,12 +64,18 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
         },
       ),
     );
+    _phase10BridgeFuture = Phase10PresentationBridge.start();
     unawaited(_loadDesign());
   }
 
   @override
   void dispose() {
     unawaited(_runtime.close());
+    unawaited(
+      _phase10BridgeFuture
+          .then((bridge) => bridge.close())
+          .catchError((_) {}),
+    );
     if (_ownsL10n) {
       _l10n.dispose();
     }
@@ -111,6 +120,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     });
     try {
       final ready = await _runtime.requestCards(widget.deckId);
+      final presentationBridge = await _phase10BridgeFuture;
       if (!mounted) return;
       if (ready.cardCount != _projections.length) {
         throw StateError('Card deck count mismatch.');
@@ -123,6 +133,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
               title: _l10n.text('cards.title'),
               emptyText: _l10n.text('cards.empty'),
               projections: _projections,
+              presentationBridge: presentationBridge,
             ),
           ),
         ),
@@ -323,63 +334,30 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     );
   }
 
-  Widget _curriculumTab(BuildContext context) {
-    final directedTasks = _l10n.curriculumPlan.tasks;
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-      itemCount: directedTasks.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final directed = directedTasks[index];
-        final task = directed.task;
-        final linked = _catalog.links
-            .where((link) => link.curriculumTaskId == task.id)
-            .toList(growable: false);
+  Widget _curriculumTab(BuildContext context) =>
+      FutureBuilder<Phase10PresentationBridge>(
+        future: _phase10BridgeFuture,
+        builder: (context, snapshot) {
+          final bridge = snapshot.data;
+          if (bridge == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Phase10TasksTrackView(
+            initialSnapshot: bridge.progressSnapshot,
+            progressStream: bridge.progressStream,
+            fallbackSourceLanguageTag: _l10n.pair.source.id,
+            fallbackTargetLanguageTag: _l10n.pair.target.id,
+            onTaskTap: _openCurriculumTask,
+          );
+        },
+      );
 
-        return Card(
-          child: ExpansionTile(
-            leading: CircleAvatar(child: Text('${task.order}')),
-            title: Text(_taskTitle(task)),
-            subtitle: Text(
-              '${directed.promptLanguageId} → '
-              '${directed.responseLanguageId} • ${task.stage.code}',
-            ),
-            childrenPadding:
-                const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            children: <Widget>[
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  linked.isEmpty
-                      ? _l10n.text('curriculum.no_life')
-                      : _l10n.text(
-                          'curriculum.life_count',
-                          arguments: <String, Object?>{
-                            'count': linked.length,
-                          },
-                        ),
-                ),
-              ),
-              if (linked.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: <Widget>[
-                    for (final link in linked)
-                      ActionChip(
-                        label: Text(_lifeTitle(link)),
-                        onPressed:
-                            _busy ? null : () => _openLifeTask(link),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
+  void _openCurriculumTask(CurriculumTask task) {
+    final links = _catalog.links
+        .where((link) => link.curriculumTaskId == task.id)
+        .toList(growable: false);
+    if (links.isEmpty || _busy) return;
+    unawaited(_openLifeTask(links.first));
   }
 
   Widget _lifeTab(BuildContext context) => ListView.separated(
