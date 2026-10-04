@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../../features/phase3_integration/life_feature_runtime.dart';
 
 import '../../core/content_contract.dart';
 import '../../core/curriculum/advanced_vocabulary.dart';
@@ -82,6 +86,7 @@ final class Phase3FlashcardDeckPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cards = VocabularyFlashcard3DAdapter.deck(projections);
+    final effectiveOnAudio = onAudio ?? _requestTargetSpeech;
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -89,8 +94,61 @@ final class Phase3FlashcardDeckPage extends StatelessWidget {
           ? Center(child: Text(emptyText))
           : Flashcard3DMasterHub(
               cards: cards,
-              onAudio: onAudio,
+              onAudio: effectiveOnAudio,
             ),
     );
   }
+
+  void _requestTargetSpeech(
+    Flashcard3DData card,
+    Flashcard3DFace face,
+  ) {
+    final runtime = LifeFeatureRuntime.shared;
+    final target = runtime.snapshot.targetLocale;
+    final faceLanguage =
+        face == Flashcard3DFace.front
+            ? card.frontLanguageCode
+            : card.backLanguageCode;
+
+    if (!_isTargetLanguage(faceLanguage, target.languageCode)) return;
+
+    final text =
+        face == Flashcard3DFace.front ? card.frontText : card.backText;
+    if (text.trim().isEmpty) return;
+
+    unawaited(
+      _speakTargetSafely(
+        runtime: runtime,
+        text: text,
+        targetLanguageTag: target.languageTag,
+      ),
+    );
+  }
+
+  static bool _isTargetLanguage(
+    String faceLanguageTag,
+    String targetLanguageCode,
+  ) {
+    final normalizedFace =
+        faceLanguageTag.trim().toLowerCase().replaceAll('_', '-');
+    final normalizedTarget = targetLanguageCode.trim().toLowerCase();
+    return normalizedFace == normalizedTarget ||
+        normalizedFace.startsWith('$normalizedTarget-');
+  }
+
+  static Future<void> _speakTargetSafely({
+    required LifeFeatureRuntime runtime,
+    required String text,
+    required String targetLanguageTag,
+  }) async {
+    try {
+      await runtime.requestSpeech(
+        text: text,
+        languageTag: targetLanguageTag,
+      );
+    } on Object {
+      return;
+    }
+  }
+
 }
