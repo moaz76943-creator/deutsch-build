@@ -1,19 +1,58 @@
-name: Build APK
+name: Build APK (Manual Debug)
+
 on:
-  push:
-    branches: [ main, master ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-debug-apk
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+      - name: Checkout requested ref
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          channel: 'stable'
-      - run: flutter pub get
-      - run: flutter build apk --debug
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+          persist-credentials: false
+
+      - name: Read toolchain.lock
+        id: toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          printf 'java=%s\n' "$JAVA_MAJOR" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
-          name: app-debug
+          distribution: temurin
+          java-version: "${{ steps.toolchain.outputs.java }}"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: "${{ steps.toolchain.outputs.flutter }}"
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - name: Fetch locked Flutter dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build debug APK
+        run: flutter build apk --debug --target-platform android-arm64
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: manual-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 3

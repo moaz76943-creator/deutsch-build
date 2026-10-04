@@ -24,15 +24,16 @@ jobs:
   quality:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
-      - name: Checkout for pull request
+      - name: Checkout exact PR head
         if: github.event_name == 'pull_request'
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Checkout for non-PR event
+      - name: Checkout main source
         if: github.event_name != 'pull_request'
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -43,38 +44,24 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Read toolchain.lock
+      - name: Read Flutter toolchain
         id: toolchain
         shell: bash
         run: |
           set -Eeuo pipefail
           source toolchain.lock
           printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          printf 'java=%s\n' "$JAVA_MAJOR" >> "$GITHUB_OUTPUT"
-          printf 'gradle=%s\n' "$GRADLE_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Java
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
-        with:
-          distribution: temurin
-          java-version: "${{ steps.toolchain.outputs.java }}"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
-        with:
-          gradle-version: "${{ steps.toolchain.outputs.gradle }}"
-          cache-disabled: true
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: "${{ steps.toolchain.outputs.flutter }}"
           channel: stable
-          cache: false
-          pub-cache: false
+          cache: true
+          pub-cache: true
 
       - name: Install Python test tooling
-        run: python3 -m pip install --upgrade pip pytest
+        run: python3 -m pip install --disable-pip-version-check --no-input pytest
 
       - name: Run canonical quality gate
         run: bash scripts/local_quality_gate.sh

@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - 'docs/project-record/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,8 +20,10 @@ jobs:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      MAX_PR_UPDATES: '12'
     steps:
-      - name: Rebase eligible PRs
+      - name: Rebase eligible PRs safely
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -28,12 +31,22 @@ jobs:
           set -Eeuo pipefail
 
           mapfile -t prs < <(
-            gh pr list               --repo "$GITHUB_REPOSITORY"               --base main               --state open               --limit 100               --json number,isDraft,isCrossRepository,mergeStateStatus,mergeable               --jq '.[] | select(
-                .isDraft == false and
-                .isCrossRepository == false and
-                .mergeable == "MERGEABLE" and
-                .mergeStateStatus == "BEHIND"
-              ) | .number'
+            gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --state open \
+              --limit 100 \
+              --json number,isDraft,isCrossRepository,mergeStateStatus,mergeable,labels \
+              --jq '.[] |
+                select(
+                  .isDraft == false and
+                  .isCrossRepository == false and
+                  .mergeable == "MERGEABLE" and
+                  .mergeStateStatus == "BEHIND" and
+                  ([.labels[].name] | index("no-auto-rebase") | not)
+                ) |
+                .number' |
+            head -n "$MAX_PR_UPDATES"
           )
 
           if (( ${#prs[@]} == 0 )); then
@@ -43,14 +56,49 @@ jobs:
 
           updated=0
           skipped=0
+          timed_out=0
+
           for pr in "${prs[@]}"; do
-            echo "Rebasing PR #$pr onto main"
-            if gh pr update-branch "$pr" --repo "$GITHUB_REPOSITORY" --rebase; then
-              updated=$((updated + 1))
-            else
+            state="$(
+              gh pr view "$pr" \
+                --repo "$GITHUB_REPOSITORY" \
+                --json state,isDraft,isCrossRepository,mergeStateStatus,mergeable \
+                --jq '[.state, .isDraft, .isCrossRepository, .mergeStateStatus, .mergeable] | @tsv'
+            )"
+
+            IFS=$'\t' read -r pr_state is_draft is_cross merge_state mergeable <<< "$state"
+
+            if [[ "$pr_state" != "OPEN" ||
+                  "$is_draft" != "false" ||
+                  "$is_cross" != "false" ||
+                  "$merge_state" != "BEHIND" ||
+                  "$mergeable" != "MERGEABLE" ]]; then
               skipped=$((skipped + 1))
-              echo "::warning::PR #$pr changed state or could not be rebased cleanly; leaving it untouched."
+              echo "::notice::PR #$pr changed state after discovery; leaving it untouched."
+              continue
             fi
+
+            echo "Rebasing PR #$pr onto main"
+            set +e
+            timeout 45s gh pr update-branch "$pr" \
+              --repo "$GITHUB_REPOSITORY" \
+              --rebase
+            status=$?
+            set -e
+
+            case "$status" in
+              0)
+                updated=$((updated + 1))
+                ;;
+              124)
+                timed_out=$((timed_out + 1))
+                echo "::warning::PR #$pr rebase exceeded 45 seconds; leaving the PR open and untouched."
+                ;;
+              *)
+                skipped=$((skipped + 1))
+                echo "::warning::PR #$pr could not be rebased cleanly or changed state; leaving the PR open."
+                ;;
+            esac
           done
 
-          echo "Auto Rebase summary: updated=$updated skipped=$skipped"
+          echo "Auto Rebase summary: updated=$updated skipped=$skipped timed_out=$timed_out"
