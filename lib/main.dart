@@ -27,6 +27,33 @@ import 'ui/phase3/phase3_production_shell.dart';
 
 SystemAgentRuntime? _systemAgentRuntime;
 
+const _ProductionUiContract _productionUi = _ProductionUiContract(
+  appName: 'Salim',
+  showDebugBanner: false,
+);
+
+final class _ProductionUiContract {
+  const _ProductionUiContract({
+    required this.appName,
+    required this.showDebugBanner,
+  });
+
+  final String appName;
+  final bool showDebugBanner;
+}
+
+void _verifyProductionContract() {
+  if (_productionUi.appName != 'Salim') {
+    throw StateError('Production app name must remain Salim.');
+  }
+  if (_productionUi.showDebugBanner) {
+    throw StateError('Production debug banner must remain disabled.');
+  }
+  if (CanonicalCurriculum50.tasks.length != 50) {
+    throw StateError('Canonical production curriculum must contain 50 tasks.');
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   registerProjectOpenSourceLicenses();
@@ -54,6 +81,7 @@ Future<void> main() async {
   await runZonedGuarded(
     () async {
       try {
+        _verifyProductionContract();
         final prefs = await PreferencesService.instance();
         final systemAgents = await SystemAgentRuntime.start(
           memoryStore: _PreferencesMemoryAgentStore(prefs),
@@ -363,8 +391,8 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Deutsch بالعربي',
+        debugShowCheckedModeBanner: _productionUi.showDebugBanner,
+        title: _productionUi.appName,
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: Colors.indigo,
@@ -476,9 +504,10 @@ final class _BootFailureApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: _productionUi.showDebugBanner,
+        title: _productionUi.appName,
         home: Scaffold(
-          appBar: AppBar(title: const Text('Deutsch بالعربي')),
+          appBar: AppBar(title: const Text('Salim')),
           body: const Center(
             child: Padding(
               padding: EdgeInsets.all(24),
