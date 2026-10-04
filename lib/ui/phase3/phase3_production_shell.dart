@@ -4,24 +4,26 @@ import 'package:flutter/material.dart';
 
 import '../../core/content_contract.dart';
 import '../../core/curriculum/advanced_vocabulary.dart';
-import '../../core/curriculum/canonical_curriculum_50.dart';
 import '../../core/curriculum/curriculum_models.dart';
-import '../../core/curriculum/learning_path_engine.dart';
 import '../../features/phase3_integration/life_curriculum_catalog.dart';
 import '../../features/phase3_integration/production_agent_runtime.dart';
+import 'language_selection_screen.dart';
 import 'life_task_route_registry.dart';
 import 'phase3_flashcards.dart';
+import 'phase6_l10n_controller.dart';
 
 final class Phase3ProductionShell extends StatefulWidget {
   const Phase3ProductionShell({
     required this.corpus,
     this.routeRegistry,
+    this.localizationController,
     this.deckId = 'main-vocabulary',
     super.key,
   });
 
   final List<LearningContent> corpus;
   final LifeTaskRouteRegistry? routeRegistry;
+  final Phase6L10nController? localizationController;
   final String deckId;
 
   @override
@@ -30,9 +32,10 @@ final class Phase3ProductionShell extends StatefulWidget {
 }
 
 final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
+  late final Phase6L10nController _l10n;
+  late final bool _ownsL10n;
   late final LifeTaskRouteRegistry _routes;
   late final LifeCurriculumCatalog _catalog;
-  late final LearningPathEngine _curriculum;
   late final List<VocabularyFlashcardProjection> _projections;
   late final Phase3AgentRuntime _runtime;
 
@@ -44,9 +47,11 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   @override
   void initState() {
     super.initState();
-    _routes = widget.routeRegistry ?? LifeTaskRouteRegistry();
+    _ownsL10n = widget.localizationController == null;
+    _l10n = widget.localizationController ?? Phase6L10nController.standard();
+    _routes = widget.routeRegistry ??
+        LifeTaskRouteRegistry(localizationController: _l10n);
     _catalog = _routes.catalog;
-    _curriculum = LearningPathEngine(CanonicalCurriculum50.tasks);
     _projections = VocabularyProjectionFactory.fromContentList(widget.corpus);
     _runtime = Phase3AgentRuntime.start(
       catalog: _catalog,
@@ -62,6 +67,9 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   @override
   void dispose() {
     unawaited(_runtime.close());
+    if (_ownsL10n) {
+      _l10n.dispose();
+    }
     super.dispose();
   }
 
@@ -71,7 +79,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
       if (!mounted) return;
       setState(() => _design = design);
     } on Object catch (error) {
-      _setError('تعذر تحميل إعدادات وكيل التصميم: $error');
+      _setError('error.design', error);
     }
   }
 
@@ -89,7 +97,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
         MaterialPageRoute<void>(builder: builder),
       );
     } on Object catch (error) {
-      _setError('تعذر فتح المهمة: $error');
+      _setError('error.task', error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -109,21 +117,35 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
       }
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
-          builder: (_) => Phase3FlashcardDeckPage(
-            title: 'بطاقات المفردات ثلاثية الأبعاد',
-            projections: _projections,
+          builder: (_) => Directionality(
+            textDirection: _l10n.textDirection,
+            child: Phase3FlashcardDeckPage(
+              title: _l10n.text('cards.title'),
+              emptyText: _l10n.text('cards.empty'),
+              projections: _projections,
+            ),
           ),
         ),
       );
     } on Object catch (error) {
-      _setError('تعذر فتح البطاقات: $error');
+      _setError('error.cards', error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  void _setError(String message) {
+  Future<void> _openLanguageSelection() => Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => LanguageSelectionScreen(controller: _l10n),
+        ),
+      );
+
+  void _setError(String key, Object error) {
     if (!mounted) return;
+    final message = _l10n.text(
+      key,
+      arguments: <String, Object?>{'error': error.toString()},
+    );
     setState(() => _lastError = message);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -131,71 +153,81 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final direction =
-        _design?.direction == 'ltr' ? TextDirection.ltr : TextDirection.rtl;
-    final tabs = <Widget>[
-      _overviewTab(context),
-      _curriculumTab(context),
-      _lifeTab(context),
-      _cardsTab(context),
-    ];
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _l10n,
+        builder: (context, _) {
+          final tabs = <Widget>[
+            _overviewTab(context),
+            _curriculumTab(context),
+            _lifeTab(context),
+            _cardsTab(context),
+          ];
 
-    return Directionality(
-      textDirection: direction,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_titleForIndex(_index)),
-          actions: <Widget>[
-            if (_busy)
-              const Padding(
-                padding: EdgeInsetsDirectional.only(end: 16),
-                child: Center(
-                  child: SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+          return Directionality(
+            textDirection: _l10n.textDirection,
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(_titleForIndex(_index)),
+                actions: <Widget>[
+                  IconButton(
+                    tooltip: _l10n.text('action.languages'),
+                    onPressed: _openLanguageSelection,
+                    icon: const Icon(Icons.translate_rounded),
                   ),
-                ),
-              ),
-          ],
-        ),
-        body: IndexedStack(
-          index: _index,
-          children: tabs,
-        ),
-        bottomNavigationBar: _design == null ||
-                _design!.navigation == 'bottom'
-            ? NavigationBar(
-                selectedIndex: _index,
-                onDestinationSelected: (value) =>
-                    setState(() => _index = value),
-                destinations: const <NavigationDestination>[
-                  NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home_rounded),
-                    label: 'الرئيسية',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.route_outlined),
-                    selectedIcon: Icon(Icons.route_rounded),
-                    label: 'المسار',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.apps_outlined),
-                    selectedIcon: Icon(Icons.apps_rounded),
-                    label: 'الحياة',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.view_in_ar_outlined),
-                    selectedIcon: Icon(Icons.view_in_ar_rounded),
-                    label: 'البطاقات',
-                  ),
+                  if (_busy)
+                    const Padding(
+                      padding: EdgeInsetsDirectional.only(end: 16),
+                      child: Center(
+                        child: SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
                 ],
-              )
-            : null,
-      ),
-    );
-  }
+              ),
+              body: IndexedStack(
+                index: _index,
+                children: tabs,
+              ),
+              bottomNavigationBar:
+                  _design == null || _design!.navigation == 'bottom'
+                      ? NavigationBar(
+                          selectedIndex: _index,
+                          onDestinationSelected: (value) =>
+                              setState(() => _index = value),
+                          destinations: <NavigationDestination>[
+                            NavigationDestination(
+                              icon: const Icon(Icons.home_outlined),
+                              selectedIcon:
+                                  const Icon(Icons.home_rounded),
+                              label: _l10n.text('nav.home'),
+                            ),
+                            NavigationDestination(
+                              icon: const Icon(Icons.route_outlined),
+                              selectedIcon:
+                                  const Icon(Icons.route_rounded),
+                              label: _l10n.text('nav.curriculum'),
+                            ),
+                            NavigationDestination(
+                              icon: const Icon(Icons.apps_outlined),
+                              selectedIcon:
+                                  const Icon(Icons.apps_rounded),
+                              label: _l10n.text('nav.life'),
+                            ),
+                            NavigationDestination(
+                              icon: const Icon(Icons.view_in_ar_outlined),
+                              selectedIcon:
+                                  const Icon(Icons.view_in_ar_rounded),
+                              label: _l10n.text('nav.cards'),
+                            ),
+                          ],
+                        )
+                      : null,
+            ),
+          );
+        },
+      );
 
   Widget _overviewTab(BuildContext context) {
     final design = _design;
@@ -204,35 +236,74 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
       children: <Widget>[
         _StatusCard(
           icon: Icons.architecture_outlined,
-          title: 'الربط الإنتاجي',
-          value: design == null ? 'جارٍ التهيئة' : 'نشط',
+          title: _l10n.text('status.integration.title'),
+          value: design == null
+              ? _l10n.text('status.loading')
+              : _l10n.text('status.active'),
           detail: design == null
-              ? 'يتم طلب إعدادات الواجهة عبر Design Agent.'
-              : 'Navigation: ${design.navigation} • Cards: ${design.flashcardMode} • ${design.direction.toUpperCase()}',
+              ? _l10n.text('status.integration.loading')
+              : _l10n.text(
+                  'status.integration.detail',
+                  arguments: <String, Object?>{
+                    'navigation': design.navigation,
+                    'cards': design.flashcardMode,
+                    'direction': _l10n.snapshot.direction.toUpperCase(),
+                  },
+                ),
+        ),
+        const SizedBox(height: 12),
+        _StatusCard(
+          icon: Icons.translate_rounded,
+          title: _l10n.text('action.languages'),
+          value: _l10n.text(
+            'language.matrix',
+            arguments: <String, Object?>{
+              'source': _l10n.languageLabel(_l10n.pair.source.id),
+              'target': _l10n.languageLabel(_l10n.pair.target.id),
+            },
+          ),
+          detail: _l10n.text(
+            'language.directions',
+            arguments: <String, Object?>{
+              'count': _l10n.matrix.directedPairCount,
+              'languages': _l10n.matrix.languages.length,
+            },
+          ),
         ),
         const SizedBox(height: 12),
         _StatusCard(
           icon: Icons.checklist_rounded,
-          title: 'مهام الحياة',
-          value: '${_catalog.links.length}/50',
-          detail:
-              'كل مهمة مرتبطة بمهمة Curriculum ومسجلة في Route Registry.',
+          title: _l10n.text('status.life.title'),
+          value: _l10n.text(
+            'status.life.value',
+            arguments: <String, Object?>{
+              'count': _catalog.links.length,
+              'total': _catalog.links.length,
+            },
+          ),
+          detail: _l10n.text('status.life.detail'),
         ),
         const SizedBox(height: 12),
         _StatusCard(
           icon: Icons.menu_book_outlined,
-          title: 'مسار التعلم',
-          value: '${_curriculum.tasks.length} مهمة',
-          detail:
-              'المسار الأساسي مستخدم مباشرة من CanonicalCurriculum50.',
+          title: _l10n.text('status.curriculum.title'),
+          value: _l10n.text(
+            'status.curriculum.value',
+            arguments: <String, Object?>{
+              'count': _l10n.curriculumPlan.tasks.length,
+            },
+          ),
+          detail: _l10n.text('status.curriculum.detail'),
         ),
         const SizedBox(height: 12),
         _StatusCard(
           icon: Icons.view_in_ar_rounded,
-          title: '3D Flashcards',
-          value: '${_projections.length} بطاقة',
-          detail:
-              'LearningContent → VocabularyFlashcardProjection → Flashcard3DData.',
+          title: _l10n.text('status.cards.title'),
+          value: _l10n.text(
+            'status.cards.value',
+            arguments: <String, Object?>{'count': _projections.length},
+          ),
+          detail: _l10n.text('status.cards.detail'),
         ),
         if (_lastError != null) ...<Widget>[
           const SizedBox(height: 12),
@@ -252,56 +323,64 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     );
   }
 
-  Widget _curriculumTab(BuildContext context) => ListView.separated(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-        itemCount: _curriculum.tasks.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          final task = _curriculum.tasks[index];
-          final linked = _catalog.links
-              .where((link) => link.curriculumTaskId == task.id)
-              .toList(growable: false);
+  Widget _curriculumTab(BuildContext context) {
+    final directedTasks = _l10n.curriculumPlan.tasks;
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+      itemCount: directedTasks.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final directed = directedTasks[index];
+        final task = directed.task;
+        final linked = _catalog.links
+            .where((link) => link.curriculumTaskId == task.id)
+            .toList(growable: false);
 
-          return Card(
-            child: ExpansionTile(
-              leading: CircleAvatar(child: Text('${task.order}')),
-              title: Text(task.titleAr),
-              subtitle: Text(
-                '${task.titleDe} • ${task.stage.code}',
-                textDirection: TextDirection.ltr,
-              ),
-              childrenPadding:
-                  const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              children: <Widget>[
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    linked.isEmpty
-                        ? 'لا توجد مهمة حياة مباشرة لهذا الدرس.'
-                        : 'مهام الحياة المرتبطة: ${linked.length}',
-                  ),
-                ),
-                if (linked.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: <Widget>[
-                      for (final link in linked)
-                        ActionChip(
-                          label: Text(link.titleAr),
-                          onPressed: _busy
-                              ? null
-                              : () => _openLifeTask(link),
-                        ),
-                    ],
-                  ),
-                ],
-              ],
+        return Card(
+          child: ExpansionTile(
+            leading: CircleAvatar(child: Text('${task.order}')),
+            title: Text(_taskTitle(task)),
+            subtitle: Text(
+              '${directed.promptLanguageId} → '
+              '${directed.responseLanguageId} • ${task.stage.code}',
             ),
-          );
-        },
-      );
+            childrenPadding:
+                const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            children: <Widget>[
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  linked.isEmpty
+                      ? _l10n.text('curriculum.no_life')
+                      : _l10n.text(
+                          'curriculum.life_count',
+                          arguments: <String, Object?>{
+                            'count': linked.length,
+                          },
+                        ),
+                ),
+              ),
+              if (linked.isNotEmpty) ...<Widget>[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: <Widget>[
+                    for (final link in linked)
+                      ActionChip(
+                        label: Text(_lifeTitle(link)),
+                        onPressed:
+                            _busy ? null : () => _openLifeTask(link),
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Widget _lifeTab(BuildContext context) => ListView.separated(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
@@ -309,16 +388,23 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final link = _catalog.links[index];
-          final task = _curriculum.taskById(link.curriculumTaskId);
+          final directed = _l10n.curriculumPlan
+              .taskByCanonicalId(link.curriculumTaskId);
           return Card(
             child: ListTile(
               leading: CircleAvatar(child: Text('${link.ordinal}')),
-              title: Text(link.titleAr),
+              title: Text(_lifeTitle(link)),
               subtitle: Text(
-                '${link.titleDe}\nمرتبط بالدرس ${task.order}: ${task.titleAr}',
+                _l10n.text(
+                  'life.linked_lesson',
+                  arguments: <String, Object?>{
+                    'order': directed.task.order,
+                    'title': _taskTitle(directed.task),
+                  },
+                ),
               ),
-              isThreeLine: true,
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+              trailing:
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 18),
               onTap: _busy ? null : () => _openLifeTask(link),
             ),
           );
@@ -337,13 +423,18 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
                   const Icon(Icons.view_in_ar_rounded, size: 56),
                   const SizedBox(height: 12),
                   Text(
-                    'بطاقات المفردات ثلاثية الأبعاد',
+                    _l10n.text('cards.title'),
                     style: Theme.of(context).textTheme.headlineSmall,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'تحتوي المجموعة الحالية على ${_projections.length} بطاقة مولدة من محتوى التطبيق الفعلي.',
+                    _l10n.text(
+                      'cards.count',
+                      arguments: <String, Object?>{
+                        'count': _projections.length,
+                      },
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 18),
@@ -351,7 +442,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
                     onPressed:
                         _busy || _projections.isEmpty ? null : _openCards,
                     icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('فتح مجموعة 3D'),
+                    label: Text(_l10n.text('cards.open')),
                   ),
                 ],
               ),
@@ -360,11 +451,21 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
         ],
       );
 
+  String _taskTitle(CurriculumTask task) {
+    final locale = _l10n.snapshot.userLocale.languageCode;
+    return locale == 'ar' ? task.titleAr : task.titleDe;
+  }
+
+  String _lifeTitle(LifeCurriculumLink link) {
+    final locale = _l10n.snapshot.userLocale.languageCode;
+    return locale == 'ar' ? link.titleAr : link.titleDe;
+  }
+
   String _titleForIndex(int index) => switch (index) {
-        1 => 'مسار التعلم',
-        2 => 'مهام الحياة 50/50',
-        3 => 'البطاقات ثلاثية الأبعاد',
-        _ => 'Deutsch بالعربي',
+        1 => _l10n.text('nav.curriculum'),
+        2 => _l10n.text('nav.life'),
+        3 => _l10n.text('nav.cards'),
+        _ => _l10n.text('app.title'),
       };
 }
 
@@ -394,7 +495,10 @@ final class _StatusCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       value,

@@ -68,12 +68,14 @@ abstract final class VocabularyFlashcard3DAdapter {
 final class Phase3FlashcardDeckPage extends StatelessWidget {
   const Phase3FlashcardDeckPage({
     required this.title,
+    required this.emptyText,
     required this.projections,
     this.onAudio,
     super.key,
   });
 
   final String title;
+  final String emptyText;
   final List<VocabularyFlashcardProjection> projections;
   final FlashcardAudioCallback? onAudio;
 
@@ -84,9 +86,7 @@ final class Phase3FlashcardDeckPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: cards.isEmpty
-          ? const Center(
-              child: Text('لا توجد بطاقات متاحة في هذه المجموعة.'),
-            )
+          ? Center(child: Text(emptyText))
           : Flashcard3DMasterHub(
               cards: cards,
               onAudio: onAudio,

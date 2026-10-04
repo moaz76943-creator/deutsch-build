@@ -68,10 +68,13 @@ import '../../features/life_travel_agency/travel_agency_screen.dart';
 import '../../features/life_utilities/utilities_screen.dart';
 import '../../features/life_waste_recycling/waste_recycling_screen.dart';
 import '../../features/phase3_integration/life_curriculum_catalog.dart';
+import 'localized_task_route_host.dart';
+import 'phase6_l10n_controller.dart';
 
 final class LifeTaskRouteRegistry {
   LifeTaskRouteRegistry({
     LifeCurriculumCatalog? catalog,
+    this.localizationController,
   })  : catalog = catalog ?? LifeCurriculumCatalog.standard(),
         _builders = _createBuilders() {
     final catalogKeys = this.catalog.links
@@ -89,6 +92,7 @@ final class LifeTaskRouteRegistry {
   }
 
   final LifeCurriculumCatalog catalog;
+  final Phase6L10nController? localizationController;
   final Map<String, WidgetBuilder> _builders;
 
   Set<String> get featureKeys => Set<String>.unmodifiable(_builders.keys);
@@ -98,7 +102,12 @@ final class LifeTaskRouteRegistry {
     if (builder == null) {
       throw StateError('No UI route registered for $featureKey.');
     }
-    return builder;
+    final controller = localizationController;
+    if (controller == null) return builder;
+    return (context) => LocalizedTaskRouteHost(
+          controller: controller,
+          childBuilder: builder,
+        );
   }
 
   bool canOpen(String featureKey) =>
