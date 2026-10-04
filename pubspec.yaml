@@ -3,7 +3,8 @@ description: Deutsch بالعربي - منصة تعلم الألمانية لل�
 publish_to: "none"
 version: 3.3.9+132
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 dependencies:
   flutter:
