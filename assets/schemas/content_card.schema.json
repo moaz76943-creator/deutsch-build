@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deutsch-bilarabi.local/assets/schemas/content_card.schema.json",
+  "title": "Phase 17 multilingual content card",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "semanticId",
+    "languageCode",
+    "text",
+    "register"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "semanticId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "languageCode": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "x-text-encoding": "UTF-8"
+    },
+    "register": {
+      "type": "string",
+      "enum": [
+        "formal",
+        "neutral",
+        "informal"
+      ]
+    },
+    "translation": {
+      "type": "string",
+      "x-text-encoding": "UTF-8"
+    },
+    "example": {
+      "type": "string",
+      "x-text-encoding": "UTF-8"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

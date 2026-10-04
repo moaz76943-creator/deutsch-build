@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../lib/core/content_pipeline/parallel_content_pipeline.dart';
+import '../lib/core/content_pipeline/validation_cache.dart';
 import '../lib/core/orchestration/agent_batch_processing.dart';
 import '../lib/core/orchestration/agent_data_integrity.dart';
 import '../lib/core/orchestration/event_bus.dart';
@@ -8,7 +10,13 @@ import '../lib/core/orchestration/orchestration_kernel.dart';
 import '../lib/core/orchestration/orchestration_models.dart';
 import '../lib/core/orchestration/service_container.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  final manifestPath = _contentPipelineManifest(args);
+  if (manifestPath != null) {
+    await _runContentPipeline(manifestPath);
+    return;
+  }
+
   final stopwatch = Stopwatch()..start();
 
   final batch = await _verifyBatchPipeline();
@@ -27,6 +35,181 @@ Future<void> main() async {
       'sources': sources,
     }),
   );
+}
+
+String? _contentPipelineManifest(List<String> args) {
+  for (var index = 0; index < args.length; index += 1) {
+    final argument = args[index];
+    if (argument == '--content-pipeline' &&
+        index + 1 < args.length) {
+      return args[index + 1];
+    }
+    const prefix = '--content-pipeline=';
+    if (argument.startsWith(prefix)) {
+      final value = argument.substring(prefix.length).trim();
+      return value.isEmpty ? null : value;
+    }
+  }
+  return null;
+}
+
+Future<void> _runContentPipeline(String manifestPath) async {
+  final manifestFile = File(manifestPath);
+  final manifestBytes = await manifestFile.readAsBytes();
+  final manifestText = utf8.decode(
+    manifestBytes,
+    allowMalformed: false,
+  );
+  final raw = jsonDecode(manifestText);
+  if (raw is! Map) {
+    throw const FormatException(
+      'content pipeline manifest must be an object',
+    );
+  }
+
+  final manifest = _stringKeyedMap(raw, 'manifest');
+  final maxParallelValue = manifest['maxParallel'];
+  final maxParallel = maxParallelValue is num
+      ? maxParallelValue.toInt()
+      : 4;
+  if (maxParallel < 1 || maxParallel > 32) {
+    throw const FormatException(
+      'maxParallel must be between 1 and 32',
+    );
+  }
+
+  final cachePathValue = manifest['cachePath'];
+  final cachePath = cachePathValue is String
+      ? _safeCachePath(cachePathValue)
+      : '.agent-pulse-cache/content_validation_cache.json';
+  const validatorVersion = 'phase17.card-register-utf8.v1';
+  final cache = await ContentValidationCache.open(
+    path: cachePath,
+    validatorVersion: validatorVersion,
+  );
+
+  final rawPacks = manifest['packs'];
+  if (rawPacks is! List || rawPacks.isEmpty) {
+    throw const FormatException(
+      'manifest packs must be a non-empty array',
+    );
+  }
+
+  final requests = <LanguagePackRequest>[];
+  for (final rawPack in rawPacks) {
+    final pack = _stringKeyedMap(rawPack, 'manifest pack');
+    final id = pack['id'];
+    final languageCode = pack['languageCode'];
+    final source = pack['path'];
+    if (id is! String ||
+        languageCode is! String ||
+        source is! String ||
+        id.trim().isEmpty ||
+        languageCode.trim().isEmpty ||
+        source.trim().isEmpty) {
+      throw const FormatException(
+        'manifest pack requires id, languageCode and path',
+      );
+    }
+    if (source.contains('://')) {
+      throw const FormatException(
+        'content pipeline sources must be local files',
+      );
+    }
+    requests.add(
+      LanguagePackRequest(
+        packId: id.trim(),
+        languageCode: languageCode.trim(),
+        source: source.trim(),
+      ),
+    );
+  }
+
+  final pipeline = ParallelContentPipeline(
+    maxParallel: maxParallel,
+    cache: cache,
+    generator: (request) async {
+      return File(request.source).readAsBytes();
+    },
+  );
+
+  final audits = <LanguagePackAudit>[];
+  await for (final audit in pipeline.run(
+    Stream<LanguagePackRequest>.fromIterable(requests),
+  )) {
+    audits.add(audit);
+  }
+  await cache.persist();
+
+  final invalid = audits.where((audit) => !audit.valid).length;
+  final wholePackCacheHits = audits
+      .where((audit) => audit.wholePackCacheHit)
+      .length;
+  final validatedCards = audits.fold<int>(
+    0,
+    (total, audit) => total + audit.validatedCards,
+  );
+  final cachedCards = audits.fold<int>(
+    0,
+    (total, audit) => total + audit.cachedCards,
+  );
+
+  stdout.writeln(
+    jsonEncode(<String, Object?>{
+      'ok': invalid == 0,
+      'mode': 'parallel-content-pipeline',
+      'billingMode': 'local-only',
+      'validatorVersion': validatorVersion,
+      'maxParallel': maxParallel,
+      'packs': audits.map((audit) => audit.toJson()).toList(),
+      'summary': <String, Object?>{
+        'processed': audits.length,
+        'valid': audits.length - invalid,
+        'invalid': invalid,
+        'wholePackCacheHits': wholePackCacheHits,
+        'validatedCards': validatedCards,
+        'cachedCards': cachedCards,
+        'cacheEntries': cache.entryCount,
+      },
+    }),
+  );
+
+  if (invalid != 0) {
+    exitCode = 2;
+  }
+}
+
+String _safeCachePath(String raw) {
+  final value = raw.trim().replaceAll('\\', '/');
+  if (value.isEmpty ||
+      value.startsWith('/') ||
+      value.contains('../') ||
+      value == '..' ||
+      !value.startsWith('.agent-pulse-cache/')) {
+    throw const FormatException(
+      'cachePath must stay under .agent-pulse-cache/',
+    );
+  }
+  return value;
+}
+
+Map<String, Object?> _stringKeyedMap(
+  Object? raw,
+  String field,
+) {
+  if (raw is! Map) {
+    throw FormatException(field + ' must be an object');
+  }
+  final result = <String, Object?>{};
+  for (final entry in raw.entries) {
+    if (entry.key is! String) {
+      throw FormatException(
+        field + ' keys must be strings',
+      );
+    }
+    result[entry.key as String] = entry.value;
+  }
+  return result;
 }
 
 Future<Map<String, Object?>> _verifyBatchPipeline() async {
