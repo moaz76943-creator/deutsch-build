@@ -1,0 +1,11 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter_tts",
+      "rootUri": "headless_stubs/flutter_tts/",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    }
+  ]
+}
