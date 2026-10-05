@@ -5,6 +5,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../design_system/app_audio_button.dart';
+import '../design_system/app_glass_card.dart';
+import '../design_system/app_typography.dart';
+
 import '../core/content_contract.dart';
 import '../core/learning_core.dart';
 import '../core/view_mode.dart';
