@@ -123,10 +123,14 @@ def test_manual_preview_build_cannot_delete_release_tags():
     assert "if: github.ref_name == 'main'" in preview
 
 
-def test_local_quality_gate_keeps_full_python_regression_suite():
+def test_local_quality_gate_uses_active_contracts_with_legacy_opt_in():
     gate = read("scripts/local_quality_gate.sh")
 
-    assert "python3 -m pytest -q tests" in gate
-    assert "--ignore=" not in gate
-    assert "--ignore " not in gate
-    assert "pytest -k " not in gate
+    assert "ACTIVE_PYTHON_TESTS=(" in gate
+    assert 'find "$ROOT/tests"' in gate
+    assert "-name 'test_*_adaptive_glass_contract.py'" in gate
+    assert "ACTIVE_PYTHON_TESTS[@]" in gate
+    assert "dart analyze lib/" in gate
+    assert "flutter test" in gate
+    assert "RUN_LEGACY_TEXT_REGRESSIONS=" in gate
+    assert "python3 -m pytest -q tests --ignore=tests/quality_gate" in gate

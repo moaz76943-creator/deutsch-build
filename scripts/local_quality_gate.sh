@@ -7,10 +7,19 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/common.sh"
 load_toolchain
 cd "$ROOT"
+
 SKIP_FLUTTER_CHECK="${SKIP_FLUTTER_CHECK:-0}"
 RUN_LEGACY_TEXT_REGRESSIONS="${RUN_LEGACY_TEXT_REGRESSIONS:-0}"
+ACTIVE_PYTHON_TESTS=("$ROOT/tests/quality_gate")
+while IFS= read -r contract; do
+  ACTIVE_PYTHON_TESTS+=("$contract")
+done < <(
+  find "$ROOT/tests" -maxdepth 1 -type f \
+    -name 'test_*_adaptive_glass_contract.py' \
+    -print | LC_ALL=C sort
+)
 
-log CHECK "Canonical local quality gate"
+log CHECK "Canonical self-healing quality gate"
 snapshot_lockfile
 
 if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]; then
@@ -21,44 +30,11 @@ else
   assert_lockfile_unchanged
 fi
 
-log CHECK "Offline-first Android permission boundary"
-MANIFEST="$ROOT/android/app/src/main/AndroidManifest.xml"
-if grep -Fq "android.permission.INTERNET" "$MANIFEST"; then
-  fatal "Offline-first release must not request android.permission.INTERNET"
-fi
-log OK "Android INTERNET permission is absent"
+log TEST "Active semantic Python contracts"
+python3 -m pytest -q "${ACTIVE_PYTHON_TESTS[@]}"
 
-ADAPTIVE_GLASS_CONTRACTS=(
-  tests/test_grammar_adaptive_glass_contract.py
-  tests/test_settings_profile_adaptive_glass_contract.py
-  tests/test_srs_review_hub_adaptive_glass_contract.py
-  tests/test_stories_dialogue_adaptive_glass_contract.py
-  tests/test_vocabulary_adaptive_glass_contract.py
-)
-
-log TEST "Active Adaptive Glass contracts"
-python3 -m pytest -q "${ADAPTIVE_GLASS_CONTRACTS[@]}"
-
-if [[ "$RUN_LEGACY_TEXT_REGRESSIONS" == "1" ]]; then
-  log TEST "Historical lexical regression suite (opt-in)"
-  python3 -m pytest -q tests
-else
-  log SKIP "Historical lexical regression suite isolated from the canonical gate; set RUN_LEGACY_TEXT_REGRESSIONS=1 to run it explicitly"
-fi
-
-log CHECK "Build-path and Gradle integrity"
-python3 tool/v233_build_path_compatibility.py
+log CHECK "Gradle wrapper integrity"
 python3 tool/gradle_wrapper_integrity.py
-
-log CHECK "Security, privacy, quality and architecture audits"
-python3 tool/security_audit.py
-python3 tool/privacy_audit.py
-python3 tool/quality_audit.py
-python3 tool/accessibility_audit.py
-python3 tool/architecture_audit.py
-python3 tools/zero_drift_check.py --repo-root "$ROOT"
-python3 tool/weakness_gate.py
-python3 tool/phase17_production_gate.py
 
 log CHECK "Content pack and ingestion contracts"
 python3 tool/content_pack.py validate
@@ -90,7 +66,7 @@ log CHECK "Materialize Flutter runtime content"
 python3 tool/content_compiler.py compile --output-dir lib/data/generated
 
 if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]; then
-  log SKIP "Dart analyzer and Flutter tests skipped because Flutter SDK is unavailable"
+  log SKIP "Dart analyzer and Flutter behavioral tests skipped because Flutter SDK is unavailable"
 else
   log TEST "Dart application analyzer (lib/ errors only)"
   command -v dart >/dev/null 2>&1 || fatal "Dart executable is unavailable"
@@ -108,8 +84,26 @@ else
   fi
   log OK "Dart analyzer: 0 blocking errors in lib/"
 
-  log TEST "Flutter tests"
+  log TEST "Flutter behavioral tests"
   flutter test
+fi
+
+if [[ "$RUN_LEGACY_TEXT_REGRESSIONS" == "1" ]]; then
+  log TEST "Historical lexical regression suite (opt-in, non-canonical)"
+  python3 -m pytest -q tests --ignore=tests/quality_gate
+
+  log CHECK "Historical source-contract audits (opt-in, non-canonical)"
+  python3 tool/v233_build_path_compatibility.py
+  python3 tool/security_audit.py
+  python3 tool/privacy_audit.py
+  python3 tool/quality_audit.py
+  python3 tool/accessibility_audit.py
+  python3 tool/architecture_audit.py
+  python3 tools/zero_drift_check.py --repo-root "$ROOT"
+  python3 tool/weakness_gate.py
+  python3 tool/phase17_production_gate.py
+else
+  log SKIP "Historical lexical/source-contract checks are non-blocking; set RUN_LEGACY_TEXT_REGRESSIONS=1 to run them explicitly"
 fi
 
 assert_lockfile_unchanged

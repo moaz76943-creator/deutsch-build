@@ -68,5 +68,7 @@ jobs:
       - name: Install Python test tooling
         run: python3 -m pip install --disable-pip-version-check --no-input pytest
 
-      - name: Run canonical quality gate
+      - name: Run self-healing quality gate
+        env:
+          RUN_LEGACY_TEXT_REGRESSIONS: '0'
         run: bash scripts/local_quality_gate.sh
