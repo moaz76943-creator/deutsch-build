@@ -2,7 +2,7 @@ name: Comprehensive Quality Check & APK Build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ '**' ]
   workflow_dispatch:
 
 jobs:
@@ -34,11 +34,8 @@ jobs:
       - name: 6. Build Standard Release APK
         run: flutter build apk --release
 
-      - name: 7. Build Split Per-ABI APKs (High Performance)
-        run: flutter build apk --release --split-per-abi
-
-      - name: 8. Upload Build Artifacts
+      - name: 7. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deutsch-bilarabi-apks
-          path: build/app/outputs/flutter-apk/*.apk
+          name: deutsch-bilarabi-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
