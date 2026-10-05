@@ -4,17 +4,16 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$ROOT/toolchain.lock"
+PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 FLUTTER_VERSION="$FLUTTER_VERSION"
 ANDROID_API="$ANDROID_COMPILE_SDK"
-FLUTTER_ROOT="${FLUTTER_ROOT:-$HOME/flutter}"
+FLUTTER_ROOT="${FLUTTER_ROOT:-$PREFIX/opt/flutter}"
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
 ANDROID_BUILD_TOOLS_VERSION="$ANDROID_BUILD_TOOLS_VERSION"
 CMDLINE_TOOLS_VERSION="$CMDLINE_TOOLS_VERSION"
 CMDLINE_TOOLS_SHA256="$CMDLINE_TOOLS_SHA256"
 MIN_FREE_MB="$((MIN_FREE_KB / 1024))"
 LOG_FILE="${LOG_FILE:-$HOME/flutter_install.log}"
-
-PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 TERMUX_HOME="${HOME}"
 ARCH=""
 JAVA_HOME_DETECTED=""
@@ -54,13 +53,12 @@ check_network() {
   log '[3/8] Checking network'
   command -v curl >/dev/null 2>&1 || fatal "curl is required before network checks."
   local url
-  for url in https://github.com https://storage.googleapis.com; do
+  for url in https://github.com https://api.github.com https://dl.google.com; do
     if ! curl -fsSIL --connect-timeout 10 --max-time 20 "$url" >/dev/null; then
       fatal "Network check failed for $url. No large download was started."
     fi
   done
 }
-
 setup_repositories() {
   log 'Refreshing Termux repositories'
   command -v pkg >/dev/null 2>&1 || fatal "Termux pkg command not found. This script is for Termux."
@@ -84,7 +82,7 @@ setup_repositories() {
 ensure_required_commands() {
   local missing=()
   local cmd
-  for cmd in curl git unzip tar gzip xz zip; do
+  for cmd in curl git unzip tar gzip xz zip python; do
     command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
   done
   if ((${#missing[@]})); then
@@ -145,36 +143,82 @@ download_resumable() {
 
 setup_flutter() {
   log '[5/8] Installing/checking Flutter'
+  [[ "$ARCH" == "aarch64" ]] || fatal "The pinned Termux Flutter host package supports aarch64 only; found $ARCH."
+
   local flutter_bin="$FLUTTER_ROOT/bin/flutter"
   if [[ -x "$flutter_bin" ]]; then
-    log "Existing Flutter found at $FLUTTER_ROOT; preserving it."
+    export PATH="$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin:$PATH"
+    if flutter --version 2>&1 | head -1 | grep -Fq "Flutter $FLUTTER_VERSION"; then
+      log "Compatible Termux Flutter already exists at $FLUTTER_ROOT; preserving it."
+      flutter --version
+      dart --version
+      return
+    fi
+    fatal "Flutter exists at $FLUTTER_ROOT but does not report pinned version $FLUTTER_VERSION; refusing to overwrite it."
+  fi
+
+  local release_api metadata archive asset_url expected_digest
+  release_api="https://api.github.com/repos/${TERMUX_FLUTTER_REPOSITORY}/releases/tags/${TERMUX_FLUTTER_RELEASE_TAG}"
+  metadata="$HOME/.cache/flutter/${TERMUX_FLUTTER_RELEASE_TAG}.json"
+  archive="$HOME/.cache/flutter/$TERMUX_FLUTTER_DEB"
+  asset_url="https://github.com/${TERMUX_FLUTTER_REPOSITORY}/releases/download/${TERMUX_FLUTTER_RELEASE_TAG}/${TERMUX_FLUTTER_DEB}"
+  mkdir -p "$HOME/.cache/flutter"
+
+  log "Fetching immutable GitHub Release metadata: $TERMUX_FLUTTER_RELEASE_TAG"
+  curl -fL --retry 3 --retry-delay 2 -o "$metadata" "$release_api" || fatal "Could not fetch pinned Termux Flutter release metadata."
+  expected_digest="$(python - "$metadata" "$TERMUX_FLUTTER_DEB" <<'PY'
+import json
+import re
+import sys
+
+metadata_path, asset_name = sys.argv[1], sys.argv[2]
+with open(metadata_path, encoding='utf-8') as handle:
+    release = json.load(handle)
+
+matches = [asset for asset in release.get('assets', []) if asset.get('name') == asset_name]
+if len(matches) != 1:
+    raise SystemExit(f'Expected exactly one release asset named {asset_name!r}; found {len(matches)}')
+
+digest = matches[0].get('digest') or ''
+if not re.fullmatch(r'sha256:[0-9a-fA-F]{64}', digest):
+    raise SystemExit(f'Release asset {asset_name!r} does not expose a valid sha256 digest')
+
+print(digest.split(':', 1)[1].lower())
+PY
+)" || fatal "Could not resolve a trusted SHA-256 digest for $TERMUX_FLUTTER_DEB."
+
+  if [[ -s "$archive" ]] && printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - >/dev/null 2>&1; then
+    log "Verified cached Termux Flutter package: $archive"
   else
-    local archive suffix url
-    if [[ "$ARCH" == "aarch64" ]]; then
-      suffix="arm64"
-      url="https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_arm64_${FLUTTER_VERSION}-stable.tar.xz"
-    else
-      suffix="x64"
-      url="https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz"
-    fi
-    archive="$HOME/.cache/flutter/flutter_linux_${suffix}_${FLUTTER_VERSION}-stable.tar.xz"
-    mkdir -p "$HOME/.cache/flutter"
-    download_resumable "$url" "$archive"
-    xz -t "$archive" || fatal "Flutter archive failed xz integrity check: $archive"
-    if [[ -e "$FLUTTER_ROOT" ]]; then
-      fatal "Flutter path $FLUTTER_ROOT exists but is not a valid Flutter installation; refusing to overwrite it."
-    fi
-    # Extract directly into the parent only when the destination does not exist.
-    # This avoids a staging move and never removes a pre-existing installation.
-    tar -xJf "$archive" -C "$HOME"
-    [[ -x "$FLUTTER_ROOT/bin/flutter" ]] || fatal "Flutter archive did not contain a usable flutter executable."
+    download_resumable "$asset_url" "$archive"
+  fi
+  printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - || fatal "Termux Flutter package SHA-256 verification failed."
+
+  log "Installing pinned Termux-native Flutter package: $TERMUX_FLUTTER_DEB"
+  if ! dpkg -i "$archive"; then
+    log "Resolving declared Termux package dependencies"
+    apt --fix-broken install -y || fatal "Could not resolve Termux Flutter package dependencies."
+    dpkg -i "$archive" || fatal "Termux Flutter package installation failed after dependency resolution."
+  fi
+
+  local post_install="$PREFIX/share/flutter/post_install.sh"
+  [[ -f "$post_install" ]] || fatal "Termux Flutter post-install hook is missing: $post_install"
+  bash "$post_install" || fatal "Termux Flutter post-install configuration failed."
+
+  FLUTTER_ROOT="$PREFIX/opt/flutter"
+  export FLUTTER_ROOT
+  if [[ -f "$PREFIX/etc/profile.d/flutter.sh" ]]; then
+    # shellcheck disable=SC1090
+    source "$PREFIX/etc/profile.d/flutter.sh"
   fi
   export PATH="$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin:$PATH"
-  command -v flutter >/dev/null 2>&1 || fatal "Flutter is not on PATH."
+  command -v flutter >/dev/null 2>&1 || fatal "Flutter is not on PATH after package installation."
+  command -v dart >/dev/null 2>&1 || fatal "Dart is not on PATH after package installation."
+  flutter --version 2>&1 | head -1 | grep -F "Flutter $FLUTTER_VERSION" >/dev/null || fatal "Installed Flutter does not match pinned version $FLUTTER_VERSION."
+  dart --version 2>&1 | grep -F "$DART_VERSION" >/dev/null || fatal "Installed Dart does not match pinned version $DART_VERSION."
   flutter --version
   dart --version
 }
-
 discover_android_sdk() {
   if [[ -n "${ANDROID_SDK_ROOT:-}" && -d "$ANDROID_SDK_ROOT" ]]; then
     log "Using configured Android SDK: $ANDROID_SDK_ROOT"
@@ -229,12 +273,15 @@ setup_android_sdk() {
   export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
   command -v sdkmanager >/dev/null 2>&1 || fatal "sdkmanager is unavailable."
 
-  if [[ "$ARCH" == "aarch64" ]] && ! command -v aapt2 >/dev/null 2>&1; then
-    log "Installing required native ARM64 aapt2 for Termux Android builds"
-    pkg install -y aapt2 || fatal "Could not install the Termux ARM64 aapt2 package."
-  fi
-  if [[ "$ARCH" == "aarch64" ]] && command -v aapt2 >/dev/null 2>&1; then
-    log "ARM64 native aapt2 detected: $(command -v aapt2)"
+  if [[ "$ARCH" == "aarch64" ]]; then
+    if ! command -v aapt >/dev/null 2>&1 || ! command -v aapt2 >/dev/null 2>&1; then
+      log "Installing native Android packaging tools from the Termux aapt package"
+      pkg install -y aapt || fatal "Could not install the Termux aapt package."
+    fi
+    command -v aapt >/dev/null 2>&1 || fatal "Native Termux aapt is unavailable."
+    command -v aapt2 >/dev/null 2>&1 || fatal "Native Termux aapt2 is unavailable."
+    aapt version
+    aapt2 version
   fi
   if ! command -v adb >/dev/null 2>&1; then
     if pkg install -y android-tools; then
@@ -258,7 +305,45 @@ setup_android_sdk() {
     log "All requested Android SDK components already exist; preserving them without reinstalling."
   fi
   sdkmanager --list >/dev/null || fatal "sdkmanager could not enumerate installed/available components."
+  verify_aapt2_platform
   flutter config --android-sdk "$ANDROID_SDK_ROOT"
+}
+
+verify_aapt2_platform() {
+  [[ "$ARCH" == "aarch64" ]] || return 0
+
+  local platform_jar="$ANDROID_SDK_ROOT/platforms/android-${ANDROID_API}/android.jar"
+  [[ -f "$platform_jar" ]] || fatal "Android API ${ANDROID_API} platform jar is missing: $platform_jar"
+
+  local probe_dir probe_status
+  probe_dir="$(mktemp -d)"
+  cat > "$probe_dir/AndroidManifest.xml" <<EOF
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.deutschbilarabi.toolchainprobe">
+    <uses-sdk android:minSdkVersion="${ANDROID_MIN_SDK}" android:targetSdkVersion="${ANDROID_API}" />
+    <application android:label="ToolchainProbe" />
+</manifest>
+EOF
+
+  set +e
+  aapt2 link \
+    -I "$platform_jar" \
+    --manifest "$probe_dir/AndroidManifest.xml" \
+    --min-sdk-version "$ANDROID_MIN_SDK" \
+    --target-sdk-version "$ANDROID_API" \
+    -o "$probe_dir/api-${ANDROID_API}-probe.apk" >/dev/null 2>&1
+  probe_status=$?
+  set -e
+
+  python3 - "$probe_dir" <<'PY'
+from pathlib import Path
+import shutil
+import sys
+
+shutil.rmtree(Path(sys.argv[1]), ignore_errors=True)
+PY
+
+  [[ "$probe_status" -eq 0 ]] || fatal "Native AAPT2 cannot link against Android API ${ANDROID_API}; refusing to start a long Flutter build."
+  log "AAPT2 API ${ANDROID_API} preflight: PASS"
 }
 
 setup_environment() {

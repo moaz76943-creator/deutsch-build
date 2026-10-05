@@ -17,6 +17,45 @@ trap 'on_error "${LINENO}" "${BASH_COMMAND}" "$?"' ERR
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 fatal() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
+configure_aapt2_override() {
+  case "$(uname -m)" in
+    aarch64|arm64) ;;
+    *) return 0 ;;
+  esac
+  command -v aapt2 >/dev/null 2>&1 || fatal "ARM64 build requires a native aapt2 binary. Install the Termux aapt package before building."
+
+  mkdir -p "$HOME/.gradle"
+  local gp="$HOME/.gradle/gradle.properties"
+  local desired="android.aapt2FromMavenOverride=$(command -v aapt2)"
+
+  if [[ -f "$gp" ]] && grep -Fq "android.aapt2FromMavenOverride=" "$gp"; then
+    python3 - "$gp" "$desired" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+desired = sys.argv[2]
+lines = path.read_text(encoding='utf-8').splitlines()
+updated = []
+replaced = False
+for line in lines:
+    if line.startswith('android.aapt2FromMavenOverride='):
+        if not replaced:
+            updated.append(desired)
+            replaced = True
+        continue
+    updated.append(line)
+if not replaced:
+    updated.append(desired)
+path.write_text('\n'.join(updated) + '\n', encoding='utf-8')
+PY
+    log "Reconciled ARM64 aapt2 override in $gp"
+  else
+    printf '%s\n' "$desired" >> "$gp"
+    log "Added native ARM64 aapt2 override to $gp"
+  fi
+}
+
 main() {
   exec > >(tee -a "$LOG_FILE") 2>&1
   log 'Checking Flutter build environment'
@@ -29,19 +68,7 @@ main() {
   chmod +x "$PROJECT_ROOT/android/gradlew"
   (cd "$PROJECT_ROOT/android" && ./gradlew --version)
 
-  if [[ "$(uname -m)" == "aarch64" ]] && command -v aapt2 >/dev/null 2>&1; then
-    mkdir -p "$HOME/.gradle"
-    local gp="$HOME/.gradle/gradle.properties"
-    if [[ -f "$gp" ]] && grep -Fq 'android.aapt2FromMavenOverride=' "$gp"; then
-      log "Existing ARM64 aapt2 override preserved in $gp"
-    else
-      mkdir -p "$(dirname "$gp")"
-      printf 'android.aapt2FromMavenOverride=%s\n' "$(command -v aapt2)" >> "$gp"
-      log "Added native ARM64 aapt2 override to $gp without replacing existing content"
-    fi
-  elif [[ "$(uname -m)" == "aarch64" ]]; then
-    fatal 'ARM64 build requires a native aapt2 binary. Install the Termux aapt2 package before building.'
-  fi
+  configure_aapt2_override
 
   "$ROOT/scripts/build.sh" debug
 }

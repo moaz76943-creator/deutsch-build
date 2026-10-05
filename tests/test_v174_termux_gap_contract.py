@@ -33,3 +33,11 @@ def test_build_script_uses_wrapper_and_verifies_required_android_sdk():
     text = BUILD.read_text()
     assert 'scripts/build.sh' in text
     assert 'android.aapt2FromMavenOverride=' in text
+
+def test_build_repairs_only_the_aapt2_override_without_resetting_gradle_state():
+    text = BUILD.read_text()
+    assert 'configure_aapt2_override()' in text
+    assert 'android.aapt2FromMavenOverride=' in text
+    assert 'python3 - "$gp" "$desired"' in text
+    assert 'Existing ARM64 aapt2 override preserved' not in text
+    assert 'rm -rf "$HOME/.gradle"' not in text

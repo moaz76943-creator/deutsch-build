@@ -22,7 +22,7 @@ def test_single_toolchain_contract_exists_and_matches_reference():
         "KOTLIN_VERSION": "2.3.0",
         "ANDROID_COMPILE_SDK": "36",
         "ANDROID_TARGET_SDK": "36",
-        "ANDROID_MIN_SDK": "23",
+        "ANDROID_MIN_SDK": "24",
         "ANDROID_BUILD_TOOLS_VERSION": "36.0.0",
         "APK_ABI": "arm64-v8a",
     }
