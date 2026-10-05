@@ -46,7 +46,9 @@ concurrency:
 jobs:
   canonical-quality-contract:
     name: Canonical quality contract
-    if: github.event_name == 'pull_request'
+    if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -79,6 +81,9 @@ jobs:
   ai-architecture-review:
     name: ai-architecture-review
     if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+      vars.AI_COLLABORATION_ENABLED == 'true' &&
+      vars.AI_COLLABORATION_BILLING_APPROVED == 'true' &&
       github.event_name != 'pull_request' &&
       github.actor != 'github-actions[bot]' &&
       github.actor != 'dependabot[bot]'
@@ -456,6 +461,7 @@ jobs:
   inline-static-review:
     name: Inline static review
     if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
       github.event_name == 'pull_request_target' &&
       github.actor != 'github-actions[bot]' &&
       github.actor != 'dependabot[bot]'
@@ -578,6 +584,7 @@ jobs:
   adr-draft-from-feature-issue:
     name: Feature ADR draft
     if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
       github.event_name == 'issues' &&
       github.actor != 'github-actions[bot]' &&
       github.actor != 'dependabot[bot]' &&

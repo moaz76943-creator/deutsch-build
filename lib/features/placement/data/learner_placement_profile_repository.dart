@@ -13,7 +13,7 @@ final class LearnerPlacementProfileRepository
   @override
   Future<void> applyResult(PlacementResult result, {DateTime? at}) async {
     final now = at ?? DateTime.now();
-    final state = repository.load();
+    final state = await repository.reloadPersisted();
     final review = <String>{...state.review};
     final cards = <String, ReviewCard>{...state.reviewCards};
 

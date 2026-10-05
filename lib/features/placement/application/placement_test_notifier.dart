@@ -11,6 +11,7 @@ final class PlacementTestState {
     this.result,
     this.learningGoal,
     this.lastAnswerCorrect,
+    this.resultPersisted = false,
     this.isLoading = false,
     this.isApplyingResult = false,
     this.isPlayingAudio = false,
@@ -23,6 +24,7 @@ final class PlacementTestState {
   final PlacementResult? result;
   final PlacementLearningGoal? learningGoal;
   final bool? lastAnswerCorrect;
+  final bool resultPersisted;
   final bool isLoading;
   final bool isApplyingResult;
   final bool isPlayingAudio;
@@ -31,6 +33,8 @@ final class PlacementTestState {
 
   double get progress => session?.progress ?? 0;
   bool get hasStarted => session != null;
+  bool get canStartLearning =>
+      result != null && resultPersisted && !isApplyingResult;
 }
 
 class PlacementTestNotifier extends ChangeNotifier {
@@ -47,6 +51,17 @@ class PlacementTestNotifier extends ChangeNotifier {
         _engine = engine,
         _clock = clock ?? DateTime.now;
 
+  static const String _startLoadError =
+      'تعذر تجهيز أسئلة تحديد المستوى. أعد المحاولة.';
+  static const String _nextQuestionLoadError =
+      'تعذر تحميل السؤال التالي. أعد المحاولة دون فقدان إجاباتك.';
+  static const String _answerStateError =
+      'تعذر متابعة الاختبار بأمان. أعد المحاولة دون فقدان إجاباتك.';
+  static const String _resultSaveError =
+      'تعذر حفظ نتيجة الاختبار محلياً. أعد المحاولة قبل بدء التعلم.';
+  static const String _audioError =
+      'تعذر تشغيل الصوت حالياً؛ يمكنك متابعة الاختبار بدون صوت.';
+
   final PlacementRepository _repository;
   final PlacementProfileRepository _profileRepository;
   final PlacementAudioGateway _audioGateway;
@@ -54,17 +69,25 @@ class PlacementTestNotifier extends ChangeNotifier {
   final DateTime Function() _clock;
 
   PlacementTestState _state = const PlacementTestState();
+  DateTime? _resultPersistenceTimestamp;
+  bool _disposed = false;
 
   PlacementTestState get state => _state;
 
   void selectGoal(PlacementLearningGoal goal) {
-    if (_state.hasStarted || _state.isLoading) return;
+    if (_disposed || _state.hasStarted || _state.isLoading) return;
     _setState(PlacementTestState(learningGoal: goal));
   }
 
   Future<void> start() async {
-    if (_state.session != null || _state.isLoading) return;
+    if (_disposed ||
+        _state.session != null ||
+        _state.isLoading ||
+        _state.isApplyingResult) {
+      return;
+    }
     final goal = _state.learningGoal ?? PlacementLearningGoal.general;
+    _resultPersistenceTimestamp = null;
     _setState(
       PlacementTestState(
         learningGoal: goal,
@@ -98,33 +121,60 @@ class PlacementTestNotifier extends ChangeNotifier {
           learningGoal: goal,
         ),
       );
-    } catch (error) {
+    } on Object {
       _setState(
         PlacementTestState(
           learningGoal: goal,
-          errorMessage: error.toString(),
+          errorMessage: _startLoadError,
         ),
       );
     }
   }
 
   Future<void> submitOption(String optionId) async {
+    if (_disposed) return;
     final session = _state.session;
     final question = _state.currentQuestion;
     if (session == null ||
         question == null ||
         _state.isLoading ||
-        _state.isApplyingResult) {
+        _state.isApplyingResult ||
+        _state.result != null) {
       return;
     }
 
-    final updated = _engine.recordAnswer(
-      session: session,
-      question: question,
-      selectedOptionId: optionId,
+    final goal = _state.learningGoal;
+    _setState(
+      PlacementTestState(
+        session: session,
+        currentQuestion: question,
+        learningGoal: goal,
+        lastAnswerCorrect: _state.lastAnswerCorrect,
+        isLoading: true,
+        audioUnavailable: _state.audioUnavailable,
+      ),
     );
-    final lastAnswerCorrect = updated.answers.last.correct;
 
+    late final AssessmentSession updated;
+    try {
+      updated = _engine.recordAnswer(
+        session: session,
+        question: question,
+        selectedOptionId: optionId,
+      );
+    } on Object {
+      _setState(
+        PlacementTestState(
+          session: session,
+          learningGoal: goal,
+          lastAnswerCorrect: _state.lastAnswerCorrect,
+          errorMessage: _answerStateError,
+        ),
+      );
+      return;
+    }
+
+    final lastAnswerCorrect = updated.answers.last.correct;
     if (updated.completed) {
       await _finish(
         updated,
@@ -133,51 +183,52 @@ class PlacementTestNotifier extends ChangeNotifier {
       return;
     }
 
-    _setState(
-      PlacementTestState(
-        session: updated,
-        currentQuestion: question,
-        learningGoal: _state.learningGoal,
-        lastAnswerCorrect: lastAnswerCorrect,
-        isLoading: true,
-      ),
+    await _loadNextQuestion(
+      updated,
+      lastAnswerCorrect: lastAnswerCorrect,
     );
+  }
 
-    try {
-      final next = await _repository.nextQuestion(
-        level: updated.currentLevel,
-        excludeIds: updated.answeredQuestionIds,
-      );
-      if (next == null) {
-        await _finish(
-          updated.copyWith(completed: true),
-          lastAnswerCorrect: lastAnswerCorrect,
-        );
-        return;
-      }
+  Future<void> retry() async {
+    if (_disposed || _state.isLoading || _state.isApplyingResult) return;
 
-      _setState(
-        PlacementTestState(
-          session: updated,
-          currentQuestion: next,
-          learningGoal: _state.learningGoal,
-          lastAnswerCorrect: lastAnswerCorrect,
-        ),
+    final result = _state.result;
+    final session = _state.session;
+    if (result != null && !_state.resultPersisted) {
+      if (session == null) return;
+      await _persistResult(
+        session: session,
+        result: result,
+        lastAnswerCorrect: _state.lastAnswerCorrect ?? false,
       );
-    } catch (error) {
-      _setState(
-        PlacementTestState(
-          session: updated,
-          currentQuestion: question,
-          learningGoal: _state.learningGoal,
-          lastAnswerCorrect: lastAnswerCorrect,
-          errorMessage: error.toString(),
-        ),
-      );
+      return;
     }
+
+    if (session == null) {
+      await start();
+      return;
+    }
+
+    if (_state.currentQuestion != null && _state.errorMessage == null) {
+      return;
+    }
+
+    if (session.completed) {
+      await _finish(
+        session,
+        lastAnswerCorrect: _state.lastAnswerCorrect ?? false,
+      );
+      return;
+    }
+
+    await _loadNextQuestion(
+      session,
+      lastAnswerCorrect: _state.lastAnswerCorrect,
+    );
   }
 
   Future<bool> replayCurrentAudio() async {
+    if (_disposed) return false;
     final question = _state.currentQuestion;
     if (question == null || !question.hasAudio || _state.isPlayingAudio) {
       return false;
@@ -190,6 +241,7 @@ class PlacementTestNotifier extends ChangeNotifier {
         result: _state.result,
         learningGoal: _state.learningGoal,
         lastAnswerCorrect: _state.lastAnswerCorrect,
+        resultPersisted: _state.resultPersisted,
         isPlayingAudio: true,
       ),
     );
@@ -203,11 +255,12 @@ class PlacementTestNotifier extends ChangeNotifier {
           result: _state.result,
           learningGoal: _state.learningGoal,
           lastAnswerCorrect: _state.lastAnswerCorrect,
+          resultPersisted: _state.resultPersisted,
           audioUnavailable: !played,
         ),
       );
       return played;
-    } catch (error) {
+    } on Object {
       _setState(
         PlacementTestState(
           session: _state.session,
@@ -215,11 +268,59 @@ class PlacementTestNotifier extends ChangeNotifier {
           result: _state.result,
           learningGoal: _state.learningGoal,
           lastAnswerCorrect: _state.lastAnswerCorrect,
+          resultPersisted: _state.resultPersisted,
           audioUnavailable: true,
-          errorMessage: error.toString(),
+          errorMessage: _audioError,
         ),
       );
       return false;
+    }
+  }
+
+  Future<void> _loadNextQuestion(
+    AssessmentSession session, {
+    required bool? lastAnswerCorrect,
+  }) async {
+    final goal = _state.learningGoal;
+    _setState(
+      PlacementTestState(
+        session: session,
+        learningGoal: goal,
+        lastAnswerCorrect: lastAnswerCorrect,
+        isLoading: true,
+      ),
+    );
+
+    try {
+      final next = await _repository.nextQuestion(
+        level: session.currentLevel,
+        excludeIds: session.answeredQuestionIds,
+      );
+      if (next == null) {
+        await _finish(
+          session.copyWith(completed: true),
+          lastAnswerCorrect: lastAnswerCorrect ?? false,
+        );
+        return;
+      }
+
+      _setState(
+        PlacementTestState(
+          session: session,
+          currentQuestion: next,
+          learningGoal: goal,
+          lastAnswerCorrect: lastAnswerCorrect,
+        ),
+      );
+    } on Object {
+      _setState(
+        PlacementTestState(
+          session: session,
+          learningGoal: goal,
+          lastAnswerCorrect: lastAnswerCorrect,
+          errorMessage: _nextQuestionLoadError,
+        ),
+      );
     }
   }
 
@@ -230,12 +331,42 @@ class PlacementTestNotifier extends ChangeNotifier {
     final completed =
         session.completed ? session : session.copyWith(completed: true);
     final goal = _state.learningGoal ?? PlacementLearningGoal.general;
-    final result = _engine.resultFor(completed).copyWith(
+
+    late final PlacementResult result;
+    try {
+      result = _engine.resultFor(completed).copyWith(
+            learningGoal: goal,
+          );
+    } on Object {
+      _setState(
+        PlacementTestState(
+          session: completed,
           learningGoal: goal,
-        );
+          lastAnswerCorrect: lastAnswerCorrect,
+          errorMessage: _answerStateError,
+        ),
+      );
+      return;
+    }
+
+    await _persistResult(
+      session: completed,
+      result: result,
+      lastAnswerCorrect: lastAnswerCorrect,
+    );
+  }
+
+  Future<void> _persistResult({
+    required AssessmentSession session,
+    required PlacementResult result,
+    required bool lastAnswerCorrect,
+  }) async {
+    final goal = result.learningGoal ??
+        _state.learningGoal ??
+        PlacementLearningGoal.general;
     _setState(
       PlacementTestState(
-        session: completed,
+        session: session,
         result: result,
         learningGoal: goal,
         lastAnswerCorrect: lastAnswerCorrect,
@@ -243,31 +374,40 @@ class PlacementTestNotifier extends ChangeNotifier {
       ),
     );
 
+    final at = _resultPersistenceTimestamp ??= _clock();
     try {
-      await _profileRepository.applyResult(result, at: _clock());
+      await _profileRepository.applyResult(result, at: at);
       _setState(
         PlacementTestState(
-          session: completed,
+          session: session,
           result: result,
           learningGoal: goal,
           lastAnswerCorrect: lastAnswerCorrect,
+          resultPersisted: true,
         ),
       );
-    } catch (error) {
+    } on Object {
       _setState(
         PlacementTestState(
-          session: completed,
+          session: session,
           result: result,
           learningGoal: goal,
           lastAnswerCorrect: lastAnswerCorrect,
-          errorMessage: error.toString(),
+          errorMessage: _resultSaveError,
         ),
       );
     }
   }
 
   void _setState(PlacementTestState value) {
+    if (_disposed) return;
     _state = value;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

@@ -8,14 +8,20 @@ import '../domain/placement_models.dart';
 class PlacementResultScreen extends StatelessWidget {
   const PlacementResultScreen({
     required this.result,
+    required this.resultPersisted,
+    required this.onRetryPersist,
     required this.onStartLearning,
     this.isApplyingResult = false,
+    this.errorMessage,
     super.key,
   });
 
   final PlacementResult result;
+  final bool resultPersisted;
+  final VoidCallback onRetryPersist;
   final VoidCallback onStartLearning;
   final bool isApplyingResult;
+  final String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -112,18 +118,25 @@ class PlacementResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             AppGlassCard(
-              glowColor: AppColors.secondary,
+              glowColor:
+                  resultPersisted ? AppColors.secondary : AppColors.articleDie,
               child: Row(
                 children: <Widget>[
-                  const Icon(
-                    Icons.autorenew_rounded,
-                    color: AppColors.secondary,
+                  Icon(
+                    resultPersisted
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.save_outlined,
+                    color: resultPersisted
+                        ? AppColors.secondary
+                        : AppColors.articleDie,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'بدأت تهيئة SRS بفاصل أولي ${result.initialReviewIntervalDays} يوم '
-                      'للعناصر التي احتاجت مراجعة.',
+                      resultPersisted
+                          ? 'تم حفظ مسارك وتهيئة المراجعة الأولية بفاصل '
+                              '${result.initialReviewIntervalDays} يوم للعناصر التي احتاجت مراجعة.'
+                          : 'لم تُعتمد النتيجة بعد. سيُحفظ مسارك المحلي قبل الانتقال إلى التعلم.',
                       textDirection: TextDirection.rtl,
                       style: AppTypography.body,
                     ),
@@ -131,6 +144,40 @@ class PlacementResultScreen extends StatelessWidget {
                 ],
               ),
             ),
+            if (!resultPersisted) ...<Widget>[
+              const SizedBox(height: 14),
+              AppGlassCard(
+                glowColor: AppColors.articleDie,
+                borderColor: AppColors.articleDie.withAlpha(90),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      errorMessage ??
+                          'تعذر حفظ النتيجة محلياً. أعد المحاولة دون إعادة الاختبار.',
+                      textDirection: TextDirection.rtl,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.body,
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: isApplyingResult ? null : onRetryPersist,
+                      icon: isApplyingResult
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh_rounded),
+                      label: Text(
+                        isApplyingResult
+                            ? 'جاري حفظ النتيجة…'
+                            : 'إعادة محاولة الحفظ',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 14),
             Text(
               'هذه نقطة بداية تعليمية مبنية على عينة محلية متكيّفة، وليست شهادة CEFR رسمية.',
@@ -140,15 +187,25 @@ class PlacementResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: isApplyingResult ? null : onStartLearning,
+              onPressed: resultPersisted && !isApplyingResult
+                  ? onStartLearning
+                  : null,
               icon: isApplyingResult
                   ? const SizedBox.square(
                       dimension: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.play_arrow_rounded),
+                  : Icon(
+                      resultPersisted
+                          ? Icons.play_arrow_rounded
+                          : Icons.lock_outline_rounded,
+                    ),
               label: Text(
-                isApplyingResult ? 'جاري حفظ النتيجة…' : 'ابدأ التعلم الآن',
+                isApplyingResult
+                    ? 'جاري حفظ النتيجة…'
+                    : resultPersisted
+                        ? 'ابدأ التعلم الآن'
+                        : 'احفظ النتيجة للمتابعة',
               ),
             ),
           ],

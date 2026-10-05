@@ -31,7 +31,10 @@ class PlacementTestScreen extends StatelessWidget {
         if (result != null) {
           return PlacementResultScreen(
             result: result,
+            resultPersisted: state.resultPersisted,
             isApplyingResult: state.isApplyingResult,
+            errorMessage: state.errorMessage,
+            onRetryPersist: () => unawaited(notifier.retry()),
             onStartLearning: onStartLearning,
           );
         }
@@ -45,7 +48,10 @@ class PlacementTestScreen extends StatelessWidget {
           appBar: AppBar(title: const Text('اختبار تحديد المستوى')),
           body: SafeArea(
             child: question == null
-                ? _buildEmptyState(state)
+                ? _buildEmptyState(
+                    state,
+                    onRetry: () => unawaited(notifier.retry()),
+                  )
                 : _buildQuestion(context, state, question),
           ),
         );
@@ -140,7 +146,11 @@ class PlacementTestScreen extends StatelessWidget {
                     )
                   : const Icon(Icons.auto_awesome_rounded),
               label: Text(
-                state.isLoading ? 'جاري تجهيز الأسئلة…' : 'ابدأ الاختبار السريع',
+                state.isLoading
+                    ? 'جاري تجهيز الأسئلة…'
+                    : state.errorMessage == null
+                        ? 'ابدأ الاختبار السريع'
+                        : 'إعادة المحاولة',
               ),
             ),
             if (state.errorMessage != null) ...<Widget>[
@@ -159,17 +169,34 @@ class PlacementTestScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(PlacementTestState state) {
+  Widget _buildEmptyState(
+    PlacementTestState state, {
+    required VoidCallback onRetry,
+  }) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(
-          state.errorMessage ?? 'لا توجد أسئلة تشخيصية متاحة.',
-          textAlign: TextAlign.center,
-          style: AppTypography.body,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              state.errorMessage ?? 'لا توجد أسئلة تشخيصية متاحة.',
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: AppTypography.body,
+            ),
+            if (state.errorMessage != null) ...<Widget>[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('متابعة الاختبار'),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -341,8 +368,12 @@ class PlacementTestScreen extends StatelessWidget {
 
   String _orbGuidance(PlacementTestState state) {
     if (state.isPlayingAudio) return 'استمع الآن؛ لا حاجة للاستعجال.';
-    if (state.lastAnswerCorrect == true) return 'إجابة جيدة. سنرفع الصعوبة تدريجياً.';
-    if (state.lastAnswerCorrect == false) return 'سنكيّف السؤال التالي مع مستواك.';
+    if (state.lastAnswerCorrect == true) {
+      return 'إجابة جيدة. سنرفع الصعوبة تدريجياً.';
+    }
+    if (state.lastAnswerCorrect == false) {
+      return 'سنكيّف السؤال التالي مع مستواك.';
+    }
     return 'اختر الإجابة الأقرب لما تعرفه الآن.';
   }
 

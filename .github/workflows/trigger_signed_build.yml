@@ -18,7 +18,9 @@ concurrency:
 
 jobs:
   trigger-signed-aab:
-    if: github.event.pull_request.merged == true
+    if: >-
+      github.event.pull_request.merged == true &&
+      vars.GITHUB_ACTIONS_RELEASE_AUTOMATION_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:

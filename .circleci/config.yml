@@ -55,7 +55,7 @@ jobs:
             dart_version="$(dart --version 2>&1)"
             printf '%s\n' "$dart_version"
             [[ "$dart_version" == *"Dart SDK version: ${DART_VERSION} "* ]] || {
-              echo "Expected Dart ${DART_VERSION}, got: ${dart_version}" >&2
+              echo "Expected Dart ${DART_VERSION}, got: $dart_version" >&2
               exit 1
             }
 
@@ -85,6 +85,9 @@ jobs:
             node --check infra/cloudflare/codemagic-webhook/src/index.js
             node --test infra/cloudflare/codemagic-webhook/test/index.test.mjs
 
+  required-quality-gate:
+    type: no-op
+
 workflows:
   zero-cost-quality:
     when: >-
@@ -99,3 +102,7 @@ workflows:
     jobs:
       - quality-gate
       - worker-contract
+      - required-quality-gate:
+          requires:
+            - quality-gate
+            - worker-contract
