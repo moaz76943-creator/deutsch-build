@@ -7,27 +7,42 @@ import 'package:sqflite_common/sqlite_api.dart'
         DatabaseFactory,
         OpenDatabaseOptions;
 
+import 'domain/gamification_clock_integrity_source.dart';
 import 'domain/gamification_models.dart';
 import 'gamification_engine.dart';
 import 'gamification_repository.dart';
 
 final class SqliteGamificationRepository implements GamificationRepository {
-  SqliteGamificationRepository._(this._database);
+  SqliteGamificationRepository._(
+    this._database,
+    this._clockIntegritySource,
+  );
 
   final Database _database;
+  final GamificationClockIntegritySource _clockIntegritySource;
   bool _closed = false;
 
-  static Future<SqliteGamificationRepository> open(String databasePath) =>
-      openWithFactory(sqflite.databaseFactory, databasePath);
+  static Future<SqliteGamificationRepository> open(
+    String databasePath, {
+    GamificationClockIntegritySource clockIntegritySource =
+        const UnavailableGamificationClockIntegritySource(),
+  }) =>
+      openWithFactory(
+        sqflite.databaseFactory,
+        databasePath,
+        clockIntegritySource: clockIntegritySource,
+      );
 
   static Future<SqliteGamificationRepository> openWithFactory(
     DatabaseFactory factory,
-    String databasePath,
-  ) async {
+    String databasePath, {
+    GamificationClockIntegritySource clockIntegritySource =
+        const UnavailableGamificationClockIntegritySource(),
+  }) async {
     final database = await factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
@@ -41,6 +56,8 @@ final class SqliteGamificationRepository implements GamificationRepository {
               last_review_utc TEXT,
               last_local_day TEXT,
               last_timezone_offset_minutes INTEGER,
+              last_monotonic_elapsed_ms INTEGER,
+              last_boot_count INTEGER,
               clock_anomaly_detected INTEGER NOT NULL,
               streak_freeze_available INTEGER NOT NULL
             )
@@ -55,6 +72,8 @@ final class SqliteGamificationRepository implements GamificationRepository {
               awarded_xp INTEGER NOT NULL,
               reviewed_at_utc TEXT NOT NULL,
               timezone_offset_minutes INTEGER NOT NULL,
+              monotonic_elapsed_ms INTEGER,
+              boot_count INTEGER,
               clock_anomaly INTEGER NOT NULL
             )
           ''');
@@ -72,10 +91,112 @@ final class SqliteGamificationRepository implements GamificationRepository {
               'ALTER TABLE gamification_profile ADD COLUMN streak_freeze_available INTEGER NOT NULL DEFAULT 1',
             );
           }
+          if (oldVersion < 3) {
+            await db.execute(
+              'ALTER TABLE gamification_profile ADD COLUMN last_monotonic_elapsed_ms INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE gamification_profile ADD COLUMN last_boot_count INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE gamification_review_events ADD COLUMN monotonic_elapsed_ms INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE gamification_review_events ADD COLUMN boot_count INTEGER',
+            );
+          }
         },
       ),
     );
-    return SqliteGamificationRepository._(database);
+    return SqliteGamificationRepository._(
+      database,
+      clockIntegritySource,
+    );
+  }
+
+  Future<bool> migrateLegacyProfileIfPristine({
+    required int totalXp,
+    required int currentStreak,
+    required DateTime? lastReviewAtUtc,
+    required int? timezoneOffsetMinutes,
+  }) async {
+    if (_closed) return false;
+
+    final safeXp = totalXp.clamp(0, 100000000).toInt();
+    final safeStreak = currentStreak.clamp(0, 10000).toInt();
+    if (safeXp == 0 && safeStreak == 0) return false;
+
+    final safeReviewAt = lastReviewAtUtc?.toUtc();
+    final safeOffset = timezoneOffsetMinutes == null
+        ? null
+        : timezoneOffsetMinutes.clamp(-840, 840).toInt();
+    final localDay = safeReviewAt != null && safeOffset != null
+        ? _dayKey(safeReviewAt, safeOffset)
+        : null;
+
+    return _database.transaction((txn) async {
+      final current = await _readProfile(txn);
+      final events = await txn.query(
+        'gamification_review_events',
+        columns: const <String>['event_id'],
+        limit: 1,
+      );
+      final badges = await txn.query(
+        'gamification_badges',
+        columns: const <String>['badge_id'],
+        limit: 1,
+      );
+      final isPristine = current.totalXp == 0 &&
+          current.currentStreak == 0 &&
+          current.longestStreak == 0 &&
+          current.lastReviewAtUtc == null &&
+          current.lastLocalDay == null &&
+          current.lastMonotonicElapsedMilliseconds == null &&
+          current.lastBootCount == null &&
+          events.isEmpty &&
+          badges.isEmpty;
+      if (!isPristine) return false;
+
+      final migrated = GamificationProfile(
+        totalXp: safeXp,
+        currentStreak: safeStreak,
+        longestStreak: safeStreak,
+        lastReviewAtUtc: safeReviewAt,
+        lastLocalDay: localDay,
+        lastTimezoneOffsetMinutes: safeReviewAt == null ? null : safeOffset,
+      );
+      await txn.update(
+        'gamification_profile',
+        <String, Object?>{
+          'total_xp': migrated.totalXp,
+          'current_streak': migrated.currentStreak,
+          'longest_streak': migrated.longestStreak,
+          'last_review_utc': migrated.lastReviewAtUtc?.toIso8601String(),
+          'last_local_day': migrated.lastLocalDay,
+          'last_timezone_offset_minutes':
+              migrated.lastTimezoneOffsetMinutes,
+          'last_monotonic_elapsed_ms': null,
+          'last_boot_count': null,
+          'clock_anomaly_detected': 0,
+          'streak_freeze_available': 1,
+        },
+        where: 'id = 1',
+      );
+
+      final unlockedAt = safeReviewAt ?? DateTime.now().toUtc();
+      for (final badge in GamificationMilestones.defaults) {
+        if (!badge.isReached(migrated)) continue;
+        await txn.insert(
+          'gamification_badges',
+          <String, Object?>{
+            'badge_id': badge.id,
+            'unlocked_at_utc': unlockedAt.toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+      return true;
+    });
   }
 
   @override
@@ -83,6 +204,15 @@ final class SqliteGamificationRepository implements GamificationRepository {
     if (_closed) return;
     final id = event.reviewId.trim();
     if (id.isEmpty || id.length > 160) return;
+
+    var clockStamp = event.clockIntegrityStamp;
+    if (clockStamp == null) {
+      try {
+        clockStamp = await _clockIntegritySource.read();
+      } on Object {
+        clockStamp = null;
+      }
+    }
 
     await _database.transaction((txn) async {
       final duplicate = await txn.query(
@@ -107,6 +237,8 @@ final class SqliteGamificationRepository implements GamificationRepository {
           requestedXp: event.requestedXp,
           occurredAtUtc: event.occurredAtUtc,
           timezoneOffsetMinutes: event.timezoneOffsetMinutes,
+          useStreakFreeze: event.useStreakFreeze,
+          clockIntegrityStamp: clockStamp,
         ),
         alreadyUnlocked: unlockedIds,
       );
@@ -123,6 +255,9 @@ final class SqliteGamificationRepository implements GamificationRepository {
             'reviewed_at_utc': event.occurredAtUtc.toUtc().toIso8601String(),
             'timezone_offset_minutes':
                 event.timezoneOffsetMinutes.clamp(-840, 840).toInt(),
+            'monotonic_elapsed_ms':
+                clockStamp?.elapsedRealtimeMilliseconds,
+            'boot_count': clockStamp?.bootCount,
             'clock_anomaly': transition.clockAnomaly ? 1 : 0,
           },
           conflictAlgorithm: ConflictAlgorithm.abort);
@@ -137,6 +272,9 @@ final class SqliteGamificationRepository implements GamificationRepository {
             'last_review_utc': profile.lastReviewAtUtc?.toIso8601String(),
             'last_local_day': profile.lastLocalDay,
             'last_timezone_offset_minutes': profile.lastTimezoneOffsetMinutes,
+            'last_monotonic_elapsed_ms':
+                profile.lastMonotonicElapsedMilliseconds,
+            'last_boot_count': profile.lastBootCount,
             'clock_anomaly_detected': profile.clockAnomalyDetected ? 1 : 0,
             'streak_freeze_available': profile.streakFreezeAvailable ? 1 : 0,
           },
@@ -227,9 +365,22 @@ final class SqliteGamificationRepository implements GamificationRepository {
       )?.toUtc(),
       lastLocalDay: _safeDay(row['last_local_day']),
       lastTimezoneOffsetMinutes: offset,
+      lastMonotonicElapsedMilliseconds:
+          _safeNullableNonNegativeInt(row['last_monotonic_elapsed_ms']),
+      lastBootCount:
+          _safeNullableNonNegativeInt(row['last_boot_count']),
       clockAnomalyDetected: row['clock_anomaly_detected'] == 1,
       streakFreezeAvailable: row['streak_freeze_available'] != 0,
     );
+  }
+
+  static int? _safeNullableNonNegativeInt(Object? raw) {
+    if (raw == null) return null;
+    final parsed = raw is num
+        ? raw.toInt()
+        : int.tryParse(raw.toString());
+    if (parsed == null || parsed < 0) return null;
+    return parsed;
   }
 
   static Future<List<UnlockedMilestone>> _readUnlocked(
@@ -249,6 +400,14 @@ final class SqliteGamificationRepository implements GamificationRepository {
       result.add(UnlockedMilestone(badgeId: id, unlockedAtUtc: at));
     }
     return List<UnlockedMilestone>.unmodifiable(result);
+  }
+
+  static String _dayKey(DateTime utc, int offsetMinutes) {
+    final local = utc.toUtc().add(Duration(minutes: offsetMinutes));
+    final year = local.year.toString().padLeft(4, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
   }
 
   static String? _safeDay(Object? raw) {

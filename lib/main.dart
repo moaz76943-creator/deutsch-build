@@ -19,6 +19,9 @@ import 'features/audio/data/audio_manifest_catalog.dart';
 import 'features/audio/domain/services/i_audio_runtime.dart';
 import 'features/audio/offline_audio_runtime.dart';
 import 'features/grammar/data/ar_de_grammar_explain_why.dart';
+import 'features/gamification/data/android_gamification_clock_integrity_source.dart';
+import 'features/gamification/gamification_repository.dart';
+import 'features/gamification/sqlite_gamification_repository.dart';
 import 'features/learning/data/local_learning_recovery_pair_progress_lease.dart';
 import 'features/learning/presentation/local_learning_recovery_runtime_host.dart';
 import 'features/placement/application/placement_test_notifier.dart';
@@ -138,6 +141,7 @@ Future<void> main() async {
 Future<_ActivatedPhase3App> _activateProduction({
   required PreferencesService prefs,
   required LearnerRepository learnerRepository,
+  required GamificationRepository gamificationRepository,
 }) async {
   final systemAgents = await SystemAgentRuntime.start(
     memoryStore: _PreferencesMemoryAgentStore(prefs),
@@ -194,6 +198,7 @@ Future<_ActivatedPhase3App> _activateProduction({
       bridge: uiBridge,
       preferences: prefs,
       learnerRepository: learnerRepository,
+      gamificationRepository: gamificationRepository,
       quickReviewService: quickReviewService,
       explainerService: explainerService,
       reviewSourceLanguageCode: activeLanguagePack.languageCode,
@@ -204,6 +209,7 @@ Future<_ActivatedPhase3App> _activateProduction({
         await resolvedCorpusSession.resolution.closeCorpus();
         await resolvedCorpusSession.resolution.grammarHubService.close();
         await recoveryPairProgress?.close();
+        await gamificationRepository.close();
         await _shutdownActivatedRuntime(
           runtime: systemAgents,
           bridge: uiBridge,
@@ -564,8 +570,17 @@ final class _RenderFirstBootstrapAppState
       _bootstrapError = null;
     });
 
+    GamificationRepository? gamificationRepository;
     try {
       final prefs = await PreferencesService.instance();
+      final databaseRoot = await getDatabasesPath();
+      final openedGamificationRepository =
+          await SqliteGamificationRepository.open(
+        p.join(databaseRoot, 'gamification.sqlite'),
+        clockIntegritySource:
+            const AndroidGamificationClockIntegritySource(),
+      );
+      gamificationRepository = openedGamificationRepository;
       final learnerRepository = LearnerRepository(
         prefs,
         persistence: LearnerPersistence(
@@ -573,25 +588,44 @@ final class _RenderFirstBootstrapAppState
           LearnerRepository.key,
           LearnerRepository.legacyFavoriteKey,
         ),
+        gamificationReviewSink: openedGamificationRepository,
       );
       final state = learnerRepository.load();
+      Attempt? legacyLastReview;
+      for (final attempt in state.attempts) {
+        if (legacyLastReview == null ||
+            attempt.at.isAfter(legacyLastReview.at)) {
+          legacyLastReview = attempt;
+        }
+      }
+      await openedGamificationRepository.migrateLegacyProfileIfPristine(
+        totalXp: state.xp,
+        currentStreak: state.streak,
+        lastReviewAtUtc: legacyLastReview?.at.toUtc(),
+        timezoneOffsetMinutes:
+            legacyLastReview?.at.timeZoneOffset.inMinutes,
+      );
 
       late final Widget next;
       if (_needsPlacementOnboarding(state)) {
         next = _PlacementBootstrapApp(
           prefs: prefs,
           learnerRepository: learnerRepository,
+          gamificationRepository: openedGamificationRepository,
         );
       } else {
         next = await _activateProduction(
           prefs: prefs,
           learnerRepository: learnerRepository,
+          gamificationRepository: openedGamificationRepository,
         );
       }
 
       if (!mounted) {
         if (next is _ActivatedPhase3App) {
           await next.shutdown();
+        } else {
+          await openedGamificationRepository.close();
         }
         return;
       }
@@ -600,6 +634,7 @@ final class _RenderFirstBootstrapAppState
         _loading = false;
       });
     } catch (error) {
+      await gamificationRepository?.close();
       await _dispatchRecoveryError(
         error: error,
         context: 'render_first.bootstrap',
@@ -698,10 +733,12 @@ final class _PlacementBootstrapApp extends StatefulWidget {
   const _PlacementBootstrapApp({
     required this.prefs,
     required this.learnerRepository,
+    required this.gamificationRepository,
   });
 
   final PreferencesService prefs;
   final LearnerRepository learnerRepository;
+  final GamificationRepository gamificationRepository;
 
   @override
   State<_PlacementBootstrapApp> createState() =>
@@ -737,6 +774,9 @@ final class _PlacementBootstrapAppState
   void dispose() {
     _notifier.dispose();
     unawaited(_closePlacementAudio());
+    if (_activated == null) {
+      unawaited(widget.gamificationRepository.close());
+    }
     super.dispose();
   }
 
@@ -758,6 +798,7 @@ final class _PlacementBootstrapAppState
       final app = await _activateProduction(
         prefs: widget.prefs,
         learnerRepository: widget.learnerRepository,
+        gamificationRepository: widget.gamificationRepository,
       );
       if (!mounted) {
         await app.shutdown();
@@ -884,6 +925,7 @@ final class _ActivatedPhase3App extends StatefulWidget {
     required this.bridge,
     required this.preferences,
     required this.learnerRepository,
+    required this.gamificationRepository,
     required this.quickReviewService,
     required this.explainerService,
     required this.reviewSourceLanguageCode,
@@ -897,6 +939,7 @@ final class _ActivatedPhase3App extends StatefulWidget {
   final AgentUIBridge bridge;
   final PreferencesService preferences;
   final LearnerRepository learnerRepository;
+  final GamificationRepository gamificationRepository;
   final QuickReviewService quickReviewService;
   final ExplainerService explainerService;
   final String reviewSourceLanguageCode;
@@ -968,6 +1011,7 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
                 corpus: widget.corpus,
                 audioRuntime: widget.audioRuntime,
                 learnerRepository: widget.learnerRepository,
+                gamificationRepository: widget.gamificationRepository,
                 quickReviewService: widget.quickReviewService,
                 explainerService: widget.explainerService,
                 reviewSourceLanguageCode: widget.reviewSourceLanguageCode,

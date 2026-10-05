@@ -32,9 +32,13 @@ V1.1 is the feature-freeze release for the current Offline-First application sco
 
 ### Streak Protection
 
-- Preserved streak state with UTC review time, local-day identity, and timezone-offset evidence.
-- Detects backward-clock movement and local-day regression associated with device clock/timezone manipulation.
-- Clock anomalies fail closed: affected transitions do not award XP or advance the streak.
+- Preserves streak state with UTC review time, local-day identity, timezone-offset evidence, and Android monotonic elapsed-time / boot anchors.
+- Detects backward-clock movement, local-day regression, malformed offsets, and same-boot wall-clock drift including forward clock jumps.
+- Clock anomalies fail closed inside the protected gamification transition: accepted streak anchors are preserved and the streak does not advance.
+- Production Quick Review reads the protected streak from the local SQLite gamification repository instead of the legacy raw-clock streak field.
+- Existing local XP/streak values are migrated once only when the protected gamification database is pristine, preventing upgrade-time progress loss without fabricating monotonic history.
+- The Android integrity probe uses permissionless local platform clocks only; no network time source or additional Android permission is required.
+- Monotonic boot anchoring is used where the Android boot counter is available; otherwise the existing backward-clock/local-day fail-closed checks remain active.
 - Existing one-day streak-freeze behavior remains separate from clock-anomaly handling.
 
 ### Production UI Wiring

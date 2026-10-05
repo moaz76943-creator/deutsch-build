@@ -9,6 +9,7 @@ final class _StreakResult {
 
 abstract final class GamificationEngine {
   static const Duration _backwardClockTolerance = Duration(minutes: 5);
+  static const Duration _monotonicClockDriftTolerance = Duration(minutes: 10);
 
   static GamificationTransition apply(
     GamificationProfile current,
@@ -25,8 +26,37 @@ abstract final class GamificationEngine {
         );
     final localDay = _dayKey(eventUtc, safeOffset);
     final localDayRegression = _isDayBefore(localDay, current.lastLocalDay);
+    final stamp = event.clockIntegrityStamp;
+    final malformedStamp = stamp != null && !stamp.isValid;
+    final previousBootCount = current.lastBootCount;
+    final previousElapsed = current.lastMonotonicElapsedMilliseconds;
+    final bootCountRegression = stamp != null &&
+        previousBootCount != null &&
+        stamp.bootCount < previousBootCount;
+    final sameBoot = stamp != null &&
+        previousBootCount != null &&
+        previousElapsed != null &&
+        stamp.bootCount == previousBootCount;
+    final monotonicRegression = sameBoot
+        ? stamp!.elapsedRealtimeMilliseconds < previousElapsed!
+        : false;
+    final monotonicClockDrift = sameBoot &&
+        !monotonicRegression &&
+        current.lastReviewAtUtc != null &&
+        _hasMonotonicClockDrift(
+          previousUtc: current.lastReviewAtUtc!.toUtc(),
+          currentUtc: eventUtc,
+          previousElapsedMilliseconds: previousElapsed!,
+          currentElapsedMilliseconds: stamp!.elapsedRealtimeMilliseconds,
+        );
 
-    if (malformedOffset || backwardClock || localDayRegression) {
+    if (malformedOffset ||
+        malformedStamp ||
+        backwardClock ||
+        localDayRegression ||
+        bootCountRegression ||
+        monotonicRegression ||
+        monotonicClockDrift) {
       return GamificationTransition(
         profile: GamificationProfile(
           totalXp: current.totalXp,
@@ -35,6 +65,9 @@ abstract final class GamificationEngine {
           lastReviewAtUtc: current.lastReviewAtUtc,
           lastLocalDay: current.lastLocalDay,
           lastTimezoneOffsetMinutes: current.lastTimezoneOffsetMinutes,
+          lastMonotonicElapsedMilliseconds:
+              current.lastMonotonicElapsedMilliseconds,
+          lastBootCount: current.lastBootCount,
           clockAnomalyDetected: true,
           streakFreezeAvailable: current.streakFreezeAvailable,
         ),
@@ -60,6 +93,14 @@ abstract final class GamificationEngine {
       lastReviewAtUtc: eventUtc,
       lastLocalDay: localDay,
       lastTimezoneOffsetMinutes: safeOffset,
+      lastMonotonicElapsedMilliseconds:
+          stamp != null && stamp.isValid
+              ? stamp.elapsedRealtimeMilliseconds
+              : current.lastMonotonicElapsedMilliseconds,
+      lastBootCount:
+          stamp != null && stamp.isValid
+              ? stamp.bootCount
+              : current.lastBootCount,
       clockAnomalyDetected: current.clockAnomalyDetected,
       streakFreezeAvailable:
           current.streakFreezeAvailable && !streakResult.freezeUsed,
@@ -77,6 +118,22 @@ abstract final class GamificationEngine {
       newlyUnlocked: List<MilestoneBadge>.unmodifiable(newlyUnlocked),
       streakFreezeUsed: streakResult.freezeUsed,
     );
+  }
+
+  static bool _hasMonotonicClockDrift({
+    required DateTime previousUtc,
+    required DateTime currentUtc,
+    required int previousElapsedMilliseconds,
+    required int currentElapsedMilliseconds,
+  }) {
+    final elapsedDelta =
+        currentElapsedMilliseconds - previousElapsedMilliseconds;
+    if (elapsedDelta < 0) return true;
+
+    final wallDelta =
+        currentUtc.difference(previousUtc).inMilliseconds;
+    final drift = (wallDelta - elapsedDelta).abs();
+    return drift > _monotonicClockDriftTolerance.inMilliseconds;
   }
 
   static _StreakResult _nextStreak(

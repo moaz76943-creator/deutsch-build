@@ -1,6 +1,6 @@
 import '../../../core/content_contract.dart';
 import '../../../core/srs_facets.dart';
-import '../../../services/repository.dart';
+import '../../gamification/gamification_repository.dart';
 import '../../session/universal_session_orchestrator.dart';
 import '../domain/daily_drill_models.dart';
 import '../domain/daily_drill_repository.dart';
@@ -8,12 +8,12 @@ import '../domain/daily_drill_repository.dart';
 final class UniversalSessionDrillReviewSink implements DailyDrillReviewSink {
   const UniversalSessionDrillReviewSink({
     required UniversalSessionOrchestrator orchestrator,
-    required LearnerRepository learnerRepository,
+    required GamificationRepository gamificationRepository,
   })  : _orchestrator = orchestrator,
-        _learnerRepository = learnerRepository;
+        _gamificationRepository = gamificationRepository;
 
   final UniversalSessionOrchestrator _orchestrator;
-  final LearnerRepository _learnerRepository;
+  final GamificationRepository _gamificationRepository;
 
   @override
   Future<DailyDrillReviewReceipt> record({
@@ -32,9 +32,9 @@ final class UniversalSessionDrillReviewSink implements DailyDrillReviewSink {
         skillOverride: item.skill,
       ),
     );
-    final learner = await _learnerRepository.reloadPersisted();
+    final gamification = await _gamificationRepository.loadSnapshot();
     return DailyDrillReviewReceipt(
-      currentStreak: learner.streak,
+      currentStreak: gamification.profile.currentStreak,
       sessionXp: snapshot.sessionXp,
     );
   }

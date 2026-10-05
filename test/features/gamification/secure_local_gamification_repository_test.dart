@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/infrastructure/storage/local_storage_repository.dart';
 import 'package:deutsch_bilarabi/core/srs_facets.dart';
 import 'package:deutsch_bilarabi/features/gamification/data/secure_local_gamification_repository.dart';
+import 'package:deutsch_bilarabi/features/gamification/domain/gamification_clock_integrity_source.dart';
 import 'package:deutsch_bilarabi/features/gamification/domain/gamification_models.dart';
 
 final class _MemoryLocalStorage implements LocalStorageRepository {
@@ -75,6 +76,32 @@ void main() {
     await repository.recordReview(event);
 
     expect((await repository.loadSnapshot()).profile.totalXp, 10);
+  });
+
+  test('monotonic integrity anchors survive repository recreation', () async {
+    final storage = _MemoryLocalStorage();
+    final first = SecureLocalGamificationRepository(storage);
+
+    await first.recordReview(
+      GamificationReviewEvent(
+        reviewId: 'clock_anchor',
+        facetType: ReviewFacetType.meaningRecall,
+        correct: true,
+        hinted: false,
+        requestedXp: 10,
+        occurredAtUtc: DateTime.utc(2026, 10, 2, 7),
+        timezoneOffsetMinutes: 180,
+        clockIntegrityStamp: const GamificationClockIntegrityStamp(
+          elapsedRealtimeMilliseconds: 456000,
+          bootCount: 9,
+        ),
+      ),
+    );
+
+    final recreated = SecureLocalGamificationRepository(storage);
+    final profile = (await recreated.loadSnapshot()).profile;
+    expect(profile.lastMonotonicElapsedMilliseconds, 456000);
+    expect(profile.lastBootCount, 9);
   });
 
   test('consumed streak freeze survives repository recreation', () async {

@@ -1,4 +1,5 @@
 import '../../../core/srs_facets.dart';
+import 'gamification_clock_integrity_source.dart';
 
 final class XpProgress {
   const XpProgress({
@@ -113,6 +114,8 @@ final class GamificationProfile {
     this.lastReviewAtUtc,
     this.lastLocalDay,
     this.lastTimezoneOffsetMinutes,
+    this.lastMonotonicElapsedMilliseconds,
+    this.lastBootCount,
     this.clockAnomalyDetected = false,
     this.streakFreezeAvailable = true,
   });
@@ -123,6 +126,8 @@ final class GamificationProfile {
   final DateTime? lastReviewAtUtc;
   final String? lastLocalDay;
   final int? lastTimezoneOffsetMinutes;
+  final int? lastMonotonicElapsedMilliseconds;
+  final int? lastBootCount;
   final bool clockAnomalyDetected;
   final bool streakFreezeAvailable;
 
@@ -146,6 +151,7 @@ final class GamificationReviewEvent {
     required this.occurredAtUtc,
     required this.timezoneOffsetMinutes,
     this.useStreakFreeze = false,
+    this.clockIntegrityStamp,
   });
 
   final String reviewId;
@@ -156,6 +162,7 @@ final class GamificationReviewEvent {
   final DateTime occurredAtUtc;
   final int timezoneOffsetMinutes;
   final bool useStreakFreeze;
+  final GamificationClockIntegrityStamp? clockIntegrityStamp;
 }
 
 final class UnlockedMilestone {

@@ -122,6 +122,9 @@ final class SecureLocalGamificationRepository implements GamificationRepository 
         'last_review_utc': profile.lastReviewAtUtc?.toIso8601String(),
         'last_local_day': profile.lastLocalDay,
         'last_timezone_offset_minutes': profile.lastTimezoneOffsetMinutes,
+        'last_monotonic_elapsed_ms':
+            profile.lastMonotonicElapsedMilliseconds,
+        'last_boot_count': profile.lastBootCount,
         'clock_anomaly_detected': profile.clockAnomalyDetected,
         'streak_freeze_available': profile.streakFreezeAvailable,
       },
@@ -164,9 +167,22 @@ final class SecureLocalGamificationRepository implements GamificationRepository 
       )?.toUtc(),
       lastLocalDay: localDay,
       lastTimezoneOffsetMinutes: offset,
+      lastMonotonicElapsedMilliseconds:
+          _safeNullableNonNegativeInt(raw['last_monotonic_elapsed_ms']),
+      lastBootCount:
+          _safeNullableNonNegativeInt(raw['last_boot_count']),
       clockAnomalyDetected: raw['clock_anomaly_detected'] == true,
       streakFreezeAvailable: raw['streak_freeze_available'] != false,
     );
+  }
+
+  static int? _safeNullableNonNegativeInt(Object? raw) {
+    if (raw == null) return null;
+    final parsed = raw is num
+        ? raw.toInt()
+        : int.tryParse(raw.toString());
+    if (parsed == null || parsed < 0) return null;
+    return parsed;
   }
 
   static List<UnlockedMilestone> _decodeUnlocked(Object? raw) {

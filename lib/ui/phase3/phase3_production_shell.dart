@@ -13,6 +13,7 @@ import '../../features/audio/domain/services/i_audio_runtime.dart';
 import '../../features/audio/hybrid_pronunciation_service.dart';
 import '../../features/daily_drill/data/universal_session_drill_review_sink.dart';
 import '../../features/daily_drill/domain/daily_drill_repository.dart';
+import '../../features/gamification/gamification_repository.dart';
 import '../../features/quick_review/presentation/v11_quick_review_screen.dart';
 import '../../features/session/universal_session_orchestrator.dart';
 import '../../services/repository.dart';
@@ -30,6 +31,7 @@ final class Phase3ProductionShell extends StatefulWidget {
     required this.corpus,
     required this.audioRuntime,
     required this.learnerRepository,
+    required this.gamificationRepository,
     required this.quickReviewService,
     required this.explainerService,
     required this.reviewSourceLanguageCode,
@@ -44,6 +46,7 @@ final class Phase3ProductionShell extends StatefulWidget {
   final List<LearningContent> corpus;
   final IAudioRuntime audioRuntime;
   final LearnerRepository learnerRepository;
+  final GamificationRepository gamificationRepository;
   final QuickReviewService quickReviewService;
   final ExplainerService explainerService;
   final String reviewSourceLanguageCode;
@@ -107,7 +110,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     );
     _quickReviewSink = UniversalSessionDrillReviewSink(
       orchestrator: _quickReviewOrchestrator,
-      learnerRepository: widget.learnerRepository,
+      gamificationRepository: widget.gamificationRepository,
     );
     _phase10BridgeFuture = Phase10PresentationBridge.start();
     unawaited(_loadDesign());

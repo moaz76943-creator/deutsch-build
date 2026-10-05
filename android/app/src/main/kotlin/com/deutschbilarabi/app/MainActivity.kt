@@ -23,6 +23,10 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidRecordedAudioPlayer.CHANNEL_NAME,
         ).setMethodCallHandler(AndroidRecordedAudioPlayer(this))
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidGamificationClockIntegritySource.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidGamificationClockIntegritySource(this))
         pronunciationSignalProbe = AndroidPronunciationSignalProbe(this)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
