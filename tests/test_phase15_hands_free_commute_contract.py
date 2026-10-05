@@ -46,14 +46,14 @@ def test_phase15_runtime_failure_is_explicit_and_not_cloud_fallback():
     assert "https://" not in page + service
 
 
-def test_phase15_composition_has_separate_source_audio_runtime():
+def test_phase15_commute_runtime_remains_isolated_from_phase3_root():
     deps = read("lib/services/app_dependencies.dart")
     main = read("lib/main.dart")
     profile = read("lib/language/arabic/arabic_speech_profile.dart")
     assert "sourceAudioRuntime" in deps
-    assert "sourceAudioRuntime: sourceAudioRuntime" in main
     assert "OfflineAudioRuntime" in main
-    assert "ArabicSpeechProfile" in main
+    assert "sourceAudioRuntime: sourceAudioRuntime" not in main
+    assert "ArabicSpeechProfile" not in main
     assert "languageCode => 'ar'" in profile
 
 

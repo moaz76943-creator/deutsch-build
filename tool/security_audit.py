@@ -10,8 +10,9 @@ def read(path):
     return p.read_text(encoding='utf-8') if p.exists() else ''
 manifest=read(Path('android/app/src/main/AndroidManifest.xml')); gradle=read(Path('android/app/build.gradle')); workflow=read(Path('.github/workflows/build-apk.yml')); quality=read(Path('.github/workflows/quality.yml')); build_script=read(Path('scripts/build.sh')); source='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (ROOT/'lib').rglob('*.dart'))
 checks=[
-('android.permission.INTERNET' in manifest,'Optional network permission is missing.'),
-('android.permission.RECORD_AUDIO' in manifest,'Speech permission is missing.'),
+('android.permission.INTERNET' not in manifest,'Offline-first manifest must not request INTERNET.'),
+('android.permission.RECORD_AUDIO' in manifest,'Pronunciation microphone permission is missing.'),
+('android.permission.POST_NOTIFICATIONS' not in manifest,'Unused notification permission must not be declared before production notification wiring.'),
 ('android:allowBackup="false"' in manifest,'Android backup is not disabled.'),
 ('android:usesCleartextTraffic="false"' in manifest,'Cleartext traffic is not explicitly disabled.'),
 'dataExtractionRules' in manifest,
@@ -70,5 +71,5 @@ if errors:
     for e in errors: print('ERROR:',e)
     sys.exit(1)
 print('SECURITY AUDIT: PASS')
-for label in ['Optional network surface with HTTPS-only gateway','Android backup hardening','Release R8/shrinking','Dedicated signing configuration','CI private-repository gate','Dart obfuscation gate','Screen-capture hardening','Persistent SRS state','Local data management','Premium entitlement hardening']:
+for label in ['Offline-first Android network boundary','Android backup hardening','Release R8/shrinking','Dedicated signing configuration','CI private-repository gate','Dart obfuscation gate','Screen-capture hardening','Persistent SRS state','Local data management','Premium entitlement hardening']:
     print(label+': PASS')

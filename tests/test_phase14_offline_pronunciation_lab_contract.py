@@ -71,14 +71,18 @@ def test_phase14_is_perception_first_and_tracks_core_german_contrasts():
     assert "اسمع → ميّز → انطق" in page
 
 
-def test_phase14_app_routes_to_new_offline_lab():
+def test_phase14_offline_lab_remains_available_but_not_phase3_composed():
     app = read("lib/ui_v35/app.dart")
     deps = read("lib/services/app_dependencies.dart")
     main = read("lib/main.dart")
+    activity = read(
+        "android/app/src/main/kotlin/com/deutschbilarabi/app/MainActivity.kt"
+    )
     assert "OfflinePronunciationLabPage" in app
     assert "SpeechPracticePage(repo: widget.repo)" not in app
     assert "pronunciationSignalProbe" in deps
-    assert "AndroidPronunciationSignalProbe" in main
+    assert "AndroidPronunciationSignalProbe.CHANNEL_NAME" in activity
+    assert "AndroidPronunciationSignalProbe" not in main
 
 
 def test_phase14_ui_files_respect_modularity_gate():

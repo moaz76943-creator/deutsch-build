@@ -38,14 +38,14 @@ jobs:
 
       - name: Restore compiled headless pulse
         id: pulse-cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .agent-pulse-cache/run_agents
           key: agents-pulse-v1-dart-3.13.0-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tool/run_agents.dart', 'lib/core/orchestration/**/*.dart', 'lib/core/agents/**/*.dart') }}
 
       - name: Setup Dart
         if: steps.pulse-cache.outputs.cache-hit != 'true'
-        uses: dart-lang/setup-dart@v1
+        uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
         with:
           sdk: '3.13.0'
 

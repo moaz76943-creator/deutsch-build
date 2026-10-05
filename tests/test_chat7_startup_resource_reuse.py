@@ -1,31 +1,28 @@
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[1]
-MAIN = (ROOT / 'lib/main.dart').read_text(encoding='utf-8')
+MAIN = (ROOT / "lib/main.dart").read_text(encoding="utf-8")
 
 
-def _boot_body() -> str:
-    start = MAIN.index('Future<void> main() async')
-    end = MAIN.index('\nclass _BootFailureApp')
-    return MAIN[start:end]
+def test_startup_renders_before_heavy_corpus_activation():
+    main_body = MAIN[
+        MAIN.index("Future<void> main() async"):
+        MAIN.index("Future<_ActivatedPhase3App> _activateProduction")
+    ]
+    assert "runApp(const _RenderFirstBootstrapApp())" in main_body
+    assert "_resolveActiveCorpusSession" not in main_body
+    assert "fetchPage(" not in main_body
 
 
-def test_startup_does_not_rematerialize_content_pack_items():
-    boot = _boot_body()
-    assert 'contentPack.items.toList(growable: false)' not in boot
-    assert re.search(r'final\s+corpus\s*=\s*contentPack\.items\s*;', boot)
+def test_activation_resolves_a_bounded_initial_indexed_window():
+    assert "await _resolveActiveCorpusSession(prefs)" in MAIN
+    assert "const initialWindowSize = 128;" in MAIN
+    assert "repository.fetchPage(" in MAIN
+    assert "limit: initialWindowSize" in MAIN
+    assert "List<LearningContent>.unmodifiable(initialCorpus)" in MAIN
 
 
-def test_startup_constructs_verb_index_once_and_reuses_it():
-    boot = _boot_body()
-    assert boot.count('contentPack.verbIndex') == 1
-    assert re.search(r'final\s+verbIndex\s*=\s*contentPack\.verbIndex\s*;', boot)
-    assert re.search(r'SearchIndex\(\s*corpus,\s*verbIndex,', boot)
-    assert 'verbIndex: verbIndex,' in boot
-
-
-def test_startup_reuses_same_corpus_for_search_and_app_dependencies():
-    boot = _boot_body()
-    assert re.search(r'SearchIndex\(\s*corpus,', boot)
-    assert 'corpus: corpus,' in boot
+def test_startup_does_not_rematerialize_full_content_pack():
+    assert "contentPack.items.toList(growable: false)" not in MAIN
+    assert "ContentEngine.instance" not in MAIN
+    assert "VerbIndex.instance" not in MAIN

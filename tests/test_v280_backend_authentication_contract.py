@@ -37,13 +37,16 @@ def test_v280_authentication_remains_decoupled_from_learner_state(project_root=R
     assert 'LearnerState' not in text
 
 
-def test_v280_main_wiring_remains_fail_closed(project_root=ROOT):
+def test_v280_offline_production_root_remains_fail_closed(project_root=ROOT):
     text = (project_root / 'lib' / 'main.dart').read_text()
-    assert 'UnavailableEmailOtpProvider' in text
-    assert 'UnavailableSocialAuthenticationProvider' in text
-    factory = (project_root / 'lib' / 'services' / 'backend_transport_factory.dart').read_text()
+    factory = (
+        project_root / 'lib' / 'services' / 'backend_transport_factory.dart'
+    ).read_text()
     assert 'UnavailableBackendTransport' in factory
-    assert 'TransportBackendAuthenticationGateway' in text
+    assert 'BackendTransportFactory' not in text
+    assert 'TransportBackendAuthenticationGateway' not in text
+    assert 'UnavailableEmailOtpProvider' not in text
+    assert 'UnavailableSocialAuthenticationProvider' not in text
     assert 'http://' not in text
     assert 'https://' not in text
 

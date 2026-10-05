@@ -62,8 +62,10 @@ def test_generic_exercise_services_delegate_language_specific_behavior():
     assert 'required LanguageExerciseStrategy exerciseStrategy' in learning
 
 
-def test_composition_root_selects_strategy_through_language_pack_only():
+def test_phase3_root_selects_language_identity_without_legacy_exercise_graph():
     main = MAIN.read_text(encoding='utf-8')
     lang_pack = LANG_PACK.read_text(encoding='utf-8')
     assert 'exerciseStrategy' in lang_pack
-    assert 'languagePack: languagePack' in main
+    assert 'const activeLanguagePack = GermanLanguagePack();' in main
+    assert 'activeLanguagePack.languageCode' in main
+    assert 'LanguageExerciseStrategy(' not in main

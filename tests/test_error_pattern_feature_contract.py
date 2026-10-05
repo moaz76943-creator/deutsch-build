@@ -82,7 +82,7 @@ def test_academic_ethics_copy_is_explicitly_non_personal():
     assert 'أنماط الإجابات' in text
 
 
-def test_live_event_sources_and_navigation_are_wired():
+def test_error_pattern_feature_remains_isolated_from_phase3_root():
     learner = read(ROOT / 'lib/services/repository.dart')
     grammar = read(
         ROOT / 'lib/features/grammar/application/grammar_drill_notifier.dart'
@@ -93,8 +93,8 @@ def test_live_event_sources_and_navigation_are_wired():
     assert "skillTag: 'sentence_reorder'" in grammar
     assert "skillTag: 'case_" in grammar
     assert 'BlindSpotRadarScreen(' in app
-    assert 'LocalErrorDiagnosticRepository(prefs)' in main
-    assert 'errorPatternAgent: errorPatternAgent' in main
+    assert 'LocalErrorDiagnosticRepository(prefs)' not in main
+    assert 'errorPatternAgent: errorPatternAgent' not in main
 
 
 def test_modified_integration_files_stay_under_1000_lines():

@@ -11,13 +11,12 @@ def read(rel: str) -> str:
 
 def test_tts_plugin_has_one_infrastructure_boundary():
     adapter = ROOT / "lib/core/infrastructure/audio/flutter_tts_audio_engine.dart"
-    assert adapter.exists(), "TTS infrastructure adapter must exist"
+    assert adapter.exists()
     assert "package:flutter_tts/flutter_tts.dart" in adapter.read_text(encoding="utf-8")
     for path in LIB.rglob("*.dart"):
         if path == adapter:
             continue
-        text = path.read_text(encoding="utf-8")
-        assert "package:flutter_tts/flutter_tts.dart" not in text, path
+        assert "package:flutter_tts/flutter_tts.dart" not in path.read_text(encoding="utf-8"), path
 
 
 def test_tts_compatibility_shim_does_not_expose_plugin_type():
@@ -41,9 +40,10 @@ def test_speech_and_preferences_have_single_platform_plugin_boundaries():
                 assert path in allowed, f"{package} leaked outside its adapter: {path}"
 
 
-def test_legacy_ui_entrypoint_is_not_runtime_entrypoint_and_is_documented():
+def test_legacy_ui_entrypoints_are_not_the_runtime_entrypoint():
     main = read("lib/main.dart")
-    assert "ui_v35/app.dart" in main
+    assert "ui/phase3/phase3_production_shell.dart" in main
+    assert "ui_v35/app.dart" not in main
     assert "ui/app.dart" not in main
     audit = ROOT / "docs/LEGACY_UI_AUDIT.md"
     assert audit.exists()
@@ -65,7 +65,4 @@ def test_current_ui_imports_tts_service_boundary_not_plugin():
             assert part is not None, path
             library = (path.parent / part.group(1)).resolve()
             library_text = library.read_text(encoding="utf-8")
-            assert (
-                "safe_ui.dart" in library_text
-                or "tts_service.dart" in library_text
-            ), path
+            assert "safe_ui.dart" in library_text or "tts_service.dart" in library_text, path

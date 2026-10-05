@@ -86,7 +86,7 @@ jobs:
 
       - name: Build and verify release APK
         env:
-          ORG_GRADLE_PROJECT_releaseStoreFile: android/app/upload-keystore.jks
+          ORG_GRADLE_PROJECT_releaseStoreFile: ${{ github.workspace }}/android/app/upload-keystore.jks
           ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}

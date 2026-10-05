@@ -11,17 +11,18 @@ def test_factory_exists_and_exposes_runtime_config_entrypoint():
     assert "BackendTransport" in source
 
 
-def test_factory_selects_http_transport_only_for_configured_runtime():
+def test_factory_selects_http_transport_only_for_explicit_configuration():
     source = (ROOT / "lib/services/backend_transport_factory.dart").read_text()
     assert "config.isConfigured" in source
     assert "HttpBackendTransport(config.baseUri!)" in source
     assert "UnavailableBackendTransport()" in source
 
 
-def test_main_uses_factory_instead_of_constructing_transport_directly():
+def test_offline_production_root_does_not_compose_backend_transport():
     source = (ROOT / "lib/main.dart").read_text()
-    assert "BackendTransportFactory.fromRuntimeConfig(config)" in source
-    assert "HttpBackendTransport(config.baseUri!)" not in source
+    assert "BackendTransportFactory" not in source
+    assert "HttpBackendTransport" not in source
+    assert "BackendRuntimeConfig.fromEnvironment()" not in source
 
 
 def test_factory_does_not_contain_network_url_literals_or_secrets():
