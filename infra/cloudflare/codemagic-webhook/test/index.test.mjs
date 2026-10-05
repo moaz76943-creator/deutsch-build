@@ -72,6 +72,36 @@ test("only accepts merged pull requests into main for the canonical repository",
   assert.equal(evaluateMergedPullRequest("pull_request", wrongBranch, env).eligible, false);
 });
 
+test("skips an eligible merged PR when skip build is requested", () => {
+  const skipTitle = mergedPayload({
+    pull_request: {
+      merged: true,
+      base: { ref: "main" },
+      merge_commit_sha: "a".repeat(40),
+      title: "docs: metadata only [skip build]",
+      body: "",
+    },
+  });
+  assert.deepEqual(
+    evaluateMergedPullRequest("pull_request", skipTitle, env),
+    { eligible: false, reason: "skip_build_requested" },
+  );
+
+  const skipBody = mergedPayload({
+    pull_request: {
+      merged: true,
+      base: { ref: "main" },
+      merge_commit_sha: "a".repeat(40),
+      title: "docs: metadata only",
+      body: "No release artifact needed. [SKIP BUILD]",
+    },
+  });
+  assert.deepEqual(
+    evaluateMergedPullRequest("pull_request", skipBody, env),
+    { eligible: false, reason: "skip_build_requested" },
+  );
+});
+
 test("triggers the pinned Codemagic workflow for an eligible merge", async () => {
   const calls = [];
   const fakeFetch = async (url, options) => {
@@ -94,6 +124,12 @@ test("triggers the pinned Codemagic workflow for an eligible merge", async () =>
     workflowId: "signed-android-aab",
     branch: "main",
     labels: ["github-merge", "sha-aaaaaaaaaaaa"],
+    environment: {
+      variables: {
+        EXPECTED_MERGE_SHA: "a".repeat(40),
+        GITHUB_DELIVERY_ID: "delivery-123",
+      },
+    },
   });
 });
 

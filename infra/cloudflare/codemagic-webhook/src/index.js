@@ -55,6 +55,18 @@ export function evaluateMergedPullRequest(eventName, payload, env) {
     return { eligible: false, reason: "base_branch_mismatch" };
   }
 
+  const prTitle =
+    typeof payload?.pull_request?.title === "string"
+      ? payload.pull_request.title
+      : "";
+  const prBody =
+    typeof payload?.pull_request?.body === "string"
+      ? payload.pull_request.body
+      : "";
+  if (`${prTitle}\n${prBody}`.toLowerCase().includes("[skip build]")) {
+    return { eligible: false, reason: "skip_build_requested" };
+  }
+
   const mergeSha = payload?.pull_request?.merge_commit_sha;
   if (typeof mergeSha !== "string" || !/^[0-9a-f]{40}$/i.test(mergeSha)) {
     return { eligible: false, reason: "merge_sha_missing" };
@@ -124,6 +136,12 @@ export async function handleRequest(request, env, fetchImpl = fetch) {
     workflowId,
     branch,
     labels: ["github-merge", `sha-${eligibility.mergeSha.slice(0, 12)}`],
+    environment: {
+      variables: {
+        EXPECTED_MERGE_SHA: eligibility.mergeSha,
+        GITHUB_DELIVERY_ID: deliveryId,
+      },
+    },
   };
 
   let codemagicResponse;

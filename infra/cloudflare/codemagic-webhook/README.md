@@ -41,6 +41,29 @@ In the repository webhook settings:
 
 The Worker returns success without calling Codemagic for unmerged/closed PRs, wrong branches, wrong repositories, and non-PR events. Invalid signatures are rejected before any external API call.
 
+To deliberately suppress a release build, put `[skip build]` in the merged PR title or body. The Worker rejects that PR before calling Codemagic, so no Codemagic build minutes are consumed.
+
+For eligible merges, the Worker passes two non-secret variables to Codemagic:
+
+- `EXPECTED_MERGE_SHA`: the immutable GitHub merge SHA from the signed webhook.
+- `GITHUB_DELIVERY_ID`: the GitHub webhook delivery identifier.
+
+The signed AAB workflow verifies that its checked-out Git SHA exactly matches `EXPECTED_MERGE_SHA` whenever the variable is present. This prevents a delayed API trigger from silently building a later `main` revision.
+
+## Build monitoring
+
+A successful trigger response includes the Codemagic `buildId`. With the API token stored locally as an environment variable, status can be read without exposing the token:
+
+```sh
+curl -fsS \
+  -H "x-auth-token: $CODEMAGIC_API_TOKEN" \
+  "https://codemagic.io/api/v3/builds/$BUILD_ID"
+```
+
+Read `data.status`. `finished` is success; `failed`, `canceled`, `timeout`, and `skipped` are terminal non-success states. In-progress states include `initializing`, `queued`, `preparing`, `fetching`, `testing`, `building`, `publishing`, and `finishing`.
+
+The release artifacts also include `release-metadata/BUILD_PROVENANCE.txt` with the Git SHA, expected merge SHA, webhook delivery ID, Codemagic build ID, and AAB SHA-256.
+
 ## Local contract test
 
 The Worker has no npm runtime dependency. With Node 18+:
