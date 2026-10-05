@@ -1,6 +1,5 @@
 from pathlib import Path
 import importlib.util
-import json
 import subprocess
 import sys
 
@@ -31,6 +30,8 @@ def test_loop_is_bounded_and_requires_clean_tree():
     assert "MAX_ATTEMPTS=${MAX_ATTEMPTS:-4}" in text
     assert "MAX_ATTEMPTS" in text and "-gt 5" in text
     assert "git status --porcelain" in text
+    assert "worktree_fingerprint" in text
+    assert "git rev-parse HEAD" in text
     assert "while true" not in text
     assert "AUTO_FIX_CMD" in text
     assert ".github/" in text
@@ -48,8 +49,7 @@ def test_runtime_probe_is_optional_and_uses_adb_without_networking_app():
 def test_classifier_detects_dart_compile_and_redacts_secrets():
     module = load_classifier()
     report = module.classify_text(
-        "lib/main.dart:10:3: error • Undefined name 'foo'\n"
-        "token=super-secret-value\n"
+        "lib/main.dart:10:3: error • Undefined name 'foo' token=super-secret-value\n"
         "Target kernel_snapshot failed: Exception\n"
     )
     assert report["category"] == "dart_compile"
@@ -84,7 +84,7 @@ def test_fast_termux_build_profile_preserves_full_gate():
     wrapper = (ROOT / "build_deutsch.sh").read_text(encoding="utf-8")
     assert 'PROFILE="${2:-full}"' in build
     assert "termux-fast" in build
-    assert 'dart analyze lib/' in build
+    assert 'dart analyze --no-fatal-warnings lib/' in build
     assert 'grep "error •"' in build
     assert "flutter test" in build
     assert "python -m pytest -q tests" in build
