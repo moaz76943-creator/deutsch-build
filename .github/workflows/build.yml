@@ -1,16 +1,20 @@
-name: Laboratory Full-Suite Quality Audit & APK Build
+name: Deutsch Bi-Arabi Autonomous Engineering & Build Lab
 
 on:
   push:
     branches: [ '**' ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  inspect_audit_and_build:
+  autonomous_lab:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1. Checkout Full Codebase
+      - name: 1. Checkout Full Repository
         uses: actions/checkout@v4
 
       - name: 2. Setup Java 17 Runtime
@@ -25,30 +29,33 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: 4. Install & Verify Package Tree
+      - name: 4. Verify & Fetch Dependencies
         run: flutter pub get
 
-      - name: 5. Deep Static UI & Logic Analysis
+      - name: 5. Code Quality, UI Lint & Architecture Analysis
         run: |
-          mkdir -p build_reports
-          flutter analyze --no-fatal-infos --no-fatal-warnings > build_reports/static_analysis.txt || true
+          mkdir -p lab_reports
+          flutter analyze --no-fatal-infos --no-fatal-warnings > lab_reports/code_quality.txt || true
 
-      - name: 6. Comprehensive Assets & Resources Audit
+      - name: 6. Audio Assets & Lesson Dictionary Audit
         run: |
-          echo "=== ASSETS & AUDIO AUDIT REPORT ===" > build_reports/assets_audit.txt
-          echo "Total Assets declared in pubspec.yaml:" >> build_reports/assets_audit.txt
-          grep -A 100 "assets:" pubspec.yaml >> build_reports/assets_audit.txt || true
-          echo "" >> build_reports/assets_audit.txt
-          echo "Checking assets directory on disk:" >> build_reports/assets_audit.txt
-          find assets -type f | wc -l | sed 's/^/Total files in assets: /' >> build_reports/assets_audit.txt || true
+          echo "=== ASSETS & SOUND INTEGRITY AUDIT ===" > lab_reports/assets_audit.txt
+          echo "Total files in assets:" >> lab_reports/assets_audit.txt
+          find assets -type f | wc -l >> lab_reports/assets_audit.txt 2>/dev/null || true
+          echo "" >> lab_reports/assets_audit.txt
+          echo "Audio Files Found:" >> lab_reports/assets_audit.txt
+          find assets -name "*.mp3" -o -name "*.wav" -o -name "*.ogg" 2>/dev/null >> lab_reports/assets_audit.txt || true
 
-      - name: 7. Build Production Release APK
+      - name: 7. Build Universal Production Release APK
         run: flutter build apk --release
 
-      - name: 8. Package Audit Reports & Release APK
+      - name: 8. Build Performance Optimized Split APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: 9. Bundle and Upload All APKs & Engineering Reports
         uses: actions/upload-artifact@v4
         with:
-          name: deutsch-build-package-with-reports
+          name: deutsch-bilarabi-full-suite
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build_reports/*
+            build/app/outputs/flutter-apk/*.apk
+            lab_reports/*
