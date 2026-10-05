@@ -1,4 +1,4 @@
-name: Build APK
+name: Comprehensive Quality Check & APK Build
 
 on:
   push:
@@ -6,32 +6,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  inspect_and_build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: 2. Set up Java Environment
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Flutter
+      - name: 3. Set up Flutter SDK
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
-      - name: Install Dependencies
+      - name: 4. Verify Dependencies
         run: flutter pub get
 
-      - name: Build APK (Release)
+      - name: 5. Code Quality & Syntax Analysis
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: 6. Build Standard Release APK
         run: flutter build apk --release
 
-      - name: Upload APK
+      - name: 7. Build Split Per-ABI APKs (High Performance)
+        run: flutter build apk --release --split-per-abi
+
+      - name: 8. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: deutsch-bilarabi-apks
+          path: build/app/outputs/flutter-apk/*.apk
