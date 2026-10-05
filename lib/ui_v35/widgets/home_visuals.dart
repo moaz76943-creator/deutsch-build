@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 import 'glass_card.dart';
@@ -77,7 +76,8 @@ class HomeProgressHero extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         greeting,
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
@@ -86,7 +86,8 @@ class HomeProgressHero extends StatelessWidget {
                       const SizedBox(height: 5),
                       Text(
                         'أكمل من حيث توقفت',
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: Colors.white,
                           fontSize: 28,
                           height: 1.15,
@@ -96,7 +97,8 @@ class HomeProgressHero extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         learningSummary,
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: Colors.white.withAlpha(184),
                           fontSize: 12.5,
                           height: 1.5,
@@ -123,7 +125,8 @@ class HomeProgressHero extends StatelessWidget {
                         levelLabel,
                         key: const Key('home-level-badge'),
                         textDirection: TextDirection.ltr,
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: Colors.white,
                           fontSize: 19,
                           fontWeight: FontWeight.w900,
@@ -132,7 +135,8 @@ class HomeProgressHero extends StatelessWidget {
                       Text(
                         '$percent%',
                         textDirection: TextDirection.ltr,
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: const Color(0xFF67E8F9),
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -228,7 +232,8 @@ class _PrimaryLearningButton extends StatelessWidget {
         ),
         label: Text(
           label,
-          style: GoogleFonts.cairo(
+          style: TextStyle(
+                          fontFamily: 'Cairo',
             fontSize: 15,
             fontWeight: FontWeight.w800,
             color: Colors.white,
@@ -285,7 +290,8 @@ class _HeaderMetric extends StatelessWidget {
             textDirection: TextDirection.ltr,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.cairo(
+            style: TextStyle(
+                          fontFamily: 'Cairo',
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w900,
@@ -295,7 +301,8 @@ class _HeaderMetric extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.cairo(
+            style: TextStyle(
+                          fontFamily: 'Cairo',
               color: Colors.white.withAlpha(170),
               fontSize: 9.5,
               fontWeight: FontWeight.w500,
@@ -420,7 +427,8 @@ class ReferenceHomeActions extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         'تابع مسار التعلم',
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -431,7 +439,8 @@ class ReferenceHomeActions extends StatelessWidget {
                         'افتح النشاط التالي المقترح حسب تقدمك الحالي',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.cairo(
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
                           color: Colors.white.withAlpha(158),
                           fontSize: 11,
                           height: 1.4,
@@ -475,7 +484,8 @@ class _SectionHeading extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           title,
-          style: GoogleFonts.cairo(
+          style: TextStyle(
+                          fontFamily: 'Cairo',
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -541,7 +551,8 @@ class _QuickActionCard extends StatelessWidget {
                 spec.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.cairo(
+                style: TextStyle(
+                          fontFamily: 'Cairo',
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -551,7 +562,8 @@ class _QuickActionCard extends StatelessWidget {
                 spec.subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.cairo(
+                style: TextStyle(
+                          fontFamily: 'Cairo',
                   color: Colors.white.withAlpha(145),
                   fontSize: 9.5,
                 ),
@@ -680,7 +692,8 @@ class FeatureNavigationCard extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     title,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
+                          fontFamily: 'Cairo',
                       color: titleColor,
                       fontWeight: FontWeight.w800,
                     ),
@@ -690,7 +703,8 @@ class FeatureNavigationCard extends StatelessWidget {
                     subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.cairo(
+                    style: TextStyle(
+                          fontFamily: 'Cairo',
                       color: subtitleColor,
                       fontSize: 10.5,
                     ),
@@ -746,7 +760,8 @@ class _LearningTrackCard extends StatelessWidget {
               Text(
                 '$percent%',
                 textDirection: TextDirection.ltr,
-                style: GoogleFonts.cairo(
+                style: TextStyle(
+                          fontFamily: 'Cairo',
                   color: color,
                   fontWeight: FontWeight.w900,
                 ),
@@ -756,7 +771,8 @@ class _LearningTrackCard extends StatelessWidget {
           const Spacer(),
           Text(
             label,
-            style: GoogleFonts.cairo(
+            style: TextStyle(
+                          fontFamily: 'Cairo',
               color: labelColor,
               fontWeight: FontWeight.w700,
             ),
@@ -859,7 +875,8 @@ class ReferenceFloatingNavigationBar extends StatelessWidget {
                           destination.label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.cairo(
+                          style: TextStyle(
+                          fontFamily: 'Cairo',
                             fontSize: 9.5,
                             fontWeight:
                                 selected ? FontWeight.w800 : FontWeight.w500,
