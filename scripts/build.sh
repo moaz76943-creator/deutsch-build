@@ -27,7 +27,7 @@ run_blocking_analyzer() {
   local analyzer_output analyzer_status analyzer_errors
   log TEST "Dart analyzer (lib/ blocking errors only)"
   set +e
-  analyzer_output="$(dart analyze lib/ 2>&1)"
+  analyzer_output="$(dart analyze --no-fatal-warnings lib/ 2>&1)"
   analyzer_status=$?
   set -e
   printf '%s\n' "$analyzer_output"
@@ -35,7 +35,7 @@ run_blocking_analyzer() {
   if [[ -n "$analyzer_errors" ]]; then
     fatal "Dart analyzer found blocking errors in lib/"
   fi
-  if [[ "$analyzer_status" -gt 1 ]]; then
+  if [[ "$analyzer_status" -ne 0 ]]; then
     fatal "Dart analyzer failed unexpectedly with exit $analyzer_status"
   fi
   log OK "Dart analyzer: 0 blocking errors in lib/; warnings are non-blocking"
