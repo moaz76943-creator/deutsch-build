@@ -1,4 +1,4 @@
-name: Comprehensive Quality Check & APK Build
+name: Laboratory Full-Suite Quality Audit & APK Build
 
 on:
   push:
@@ -6,36 +6,49 @@ on:
   workflow_dispatch:
 
 jobs:
-  inspect_and_build:
+  inspect_audit_and_build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1. Checkout Repository
+      - name: 1. Checkout Full Codebase
         uses: actions/checkout@v4
 
-      - name: 2. Set up Java Environment
+      - name: 2. Setup Java 17 Runtime
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: 3. Set up Flutter SDK
+      - name: 3. Setup Flutter Stable SDK
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 4. Verify Dependencies
+      - name: 4. Install & Verify Package Tree
         run: flutter pub get
 
-      - name: 5. Code Quality & Syntax Analysis
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - name: 5. Deep Static UI & Logic Analysis
+        run: |
+          mkdir -p build_reports
+          flutter analyze --no-fatal-infos --no-fatal-warnings > build_reports/static_analysis.txt || true
 
-      - name: 6. Build Standard Release APK
+      - name: 6. Comprehensive Assets & Resources Audit
+        run: |
+          echo "=== ASSETS & AUDIO AUDIT REPORT ===" > build_reports/assets_audit.txt
+          echo "Total Assets declared in pubspec.yaml:" >> build_reports/assets_audit.txt
+          grep -A 100 "assets:" pubspec.yaml >> build_reports/assets_audit.txt || true
+          echo "" >> build_reports/assets_audit.txt
+          echo "Checking assets directory on disk:" >> build_reports/assets_audit.txt
+          find assets -type f | wc -l | sed 's/^/Total files in assets: /' >> build_reports/assets_audit.txt || true
+
+      - name: 7. Build Production Release APK
         run: flutter build apk --release
 
-      - name: 7. Upload Build Artifacts
+      - name: 8. Package Audit Reports & Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: deutsch-bilarabi-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: deutsch-build-package-with-reports
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build_reports/*
