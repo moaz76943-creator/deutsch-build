@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AppTextDirection {
   static TextDirection forLanguageCode(String languageCode) {
@@ -12,25 +11,29 @@ abstract final class AppTextDirection {
 }
 
 abstract final class AppTypography {
-  static TextStyle get display => GoogleFonts.cairo(
+  static TextStyle get display => TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 30,
         fontWeight: FontWeight.w900,
         height: 1.18,
       );
 
-  static TextStyle get title => GoogleFonts.cairo(
+  static TextStyle get title => TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 20,
         fontWeight: FontWeight.w800,
         height: 1.3,
       );
 
-  static TextStyle get body => GoogleFonts.cairo(
+  static TextStyle get body => TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         height: 1.55,
       );
 
-  static TextStyle get label => GoogleFonts.cairo(
+  static TextStyle get label => TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 12,
         fontWeight: FontWeight.w700,
         height: 1.35,

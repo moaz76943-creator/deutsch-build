@@ -35,6 +35,35 @@ workflows:
           set -euo pipefail
           test "${CM_BRANCH:-}" = "main"
           test "${CM_PULL_REQUEST:-false}" != "true"
+      - name: Verify automatic build provenance
+        script: |
+          set -euo pipefail
+
+          if [ -n "${EXPECTED_MERGE_SHA:-}" ]; then
+            case "$EXPECTED_MERGE_SHA" in
+              (*[!0-9a-fA-F]*|'')
+                echo "EXPECTED_MERGE_SHA must be a 40-character hexadecimal SHA." >&2
+                exit 1
+                ;;
+            esac
+            if [ "${#EXPECTED_MERGE_SHA}" -ne 40 ]; then
+              echo "EXPECTED_MERGE_SHA must be exactly 40 characters." >&2
+              exit 1
+            fi
+
+            ACTUAL_SHA="$(git rev-parse HEAD)"
+            if [ "$ACTUAL_SHA" != "$EXPECTED_MERGE_SHA" ]; then
+              echo "Refusing to build the wrong revision." >&2
+              echo "Expected merge SHA: $EXPECTED_MERGE_SHA" >&2
+              echo "Checked out SHA:    $ACTUAL_SHA" >&2
+              exit 1
+            fi
+
+            echo "Verified automatic build provenance: $ACTUAL_SHA"
+          else
+            echo "No EXPECTED_MERGE_SHA supplied; treating this as an explicit manual main-branch build."
+          fi
+
       - name: Set up Android SDK and Flutter paths
         script: |
           set -euo pipefail
@@ -71,6 +100,12 @@ workflows:
 
           chmod 600 "$KEYSTORE_PATH"
 
+          keytool -list \
+            -keystore "$KEYSTORE_PATH" \
+            -storepass "$CM_KEYSTORE_PASSWORD" \
+            -alias "$CM_KEY_ALIAS" \
+            >/dev/null
+
           export ORG_GRADLE_PROJECT_releaseStoreFile="$KEYSTORE_PATH"
           export ORG_GRADLE_PROJECT_releaseStorePassword="$CM_KEYSTORE_PASSWORD"
           export ORG_GRADLE_PROJECT_releaseKeyAlias="$CM_KEY_ALIAS"
@@ -81,20 +116,50 @@ workflows:
       - name: Verify AAB and record SHA-256
         script: |
           set -euo pipefail
-          AAB_PATH="$CM_BUILD_DIR/build/app/outputs/bundle/release/app-release.aab"
-          test -s "$AAB_PATH"
-          test -d "$CM_BUILD_DIR/symbols"
-          find "$CM_BUILD_DIR/symbols" -type f -print -quit | grep -q .
 
+          AAB_PATH="$CM_BUILD_DIR/build/app/outputs/bundle/release/app-release.aab"
+          SYMBOLS_DIR="$CM_BUILD_DIR/symbols"
+          METADATA_DIR="$CM_BUILD_DIR/release-metadata"
+
+          test -s "$AAB_PATH"
+
+          echo "Verifying AAB archive integrity..."
+          unzip -t "$AAB_PATH" >/dev/null
+
+          echo "Verifying AAB signature..."
           jarsigner -verify -strict "$AAB_PATH" >/dev/null
 
-          mkdir -p "$CM_BUILD_DIR/release-metadata"
+          test -d "$SYMBOLS_DIR" || {
+            echo "Missing split-debug-info symbols directory." >&2
+            exit 1
+          }
+
+          SYMBOL_FILE="$(find "$SYMBOLS_DIR" -type f -size +0c -print -quit)"
+          test -n "$SYMBOL_FILE" || {
+            echo "Split-debug-info symbols directory contains no non-empty files." >&2
+            exit 1
+          }
+
+          mkdir -p "$METADATA_DIR"
+
           AAB_SHA256="$(shasum -a 256 "$AAB_PATH" | awk '{print $1}')"
           printf '%s  %s\n' "$AAB_SHA256" "app-release.aab" \
-            > "$CM_BUILD_DIR/release-metadata/SHA256SUMS.txt"
+            > "$METADATA_DIR/SHA256SUMS.txt"
+
+          CURRENT_SHA="$(git rev-parse HEAD)"
+          {
+            printf 'git_sha=%s\n' "$CURRENT_SHA"
+            printf 'expected_merge_sha=%s\n' "${EXPECTED_MERGE_SHA:-manual}"
+            printf 'github_delivery_id=%s\n' "${GITHUB_DELIVERY_ID:-manual}"
+            printf 'codemagic_build_id=%s\n' "${CM_BUILD_ID:-unknown}"
+            printf 'aab_sha256=%s\n' "$AAB_SHA256"
+          } > "$METADATA_DIR/BUILD_PROVENANCE.txt"
+
+          echo "AAB verification passed."
           echo "AAB SHA-256: $AAB_SHA256"
 
     artifacts:
       - build/app/outputs/bundle/release/*.aab
       - symbols/**
       - release-metadata/SHA256SUMS.txt
+      - release-metadata/BUILD_PROVENANCE.txt

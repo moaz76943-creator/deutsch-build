@@ -21,6 +21,8 @@ __pycache__/
 # Local environment / secret material
 .env
 .env.*
+.dev.vars
+.dev.vars.*
 
 # Local release archives are generated artifacts
 *.zip

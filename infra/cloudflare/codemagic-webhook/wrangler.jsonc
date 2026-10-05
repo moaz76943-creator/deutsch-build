@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "deutsch-bilarabi-codemagic-webhook",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-05",
+  "workers_dev": true,
+  "vars": {
+    "CODEMAGIC_WORKFLOW_ID": "signed-android-aab",
+    "EXPECTED_REPOSITORY": "sali97m-cpu/deutsch-bilarabi",
+    "EXPECTED_BASE_BRANCH": "main"
+  },
+  "secrets": {
+    "required": [
+      "GITHUB_WEBHOOK_SECRET",
+      "CODEMAGIC_API_TOKEN",
+      "CODEMAGIC_APP_ID"
+    ]
+  }
+}
