@@ -1,0 +1,12 @@
+{
+  "level": "A1",
+  "category": "Basics",
+  "words": [
+    {
+      "german": "Hallo",
+      "arabic": "مرحباً",
+      "example_de": "Hallo, wie geht es dir?",
+      "example_ar": "مرحباً، كيف حالك؟"
+    }
+  ]
+}

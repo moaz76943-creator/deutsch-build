@@ -1,4 +1,4 @@
-name: Deutsch Bi-Arabi Autonomous Engineering & Build Lab
+name: Autonomous Master Pipeline & Release
 
 on:
   push:
@@ -10,11 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  autonomous_lab:
+  master_build_pipeline:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1. Checkout Full Repository
+      - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
       - name: 2. Setup Java 17 Runtime
@@ -32,30 +32,26 @@ jobs:
       - name: 4. Verify & Fetch Dependencies
         run: flutter pub get
 
-      - name: 5. Code Quality, UI Lint & Architecture Analysis
+      - name: 5. Code Quality & Syntax Analysis
         run: |
-          mkdir -p lab_reports
-          flutter analyze --no-fatal-infos --no-fatal-warnings > lab_reports/code_quality.txt || true
+          mkdir -p build_audit
+          flutter analyze --no-fatal-infos --no-fatal-warnings > build_audit/lint_analysis.txt || true
 
-      - name: 6. Audio Assets & Lesson Dictionary Audit
+      - name: 6. Assets & Content Integrity Audit
         run: |
-          echo "=== ASSETS & SOUND INTEGRITY AUDIT ===" > lab_reports/assets_audit.txt
-          echo "Total files in assets:" >> lab_reports/assets_audit.txt
-          find assets -type f | wc -l >> lab_reports/assets_audit.txt 2>/dev/null || true
-          echo "" >> lab_reports/assets_audit.txt
-          echo "Audio Files Found:" >> lab_reports/assets_audit.txt
-          find assets -name "*.mp3" -o -name "*.wav" -o -name "*.ogg" 2>/dev/null >> lab_reports/assets_audit.txt || true
+          echo "=== ASSETS AUDIT ===" > build_audit/assets_audit.txt
+          find assets -type f >> build_audit/assets_audit.txt 2>/dev/null || true
 
       - name: 7. Build Universal Production Release APK
         run: flutter build apk --release
 
-      - name: 8. Build Performance Optimized Split APKs
+      - name: 8. Build High Performance Split APKs
         run: flutter build apk --release --split-per-abi
 
-      - name: 9. Bundle and Upload All APKs & Engineering Reports
+      - name: 9. Upload Production Packages & Audit Reports
         uses: actions/upload-artifact@v4
         with:
-          name: deutsch-bilarabi-full-suite
+          name: deutsch-bilarabi-full-package
           path: |
             build/app/outputs/flutter-apk/*.apk
-            lab_reports/*
+            build_audit/*
