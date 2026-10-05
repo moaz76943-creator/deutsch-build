@@ -37,6 +37,9 @@ void main() {
           exampleTranslationText: 'أنا آتي متأخرًا.',
           grammaticalMarker: '',
           pluralForm: '',
+          topic: 'time',
+          skill: 'vocabulary',
+          acceptedForms: <String>['spät'],
         ),
         'due': const QuickReviewCorpusItem(
           id: 'due',
@@ -84,6 +87,9 @@ void main() {
     expect(reader.lastIds, <String>['late', 'due']);
     expect(session.cards.map((card) => card.contentId), <String>['late', 'due']);
     expect(session.cards.every((card) => !card.dueAt.isAfter(now)), isTrue);
+    expect(session.cards.first.topic, 'time');
+    expect(session.cards.first.skill, 'vocabulary');
+    expect(session.cards.first.acceptedForms, <String>['spät']);
     expect(session.limit, 12);
   });
 

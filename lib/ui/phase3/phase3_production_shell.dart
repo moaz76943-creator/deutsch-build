@@ -3,12 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/content_contract.dart';
+import '../../core/explainer/explainer.dart';
+import '../../core/quick_review/quick_review.dart';
 import '../../core/curriculum/advanced_vocabulary.dart';
 import '../../core/curriculum/canonical_curriculum_50.dart';
 import '../../core/curriculum/curriculum_models.dart';
 import '../../core/design/flashcards_3d/flashcard_3d_models.dart';
 import '../../features/audio/domain/services/i_audio_runtime.dart';
 import '../../features/audio/hybrid_pronunciation_service.dart';
+import '../../features/daily_drill/data/universal_session_drill_review_sink.dart';
+import '../../features/daily_drill/domain/daily_drill_repository.dart';
+import '../../features/quick_review/presentation/v11_quick_review_screen.dart';
+import '../../features/session/universal_session_orchestrator.dart';
+import '../../services/repository.dart';
 import '../../features/phase3_integration/life_curriculum_catalog.dart';
 import '../../features/phase3_integration/production_agent_runtime.dart';
 import 'language_selection_screen.dart';
@@ -22,6 +29,11 @@ final class Phase3ProductionShell extends StatefulWidget {
   const Phase3ProductionShell({
     required this.corpus,
     required this.audioRuntime,
+    required this.learnerRepository,
+    required this.quickReviewService,
+    required this.explainerService,
+    required this.reviewSourceLanguageCode,
+    required this.reviewTranslationLanguageCode,
     this.routeRegistry,
     this.localizationController,
     this.deckId = 'main-vocabulary',
@@ -31,6 +43,11 @@ final class Phase3ProductionShell extends StatefulWidget {
 
   final List<LearningContent> corpus;
   final IAudioRuntime audioRuntime;
+  final LearnerRepository learnerRepository;
+  final QuickReviewService quickReviewService;
+  final ExplainerService explainerService;
+  final String reviewSourceLanguageCode;
+  final String reviewTranslationLanguageCode;
   final LifeTaskRouteRegistry? routeRegistry;
   final Phase6L10nController? localizationController;
   final String deckId;
@@ -49,6 +66,8 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
   late final List<VocabularyFlashcardProjection> _projections;
   late final Phase3AgentRuntime _runtime;
   late final HybridPronunciationService _pronunciationAudio;
+  late final UniversalSessionOrchestrator _quickReviewOrchestrator;
+  late final DailyDrillReviewSink _quickReviewSink;
   late final Future<Phase10PresentationBridge> _phase10BridgeFuture;
   late final List<CurriculumTask> _routedTasks;
 
@@ -83,12 +102,20 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     _pronunciationAudio = HybridPronunciationService(
       audioRuntime: widget.audioRuntime,
     );
+    _quickReviewOrchestrator = UniversalSessionOrchestrator(
+      repository: widget.learnerRepository,
+    );
+    _quickReviewSink = UniversalSessionDrillReviewSink(
+      orchestrator: _quickReviewOrchestrator,
+      learnerRepository: widget.learnerRepository,
+    );
     _phase10BridgeFuture = Phase10PresentationBridge.start();
     unawaited(_loadDesign());
   }
 
   @override
   void dispose() {
+    _quickReviewOrchestrator.dispose();
     unawaited(_runtime.close());
     unawaited(
       _phase10BridgeFuture
@@ -179,6 +206,39 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
                 );
               },
             ),
+          ),
+        ),
+      );
+    } on Object catch (error) {
+      _setError('error.cards', error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openQuickReview() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _lastError = null;
+    });
+    try {
+      final learner = await widget.learnerRepository.reloadPersisted();
+      final session = await widget.quickReviewService.buildSession(
+        reviewCards: learner.reviewCards.values,
+        now: DateTime.now(),
+      );
+      if (!mounted) return;
+      _quickReviewOrchestrator.resetSession();
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => V11QuickReviewScreen(
+            session: session,
+            reviewSink: _quickReviewSink,
+            pronunciationAudio: _pronunciationAudio,
+            explainerService: widget.explainerService,
+            sourceLanguageCode: widget.reviewSourceLanguageCode,
+            translationLanguageCode: widget.reviewTranslationLanguageCode,
           ),
         ),
       );
@@ -466,6 +526,37 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
                         _busy || _projections.isEmpty ? null : _openCards,
                     icon: const Icon(Icons.play_arrow_rounded),
                     label: Text(_l10n.text('cards.open')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const Icon(Icons.bolt_rounded, size: 48),
+                  const SizedBox(height: 10),
+                  Text(
+                    'المراجعة السريعة',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'بطاقات SRS المستحقة من الفهرس المحلي الموثّق، '
+                    'مع نطق هجين وشرح محلي عند الطلب.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    key: const Key('v11-open-quick-review'),
+                    onPressed: _busy ? null : _openQuickReview,
+                    icon: const Icon(Icons.play_circle_outline_rounded),
+                    label: const Text('ابدأ المراجعة السريعة'),
                   ),
                 ],
               ),

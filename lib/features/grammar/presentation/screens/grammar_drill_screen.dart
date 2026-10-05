@@ -7,6 +7,7 @@ import '../../../../design_system/app_typography.dart';
 import '../../application/grammar_drill_notifier.dart';
 import '../../domain/grammar_drill_models.dart';
 import '../../../error_pattern_agent/domain/error_diagnostic_repository.dart';
+import '../widgets/explain_why_feedback_card.dart';
 import '../widgets/interactive_sentence_builder_widget.dart';
 
 class GrammarDrillScreen extends StatefulWidget {
@@ -95,30 +96,10 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
                   ),
                   const SizedBox(height: 14),
                   if (state.isAnswered)
-                    AppGlassCard(
-                      glowColor: state.lastAnswerCorrect
-                          ? AppColors.mastery
-                          : AppColors.tertiary,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            state.lastAnswerCorrect
-                                ? Icons.check_circle_rounded
-                                : Icons.refresh_rounded,
-                            color: state.lastAnswerCorrect
-                                ? AppColors.mastery
-                                : AppColors.tertiary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              state.feedbackAr,
-                              style: AppTypography.body,
-                            ),
-                          ),
-                        ],
-                      ),
+                    ExplainWhyFeedbackCard(
+                      explanation: state.feedbackAr,
+                      reasonCode: state.feedbackReasonCode ?? 'unknown',
+                      correct: state.lastAnswerCorrect,
                     ),
                   const SizedBox(height: 14),
                   FilledButton.icon(

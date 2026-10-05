@@ -53,6 +53,9 @@ final class IndexedSrsQuickReviewCorpusReader
             exampleTranslationText: item.sentenceAr,
             grammaticalMarker: item.article,
             pluralForm: item.plural,
+            topic: item.topic,
+            skill: item.skill,
+            acceptedForms: item.accepted,
           ),
         )
         .toList(growable: false);

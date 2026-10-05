@@ -10,6 +10,9 @@ final class QuickReviewCorpusItem {
     required this.exampleTranslationText,
     required this.grammaticalMarker,
     required this.pluralForm,
+    this.topic = '',
+    this.skill = 'vocabulary',
+    this.acceptedForms = const <String>[],
   });
 
   final String id;
@@ -19,6 +22,9 @@ final class QuickReviewCorpusItem {
   final String exampleTranslationText;
   final String grammaticalMarker;
   final String pluralForm;
+  final String topic;
+  final String skill;
+  final List<String> acceptedForms;
 }
 
 final class QuickReviewCard {
@@ -30,6 +36,9 @@ final class QuickReviewCard {
     required this.exampleTranslationText,
     required this.grammaticalMarker,
     required this.pluralForm,
+    this.topic = '',
+    this.skill = 'vocabulary',
+    this.acceptedForms = const <String>[],
     required this.dueAt,
     required this.memoryState,
     required this.reason,
@@ -44,6 +53,9 @@ final class QuickReviewCard {
   final String exampleTranslationText;
   final String grammaticalMarker;
   final String pluralForm;
+  final String topic;
+  final String skill;
+  final List<String> acceptedForms;
   final DateTime dueAt;
   final MemoryState memoryState;
   final MemoryReviewReason reason;

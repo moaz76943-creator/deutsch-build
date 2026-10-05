@@ -9,6 +9,8 @@ import 'package:sqflite/sqflite.dart';
 
 import 'core/agents/agents.dart';
 import 'core/content_contract.dart';
+import 'core/explainer/explainer.dart';
+import 'core/quick_review/quick_review.dart';
 import 'core/curriculum/canonical_curriculum_50.dart';
 import 'core/curriculum/curriculum_models.dart';
 import 'core/infrastructure/audio/flutter_tts_audio_engine.dart';
@@ -162,6 +164,14 @@ Future<_ActivatedPhase3App> _activateProduction({
     final resolvedCorpusSession =
         await _resolveActiveCorpusSession(prefs);
     corpusSession = resolvedCorpusSession;
+    final indexedCorpus = resolvedCorpusSession.resolution.corpusRepository;
+    if (indexedCorpus == null) {
+      throw StateError('indexed_corpus_unavailable_for_v11_ui');
+    }
+    final quickReviewService =
+        QuickReviewBindings.fromIndexedSrsCorpus(indexedCorpus);
+    final explainerService =
+        ExplainerBindings.fromIndexedSrsCorpus(indexedCorpus);
     final uiBridge = AgentUIBridge.attach(systemAgents);
     final routeState = await learnerRepository.reloadPersisted();
     final audioRuntime = OfflineAudioRuntime(
@@ -178,6 +188,10 @@ Future<_ActivatedPhase3App> _activateProduction({
       bridge: uiBridge,
       preferences: prefs,
       learnerRepository: learnerRepository,
+      quickReviewService: quickReviewService,
+      explainerService: explainerService,
+      reviewSourceLanguageCode: activeLanguagePack.languageCode,
+      reviewTranslationLanguageCode: activeLanguagePack.sourceLocale,
       startTaskOrder: _placementStartTaskOrder(routeState),
       shutdown: () async {
         await audioRuntime.shutdown();
@@ -864,6 +878,10 @@ final class _ActivatedPhase3App extends StatefulWidget {
     required this.bridge,
     required this.preferences,
     required this.learnerRepository,
+    required this.quickReviewService,
+    required this.explainerService,
+    required this.reviewSourceLanguageCode,
+    required this.reviewTranslationLanguageCode,
     required this.startTaskOrder,
     required this.shutdown,
   });
@@ -873,6 +891,10 @@ final class _ActivatedPhase3App extends StatefulWidget {
   final AgentUIBridge bridge;
   final PreferencesService preferences;
   final LearnerRepository learnerRepository;
+  final QuickReviewService quickReviewService;
+  final ExplainerService explainerService;
+  final String reviewSourceLanguageCode;
+  final String reviewTranslationLanguageCode;
   final int startTaskOrder;
   final Future<void> Function() shutdown;
 
@@ -939,6 +961,12 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
                 key: ValueKey<int>(_shellGeneration),
                 corpus: widget.corpus,
                 audioRuntime: widget.audioRuntime,
+                learnerRepository: widget.learnerRepository,
+                quickReviewService: widget.quickReviewService,
+                explainerService: widget.explainerService,
+                reviewSourceLanguageCode: widget.reviewSourceLanguageCode,
+                reviewTranslationLanguageCode:
+                    widget.reviewTranslationLanguageCode,
                 startTaskOrder: widget.startTaskOrder,
               ),
             );
