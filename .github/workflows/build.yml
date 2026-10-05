@@ -1,58 +1,38 @@
-name: Build APK (Manual Debug)
+name: Build APK
 
 on:
+  push:
+    branches: [ main, master ]
   workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: manual-debug-apk
-  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+
     steps:
-      - name: Checkout requested ref
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          persist-credentials: false
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Read toolchain.lock
-        id: toolchain
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          source toolchain.lock
-          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          printf 'java=%s\n' "$JAVA_MAJOR" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Java
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          distribution: temurin
-          java-version: "${{ steps.toolchain.outputs.java }}"
+          flutter-version: '3.24.0'
+          channel: 'stable'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build APK (Release)
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          flutter-version: "${{ steps.toolchain.outputs.flutter }}"
-          channel: stable
-          cache: true
-          pub-cache: true
-
-      - name: Fetch locked Flutter dependencies
-        run: flutter pub get --enforce-lockfile
-
-      - name: Build debug APK
-        run: flutter build apk --debug --target-platform android-arm64
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: manual-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-          if-no-files-found: error
-          retention-days: 3
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk

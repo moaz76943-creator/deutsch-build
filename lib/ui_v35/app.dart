@@ -27,7 +27,6 @@ import '../features/error_pattern_agent/presentation/blind_spot_radar_screen.dar
 
 import '../features/app_settings/presentation/app_settings_screen.dart';
 
-import '../features/life_hardware_store_diy/hardware_store_module.dart';
 
 import '../features/life_doctor_appointment/presentation/doctor_appointment_master_hub.dart';
 
@@ -71,7 +70,6 @@ import 'account_pages.dart';
 
 import 'account_auth_page.dart';
 
-import 'verb_pages.dart';
 
 import 'conversation_pages.dart';
 

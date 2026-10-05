@@ -1,6 +1,5 @@
 export 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
-import '../../design_system/app_typography.dart' as typo;
 
 export '../../design_system/app_typography.dart' show AppDirectionalText;
 
