@@ -28,7 +28,7 @@ class DialogueChatView extends StatefulWidget {
 class _DialogueChatViewState extends State<DialogueChatView> {
   late final DialogueEngine _engine;
   final Set<String> _revealedTranslations = <String>{};
-  final Set<String> _busyAudioTurns = <String>{};
+  final Set<String> _busyAudioIds = <String>{};
 
   @override
   void initState() {
@@ -44,14 +44,35 @@ class _DialogueChatViewState extends State<DialogueChatView> {
     });
   }
 
-  Future<void> _speak(DialogueTurn turn) async {
-    if (_busyAudioTurns.contains(turn.id)) return;
-    setState(() => _busyAudioTurns.add(turn.id));
+  Future<void> _speakTurn(DialogueTurn turn) async {
+    await _speakWithId(turn.id, turn);
+  }
+
+  Future<void> _speakChoice(DialogueChoice choice) async {
+    final audioId = 'choice:${choice.id}';
+    await _speakWithId(
+      audioId,
+      DialogueTurn(
+        id: audioId,
+        speaker: DialogueSpeaker.learner,
+        germanText: choice.germanText,
+        arabicTranslation: choice.arabicTranslation,
+        audioConceptId: choice.id,
+      ),
+    );
+  }
+
+  Future<void> _speakWithId(
+    String audioId,
+    DialogueTurn turn,
+  ) async {
+    if (_busyAudioIds.contains(audioId)) return;
+    setState(() => _busyAudioIds.add(audioId));
     try {
       await widget.audioPort.speak(turn);
     } finally {
       if (mounted) {
-        setState(() => _busyAudioTurns.remove(turn.id));
+        setState(() => _busyAudioIds.remove(audioId));
       }
     }
   }
@@ -100,10 +121,12 @@ class _DialogueChatViewState extends State<DialogueChatView> {
                     final turn = _engine.transcript[index];
                     return _DialogueBubble(
                       turn: turn,
-                      translationVisible: _revealedTranslations.contains(turn.id),
-                      audioBusy: _busyAudioTurns.contains(turn.id),
-                      onToggleTranslation: () => _toggleTranslation(turn),
-                      onListen: () => _speak(turn),
+                      translationVisible:
+                          _revealedTranslations.contains(turn.id),
+                      audioBusy: _busyAudioIds.contains(turn.id),
+                      onToggleTranslation: () =>
+                          _toggleTranslation(turn),
+                      onListen: () => _speakTurn(turn),
                     );
                   },
                 ),
@@ -113,7 +136,9 @@ class _DialogueChatViewState extends State<DialogueChatView> {
               else
                 _ChoicePanel(
                   node: current,
+                  busyAudioIds: _busyAudioIds,
                   onChoose: _choose,
+                  onListen: _speakChoice,
                 ),
             ],
           ),
@@ -135,36 +160,41 @@ class _Header extends StatelessWidget {
   final int scorePercent;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: AppGlassCard(
-        glowColor: AppColors.primary,
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(titleArabic, style: AppTypography.title),
-                  const SizedBox(height: 2),
-                  AppDirectionalText(
-                    titleGerman,
-                    languageCode: 'de',
-                    style: AppTypography.label,
-                  ),
-                ],
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+        child: AppGlassCard(
+          glowColor: AppColors.primary,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    AppDirectionalText(
+                      titleArabic,
+                      languageCode: 'ar',
+                      style: AppTypography.title,
+                    ),
+                    const SizedBox(height: 2),
+                    AppDirectionalText(
+                      titleGerman,
+                      languageCode: 'de',
+                      style: AppTypography.label,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Text(
-              '$scorePercent%',
-              style: AppTypography.title.copyWith(color: AppColors.mastery),
-            ),
-          ],
+              AppDirectionalText(
+                '$scorePercent%',
+                languageCode: 'ar',
+                style: AppTypography.title.copyWith(
+                  color: AppColors.mastery,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 class _DialogueBubble extends StatelessWidget {
@@ -203,7 +233,7 @@ class _DialogueBubble extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       AppDirectionalText(
                         turn.germanText,
@@ -214,11 +244,12 @@ class _DialogueBubble extends StatelessWidget {
                       ),
                       if (translationVisible) ...<Widget>[
                         const SizedBox(height: 8),
-                        Text(
+                        AppDirectionalText(
                           turn.arabicTranslation,
                           key: ValueKey<String>(
                             'dialogue-translation-${turn.id}',
                           ),
+                          languageCode: 'ar',
                           style: AppTypography.body,
                         ),
                       ],
@@ -245,48 +276,77 @@ class _DialogueBubble extends StatelessWidget {
 class _ChoicePanel extends StatelessWidget {
   const _ChoicePanel({
     required this.node,
+    required this.busyAudioIds,
     required this.onChoose,
+    required this.onListen,
   });
 
   final DialogueNode node;
+  final Set<String> busyAudioIds;
   final ValueChanged<DialogueChoice> onChoose;
+  final ValueChanged<DialogueChoice> onListen;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text('اختر الرد المناسب', style: AppTypography.label),
-          const SizedBox(height: 8),
-          for (final choice in node.choices)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: AppGlassCard(
-                key: ValueKey<String>('dialogue-choice-${choice.id}'),
-                onTap: () => onChoose(choice),
-                borderColor: AppColors.secondary.withAlpha(88),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    AppDirectionalText(
-                      choice.germanText,
-                      languageCode: 'de',
-                      style: AppTypography.body.copyWith(
-                        fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            AppDirectionalText(
+              'اختر الرد المناسب',
+              languageCode: 'ar',
+              style: AppTypography.label,
+            ),
+            const SizedBox(height: 8),
+            for (final choice in node.choices)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: AppGlassCard(
+                  key: ValueKey<String>('dialogue-choice-${choice.id}'),
+                  onTap: () => onChoose(choice),
+                  borderColor: AppColors.secondary.withAlpha(88),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            AppDirectionalText(
+                              choice.germanText,
+                              languageCode: 'de',
+                              style: AppTypography.body.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            AppDirectionalText(
+                              choice.arabicTranslation,
+                              languageCode: 'ar',
+                              style: AppTypography.label,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(choice.arabicTranslation, style: AppTypography.label),
-                  ],
+                      const SizedBox(width: 10),
+                      AppAudioButton(
+                        onPressed:
+                            busyAudioIds.contains('choice:${choice.id}')
+                                ? null
+                                : () => onListen(choice),
+                        semanticLabel: 'استمع إلى الرد الألماني',
+                        isBusy:
+                            busyAudioIds.contains('choice:${choice.id}'),
+                        activeColor: AppColors.secondary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }
 
 class _CompletionPanel extends StatelessWidget {
@@ -295,25 +355,30 @@ class _CompletionPanel extends StatelessWidget {
   final DialogueSessionResult result;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      child: AppGlassCard(
-        glowColor: AppColors.mastery,
-        borderColor: AppColors.mastery.withAlpha(100),
-        child: Row(
-          children: <Widget>[
-            const Icon(Icons.check_circle_outline, color: AppColors.mastery),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'أكملت الحوار بنجاح — النتيجة ${result.scorePercent}%',
-                style: AppTypography.body.copyWith(fontWeight: FontWeight.w800),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        child: AppGlassCard(
+          glowColor: AppColors.mastery,
+          borderColor: AppColors.mastery.withAlpha(100),
+          child: Row(
+            children: <Widget>[
+              const Icon(
+                Icons.check_circle_outline,
+                color: AppColors.mastery,
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: AppDirectionalText(
+                  'أكملت الحوار بنجاح — النتيجة '
+                  '${result.scorePercent}%',
+                  languageCode: 'ar',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

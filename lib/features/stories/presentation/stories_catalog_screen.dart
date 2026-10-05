@@ -26,51 +26,70 @@ class _StoriesCatalogScreenState extends State<StoriesCatalogScreen> {
   late final Future<List<StoryItem>> _stories = widget.repository.listStories();
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('القصص المصغّرة')),
-      body: FutureBuilder<List<StoryItem>>(
-        future: _stories,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('تعذر تحميل القصص.', style: AppTypography.body),
-            );
-          }
-          final stories = snapshot.data ?? const <StoryItem>[];
-          return ListView(
-            padding: const EdgeInsets.all(18),
-            children: <Widget>[
-              _header(),
-              const SizedBox(height: 18),
-              for (final level in StoryLevel.values) ...<Widget>[
-                _levelHeader(level),
-                const SizedBox(height: 10),
-                _storyGrid(
-                  stories.where((story) => story.level == level).toList(),
-                ),
-                const SizedBox(height: 18),
-              ],
-            ],
-          );
-        },
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+            title: AppDirectionalText(
+              'القصص المصغّرة',
+              languageCode: 'ar',
+              style: AppTypography.title,
+            ),
+          ),
+          body: FutureBuilder<List<StoryItem>>(
+            future: _stories,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: AppDirectionalText(
+                    'تعذر تحميل القصص.',
+                    languageCode: 'ar',
+                    style: AppTypography.body,
+                  ),
+                );
+              }
+
+              final stories = snapshot.data ?? const <StoryItem>[];
+              return ListView(
+                padding: const EdgeInsets.all(18),
+                children: <Widget>[
+                  _header(),
+                  const SizedBox(height: 18),
+                  for (final level in StoryLevel.values) ...<Widget>[
+                    _levelHeader(level),
+                    const SizedBox(height: 10),
+                    _storyGrid(
+                      stories
+                          .where((story) => story.level == level)
+                          .toList(growable: false),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
+                ],
+              );
+            },
+          ),
+        ),
+      );
 
   Widget _header() => AppGlassCard(
         glowColor: AppColors.primary,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text('اقرأ في سياق قصير', style: AppTypography.title),
+            AppDirectionalText(
+              'اقرأ في سياق قصير',
+              languageCode: 'ar',
+              style: AppTypography.title,
+            ),
             const SizedBox(height: 6),
-            Text(
-              'اضغط على الكلمات الألمانية المميزة لمعناها الفوري، ثم اختبر فهمك في نهاية القصة.',
-              textDirection: TextDirection.rtl,
+            AppDirectionalText(
+              'اضغط على الكلمات الألمانية المميزة لمعناها الفوري، '
+              'ثم اختبر فهمك في نهاية القصة.',
+              languageCode: 'ar',
               style: AppTypography.body,
             ),
           ],
@@ -85,22 +104,37 @@ class _StoriesCatalogScreenState extends State<StoriesCatalogScreen> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Text(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              child: AppDirectionalText(
                 level.label,
-                style: AppTypography.label.copyWith(color: AppColors.secondary),
+                languageCode: 'de',
+                style: AppTypography.label.copyWith(
+                  color: AppColors.secondary,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 8),
-          Text('قصص المستوى', style: AppTypography.title),
+          AppDirectionalText(
+            'قصص المستوى',
+            languageCode: 'ar',
+            style: AppTypography.title,
+          ),
         ],
       );
 
   Widget _storyGrid(List<StoryItem> stories) {
     if (stories.isEmpty) {
-      return Text('لا توجد قصص في هذا المستوى حالياً.', style: AppTypography.body);
+      return AppDirectionalText(
+        'لا توجد قصص في هذا المستوى حالياً.',
+        languageCode: 'ar',
+        style: AppTypography.body,
+      );
     }
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -116,11 +150,14 @@ class _StoriesCatalogScreenState extends State<StoriesCatalogScreen> {
         final completion = (widget.completionByStoryId[story.id] ?? 0)
             .clamp(0.0, 1.0)
             .toDouble();
+        final accent = story.level == StoryLevel.a1
+            ? AppColors.primary
+            : AppColors.achievement;
+
         return AppGlassCard(
           onTap: () => widget.onOpenStory(story),
-          glowColor: story.level == StoryLevel.a1
-              ? AppColors.primary
-              : AppColors.achievement,
+          borderColor: accent.withAlpha(105),
+          glowColor: accent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -133,16 +170,17 @@ class _StoriesCatalogScreenState extends State<StoriesCatalogScreen> {
                 ),
               ),
               const Spacer(),
-              Text(
+              AppDirectionalText(
                 story.titleGerman,
+                languageCode: 'de',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.title.copyWith(fontSize: 17),
               ),
               const SizedBox(height: 4),
-              Text(
+              AppDirectionalText(
                 story.titleArabic,
-                textDirection: TextDirection.rtl,
+                languageCode: 'ar',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.body,
@@ -154,8 +192,9 @@ class _StoriesCatalogScreenState extends State<StoriesCatalogScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               const SizedBox(height: 5),
-              Text(
+              AppDirectionalText(
                 'مكتمل ${(completion * 100).round()}%',
+                languageCode: 'ar',
                 style: AppTypography.label,
               ),
             ],
