@@ -1,0 +1,182 @@
+name: Quality Gate CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  actions: none
+  checks: none
+  id-token: none
+  pull-requests: none
+
+concurrency:
+  group: quality-gate-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate-ci:
+    name: quality-gate-ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact PR head
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Checkout main source
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Read locked Flutter and Dart versions
+        id: toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          printf 'dart=%s\n' "$DART_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter and Dart SDK
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: "${{ steps.toolchain.outputs.flutter }}"
+          channel: stable
+          cache: false
+          pub-cache: false
+
+      - name: Verify locked Dart and Python toolchains
+        shell: bash
+        env:
+          EXPECTED_DART: ${{ steps.toolchain.outputs.dart }}
+        run: |
+          set -Eeuo pipefail
+          dart_version="$(dart --version 2>&1)"
+          python3 --version
+          printf '%s\n' "$dart_version"
+          [[ "$dart_version" == *"Dart SDK version: ${EXPECTED_DART} "* ]] || {
+            echo "::error::Expected Dart ${EXPECTED_DART}, but runner reported: ${dart_version}"
+            exit 1
+          }
+
+      - name: Resolve locked Flutter dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Install pytest
+        run: python3 -m pip install --disable-pip-version-check --no-input pytest
+
+      - name: Run Dart analyzer
+        id: dart_analyze
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          log="$RUNNER_TEMP/dart_analyze.log"
+          set +e
+          dart analyze lib/ 2>&1 | tee "$log"
+          analyze_status=${PIPESTATUS[0]}
+          set -e
+
+          if grep -Fq "error •" "$log"; then
+            exit 1
+          fi
+
+          if [[ "$analyze_status" -eq 127 ]]; then
+            echo "::error::Dart analyzer could not be executed."
+            exit 1
+          fi
+
+          # Project policy: warnings/info are non-blocking; only analyzer errors block.
+          exit 0
+
+      - name: Run Python tests
+        id: pytest
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -q tests 2>&1 | tee "$RUNNER_TEMP/pytest.log"
+
+      - name: Publish concise quality report
+        if: always()
+        shell: bash
+        env:
+          DART_OUTCOME: ${{ steps.dart_analyze.outcome }}
+          PYTEST_OUTCOME: ${{ steps.pytest.outcome }}
+        run: |
+          set -Eeuo pipefail
+
+          {
+            echo "## Quality Gate CI"
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| \`dart analyze lib/\` | ${DART_OUTCOME} |"
+            echo "| \`pytest -q tests\` | ${PYTEST_OUTCOME} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          failed=0
+
+          if [[ "$DART_OUTCOME" != "success" ]]; then
+            failed=1
+            echo "::error::dart analyze lib/ found blocking analyzer errors or did not run successfully."
+            {
+              echo
+              echo "### Dart analyzer — concise failure report"
+              echo '```text'
+              if [[ -f "$RUNNER_TEMP/dart_analyze.log" ]]; then
+                matches="$(grep -F "error •" "$RUNNER_TEMP/dart_analyze.log" | head -n 30 || true)"
+                if [[ -n "$matches" ]]; then
+                  printf '%s\n' "$matches"
+                else
+                  tail -n 30 "$RUNNER_TEMP/dart_analyze.log"
+                fi
+              else
+                echo "Analyzer log unavailable; inspect the first failed setup/dependency step above."
+              fi
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$PYTEST_OUTCOME" != "success" ]]; then
+            failed=1
+            echo "::error::pytest tests failed or did not run successfully."
+            {
+              echo
+              echo "### pytest — concise failure report"
+              echo '```text'
+              if [[ -f "$RUNNER_TEMP/pytest.log" ]]; then
+                matches="$(grep -E '^(FAILED|ERROR)|=+ .* (failed|error|errors).* =+$' "$RUNNER_TEMP/pytest.log" | tail -n 40 || true)"
+                if [[ -n "$matches" ]]; then
+                  printf '%s\n' "$matches"
+                else
+                  tail -n 40 "$RUNNER_TEMP/pytest.log"
+                fi
+              else
+                echo "pytest log unavailable; inspect the first failed setup/dependency step above."
+              fi
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$failed" -ne 0 ]]; then
+            echo "::error::Quality Gate CI failed. See the job summary for the concise report."
+            exit 1
+          fi
+
+          echo "Quality Gate CI passed."
