@@ -18,6 +18,7 @@ import 'features/audio/data/android_recorded_audio_player.dart';
 import 'features/audio/data/audio_manifest_catalog.dart';
 import 'features/audio/domain/services/i_audio_runtime.dart';
 import 'features/audio/offline_audio_runtime.dart';
+import 'features/grammar/data/ar_de_grammar_explain_why.dart';
 import 'features/learning/data/local_learning_recovery_pair_progress_lease.dart';
 import 'features/learning/presentation/local_learning_recovery_runtime_host.dart';
 import 'features/placement/application/placement_test_notifier.dart';
@@ -170,8 +171,13 @@ Future<_ActivatedPhase3App> _activateProduction({
     }
     final quickReviewService =
         QuickReviewBindings.fromIndexedSrsCorpus(indexedCorpus);
-    final explainerService =
-        ExplainerBindings.fromIndexedSrsCorpus(indexedCorpus);
+    final explainWhyEngine = await ArDeGrammarExplainWhyCatalog.load(
+      readText: rootBundle.loadString,
+    );
+    final explainerService = ExplainerBindings.fromIndexedSrsCorpus(
+      indexedCorpus,
+      explainWhyEngine: explainWhyEngine,
+    );
     final uiBridge = AgentUIBridge.attach(systemAgents);
     final routeState = await learnerRepository.reloadPersisted();
     final audioRuntime = OfflineAudioRuntime(

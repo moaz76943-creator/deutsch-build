@@ -1,25 +1,30 @@
 import 'package:deutsch_bilarabi/core/explain_why/deterministic_explain_why_engine.dart';
+import 'package:deutsch_bilarabi/core/explainer/explainer_models.dart';
+import 'package:deutsch_bilarabi/core/l10n/l10n_dictionary_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final engine = DeterministicExplainWhyEngine(
-    ExplainWhyCatalog(
-      userLanguageCode: 'ar',
-      sourceLanguageCode: 'ar',
-      targetLanguageCode: 'de',
-      templates: <String, ExplainWhyTemplate>{
-        'grammar.verb.conjugation': ExplainWhyTemplate(
-          reasonCode: 'grammar.verb.conjugation',
-          successTemplate: 'صحيح — مع {pronoun}: {infinitive} → {expected}.',
-          failureTemplate:
-              'راجع التصريف مع الضمير {pronoun}: {infinitive} → {expected}.',
-        ),
-      },
+  final engine = DeterministicExplainWhyEngine.fromDictionary(
+    dictionary: L10nDictionaryCodec.decodeJson(
+      '''
+{
+  "locale": "ar",
+  "strings": {
+    "explain.grammar.verb.conjugation.correct":
+      "صحيح — مع {pronoun}: {infinitive} → {expected}.",
+    "explain.grammar.verb.conjugation.incorrect":
+      "راجع التصريف مع الضمير {pronoun}: {infinitive} → {expected}."
+  }
+}
+''',
     ),
+    userLanguageCode: 'ar',
+    sourceLanguageCode: 'ar',
+    targetLanguageCode: 'de',
   );
 
   test('renders the same reason code deterministically from structured args', () {
-    final request = ExplainWhyRequest(
+    final request = ExplainerRequest(
       reasonCode: 'grammar.verb.conjugation',
       correct: false,
       arguments: const <String, String>{
@@ -38,9 +43,9 @@ void main() {
     expect(second.text, first.text);
   });
 
-  test('selects the success template without storing per-item explanation text', () {
+  test('selects the success template without per-item explanation prose', () {
     final result = engine.explain(
-      ExplainWhyRequest(
+      ExplainerRequest(
         reasonCode: 'grammar.verb.conjugation',
         correct: true,
         arguments: const <String, String>{
@@ -57,7 +62,7 @@ void main() {
   test('fails closed for an unknown reason code', () {
     expect(
       () => engine.explain(
-        ExplainWhyRequest(
+        ExplainerRequest(
           reasonCode: 'grammar.unknown',
           correct: false,
         ),
@@ -75,7 +80,7 @@ void main() {
   test('fails closed when a required template argument is missing', () {
     expect(
       () => engine.explain(
-        ExplainWhyRequest(
+        ExplainerRequest(
           reasonCode: 'grammar.verb.conjugation',
           correct: false,
           arguments: <String, String>{
@@ -90,9 +95,11 @@ void main() {
 
   test('reason codes reject whitespace and unstable characters', () {
     expect(
-      () => ExplainWhyRequest(
-        reasonCode: 'grammar verb conjugation',
-        correct: false,
+      () => engine.explain(
+        ExplainerRequest(
+          reasonCode: 'grammar verb conjugation',
+          correct: false,
+        ),
       ),
       throwsFormatException,
     );

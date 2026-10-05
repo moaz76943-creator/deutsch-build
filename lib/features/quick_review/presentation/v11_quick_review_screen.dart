@@ -362,7 +362,8 @@ class _ExplanationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!result.found || result.facts.isEmpty) {
+    if (!result.found ||
+        (result.explanationText.isEmpty && result.facts.isEmpty)) {
       return const AppGlassCard(
         key: Key('quick-review-explanation-card'),
         child: Text('لا يوجد شرح محلي موثّق إضافي لهذه البطاقة.'),
@@ -376,6 +377,16 @@ class _ExplanationCard extends StatelessWidget {
         children: <Widget>[
           Text('لماذا؟', style: AppTypography.title),
           const SizedBox(height: 8),
+          if (result.explanationText.isNotEmpty) ...<Widget>[
+            Text(
+              result.explanationText,
+              key: const Key('quick-review-reason-text'),
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            if (result.facts.isNotEmpty) const SizedBox(height: 10),
+          ],
           for (final fact in result.facts) ...<Widget>[
             Text(
               '${_label(fact.kind)}: ${fact.value}',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../../models/content.dart';
 import '../../models/learner.dart';
@@ -8,6 +9,7 @@ import '../../core/text/directional_text.dart';
 import '../../design_system/app_colors.dart';
 import '../../design_system/app_glass_card.dart';
 import '../../design_system/app_typography.dart';
+import '../../features/grammar/data/ar_de_grammar_explain_why.dart';
 import '../../features/grammar/data/local_grammar_drill_repository.dart';
 import '../../features/grammar/domain/grammar_drill_models.dart';
 import '../../features/grammar/presentation/screens/grammar_drill_screen.dart';
@@ -32,11 +34,14 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
   final List<String> _levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
   List<GrammarTopic> _topics = [];
   bool _isLoading = true;
+  bool _isDrillRepositoryLoading = true;
+  GrammarDrillRepository? _activeDrillRepository;
 
   @override
   void initState() {
     super.initState();
     _loadTopics();
+    _loadDrillRepository();
   }
 
   Future<void> _loadTopics() async {
@@ -68,11 +73,43 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
         _ => null,
       };
 
-  GrammarDrillRepository? get _activeDrillRepository =>
-      LocalGrammarDrillRepository.forDirectedPair(
-        sourceLocale: widget.dependencies.languagePack.sourceLocale,
-        targetLocale: widget.dependencies.languagePack.targetLocale,
+  Future<void> _loadDrillRepository() async {
+    final sourceLocale = widget.dependencies.languagePack.sourceLocale;
+    final targetLocale = widget.dependencies.languagePack.targetLocale;
+    final source = sourceLocale.trim().toLowerCase().split(RegExp('[-_]')).first;
+    final target = targetLocale.trim().toLowerCase().split(RegExp('[-_]')).first;
+
+    if (source != 'ar' || target != 'de') {
+      if (!mounted) return;
+      setState(() {
+        _activeDrillRepository = null;
+        _isDrillRepositoryLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final explainWhyEngine = await ArDeGrammarExplainWhyCatalog.load(
+        readText: rootBundle.loadString,
       );
+      final repository = LocalGrammarDrillRepository.forDirectedPair(
+        sourceLocale: sourceLocale,
+        targetLocale: targetLocale,
+        explainWhyEngine: explainWhyEngine,
+      );
+      if (!mounted) return;
+      setState(() {
+        _activeDrillRepository = repository;
+        _isDrillRepositoryLoading = false;
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _activeDrillRepository = null;
+        _isDrillRepositoryLoading = false;
+      });
+    }
+  }
 
   void _openInteractiveDrills() {
     final level = _drillLevel;
@@ -151,11 +188,13 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _activeDrillRepository == null
-                                ? 'لا توجد حزمة تمارين معتمدة لزوج اللغة النشط.'
-                                : _drillLevel == null
-                                    ? 'بنك التمارين متاح حاليًا من A1 إلى B1.'
-                                    : 'رتّب الجمل، صرّف الأفعال، وتدرّب على الحالات الإعرابية.',
+                            _isDrillRepositoryLoading
+                                ? 'جاري تجهيز شرح القواعد المحلي.'
+                                : _activeDrillRepository == null
+                                    ? 'لا توجد حزمة تمارين معتمدة لزوج اللغة النشط.'
+                                    : _drillLevel == null
+                                        ? 'بنك التمارين متاح حاليًا من A1 إلى B1.'
+                                        : 'رتّب الجمل، صرّف الأفعال، وتدرّب على الحالات الإعرابية.',
                             style: AppTypography.body,
                           ),
                         ],
@@ -163,7 +202,8 @@ class _GrammarHubPageState extends State<GrammarHubPage> {
                     ),
                     const SizedBox(width: 10),
                     FilledButton(
-                      onPressed: _activeDrillRepository == null ||
+                      onPressed: _isDrillRepositoryLoading ||
+                              _activeDrillRepository == null ||
                               _drillLevel == null
                           ? null
                           : _openInteractiveDrills,

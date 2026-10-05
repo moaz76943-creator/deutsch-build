@@ -1,12 +1,19 @@
+import 'dart:io';
+
 import 'package:deutsch_bilarabi/features/grammar/application/grammar_drill_notifier.dart';
 import 'package:deutsch_bilarabi/features/grammar/application/sentence_token_bank.dart';
+import 'package:deutsch_bilarabi/features/grammar/data/ar_de_grammar_explain_why.dart';
 import 'package:deutsch_bilarabi/features/grammar/data/local_grammar_drill_repository.dart';
 import 'package:deutsch_bilarabi/features/grammar/domain/grammar_drill_evaluator.dart';
 import 'package:deutsch_bilarabi/features/grammar/domain/grammar_drill_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const repository = LocalGrammarDrillRepository();
+  final repository = LocalGrammarDrillRepository(
+    explainWhyEngine: ArDeGrammarExplainWhyCatalog.decode(
+      File(ArDeGrammarExplainWhyCatalog.assetPath).readAsStringSync(),
+    ),
+  );
   const evaluator = GrammarDrillEvaluator();
 
   group('LocalGrammarDrillRepository', () {
@@ -15,6 +22,7 @@ void main() {
         LocalGrammarDrillRepository.forDirectedPair(
           sourceLocale: 'ar',
           targetLocale: 'de-DE',
+          explainWhyEngine: repository.explainWhyEngine,
         ),
         isA<LocalGrammarDrillRepository>(),
       );
@@ -22,6 +30,7 @@ void main() {
         LocalGrammarDrillRepository.forDirectedPair(
           sourceLocale: 'en',
           targetLocale: 'de-DE',
+          explainWhyEngine: repository.explainWhyEngine,
         ),
         isNull,
       );
@@ -29,6 +38,7 @@ void main() {
         LocalGrammarDrillRepository.forDirectedPair(
           sourceLocale: 'ar',
           targetLocale: 'fr-FR',
+          explainWhyEngine: repository.explainWhyEngine,
         ),
         isNull,
       );

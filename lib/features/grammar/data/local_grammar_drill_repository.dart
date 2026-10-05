@@ -1,17 +1,25 @@
-import 'ar_de_grammar_explain_why.dart';
+import '../../../core/explain_why/deterministic_explain_why_engine.dart';
 import '../domain/grammar_drill_models.dart';
 
 final class LocalGrammarDrillRepository implements GrammarDrillRepository {
-  const LocalGrammarDrillRepository();
+  LocalGrammarDrillRepository({
+    required this.explainWhyEngine,
+  });
+
+  @override
+  final ExplainWhyEngine explainWhyEngine;
 
   static GrammarDrillRepository? forDirectedPair({
     required String sourceLocale,
     required String targetLocale,
+    required ExplainWhyEngine explainWhyEngine,
   }) {
     final source = _languageCode(sourceLocale);
     final target = _languageCode(targetLocale);
     if (source == 'ar' && target == 'de') {
-      return const LocalGrammarDrillRepository();
+      return LocalGrammarDrillRepository(
+        explainWhyEngine: explainWhyEngine,
+      );
     }
     return null;
   }
@@ -172,9 +180,6 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       expectedArticle: 'dem',
     ),
   ];
-
-  @override
-  get explainWhyEngine => arDeGrammarExplainWhyEngine;
 
   @override
   List<GrammarDrill> forLevel(GrammarLevel level) =>

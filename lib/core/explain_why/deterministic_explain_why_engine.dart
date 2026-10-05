@@ -1,20 +1,7 @@
+import '../explainer/explainer_models.dart';
 import '../l10n/dynamic_l10n_engine.dart';
 import '../l10n/l10n_models.dart';
-import '../localization/locale_provider.dart';
 import '../localization/localization_state.dart';
-
-final class ExplainWhyRequest {
-  ExplainWhyRequest({
-    required String reasonCode,
-    required this.correct,
-    Map<String, String> arguments = const <String, String>{},
-  })  : reasonCode = _validatedReasonCode(reasonCode),
-        arguments = Map<String, String>.unmodifiable(arguments);
-
-  final String reasonCode;
-  final bool correct;
-  final Map<String, String> arguments;
-}
 
 final class ExplainWhyResult {
   const ExplainWhyResult({
@@ -28,119 +15,74 @@ final class ExplainWhyResult {
   final String text;
 }
 
-final class ExplainWhyTemplate {
-  ExplainWhyTemplate({
-    required String reasonCode,
-    required this.successTemplate,
-    required this.failureTemplate,
-  }) : reasonCode = _validatedReasonCode(reasonCode) {
-    if (successTemplate.trim().isEmpty || failureTemplate.trim().isEmpty) {
-      throw const FormatException('explain_why_template_empty');
-    }
-  }
-
-  final String reasonCode;
-  final String successTemplate;
-  final String failureTemplate;
+abstract interface class ExplainWhyEngine {
+  bool supports(String reasonCode);
+  ExplainWhyResult explain(ExplainerRequest request);
 }
 
-final class ExplainWhyCatalog {
-  ExplainWhyCatalog({
+/// Deterministic reason-code renderer over the central localization runtime.
+///
+/// Templates are supplied through an admitted [L10nDictionary]; this engine
+/// contains no user-facing explanation prose. Runtime reason lookup is O(1)
+/// and placeholder rendering is bounded by the selected template.
+final class DeterministicExplainWhyEngine implements ExplainWhyEngine {
+  DeterministicExplainWhyEngine._({
+    required DynamicL10nEngine l10n,
+    required Set<String> reasonCodes,
+  })  : _l10n = l10n,
+        _reasonCodes = Set<String>.unmodifiable(reasonCodes);
+
+  factory DeterministicExplainWhyEngine.fromDictionary({
+    required L10nDictionary dictionary,
     required String userLanguageCode,
     required String sourceLanguageCode,
     required String targetLanguageCode,
-    required Map<String, ExplainWhyTemplate> templates,
-  })  : userLanguageCode = _validatedLanguageCode(userLanguageCode),
-        sourceLanguageCode = _validatedLanguageCode(sourceLanguageCode),
-        targetLanguageCode = _validatedLanguageCode(targetLanguageCode),
-        templates = Map<String, ExplainWhyTemplate>.unmodifiable(templates) {
-    if (this.templates.isEmpty) {
-      throw ArgumentError('Explain Why catalog cannot be empty.');
-    }
-    for (final entry in this.templates.entries) {
-      final key = _validatedReasonCode(entry.key);
-      if (key != entry.value.reasonCode) {
-        throw ArgumentError(
-          'Explain Why template key does not match reasonCode: ' + key + '.',
-        );
-      }
-    }
-  }
-
-  final String userLanguageCode;
-  final String sourceLanguageCode;
-  final String targetLanguageCode;
-  final Map<String, ExplainWhyTemplate> templates;
-
-  L10nDictionary toDictionary() {
-    final messages = <String, L10nMessage>{};
-    for (final template in templates.values) {
-      final successKey = _messageKey(template.reasonCode, correct: true);
-      final failureKey = _messageKey(template.reasonCode, correct: false);
-      messages[successKey] = L10nMessage(
-        key: successKey,
-        template: template.successTemplate,
-      );
-      messages[failureKey] = L10nMessage(
-        key: failureKey,
-        template: template.failureTemplate,
-      );
-    }
-    return L10nDictionary(
-      locale: AppLocale.parse(userLanguageCode),
-      sourceFormat: L10nSourceFormat.json,
-      messages: messages,
+  }) {
+    final reasonCodes = _reasonCodesFromDictionary(dictionary);
+    return DeterministicExplainWhyEngine._(
+      l10n: DynamicL10nEngine(
+        initialState: LocalizationState.fromLanguageTags(
+          userLanguageTag: userLanguageCode,
+          sourceLanguageTag: sourceLanguageCode,
+          targetLanguageTag: targetLanguageCode,
+        ),
+        fallbackLanguageTag: dictionary.locale.languageTag,
+        dictionaries: <L10nDictionary>[dictionary],
+      ),
+      reasonCodes: reasonCodes,
     );
   }
-}
 
-abstract interface class ExplainWhyEngine {
-  bool supports(String reasonCode);
-  ExplainWhyResult explain(ExplainWhyRequest request);
-}
-
-/// Deterministic reason-code adapter over the project's central localization
-/// runtime. It performs no network, persistence, clock, randomness, or AI work.
-///
-/// Runtime lookup is O(1) by reason key plus O(P) placeholder rendering.
-/// Storage scales with reusable reason templates O(R), not learning items.
-final class DeterministicExplainWhyEngine implements ExplainWhyEngine {
-  DeterministicExplainWhyEngine(this.catalog)
-      : _l10n = DynamicL10nEngine(
-          initialState: LocalizationState.fromLanguageTags(
-            userLanguageTag: catalog.userLanguageCode,
-            sourceLanguageTag: catalog.sourceLanguageCode,
-            targetLanguageTag: catalog.targetLanguageCode,
-          ),
-          fallbackLanguageTag: catalog.userLanguageCode,
-          dictionaries: <L10nDictionary>[catalog.toDictionary()],
-        );
-
-  final ExplainWhyCatalog catalog;
   final DynamicL10nEngine _l10n;
+  final Set<String> _reasonCodes;
 
   @override
   bool supports(String reasonCode) {
     try {
-      return catalog.templates.containsKey(_validatedReasonCode(reasonCode));
+      return _reasonCodes.contains(_validatedReasonCode(reasonCode));
     } on FormatException {
       return false;
     }
   }
 
   @override
-  ExplainWhyResult explain(ExplainWhyRequest request) {
-    if (!supports(request.reasonCode)) {
-      throw StateError(
-        'explain_why_reason_unsupported:' + request.reasonCode,
-      );
+  ExplainWhyResult explain(ExplainerRequest request) {
+    final rawReasonCode = request.reasonCode;
+    if (rawReasonCode == null || rawReasonCode.trim().isEmpty) {
+      throw StateError('explain_why_reason_missing');
+    }
+    final reasonCode = _validatedReasonCode(rawReasonCode);
+    if (!_reasonCodes.contains(reasonCode)) {
+      throw StateError('explain_why_reason_unsupported:' + reasonCode);
     }
 
-    final key = _messageKey(request.reasonCode, correct: request.correct);
-    final message = _l10n.findMessage(
-      key,
-      languageTag: catalog.userLanguageCode,
-    );
+    final correct = request.correct;
+    if (correct == null) {
+      throw StateError('explain_why_outcome_missing:' + reasonCode);
+    }
+
+    final key = _messageKey(reasonCode, correct: correct);
+    final message = _l10n.findMessage(key);
     if (message == null) {
       throw StateError('explain_why_template_missing:' + key);
     }
@@ -150,11 +92,55 @@ final class DeterministicExplainWhyEngine implements ExplainWhyEngine {
       arguments: request.arguments,
     );
     return ExplainWhyResult(
-      reasonCode: request.reasonCode,
+      reasonCode: reasonCode,
       languageCode: resolved.resolvedLocale,
       text: resolved.value,
     );
   }
+}
+
+Set<String> _reasonCodesFromDictionary(L10nDictionary dictionary) {
+  const prefix = 'explain.';
+  const correctSuffix = '.correct';
+  const incorrectSuffix = '.incorrect';
+
+  final variants = <String, int>{};
+  for (final key in dictionary.messages.keys) {
+    if (!key.startsWith(prefix)) continue;
+
+    late final String reasonCode;
+    late final int mask;
+    if (key.endsWith(correctSuffix)) {
+      reasonCode = key.substring(
+        prefix.length,
+        key.length - correctSuffix.length,
+      );
+      mask = 1;
+    } else if (key.endsWith(incorrectSuffix)) {
+      reasonCode = key.substring(
+        prefix.length,
+        key.length - incorrectSuffix.length,
+      );
+      mask = 2;
+    } else {
+      throw FormatException('explain_why_template_key_invalid:' + key);
+    }
+
+    final normalized = _validatedReasonCode(reasonCode);
+    variants[normalized] = (variants[normalized] ?? 0) | mask;
+  }
+
+  if (variants.isEmpty) {
+    throw const FormatException('explain_why_catalog_empty');
+  }
+  for (final entry in variants.entries) {
+    if (entry.value != 3) {
+      throw FormatException(
+        'explain_why_template_pair_incomplete:' + entry.key,
+      );
+    }
+  }
+  return variants.keys.toSet();
 }
 
 String _messageKey(String reasonCode, {required bool correct}) =>
@@ -168,9 +154,4 @@ String _validatedReasonCode(String raw) {
     throw FormatException('explain_why_reason_code_invalid:' + raw);
   }
   return value;
-}
-
-String _validatedLanguageCode(String raw) {
-  final locale = AppLocale.parse(raw);
-  return locale.languageTag;
 }

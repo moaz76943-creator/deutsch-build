@@ -1,5 +1,7 @@
 import 'package:deutsch_bilarabi/core/content_contract.dart';
+import 'package:deutsch_bilarabi/core/explain_why/deterministic_explain_why_engine.dart';
 import 'package:deutsch_bilarabi/core/explainer/explainer.dart';
+import 'package:deutsch_bilarabi/core/l10n/l10n_dictionary_codec.dart';
 import 'package:deutsch_bilarabi/core/memory.dart';
 import 'package:deutsch_bilarabi/core/quick_review/quick_review.dart';
 import 'package:deutsch_bilarabi/features/audio/domain/entities/audio_playback_result.dart';
@@ -111,6 +113,24 @@ void main() {
             pronunciationAudio: HybridPronunciationService(audioRuntime: audio),
             explainerService: ExplainerService(
               corpusReader: _ExplainerReader(),
+              explainWhyEngine: DeterministicExplainWhyEngine.fromDictionary(
+                dictionary: L10nDictionaryCodec.decodeJson(
+                  '''
+{
+  "locale": "ar",
+  "strings": {
+    "explain.lexicon.grammatical_marker.correct":
+      "أداة {source} هي {marker}.",
+    "explain.lexicon.grammatical_marker.incorrect":
+      "الأداة المتوقعة لـ {source} هي {marker}."
+  }
+}
+''',
+                ),
+                userLanguageCode: 'ar',
+                sourceLanguageCode: 'ar',
+                targetLanguageCode: 'de',
+              ),
             ),
             sourceLanguageCode: 'de',
             translationLanguageCode: 'ar',
@@ -133,6 +153,8 @@ void main() {
       await tester.tap(find.byKey(const Key('quick-review-explain')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('quick-review-explanation-card')), findsOneWidget);
+      expect(find.byKey(const Key('quick-review-reason-text')), findsOneWidget);
+      expect(find.text('أداة Haus هي das.'), findsOneWidget);
       expect(find.textContaining('Häuser'), findsWidgets);
 
       await tester.tap(find.byKey(const Key('quick-review-remembered')));

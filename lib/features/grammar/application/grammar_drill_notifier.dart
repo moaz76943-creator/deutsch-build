@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/explain_why/deterministic_explain_why_engine.dart';
+import '../../../core/explainer/explainer_models.dart';
 import '../domain/grammar_drill_evaluator.dart';
 import '../domain/grammar_drill_models.dart';
 import '../../error_pattern_agent/domain/error_diagnostic_repository.dart';
@@ -154,7 +155,7 @@ final class GrammarDrillNotifier extends ChangeNotifier {
         : _state.selectedAnswer;
     final evaluation = evaluator.evaluate(current, answer);
     final explanation = explainWhyEngine.explain(
-      ExplainWhyRequest(
+      ExplainerRequest(
         reasonCode: evaluation.reasonCode,
         correct: evaluation.correct,
         arguments: evaluation.reasonArguments,

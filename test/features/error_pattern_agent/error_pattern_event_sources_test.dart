@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:deutsch_bilarabi/features/error_pattern_agent/domain/error_diagnostic_repository.dart';
 import 'package:deutsch_bilarabi/features/error_pattern_agent/domain/error_pattern_models.dart';
 import 'package:deutsch_bilarabi/features/grammar/application/grammar_drill_notifier.dart';
 import 'package:deutsch_bilarabi/features/grammar/data/ar_de_grammar_explain_why.dart';
 import 'package:deutsch_bilarabi/features/grammar/domain/grammar_drill_models.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+final _explainWhyEngine = ArDeGrammarExplainWhyCatalog.decode(
+  File(ArDeGrammarExplainWhyCatalog.assetPath).readAsStringSync(),
+);
 
 final class _CapturingSink implements ErrorDiagnosticSink {
   final List<LearningFailureSignal> signals = <LearningFailureSignal>[];
@@ -34,7 +40,7 @@ void main() {
           expectedArticle: 'den',
         ),
       ],
-      explainWhyEngine: arDeGrammarExplainWhyEngine,
+      explainWhyEngine: _explainWhyEngine,
       errorDiagnosticSink: sink,
     );
 
@@ -69,7 +75,7 @@ void main() {
           correctTokenIds: <String>['today', 'go', 'i'],
         ),
       ],
-      explainWhyEngine: arDeGrammarExplainWhyEngine,
+      explainWhyEngine: _explainWhyEngine,
       errorDiagnosticSink: sink,
     );
 
