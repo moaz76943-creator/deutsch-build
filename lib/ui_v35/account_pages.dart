@@ -373,7 +373,7 @@ class SettingsV35 extends StatelessWidget {
                 onTap: () => showLicensePage(
                   context: c,
                   applicationName: 'Deutsch بالعربي',
-                  applicationVersion: '3.3.9',
+                  applicationVersion: '3.3.10',
                 ),
               ),
             ),

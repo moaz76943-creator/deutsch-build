@@ -1,7 +1,7 @@
 name: deutsch_bilarabi
 description: Deutsch بالعربي - منصة تعلم الألمانية للعرب.
 publish_to: "none"
-version: 3.3.9+132
+version: 3.3.10+133
 environment:
   sdk: ">=3.12.0 <4.0.0"
   flutter: ">=3.44.0"

@@ -28,9 +28,9 @@ It is retained only as historical material. Do not use it as a development targe
 
 ## Current validated baseline
 
-**V384 / release evidence 3.3.10+133**
+**V1.1 Feature Freeze / package 3.3.10+133**
 
-**Repository metadata note:** the current `pubspec.yaml` still declares `3.3.9+132`. Do not claim a release-version change until this metadata discrepancy is explicitly reconciled and verified.
+**Repository metadata note:** V1.1 release preparation reconciles the package metadata and Android release metadata at `3.3.10+133`.
 
 ## Recovery / preservation
 

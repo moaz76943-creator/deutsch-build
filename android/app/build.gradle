@@ -40,8 +40,8 @@ android {
         applicationId "com.deutschbilarabi.app"
         minSdkVersion flutter.minSdkVersion
         targetSdk 36
-        versionCode 132
-        versionName "3.3.9"
+        versionCode 133
+        versionName "3.3.10"
     }
 
     signingConfigs {
