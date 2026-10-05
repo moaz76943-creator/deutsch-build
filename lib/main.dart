@@ -78,7 +78,6 @@ void _verifyProductionContract() {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  registerProjectOpenSourceLicenses();
 
   const runtimeFailureReporter = NoopRuntimeFailureReporter();
 
@@ -96,46 +95,63 @@ Future<void> main() async {
     }
   };
 
-  ErrorWidget.builder = (FlutterErrorDetails details) => const Material(
-        child: _InlineSafeError(),
-      );
-
-  await runZonedGuarded(
-    () async {
-      try {
-        _verifyProductionContract();
-        runApp(const _RenderFirstBootstrapApp());
-      } catch (error, stack) {
-        runtimeFailureReporter.record(
-          error,
-          stack,
-          fatal: true,
-          context: 'bootstrap',
-        );
-        await _dispatchRecoveryError(
-          error: error,
-          context: 'bootstrap',
-          fatal: true,
-        );
-        runApp(const _BootFailureApp());
-      }
-    },
-    (error, stack) {
-      runtimeFailureReporter.record(
-        error,
-        stack,
-        fatal: true,
-        context: 'root_zone',
-      );
-      unawaited(
-        _dispatchRecoveryError(
-          error: error,
-          context: 'root_zone',
-          fatal: true,
+  ErrorWidget.builder = (FlutterErrorDetails details) => const Directionality(
+        textDirection: TextDirection.rtl,
+        child: Material(
+          child: _InlineSafeError(),
         ),
       );
-    },
-  );
+
+  WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
+    runtimeFailureReporter.record(
+      error,
+      stack,
+      fatal: true,
+      context: 'root_isolate',
+    );
+    unawaited(
+      _dispatchRecoveryError(
+        error: error,
+        context: 'root_isolate',
+        fatal: true,
+      ),
+    );
+    return true;
+  };
+
+  try {
+    _verifyProductionContract();
+    runApp(const _RenderFirstBootstrapApp());
+  } catch (error, stack) {
+    runtimeFailureReporter.record(
+      error,
+      stack,
+      fatal: true,
+      context: 'bootstrap',
+    );
+    unawaited(
+      _dispatchRecoveryError(
+        error: error,
+        context: 'bootstrap',
+        fatal: true,
+      ),
+    );
+    runApp(const _BootFailureApp());
+  }
+}
+
+void _registerProjectOpenSourceLicensesSafely() {
+  try {
+    registerProjectOpenSourceLicenses();
+  } on Object catch (error) {
+    unawaited(
+      _dispatchRecoveryError(
+        error: error,
+        context: 'license_registry',
+        fatal: false,
+      ),
+    );
+  }
 }
 
 Future<_ActivatedPhase3App> _activateProduction({
@@ -554,13 +570,21 @@ final class _RenderFirstBootstrapAppState
   Widget? _resolved;
   bool _loading = false;
   Object? _bootstrapError;
+  String _bootstrapStatus = 'جاري تجهيز التطبيق المحلي…';
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_bootstrap());
+      if (!mounted) return;
+      _registerProjectOpenSourceLicensesSafely();
+      unawaited(_bootstrap());
     });
+  }
+
+  void _updateBootstrapStatus(String status) {
+    if (!mounted) return;
+    setState(() => _bootstrapStatus = status);
   }
 
   Future<void> _bootstrap() async {
@@ -568,11 +592,13 @@ final class _RenderFirstBootstrapAppState
     setState(() {
       _loading = true;
       _bootstrapError = null;
+      _bootstrapStatus = 'جاري تجهيز الإعدادات المحلية…';
     });
 
     GamificationRepository? gamificationRepository;
     try {
       final prefs = await PreferencesService.instance();
+      _updateBootstrapStatus('جاري فتح بيانات التقدم المحلية…');
       final databaseRoot = await getDatabasesPath();
       final openedGamificationRepository =
           await SqliteGamificationRepository.open(
@@ -608,12 +634,14 @@ final class _RenderFirstBootstrapAppState
 
       late final Widget next;
       if (_needsPlacementOnboarding(state)) {
+        _updateBootstrapStatus('جاري تجهيز اختبار تحديد المستوى…');
         next = _PlacementBootstrapApp(
           prefs: prefs,
           learnerRepository: learnerRepository,
           gamificationRepository: openedGamificationRepository,
         );
       } else {
+        _updateBootstrapStatus('جاري تجهيز محرك التعلم المحلي…');
         next = await _activateProduction(
           prefs: prefs,
           learnerRepository: learnerRepository,
@@ -671,7 +699,7 @@ final class _RenderFirstBootstrapAppState
         child: child ?? const SizedBox.shrink(),
       ),
       home: _bootstrapError == null
-          ? const _RenderFirstLoading()
+          ? _RenderFirstLoading(status: _bootstrapStatus)
           : _RenderFirstFailure(
               onRetry: () => unawaited(_bootstrap()),
             ),
@@ -680,14 +708,45 @@ final class _RenderFirstBootstrapAppState
 }
 
 final class _RenderFirstLoading extends StatelessWidget {
-  const _RenderFirstLoading();
+  const _RenderFirstLoading({
+    this.status = 'جاري تجهيز التطبيق المحلي…',
+  });
+
+  final String status;
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(
-          child: SizedBox.square(
-            dimension: 28,
-            child: CircularProgressIndicator(strokeWidth: 3),
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.school_rounded,
+                    size: 54,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Deutsch بالعربي',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 12),
+                  const SizedBox.square(
+                    dimension: 28,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    status,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       );
