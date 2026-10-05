@@ -89,11 +89,22 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
     _routes = widget.routeRegistry ??
         LifeTaskRouteRegistry(localizationController: _l10n);
     _catalog = _routes.catalog;
+    final routableTaskIds = _catalog.links
+        .map((link) => link.curriculumTaskId)
+        .toSet();
     _routedTasks = List<CurriculumTask>.unmodifiable(
       CanonicalCurriculum50.tasks.where(
-        (task) => task.order >= widget.startTaskOrder,
+        (task) =>
+            task.order >= widget.startTaskOrder &&
+            routableTaskIds.contains(task.id),
       ),
     );
+    if (_routedTasks.isEmpty) {
+      throw StateError(
+        'No routable curriculum task exists at or after '
+        'startTaskOrder=${widget.startTaskOrder}.',
+      );
+    }
     _index = widget.startTaskOrder > 1 ? 1 : 0;
     _projections = VocabularyProjectionFactory.fromContentList(widget.corpus);
     _runtime = Phase3AgentRuntime.start(

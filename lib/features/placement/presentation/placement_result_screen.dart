@@ -109,8 +109,10 @@ class PlacementResultScreen extends StatelessWidget {
             AppGlassCard(
               glowColor: AppColors.primary,
               child: Text(
-                'سيبدأ مسارك من المهمة ${result.level.recommendedStartTaskOrder} '
-                'بدلاً من إعادة المراحل الأسهل. لا تُسجّل المراحل السابقة كمكتملة.',
+                'نقطة البداية المنهجية هي المهمة '
+                '${result.level.recommendedStartTaskOrder}. '
+                'سيعرض المسار أول مهمة قابلة للفتح عندها أو بعدها، '
+                'من دون تسجيل المراحل السابقة كمكتملة.',
                 textDirection: TextDirection.rtl,
                 textAlign: TextAlign.center,
                 style: AppTypography.body,
