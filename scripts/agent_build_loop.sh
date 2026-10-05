@@ -27,6 +27,40 @@ SESSION_ID="$(date +%Y%m%d_%H%M%S)_$$"
 SESSION_DIR="$AGENT_LOG_ROOT/$SESSION_ID"
 mkdir -p "$SESSION_DIR"
 START_HEAD="$(git rev-parse HEAD)"
+START_BRANCH="$(git branch --show-current)"
+[[ -n "$START_BRANCH" ]] || fatal "Agent loop requires a named Git branch"
+
+worktree_fingerprint() {
+  python3 - "$ROOT" <<'PY'
+from hashlib import sha256
+from pathlib import Path
+import subprocess
+import sys
+
+root = Path(sys.argv[1])
+h = sha256()
+diff = subprocess.run(
+    ["git", "diff", "--binary", "HEAD", "--", "."],
+    cwd=root,
+    check=True,
+    capture_output=True,
+).stdout
+h.update(diff)
+raw = subprocess.run(
+    ["git", "ls-files", "--others", "--exclude-standard", "-z"],
+    cwd=root,
+    check=True,
+    capture_output=True,
+).stdout
+for rel_raw in sorted(item for item in raw.split(b"\0") if item):
+    rel = rel_raw.decode("utf-8", errors="surrogateescape")
+    h.update(b"\0UNTRACKED\0" + rel_raw)
+    path = root / rel
+    if path.is_file():
+        h.update(path.read_bytes())
+print(h.hexdigest())
+PY
+}
 
 json_value() {
   local file="$1" key="$2"
@@ -191,6 +225,7 @@ for ((attempt=1; attempt<=MAX_ATTEMPTS; attempt++)); do
   BEFORE_STATUS="$ATTEMPT_DIR/git_status_before.txt"
   AFTER_STATUS="$ATTEMPT_DIR/git_status_after.txt"
   git status --porcelain > "$BEFORE_STATUS"
+  BEFORE_FINGERPRINT="$(worktree_fingerprint)"
 
   export DEUTSCH_AGENT_PROMPT_FILE="$PROMPT_FILE"
   export DEUTSCH_AGENT_DIAGNOSTIC_FILE="$DIAGNOSTIC"
@@ -198,8 +233,11 @@ for ((attempt=1; attempt<=MAX_ATTEMPTS; attempt++)); do
   export DEUTSCH_AGENT_ATTEMPT="$attempt"
   bash -lc "$AUTO_FIX_CMD"
 
+  [[ "$(git rev-parse HEAD)" == "$START_HEAD" ]] || fatal "AI repair changed Git HEAD; commits are forbidden inside the loop"
+  [[ "$(git branch --show-current)" == "$START_BRANCH" ]] || fatal "AI repair changed Git branch; branch switching is forbidden"
   git status --porcelain > "$AFTER_STATUS"
-  if cmp -s "$BEFORE_STATUS" "$AFTER_STATUS"; then
+  AFTER_FINGERPRINT="$(worktree_fingerprint)"
+  if [[ "$BEFORE_FINGERPRINT" == "$AFTER_FINGERPRINT" ]]; then
     fatal "AI repair command completed without producing a new project change"
   fi
   validate_agent_changes "$SCOPES_FILE"
