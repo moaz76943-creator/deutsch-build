@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/content_contract.dart';
 import '../../../core/explainer/explainer.dart';
 import '../../../core/quick_review/quick_review.dart';
+import '../../../design_system/app_audio_button.dart';
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_glass_card.dart';
 import '../../../design_system/app_typography.dart';
@@ -40,6 +41,7 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
   int _sessionXp = 0;
   bool _revealed = false;
   bool _busy = false;
+  bool _audioBusy = false;
   bool _explanationBusy = false;
   ExplainerResult? _explanation;
   DateTime _cardStartedAt = DateTime.now();
@@ -58,20 +60,29 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
 
   Future<void> _playCurrent() async {
     final card = _current;
-    if (card == null || _busy) return;
-    final result = await widget.pronunciationAudio.play(
-      conceptId: card.contentId,
-      text: card.sourceText,
-      languageCode: widget.sourceLanguageCode,
-    );
-    if (!mounted || result.played) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'الصوت المحلي غير متاح: ${result.reason ?? 'unknown'}',
+    if (card == null || _busy || _audioBusy) return;
+    setState(() => _audioBusy = true);
+    try {
+      final result = await widget.pronunciationAudio.play(
+        conceptId: card.contentId,
+        text: card.sourceText,
+        languageCode: widget.sourceLanguageCode,
+      );
+      if (!mounted || result.played) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: AppDirectionalText(
+            'الصوت المحلي غير متاح: ${result.reason ?? 'unknown'}',
+            languageCode: 'ar',
+            style: AppTypography.body,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _audioBusy = false);
+      }
+    }
   }
 
   void _reveal() {
@@ -96,8 +107,12 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
       if (!mounted) return;
       setState(() => _explanationBusy = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تعذر تحميل الشرح المحلي لهذه البطاقة.'),
+        SnackBar(
+          content: AppDirectionalText(
+            'تعذر تحميل الشرح المحلي لهذه البطاقة.',
+            languageCode: 'ar',
+            style: AppTypography.body,
+          ),
         ),
       );
     }
@@ -130,8 +145,12 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تعذر حفظ المراجعة الآن. لم يتم تجاوز البطاقة.'),
+        SnackBar(
+          content: AppDirectionalText(
+            'تعذر حفظ المراجعة الآن. لم يتم تجاوز البطاقة.',
+            languageCode: 'ar',
+            style: AppTypography.body,
+          ),
         ),
       );
     }
@@ -141,7 +160,13 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
   Widget build(BuildContext context) => Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
-          appBar: AppBar(title: const Text('المراجعة السريعة')),
+          appBar: AppBar(
+            title: AppDirectionalText(
+              'المراجعة السريعة',
+              languageCode: 'ar',
+              style: AppTypography.title,
+            ),
+          ),
           body: SafeArea(
             child: _completed ? _completion() : _activeReview(),
           ),
@@ -161,28 +186,32 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               if (card.grammaticalMarker.trim().isNotEmpty)
-                Text(
+                AppDirectionalText(
                   card.grammaticalMarker,
+                  languageCode: widget.sourceLanguageCode,
                   textAlign: TextAlign.center,
-                  textDirection: TextDirection.ltr,
                   style: AppTypography.label.copyWith(
                     color: _articleColor(card.grammaticalMarker),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               const SizedBox(height: 10),
-              Text(
+              AppDirectionalText(
                 card.sourceText,
+                languageCode: widget.sourceLanguageCode,
                 textAlign: TextAlign.center,
-                textDirection: _textDirection(widget.sourceLanguageCode),
                 style: AppTypography.display,
               ),
               const SizedBox(height: 14),
-              OutlinedButton.icon(
-                key: const Key('quick-review-audio'),
-                onPressed: _busy ? null : () => unawaited(_playCurrent()),
-                icon: const Icon(Icons.volume_up_rounded),
-                label: const Text('استمع'),
+              Center(
+                child: AppAudioButton(
+                  key: const Key('quick-review-audio'),
+                  onPressed:
+                      _busy || _audioBusy ? null : () => unawaited(_playCurrent()),
+                  semanticLabel: 'استمع إلى المفردة الألمانية',
+                  isBusy: _audioBusy,
+                  activeColor: _articleColor(card.grammaticalMarker),
+                ),
               ),
               const SizedBox(height: 10),
               if (!_revealed)
@@ -190,24 +219,27 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
                   key: const Key('quick-review-reveal'),
                   onPressed: _busy ? null : _reveal,
                   icon: const Icon(Icons.visibility_rounded),
-                  label: const Text('إظهار الإجابة'),
+                  label: AppDirectionalText(
+                    'إظهار الإجابة',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
+                  ),
                 )
               else ...<Widget>[
                 const Divider(),
                 const SizedBox(height: 10),
-                Text(
+                AppDirectionalText(
                   card.translationText,
+                  languageCode: widget.translationLanguageCode,
                   textAlign: TextAlign.center,
-                  textDirection:
-                      _textDirection(widget.translationLanguageCode),
                   style: AppTypography.title,
                 ),
                 if (card.exampleText.trim().isNotEmpty) ...<Widget>[
                   const SizedBox(height: 12),
-                  Text(
+                  AppDirectionalText(
                     card.exampleText,
+                    languageCode: widget.sourceLanguageCode,
                     textAlign: TextAlign.center,
-                    textDirection: _textDirection(widget.sourceLanguageCode),
                     style: AppTypography.body.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -215,20 +247,30 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
                 ],
                 if (card.exampleTranslationText.trim().isNotEmpty) ...<Widget>[
                   const SizedBox(height: 6),
-                  Text(
+                  AppDirectionalText(
                     card.exampleTranslationText,
+                    languageCode: widget.translationLanguageCode,
                     textAlign: TextAlign.center,
-                    textDirection:
-                        _textDirection(widget.translationLanguageCode),
                     style: AppTypography.body,
                   ),
                 ],
                 if (card.pluralForm.trim().isNotEmpty) ...<Widget>[
                   const SizedBox(height: 10),
-                  Text(
-                    'الجمع: ${card.pluralForm}',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.label,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      AppDirectionalText(
+                        'الجمع:',
+                        languageCode: 'ar',
+                        style: AppTypography.label,
+                      ),
+                      const SizedBox(width: 6),
+                      AppDirectionalText(
+                        card.pluralForm,
+                        languageCode: widget.sourceLanguageCode,
+                        style: AppTypography.label,
+                      ),
+                    ],
                   ),
                 ],
                 const SizedBox(height: 14),
@@ -243,7 +285,11 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.lightbulb_outline_rounded),
-                  label: const Text('لماذا؟'),
+                  label: AppDirectionalText(
+                    'لماذا؟',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
+                  ),
                 ),
               ],
             ],
@@ -251,7 +297,11 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
         ),
         if (_explanation != null) ...<Widget>[
           const SizedBox(height: 12),
-          _ExplanationCard(result: _explanation!),
+          _ExplanationCard(
+            result: _explanation!,
+            sourceLanguageCode: widget.sourceLanguageCode,
+            translationLanguageCode: widget.translationLanguageCode,
+          ),
         ],
         if (_revealed) ...<Widget>[
           const SizedBox(height: 14),
@@ -262,7 +312,11 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
                   key: const Key('quick-review-forgot'),
                   onPressed: _busy ? null : () => unawaited(_grade(false)),
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('نسيت'),
+                  label: AppDirectionalText(
+                    'نسيت',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -271,7 +325,11 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
                   key: const Key('quick-review-remembered'),
                   onPressed: _busy ? null : () => unawaited(_grade(true)),
                   icon: const Icon(Icons.check_rounded),
-                  label: const Text('تذكرت'),
+                  label: AppDirectionalText(
+                    'تذكرت',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
+                  ),
                 ),
               ),
             ],
@@ -296,7 +354,11 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Text('$current/$total', style: AppTypography.label),
+          AppDirectionalText(
+            '$current/$total',
+            languageCode: 'ar',
+            style: AppTypography.label,
+          ),
         ],
       ),
     );
@@ -304,16 +366,19 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
 
   Widget _completion() {
     if (widget.session.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
+          padding: const EdgeInsets.all(24),
+          child: AppDirectionalText(
             'لا توجد بطاقات مراجعة مستحقة الآن.',
+            languageCode: 'ar',
+            style: AppTypography.body,
             textAlign: TextAlign.center,
           ),
         ),
       );
     }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -324,11 +389,16 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
             children: <Widget>[
               const Icon(Icons.task_alt_rounded, size: 52),
               const SizedBox(height: 12),
-              Text('اكتملت المراجعة', style: AppTypography.title),
+              AppDirectionalText(
+                'اكتملت المراجعة',
+                languageCode: 'ar',
+                style: AppTypography.title,
+              ),
               const SizedBox(height: 8),
-              Text(
+              AppDirectionalText(
                 'صحيح $_correct/${widget.session.length} · '
                 'السلسلة $_currentStreak · XP $_sessionXp',
+                languageCode: 'ar',
                 textAlign: TextAlign.center,
                 style: AppTypography.body,
               ),
@@ -337,14 +407,6 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
         ),
       ),
     );
-  }
-
-
-  TextDirection _textDirection(String languageCode) {
-    final code = languageCode.trim().toLowerCase().split(RegExp('[-_]')).first;
-    return const <String>{'ar', 'fa', 'he', 'ur'}.contains(code)
-        ? TextDirection.rtl
-        : TextDirection.ltr;
   }
 
   Color _articleColor(String raw) => switch (raw.trim().toLowerCase()) {
@@ -356,31 +418,47 @@ class _V11QuickReviewScreenState extends State<V11QuickReviewScreen> {
 }
 
 class _ExplanationCard extends StatelessWidget {
-  const _ExplanationCard({required this.result});
+  const _ExplanationCard({
+    required this.result,
+    required this.sourceLanguageCode,
+    required this.translationLanguageCode,
+  });
 
   final ExplainerResult result;
+  final String sourceLanguageCode;
+  final String translationLanguageCode;
 
   @override
   Widget build(BuildContext context) {
     if (!result.found ||
         (result.explanationText.isEmpty && result.facts.isEmpty)) {
-      return const AppGlassCard(
-        key: Key('quick-review-explanation-card'),
-        child: Text('لا يوجد شرح محلي موثّق إضافي لهذه البطاقة.'),
+      return AppGlassCard(
+        key: const Key('quick-review-explanation-card'),
+        child: AppDirectionalText(
+          'لا يوجد شرح محلي موثّق إضافي لهذه البطاقة.',
+          languageCode: 'ar',
+          style: AppTypography.body,
+        ),
       );
     }
+
     return AppGlassCard(
       key: const Key('quick-review-explanation-card'),
       glowColor: AppColors.secondary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text('لماذا؟', style: AppTypography.title),
+          AppDirectionalText(
+            'لماذا؟',
+            languageCode: 'ar',
+            style: AppTypography.title,
+          ),
           const SizedBox(height: 8),
           if (result.explanationText.isNotEmpty) ...<Widget>[
-            Text(
+            AppDirectionalText(
               result.explanationText,
               key: const Key('quick-review-reason-text'),
+              languageCode: translationLanguageCode,
               style: AppTypography.body.copyWith(
                 fontWeight: FontWeight.w800,
               ),
@@ -388,13 +466,28 @@ class _ExplanationCard extends StatelessWidget {
             if (result.facts.isNotEmpty) const SizedBox(height: 10),
           ],
           for (final fact in result.facts) ...<Widget>[
-            Text(
-              '${_label(fact.kind)}: ${fact.value}',
-              style: AppTypography.body,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                AppDirectionalText(
+                  '${_label(fact.kind)}:',
+                  languageCode: 'ar',
+                  style: AppTypography.label,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: AppDirectionalText(
+                    fact.value,
+                    languageCode: _factLanguageCode(fact.kind),
+                    style: AppTypography.body,
+                  ),
+                ),
+              ],
             ),
             if (fact.evidence.isNotEmpty)
-              Text(
+              AppDirectionalText(
                 fact.evidence.join(' · '),
+                languageCode: _factLanguageCode(fact.kind),
                 style: AppTypography.label,
               ),
             const SizedBox(height: 8),
@@ -403,6 +496,11 @@ class _ExplanationCard extends StatelessWidget {
       ),
     );
   }
+
+  String _factLanguageCode(ExplainerFactKind kind) => switch (kind) {
+        ExplainerFactKind.meaning => translationLanguageCode,
+        _ => sourceLanguageCode,
+      };
 
   String _label(ExplainerFactKind kind) => switch (kind) {
         ExplainerFactKind.meaning => 'المعنى',

@@ -13,8 +13,10 @@ import '../../features/audio/domain/services/i_audio_runtime.dart';
 import '../../features/audio/hybrid_pronunciation_service.dart';
 import '../../features/daily_drill/data/universal_session_drill_review_sink.dart';
 import '../../features/daily_drill/domain/daily_drill_repository.dart';
+import '../../design_system/app_glass_card.dart';
+import '../../design_system/app_typography.dart';
 import '../../features/gamification/gamification_repository.dart';
-import '../../features/quick_review/presentation/v11_quick_review_screen.dart';
+import '../../features/quick_review/presentation/srs_review_hub_screen.dart';
 import '../../features/session/universal_session_orchestrator.dart';
 import '../../services/repository.dart';
 import '../../features/phase3_integration/life_curriculum_catalog.dart';
@@ -235,7 +237,7 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
       _quickReviewOrchestrator.resetSession();
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
-          builder: (_) => V11QuickReviewScreen(
+          builder: (_) => SrsReviewHubScreen(
             session: session,
             reviewSink: _quickReviewSink,
             pronunciationAudio: _pronunciationAudio,
@@ -535,34 +537,39 @@ final class _Phase3ProductionShellState extends State<Phase3ProductionShell> {
             ),
           ),
           const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const Icon(Icons.bolt_rounded, size: 48),
-                  const SizedBox(height: 10),
-                  Text(
-                    'المراجعة السريعة',
-                    style: Theme.of(context).textTheme.titleLarge,
-                    textAlign: TextAlign.center,
+          AppGlassCard(
+            glowColor: Theme.of(context).colorScheme.primary,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const Icon(Icons.bolt_rounded, size: 48),
+                const SizedBox(height: 10),
+                AppDirectionalText(
+                  'مركز المراجعة SRS',
+                  languageCode: 'ar',
+                  style: AppTypography.title,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                AppDirectionalText(
+                  'بطاقات SRS المستحقة من الفهرس المحلي الموثّق، '
+                  'مع إحصاءات الجلسة والنطق المحلي والشرح عند الطلب.',
+                  languageCode: 'ar',
+                  style: AppTypography.body,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  key: const Key('v11-open-quick-review'),
+                  onPressed: _busy ? null : _openQuickReview,
+                  icon: const Icon(Icons.play_circle_outline_rounded),
+                  label: AppDirectionalText(
+                    'افتح مركز المراجعة',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'بطاقات SRS المستحقة من الفهرس المحلي الموثّق، '
-                    'مع نطق هجين وشرح محلي عند الطلب.',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    key: const Key('v11-open-quick-review'),
-                    onPressed: _busy ? null : _openQuickReview,
-                    icon: const Icon(Icons.play_circle_outline_rounded),
-                    label: const Text('ابدأ المراجعة السريعة'),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
