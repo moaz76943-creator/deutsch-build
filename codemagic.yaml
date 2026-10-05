@@ -63,15 +63,23 @@ workflows:
 
           flutter build appbundle --release --obfuscate --split-debug-info=symbols/ --build-name=3.3.10 --build-number=133
 
-      - name: Verify AAB signature
+      - name: Verify AAB and record SHA-256
         script: |
           set -euo pipefail
-          AAB_PATH="$(find "$CM_BUILD_DIR/build/app/outputs/bundle/release" -type f -name '*.aab' -print -quit)"
-          test -n "$AAB_PATH"
-          VERIFY_OUTPUT="$(jarsigner -verify "$AAB_PATH" 2>&1)"
-          printf '%s\n' "$VERIFY_OUTPUT"
-          printf '%s\n' "$VERIFY_OUTPUT" | grep -qi 'jar verified'
+          AAB_PATH="$CM_BUILD_DIR/build/app/outputs/bundle/release/app-release.aab"
+          test -s "$AAB_PATH"
+          test -d "$CM_BUILD_DIR/symbols"
+          find "$CM_BUILD_DIR/symbols" -type f -print -quit | grep -q .
+
+          jarsigner -verify -strict "$AAB_PATH" >/dev/null
+
+          mkdir -p "$CM_BUILD_DIR/release-metadata"
+          AAB_SHA256="$(shasum -a 256 "$AAB_PATH" | awk '{print $1}')"
+          printf '%s  %s\n' "$AAB_SHA256" "app-release.aab" \
+            > "$CM_BUILD_DIR/release-metadata/SHA256SUMS.txt"
+          echo "AAB SHA-256: $AAB_SHA256"
 
     artifacts:
       - build/app/outputs/bundle/release/*.aab
       - symbols/**
+      - release-metadata/SHA256SUMS.txt
