@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../design_system/design_system.dart';
 import '../models/account_session.dart';
 import '../services/authentication.dart';
 import '../services/auth_session_controller.dart';
@@ -101,170 +102,303 @@ class _AccountPageState extends State<AccountPage> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: AppDirectionalText(
+          message,
+          languageCode: 'ar',
+          style: AppTypography.body,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final session = widget.auth.session;
-    return Scaffold(
-      appBar: AppBar(title: const Text('الحساب')),
-      body: ListView(
-        padding: const EdgeInsets.all(18),
-        children: [
-          if (!widget.auth.isInitialized)
-            const Card(
-              child: ListTile(
-                leading: CircularProgressIndicator(),
-                title: Text('جارٍ التحقق من حالة الحساب...'),
-              ),
-            )
-          else if (session.isAuthenticated)
-            _authenticatedView(context, session)
-          else
-            _signInView(context),
-          if (widget.auth.lastFailure != null) ...[
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: AppDirectionalText(
+            'الملف الشخصي والحساب',
+            languageCode: 'ar',
+            style: AppTypography.title,
+          ),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(18),
+          children: <Widget>[
+            _profileSummary(session),
             const SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('تعذر إتمام العملية'),
-                subtitle: Text(_failureMessage(widget.auth.lastFailure!.code)),
+            if (!widget.auth.isInitialized)
+              AppGlassCard(
+                glowColor: AppColors.primary,
+                child: Row(
+                  children: <Widget>[
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: AppDirectionalText(
+                        'جارٍ التحقق من حالة الحساب...',
+                        languageCode: 'ar',
+                        style: AppTypography.body,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (session.isAuthenticated)
+              _authenticatedView(context, session)
+            else
+              _signInView(context),
+            if (widget.auth.lastFailure != null) ...<Widget>[
+              const SizedBox(height: 12),
+              AppGlassCard(
+                glowColor: Theme.of(context).colorScheme.error,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Icon(
+                      Icons.info_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          AppDirectionalText(
+                            'تعذر إتمام العملية',
+                            languageCode: 'ar',
+                            style: AppTypography.title,
+                          ),
+                          const SizedBox(height: 4),
+                          AppDirectionalText(
+                            _failureMessage(
+                              widget.auth.lastFailure!.code,
+                            ),
+                            languageCode: 'ar',
+                            style: AppTypography.body,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _profileSummary(AccountSession session) {
+    final authenticated = session.isAuthenticated;
+    return AppGlassCard(
+      glowColor: authenticated ? AppColors.mastery : AppColors.primary,
+      child: Row(
+        children: <Widget>[
+          Icon(
+            authenticated
+                ? Icons.verified_user_outlined
+                : Icons.person_outline_rounded,
+            size: 42,
+            color: authenticated ? AppColors.mastery : AppColors.primary,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                AppDirectionalText(
+                  authenticated ? 'ملفك الشخصي' : 'التعلم بدون حساب',
+                  languageCode: 'ar',
+                  style: AppTypography.title,
+                ),
+                const SizedBox(height: 4),
+                AppDirectionalText(
+                  authenticated
+                      ? 'حالة الحساب متصلة بالهوية فقط؛ '
+                          'بيانات التعلم المحلية مستقلة.'
+                      : 'يمكنك متابعة التعلم محليًا. '
+                          'الحساب اختياري للميزات التي تحتاج هوية.',
+                  languageCode: 'ar',
+                  style: AppTypography.body,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _authenticatedView(BuildContext context, AccountSession session) {
+  Widget _authenticatedView(
+    BuildContext context,
+    AccountSession session,
+  ) {
     final identity = session.identity!;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.verified_user_outlined, size: 42),
-            const SizedBox(height: 12),
-            Text(
-              'تم تسجيل الدخول',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
+    return AppGlassCard(
+      glowColor: AppColors.mastery,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          AppDirectionalText(
+            'تم تسجيل الدخول',
+            languageCode: 'ar',
+            style: AppTypography.title,
+          ),
+          const SizedBox(height: 8),
+          AppDirectionalText(
+            'معرّف الحساب',
+            languageCode: 'ar',
+            style: AppTypography.label,
+          ),
+          const SizedBox(height: 3),
+          AppDirectionalText(
+            identity.userId,
+            languageCode: 'en',
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.w800,
             ),
-            const SizedBox(height: 8),
-            Text('معرّف الحساب: ${identity.userId}'),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _busy ? null : _renewSession,
-                icon: const Icon(Icons.refresh),
-                label: const Text('تجديد الجلسة'),
-              ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _renewSession,
+            icon: const Icon(Icons.refresh),
+            label: AppDirectionalText(
+              'تجديد الجلسة',
+              languageCode: 'ar',
+              style: AppTypography.label,
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _busy ? null : _signOut,
-                icon: const Icon(Icons.logout),
-                label: const Text('تسجيل الخروج'),
-              ),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _signOut,
+            icon: const Icon(Icons.logout),
+            label: AppDirectionalText(
+              'تسجيل الخروج',
+              languageCode: 'ar',
+              style: AppTypography.label,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _signInView(BuildContext context) {
     return Column(
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'تسجيل الدخول',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w900),
+      children: <Widget>[
+        AppGlassCard(
+          glowColor: AppColors.primary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              AppDirectionalText(
+                'تسجيل الدخول',
+                languageCode: 'ar',
+                style: AppTypography.title,
+              ),
+              const SizedBox(height: 8),
+              AppDirectionalText(
+                'يمكنك متابعة التعلم بدون حساب. الحساب مخصص للميزات '
+                'التي تحتاج هوية حساب لاحقًا.',
+                languageCode: 'ar',
+                style: AppTypography.body,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textDirection: TextDirection.ltr,
+                style: AppTypography.body,
+                autofillHints: const <String>[AutofillHints.email],
+                decoration: InputDecoration(
+                  label: AppDirectionalText(
+                    'البريد الإلكتروني',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
+                  ),
+                  border: const OutlineInputBorder(),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'يمكنك متابعة التعلم بدون حساب. الحساب مخصص للميزات التي تحتاج هوية حساب لاحقًا.',
+              ),
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                onPressed: _busy ? null : _requestOtp,
+                icon: const Icon(Icons.mark_email_read_outlined),
+                label: AppDirectionalText(
+                  'إرسال رمز التحقق',
+                  languageCode: 'ar',
+                  style: AppTypography.label,
                 ),
-                const SizedBox(height: 16),
+              ),
+              if (_otpRequested) ...<Widget>[
+                const SizedBox(height: 14),
                 TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
                   textDirection: TextDirection.ltr,
-                  autofillHints: const [AutofillHints.email],
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
-                    border: OutlineInputBorder(),
+                  style: AppTypography.body,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    label: AppDirectionalText(
+                      'رمز التحقق',
+                      languageCode: 'ar',
+                      style: AppTypography.label,
+                    ),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: _busy ? null : _requestOtp,
-                    icon: const Icon(Icons.mark_email_read_outlined),
-                    label: const Text('إرسال رمز التحقق'),
+                FilledButton(
+                  onPressed: _busy ? null : _verifyOtp,
+                  child: AppDirectionalText(
+                    'تأكيد وتسجيل الدخول',
+                    languageCode: 'ar',
+                    style: AppTypography.label,
                   ),
                 ),
-                if (_otpRequested) ...[
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _otpController,
-                    keyboardType: TextInputType.number,
-                    textDirection: TextDirection.ltr,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'رمز التحقق',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _busy ? null : _verifyOtp,
-                      child: const Text('تأكيد وتسجيل الدخول'),
-                    ),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed:
-                _busy ? null : () => _runBusy(widget.auth.signInWithGoogle),
-            icon: const Icon(Icons.g_mobiledata),
-            label: const Text('المتابعة باستخدام Google'),
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed:
-                _busy ? null : () => _runBusy(widget.auth.signInWithApple),
-            icon: const Icon(Icons.apple),
-            label: const Text('المتابعة باستخدام Apple'),
+        AppGlassCard(
+          opacity: .12,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              AppDirectionalText(
+                'خيارات الهوية',
+                languageCode: 'ar',
+                style: AppTypography.title,
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed:
+                    _busy ? null : () => _runBusy(widget.auth.signInWithGoogle),
+                icon: const Icon(Icons.g_mobiledata),
+                label: AppDirectionalText(
+                  'المتابعة باستخدام Google',
+                  languageCode: 'ar',
+                  style: AppTypography.label,
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed:
+                    _busy ? null : () => _runBusy(widget.auth.signInWithApple),
+                icon: const Icon(Icons.apple),
+                label: AppDirectionalText(
+                  'المتابعة باستخدام Apple',
+                  languageCode: 'ar',
+                  style: AppTypography.label,
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -41,11 +41,19 @@ final class GlassActionRow extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Text(title, style: AppTypography.title),
+                AppDirectionalText(
+                  title,
+                  languageCode: 'ar',
+                  style: AppTypography.title,
+                ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: AppTypography.body),
+                AppDirectionalText(
+                  subtitle,
+                  languageCode: 'ar',
+                  style: AppTypography.body,
+                ),
               ],
             ),
           ),
@@ -60,7 +68,11 @@ final class GlassActionRow extends StatelessWidget {
             TextButton(
               onPressed: onPressed,
               style: TextButton.styleFrom(foregroundColor: accent),
-              child: Text(actionLabel),
+              child: AppDirectionalText(
+                actionLabel,
+                languageCode: 'ar',
+                style: AppTypography.label.copyWith(color: accent),
+              ),
             ),
         ],
       ),

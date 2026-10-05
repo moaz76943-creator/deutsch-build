@@ -38,7 +38,7 @@ final class GlassSliderTile extends StatelessWidget {
       backgroundColor: surface,
       glowColor: AppColors.primary,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,17 +47,26 @@ final class GlassSliderTile extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(title, style: AppTypography.title),
+                    AppDirectionalText(
+                      title,
+                      languageCode: 'ar',
+                      style: AppTypography.title,
+                    ),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: AppTypography.body),
+                    AppDirectionalText(
+                      subtitle,
+                      languageCode: 'ar',
+                      style: AppTypography.body,
+                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
+              AppDirectionalText(
                 valueLabel,
+                languageCode: 'ar',
                 style: AppTypography.label.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w900,
