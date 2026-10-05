@@ -29,6 +29,9 @@ _LOCAL_KEY_OWNERS = {
     'offline_manifest_acceptance_v2': 'lib/services/pack_manager_service.dart',
     'search_custom_word_notes_v1': 'lib/features/search/infrastructure/local_bookmarks_repository.dart',
     'app_learning_preferences_v1': 'lib/features/app_settings/data/preferences_settings_local_data_source.dart',
+    'settings.theme_mode.v1': 'lib/core/settings/adaptive_theme_settings.dart',
+    'settings.speech_rate.v1': 'lib/core/settings/speech_rate_settings.dart',
+    'sys_memory_agent_v1': 'lib/services/preferences_service.dart',
 }
 _ALLOWED_LOCAL_KEYS = set(_LOCAL_KEY_OWNERS)
 _SENSITIVE = re.compile(r'(?i)(password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|cookie|session[_-]?token|email|phone|payment|card[_-]?number|billing)')

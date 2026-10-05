@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'local_preferences_store.dart';
 
 enum SpeechRatePreset {
   half(0.5, '0.5x'),
@@ -21,30 +22,29 @@ enum SpeechRatePreset {
 
 final class SpeechRateSettingsController extends ChangeNotifier {
   SpeechRateSettingsController._({
-    required SharedPreferences preferences,
+    required LocalPreferencesStore preferences,
     required SpeechRatePreset initialPreset,
   })  : _preferences = preferences,
         _preset = initialPreset;
 
   static const String _storageKey = 'settings.speech_rate.v1';
 
-  final SharedPreferences _preferences;
+  final LocalPreferencesStore _preferences;
   SpeechRatePreset _preset;
 
   SpeechRatePreset get preset => _preset;
   double get speedMultiplier => _preset.multiplier;
 
   static Future<SpeechRateSettingsController> load({
-    SharedPreferences? preferences,
+    required LocalPreferencesStore preferences,
   }) async {
-    final prefs = preferences ?? await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
+    final raw = preferences.getString(_storageKey);
     final preset = SpeechRatePreset.values.firstWhere(
       (value) => value.name == raw,
       orElse: () => SpeechRatePreset.normal,
     );
     return SpeechRateSettingsController._(
-      preferences: prefs,
+      preferences: preferences,
       initialPreset: preset,
     );
   }

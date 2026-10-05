@@ -1,33 +1,33 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'local_preferences_store.dart';
 
 final class AdaptiveThemeSettingsController extends ChangeNotifier {
   AdaptiveThemeSettingsController._({
-    required SharedPreferences preferences,
+    required LocalPreferencesStore preferences,
     required ThemeMode initialMode,
   })  : _preferences = preferences,
         _mode = initialMode;
 
   static const String _storageKey = 'settings.theme_mode.v1';
 
-  final SharedPreferences _preferences;
+  final LocalPreferencesStore _preferences;
   ThemeMode _mode;
 
   ThemeMode get mode => _mode;
 
   static Future<AdaptiveThemeSettingsController> load({
-    SharedPreferences? preferences,
+    required LocalPreferencesStore preferences,
   }) async {
-    final prefs = preferences ?? await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
+    final raw = preferences.getString(_storageKey);
     final mode = ThemeMode.values.firstWhere(
       (value) => value.name == raw,
       orElse: () => ThemeMode.system,
     );
     return AdaptiveThemeSettingsController._(
-      preferences: prefs,
+      preferences: preferences,
       initialMode: mode,
     );
   }

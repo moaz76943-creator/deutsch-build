@@ -507,16 +507,16 @@ Future<void> _shutdownActivatedRuntime({
 final class _PreferencesMemoryAgentStore implements MemoryAgentStore {
   const _PreferencesMemoryAgentStore(this.preferences);
 
-  static const String storageKey = 'sys_memory_agent_v1';
-
   final PreferencesService preferences;
 
   @override
-  Future<String?> read() async => preferences.getString(storageKey);
+  Future<String?> read() async =>
+      preferences.readSystemMemoryAgentState();
 
   @override
   Future<void> write(String encoded) async {
-    final written = await preferences.setString(storageKey, encoded);
+    final written =
+        await preferences.writeSystemMemoryAgentState(encoded);
     if (!written) {
       throw StateError('Memory agent storage write failed.');
     }

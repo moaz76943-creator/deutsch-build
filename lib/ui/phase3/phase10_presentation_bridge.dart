@@ -26,7 +26,6 @@ final class Phase10PresentationBridge {
     _subscription = endpoint.allEvents.listen(_handleEvent);
   }
 
-  static const String _systemStateKey = 'sys_memory_agent_v1';
   static const String _uiValidationKey = 'phase10_validation_cache_v1';
 
   static Future<Phase10PresentationBridge> start() async {
@@ -43,7 +42,7 @@ final class Phase10PresentationBridge {
     try {
       final preferences = await PreferencesService.instance();
       initial = await _readPersistedProgress(
-        _PreferencesTextStore(preferences, _systemStateKey),
+        _PreferencesSystemMemoryStore(preferences),
       );
       validationStore = _PreferencesTextStore(
         preferences,
@@ -379,6 +378,25 @@ final class Phase10PresentationBridge {
     }
     return _language(card.frontLanguageCode) != null &&
         _language(card.backLanguageCode) != null;
+  }
+}
+
+final class _PreferencesSystemMemoryStore implements MemoryAgentStore {
+  const _PreferencesSystemMemoryStore(this.preferences);
+
+  final PreferencesService preferences;
+
+  @override
+  Future<String?> read() async =>
+      preferences.readSystemMemoryAgentState();
+
+  @override
+  Future<void> write(String encoded) async {
+    final written =
+        await preferences.writeSystemMemoryAgentState(encoded);
+    if (!written) {
+      throw StateError('System memory storage write failed.');
+    }
   }
 }
 
