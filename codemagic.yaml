@@ -15,6 +15,11 @@ workflows:
       ndk: 28.2.13676358
 
     scripts:
+      - name: Enforce protected release branch
+        script: |
+          set -euo pipefail
+          test "${CM_BRANCH:-}" = "main"
+          test "${CM_PULL_REQUEST:-false}" != "true"
       - name: Set up Android SDK and Flutter paths
         script: |
           set -euo pipefail
