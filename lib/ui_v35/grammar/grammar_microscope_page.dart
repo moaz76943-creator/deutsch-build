@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/text/directional_text.dart';
+import '../../design_system/app_colors.dart';
+import '../../design_system/app_glass_card.dart';
+import '../../design_system/app_typography.dart';
+import '../../features/audio/domain/entities/audio_request.dart';
 import '../../models/content.dart';
 import '../../models/learner.dart';
 import '../../services/app_dependencies.dart';
@@ -38,73 +44,121 @@ class _GrammarMicroscopePageState extends State<GrammarMicroscopePage> {
     );
   }
 
+  void _speakGerman(String text, String conceptId) {
+    final value = text.trim();
+    if (value.isEmpty) return;
+    unawaited(
+      widget.dependencies.audioRuntime
+          .play(
+            AudioRequest(
+              text: value,
+              languageCode: widget.dependencies.languagePack.targetLocale,
+              conceptId: conceptId,
+              variant: AudioVariant.sentence,
+            ),
+          )
+          .then<void>((_) {}),
+    );
+  }
+
+  double _glassOpacity(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? .38 : .72;
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('مجهر القواعد')),
-        body: FutureBuilder<GrammarMicroscopeSnapshot?>(
-          future: _snapshot,
-          builder: (context, asyncSnapshot) {
-            if (asyncSnapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (asyncSnapshot.hasError) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('تعذر تحميل تفاصيل القاعدة بأمان.'),
-                ),
-              );
-            }
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+            title: AppDirectionalText(
+              'مجهر القواعد',
+              languageCode: 'ar',
+              style: AppTypography.title,
+            ),
+          ),
+          body: FutureBuilder<GrammarMicroscopeSnapshot?>(
+            future: _snapshot,
+            builder: (context, asyncSnapshot) {
+              if (asyncSnapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (asyncSnapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: AppDirectionalText(
+                      'تعذر تحميل تفاصيل القاعدة بأمان.',
+                      languageCode: 'ar',
+                      style: AppTypography.body,
+                    ),
+                  ),
+                );
+              }
 
-            final snapshot = asyncSnapshot.data;
-            if (snapshot == null) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('موضوع القاعدة غير متاح في المصدر النشط.'),
-                ),
-              );
-            }
+              final snapshot = asyncSnapshot.data;
+              if (snapshot == null) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: AppDirectionalText(
+                      'موضوع القاعدة غير متاح في المصدر النشط.',
+                      languageCode: 'ar',
+                      style: AppTypography.body,
+                    ),
+                  ),
+                );
+              }
 
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: ListView(
+              final scheme = Theme.of(context).colorScheme;
+              return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                children: [
-                  BidiText(
-                    DirectionalText.german(
-                      snapshot.topic.titleDe,
-                      semanticRole: LinguisticSemanticRole.grammarLabel,
+                children: <Widget>[
+                  AppGlassCard(
+                    backgroundColor: scheme.surface,
+                    opacity: _glassOpacity(context),
+                    glowColor: AppColors.primary,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        BidiText(
+                          DirectionalText.german(
+                            snapshot.topic.titleDe,
+                            semanticRole:
+                                LinguisticSemanticRole.grammarLabel,
+                          ),
+                          style: AppTypography.title,
+                        ),
+                        const SizedBox(height: 4),
+                        BidiText(
+                          DirectionalText.arabic(
+                            snapshot.topic.titleAr,
+                            semanticRole:
+                                LinguisticSemanticRole.translation,
+                          ),
+                          style: AppTypography.body,
+                        ),
+                        const SizedBox(height: 12),
+                        BidiText(
+                          DirectionalText.arabic(
+                            snapshot.topic.explanationMarkdown,
+                            semanticRole:
+                                LinguisticSemanticRole.explanation,
+                          ),
+                          style: AppTypography.body,
+                        ),
+                      ],
                     ),
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 4),
-                  BidiText(
-                    DirectionalText.arabic(
-                      snapshot.topic.titleAr,
-                      semanticRole: LinguisticSemanticRole.translation,
-                    ),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  BidiText(
-                    DirectionalText.arabic(
-                      snapshot.topic.explanationMarkdown,
-                      semanticRole: LinguisticSemanticRole.explanation,
-                    ),
-                    style: const TextStyle(height: 1.5),
                   ),
                   const SizedBox(height: 20),
                   GrammarMicroscopeEvidenceSection(snapshot: snapshot),
                   const SizedBox(height: 20),
-                  GrammarMicroscopeRulesSection(snapshot: snapshot),
+                  GrammarMicroscopeRulesSection(
+                    snapshot: snapshot,
+                    onSpeakGerman: _speakGerman,
+                  ),
                 ],
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       );
 }

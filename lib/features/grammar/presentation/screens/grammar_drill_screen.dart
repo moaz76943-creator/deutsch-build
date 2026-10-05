@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/explain_why/deterministic_explain_why_engine.dart';
+import '../../../../design_system/app_audio_button.dart';
 import '../../../../design_system/app_colors.dart';
 import '../../../../design_system/app_glass_card.dart';
 import '../../../../design_system/app_typography.dart';
@@ -15,6 +16,8 @@ class GrammarDrillScreen extends StatefulWidget {
     required this.exercises,
     required this.levelLabel,
     required this.explainWhyEngine,
+    required this.targetLanguageCode,
+    required this.onSpeakGerman,
     this.errorDiagnosticSink,
     super.key,
   });
@@ -22,6 +25,8 @@ class GrammarDrillScreen extends StatefulWidget {
   final List<GrammarDrill> exercises;
   final String levelLabel;
   final ExplainWhyEngine explainWhyEngine;
+  final String targetLanguageCode;
+  final void Function(String text, String conceptId) onSpeakGerman;
   final ErrorDiagnosticSink? errorDiagnosticSink;
 
   @override
@@ -53,7 +58,11 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           appBar: AppBar(
-            title: Text('تدريب القواعد · ${widget.levelLabel}'),
+            title: AppDirectionalText(
+              'تدريب القواعد · ${widget.levelLabel}',
+              languageCode: 'ar',
+              style: AppTypography.title,
+            ),
           ),
           body: AnimatedBuilder(
             animation: _notifier,
@@ -65,24 +74,27 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
                   onRestart: _notifier.restart,
                 );
               }
+
               final exercise = state.currentExercise;
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                children: [
+                children: <Widget>[
                   _ProgressHeader(state: state),
                   const SizedBox(height: 14),
                   AppGlassCard(
                     glowColor: AppColors.achievement,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        AppDirectionalText(
                           exercise.titleAr,
+                          languageCode: 'ar',
                           style: AppTypography.title,
                         ),
                         const SizedBox(height: 5),
-                        Text(
+                        AppDirectionalText(
                           exercise.instructionAr,
+                          languageCode: 'ar',
                           style: AppTypography.body,
                         ),
                       ],
@@ -93,6 +105,8 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
                     exercise: exercise,
                     state: state,
                     notifier: _notifier,
+                    targetLanguageCode: widget.targetLanguageCode,
+                    onSpeakGerman: widget.onSpeakGerman,
                   ),
                   const SizedBox(height: 14),
                   if (state.isAnswered)
@@ -113,12 +127,14 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
                           ? Icons.refresh_rounded
                           : Icons.check_rounded,
                     ),
-                    label: Text(
+                    label: AppDirectionalText(
                       state.isAnswered
                           ? (state.lastAnswerCorrect
                               ? 'التمرين التالي'
                               : 'حاول مرة أخرى')
                           : 'تحقق من الإجابة',
+                      languageCode: 'ar',
+                      style: AppTypography.label,
                     ),
                   ),
                 ],
@@ -141,7 +157,7 @@ class _ProgressHeader extends StatelessWidget {
     return AppGlassCard(
       padding: const EdgeInsets.all(12),
       child: Row(
-        children: [
+        children: <Widget>[
           Expanded(
             child: LinearProgressIndicator(
               value: current / total,
@@ -166,11 +182,15 @@ class _ExerciseBody extends StatelessWidget {
     required this.exercise,
     required this.state,
     required this.notifier,
+    required this.targetLanguageCode,
+    required this.onSpeakGerman,
   });
 
   final GrammarDrill exercise;
   final GrammarDrillState state;
   final GrammarDrillNotifier notifier;
+  final String targetLanguageCode;
+  final void Function(String text, String conceptId) onSpeakGerman;
 
   @override
   Widget build(BuildContext context) {
@@ -181,18 +201,29 @@ class _ExerciseBody extends StatelessWidget {
           onAddToken: notifier.addSentenceToken,
           onRemoveToken: notifier.removeSentenceToken,
           enabled: !state.isAnswered,
+          targetLanguageCode: targetLanguageCode,
+          onSpeakSentence: state.isAnswered && state.lastAnswerCorrect
+              ? () => onSpeakGerman(
+                    _correctSentence(sentence),
+                    'grammar.drill.${sentence.id}.answer',
+                  )
+              : null,
         ),
       VerbConjugationDrill verb => _VerbConjugationCard(
           exercise: verb,
           value: state.selectedAnswer,
           enabled: !state.isAnswered,
+          targetLanguageCode: targetLanguageCode,
           onChanged: notifier.setAnswer,
+          onSpeakGerman: onSpeakGerman,
         ),
       CaseSelectionDrill grammarCase => _CaseSelectionCard(
           exercise: grammarCase,
           value: state.selectedAnswer,
           enabled: !state.isAnswered,
+          targetLanguageCode: targetLanguageCode,
           onChanged: notifier.setAnswer,
+          onSpeakGerman: onSpeakGerman,
         ),
     };
   }
@@ -203,29 +234,48 @@ class _VerbConjugationCard extends StatelessWidget {
     required this.exercise,
     required this.value,
     required this.enabled,
+    required this.targetLanguageCode,
     required this.onChanged,
+    required this.onSpeakGerman,
   });
 
   final VerbConjugationDrill exercise;
   final String value;
   final bool enabled;
+  final String targetLanguageCode;
   final ValueChanged<String> onChanged;
+  final void Function(String text, String conceptId) onSpeakGerman;
 
   @override
   Widget build(BuildContext context) => AppGlassCard(
         glowColor: AppColors.primary,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              '${exercise.pronoun} · ${exercise.infinitive}',
-              textDirection: TextDirection.ltr,
-              style: AppTypography.title,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: AppDirectionalText(
+                    '${exercise.pronoun} · ${exercise.infinitive}',
+                    languageCode: targetLanguageCode,
+                    style: AppTypography.title,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                AppAudioButton(
+                  onPressed: () => onSpeakGerman(
+                    exercise.infinitive,
+                    'grammar.drill.${exercise.id}.infinitive',
+                  ),
+                  semanticLabel: 'استمع إلى الفعل ${exercise.infinitive}',
+                  activeColor: AppColors.primary,
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            Text(
+            AppDirectionalText(
               '${exercise.sentencePrefix} ___ ${exercise.sentenceSuffix}',
-              textDirection: TextDirection.ltr,
+              languageCode: targetLanguageCode,
               style: AppTypography.body.copyWith(fontSize: 18),
             ),
             const SizedBox(height: 14),
@@ -235,6 +285,7 @@ class _VerbConjugationCard extends StatelessWidget {
               initialValue: value,
               onChanged: onChanged,
               textDirection: TextDirection.ltr,
+              style: AppTypography.body,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'التصريف الصحيح',
@@ -250,13 +301,17 @@ class _CaseSelectionCard extends StatelessWidget {
     required this.exercise,
     required this.value,
     required this.enabled,
+    required this.targetLanguageCode,
     required this.onChanged,
+    required this.onSpeakGerman,
   });
 
   final CaseSelectionDrill exercise;
   final String value;
   final bool enabled;
+  final String targetLanguageCode;
   final ValueChanged<String> onChanged;
+  final void Function(String text, String conceptId) onSpeakGerman;
 
   @override
   Widget build(BuildContext context) {
@@ -270,37 +325,51 @@ class _CaseSelectionCard extends StatelessWidget {
       glowColor: caseColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Icon(Icons.rule_rounded, color: caseColor),
               const SizedBox(width: 8),
-              Text(
-                exercise.targetCase.label,
-                style: AppTypography.label.copyWith(color: caseColor),
+              Expanded(
+                child: AppDirectionalText(
+                  exercise.targetCase.label,
+                  languageCode: targetLanguageCode,
+                  style: AppTypography.label.copyWith(color: caseColor),
+                ),
+              ),
+              AppAudioButton(
+                onPressed: () => onSpeakGerman(
+                  exercise.noun,
+                  'grammar.drill.${exercise.id}.noun',
+                ),
+                semanticLabel: 'استمع إلى الاسم ${exercise.noun}',
+                activeColor: caseColor,
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AppDirectionalText(
             '${exercise.sentenceBefore} ___ ${exercise.noun} '
             '${exercise.sentenceAfter}',
-            textDirection: TextDirection.ltr,
+            languageCode: targetLanguageCode,
             style: AppTypography.title,
           ),
           const SizedBox(height: 14),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
+            children: <Widget>[
               for (final option in exercise.options)
                 ChoiceChip(
-                  label: Text(option, textDirection: TextDirection.ltr),
+                  label: AppDirectionalText(
+                    option,
+                    languageCode: targetLanguageCode,
+                    style: AppTypography.label,
+                  ),
                   selected: value == option,
                   selectedColor: _articleColor(option).withAlpha(48),
                   side: BorderSide(color: _articleColor(option)),
-                  onSelected:
-                      enabled ? (_) => onChanged(option) : null,
+                  onSelected: enabled ? (_) => onChanged(option) : null,
                 ),
             ],
           ),
@@ -338,24 +407,33 @@ class _CompletionView extends StatelessWidget {
           glowColor: AppColors.mastery,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               const Icon(
                 Icons.emoji_events_rounded,
                 color: AppColors.mastery,
                 size: 52,
               ),
               const SizedBox(height: 12),
-              Text('أكملت الجولة', style: AppTypography.title),
+              AppDirectionalText(
+                'أكملت الجولة',
+                languageCode: 'ar',
+                style: AppTypography.title,
+              ),
               const SizedBox(height: 8),
-              Text(
+              AppDirectionalText(
                 'الدقة $accuracy% · XP ${state.points}',
+                languageCode: 'ar',
                 style: AppTypography.body,
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: onRestart,
                 icon: const Icon(Icons.replay_rounded),
-                label: const Text('ابدأ جولة جديدة'),
+                label: AppDirectionalText(
+                  'ابدأ جولة جديدة',
+                  languageCode: 'ar',
+                  style: AppTypography.label,
+                ),
               ),
             ],
           ),
@@ -363,4 +441,14 @@ class _CompletionView extends StatelessWidget {
       ),
     );
   }
+}
+
+String _correctSentence(SentenceReorderExercise exercise) {
+  final byId = <String, String>{
+    for (final token in exercise.tokens) token.id: token.text,
+  };
+  return exercise.correctTokenIds
+      .map((id) => byId[id])
+      .whereType<String>()
+      .join(' ');
 }

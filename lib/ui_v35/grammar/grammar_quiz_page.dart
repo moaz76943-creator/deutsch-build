@@ -1,7 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../../services/grammar_hub_service.dart';
+import '../../design_system/app_audio_button.dart';
+import '../../design_system/app_colors.dart';
+import '../../design_system/app_glass_card.dart';
+import '../../design_system/app_typography.dart';
+import '../../features/audio/domain/entities/audio_request.dart';
 import '../../services/app_dependencies.dart';
+import '../../services/grammar_hub_service.dart';
 
 class GrammarQuizPage extends StatefulWidget {
   final String topicId;
@@ -14,11 +21,11 @@ class GrammarQuizPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _GrammarQuizPageState createState() => _GrammarQuizPageState();
+  State<GrammarQuizPage> createState() => _GrammarQuizPageState();
 }
 
 class _GrammarQuizPageState extends State<GrammarQuizPage> {
-  List<GrammarQuiz> _quizzes = [];
+  List<GrammarQuiz> _quizzes = <GrammarQuiz>[];
   int _currentIndex = 0;
   bool _isLoading = true;
   bool _isAnswered = false;
@@ -28,12 +35,13 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
   @override
   void initState() {
     super.initState();
-    _loadQuizzes();
+    unawaited(_loadQuizzes());
   }
 
   Future<void> _loadQuizzes() async {
     final quizzes = await widget.dependencies.grammarHubService
         .getQuizzesForTopic(widget.topicId);
+    if (!mounted) return;
     setState(() {
       _quizzes = quizzes;
       _isLoading = false;
@@ -51,136 +59,176 @@ class _GrammarQuizPageState extends State<GrammarQuizPage> {
     });
   }
 
-  void _nextQuestion() async {
+  Future<void> _nextQuestion() async {
     if (_currentIndex < _quizzes.length - 1) {
       setState(() {
         _currentIndex++;
         _isAnswered = false;
         _selectedIndex = null;
       });
-    } else {
-      // Finished all quizzes for this topic
-      if (_correctCount == _quizzes.length && _quizzes.isNotEmpty) {
-        await widget.dependencies.grammarHubService.saveTopicMastery(
-          widget.topicId,
-          true,
-        );
-      }
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      return;
+    }
+
+    if (_correctCount == _quizzes.length && _quizzes.isNotEmpty) {
+      await widget.dependencies.grammarHubService.saveTopicMastery(
+        widget.topicId,
+        true,
+      );
+    }
+    if (mounted) {
+      Navigator.pop(context);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Micro-Quiz', style: TextStyle(fontFamily: 'Inter')),
-        centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _quizzes.isEmpty
-              ? const Center(child: Text('No quizzes available.'))
-              : _buildQuizContent(),
+  String _languageCodeFor(String text) =>
+      RegExp(r'[\u0600-\u06FF]').hasMatch(text) ? 'ar' : 'de';
+
+  void _speakQuestion(String text) {
+    final value = text.trim();
+    if (value.isEmpty || _languageCodeFor(value) != 'de') return;
+    unawaited(
+      widget.dependencies.audioRuntime
+          .play(
+            AudioRequest(
+              text: value,
+              languageCode: widget.dependencies.languagePack.targetLocale,
+              conceptId: 'grammar.quiz.${widget.topicId}.${_currentIndex + 1}',
+              variant: AudioVariant.sentence,
+            ),
+          )
+          .then<void>((_) {}),
     );
   }
 
-  Widget _buildQuizContent() {
+  double _glassOpacity(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? .38 : .72;
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+            title: AppDirectionalText(
+              'اختبار القواعد',
+              languageCode: 'ar',
+              style: AppTypography.title,
+            ),
+            centerTitle: true,
+          ),
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _quizzes.isEmpty
+                  ? Center(
+                      child: AppDirectionalText(
+                        'لا توجد أسئلة متاحة لهذا الموضوع.',
+                        languageCode: 'ar',
+                        style: AppTypography.body,
+                      ),
+                    )
+                  : _buildQuizContent(context),
+        ),
+      );
+
+  Widget _buildQuizContent(BuildContext context) {
     final quiz = _quizzes[_currentIndex];
+    final questionLanguage = _languageCodeFor(quiz.question);
+    final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
-      // Wrap in SingleChildScrollView to prevent overflow
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Question ${_currentIndex + 1} of ${_quizzes.length}',
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            quiz.question,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Inter',
+        children: <Widget>[
+          AppDirectionalText(
+            'السؤال ${_currentIndex + 1} من ${_quizzes.length}',
+            languageCode: 'ar',
+            style: AppTypography.label.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-          ...List.generate(quiz.options.length, (index) {
-            final option = quiz.options[index];
-            Color backgroundColor = Colors.white;
-            Color borderColor = Colors.grey.shade300;
-            if (_isAnswered) {
-              if (index == quiz.correctIndex) {
-                backgroundColor = Colors.green.shade50;
-                borderColor = Colors.green;
-              } else if (index == _selectedIndex) {
-                backgroundColor = Colors.red.shade50;
-                borderColor = Colors.red;
-              }
-            }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: InkWell(
-                onTap: () => _submitAnswer(index),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    border: Border.all(color: borderColor, width: 2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    option,
-                    style: const TextStyle(fontSize: 16, fontFamily: 'Inter'),
+          const SizedBox(height: 12),
+          AppGlassCard(
+            backgroundColor: scheme.surface,
+            opacity: _glassOpacity(context),
+            glowColor: AppColors.primary,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: AppDirectionalText(
+                    quiz.question,
+                    languageCode: questionLanguage,
+                    style: AppTypography.title,
                     textAlign: TextAlign.center,
                   ),
+                ),
+                if (questionLanguage == 'de') ...<Widget>[
+                  const SizedBox(width: 10),
+                  AppAudioButton(
+                    onPressed: () => _speakQuestion(quiz.question),
+                    semanticLabel: 'استمع إلى السؤال',
+                    activeColor: AppColors.primary,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          ...List<Widget>.generate(quiz.options.length, (index) {
+            final option = quiz.options[index];
+            final isCorrect = index == quiz.correctIndex;
+            final isSelected = index == _selectedIndex;
+            final accent = !_isAnswered
+                ? scheme.outlineVariant
+                : isCorrect
+                    ? AppColors.mastery
+                    : isSelected
+                        ? AppColors.tertiary
+                        : scheme.outlineVariant;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AppGlassCard(
+                onTap: _isAnswered ? null : () => _submitAnswer(index),
+                backgroundColor: scheme.surface,
+                opacity: _glassOpacity(context),
+                borderColor: accent.withAlpha(_isAnswered ? 170 : 95),
+                glowColor: _isAnswered && (isCorrect || isSelected)
+                    ? accent
+                    : null,
+                child: AppDirectionalText(
+                  option,
+                  languageCode: _languageCodeFor(option),
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             );
           }),
-          const SizedBox(height: 16),
-          if (_isAnswered) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _selectedIndex == quiz.correctIndex
-                    ? Colors.green.shade50
-                    : Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
+          if (_isAnswered) ...<Widget>[
+            const SizedBox(height: 4),
+            AppGlassCard(
+              backgroundColor: scheme.surface,
+              opacity: _glassOpacity(context),
+              glowColor: _selectedIndex == quiz.correctIndex
+                  ? AppColors.mastery
+                  : AppColors.tertiary,
+              child: AppDirectionalText(
                 quiz.explanation,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _selectedIndex == quiz.correctIndex
-                      ? Colors.green.shade900
-                      : Colors.red.shade900,
-                  fontFamily: 'Inter',
-                ),
+                languageCode: 'ar',
+                style: AppTypography.body,
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _nextQuestion,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
+            FilledButton(
+              onPressed: () => unawaited(_nextQuestion()),
+              child: AppDirectionalText(
                 _currentIndex < _quizzes.length - 1
-                    ? 'Next Question'
-                    : 'Finish',
-                style: const TextStyle(fontSize: 16, fontFamily: 'Inter'),
+                    ? 'السؤال التالي'
+                    : 'إنهاء',
+                languageCode: 'ar',
+                style: AppTypography.label,
               ),
             ),
           ],

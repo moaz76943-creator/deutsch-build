@@ -37,14 +37,19 @@ class ExplainWhyFeedbackCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(
+                    AppDirectionalText(
                       'لماذا؟',
+                      languageCode: 'ar',
                       style: AppTypography.label.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                     const SizedBox(height: 5),
-                    Text(explanation, style: AppTypography.body),
+                    AppDirectionalText(
+                      explanation,
+                      languageCode: 'ar',
+                      style: AppTypography.body,
+                    ),
                   ],
                 ),
               ),

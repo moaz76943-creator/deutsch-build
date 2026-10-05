@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../design_system/app_audio_button.dart';
 import '../../../../design_system/app_colors.dart';
 import '../../../../design_system/app_glass_card.dart';
+import '../../../../design_system/app_typography.dart';
 import '../../application/sentence_token_bank.dart';
 import '../../domain/grammar_drill_models.dart';
 
@@ -11,6 +13,8 @@ class InteractiveSentenceBuilderWidget extends StatefulWidget {
     required this.orderedTokenIds,
     required this.onAddToken,
     required this.onRemoveToken,
+    required this.targetLanguageCode,
+    this.onSpeakSentence,
     this.enabled = true,
     super.key,
   });
@@ -19,6 +23,8 @@ class InteractiveSentenceBuilderWidget extends StatefulWidget {
   final List<String> orderedTokenIds;
   final ValueChanged<String> onAddToken;
   final ValueChanged<String> onRemoveToken;
+  final String targetLanguageCode;
+  final VoidCallback? onSpeakSentence;
   final bool enabled;
 
   @override
@@ -63,15 +69,37 @@ class _InteractiveSentenceBuilderWidgetState
       glowColor: AppColors.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            widget.exercise.instructionAr,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.exercise.translationAr,
-            style: Theme.of(context).textTheme.bodyMedium,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    AppDirectionalText(
+                      widget.exercise.instructionAr,
+                      languageCode: 'ar',
+                      style: AppTypography.title.copyWith(fontSize: 17),
+                    ),
+                    const SizedBox(height: 8),
+                    AppDirectionalText(
+                      widget.exercise.translationAr,
+                      languageCode: 'ar',
+                      style: AppTypography.body,
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.onSpeakSentence != null) ...<Widget>[
+                const SizedBox(width: 10),
+                AppAudioButton(
+                  onPressed: widget.onSpeakSentence,
+                  semanticLabel: 'استمع إلى الجملة الصحيحة',
+                  activeColor: AppColors.primary,
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 16),
           DragTarget<String>(
@@ -98,9 +126,10 @@ class _InteractiveSentenceBuilderWidgetState
                 runSpacing: 8,
                 children: selected.isEmpty
                     ? <Widget>[
-                        Text(
+                        AppDirectionalText(
                           'اسحب الكلمات إلى هنا أو اضغط عليها بالترتيب.',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          languageCode: 'ar',
+                          style: AppTypography.label,
                         ),
                       ]
                     : <Widget>[
@@ -109,6 +138,7 @@ class _InteractiveSentenceBuilderWidgetState
                             token: token,
                             selected: true,
                             enabled: widget.enabled,
+                            languageCode: widget.targetLanguageCode,
                             onTap: () => widget.onRemoveToken(token.id),
                           ),
                       ],
@@ -119,7 +149,7 @@ class _InteractiveSentenceBuilderWidgetState
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
+            children: <Widget>[
               for (final token in available)
                 Draggable<String>(
                   data: token.id,
@@ -129,6 +159,7 @@ class _InteractiveSentenceBuilderWidgetState
                       token: token,
                       selected: false,
                       enabled: widget.enabled,
+                      languageCode: widget.targetLanguageCode,
                     ),
                   ),
                   childWhenDragging: Opacity(
@@ -137,12 +168,14 @@ class _InteractiveSentenceBuilderWidgetState
                       token: token,
                       selected: false,
                       enabled: false,
+                      languageCode: widget.targetLanguageCode,
                     ),
                   ),
                   child: _TokenChip(
                     token: token,
                     selected: false,
                     enabled: widget.enabled,
+                    languageCode: widget.targetLanguageCode,
                     onTap: widget.enabled
                         ? () => widget.onAddToken(token.id)
                         : null,
@@ -161,12 +194,14 @@ class _TokenChip extends StatelessWidget {
     required this.token,
     required this.selected,
     required this.enabled,
+    required this.languageCode,
     this.onTap,
   });
 
   final GrammarToken token;
   final bool selected;
   final bool enabled;
+  final String languageCode;
   final VoidCallback? onTap;
 
   @override
@@ -177,10 +212,10 @@ class _TokenChip extends StatelessWidget {
       avatar: selected
           ? Icon(Icons.check_rounded, size: 16, color: accent)
           : null,
-      label: Text(
+      label: AppDirectionalText(
         token.text,
-        textDirection: TextDirection.ltr,
-        style: TextStyle(
+        languageCode: languageCode,
+        style: AppTypography.label.copyWith(
           color: enabled ? accent : accent.withAlpha(110),
           fontWeight: FontWeight.w800,
         ),
