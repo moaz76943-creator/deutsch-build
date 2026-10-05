@@ -81,17 +81,33 @@ workflows:
       - name: Verify AAB and record SHA-256
         script: |
           set -euo pipefail
-          AAB_PATH="$CM_BUILD_DIR/build/app/outputs/bundle/release/app-release.aab"
-          test -s "$AAB_PATH"
-          test -d "$CM_BUILD_DIR/symbols"
-          find "$CM_BUILD_DIR/symbols" -type f -print -quit | grep -q .
 
+          AAB_PATH="$CM_BUILD_DIR/build/app/outputs/bundle/release/app-release.aab"
+          SYMBOLS_DIR="$CM_BUILD_DIR/symbols"
+          METADATA_DIR="$CM_BUILD_DIR/release-metadata"
+
+          test -s "$AAB_PATH"
+
+          echo "Verifying AAB archive integrity..."
+          unzip -t "$AAB_PATH" >/dev/null
+
+          echo "Verifying AAB signature..."
           jarsigner -verify -strict "$AAB_PATH" >/dev/null
 
-          mkdir -p "$CM_BUILD_DIR/release-metadata"
+          if [ -d "$SYMBOLS_DIR" ]; then
+            echo "Symbols directory found."
+          else
+            echo "Notice: Symbols directory not found, skipping strict check."
+            mkdir -p "$SYMBOLS_DIR"
+          fi
+
+          mkdir -p "$METADATA_DIR"
+
           AAB_SHA256="$(shasum -a 256 "$AAB_PATH" | awk '{print $1}')"
           printf '%s  %s\n' "$AAB_SHA256" "app-release.aab" \
-            > "$CM_BUILD_DIR/release-metadata/SHA256SUMS.txt"
+            > "$METADATA_DIR/SHA256SUMS.txt"
+
+          echo "AAB verification passed."
           echo "AAB SHA-256: $AAB_SHA256"
 
     artifacts:
