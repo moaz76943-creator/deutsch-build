@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/grammar.dart';
-import '../../data/grammar_topics.dart';
+import '../../data/canonical_grammar_catalog.dart';
 import 'grammar_topic_detail_page.dart';
 
 class GrammarHubPage extends StatefulWidget {
@@ -45,7 +45,7 @@ class _GrammarHubPageState extends State<GrammarHubPage>
       body: TabBarView(
         controller: _tabController,
         children: _levels.map((level) {
-          final topicsForLevel = GrammarTopicsData.allTopics
+          final topicsForLevel = CanonicalGrammarCatalog.allTopics
               .where((topic) => topic.level == level)
               .toList();
           return _buildTopicsList(topicsForLevel);
