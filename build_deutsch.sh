@@ -7,6 +7,13 @@ source "$ROOT/toolchain.lock"
 PROJECT_ROOT="${PROJECT_ROOT:-$ROOT}"
 LOG_FILE="${LOG_FILE:-$HOME/flutter_build_deutsch.log}"
 APK="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-debug.apk"
+PROFILE="full"
+
+case "${1:-}" in
+  "") ;;
+  --fast) PROFILE="termux-fast" ;;
+  *) printf 'ERROR: Usage: ./build_deutsch.sh [--fast]\n' >&2; exit 2 ;;
+esac
 
 on_error() {
   local line="$1" command="$2" code="$3"
@@ -70,7 +77,11 @@ main() {
 
   configure_aapt2_override
 
-  "$ROOT/scripts/build.sh" debug
+  if [[ "$PROFILE" == "termux-fast" ]]; then
+    "$ROOT/scripts/build.sh" debug termux-fast
+  else
+    "$ROOT/scripts/build.sh" debug
+  fi
 }
 
 main "$@"
