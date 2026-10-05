@@ -73,9 +73,9 @@ final class SecureLocalGamificationRepository implements GamificationRepository 
   Future<_StoredGamificationRecord> _loadRecord() async {
     final payload = await _storage.load(StorageBucket.gamification);
     if (payload == null) {
-      return const _StoredGamificationRecord(
+      return _StoredGamificationRecord(
         snapshot: _emptySnapshot,
-        reviewIds: <String>[],
+        reviewIds: const <String>[],
       );
     }
 

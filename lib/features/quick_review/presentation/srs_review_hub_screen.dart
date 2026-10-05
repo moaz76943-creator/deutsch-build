@@ -108,7 +108,7 @@ class SrsReviewHubScreen extends StatelessWidget {
                 averageInterval: averageInterval,
               ),
               const SizedBox(height: 14),
-              if (session.isNotEmpty) ...<Widget>[
+              if (session.cards.isNotEmpty) ...<Widget>[
                 AppDirectionalText(
                   'بطاقات الجلسة',
                   languageCode: 'ar',

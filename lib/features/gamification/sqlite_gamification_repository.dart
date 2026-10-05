@@ -25,7 +25,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
   static Future<SqliteGamificationRepository> open(
     String databasePath, {
     GamificationClockIntegritySource clockIntegritySource =
-        UnavailableGamificationClockIntegritySource(),
+        const UnavailableGamificationClockIntegritySource(),
   }) =>
       openWithFactory(
         sqflite.databaseFactory,
@@ -37,7 +37,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     DatabaseFactory factory,
     String databasePath, {
     GamificationClockIntegritySource clockIntegritySource =
-        UnavailableGamificationClockIntegritySource(),
+        const UnavailableGamificationClockIntegritySource(),
   }) async {
     final database = await factory.openDatabase(
       databasePath,
