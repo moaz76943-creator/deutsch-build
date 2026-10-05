@@ -686,8 +686,7 @@ final class _GermanText extends StatelessWidget {
   const _GermanText(
     this.text, {
     required this.style,
-    this.textAlign,
-  });
+  }) : textAlign = null;
 
   final String text;
   final TextStyle style;

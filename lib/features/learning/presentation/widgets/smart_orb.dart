@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_glass_surface.dart';
@@ -288,8 +287,8 @@ final class _SmartOrbPainter extends CustomPainter {
       Paint()
         ..shader = RadialGradient(
           colors: <Color>[
-            activeColor.withOpacity(haloOpacity),
-            activeColor.withOpacity(haloOpacity * 0.28),
+            activeColor.withValues(alpha: haloOpacity),
+            activeColor.withValues(alpha: haloOpacity * 0.28),
             Colors.transparent,
           ],
           stops: const <double>[0, 0.58, 1],
@@ -305,11 +304,11 @@ final class _SmartOrbPainter extends CustomPainter {
           center: const Alignment(-0.34, -0.38),
           radius: 1.05,
           colors: <Color>[
-            palette.glassHighlight.withOpacity(0.86),
-            activeColor.withOpacity(
-              0.34 + feedbackEnvelope * 0.18,
+            palette.glassHighlight.withValues(alpha: 0.86),
+            activeColor.withValues(
+              alpha: 0.34 + feedbackEnvelope * 0.18,
             ),
-            palette.core.withOpacity(0.24),
+            palette.core.withValues(alpha: 0.24),
           ],
           stops: const <double>[0, 0.46, 1],
         ).createShader(orbRect),
@@ -321,15 +320,15 @@ final class _SmartOrbPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1.0, minSide * 0.012)
-        ..color = palette.outline.withOpacity(0.72),
+        ..color = palette.outline.withValues(alpha: 0.72),
     );
 
     final orbitPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = math.max(1.0, minSide * 0.013)
-      ..color = activeColor.withOpacity(
-        0.46 + feedbackEnvelope * 0.30,
+      ..color = activeColor.withValues(
+        alpha: 0.46 + feedbackEnvelope * 0.30,
       );
     final orbitRect = Rect.fromCircle(
       center: center,
@@ -364,8 +363,8 @@ final class _SmartOrbPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1.0, minSide * 0.010)
-        ..color = activeColor.withOpacity(
-          0.56 + feedbackEnvelope * 0.26,
+        ..color = activeColor.withValues(
+          alpha: 0.56 + feedbackEnvelope * 0.26,
         ),
     );
 
@@ -379,8 +378,8 @@ final class _SmartOrbPainter extends CustomPainter {
       diamond,
       Paint()
         ..style = PaintingStyle.fill
-        ..color = activeColor.withOpacity(
-          0.16 + feedbackEnvelope * 0.18,
+        ..color = activeColor.withValues(
+          alpha: 0.16 + feedbackEnvelope * 0.18,
         ),
     );
 
@@ -391,8 +390,8 @@ final class _SmartOrbPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1.0, minSide * 0.008)
-        ..color = activeColor.withOpacity(
-          domainState.isSpeaking
+        ..color = activeColor.withValues(
+          alpha: domainState.isSpeaking
               ? 0.18 + pulseValue * 0.34
               : 0.10 + feedbackEnvelope * 0.12,
         ),

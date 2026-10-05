@@ -21,8 +21,8 @@ abstract final class Phase19AdaptiveTheme {
       dividerColor: scheme.outlineVariant,
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceContainerHighest.withOpacity(
-          brightness == Brightness.dark ? 0.52 : 0.72,
+        fillColor: scheme.surfaceContainerHighest.withValues(
+          alpha: brightness == Brightness.dark ? 0.52 : 0.72,
         ),
         border: const OutlineInputBorder(),
       ),

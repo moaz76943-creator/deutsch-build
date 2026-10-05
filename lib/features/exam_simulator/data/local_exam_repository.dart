@@ -12,7 +12,7 @@ final class LocalExamRepository implements ExamRepository {
     };
   }
 
-  static const ExamDefinition _a1 = ExamDefinition(
+  static final ExamDefinition _a1 = ExamDefinition(
     id: 'cefr_a1_original_practice_v1',
     level: CefrExamLevel.a1,
     title: 'CEFR A1 – Standard Practice',
@@ -120,7 +120,7 @@ final class LocalExamRepository implements ExamRepository {
     ],
   );
 
-  static const ExamDefinition _a2 = ExamDefinition(
+  static final ExamDefinition _a2 = ExamDefinition(
     id: 'cefr_a2_original_practice_v1',
     level: CefrExamLevel.a2,
     title: 'CEFR A2 – Standard Practice',

@@ -99,7 +99,7 @@ final class _ScenarioSelector extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: notifier.activeScenario?.id,
+              initialValue: notifier.activeScenario?.id,
               isExpanded: true,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),

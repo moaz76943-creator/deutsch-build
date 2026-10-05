@@ -289,7 +289,7 @@ final class _CategoryCard extends StatelessWidget {
               ),
       glowColor: selected ? accent : null,
       backgroundColor:
-          selected ? accent.withAlpha(_DrivingUiTokens.activeAlpha) : null,
+          selected ? (accent.withAlpha(_DrivingUiTokens.activeAlpha)) : Colors.transparent,
       child: Row(
         children: <Widget>[
           Icon(

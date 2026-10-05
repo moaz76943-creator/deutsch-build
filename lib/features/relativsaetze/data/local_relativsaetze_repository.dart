@@ -3,7 +3,7 @@ import '../domain/relativsaetze_repository.dart';
 
 final class LocalRelativsaetzeRepository
     implements RelativsaetzeRepository {
-  const LocalRelativsaetzeRepository();
+  LocalRelativsaetzeRepository();
 
   static final List<RelativeClauseChallengeItem> _bank =
       <RelativeClauseChallengeItem>[

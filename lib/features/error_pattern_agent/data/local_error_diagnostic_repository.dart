@@ -8,8 +8,8 @@ final class LocalErrorDiagnosticRepository
     implements ErrorDiagnosticRepository {
   LocalErrorDiagnosticRepository(this._preferences);
 
-  static const String storageKey = 'error_pattern_diagnostic_entries_v1';
-  static const int maxEntries = 500;
+  static final String storageKey = 'error_pattern_diagnostic_entries_v1';
+  static final int maxEntries = 500;
 
   final PreferencesService _preferences;
   Future<void> _writeQueue = Future<void>.value();

@@ -7,7 +7,7 @@ final class LocalPlacementAgentRepository
 
   PlacementAssessmentResult? _latestResult;
 
-  static const List<PlacementQuestionItem> _questionBank =
+  static final List<PlacementQuestionItem> _questionBank =
       <PlacementQuestionItem>[
     PlacementQuestionItem(
       id: 'a11_vocab_greeting',

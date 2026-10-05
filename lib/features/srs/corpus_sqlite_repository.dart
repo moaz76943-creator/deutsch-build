@@ -3,7 +3,7 @@ import 'package:sqflite_common/sqlite_api.dart';
 import 'corpus_sqlite_contract.dart';
 
 final class SrsCorpusItem {
-  const SrsCorpusItem({
+  SrsCorpusItem({
     required this.id,
     required this.german,
     required this.arabic,
@@ -29,7 +29,7 @@ final class SrsCorpusItem {
 }
 
 final class SrsVerbRow {
-  const SrsVerbRow({
+  SrsVerbRow({
     required this.contentId,
     required this.infinitive,
     required this.arabic,

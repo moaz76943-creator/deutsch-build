@@ -25,7 +25,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
   static Future<SqliteGamificationRepository> open(
     String databasePath, {
     GamificationClockIntegritySource clockIntegritySource =
-        const UnavailableGamificationClockIntegritySource(),
+        UnavailableGamificationClockIntegritySource(),
   }) =>
       openWithFactory(
         sqflite.databaseFactory,
@@ -37,7 +37,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     DatabaseFactory factory,
     String databasePath, {
     GamificationClockIntegritySource clockIntegritySource =
-        const UnavailableGamificationClockIntegritySource(),
+        UnavailableGamificationClockIntegritySource(),
   }) async {
     final database = await factory.openDatabase(
       databasePath,
@@ -306,7 +306,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
   @override
   Future<GamificationSnapshot> loadSnapshot() async {
     if (_closed) {
-      return const GamificationSnapshot(
+      return GamificationSnapshot(
         profile: GamificationProfile(),
         unlocked: <UnlockedMilestone>[],
         badges: GamificationMilestones.defaults,
@@ -341,7 +341,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
       where: 'id = 1',
       limit: 1,
     );
-    if (rows.isEmpty) return const GamificationProfile();
+    if (rows.isEmpty) return GamificationProfile();
     final row = rows.first;
 
     int safeInt(String key, {int max = 100000000}) {

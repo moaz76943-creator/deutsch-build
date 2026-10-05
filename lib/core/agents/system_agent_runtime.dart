@@ -331,7 +331,7 @@ final class SystemAgentRuntime {
       );
 
   Future<Object?> decodePayload(String encoded) async {
-    final result = await runCpuJob<Object?>(
+    final result = await runCpuJob<Object>(
       type: WorkerJobTypes.jsonDecode,
       payload: <String, Object?>{'encoded': encoded},
     );
@@ -367,7 +367,7 @@ final class SystemAgentRuntime {
     required List<Map<String, Object?>> candidates,
     int limit = 20,
   }) async {
-    final result = await runCpuJob<Object?>(
+    final result = await runCpuJob<Object>(
       type: WorkerJobTypes.fuzzyRank,
       payload: <String, Object?>{
         'query': query,

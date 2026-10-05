@@ -2,9 +2,9 @@ import '../domain/partizip_models.dart';
 import '../domain/partizip_repository.dart';
 
 final class LocalPartizipRepository implements PartizipRepository {
-  const LocalPartizipRepository();
+  LocalPartizipRepository();
 
-  static const List<PartizipExercise> _exercises = <PartizipExercise>[
+  static final List<PartizipExercise> _exercises = <PartizipExercise>[
     PartizipExercise(
       id: 'p1_child_smiling',
       infinitive: 'lächeln',

@@ -6,7 +6,7 @@ import '../gamification_repository.dart';
 final class SecureLocalGamificationRepository implements GamificationRepository {
   SecureLocalGamificationRepository(this._storage);
 
-  static const int _maxRememberedReviewIds = 256;
+  static final int _maxRememberedReviewIds = 256;
 
   final LocalStorageRepository _storage;
   bool _closed = false;
@@ -86,7 +86,7 @@ final class SecureLocalGamificationRepository implements GamificationRepository 
     final snapshot = GamificationSnapshot(
       profile: rawProfile is Map
           ? _decodeProfile(Map<Object?, Object?>.from(rawProfile))
-          : const GamificationProfile(),
+          : GamificationProfile(),
       unlocked: _decodeUnlocked(rawUnlocked),
       badges: GamificationMilestones.defaults,
     );
@@ -210,7 +210,7 @@ final class SecureLocalGamificationRepository implements GamificationRepository 
     return DateTime.tryParse('${value}T00:00:00Z') == null ? null : value;
   }
 
-  static const GamificationSnapshot _emptySnapshot = GamificationSnapshot(
+  static final GamificationSnapshot _emptySnapshot = GamificationSnapshot(
     profile: GamificationProfile(),
     unlocked: <UnlockedMilestone>[],
     badges: GamificationMilestones.defaults,

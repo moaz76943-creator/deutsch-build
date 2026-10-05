@@ -43,7 +43,7 @@ final class PrepositionChallenge {
     required this.sentenceTemplate,
     required this.translationAr,
     required this.prepositionId,
-    required this.options,
+    required List<String> options,
     required this.explanationAr,
     required this.level,
     this.correctPreposition,

@@ -58,7 +58,7 @@ class _ClothingTailoringPanelState extends State<ClothingTailoringPanel> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<TailoringService?>(
-                    value: _service,
+                    initialValue: _service,
                     decoration: const InputDecoration(
                       labelText: 'نوع الخدمة',
                       border: OutlineInputBorder(),

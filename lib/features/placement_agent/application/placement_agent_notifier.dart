@@ -106,7 +106,7 @@ final class PlacementAgentNotifier extends ChangeNotifier {
     };
     final repository = _repository;
     if (repository is AdaptivePlacementQuestionSource) {
-      return repository.selectNextQuestion(
+      return (repository as dynamic).selectNextQuestion(
         answeredIds: answeredIds,
         targetDifficulty: _targetDifficulty,
       );

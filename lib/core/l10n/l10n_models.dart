@@ -1,4 +1,3 @@
-import '../language/app_text_direction.dart';
 import '../localization/localization_state.dart';
 import '../localization/locale_provider.dart';
 

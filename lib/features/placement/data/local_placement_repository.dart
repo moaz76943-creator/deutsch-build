@@ -2,7 +2,7 @@ import '../domain/placement_models.dart';
 import '../domain/placement_repositories.dart';
 
 final class LocalPlacementRepository implements PlacementRepository {
-  const LocalPlacementRepository();
+  LocalPlacementRepository();
 
   static final List<PlacementQuestion> _questions = <PlacementQuestion>[
     PlacementQuestion(

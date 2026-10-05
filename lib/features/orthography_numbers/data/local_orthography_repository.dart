@@ -2,9 +2,9 @@ import '../domain/orthography_models.dart';
 import '../domain/orthography_repository.dart';
 
 final class LocalOrthographyRepository implements OrthographyRepository {
-  const LocalOrthographyRepository();
+  LocalOrthographyRepository();
 
-  static const List<OrthographyExercise> _exercises =
+  static final List<OrthographyExercise> _exercises =
       <OrthographyExercise>[
     OrthographyExercise(
       id: 'comma_weil',
@@ -196,7 +196,7 @@ final class LocalOrthographyRepository implements OrthographyRepository {
     ),
   ];
 
-  static const List<String> _months = <String>[
+  static final List<String> _months = <String>[
     'Januar',
     'Februar',
     'März',

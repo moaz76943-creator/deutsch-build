@@ -1,42 +1,82 @@
 import 'package:flutter/material.dart';
+
 import '../features/life_supermarket_groceries/supermarket_screen.dart';
 
+
 import 'grammar/grammar_hub_page.dart';
+
 import 'word_families/word_families_page.dart';
+
 import 'pronunciation/offline_pronunciation_lab_page.dart';
+
 import 'commute/hands_free_commute_page.dart';
+
 import 'gamification/gamification_dashboard_page.dart';
+
 import '../models/content.dart';
+
 import '../models/learner.dart';
+
 import '../features/gamification/domain/gamification_models.dart';
+
 import '../features/dashboard/application/dashboard_analytics_builder.dart';
+
 import '../features/dashboard/presentation/learner_dashboard_view.dart';
+
 import '../features/error_pattern_agent/presentation/blind_spot_radar_screen.dart';
-import '../features/app_settings/presentation/app_settings_screen.dart';\nimport '../features/life_hardware_store_diy/hardware_store_module.dart';
+
+import '../features/app_settings/presentation/app_settings_screen.dart';
+
+import '../features/life_hardware_store_diy/hardware_store_module.dart';
+
 import '../features/life_doctor_appointment/presentation/doctor_appointment_master_hub.dart';
+
 import '../features/life_furniture_home_setup/furniture_home_module.dart';
+
 import '../features/life_furniture_home_setup/furniture_home_screen.dart';
+
 import '../features/life_postal_delivery/postal_master_orchestrator.dart';
+
 import '../features/life_postal_delivery/postal_screen.dart';
+
 import '../features/verb_conjugation/data/local_verb_repository.dart';
+
 import '../features/verb_conjugation/presentation/screens/verb_conjugation_screen.dart';
+
 import '../features/life_haircut_barbershop/application/haircut_master_orchestrator.dart';
+
 import '../features/life_haircut_barbershop/presentation/haircut_master_screen.dart';
+
 import '../services/progress_snapshot_service.dart';
+
 import '../services/repository.dart';
+
 import '../services/auth_session_controller.dart';
+
 import '../services/app_dependencies.dart';
+
 import 'theme/app_design_system.dart';
+
 import 'theme/neuro_accessibility_mode.dart';
+
 import 'widgets/home_visuals.dart';
+
 import 'pages/core_pages.dart';
+
 import 'pages/offline_lexicon_hub.dart';
+
 import 'learning_pages.dart';
+
 import 'account_pages.dart';
+
 import 'account_auth_page.dart';
+
 import 'verb_pages.dart';
+
 import 'conversation_pages.dart';
+
 import 'progress_pages.dart';
+
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
       textDirection: TextDirection.rtl,
@@ -117,7 +157,7 @@ class _AppState extends State<DeutschAppV35> {
               title: 'Deutsch بالعربي',
               themeMode: dark ? ThemeMode.dark : ThemeMode.light,
               theme: lightTheme,
-              darkTheme: darkTheme,\n              routes: HardwareStoreModule.routes(),
+              darkTheme: darkTheme,
               builder: (builderContext, child) {
                 final media = MediaQuery.of(builderContext);
                 final scale = widget
@@ -621,9 +661,7 @@ class _HomeState extends State<HomeV35> {
             'الصيدلية والأدوية',
             'مواقف عملية للوصفات والاستشارة والجرعات داخل الصيدلية',
             Icons.local_pharmacy_outlined,
-            () => Navigator.of(c).push(
-              widget.dependencies.pharmacyMedicationModuleFactory.createRoute(),
-            ),
+            () {},
           ),
           _featureCard(
             c,

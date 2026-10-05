@@ -11,7 +11,6 @@ import '../features/pronunciation/domain/services/pronunciation_signal_probe.dar
 import '../features/error_pattern_agent/application/error_pattern_agent_notifier.dart';
 import '../features/gamification/gamification_repository.dart';
 import '../features/app_settings/application/settings_controller.dart';
-import '../features/life_pharmacy_medication/pharmacy_module.dart';
 import '../features/life_doctor_appointment/application/doctor_appointment_master_orchestrator.dart';
 import 'search_index.dart';
 import 'ai_gateway.dart';

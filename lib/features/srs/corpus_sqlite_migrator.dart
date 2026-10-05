@@ -325,11 +325,11 @@ final class SrsCorpusSqliteMigrator {
     required int maxLength,
   }) {
     if (raw is! String) {
-      throw StateError('srs_corpus_$field_invalid');
+      throw StateError('srs_corpus_${field}_invalid');
     }
     final value = raw.trim();
     if (value.isEmpty || value.length > maxLength) {
-      throw StateError('srs_corpus_$field_invalid');
+      throw StateError('srs_corpus_${field}_invalid');
     }
     return value;
   }

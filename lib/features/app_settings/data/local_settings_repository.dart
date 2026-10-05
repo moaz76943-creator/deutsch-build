@@ -10,7 +10,7 @@ final class LocalSettingsRepository implements SettingsRepository {
     DateTime Function()? nowUtc,
   }) : _nowUtc = nowUtc ?? (() => DateTime.now().toUtc());
 
-  static const int _schemaVersion = 1;
+  static final int _schemaVersion = 1;
 
   final SettingsLocalDataSource _source;
   final DateTime Function() _nowUtc;
@@ -35,7 +35,7 @@ final class LocalSettingsRepository implements SettingsRepository {
   Future<StorageMetrics> loadStorageMetrics() async {
     final raw = await _source.read();
     if (raw == null || raw.isEmpty) {
-      return const StorageMetrics(localDataBytes: 0);
+      return StorageMetrics(localDataBytes: 0);
     }
     final record = _decode(raw);
     return StorageMetrics(

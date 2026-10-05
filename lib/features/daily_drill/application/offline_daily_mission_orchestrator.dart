@@ -1,7 +1,6 @@
 import '../../../core/content_contract.dart';
 import '../../../core/progress/pair_progress_models.dart';
 import '../../../core/srs_facets.dart';
-import '../../../models/learner.dart';
 import '../../../services/repository.dart';
 import '../../session/universal_session_orchestrator.dart';
 

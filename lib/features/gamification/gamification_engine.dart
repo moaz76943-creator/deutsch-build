@@ -38,7 +38,7 @@ abstract final class GamificationEngine {
         previousElapsed != null &&
         stamp.bootCount == previousBootCount;
     final monotonicRegression = sameBoot
-        ? stamp!.elapsedRealtimeMilliseconds < previousElapsed!
+        ? stamp.elapsedRealtimeMilliseconds < previousElapsed
         : false;
     final monotonicClockDrift = sameBoot &&
         !monotonicRegression &&
@@ -46,8 +46,8 @@ abstract final class GamificationEngine {
         _hasMonotonicClockDrift(
           previousUtc: current.lastReviewAtUtc!.toUtc(),
           currentUtc: eventUtc,
-          previousElapsedMilliseconds: previousElapsed!,
-          currentElapsedMilliseconds: stamp!.elapsedRealtimeMilliseconds,
+          previousElapsedMilliseconds: previousElapsed,
+          currentElapsedMilliseconds: stamp.elapsedRealtimeMilliseconds,
         );
 
     if (malformedOffset ||

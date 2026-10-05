@@ -3,7 +3,7 @@ import '../domain/alltagssprache_models.dart';
 class LocalAlltagsspracheRepository {
   const LocalAlltagsspracheRepository();
 
-  static const List<AlltagScenario> _items = <AlltagScenario>[
+  static final List<AlltagScenario> _items = <AlltagScenario>[
     AlltagScenario(
       id: 'sonntagsruhe',
       topic: AlltagTopic.neighborhood,

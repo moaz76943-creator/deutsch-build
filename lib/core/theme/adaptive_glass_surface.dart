@@ -31,13 +31,13 @@ class AdaptiveGlassSurface extends StatelessWidget {
     final radius = BorderRadius.circular(borderRadius);
     final content = DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withOpacity(
-          fillOpacity,
+        color: scheme.surfaceContainerHighest.withValues(
+          alpha: fillOpacity,
         ),
         borderRadius: radius,
         border: Border.all(
-          color: scheme.outlineVariant.withOpacity(
-            borderOpacity,
+          color: scheme.outlineVariant.withValues(
+            alpha: borderOpacity,
           ),
         ),
       ),

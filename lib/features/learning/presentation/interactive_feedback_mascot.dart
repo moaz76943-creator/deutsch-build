@@ -58,7 +58,7 @@ class InteractiveFeedbackMascot extends StatelessWidget {
                   height: 54,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: accent.withOpacity(0.12),
+                    color: accent.withValues(alpha: 0.12),
                     border: Border.all(color: accent),
                   ),
                   child: Icon(icon, color: accent),

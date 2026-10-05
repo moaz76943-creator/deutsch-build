@@ -24,7 +24,7 @@ class ReflexiveScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'Reflexive Verben Arena',
             textDirection: TextDirection.ltr,
           ),
@@ -58,7 +58,7 @@ class ReflexiveScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
+                          Text(
                             'اختر الضمير الانعكاسي المناسب',
                             textDirection: TextDirection.rtl,
                             style: AppTypography.title,
@@ -89,7 +89,7 @@ class ReflexiveScreen extends StatelessWidget {
                             FilledButton.icon(
                               onPressed: notifier.nextDrill,
                               icon: const Icon(Icons.arrow_forward_rounded),
-                              label: const Text(
+                              label: Text(
                                 'التمرين التالي',
                                 textDirection: TextDirection.rtl,
                               ),
@@ -122,7 +122,7 @@ class _CaseFilterCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            Text(
               'تدريب حسب الحالة',
               textDirection: TextDirection.rtl,
               style: AppTypography.title,
@@ -219,7 +219,7 @@ class _ContextCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            Text(
               'السياق',
               textDirection: TextDirection.rtl,
               style: AppTypography.title,

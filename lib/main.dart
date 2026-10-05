@@ -330,7 +330,7 @@ Future<_ResolvedCorpusSession> _resolveActiveCorpusSession(
   }
 
   final verification = repository.verification;
-  if (!verification.hasDeclaredCardinality) {
+  if (!verification.hasExpectedCardinality) {
     await resolution.closeCorpus();
     await resolution.grammarHubService.close();
     throw StateError('indexed_corpus_cardinality_mismatch');
@@ -759,11 +759,11 @@ final class _PlacementBootstrapAppState
   void initState() {
     super.initState();
     _placementAudio = OfflineAudioRuntime(
-      speechProfile: const GermanSpeechProfile(),
+      speechProfile: GermanSpeechProfile(),
       ttsEngine: FlutterOfflineTtsEngine(),
     );
     _notifier = PlacementTestNotifier(
-      repository: const LocalPlacementRepository(),
+      repository: LocalPlacementRepository(),
       profileRepository:
           LearnerPlacementProfileRepository(widget.learnerRepository),
       audioGateway: PlacementAudioRuntimeAdapter(_placementAudio),

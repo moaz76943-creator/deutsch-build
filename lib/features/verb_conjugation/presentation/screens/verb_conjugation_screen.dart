@@ -103,7 +103,7 @@ class _VerbSelectorCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<VerbItem>(
-              value: selected,
+              initialValue: selected,
               isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'الفعل',
