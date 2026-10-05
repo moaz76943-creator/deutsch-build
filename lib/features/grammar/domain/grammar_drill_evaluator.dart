@@ -1,15 +1,18 @@
 import 'grammar_drill_models.dart';
 
 final class GrammarEvaluation {
-  final bool correct;
-  final int score;
-  final String feedbackAr;
-
-  const GrammarEvaluation({
+  GrammarEvaluation({
     required this.correct,
     required this.score,
-    required this.feedbackAr,
-  });
+    required this.reasonCode,
+    Map<String, String> reasonArguments = const <String, String>{},
+  }) : reasonArguments =
+            Map<String, String>.unmodifiable(reasonArguments);
+
+  final bool correct;
+  final int score;
+  final String reasonCode;
+  final Map<String, String> reasonArguments;
 }
 
 final class GrammarDrillEvaluator {
@@ -28,10 +31,10 @@ final class GrammarDrillEvaluator {
     Object answer,
   ) {
     if (answer is! List<String>) {
-      return const GrammarEvaluation(
+      return GrammarEvaluation(
         correct: false,
         score: 0,
-        feedbackAr: 'رتّب جميع الكلمات أولًا ثم تحقّق من الجملة.',
+        reasonCode: 'grammar.input.incomplete',
       );
     }
     final expected = exercise.correctTokenIds;
@@ -44,9 +47,8 @@ final class GrammarDrillEvaluator {
     return GrammarEvaluation(
       correct: correct,
       score: correct ? 100 : 0,
-      feedbackAr: correct
-          ? exercise.reinforcementAr
-          : 'راجع ترتيب الجملة، وخصوصًا موقع الفعل وبداية الجملة.',
+      reasonCode: exercise.reasonCode,
+      reasonArguments: exercise.reasonArguments,
     );
   }
 
@@ -64,10 +66,13 @@ final class GrammarDrillEvaluator {
     return GrammarEvaluation(
       correct: correct,
       score: correct ? 100 : 0,
-      feedbackAr: correct
-          ? exercise.reinforcementAr
-          : 'راجع التصريف مع الضمير ${exercise.pronoun}: '
-              '${exercise.infinitive} → ${exercise.expectedForm}.',
+      reasonCode: exercise.reasonCode,
+      reasonArguments: <String, String>{
+        ...exercise.reasonArguments,
+        'pronoun': exercise.pronoun,
+        'infinitive': exercise.infinitive,
+        'expected': exercise.expectedForm,
+      },
     );
   }
 
@@ -80,8 +85,13 @@ final class GrammarDrillEvaluator {
     return GrammarEvaluation(
       correct: correct,
       score: correct ? 100 : 0,
-      feedbackAr:
-          correct ? exercise.reinforcementAr : exercise.explanationAr,
+      reasonCode: exercise.reasonCode,
+      reasonArguments: <String, String>{
+        ...exercise.reasonArguments,
+        'caseLabel': exercise.targetCase.label,
+        'noun': exercise.noun,
+        'expected': exercise.expectedArticle,
+      },
     );
   }
 

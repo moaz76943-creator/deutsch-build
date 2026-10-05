@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/explain_why/deterministic_explain_why_engine.dart';
 import '../domain/grammar_drill_evaluator.dart';
 import '../domain/grammar_drill_models.dart';
 import '../../error_pattern_agent/domain/error_diagnostic_repository.dart';
@@ -17,6 +18,7 @@ final class GrammarDrillState {
   final int correctCount;
   final int positiveStreak;
   final String feedbackAr;
+  final String? feedbackReasonCode;
   final bool isAnswered;
   final bool lastAnswerCorrect;
   final bool completed;
@@ -31,6 +33,7 @@ final class GrammarDrillState {
     required this.correctCount,
     required this.positiveStreak,
     required this.feedbackAr,
+    required this.feedbackReasonCode,
     required this.isAnswered,
     required this.lastAnswerCorrect,
     required this.completed,
@@ -47,6 +50,7 @@ final class GrammarDrillState {
         correctCount: 0,
         positiveStreak: 0,
         feedbackAr: '',
+        feedbackReasonCode: null,
         isAnswered: false,
         lastAnswerCorrect: false,
         completed: false,
@@ -65,6 +69,8 @@ final class GrammarDrillState {
     int? correctCount,
     int? positiveStreak,
     String? feedbackAr,
+    String? feedbackReasonCode,
+    bool clearFeedbackReasonCode = false,
     bool? isAnswered,
     bool? lastAnswerCorrect,
     bool? completed,
@@ -79,6 +85,9 @@ final class GrammarDrillState {
         correctCount: correctCount ?? this.correctCount,
         positiveStreak: positiveStreak ?? this.positiveStreak,
         feedbackAr: feedbackAr ?? this.feedbackAr,
+        feedbackReasonCode: clearFeedbackReasonCode
+            ? null
+            : (feedbackReasonCode ?? this.feedbackReasonCode),
         isAnswered: isAnswered ?? this.isAnswered,
         lastAnswerCorrect:
             lastAnswerCorrect ?? this.lastAnswerCorrect,
@@ -88,11 +97,13 @@ final class GrammarDrillState {
 
 final class GrammarDrillNotifier extends ChangeNotifier {
   final GrammarDrillEvaluator evaluator;
+  final ExplainWhyEngine explainWhyEngine;
   final ErrorDiagnosticSink errorDiagnosticSink;
   late GrammarDrillState _state;
 
   GrammarDrillNotifier(
     List<GrammarDrill> exercises, {
+    required this.explainWhyEngine,
     this.evaluator = const GrammarDrillEvaluator(),
     this.errorDiagnosticSink = const NoopErrorDiagnosticSink(),
   }) {
@@ -142,6 +153,13 @@ final class GrammarDrillNotifier extends ChangeNotifier {
         ? _state.orderedTokenIds
         : _state.selectedAnswer;
     final evaluation = evaluator.evaluate(current, answer);
+    final explanation = explainWhyEngine.explain(
+      ExplainWhyRequest(
+        reasonCode: evaluation.reasonCode,
+        correct: evaluation.correct,
+        arguments: evaluation.reasonArguments,
+      ),
+    );
     final streak = evaluation.correct ? _state.positiveStreak + 1 : 0;
     final bonus = evaluation.correct ? (streak * 10).clamp(0, 50).toInt() : 0;
 
@@ -152,7 +170,8 @@ final class GrammarDrillNotifier extends ChangeNotifier {
         correctCount:
             _state.correctCount + (evaluation.correct ? 1 : 0),
         positiveStreak: streak,
-        feedbackAr: evaluation.feedbackAr,
+        feedbackAr: explanation.text,
+        feedbackReasonCode: explanation.reasonCode,
         isAnswered: true,
         lastAnswerCorrect: evaluation.correct,
       ),
@@ -225,6 +244,7 @@ final class GrammarDrillNotifier extends ChangeNotifier {
         orderedTokenIds: const <String>[],
         selectedAnswer: '',
         feedbackAr: '',
+        clearFeedbackReasonCode: true,
         isAnswered: false,
         lastAnswerCorrect: false,
       ),
@@ -244,6 +264,7 @@ final class GrammarDrillNotifier extends ChangeNotifier {
         orderedTokenIds: const <String>[],
         selectedAnswer: '',
         feedbackAr: '',
+        clearFeedbackReasonCode: true,
         isAnswered: false,
         lastAnswerCorrect: false,
       ),

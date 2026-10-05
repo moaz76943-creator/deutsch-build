@@ -1,3 +1,4 @@
+import 'ar_de_grammar_explain_why.dart';
 import '../domain/grammar_drill_models.dart';
 
 final class LocalGrammarDrillRepository implements GrammarDrillRepository {
@@ -24,7 +25,7 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.a1,
       titleAr: 'رتّب الجملة',
       instructionAr: 'رتّب الكلمات لتكوين جملة ألمانية صحيحة.',
-      reinforcementAr: 'ممتاز — ثبتَّ قاعدة الفعل في الموقع الثاني.',
+      reasonCode: 'grammar.word_order.main_v2',
       translationAr: 'أنا أتعلم الألمانية اليوم.',
       tokens: <GrammarToken>[
         GrammarToken(id: 'a1o1', text: 'Heute', role: GrammarTokenRole.other),
@@ -39,7 +40,7 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.a1,
       titleAr: 'تصريف الفعل sein',
       instructionAr: 'اكتب التصريف الصحيح مع الضمير ich.',
-      reinforcementAr: 'صحيح — ich bin.',
+      reasonCode: 'grammar.verb.conjugation',
       infinitive: 'sein',
       pronoun: 'ich',
       sentencePrefix: 'Ich',
@@ -51,21 +52,22 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.a1,
       titleAr: 'Akkusativ مع المذكر',
       instructionAr: 'اختر أداة التعريف الصحيحة.',
-      reinforcementAr: 'صحيح — der يتحول إلى den في Akkusativ.',
+      reasonCode: 'grammar.case.direct_object',
+      reasonArguments: <String, String>{'baseArticle': 'der'},
       targetCase: GrammarCase.accusative,
       sentenceBefore: 'Ich kaufe',
       noun: 'Mantel.',
       sentenceAfter: '',
       options: <String>['der', 'den', 'dem'],
       expectedArticle: 'den',
-      explanationAr: 'Mantel مذكر وهو مفعول به مباشر: der → den.',
     ),
     SentenceReorderExercise(
       id: 'a2-order-weil',
       level: GrammarLevel.a2,
       titleAr: 'جملة فرعية مع weil',
       instructionAr: 'رتّب الكلمات وانتبه لموقع الفعل في الجملة الفرعية.',
-      reinforcementAr: 'رائع — في جملة weil ينتقل الفعل المصرف إلى النهاية.',
+      reasonCode: 'grammar.word_order.subordinate_final',
+      reasonArguments: <String, String>{'connector': 'weil'},
       translationAr: 'أبقى في البيت لأنني أعمل غدًا.',
       tokens: <GrammarToken>[
         GrammarToken(id: 'a2o1', text: 'Ich', role: GrammarTokenRole.subject),
@@ -91,7 +93,7 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.a2,
       titleAr: 'تغيير حرف العلة',
       instructionAr: 'صرّف fahren مع du.',
-      reinforcementAr: 'ممتاز — du fährst.',
+      reasonCode: 'grammar.verb.conjugation',
       infinitive: 'fahren',
       pronoun: 'du',
       sentencePrefix: 'Du',
@@ -103,21 +105,25 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.a2,
       titleAr: 'Dativ بعد mit',
       instructionAr: 'اختر أداة التعريف الصحيحة بعد mit.',
-      reinforcementAr: 'صحيح — mit يأخذ Dativ، لذلك der → dem.',
+      reasonCode: 'grammar.case.preposition',
+      reasonArguments: <String, String>{
+        'preposition': 'mit',
+        'baseArticle': 'der',
+      },
       targetCase: GrammarCase.dative,
       sentenceBefore: 'Ich fahre mit',
       noun: 'Bus.',
       sentenceAfter: '',
       options: <String>['der', 'den', 'dem'],
       expectedArticle: 'dem',
-      explanationAr: 'حرف الجر mit يطلب Dativ دائمًا: der Bus → mit dem Bus.',
     ),
     SentenceReorderExercise(
       id: 'b1-order-obwohl',
       level: GrammarLevel.b1,
       titleAr: 'جملة obwohl',
       instructionAr: 'كوّن الجملة الصحيحة مع obwohl.',
-      reinforcementAr: 'ممتاز — حافظت على الفعل في نهاية الجملة الفرعية.',
+      reasonCode: 'grammar.word_order.subordinate_final',
+      reasonArguments: <String, String>{'connector': 'obwohl'},
       translationAr: 'مع أن الجو يمطر، أخرج للمشي.',
       tokens: <GrammarToken>[
         GrammarToken(id: 'b1o1', text: 'Obwohl', role: GrammarTokenRole.connector),
@@ -141,7 +147,7 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.b1,
       titleAr: 'تصريف werden',
       instructionAr: 'صرّف werden مع er.',
-      reinforcementAr: 'صحيح — er wird.',
+      reasonCode: 'grammar.verb.conjugation',
       infinitive: 'werden',
       pronoun: 'er',
       sentencePrefix: 'Er',
@@ -153,16 +159,22 @@ final class LocalGrammarDrillRepository implements GrammarDrillRepository {
       level: GrammarLevel.b1,
       titleAr: 'Dativ مع صفة',
       instructionAr: 'اختر أداة التعريف المناسبة.',
-      reinforcementAr: 'صحيح — mit dem neuen Kollegen.',
+      reasonCode: 'grammar.case.preposition',
+      reasonArguments: <String, String>{
+        'preposition': 'mit',
+        'baseArticle': 'der',
+      },
       targetCase: GrammarCase.dative,
       sentenceBefore: 'Wir sprechen mit',
       noun: 'neuen Kollegen.',
       sentenceAfter: '',
       options: <String>['den', 'dem', 'der'],
       expectedArticle: 'dem',
-      explanationAr: 'mit يأخذ Dativ؛ الاسم Kollege مذكر: der → dem.',
     ),
   ];
+
+  @override
+  get explainWhyEngine => arDeGrammarExplainWhyEngine;
 
   @override
   List<GrammarDrill> forLevel(GrammarLevel level) =>

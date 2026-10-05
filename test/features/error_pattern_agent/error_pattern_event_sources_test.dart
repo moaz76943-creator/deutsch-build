@@ -1,6 +1,7 @@
 import 'package:deutsch_bilarabi/features/error_pattern_agent/domain/error_diagnostic_repository.dart';
 import 'package:deutsch_bilarabi/features/error_pattern_agent/domain/error_pattern_models.dart';
 import 'package:deutsch_bilarabi/features/grammar/application/grammar_drill_notifier.dart';
+import 'package:deutsch_bilarabi/features/grammar/data/ar_de_grammar_explain_why.dart';
 import 'package:deutsch_bilarabi/features/grammar/domain/grammar_drill_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,16 +24,17 @@ void main() {
           level: GrammarLevel.a1,
           titleAr: 'Akkusativ',
           instructionAr: 'اختر الأداة',
-          reinforcementAr: 'راجع الحالة',
+          reasonCode: 'grammar.case.direct_object',
+          reasonArguments: <String, String>{'baseArticle': 'der'},
           targetCase: GrammarCase.accusative,
           sentenceBefore: 'Ich sehe',
           noun: 'Mann',
           sentenceAfter: '.',
           options: <String>['der', 'den'],
           expectedArticle: 'den',
-          explanationAr: 'المفعول به المذكر يأخذ den.',
         ),
       ],
+      explainWhyEngine: arDeGrammarExplainWhyEngine,
       errorDiagnosticSink: sink,
     );
 
@@ -57,7 +59,7 @@ void main() {
           level: GrammarLevel.a1,
           titleAr: 'V2',
           instructionAr: 'رتب',
-          reinforcementAr: 'الفعل ثانياً',
+          reasonCode: 'grammar.word_order.main_v2',
           translationAr: 'أنا أذهب اليوم',
           tokens: <GrammarToken>[
             GrammarToken(id: 'today', text: 'Heute'),
@@ -67,6 +69,7 @@ void main() {
           correctTokenIds: <String>['today', 'go', 'i'],
         ),
       ],
+      explainWhyEngine: arDeGrammarExplainWhyEngine,
       errorDiagnosticSink: sink,
     );
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/explain_why/deterministic_explain_why_engine.dart';
 import '../../../../design_system/app_colors.dart';
 import '../../../../design_system/app_glass_card.dart';
 import '../../../../design_system/app_typography.dart';
@@ -12,12 +13,14 @@ class GrammarDrillScreen extends StatefulWidget {
   const GrammarDrillScreen({
     required this.exercises,
     required this.levelLabel,
+    required this.explainWhyEngine,
     this.errorDiagnosticSink,
     super.key,
   });
 
   final List<GrammarDrill> exercises;
   final String levelLabel;
+  final ExplainWhyEngine explainWhyEngine;
   final ErrorDiagnosticSink? errorDiagnosticSink;
 
   @override
@@ -32,6 +35,7 @@ class _GrammarDrillScreenState extends State<GrammarDrillScreen> {
     super.initState();
     _notifier = GrammarDrillNotifier(
       widget.exercises,
+      explainWhyEngine: widget.explainWhyEngine,
       errorDiagnosticSink:
           widget.errorDiagnosticSink ?? const NoopErrorDiagnosticSink(),
     );

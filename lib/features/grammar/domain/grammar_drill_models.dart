@@ -1,3 +1,5 @@
+import '../../../core/explain_why/deterministic_explain_why_engine.dart';
+
 enum GrammarLevel {
   a1('A1'),
   a2('A2'),
@@ -46,14 +48,16 @@ sealed class GrammarDrill {
   final GrammarLevel level;
   final String titleAr;
   final String instructionAr;
-  final String reinforcementAr;
+  final String reasonCode;
+  final Map<String, String> reasonArguments;
 
   const GrammarDrill({
     required this.id,
     required this.level,
     required this.titleAr,
     required this.instructionAr,
-    required this.reinforcementAr,
+    required this.reasonCode,
+    this.reasonArguments = const <String, String>{},
   });
 }
 
@@ -67,7 +71,8 @@ final class SentenceReorderExercise extends GrammarDrill {
     required super.level,
     required super.titleAr,
     required super.instructionAr,
-    required super.reinforcementAr,
+    required super.reasonCode,
+    super.reasonArguments,
     required this.tokens,
     required this.correctTokenIds,
     required this.translationAr,
@@ -87,7 +92,8 @@ final class VerbConjugationDrill extends GrammarDrill {
     required super.level,
     required super.titleAr,
     required super.instructionAr,
-    required super.reinforcementAr,
+    required super.reasonCode,
+    super.reasonArguments,
     required this.infinitive,
     required this.pronoun,
     required this.sentencePrefix,
@@ -104,25 +110,25 @@ final class CaseSelectionDrill extends GrammarDrill {
   final String sentenceAfter;
   final List<String> options;
   final String expectedArticle;
-  final String explanationAr;
 
   const CaseSelectionDrill({
     required super.id,
     required super.level,
     required super.titleAr,
     required super.instructionAr,
-    required super.reinforcementAr,
+    required super.reasonCode,
+    super.reasonArguments,
     required this.targetCase,
     required this.sentenceBefore,
     required this.noun,
     required this.sentenceAfter,
     required this.options,
     required this.expectedArticle,
-    required this.explanationAr,
   });
 }
 
 abstract interface class GrammarDrillRepository {
+  ExplainWhyEngine get explainWhyEngine;
   List<GrammarDrill> forLevel(GrammarLevel level);
   GrammarDrill? byId(String id);
 }

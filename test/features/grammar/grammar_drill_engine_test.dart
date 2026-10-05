@@ -64,6 +64,18 @@ void main() {
       }
     });
 
+    test('every drill reason code is covered by the pair catalog', () {
+      for (final level in GrammarLevel.values) {
+        for (final drill in repository.forLevel(level)) {
+          expect(
+            repository.explainWhyEngine.supports(drill.reasonCode),
+            isTrue,
+            reason: 'Missing Explain Why template for ${drill.reasonCode}',
+          );
+        }
+      }
+    });
+
     test('lookup returns an exact drill and rejects unknown ids', () {
       final drill = repository.byId('a1-order-heute-deutsch');
       expect(drill, isA<SentenceReorderExercise>());
@@ -101,7 +113,7 @@ void main() {
       final result = evaluator.evaluate(exercise, wrong);
 
       expect(result.correct, isFalse);
-      expect(result.feedbackAr, contains('ترتيب'));
+      expect(result.reasonCode, 'grammar.word_order.main_v2');
     });
 
     test('rejects duplicate or missing tokens', () {
@@ -129,7 +141,9 @@ void main() {
       final result = evaluator.evaluate(exercise, 'fahren');
 
       expect(result.correct, isFalse);
-      expect(result.feedbackAr, contains('التصريف'));
+      expect(result.reasonCode, 'grammar.verb.conjugation');
+      expect(result.reasonArguments['pronoun'], 'du');
+      expect(result.reasonArguments['expected'], 'fährst');
     });
 
     test('accepts configured equivalent forms only', () {
@@ -138,7 +152,7 @@ void main() {
         level: GrammarLevel.b1,
         titleAr: 'اختبار',
         instructionAr: 'صرّف',
-        reinforcementAr: 'ممتاز',
+        reasonCode: 'grammar.verb.conjugation',
         infinitive: 'sein',
         pronoun: 'Sie',
         sentencePrefix: 'Sie',
@@ -162,14 +176,21 @@ void main() {
       expect(evaluator.evaluate(accusative, 'den').correct, isTrue);
       expect(evaluator.evaluate(accusative, 'dem').correct, isFalse);
       expect(evaluator.evaluate(dative, 'dem').correct, isTrue);
-      expect(evaluator.evaluate(dative, 'den').correct, isFalse);
+      final dativeFailure = evaluator.evaluate(dative, 'den');
+      expect(dativeFailure.correct, isFalse);
+      expect(dativeFailure.reasonCode, 'grammar.case.preposition');
+      expect(dativeFailure.reasonArguments['preposition'], 'mit');
+      expect(dativeFailure.reasonArguments['caseLabel'], 'Dativ');
     });
   });
 
   group('GrammarDrillNotifier', () {
     test('awards points and positive reinforcement after a correct answer', () {
       final exercise = repository.byId('a1-order-heute-deutsch')!;
-      final notifier = GrammarDrillNotifier([exercise]);
+      final notifier = GrammarDrillNotifier(
+        [exercise],
+        explainWhyEngine: repository.explainWhyEngine,
+      );
       final reorder = exercise as SentenceReorderExercise;
 
       for (final id in reorder.correctTokenIds) {
@@ -181,13 +202,20 @@ void main() {
       expect(notifier.state.lastAnswerCorrect, isTrue);
       expect(notifier.state.points, greaterThanOrEqualTo(100));
       expect(notifier.state.correctCount, 1);
-      expect(notifier.state.feedbackAr, isNotEmpty);
+      expect(notifier.state.feedbackAr, contains('V2'));
+      expect(
+        notifier.state.feedbackReasonCode,
+        'grammar.word_order.main_v2',
+      );
       notifier.dispose();
     });
 
     test('never subtracts points after an incorrect answer', () {
       final exercise = repository.byId('a1-verb-sein-ich')!;
-      final notifier = GrammarDrillNotifier([exercise]);
+      final notifier = GrammarDrillNotifier(
+        [exercise],
+        explainWhyEngine: repository.explainWhyEngine,
+      );
 
       notifier.setAnswer('bist');
       notifier.checkAnswer();
@@ -195,12 +223,17 @@ void main() {
       expect(notifier.state.lastAnswerCorrect, isFalse);
       expect(notifier.state.points, 0);
       expect(notifier.state.attempts, 1);
+      expect(notifier.state.feedbackAr, contains('sein → bin'));
+      expect(notifier.state.feedbackReasonCode, 'grammar.verb.conjugation');
       notifier.dispose();
     });
 
     test('retry clears interaction state and preserves score', () {
       final exercise = repository.byId('a1-verb-sein-ich')!;
-      final notifier = GrammarDrillNotifier([exercise]);
+      final notifier = GrammarDrillNotifier(
+        [exercise],
+        explainWhyEngine: repository.explainWhyEngine,
+      );
 
       notifier.setAnswer('bin');
       notifier.checkAnswer();
@@ -210,13 +243,17 @@ void main() {
       expect(notifier.state.isAnswered, isFalse);
       expect(notifier.state.selectedAnswer, isEmpty);
       expect(notifier.state.feedbackAr, isEmpty);
+      expect(notifier.state.feedbackReasonCode, isNull);
       expect(notifier.state.points, score);
       notifier.dispose();
     });
 
     test('next advances through the queue and marks completion at the end', () {
       final drills = repository.forLevel(GrammarLevel.a1).take(2).toList();
-      final notifier = GrammarDrillNotifier(drills);
+      final notifier = GrammarDrillNotifier(
+        drills,
+        explainWhyEngine: repository.explainWhyEngine,
+      );
 
       notifier.next();
       expect(notifier.state.currentIndex, 1);
@@ -227,7 +264,10 @@ void main() {
 
     test('rejects an empty exercise queue', () {
       expect(
-        () => GrammarDrillNotifier(const <GrammarDrill>[]),
+        () => GrammarDrillNotifier(
+          const <GrammarDrill>[],
+          explainWhyEngine: repository.explainWhyEngine,
+        ),
         throwsArgumentError,
       );
     });
