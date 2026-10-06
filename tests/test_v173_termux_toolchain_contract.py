@@ -15,7 +15,8 @@ def test_termux_install_script_exists_and_is_resumable():
     text = INSTALL.read_text()
     assert 'set -Eeuo pipefail' in text
     assert 'check_architecture()' in text
-    assert 'check_space()' in text
+    assert 'check_space()' not in text
+    assert 'MIN_FREE_KB' not in text
     assert 'check_network()' in text
     assert 'setup_java()' in text
     assert 'setup_flutter()' in text
@@ -39,7 +40,8 @@ def test_termux_install_script_uses_locked_java_major_and_no_p7zip_requirement()
     assert 'flutter_linux_arm64_' not in text
     assert 'pkg install -y dart' not in text
     assert 'sudo' not in text
-    assert '$PREFIX/lib/jvm' in text
+    assert 'readlink -f "$(command -v java)"' in text
+    assert '17|21)' in text
     assert 'java -version' in text
     assert 'javac -version' in text
 

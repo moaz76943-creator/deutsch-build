@@ -4,12 +4,9 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-def hasReleaseSigning = [
-    'releaseStoreFile',
-    'releaseStorePassword',
-    'releaseKeyAlias',
-    'releaseKeyPassword',
-].every { project.hasProperty(it) }
+apply from: rootProject.file('release-signing.gradle')
+def releaseSigning = resolveReleaseSigning()
+def hasReleaseSigning = releaseSigning.values().every { it != null && it.toString().trim() }
 
 def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
     taskName.toLowerCase(java.util.Locale.ROOT).contains('release')
@@ -17,7 +14,8 @@ def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
 if (releaseTaskRequested && !hasReleaseSigning) {
     throw new GradleException(
         'Release signing is mandatory. Configure releaseStoreFile, ' +
-        'releaseStorePassword, releaseKeyAlias, and releaseKeyPassword.'
+        'releaseStorePassword, releaseKeyAlias, and releaseKeyPassword, ' +
+        'or run bash scripts/local-release.sh to prepare ~/.gradle/release-key.jks.'
     )
 }
 
@@ -47,10 +45,10 @@ android {
     signingConfigs {
         secureRelease {
             if (hasReleaseSigning) {
-                storeFile = file(project.property('releaseStoreFile'))
-                storePassword = project.property('releaseStorePassword')
-                keyAlias = project.property('releaseKeyAlias')
-                keyPassword = project.property('releaseKeyPassword')
+                storeFile = file(releaseSigning.releaseStoreFile)
+                storePassword = releaseSigning.releaseStorePassword
+                keyAlias = releaseSigning.releaseKeyAlias
+                keyPassword = releaseSigning.releaseKeyPassword
             }
         }
     }

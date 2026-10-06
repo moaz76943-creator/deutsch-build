@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set +x
 set -Eeuo pipefail
 IFS=$'\n\t'
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -6,11 +7,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/common.sh"
 load_toolchain
 
-[[ -n "${ORG_GRADLE_PROJECT_releaseStoreFile:-}" ]] || fatal "Release signing is not configured: ORG_GRADLE_PROJECT_releaseStoreFile is missing"
-[[ -n "${ORG_GRADLE_PROJECT_releaseStorePassword:-}" ]] || fatal "Release signing is not configured: store password is missing"
-[[ -n "${ORG_GRADLE_PROJECT_releaseKeyAlias:-}" ]] || fatal "Release signing is not configured: key alias is missing"
-[[ -n "${ORG_GRADLE_PROJECT_releaseKeyPassword:-}" ]] || fatal "Release signing is not configured: key password is missing"
-[[ -f "$ROOT/${ORG_GRADLE_PROJECT_releaseStoreFile}" || -f "${ORG_GRADLE_PROJECT_releaseStoreFile}" ]] || fatal "Release keystore file was not found"
+# shellcheck disable=SC1091
+source "$ROOT/scripts/release-signing.sh"
+check_release_signing || fatal "Run bash scripts/local-release.sh to prepare local signing."
 grep -F 'secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal "secureRelease signing config is missing"
 grep -F 'signingConfig signingConfigs.secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal "Release build is not bound to secureRelease signing"
 ! grep -F 'signingConfigs.debug' "$ROOT/android/app/build.gradle" >/dev/null || fatal "Release signing must never fall back to the debug keystore"

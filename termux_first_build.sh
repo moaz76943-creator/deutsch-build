@@ -47,12 +47,11 @@ discover_java_home() {
     return
   fi
 
-  local candidate
-  candidate="$(find "$PREFIX/lib/jvm" -maxdepth 1 -mindepth 1 -type d -name "*${JAVA_MAJOR}*" -print -quit 2>/dev/null || true)"
-  if [[ -z "$candidate" ]] && command -v java >/dev/null 2>&1; then
+  local candidate=""
+  if command -v java >/dev/null 2>&1; then
     candidate="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
   fi
-  [[ -n "$candidate" && -x "$candidate/bin/java" ]] || fatal "Java ${JAVA_MAJOR} installation was not found after bootstrap."
+  [[ -n "$candidate" && -x "$candidate/bin/java" ]] || fatal "A supported JDK was not found after bootstrap."
   JAVA_HOME="$candidate"
 }
 
@@ -95,4 +94,6 @@ main() {
   printf 'APK: %s\n' "$APK"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

@@ -12,7 +12,6 @@ ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
 ANDROID_BUILD_TOOLS_VERSION="$ANDROID_BUILD_TOOLS_VERSION"
 CMDLINE_TOOLS_VERSION="$CMDLINE_TOOLS_VERSION"
 CMDLINE_TOOLS_SHA256="$CMDLINE_TOOLS_SHA256"
-MIN_FREE_MB="$((MIN_FREE_KB / 1024))"
 LOG_FILE="${LOG_FILE:-$HOME/flutter_install.log}"
 TERMUX_HOME="${HOME}"
 ARCH=""
@@ -29,7 +28,7 @@ on_error() {
 trap 'on_error "${LINENO}" "${BASH_COMMAND}" "$?"' ERR
 
 check_architecture() {
-  log '[1/8] Checking architecture'
+  log '[1/7] Checking architecture'
   ARCH="$(uname -m)"
   case "$ARCH" in
     aarch64|arm64) ARCH="aarch64" ;;
@@ -39,18 +38,8 @@ check_architecture() {
   log "Architecture: $ARCH"
 }
 
-check_space() {
-  log '[2/8] Checking free space'
-  local available
-  available="$(df -Pk "$HOME" | awk 'NR==2 {print $4}')"
-  [[ "$available" =~ ^[0-9]+$ ]] || fatal "Could not determine free disk space for $HOME."
-  local available_mb=$((available / 1024))
-  log "Free space: ${available_mb} MiB; required safety margin: ${MIN_FREE_MB} MiB"
-  (( available_mb >= MIN_FREE_MB )) || fatal "Insufficient free space. Need at least ${MIN_FREE_MB} MiB before large downloads."
-}
-
 check_network() {
-  log '[3/8] Checking network'
+  log '[2/7] Checking network'
   command -v curl >/dev/null 2>&1 || fatal "curl is required before network checks."
   local url
   for url in https://github.com https://api.github.com https://dl.google.com; do
@@ -92,13 +81,13 @@ ensure_required_commands() {
 }
 
 setup_java() {
-  log "[4/8] Checking Java / OpenJDK ${JAVA_MAJOR}"
+  log "[3/7] Checking supported Java (17/21); default OpenJDK ${JAVA_MAJOR}"
   local java_ok=false major=''
   if command -v java >/dev/null 2>&1; then
     java -version 2>&1 | head -1
     if command -v javac >/dev/null 2>&1; then javac -version 2>&1 | head -1; fi
     major="$(java -version 2>&1 | awk -F'[".]' '/version/ {print $2; exit}')"
-    [[ "$major" == "$JAVA_MAJOR" ]] && java_ok=true
+    case "$major" in 17|21) java_ok=true ;; esac
   fi
   if [[ "$java_ok" != true ]]; then
     log "Java ${JAVA_MAJOR} not active; installing the pinned OpenJDK only if needed"
@@ -109,15 +98,17 @@ setup_java() {
   java -version 2>&1 | head -1
   javac -version 2>&1 | head -1
   local candidate
-  candidate="$(find "$PREFIX/lib/jvm" -maxdepth 1 -mindepth 1 -type d -name "*${JAVA_MAJOR}*" -print -quit 2>/dev/null || true)"
-  [[ -n "$candidate" ]] || candidate="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+  candidate="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
   JAVA_HOME_DETECTED="$candidate"
   export JAVA_HOME="$JAVA_HOME_DETECTED"
   export PATH="$JAVA_HOME/bin:$PATH"
   command -v java >/dev/null 2>&1 || fatal "Java ${JAVA_MAJOR} bin directory is not usable: $JAVA_HOME/bin"
   command -v javac >/dev/null 2>&1 || fatal "Java ${JAVA_MAJOR} javac is not usable: $JAVA_HOME/bin/javac"
   major="$(java -version 2>&1 | awk -F'[".]' '/version/ {print $2; exit}')"
-  [[ "$major" == "$JAVA_MAJOR" ]] || fatal "Java ${JAVA_MAJOR} was requested but the active java is not Java ${JAVA_MAJOR}."
+  case "$major" in
+    17|21) log "Using supported Java $major" ;;
+    *) fatal "Supported Java majors are 17 and 21; active Java is $major." ;;
+  esac
   log "JAVA_HOME=$JAVA_HOME"
 }
 
@@ -142,7 +133,7 @@ download_resumable() {
 
 
 setup_flutter() {
-  log '[5/8] Installing/checking Flutter'
+  log '[4/7] Installing/checking Flutter'
   [[ "$ARCH" == "aarch64" ]] || fatal "The pinned Termux Flutter host package supports aarch64 only; found $ARCH."
 
   local flutter_bin="$FLUTTER_ROOT/bin/flutter"
@@ -245,7 +236,7 @@ discover_android_sdk() {
 
 setup_android_sdk() {
   discover_android_sdk
-  log '[6/8] Installing/checking Android SDK'
+  log '[5/7] Installing/checking Android SDK'
   export ANDROID_HOME="$ANDROID_SDK_ROOT"
   export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
   mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
@@ -291,7 +282,13 @@ setup_android_sdk() {
     fi
   fi
 
-  yes | sdkmanager --licenses >/dev/null || fatal "Android license acceptance failed."
+  # yes exits with SIGPIPE when sdkmanager finishes; inspect sdkmanager itself.
+  local license_status
+  set +e
+  yes | sdkmanager --licenses >/dev/null
+  license_status=${PIPESTATUS[1]}
+  set -e
+  [[ "$license_status" -eq 0 ]] || fatal "Android license acceptance failed."
 
   local missing_components=()
   [[ -d "$ANDROID_SDK_ROOT/platform-tools" ]] || missing_components+=("platform-tools")
@@ -347,7 +344,7 @@ PY
 }
 
 setup_environment() {
-  log '[7/8] Configuring persistent environment'
+  log '[6/7] Configuring persistent environment'
   local rc="$HOME/.bashrc"
   touch "$rc"
   local marker='# Deutsch بالعربي Flutter/Android toolchain'
@@ -365,7 +362,7 @@ EOF
 }
 
 verify_flutter() {
-  log '[8/8] Running final verification'
+  log '[7/7] Running final verification'
   command -v flutter >/dev/null 2>&1 || fatal "flutter command not found."
   command -v dart >/dev/null 2>&1 || fatal "dart command not found."
   java -version 2>&1 | head -1
@@ -403,7 +400,6 @@ print_summary() {
 main() {
   exec > >(tee -a "$LOG_FILE") 2>&1
   check_architecture
-  check_space
   setup_repositories
   ensure_required_commands
   check_network

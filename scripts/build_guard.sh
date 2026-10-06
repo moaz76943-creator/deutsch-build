@@ -57,7 +57,7 @@ log OK "Android SDK ${ANDROID_COMPILE_SDK} / Build Tools ${ANDROID_BUILD_TOOLS_V
 
 if [[ -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION" ]]; then
   log OK "NDK $ANDROID_NDK_VERSION"
-elif grep -q 'ndkVersion' android/app/build.gradle; then
+elif grep -Eq '^[[:space:]]*ndkVersion[[:space:]=]' android/app/build.gradle; then
   fatal "Project declares an NDK but required $ANDROID_NDK_VERSION is missing."
 else
   log WARN "NDK reference $ANDROID_NDK_VERSION recorded; current app has no explicit NDK requirement."
@@ -81,8 +81,5 @@ if [[ "$ARCH" =~ ^(aarch64|arm64)$ ]]; then
   command -v aapt2 >/dev/null 2>&1 || fatal "Termux ARM64 build requires native aapt2 in PATH"
 fi
 
-AVAIL_KB="$(df -Pk "$HOME" | awk 'NR==2 {print $4}')"
-[[ "$AVAIL_KB" =~ ^[0-9]+$ ]] || fatal "Unable to determine free disk space"
-[[ "$AVAIL_KB" -ge "$MIN_FREE_KB" ]] || fatal "Less than ${MIN_FREE_KB} KiB free under HOME"
-log OK "Disk space ${AVAIL_KB} KiB available"
+log OK "Disk space gate disabled; no minimum free-space requirement"
 log OK "Build Guard passed"
