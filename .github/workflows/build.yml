@@ -2,7 +2,8 @@ name: Autonomous Self-Healing Build & Release
 
 on:
   push:
-    branches: [ '**' ]
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -10,40 +11,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  autonomous_pipeline:
+  build_and_release:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: 1. Checkout Code
+      - name: 1. جلب الكود
         uses: actions/checkout@v4
 
-      - name: 2. Setup Java 17
+      - name: 2. إعداد بيئة جافا
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: 3. Setup Flutter
+      - name: 3. إعداد فلاتر
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 4. Resolve Packages
+      - name: 4. تثبيت الحزم
         run: flutter pub get
 
-      - name: 5. Build Release APK (Universal)
+      - name: 5. بناء التطبيق للإنتاج
         run: flutter build apk --release
 
-      - name: 6. Publish Direct Release Download
+      - name: 6. النشر المباشر في Releases
         uses: softprops/action-gh-release@v2
         if: success()
         with:
           tag_name: latest-build
           name: "Latest Autonomous Build"
-          body: "تم بناء هذه النسخة وفحصها تلقائياً بواسطة مختبر جيت هب."
+          body: "تم بناء هذه النسخة وفحصها بنجاح وهي جاهزة للتثبيت المباشر."
           draft: false
           prerelease: false
           files: build/app/outputs/flutter-apk/app-release.apk
