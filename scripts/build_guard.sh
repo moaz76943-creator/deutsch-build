@@ -35,8 +35,10 @@ case "$DART_ROOT" in "$FLUTTER_ROOT"*) ;; *) fatal "Dart is not from the selecte
 check_version "Flutter" "$FLUTTER_VERSION" "$(flutter --version | head -1)"
 check_version "Dart" "$DART_VERSION" "$(dart --version 2>&1 | head -1)"
 JAVA_VERSION="$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2; exit}')"
-[[ "$JAVA_VERSION" == "$JAVA_MAJOR" ]] || fatal "Java mismatch. Expected major $JAVA_MAJOR Found $JAVA_VERSION"
-log OK "Java $JAVA_MAJOR"
+case "$JAVA_VERSION" in
+  17|21) log OK "Java $JAVA_VERSION" ;;
+  *) fatal "Java mismatch. Expected major 17 or 21 Found $JAVA_VERSION" ;;
+esac
 
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
 if [[ -z "$ANDROID_SDK_ROOT" ]]; then
