@@ -3,14 +3,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 
+import 'app_design_tokens.dart';
+
 class AppGlassCard extends StatefulWidget {
   const AppGlassCard({
     required this.child,
     this.onTap,
-    this.blur = 18,
-    this.opacity = .12,
-    this.borderRadius = 24,
-    this.padding = const EdgeInsets.all(16),
+    this.blur = AppDesignTokens.glassBlur,
+    this.opacity = AppDesignTokens.glassOpacity,
+    this.borderRadius = AppDesignTokens.radiusL,
+    this.padding = const EdgeInsets.all(AppDesignTokens.spaceM),
     this.borderColor,
     this.glowColor,
     this.backgroundColor = Colors.white,
