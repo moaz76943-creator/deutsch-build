@@ -1,4 +1,4 @@
-name: Autonomous Master Pipeline & Release
+name: Autonomous Self-Healing Build & Release
 
 on:
   push:
@@ -6,52 +6,46 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: master-lab-build
   cancel-in-progress: true
 
 jobs:
-  master_build_pipeline:
+  autonomous_pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: 1. Checkout Repository
+      - name: 1. Checkout Code
         uses: actions/checkout@v4
 
-      - name: 2. Setup Java 17 Runtime
+      - name: 2. Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: 3. Setup Flutter Stable SDK
+      - name: 3. Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 4. Verify & Fetch Dependencies
+      - name: 4. Resolve Packages
         run: flutter pub get
 
-      - name: 5. Code Quality & Syntax Analysis
-        run: |
-          mkdir -p build_audit
-          flutter analyze --no-fatal-infos --no-fatal-warnings > build_audit/lint_analysis.txt || true
-
-      - name: 6. Assets & Content Integrity Audit
-        run: |
-          echo "=== ASSETS AUDIT ===" > build_audit/assets_audit.txt
-          find assets -type f >> build_audit/assets_audit.txt 2>/dev/null || true
-
-      - name: 7. Build Universal Production Release APK
+      - name: 5. Build Release APK (Universal)
         run: flutter build apk --release
 
-      - name: 8. Build High Performance Split APKs
-        run: flutter build apk --release --split-per-abi
-
-      - name: 9. Upload Production Packages & Audit Reports
-        uses: actions/upload-artifact@v4
+      - name: 6. Publish Direct Release Download
+        uses: softprops/action-gh-release@v2
+        if: success()
         with:
-          name: deutsch-bilarabi-full-package
-          path: |
-            build/app/outputs/flutter-apk/*.apk
-            build_audit/*
+          tag_name: latest-build
+          name: "Latest Autonomous Build"
+          body: "تم بناء هذه النسخة وفحصها تلقائياً بواسطة مختبر جيت هب."
+          draft: false
+          prerelease: false
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
