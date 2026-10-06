@@ -30,8 +30,13 @@ else
   assert_lockfile_unchanged
 fi
 
+CANONICAL_SECURITY_GATE="$ROOT/tests/quality_gate/test_current_topology_security_gate.py"
+
+log TEST "Canonical current-topology security gate"
+python3 -m pytest -q "$CANONICAL_SECURITY_GATE"
+
 log TEST "Active semantic Python contracts"
-python3 -m pytest -q "${ACTIVE_PYTHON_TESTS[@]}"
+python3 -m pytest -q "${ACTIVE_PYTHON_TESTS[@]}" --ignore="$CANONICAL_SECURITY_GATE"
 
 log CHECK "Gradle wrapper integrity"
 python3 tool/gradle_wrapper_integrity.py

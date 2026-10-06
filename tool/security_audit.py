@@ -1,75 +1,33 @@
 #!/usr/bin/env python3
+"""HISTORICAL / NON-CANONICAL compatibility entry point.
+
+The canonical security policy lives in typed structural contracts under
+tests/quality_gate/test_current_topology_security_gate.py. This entry point
+remains only for maintained scripts that still invoke tool/security_audit.py;
+it delegates to the canonical gate instead of carrying a second lexical policy.
+"""
 from __future__ import annotations
-import re
+
 from pathlib import Path
+import subprocess
 import sys
-ROOT=Path(__file__).resolve().parents[1]
-errors=[]
-def read(path):
-    p=ROOT/path
-    return p.read_text(encoding='utf-8') if p.exists() else ''
-manifest=read(Path('android/app/src/main/AndroidManifest.xml')); gradle=read(Path('android/app/build.gradle')); workflow=read(Path('.github/workflows/worker_release_apk.yml')); quality=read(Path('.github/workflows/quality_gate_ci.yml')); build_script=read(Path('scripts/build.sh')); source='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (ROOT/'lib').rglob('*.dart'))
-checks=[
-('android.permission.INTERNET' not in manifest,'Offline-first manifest must not request INTERNET.'),
-('android.permission.RECORD_AUDIO' in manifest,'Pronunciation microphone permission is missing.'),
-('android.permission.POST_NOTIFICATIONS' not in manifest,'Unused notification permission must not be declared before production notification wiring.'),
-('android:allowBackup="false"' in manifest,'Android backup is not disabled.'),
-('android:usesCleartextTraffic="false"' in manifest,'Cleartext traffic is not explicitly disabled.'),
-'dataExtractionRules' in manifest,
-('fullBackupContent' in manifest,'Android fullBackupContent is missing.'),
-('minifyEnabled true' in gradle and 'shrinkResources true' in gradle,'Release R8/resource shrinking is not enabled.'),
-('proguard-android-optimize.txt' in gradle,'Release optimized R8 rules are missing.'),
-('native <methods>' in read(Path('android/app/proguard-rules.pro')),'JNI/native keep rule is missing.'),
-('-assumenosideeffects class android.util.Log' in read(Path('android/app/proguard-rules.pro')),'Release Android log stripping is missing.'),
-('secureRelease' in gradle and 'releaseStoreFile' in gradle,'Dedicated release signing is not configured.'),
-('signingConfig signingConfigs.secureRelease' in gradle,'Release build is not strictly bound to secureRelease signing.'),
-('--obfuscate' in build_script and '--split-debug-info' in build_script,'Dart obfuscation is missing from the central release build.'),
-("github.event.repository.private == true" in workflow,'CI has no private-repository gate.'),
-("github.ref_name == 'main'" in workflow and "github.repository == 'sali97m-cpu/deutsch-bilarabi-worker'" in workflow and "vars.BUILD_WORKER_ENABLED == 'true'" in workflow,'Worker release is not restricted to canonical enabled main.'),
-("github.event.repository.private == true" in quality and "github.event_name == 'workflow_dispatch'" in quality and 'pull_request:' not in quality,'Private manual quality workflow lacks an external-PR execution boundary.'),
-('persist-credentials: false' in workflow and 'persist-credentials: false' in quality,'Checkout persists credentials.'),
-('permissions:\n  contents: write\n' in workflow and not re.search(r'^  (?:actions|checks|id-token|pull-requests): write$', workflow, re.M) and 'permissions:\n  contents: read\n  actions: none\n  checks: none\n  id-token: none\n  pull-requests: none' in quality,'CI token permissions exceed Worker publication or quality-read requirements.'),
-('cache: false' in quality and 'pub-cache: false' in quality,'Quality workflow must disable Flutter and pub caches on PR/test surface.'),
-('gradle/actions/setup-gradle@' not in quality or 'cache-disabled: true' in quality,'Quality workflow must disable Gradle User Home cache transfer on test surface.'),
 
-('retention-days:' in workflow,'Artifact retention is not bounded.'),
-('GRADLE_WRAPPER_JAR_SHA256=' in read(Path('toolchain.lock')) and 'gradle_wrapper_integrity.py' in read(Path('scripts/build_guard.sh')),'Gradle Wrapper integrity is not pinned.'),
-('GRADLE_DISTRIBUTION_SHA256=' in read(Path('toolchain.lock')) and 'verify_distribution_properties' in read(Path('tool/gradle_wrapper_integrity.py')),'Gradle distribution integrity is not pinned.'),
-('gradle_wrapper_bootstrap.py' in workflow and 'Materialize verified Gradle wrapper' in workflow,'CI does not safely materialize a missing Gradle Wrapper.'),
-('FLAG_SECURE' in read(Path('android/app/src/main/kotlin/com/deutschbilarabi/app/MainActivity.kt')),'Screen-capture protection is missing.'),
-(
-    'ReviewCard' in source
-    and 'UnifiedSrsScheduler' in source
-    and 'unifiedSrsScheduler.schedule' in read(Path('lib/services/repository.dart')),
-    'Spaced repetition is not persisted through the unified review-card scheduler.',
-),
-('clearLocalData' in read(Path('lib/services/repository.dart')),'Local data management is missing.'),
-('static const hasPublicLocalEntitlementMutation = false' in read(Path('lib/services/subscription.dart')),'Local premium entitlement mutation remains possible.'),
-]
-for c in checks:
-    if isinstance(c, tuple): ok,msg=c
-    else: ok,msg=c, 'Security requirement failed.'
-    if not ok: errors.append(msg)
+ROOT = Path(__file__).resolve().parents[1]
+CANONICAL_GATE = (
+    ROOT / "tests" / "quality_gate" / "test_current_topology_security_gate.py"
+)
 
-# CI/CD supply-chain gate: every third-party action used by release/quality workflows
-# must be pinned to an immutable full commit SHA, not a mutable tag/branch.
-for workflow in (ROOT/'.github/workflows').glob('*.y*ml'):
-    text = workflow.read_text(encoding='utf-8', errors='ignore')
-    for ref in re.findall(r'uses:\s*([^\s#]+)', text):
-        if '@' not in ref:
-            continue
-        owner, target = ref.rsplit('@', 1)
-        if not re.fullmatch(r'[0-9a-f]{40}', target):
-            errors.append(f'Workflow action is not pinned to a full commit SHA: {workflow.name}: {ref}')
 
-for pattern,label in [(r'\bhttp://','plaintext URL'),(r'\bhttps://','network URL'),(r'\bAuthorization\s*:','authorization header'),(r'(?:api[_-]?key|client_secret)\s*=\s*[\'\"]','embedded secret')]:
-    if re.search(pattern,source,re.I): errors.append(f'Application source contains {label}.')
-if 'signingConfigs.debug' in gradle: errors.append('Release configuration references debug signing.')
-if re.search(r'android:exported="true"[^>]*>\s*<intent-filter', manifest, re.S) and 'android.intent.action.MAIN' not in manifest: errors.append('Exported activity has no launcher contract.')
-if errors:
-    print('SECURITY AUDIT: FAIL')
-    for e in errors: print('ERROR:',e)
-    sys.exit(1)
-print('SECURITY AUDIT: PASS')
-for label in ['Offline-first Android network boundary','Android backup hardening','Release R8/shrinking','Dedicated signing configuration','CI private-repository gate','Dart obfuscation gate','Screen-capture hardening','Persistent SRS state','Local data management','Premium entitlement hardening']:
-    print(label+': PASS')
+def main() -> int:
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        str(CANONICAL_GATE),
+    ]
+    return subprocess.call(command, cwd=ROOT)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
