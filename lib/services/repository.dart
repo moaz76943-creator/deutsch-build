@@ -7,6 +7,7 @@ import '../core/srs_scheduler.dart';
 import '../core/models/language_catalog_models.dart';
 import '../core/progress/offline_pair_progress_engine.dart';
 import '../core/progress/pair_progress_models.dart';
+import '../core/progress/review_transaction_envelope.dart';
 import '../models/assessment.dart';
 import '../models/diagnostic_placement.dart';
 import '../core/date_utils.dart';
@@ -76,6 +77,9 @@ class LearnerRepository {
 
   bool get hasPairProgressAuthority =>
       _pairProgressEngine != null && _activeResolvedPair != null;
+
+  OfflinePairProgressEngine get boundPairProgressEngine =>
+      _requirePairProgressAuthority().engine;
 
   Future<void> bindPairProgressAuthority({
     required OfflinePairProgressEngine engine,
@@ -284,26 +288,76 @@ class LearnerRepository {
     _cachedState = persisted;
   }
 
-  Future<void> _recordGamificationReview(
-    Attempt attempt, {
-    required int requestedXp,
+  Future<void> _reconcileAcceptedReviewBestEffort({
+    required _PairProgressAuthority authority,
+    required ReviewTransactionEnvelope envelope,
+    required String payloadHash,
   }) async {
+    try {
+      final result = await persistence.applyReviewAttemptOnce(
+        reviewEventId: envelope.reviewEventId,
+        attempt: Attempt(
+          id: envelope.reviewEventId,
+          itemId: envelope.conceptId,
+          skill: envelope.skill,
+          answer: envelope.answer,
+          correct: envelope.correct,
+          hinted: envelope.hinted,
+          seconds: envelope.seconds,
+          at: envelope.occurredAtUtc,
+          facetType: envelope.facetType,
+          variantKey: envelope.variantKey,
+        ),
+        compatibilityXpDelta: envelope.requestedXp,
+        compatibilityStreakTarget: envelope.compatibilityStreakTarget,
+      );
+      _cachedState = result.state;
+      await authority.engine.acknowledgeReviewTransaction(
+        reviewEventId: envelope.reviewEventId,
+        payloadHash: payloadHash,
+        sink: ReviewTransactionSink.attempt,
+      );
+    } on Object {
+      // The PairProgress transaction is already the durable acceptance point.
+      // Leave the attempt stage pending for bounded reconciliation.
+    }
+
+    if (gamificationReviewSink is NoopGamificationReviewSink) {
+      return;
+    }
     try {
       await gamificationReviewSink.recordReview(
         GamificationReviewEvent(
-          reviewId: attempt.id,
-          facetType: attempt.facetType,
-          correct: attempt.correct,
-          hinted: attempt.hinted,
-          requestedXp: requestedXp,
-          occurredAtUtc: attempt.at.toUtc(),
-          timezoneOffsetMinutes: attempt.at.timeZoneOffset.inMinutes,
+          reviewId: envelope.reviewEventId,
+          facetType: envelope.facetType,
+          correct: envelope.correct,
+          hinted: envelope.hinted,
+          requestedXp: envelope.requestedXp,
+          occurredAtUtc: envelope.occurredAtUtc,
+          timezoneOffsetMinutes: envelope.timezoneOffsetMinutes,
         ),
       );
+      await authority.engine.acknowledgeReviewTransaction(
+        reviewEventId: envelope.reviewEventId,
+        payloadHash: payloadHash,
+        sink: ReviewTransactionSink.gamification,
+      );
     } on Object {
-      // Gamification is secondary to learning-state durability.
-      // A local SQLite failure must never roll back a verified SRS review.
+      // Keep the accepted event pending. Replay is idempotent at the sink.
     }
+  }
+
+  static String _reviewEventId({
+    required String kind,
+    required DateTime occurredAt,
+    String? supplied,
+  }) {
+    final explicit = supplied?.trim();
+    if (explicit != null && explicit.isNotEmpty) return explicit;
+    return ReviewTransactionEnvelope.generateReviewEventId(
+      kind: kind,
+      occurredAt: occurredAt,
+    );
   }
 
   Future<void> _recordDiagnosticFailure({
@@ -337,27 +391,16 @@ class LearnerRepository {
     required bool hinted,
     String? skillOverride,
     DateTime? at,
+    String? reviewEventId,
   }) =>
       _enqueue(() async {
         final authority = _requirePairProgressAuthority();
         final state = load();
         final now = at ?? DateTime.now();
-        final attempt = Attempt(
-          id: 'a_${now.microsecondsSinceEpoch}',
-          itemId: item.id,
-          skill: skillOverride ?? item.skill,
-          answer: answer.length > 1000
-              ? answer.substring(0, 1000)
-              : answer,
-          correct: correct,
-          hinted: hinted,
-          seconds: seconds.clamp(0, 3600),
-          at: now,
-        );
-        final attempts = <Attempt>[...state.attempts, attempt];
-        final bounded = attempts.length > maxAttempts
-            ? attempts.sublist(attempts.length - maxAttempts)
-            : attempts;
+        final safeAnswer = answer.length > 1000
+            ? answer.substring(0, 1000)
+            : answer;
+        final safeSeconds = seconds.clamp(0, 3600).toInt();
         final last =
             state.attempts.isEmpty ? null : state.attempts.last.at;
         final today = now.toUtcMidnight;
@@ -374,6 +417,28 @@ class LearnerRepository {
           correct: correct,
           hinted: hinted,
         );
+        final stableReviewEventId = _reviewEventId(
+          kind: 'meaning',
+          occurredAt: now,
+          supplied: reviewEventId,
+        );
+        final envelope = ReviewTransactionEnvelope(
+          reviewEventId: stableReviewEventId,
+          sourceLanguageId: authority.pair.source.id,
+          targetLanguageId: authority.pair.target.id,
+          conceptId: item.id,
+          skill: skillOverride ?? item.skill,
+          answer: safeAnswer,
+          correct: correct,
+          hinted: hinted,
+          seconds: safeSeconds,
+          occurredAt: now,
+          timezoneOffsetMinutes: now.timeZoneOffset.inMinutes,
+          requestedXp: xpReward,
+          compatibilityStreakTarget:
+              nextStreak.clamp(0, maxStreak).toInt(),
+        );
+
         final pairSnapshot =
             await authority.engine.loadPair(authority.pair);
         final currentCard =
@@ -392,28 +457,20 @@ class LearnerRepository {
           hinted: hinted,
           now: now,
         );
-        await authority.engine.persistScheduledReview(
+        final acceptance = await authority.engine.persistReviewEnvelope(
           pair: authority.pair,
+          envelope: envelope,
           reviewCard: updatedCard,
           learned: correct,
           level: pairSnapshot.level,
-          achievementDelta: xpReward,
-          correct: correct,
-          reviewedAt: now,
         );
 
-        await _saveNow(
-          state.copyWith(
-            xp: (state.xp + xpReward).clamp(0, maxXp),
-            streak: nextStreak.clamp(0, maxStreak),
-            attempts: bounded,
-          ),
+        await _reconcileAcceptedReviewBestEffort(
+          authority: authority,
+          envelope: envelope,
+          payloadHash: acceptance.payloadHash,
         );
-        await _recordGamificationReview(
-          attempt,
-          requestedXp: xpReward,
-        );
-        if (!correct) {
+        if (!acceptance.alreadyAccepted && !correct) {
           await _recordDiagnosticFailure(
             item: item,
             answer: answer,
@@ -468,6 +525,7 @@ extension FacetReviewRepository on LearnerRepository {
     required int seconds,
     required bool hinted,
     DateTime? at,
+    String? reviewEventId,
   }) {
     final key = ReviewFacetKey(
       conceptId: item.id,
@@ -484,39 +542,43 @@ extension FacetReviewRepository on LearnerRepository {
         seconds: seconds,
         hinted: hinted,
         at: at,
+        reviewEventId: reviewEventId,
       );
     }
 
     return _enqueue(() async {
       final authority = _requirePairProgressAuthority();
-      final state = load();
       final now = at ?? DateTime.now();
       final safeAnswer = answer.length > 1000
           ? answer.substring(0, 1000)
           : answer;
-      final attempt = Attempt(
-        id: 'f_${now.microsecondsSinceEpoch}',
-        itemId: item.id,
-        skill: item.skill,
-        answer: safeAnswer,
-        correct: correct,
-        hinted: hinted,
-        seconds: seconds.clamp(0, 3600),
-        at: now,
-        facetType: facetType,
-        variantKey: key.normalizedVariantKey,
-      );
-      final attempts = <Attempt>[...state.attempts, attempt];
-      final bounded =
-          attempts.length > LearnerRepository.maxAttempts
-              ? attempts.sublist(
-                  attempts.length - LearnerRepository.maxAttempts,
-                )
-              : attempts;
+      final safeSeconds = seconds.clamp(0, 3600).toInt();
       final xpReward = unifiedSrsScheduler.xpRewardForReview(
         correct: correct,
         hinted: hinted,
       );
+      final stableReviewEventId = LearnerRepository._reviewEventId(
+        kind: 'facet',
+        occurredAt: now,
+        supplied: reviewEventId,
+      );
+      final envelope = ReviewTransactionEnvelope(
+        reviewEventId: stableReviewEventId,
+        sourceLanguageId: authority.pair.source.id,
+        targetLanguageId: authority.pair.target.id,
+        conceptId: item.id,
+        facetType: facetType,
+        variantKey: key.normalizedVariantKey,
+        skill: item.skill,
+        answer: safeAnswer,
+        correct: correct,
+        hinted: hinted,
+        seconds: safeSeconds,
+        occurredAt: now,
+        timezoneOffsetMinutes: now.timeZoneOffset.inMinutes,
+        requestedXp: xpReward,
+      );
+
       final pairSnapshot =
           await authority.engine.loadPair(authority.pair);
       final currentCard =
@@ -539,28 +601,20 @@ extension FacetReviewRepository on LearnerRepository {
         hinted: hinted,
         now: now,
       );
-      await authority.engine.persistScheduledReview(
+      final acceptance = await authority.engine.persistReviewEnvelope(
         pair: authority.pair,
+        envelope: envelope,
         reviewCard: updatedCard,
         learned: correct,
         level: pairSnapshot.level,
-        achievementDelta: xpReward,
-        correct: correct,
-        reviewedAt: now,
       );
 
-      await _saveNow(
-        state.copyWith(
-          xp: (state.xp + xpReward)
-              .clamp(0, LearnerRepository.maxXp),
-          attempts: bounded,
-        ),
+      await _reconcileAcceptedReviewBestEffort(
+        authority: authority,
+        envelope: envelope,
+        payloadHash: acceptance.payloadHash,
       );
-      await _recordGamificationReview(
-        attempt,
-        requestedXp: xpReward,
-      );
-      if (!correct) {
+      if (!acceptance.alreadyAccepted && !correct) {
         await _recordDiagnosticFailure(
           item: item,
           answer: answer,

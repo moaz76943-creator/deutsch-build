@@ -12,7 +12,8 @@ def test_phase16_xp_reward_is_owned_by_unified_srs_scheduler():
     repository = read("lib/services/repository.dart")
     assert "xpRewardForReview" in scheduler
     assert "unifiedSrsScheduler.xpRewardForReview" in repository
-    assert "_recordGamificationReview" in repository
+    assert "ReviewTransactionEnvelope(" in repository
+    assert "persistReviewEnvelope(" in repository
     assert "GamificationReviewEvent" in repository
 
 

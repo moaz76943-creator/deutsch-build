@@ -33,6 +33,7 @@ import '../services/learner_persistence.dart';
 import '../services/open_source_license_registry.dart';
 import '../services/preferences_service.dart';
 import '../services/repository.dart';
+import '../services/review_transaction_reconciler.dart';
 import '../services/runtime_failure_reporter.dart';
 import '../ui/bridge/agent_ui_bridge.dart';
 import '../ui/phase3/phase3_production_shell.dart';
@@ -165,6 +166,12 @@ Future<_ActivatedPhase3App> _activateProduction({
       sourceIsRtl: true,
       targetIsRtl: false,
     );
+    final reconciler = ReviewTransactionReconciler(
+      pairProgressEngine: learnerRepository.boundPairProgressEngine,
+      learnerPersistence: learnerRepository.persistence,
+      gamificationRepository: gamificationRepository,
+    );
+    await reconciler.reconcilePendingReviewTransactions(limit: 128);
     final durableState = await learnerRepository.reloadPersisted();
     await _runtimeCoordinator.seedMemoryOnce(
       runtime: systemAgents,
@@ -301,13 +308,14 @@ final class _RenderFirstBootstrapAppState
             const AndroidGamificationClockIntegritySource(),
       );
       gamificationRepository = openedGamificationRepository;
+      final learnerPersistence = LearnerPersistence(
+        prefs,
+        LearnerRepository.key,
+        LearnerRepository.legacyFavoriteKey,
+      );
       final learnerRepository = LearnerRepository(
         prefs,
-        persistence: LearnerPersistence(
-          prefs,
-          LearnerRepository.key,
-          LearnerRepository.legacyFavoriteKey,
-        ),
+        persistence: learnerPersistence,
         gamificationReviewSink: openedGamificationRepository,
       );
       final state = learnerRepository.load();

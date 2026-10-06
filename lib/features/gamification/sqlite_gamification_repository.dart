@@ -12,6 +12,33 @@ import 'domain/gamification_models.dart';
 import 'gamification_engine.dart';
 import 'gamification_repository.dart';
 
+enum GamificationReviewApplyStatus {
+  applied,
+  alreadyApplied,
+}
+
+final class GamificationReviewApplyResult {
+  const GamificationReviewApplyResult({
+    required this.status,
+    required this.reviewEventId,
+  });
+
+  final GamificationReviewApplyStatus status;
+  final String reviewEventId;
+
+  bool get alreadyApplied =>
+      status == GamificationReviewApplyStatus.alreadyApplied;
+}
+
+final class GamificationReviewEventException implements Exception {
+  const GamificationReviewEventException(this.code);
+
+  final String code;
+
+  @override
+  String toString() => 'GamificationReviewEventException($code)';
+}
+
 final class SqliteGamificationRepository implements GamificationRepository {
   SqliteGamificationRepository._(
     this._database,
@@ -204,6 +231,35 @@ final class SqliteGamificationRepository implements GamificationRepository {
     if (_closed) return;
     final id = event.reviewId.trim();
     if (id.isEmpty || id.length > 160) return;
+    await recordReviewOnce(event);
+  }
+
+  Future<GamificationReviewApplyResult> recordReviewOnce(
+    GamificationReviewEvent event,
+  ) async {
+    if (_closed) {
+      throw StateError('gamification_repository_closed');
+    }
+
+    final id = event.reviewId.trim();
+    if (id.isEmpty || id.length > 160) {
+      throw ArgumentError.value(
+        event.reviewId,
+        'event.reviewId',
+        'must be 1..160 characters',
+      );
+    }
+
+    final expectedPayload = <String, Object?>{
+      'facet_type': event.facetType.wireName,
+      'correct': event.correct ? 1 : 0,
+      'hinted': event.hinted ? 1 : 0,
+      'requested_xp': event.requestedXp.clamp(0, 100).toInt(),
+      'reviewed_at_utc':
+          event.occurredAtUtc.toUtc().toIso8601String(),
+      'timezone_offset_minutes':
+          event.timezoneOffsetMinutes.clamp(-840, 840).toInt(),
+    };
 
     var clockStamp = event.clockIntegrityStamp;
     if (clockStamp == null) {
@@ -214,15 +270,36 @@ final class SqliteGamificationRepository implements GamificationRepository {
       }
     }
 
-    await _database.transaction((txn) async {
+    return _database.transaction((txn) async {
       final duplicate = await txn.query(
         'gamification_review_events',
-        columns: const <String>['event_id'],
+        columns: const <String>[
+          'event_id',
+          'facet_type',
+          'correct',
+          'hinted',
+          'requested_xp',
+          'reviewed_at_utc',
+          'timezone_offset_minutes',
+        ],
         where: 'event_id = ?',
         whereArgs: <Object?>[id],
         limit: 1,
       );
-      if (duplicate.isNotEmpty) return;
+      if (duplicate.isNotEmpty) {
+        if (!_matchesImmutableReviewPayload(
+          duplicate.first,
+          expectedPayload,
+        )) {
+          throw const GamificationReviewEventException(
+            'gamification_event_payload_mismatch',
+          );
+        }
+        return GamificationReviewApplyResult(
+          status: GamificationReviewApplyStatus.alreadyApplied,
+          reviewEventId: id,
+        );
+      }
 
       final current = await _readProfile(txn);
       final unlocked = await _readUnlocked(txn);
@@ -244,52 +321,76 @@ final class SqliteGamificationRepository implements GamificationRepository {
       );
 
       await txn.insert(
-          'gamification_review_events',
-          <String, Object?>{
-            'event_id': id,
-            'facet_type': event.facetType.wireName,
-            'correct': event.correct ? 1 : 0,
-            'hinted': event.hinted ? 1 : 0,
-            'requested_xp': event.requestedXp.clamp(0, 100).toInt(),
-            'awarded_xp': transition.awardedXp,
-            'reviewed_at_utc': event.occurredAtUtc.toUtc().toIso8601String(),
-            'timezone_offset_minutes':
-                event.timezoneOffsetMinutes.clamp(-840, 840).toInt(),
-            'monotonic_elapsed_ms':
-                clockStamp?.elapsedRealtimeMilliseconds,
-            'boot_count': clockStamp?.bootCount,
-            'clock_anomaly': transition.clockAnomaly ? 1 : 0,
-          },
-          conflictAlgorithm: ConflictAlgorithm.abort);
+        'gamification_review_events',
+        <String, Object?>{
+          'event_id': id,
+          ...expectedPayload,
+          'awarded_xp': transition.awardedXp,
+          'monotonic_elapsed_ms':
+              clockStamp?.elapsedRealtimeMilliseconds,
+          'boot_count': clockStamp?.bootCount,
+          'clock_anomaly': transition.clockAnomaly ? 1 : 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
 
       final profile = transition.profile;
       await txn.update(
-          'gamification_profile',
-          <String, Object?>{
-            'total_xp': profile.totalXp,
-            'current_streak': profile.currentStreak,
-            'longest_streak': profile.longestStreak,
-            'last_review_utc': profile.lastReviewAtUtc?.toIso8601String(),
-            'last_local_day': profile.lastLocalDay,
-            'last_timezone_offset_minutes': profile.lastTimezoneOffsetMinutes,
-            'last_monotonic_elapsed_ms':
-                profile.lastMonotonicElapsedMilliseconds,
-            'last_boot_count': profile.lastBootCount,
-            'clock_anomaly_detected': profile.clockAnomalyDetected ? 1 : 0,
-            'streak_freeze_available': profile.streakFreezeAvailable ? 1 : 0,
-          },
-          where: 'id = 1');
+        'gamification_profile',
+        <String, Object?>{
+          'total_xp': profile.totalXp,
+          'current_streak': profile.currentStreak,
+          'longest_streak': profile.longestStreak,
+          'last_review_utc': profile.lastReviewAtUtc?.toIso8601String(),
+          'last_local_day': profile.lastLocalDay,
+          'last_timezone_offset_minutes': profile.lastTimezoneOffsetMinutes,
+          'last_monotonic_elapsed_ms':
+              profile.lastMonotonicElapsedMilliseconds,
+          'last_boot_count': profile.lastBootCount,
+          'clock_anomaly_detected': profile.clockAnomalyDetected ? 1 : 0,
+          'streak_freeze_available': profile.streakFreezeAvailable ? 1 : 0,
+        },
+        where: 'id = 1',
+      );
 
       for (final badge in transition.newlyUnlocked) {
         await txn.insert(
-            'gamification_badges',
-            <String, Object?>{
-              'badge_id': badge.id,
-              'unlocked_at_utc': event.occurredAtUtc.toUtc().toIso8601String(),
-            },
-            conflictAlgorithm: ConflictAlgorithm.ignore);
+          'gamification_badges',
+          <String, Object?>{
+            'badge_id': badge.id,
+            'unlocked_at_utc':
+                event.occurredAtUtc.toUtc().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
       }
+
+      return GamificationReviewApplyResult(
+        status: GamificationReviewApplyStatus.applied,
+        reviewEventId: id,
+      );
     });
+  }
+
+  static bool _matchesImmutableReviewPayload(
+    Map<String, Object?> stored,
+    Map<String, Object?> expected,
+  ) {
+    for (final key in expected.keys) {
+      final expectedValue = expected[key];
+      final storedValue = stored[key];
+      if (expectedValue is int) {
+        final storedInt = storedValue is num
+            ? storedValue.toInt()
+            : int.tryParse(storedValue?.toString() ?? '');
+        if (storedInt != expectedValue) return false;
+        continue;
+      }
+      if (storedValue?.toString() != expectedValue?.toString()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override

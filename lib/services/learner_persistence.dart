@@ -16,6 +16,33 @@ final class LearnerPersistenceFailure implements Exception {
   String toString() => 'LearnerPersistenceFailure($code)';
 }
 
+enum ReviewAttemptApplyStatus {
+  applied,
+  alreadyApplied,
+}
+
+final class ReviewAttemptApplyResult {
+  const ReviewAttemptApplyResult({
+    required this.status,
+    required this.state,
+  });
+
+  final ReviewAttemptApplyStatus status;
+  final LearnerState state;
+
+  bool get alreadyApplied =>
+      status == ReviewAttemptApplyStatus.alreadyApplied;
+}
+
+final class ReviewAttemptApplyException implements Exception {
+  const ReviewAttemptApplyException(this.code);
+
+  final String code;
+
+  @override
+  String toString() => 'ReviewAttemptApplyException($code)';
+}
+
 /// Owns the physical representation and migration of persisted learner state.
 /// It contains no learner-domain orchestration and no UI/authentication logic.
 class LearnerPersistence {
@@ -145,6 +172,92 @@ class LearnerPersistence {
     }
   }
 
+  Future<ReviewAttemptApplyResult> applyReviewAttemptOnce({
+    required String reviewEventId,
+    required Attempt attempt,
+    required int compatibilityXpDelta,
+    int? compatibilityStreakTarget,
+  }) async {
+    final normalizedReviewEventId = reviewEventId.trim();
+    if (normalizedReviewEventId.isEmpty ||
+        normalizedReviewEventId.length > 160) {
+      throw const ReviewAttemptApplyException(
+        'invalid_review_event_id',
+      );
+    }
+    if (attempt.id.trim() != normalizedReviewEventId) {
+      throw const ReviewAttemptApplyException(
+        'review_attempt_event_id_mismatch',
+      );
+    }
+    if (compatibilityXpDelta < 0 || compatibilityXpDelta > 100) {
+      throw ArgumentError.value(
+        compatibilityXpDelta,
+        'compatibilityXpDelta',
+        'must be 0..100',
+      );
+    }
+    if (compatibilityStreakTarget != null &&
+        (compatibilityStreakTarget < 0 ||
+            compatibilityStreakTarget > maxStreak)) {
+      throw ArgumentError.value(
+        compatibilityStreakTarget,
+        'compatibilityStreakTarget',
+        'must be 0..$maxStreak',
+      );
+    }
+
+    final normalizedAttempt = _normalizeAttempt(attempt);
+    if (normalizedAttempt.id != normalizedReviewEventId ||
+        normalizedAttempt.itemId.isEmpty) {
+      throw const ReviewAttemptApplyException(
+        'invalid_review_attempt_identity',
+      );
+    }
+
+    final current = load();
+    final existing = current.attempts
+        .where((candidate) => candidate.id == normalizedReviewEventId)
+        .toList(growable: false);
+    if (existing.isNotEmpty) {
+      final allMatch = existing.every(
+        (candidate) => _attemptsEquivalent(
+          _normalizeAttempt(candidate),
+          normalizedAttempt,
+        ),
+      );
+      if (!allMatch) {
+        throw const ReviewAttemptApplyException(
+          'review_attempt_payload_mismatch',
+        );
+      }
+      return ReviewAttemptApplyResult(
+        status: ReviewAttemptApplyStatus.alreadyApplied,
+        state: current,
+      );
+    }
+
+    final attempts = <Attempt>[
+      ...current.attempts,
+      normalizedAttempt,
+    ];
+    final boundedAttempts = attempts.length > maxAttempts
+        ? attempts.sublist(attempts.length - maxAttempts)
+        : attempts;
+    final next = normalize(
+      current.copyWith(
+        xp: (current.xp + compatibilityXpDelta).clamp(0, maxXp),
+        streak: compatibilityStreakTarget ?? current.streak,
+        attempts: boundedAttempts,
+      ),
+    );
+    await save(next);
+    return ReviewAttemptApplyResult(
+      status: ReviewAttemptApplyStatus.applied,
+      state: next,
+    );
+  }
+
   Future<LearnerState> loadAndMigrateFavoriteVerbs(LearnerState current) async {
     final legacy = prefs.getStringList(legacyFavoriteKey) ?? const <String>[];
     if (legacy.isEmpty) return current;
@@ -232,6 +345,20 @@ class LearnerPersistence {
       variantKey: ReviewFacetKey.normalizeVariant(a.variantKey),
     );
   }
+
+  static bool _attemptsEquivalent(Attempt left, Attempt right) =>
+      left.id == right.id &&
+      left.itemId == right.itemId &&
+      left.skill == right.skill &&
+      left.answer == right.answer &&
+      left.correct == right.correct &&
+      left.hinted == right.hinted &&
+      left.seconds == right.seconds &&
+      left.at.toUtc().microsecondsSinceEpoch ==
+          right.at.toUtc().microsecondsSinceEpoch &&
+      left.facetType == right.facetType &&
+      ReviewFacetKey.normalizeVariant(left.variantKey) ==
+          ReviewFacetKey.normalizeVariant(right.variantKey);
 
   static Map<String, ReviewCard> _normalizeReviewCards(
     Map<String, ReviewCard> source,

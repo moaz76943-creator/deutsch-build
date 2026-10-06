@@ -5,6 +5,7 @@ import '../srs_facets.dart';
 import '../srs_scheduler.dart';
 import '../storage/local_db/pair_progress_database.dart';
 import 'pair_progress_models.dart';
+import 'review_transaction_envelope.dart';
 
 final class OfflinePairProgressEngine {
   const OfflinePairProgressEngine(this._store);
@@ -107,6 +108,32 @@ final class OfflinePairProgressEngine {
     );
   }
 
+  Future<ReviewTransactionAcceptance> persistReviewEnvelope({
+    required ResolvedLanguagePair pair,
+    required ReviewTransactionEnvelope envelope,
+    required ReviewCard reviewCard,
+    required bool learned,
+    required int level,
+  }) async {
+    final context = _validatePair(pair);
+    _validateProgress(level, envelope.requestedXp);
+    if (envelope.sourceLanguageId != context.source ||
+        envelope.targetLanguageId != context.target) {
+      throw StateError('review_envelope_pair_context_mismatch');
+    }
+    if (!reviewCard.facetKey.isValid ||
+        reviewCard.storageKey != envelope.cardId) {
+      throw StateError('review_envelope_card_context_mismatch');
+    }
+
+    return _store.recordScheduledReviewEnvelope(
+      envelope: envelope,
+      reviewCard: reviewCard,
+      learned: learned,
+      level: level,
+    );
+  }
+
   Future<ReviewCard> scheduleReview({
     required ResolvedLanguagePair pair,
     required String conceptId,
@@ -160,6 +187,28 @@ final class OfflinePairProgressEngine {
     );
     return updated;
   }
+
+  Future<List<ReviewTransactionJournalEntry>>
+      loadPendingReviewTransactions({int limit = 128}) =>
+          _store.loadPendingReviewTransactions(limit: limit);
+
+  Future<ReviewTransactionJournalEntry?> loadReviewTransaction(
+    String reviewEventId,
+  ) =>
+      _store.loadReviewTransaction(reviewEventId);
+
+  Future<void> acknowledgeReviewTransaction({
+    required String reviewEventId,
+    required String payloadHash,
+    required ReviewTransactionSink sink,
+    DateTime? acknowledgedAt,
+  }) =>
+      _store.acknowledgeReviewTransaction(
+        reviewEventId: reviewEventId,
+        payloadHash: payloadHash,
+        sink: sink,
+        acknowledgedAt: acknowledgedAt,
+      );
 
   Future<ReviewCard?> loadReviewCard(
     ResolvedLanguagePair pair, {

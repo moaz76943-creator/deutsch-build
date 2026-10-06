@@ -2,14 +2,16 @@ import 'package:sqflite_common/sqlite_api.dart';
 
 import '../../../models/learner.dart';
 import '../../progress/pair_progress_models.dart';
+import '../../progress/review_transaction_envelope.dart';
 import '../../srs_facets.dart';
 
 final class PairProgressDatabase {
   PairProgressDatabase._(this._database);
 
-  static const int schemaVersion = 2;
+  static const int schemaVersion = 3;
   static const String pairTable = 'pair_progress';
   static const String cardTable = 'pair_card_progress';
+  static const String journalTable = 'review_transaction_journal';
 
   final Database _database;
 
@@ -53,9 +55,42 @@ final class PairProgressDatabase {
       )
     ''');
     await _ensurePhase16bColumns(database);
+    await database.execute('''
+      CREATE TABLE IF NOT EXISTS $journalTable (
+        review_event_id TEXT PRIMARY KEY,
+        envelope_version INTEGER NOT NULL,
+        source_language_id TEXT NOT NULL,
+        target_language_id TEXT NOT NULL,
+        concept_id TEXT NOT NULL,
+        card_id TEXT NOT NULL,
+        facet_type TEXT NOT NULL,
+        variant_key TEXT NOT NULL DEFAULT '',
+        skill TEXT NOT NULL,
+        answer TEXT NOT NULL,
+        correct INTEGER NOT NULL CHECK (correct IN (0, 1)),
+        hinted INTEGER NOT NULL CHECK (hinted IN (0, 1)),
+        seconds INTEGER NOT NULL,
+        occurred_at_utc TEXT NOT NULL,
+        timezone_offset_minutes INTEGER NOT NULL,
+        requested_xp INTEGER NOT NULL,
+        compatibility_streak_target INTEGER,
+        payload_hash TEXT NOT NULL,
+        attempt_applied INTEGER NOT NULL DEFAULT 0
+          CHECK (attempt_applied IN (0, 1)),
+        gamification_applied INTEGER NOT NULL DEFAULT 0
+          CHECK (gamification_applied IN (0, 1)),
+        created_at_utc TEXT NOT NULL,
+        completed_at_utc TEXT
+      )
+    ''');
     await database.execute(
       'CREATE INDEX IF NOT EXISTS idx_pair_card_progress_context '
       'ON $cardTable(source_language_id, target_language_id)',
+    );
+    await database.execute(
+      'CREATE INDEX IF NOT EXISTS idx_review_transaction_pending '
+      'ON $journalTable('
+      'attempt_applied, gamification_applied, created_at_utc)',
     );
     return PairProgressDatabase._(database);
   }
@@ -138,7 +173,16 @@ final class PairProgressDatabase {
         whereArgs: <Object?>[sourceLanguageId, targetLanguageId],
         limit: 1,
       );
-      if (existingPair.isNotEmpty || existingCards.isNotEmpty) {
+      final existingJournal = await txn.query(
+        journalTable,
+        columns: const <String>['review_event_id'],
+        where: 'source_language_id = ? AND target_language_id = ?',
+        whereArgs: <Object?>[sourceLanguageId, targetLanguageId],
+        limit: 1,
+      );
+      if (existingPair.isNotEmpty ||
+          existingCards.isNotEmpty ||
+          existingJournal.isNotEmpty) {
         throw StateError(
           'target_pair_not_empty_for_legacy_migration',
         );
@@ -282,7 +326,194 @@ final class PairProgressDatabase {
         reviewCard: reviewCard,
       );
 
+  Future<ReviewTransactionAcceptance> recordScheduledReviewEnvelope({
+    required ReviewTransactionEnvelope envelope,
+    required ReviewCard reviewCard,
+    required bool learned,
+    required int level,
+  }) async {
+    if (envelope.cardId != reviewCard.storageKey) {
+      throw const ReviewTransactionJournalException(
+        'review_envelope_card_mismatch',
+      );
+    }
+    final payloadHash = await envelope.computePayloadHash();
+    final createdAtUtc = DateTime.now().toUtc();
+
+    return _database.transaction((txn) async {
+      final existing = await txn.query(
+        journalTable,
+        where: 'review_event_id = ?',
+        whereArgs: <Object?>[envelope.reviewEventId],
+        limit: 1,
+      );
+      if (existing.isNotEmpty) {
+        final accepted = await _verifiedJournalEntry(existing.first);
+        if (accepted.payloadHash != payloadHash) {
+          throw const ReviewTransactionJournalException(
+            'review_event_payload_mismatch',
+          );
+        }
+        return ReviewTransactionAcceptance(
+          reviewEventId: envelope.reviewEventId,
+          payloadHash: payloadHash,
+          alreadyAccepted: true,
+        );
+      }
+
+      await _recordProgressInTransaction(
+        txn,
+        sourceLanguageId: envelope.sourceLanguageId,
+        targetLanguageId: envelope.targetLanguageId,
+        cardId: envelope.cardId,
+        learned: learned,
+        level: level,
+        achievementDelta: envelope.requestedXp,
+        correct: envelope.correct,
+        reviewedAt: envelope.occurredAtUtc,
+        reviewCard: reviewCard,
+      );
+      await txn.insert(
+        journalTable,
+        envelope.toJournalValues(
+          payloadHash: payloadHash,
+          createdAtUtc: createdAtUtc,
+        ),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+
+      return ReviewTransactionAcceptance(
+        reviewEventId: envelope.reviewEventId,
+        payloadHash: payloadHash,
+        alreadyAccepted: false,
+      );
+    });
+  }
+
+  Future<List<ReviewTransactionJournalEntry>>
+      loadPendingReviewTransactions({int limit = 128}) async {
+    final boundedLimit = limit.clamp(1, 128).toInt();
+    final rows = await _database.query(
+      journalTable,
+      where:
+          'completed_at_utc IS NULL AND '
+          '(attempt_applied = 0 OR gamification_applied = 0)',
+      orderBy: 'created_at_utc ASC, review_event_id ASC',
+      limit: boundedLimit,
+    );
+    final result = <ReviewTransactionJournalEntry>[];
+    for (final row in rows) {
+      result.add(await _verifiedJournalEntry(row));
+    }
+    return List<ReviewTransactionJournalEntry>.unmodifiable(result);
+  }
+
+  Future<ReviewTransactionJournalEntry?> loadReviewTransaction(
+    String reviewEventId,
+  ) async {
+    final id = _reviewEventId(reviewEventId);
+    final rows = await _database.query(
+      journalTable,
+      where: 'review_event_id = ?',
+      whereArgs: <Object?>[id],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return _verifiedJournalEntry(rows.first);
+  }
+
+  Future<void> acknowledgeReviewTransaction({
+    required String reviewEventId,
+    required String payloadHash,
+    required ReviewTransactionSink sink,
+    DateTime? acknowledgedAt,
+  }) async {
+    final id = _reviewEventId(reviewEventId);
+    final expectedHash =
+        ReviewTransactionEnvelope.validatePayloadHash(payloadHash);
+    final completedAt =
+        (acknowledgedAt ?? DateTime.now()).toUtc().toIso8601String();
+
+    await _database.transaction((txn) async {
+      final rows = await txn.query(
+        journalTable,
+        where: 'review_event_id = ?',
+        whereArgs: <Object?>[id],
+        limit: 1,
+      );
+      if (rows.isEmpty) {
+        throw const ReviewTransactionJournalException(
+          'review_transaction_missing',
+        );
+      }
+      final entry = await _verifiedJournalEntry(rows.first);
+      if (entry.payloadHash != expectedHash) {
+        throw const ReviewTransactionJournalException(
+          'review_event_payload_mismatch',
+        );
+      }
+
+      var attemptApplied = entry.attemptApplied;
+      var gamificationApplied = entry.gamificationApplied;
+      final updates = <String, Object?>{};
+      switch (sink) {
+        case ReviewTransactionSink.attempt:
+          if (!attemptApplied) {
+            updates['attempt_applied'] = 1;
+            attemptApplied = true;
+          }
+          break;
+        case ReviewTransactionSink.gamification:
+          if (!gamificationApplied) {
+            updates['gamification_applied'] = 1;
+            gamificationApplied = true;
+          }
+          break;
+      }
+      if (attemptApplied &&
+          gamificationApplied &&
+          entry.completedAtUtc == null) {
+        updates['completed_at_utc'] = completedAt;
+      }
+      if (updates.isNotEmpty) {
+        await txn.update(
+          journalTable,
+          updates,
+          where: 'review_event_id = ?',
+          whereArgs: <Object?>[id],
+        );
+      }
+    });
+  }
+
   Future<void> _recordProgress({
+    required String sourceLanguageId,
+    required String targetLanguageId,
+    required String cardId,
+    required bool learned,
+    required int level,
+    required int achievementDelta,
+    required bool correct,
+    required DateTime reviewedAt,
+    required ReviewCard? reviewCard,
+  }) =>
+      _database.transaction(
+        (txn) => _recordProgressInTransaction(
+          txn,
+          sourceLanguageId: sourceLanguageId,
+          targetLanguageId: targetLanguageId,
+          cardId: cardId,
+          learned: learned,
+          level: level,
+          achievementDelta: achievementDelta,
+          correct: correct,
+          reviewedAt: reviewedAt,
+          reviewCard: reviewCard,
+        ),
+      );
+
+  Future<void> _recordProgressInTransaction(
+    DatabaseExecutor txn, {
     required String sourceLanguageId,
     required String targetLanguageId,
     required String cardId,
@@ -294,32 +525,66 @@ final class PairProgressDatabase {
     required ReviewCard? reviewCard,
   }) async {
     final reviewedAtUtc = reviewedAt.toUtc().toIso8601String();
-    await _database.transaction((txn) async {
-      final pairRows = await txn.query(
-        pairTable,
-        columns: const <String>['achievement_points'],
-        where: 'source_language_id = ? AND target_language_id = ?',
-        whereArgs: <Object?>[sourceLanguageId, targetLanguageId],
-        limit: 1,
-      );
-      final currentPoints = pairRows.isEmpty
-          ? 0
-          : (pairRows.first['achievement_points'] as num?)?.toInt() ?? 0;
+    final pairRows = await txn.query(
+      pairTable,
+      columns: const <String>['achievement_points'],
+      where: 'source_language_id = ? AND target_language_id = ?',
+      whereArgs: <Object?>[sourceLanguageId, targetLanguageId],
+      limit: 1,
+    );
+    final currentPoints = pairRows.isEmpty
+        ? 0
+        : (pairRows.first['achievement_points'] as num?)?.toInt() ?? 0;
 
-      await txn.insert(
-        pairTable,
-        <String, Object?>{
-          'source_language_id': sourceLanguageId,
-          'target_language_id': targetLanguageId,
-          'level': level,
-          'achievement_points': currentPoints + achievementDelta,
-          'updated_at_utc': reviewedAtUtc,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+    await txn.insert(
+      pairTable,
+      <String, Object?>{
+        'source_language_id': sourceLanguageId,
+        'target_language_id': targetLanguageId,
+        'level': level,
+        'achievement_points': currentPoints + achievementDelta,
+        'updated_at_utc': reviewedAtUtc,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
 
-      final cardRows = await txn.query(
+    final cardRows = await txn.query(
+      cardTable,
+      where:
+          'source_language_id = ? AND target_language_id = ? AND card_id = ?',
+      whereArgs: <Object?>[
+        sourceLanguageId,
+        targetLanguageId,
+        cardId,
+      ],
+      limit: 1,
+    );
+    final existing = cardRows.isEmpty ? null : cardRows.first;
+    var correctCount =
+        (existing?['correct_count'] as num?)?.toInt() ?? 0;
+    var incorrectCount =
+        (existing?['incorrect_count'] as num?)?.toInt() ?? 0;
+    final wasLearned =
+        ((existing?['learned'] as num?)?.toInt() ?? 0) == 1;
+    if (correct) {
+      correctCount += 1;
+    } else {
+      incorrectCount += 1;
+    }
+
+    final metrics = <String, Object?>{
+      'learned': learned || wasLearned ? 1 : 0,
+      'correct_count': correctCount,
+      'incorrect_count': incorrectCount,
+      'last_reviewed_at_utc':
+          reviewCard?.lastReviewedAt?.toUtc().toIso8601String() ??
+              reviewedAtUtc,
+    };
+
+    if (reviewCard == null && existing != null) {
+      await txn.update(
         cardTable,
+        metrics,
         where:
             'source_language_id = ? AND target_language_id = ? AND card_id = ?',
         whereArgs: <Object?>[
@@ -327,79 +592,41 @@ final class PairProgressDatabase {
           targetLanguageId,
           cardId,
         ],
-        limit: 1,
       );
-      final existing =
-          cardRows.isEmpty ? null : cardRows.first;
-      var correctCount =
-          (existing?['correct_count'] as num?)?.toInt() ?? 0;
-      var incorrectCount =
-          (existing?['incorrect_count'] as num?)?.toInt() ?? 0;
-      final wasLearned =
-          ((existing?['learned'] as num?)?.toInt() ?? 0) == 1;
-      if (correct) {
-        correctCount += 1;
-      } else {
-        incorrectCount += 1;
-      }
+      return;
+    }
 
-      final metrics = <String, Object?>{
-        'learned': learned || wasLearned ? 1 : 0,
-        'correct_count': correctCount,
-        'incorrect_count': incorrectCount,
-        'last_reviewed_at_utc':
-            reviewCard?.lastReviewedAt?.toUtc().toIso8601String() ??
-                reviewedAtUtc,
-      };
+    final row = <String, Object?>{
+      'source_language_id': sourceLanguageId,
+      'target_language_id': targetLanguageId,
+      'card_id': cardId,
+      ...metrics,
+    };
+    if (reviewCard != null) {
+      row.addAll(<String, Object?>{
+        'facet_type': reviewCard.facetType.wireName,
+        'variant_key': reviewCard.facetKey.normalizedVariantKey ?? '',
+        'repetitions': reviewCard.repetitions,
+        'interval_days': reviewCard.intervalDays,
+        'lapses': reviewCard.lapses,
+        'successes': reviewCard.successes,
+        'failures': reviewCard.failures,
+        'difficulty': reviewCard.difficulty,
+        'stability_days': reviewCard.stabilityDays,
+        'due_at_utc': reviewCard.dueAt.toUtc().toIso8601String(),
+      });
+    }
 
-      if (reviewCard == null && existing != null) {
-        await txn.update(
-          cardTable,
-          metrics,
-          where:
-              'source_language_id = ? AND target_language_id = ? AND card_id = ?',
-          whereArgs: <Object?>[
-            sourceLanguageId,
-            targetLanguageId,
-            cardId,
-          ],
-        );
-        return;
-      }
-
-      final row = <String, Object?>{
-        'source_language_id': sourceLanguageId,
-        'target_language_id': targetLanguageId,
-        'card_id': cardId,
-        ...metrics,
-      };
-      if (reviewCard != null) {
-        row.addAll(<String, Object?>{
-          'facet_type': reviewCard.facetType.wireName,
-          'variant_key':
-              reviewCard.facetKey.normalizedVariantKey ?? '',
-          'repetitions': reviewCard.repetitions,
-          'interval_days': reviewCard.intervalDays,
-          'lapses': reviewCard.lapses,
-          'successes': reviewCard.successes,
-          'failures': reviewCard.failures,
-          'difficulty': reviewCard.difficulty,
-          'stability_days': reviewCard.stabilityDays,
-          'due_at_utc':
-              reviewCard.dueAt.toUtc().toIso8601String(),
-        });
-      }
-
-      await txn.insert(
-        cardTable,
-        row,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    });
+    await txn.insert(
+      cardTable,
+      row,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> clearAll() async {
     await _database.transaction((txn) async {
+      await txn.delete(journalTable);
       await txn.delete(cardTable);
       await txn.delete(pairTable);
     });
@@ -410,6 +637,11 @@ final class PairProgressDatabase {
     required String targetLanguageId,
   }) async {
     await _database.transaction((txn) async {
+      await txn.delete(
+        journalTable,
+        where: 'source_language_id = ? AND target_language_id = ?',
+        whereArgs: <Object?>[sourceLanguageId, targetLanguageId],
+      );
       await txn.delete(
         cardTable,
         where: 'source_language_id = ? AND target_language_id = ?',
@@ -485,6 +717,32 @@ final class PairProgressDatabase {
         cardRows.map(_cardFromRow),
       ),
     );
+  }
+
+  Future<ReviewTransactionJournalEntry> _verifiedJournalEntry(
+    Map<String, Object?> row,
+  ) async {
+    final entry = ReviewTransactionJournalEntry.fromRow(row);
+    final computedHash = await entry.envelope.computePayloadHash();
+    if (computedHash != entry.payloadHash) {
+      throw const ReviewTransactionJournalException(
+        'review_event_payload_mismatch',
+      );
+    }
+    return entry;
+  }
+
+  static String _reviewEventId(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty ||
+        value.length > ReviewTransactionEnvelope.maxReviewEventIdLength) {
+      throw ArgumentError.value(
+        raw,
+        'reviewEventId',
+        'invalid review event id',
+      );
+    }
+    return value;
   }
 
   PairProgressCard _cardFromRow(Map<String, Object?> row) {
