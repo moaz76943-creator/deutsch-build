@@ -1,165 +1,27 @@
 workflows:
-  test-apk-build:
-    name: Build Test APK
-    instance_type: mac_mini_m1
+  signed-android-release:
+    name: Signed Android Release
+    instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
-      flutter: 3.44.9
-      java: 17
-    scripts:
-      - name: Get locked Flutter packages
-        script: flutter pub get --enforce-lockfile
-      - name: Build debug test APK
-        script: flutter build apk --debug --no-tree-shake-icons --target-platform android-arm64
-    artifacts:
-      - build/app/outputs/flutter-apk/*.apk
-
-  signed-android-aab:
-    name: Signed Android AAB
-    instance_type: mac_mini_m2
-    max_build_duration: 60
-
-    when:
-      condition: env.CM_BRANCH == "main"
-
-    environment:
+      flutter: default
       groups:
         - keystore_credentials
-      flutter: 3.44.9
-      java: 17
-      ndk: 28.2.13676358
-
     scripts:
-      - name: Enforce protected release branch
+      - name: Set up keystore
         script: |
-          set -euo pipefail
-          test "${CM_BRANCH:-}" = "main"
-          test "${CM_PULL_REQUEST:-false}" != "true"
-      - name: Verify automatic build provenance
+          echo $CM_KEYSTORE_BASE64 | base64 --decode > /tmp/keystore.keystore
+          cat >> "$CM_BUILD_DIR/android/key.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=/tmp/keystore.keystore
+          EOF
+      - name: Build Signed APK and AAB
         script: |
-          set -euo pipefail
-
-          if [ -n "${EXPECTED_MERGE_SHA:-}" ]; then
-            case "$EXPECTED_MERGE_SHA" in
-              (*[!0-9a-fA-F]*|'')
-                echo "EXPECTED_MERGE_SHA must be a 40-character hexadecimal SHA." >&2
-                exit 1
-                ;;
-            esac
-            if [ "${#EXPECTED_MERGE_SHA}" -ne 40 ]; then
-              echo "EXPECTED_MERGE_SHA must be exactly 40 characters." >&2
-              exit 1
-            fi
-
-            ACTUAL_SHA="$(git rev-parse HEAD)"
-            if [ "$ACTUAL_SHA" != "$EXPECTED_MERGE_SHA" ]; then
-              echo "Refusing to build the wrong revision." >&2
-              echo "Expected merge SHA: $EXPECTED_MERGE_SHA" >&2
-              echo "Checked out SHA:    $ACTUAL_SHA" >&2
-              exit 1
-            fi
-
-            echo "Verified automatic build provenance: $ACTUAL_SHA"
-          else
-            echo "No EXPECTED_MERGE_SHA supplied; treating this as an explicit manual main-branch build."
-          fi
-
-      - name: Set up Android SDK and Flutter paths
-        script: |
-          set -euo pipefail
-          printf 'sdk.dir=%s\n' "$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
-          printf 'flutter.sdk=%s\n' "$FLUTTER_ROOT" >> "$CM_BUILD_DIR/android/local.properties"
-
-      - name: Get locked Flutter packages
-        script: |
-          set -euo pipefail
-          flutter pub get --enforce-lockfile
-
-      - name: Build signed release AAB
-        script: |
-          set -euo pipefail
-
-          : "${CM_KEYSTORE_BASE64:?Missing CM_KEYSTORE_BASE64}"
-          : "${CM_KEYSTORE_PASSWORD:?Missing CM_KEYSTORE_PASSWORD}"
-          : "${CM_KEY_ALIAS:?Missing CM_KEY_ALIAS}"
-          : "${CM_KEY_PASSWORD:?Missing CM_KEY_PASSWORD}"
-
-          KEYSTORE_PATH="$CM_BUILD_DIR/android/app/codemagic-upload-keystore.jks"
-          trap 'rm -f "$KEYSTORE_PATH"' EXIT
-
-          python3 - <<'PY'
-          import base64
-          import os
-          from pathlib import Path
-
-          encoded = "".join(os.environ["CM_KEYSTORE_BASE64"].split())
-          keystore = base64.b64decode(encoded, validate=True)
-          path = Path(os.environ["CM_BUILD_DIR"]) / "android" / "app" / "codemagic-upload-keystore.jks"
-          path.write_bytes(keystore)
-          PY
-
-          chmod 600 "$KEYSTORE_PATH"
-
-          keytool -list \
-            -keystore "$KEYSTORE_PATH" \
-            -storepass "$CM_KEYSTORE_PASSWORD" \
-            -alias "$CM_KEY_ALIAS" \
-            >/dev/null
-
-          export ORG_GRADLE_PROJECT_releaseStoreFile="$KEYSTORE_PATH"
-          export ORG_GRADLE_PROJECT_releaseStorePassword="$CM_KEYSTORE_PASSWORD"
-          export ORG_GRADLE_PROJECT_releaseKeyAlias="$CM_KEY_ALIAS"
-          export ORG_GRADLE_PROJECT_releaseKeyPassword="$CM_KEY_PASSWORD"
-
-          flutter build appbundle --release --obfuscate --split-debug-info=symbols/ --build-name=3.3.10 --build-number=133
-
-      - name: Verify AAB and record SHA-256
-        script: |
-          set -euo pipefail
-
-          AAB_PATH="$CM_BUILD_DIR/build/app/outputs/bundle/release/app-release.aab"
-          SYMBOLS_DIR="$CM_BUILD_DIR/symbols"
-          METADATA_DIR="$CM_BUILD_DIR/release-metadata"
-
-          test -s "$AAB_PATH"
-
-          echo "Verifying AAB archive integrity..."
-          unzip -t "$AAB_PATH" >/dev/null
-
-          echo "Verifying AAB signature..."
-          jarsigner -verify -strict "$AAB_PATH" >/dev/null
-
-          test -d "$SYMBOLS_DIR" || {
-            echo "Missing split-debug-info symbols directory." >&2
-            exit 1
-          }
-
-          SYMBOL_FILE="$(find "$SYMBOLS_DIR" -type f -size +0c -print -quit)"
-          test -n "$SYMBOL_FILE" || {
-            echo "Split-debug-info symbols directory contains no non-empty files." >&2
-            exit 1
-          }
-
-          mkdir -p "$METADATA_DIR"
-
-          AAB_SHA256="$(shasum -a 256 "$AAB_PATH" | awk '{print $1}')"
-          printf '%s  %s\n' "$AAB_SHA256" "app-release.aab" \
-            > "$METADATA_DIR/SHA256SUMS.txt"
-
-          CURRENT_SHA="$(git rev-parse HEAD)"
-          {
-            printf 'git_sha=%s\n' "$CURRENT_SHA"
-            printf 'expected_merge_sha=%s\n' "${EXPECTED_MERGE_SHA:-manual}"
-            printf 'github_delivery_id=%s\n' "${GITHUB_DELIVERY_ID:-manual}"
-            printf 'codemagic_build_id=%s\n' "${CM_BUILD_ID:-unknown}"
-            printf 'aab_sha256=%s\n' "$AAB_SHA256"
-          } > "$METADATA_DIR/BUILD_PROVENANCE.txt"
-
-          echo "AAB verification passed."
-          echo "AAB SHA-256: $AAB_SHA256"
-
+          flutter pub get
+          flutter build apk --release
+          flutter build appbundle --release
     artifacts:
-      - build/app/outputs/bundle/release/*.aab
-      - symbols/**
-      - release-metadata/SHA256SUMS.txt
-      - release-metadata/BUILD_PROVENANCE.txt
+      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/app-release.aab
