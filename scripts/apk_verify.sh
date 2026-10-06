@@ -32,7 +32,7 @@ grep -F "native-code: 'arm64-v8a'" <<<"$BADGING" >/dev/null || fatal "APK does n
 PERMISSIONS="$(aapt dump permissions "$APK")" || fatal "aapt could not inspect APK permissions"
 grep -F "android.permission.RECORD_AUDIO" <<<"$PERMISSIONS" >/dev/null || fatal "Required pronunciation permission is missing from merged APK"
 for forbidden_permission in android.permission.INTERNET android.permission.POST_NOTIFICATIONS; do
-  if grep -F "$forbidden_permission" <<<"$PERMISSIONS" >/dev/null; then
+  if [[ "$MODE" == release ]] && grep -F "$forbidden_permission" <<<"$PERMISSIONS" >/dev/null; then
     fatal "Unexpected release permission in merged APK: $forbidden_permission"
   fi
 done
@@ -41,9 +41,37 @@ ZIP_LIST="$(unzip -Z1 "$APK")" || fatal "APK is not a readable ZIP archive"
 grep -Fx 'AndroidManifest.xml' <<<"$ZIP_LIST" >/dev/null || fatal "AndroidManifest.xml missing"
 grep -Fx 'resources.arsc' <<<"$ZIP_LIST" >/dev/null || fatal "resources.arsc missing"
 grep -F 'lib/arm64-v8a/' <<<"$ZIP_LIST" >/dev/null || fatal "arm64-v8a native library directory missing"
+python3 - "$APK" "$MODE" <<'PY'
+import struct
+import sys
+import zipfile
+
+with zipfile.ZipFile(sys.argv[1]) as apk:
+    native = [name for name in apk.namelist() if name.startswith('lib/') and name.endswith('.so')]
+    if not native or any(name.split('/')[1] != 'arm64-v8a' for name in native):
+        raise SystemExit('APK must contain only ARM64 native libraries')
+    library = 'libapp.so' if sys.argv[2] == 'release' else 'libflutter.so'
+    data = apk.read('lib/arm64-v8a/' + library)
+    if data[:6] != b'\x7fELF\x02\x01' or struct.unpack_from('<H', data, 18)[0] != 183:
+        raise SystemExit('Dart AOT library is not a little-endian ARM64 ELF')
+    if sys.argv[2] == 'release':
+        offset = struct.unpack_from('<Q', data, 40)[0]
+        size, count, names_index = struct.unpack_from('<HHH', data, 58)
+        if size < 64 or names_index >= count or offset + size * count > len(data):
+            raise SystemExit('Dart AOT ELF section table is malformed')
+        start, length = struct.unpack_from('<QQ', data, offset + size * names_index + 24)
+        names = data[start:start+length]
+        for index in range(count):
+            name_offset = struct.unpack_from('<I', data, offset + index * size)[0]
+            name = names[name_offset:].split(b'\0', 1)[0]
+            if name.startswith((b'.debug_', b'.zdebug_')):
+                raise SystemExit('Release Dart AOT contains unstripped DWARF; use the release entrypoint')
+PY
 
 if [[ "$MODE" == "release" ]]; then
-  apksigner verify --verbose "$APK" >/dev/null || fatal "Release APK signature verification failed"
+  CERT_INFO="$(apksigner verify --verbose --print-certs "$APK")" || fatal "Release APK signature verification failed"
+  EXPECTED_CERT="$(python3 "$ROOT/tool/release_signing.py" --fingerprint)" || fatal "Could not verify expected production signing certificate"
+  grep -Fi "certificate SHA-256 digest: $EXPECTED_CERT" <<<"$CERT_INFO" >/dev/null || fatal "APK certificate differs from the configured release identity"
 fi
 
 SIZE_BYTES="$(wc -c < "$APK" | tr -d ' ')"

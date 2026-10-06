@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import getpass
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -30,14 +31,19 @@ def properties(path: Path) -> dict[str, str]:
     """Read Java properties, including escaped paths/passwords and continuations."""
     if not path.is_file():
         return {}
+    return parse_properties(path.read_text(encoding="iso-8859-1"))
+
+
+def parse_properties(text: str) -> dict[str, str]:
     def unescape(value: str) -> str:
-        return re.sub(r"\\(u[0-9a-fA-F]{4}|.)", lambda m: (
+        decoded = re.sub(r"\\(u[0-9a-fA-F]{4}|.)", lambda m: (
             chr(int(m[1][1:], 16)) if m[1].startswith("u") else
             {"t": "\t", "n": "\n", "r": "\r", "f": "\f"}.get(m[1], m[1])
         ), value)
+        return decoded.encode("utf-16", "surrogatepass").decode("utf-16")
     result = {}
     pending = ""
-    for raw in path.read_text(encoding="iso-8859-1").splitlines():
+    for raw in text.splitlines():
         line = pending + raw.lstrip()
         if (len(line) - len(line.rstrip("\\"))) % 2:
             pending = line[:-1]
@@ -58,12 +64,7 @@ def resolve(root: Path = ROOT) -> dict[str, str]:
     gradle_props = properties(root / "android/gradle.properties")
     gradle_props.update(properties(gradle_home / "gradle.properties"))
     keys = properties(root / "android/key.properties")
-    defaults = {
-        "releaseStoreFile": str(default) if default.is_file() else "",
-        "releaseStorePassword": "",
-        "releaseKeyAlias": "release",
-        "releaseKeyPassword": "",
-    }
+    defaults = dict(zip(ALIASES, (str(default) if default.is_file() else "", "", "", "")))
     result = {}
     for name, (env_alias, file_alias) in ALIASES.items():
         result[name] = next((value for value in (
@@ -98,37 +99,93 @@ def validate(config: dict[str, str]) -> None:
 
 
 def escape(value: str) -> str:
+    def unicode_escape(c: str) -> str:
+        encoded = c.encode("utf-16-be")
+        return "".join(f"\\u{int.from_bytes(encoded[i:i+2], 'big'):04x}" for i in range(0, len(encoded), 2))
     return "".join("\\" + c if c in "\\ =:#!" else
                    {"\n": "\\n", "\r": "\\r", "\t": "\\t"}.get(c,
-                   f"\\u{ord(c):04x}" if ord(c) > 127 else c) for c in value)
+                   unicode_escape(c) if ord(c) > 127 else c) for c in value)
 
 
 def write_properties(path: Path, config: dict[str, str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     entries = properties(path)
-    entries.update(config)
-    # Keep all unrelated settings and replace signing keys instead of appending duplicates.
-    with tempfile.NamedTemporaryFile(dir=path.parent, mode="w", encoding="ascii", delete=False) as tmp:
+    if path.is_file() and all(entries.get(name) == value for name, value in config.items()):
+        path.chmod(0o600)
+        return
+    # Preserve unrelated lines/comments/continuations and replace configured keys once.
+    original = path.read_text(encoding="iso-8859-1") if path.is_file() else ""
+    chunks, pending = [], ""
+    for line in original.splitlines(keepends=True):
+        pending += line
+        content = line.rstrip("\r\n")
+        if (len(content) - len(content.rstrip("\\"))) % 2:
+            continue
+        chunks.append(pending)
+        pending = ""
+    if pending:
+        chunks.append(pending)
+    output, written = [], set()
+    for chunk in chunks:
+        name = next(iter(parse_properties(chunk)), None)
+        if name in config:
+            if name not in written:
+                output.append(f"{escape(name)}={escape(config[name])}\n")
+                written.add(name)
+        else:
+            output.append(chunk)
+    if output and not output[-1].endswith("\n"):
+        output[-1] += "\n"
+    output.extend(f"{escape(name)}={escape(value)}\n" for name, value in config.items() if name not in written)
+    with tempfile.NamedTemporaryFile(dir=path.parent, mode="w", encoding="iso-8859-1", delete=False) as tmp:
         temporary = Path(tmp.name)
-        for name, value in entries.items():
-            tmp.write(f"{escape(name)}={escape(value)}\n")
+        tmp.write("".join(output))
     temporary.chmod(0o600)
     temporary.replace(path)
 
 
-def prepare(config: dict[str, str]) -> dict[str, str]:
+def prepare(config: dict[str, str], interactive: bool = False, persist: bool = True) -> dict[str, str]:
+    # Setup is an explicit reconfiguration operation. RELEASE_* inputs must be
+    # able to repair an obsolete profile; normal Gradle resolution stays unchanged.
+    for name, (alias, _) in ALIASES.items():
+        supplied = os.environ.get("ORG_GRADLE_PROJECT_" + name) or os.environ.get(alias)
+        if supplied and supplied.strip():
+            config[name] = supplied
+    if config["releaseStoreFile"]:
+        path = Path(config["releaseStoreFile"]).expanduser()
+        if not path.is_absolute():
+            path = ROOT / "android/app" / path
+        config["releaseStoreFile"] = str(path.resolve())
     encoded = os.environ.get("RELEASE_KEYSTORE_BASE64", "")
     encoded_file = os.environ.get("RELEASE_KEYSTORE_BASE64_FILE", "")
     if encoded and encoded_file:
         raise SigningError("Use either RELEASE_KEYSTORE_BASE64 or RELEASE_KEYSTORE_BASE64_FILE, not both.")
     if encoded_file:
         encoded = Path(encoded_file).expanduser().read_text(encoding="ascii")
+    local = Path.home() / ".gradle/release-key.jks"
+    explicit = os.environ.get("ORG_GRADLE_PROJECT_releaseStoreFile") or os.environ.get("RELEASE_KEYSTORE_PATH")
+    if not encoded and local.is_file() and not explicit and not Path(config["releaseStoreFile"]).is_file():
+        config["releaseStoreFile"] = str(local)
+    if interactive and sys.stdin.isatty():
+        # Already configured credentials are verified before any prompting or writes.
+        if not encoded and all(config.values()) and Path(config["releaseStoreFile"]).is_file():
+            try:
+                validate(config)
+            except SigningError:
+                print("Stored signing credentials are unusable; re-enter credentials for the existing key.", file=sys.stderr)
+                for name in ("releaseStorePassword", "releaseKeyAlias", "releaseKeyPassword"):
+                    config[name] = ""
+        if not encoded and not Path(config["releaseStoreFile"]).is_file():
+            encoded = getpass.getpass("Existing production JKS Base64 (hidden): ")
+        for name in ("releaseStorePassword", "releaseKeyAlias", "releaseKeyPassword"):
+            if not config[name]:
+                config[name] = getpass.getpass(f"{name} (hidden): ")
     if encoded:
         payload = base64.b64decode("".join(encoded.split()), validate=True)
         if not payload:
             raise SigningError("Decoded keystore is empty.")
         # Explicit decoding repairs stale worker paths without writing under RUNNER_TEMP.
-        destination = Path(os.environ.get("RELEASE_KEYSTORE_PATH", Path.home() / ".gradle/release-key.jks")).expanduser().resolve()
+        destination = Path(config["releaseStoreFile"] if explicit else local).expanduser().resolve()
         config["releaseStoreFile"] = str(destination)
         if destination.exists():
             if destination.read_bytes() != payload:
@@ -144,60 +201,43 @@ def prepare(config: dict[str, str]) -> dict[str, str]:
                 temporary.replace(destination)
             finally:
                 temporary.unlink(missing_ok=True)
-    elif not Path(config["releaseStoreFile"]).is_file():
-        local = Path.home() / ".gradle/release-key.jks"
-        explicit = os.environ.get("ORG_GRADLE_PROJECT_releaseStoreFile") or os.environ.get("RELEASE_KEYSTORE_PATH")
-        if local.is_file() and not explicit:
-            # Recover only the local path. Credentials must always come from
-            # private user properties, environment variables, or an interactive
-            # setup prompt; they are never embedded in tracked source.
-            config = dict(config)
-            config["releaseStoreFile"] = str(local)
     validate(config)
     Path(config["releaseStoreFile"]).chmod(0o600)
     gradle_home = Path(os.environ.get("GRADLE_USER_HOME", Path.home() / ".gradle"))
-    write_properties(gradle_home / "gradle.properties", config)
+    if persist:
+        write_properties(gradle_home / "gradle.properties", config)
     return config
-
-
-def _prompt_missing_credentials(config: dict[str, str]) -> dict[str, str]:
-    """Fill missing private credentials only on an interactive terminal."""
-    if not sys.stdin.isatty():
-        return config
-    has_key_input = bool(
-        config.get("releaseStoreFile")
-        or os.environ.get("RELEASE_KEYSTORE_BASE64")
-        or os.environ.get("RELEASE_KEYSTORE_BASE64_FILE")
-    )
-    if not has_key_input:
-        return config
-    resolved = dict(config)
-    if not resolved.get("releaseStorePassword"):
-        resolved["releaseStorePassword"] = getpass.getpass("Release keystore password: ")
-    if not resolved.get("releaseKeyAlias"):
-        alias = input("Release key alias [release]: ").strip()
-        resolved["releaseKeyAlias"] = alias or "release"
-    if not resolved.get("releaseKeyPassword"):
-        resolved["releaseKeyPassword"] = getpass.getpass("Release key password: ")
-    return resolved
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prepare", action="store_true")
+    parser.add_argument("--interactive", action="store_true")
+    parser.add_argument("--ephemeral", action="store_true", help="Runner signing: do not persist credentials to user properties")
+    parser.add_argument("--fingerprint", action="store_true", help="Print the public signing certificate SHA256")
     args = parser.parse_args()
     try:
         config = resolve()
         if args.prepare:
-            config = prepare(_prompt_missing_credentials(config))
+            config = prepare(config, interactive=args.interactive, persist=not args.ephemeral)
         else:
             validate(config)
-        print("[OK] Release signing configuration validated.")
+        if args.fingerprint:
+            env = {**os.environ, "DEUTSCH_STORE_PASS": config["releaseStorePassword"]}
+            cert = subprocess.run(["keytool", "-exportcert", "-keystore", config["releaseStoreFile"],
+                "-alias", config["releaseKeyAlias"], "-storepass:env", "DEUTSCH_STORE_PASS"],
+                env=env, capture_output=True, timeout=30, check=True).stdout
+            print(hashlib.sha256(cert).hexdigest())
+        else:
+            print("Release signing: verified")
         return 0
     except SigningError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1
-    except (ValueError, OSError, subprocess.TimeoutExpired):
+    except (EOFError, KeyboardInterrupt):
+        print("[ERROR] Signing setup interrupted; existing production key was preserved.", file=sys.stderr)
+        return 1
+    except (ValueError, OSError, subprocess.SubprocessError):
         # Never echo the Base64 input, passwords or Python exception payloads.
         print("[ERROR] Release signing setup failed. Check keystore path, Base64 input and alias/passwords. Existing signing material is preserved.", file=sys.stderr)
         return 1

@@ -1,5 +1,6 @@
 """Canonical production bootstrap topology contract."""
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 BOOT = ROOT / "lib/bootstrap/production_bootstrap.dart"
@@ -13,7 +14,7 @@ def test_bootstrap_preserves_render_first_phase3_topology():
     assert "LocalLearningRecoveryRuntimeHost(" in text
     assert "ProductionRuntimeCoordinator" in text
     assert "DeutschAppV35" not in text
-    assert "DeutschApp(" not in text
+    assert not re.search(r"\bDeutschApp\s*\(", text)
     assert len(text.splitlines()) < 1000
 
 

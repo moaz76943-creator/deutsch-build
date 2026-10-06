@@ -30,6 +30,9 @@ __pycache__/
 
 # Private local Android configuration
 android/local.properties
+android/.kotlin/
 android/key.properties
+.flutter-plugins-dependencies
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 *.base64
 *.b64

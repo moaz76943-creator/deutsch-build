@@ -4,6 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$ROOT/toolchain.lock"
+source "$ROOT/scripts/common.sh"
 PROJECT_ROOT="${PROJECT_ROOT:-$ROOT}"
 LOG_FILE="${LOG_FILE:-$HOME/flutter_build_deutsch.log}"
 APK="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-debug.apk"
@@ -57,6 +58,9 @@ PY
 }
 
 main() {
+  if is_termux; then
+    exec bash "$ROOT/scripts/local-release.sh" --debug
+  fi
   exec > >(tee -a "$LOG_FILE") 2>&1
   log 'Checking Flutter build environment'
   command -v flutter >/dev/null 2>&1 || fatal 'flutter is not installed/on PATH. Run install_flutter.sh first.'

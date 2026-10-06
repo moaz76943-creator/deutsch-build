@@ -69,20 +69,7 @@ if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]; then
   log SKIP "Dart analyzer and Flutter behavioral tests skipped because Flutter SDK is unavailable"
 else
   log TEST "Dart application analyzer (lib/ errors only)"
-  command -v dart >/dev/null 2>&1 || fatal "Dart executable is unavailable"
-  set +e
-  ANALYZER_OUTPUT="$(dart analyze lib/ 2>&1)"
-  ANALYZER_STATUS=$?
-  ANALYZER_ERRORS="$(printf '%s\n' "$ANALYZER_OUTPUT" | grep "error •")"
-  set -e
-  printf '%s\n' "$ANALYZER_OUTPUT"
-  if [[ -n "$ANALYZER_ERRORS" ]]; then
-    fatal "Dart analyzer found blocking errors in lib/"
-  fi
-  if [[ "$ANALYZER_STATUS" == "127" ]]; then
-    fatal "Dart analyzer could not be executed"
-  fi
-  log OK "Dart analyzer: 0 blocking errors in lib/"
+  bash "$ROOT/scripts/check-dart-errors.sh"
 
   log TEST "Flutter behavioral tests"
   flutter test

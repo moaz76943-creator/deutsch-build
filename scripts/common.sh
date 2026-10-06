@@ -14,6 +14,33 @@ load_toolchain() {
   source "$TOOLCHAIN_FILE"
 }
 
+is_termux() {
+  [[ "${PREFIX:-}" == /data/data/*/files/usr ]]
+}
+
+configure_android_build_path() {
+  local sdk_tools="$ANDROID_SDK_ROOT/build-tools/$ANDROID_BUILD_TOOLS_VERSION:$ANDROID_SDK_ROOT/platform-tools"
+  if is_termux; then
+    # SDK packaging executables target Linux/glibc; prefer native Android tools.
+    export PATH="$JAVA_HOME/bin:$FLUTTER_ROOT/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin:$PREFIX/bin:$sdk_tools:$PATH"
+  else
+    export PATH="$sdk_tools:$PATH"
+  fi
+}
+
+check_disk_space() {
+  local path="${1:-$ROOT}" available
+  available="$(df -Pk "$path" | awk 'NR==2 {print $4}')" || fatal "Cannot inspect disk space at $path"
+  [[ "$available" =~ ^[0-9]+$ ]] || fatal "Cannot determine available disk space at $path"
+  if (( available < MIN_FREE_KB )); then
+    fatal "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
+  elif (( available < RECOMMENDED_FREE_KB )); then
+    log WARN "Free space at $path: $available KiB; recommended $RECOMMENDED_FREE_KB KiB (3 GiB). Continuing with preserved caches."
+  else
+    log OK "Free space at $path: $available KiB"
+  fi
+}
+
 snapshot_lockfile() {
   [[ -f "$ROOT/pubspec.lock" ]] || fatal "pubspec.lock is missing; reproducible dependency resolution cannot start."
   LOCK_BEFORE="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"

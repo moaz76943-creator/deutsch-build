@@ -4,6 +4,10 @@ import importlib.util
 import os
 from pathlib import Path
 import shutil
+import secrets
+import pty
+import select
+import time
 import subprocess
 
 import pytest
@@ -13,19 +17,20 @@ spec = importlib.util.spec_from_file_location("release_signing", ROOT / "tool/re
 signing = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(signing)
 
-TEST_STORE_PASSWORD = "disposable-store-pass"
-TEST_KEY_PASSWORD = "disposable-key-pass"
-TEST_ALIAS = "release"
+
+@pytest.fixture(scope="module")
+def test_password():
+    return secrets.token_urlsafe(24)
 
 
 @pytest.fixture(scope="module")
-def test_key(tmp_path_factory):
+def test_key(tmp_path_factory, test_password):
     if not shutil.which("keytool"):
         pytest.skip("JDK keytool required for signing integration checks")
     path = tmp_path_factory.mktemp("test-keystore") / "test-only.jks"
     result = subprocess.run([
         "keytool", "-genkeypair", "-storetype", "JKS", "-keystore", str(path),
-        "-alias", TEST_ALIAS, "-storepass", TEST_STORE_PASSWORD, "-keypass", TEST_KEY_PASSWORD,
+        "-alias", "release", "-storepass", test_password, "-keypass", test_password,
         "-keyalg", "RSA", "-keysize", "2048", "-validity", "2", "-dname", "CN=Disposable Test",
     ], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
@@ -33,7 +38,7 @@ def test_key(tmp_path_factory):
 
 
 @pytest.fixture
-def local_home(tmp_path, monkeypatch):
+def local_home(tmp_path, monkeypatch, test_password):
     home = tmp_path / "home with spaces"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
@@ -43,6 +48,9 @@ def local_home(tmp_path, monkeypatch):
         monkeypatch.delenv(signing.ALIASES[name][0], raising=False)
     monkeypatch.delenv("RELEASE_KEYSTORE_BASE64", raising=False)
     monkeypatch.delenv("RELEASE_KEYSTORE_BASE64_FILE", raising=False)
+    monkeypatch.setenv("RELEASE_STORE_PASSWORD", test_password)
+    monkeypatch.setenv("RELEASE_KEY_PASSWORD", test_password)
+    monkeypatch.setenv("RELEASE_KEY_ALIAS", "release")
     return home
 
 
@@ -53,26 +61,18 @@ def install_key(home, payload):
     return key
 
 
-def configure_credentials(home):
-    signing.write_properties(home / ".gradle/gradle.properties", {
-        "releaseStorePassword": TEST_STORE_PASSWORD,
-        "releaseKeyPassword": TEST_KEY_PASSWORD,
-    })
-
-
 def test_existing_keystore_setup_is_idempotent_and_preserves_other_properties(local_home, test_key):
     key = install_key(local_home, test_key)
-    configure_credentials(local_home)
     props = key.parent / "gradle.properties"
-    signing.write_properties(props, {
-        "custom.flag": "retain",
-        "org.gradle.jvmargs": "-Xmx1536m",
-    })
+    props.write_text("# Preserve the owner's custom settings\ncustom.flag=retain\norg.gradle.jvmargs=-Xmx1536m\n")
     result = signing.prepare(signing.resolve())
     assert result["releaseStoreFile"] == str(key)
     before = props.read_bytes()
+    before_time = props.stat().st_mtime_ns
     signing.prepare(signing.resolve())
     assert props.read_bytes() == before
+    assert props.stat().st_mtime_ns == before_time
+    assert "# Preserve the owner's custom settings" in props.read_text()
     assert signing.properties(props)["custom.flag"] == "retain"
     assert key.read_bytes() == test_key
     assert props.stat().st_mode & 0o777 == 0o600
@@ -81,19 +81,25 @@ def test_existing_keystore_setup_is_idempotent_and_preserves_other_properties(lo
 
 def test_setup_repairs_stale_worker_path(local_home, test_key):
     key = install_key(local_home, test_key)
-    configure_credentials(local_home)
-    signing.write_properties(
-        key.parent / "gradle.properties",
-        {"releaseStoreFile": "/nonexistent/runner/upload.jks"},
-    )
+    (key.parent / "gradle.properties").write_text("releaseStoreFile=/nonexistent/runner/upload.jks\n")
     result = signing.prepare(signing.resolve())
     assert result["releaseStoreFile"] == str(key)
     assert signing.resolve()["releaseStoreFile"] == str(key)
 
 
+def test_setup_explicit_alias_inputs_repair_obsolete_profile(local_home, test_key, test_password):
+    key = install_key(local_home, test_key)
+    props = key.parent / "gradle.properties"
+    props.write_text("releaseStorePassword=obsolete\nreleaseKeyPassword=obsolete\nreleaseKeyAlias=obsolete\ncustom.keep=yes\n")
+    assert signing.resolve()["releaseKeyAlias"] == "obsolete"
+    result = signing.prepare(signing.resolve())
+    assert result["releaseStorePassword"] == test_password
+    assert result["releaseKeyAlias"] == "release"
+    assert signing.properties(props)["custom.keep"] == "yes"
+
+
 def test_explicit_cloud_path_and_credentials_override_local_key(local_home, test_key, monkeypatch):
     install_key(local_home, test_key)
-    configure_credentials(local_home)
     explicit = local_home / "cloud.jks"
     explicit.write_bytes(test_key)
     monkeypatch.setenv("ORG_GRADLE_PROJECT_releaseStoreFile", str(explicit))
@@ -106,7 +112,6 @@ def test_explicit_cloud_path_and_credentials_override_local_key(local_home, test
 
 
 def test_base64_file_decode_is_atomic_and_accepts_wrapped_input(local_home, test_key, monkeypatch):
-    configure_credentials(local_home)
     encoded = local_home / "input.b64"
     value = base64.b64encode(test_key).decode()
     encoded.write_text("\n".join(value[i:i + 64] for i in range(0, len(value), 64)))
@@ -119,8 +124,19 @@ def test_base64_file_decode_is_atomic_and_accepts_wrapped_input(local_home, test
         signing.prepare(signing.resolve())
 
 
+def test_base64_relative_explicit_path_uses_android_app_semantics(local_home, test_key, monkeypatch, tmp_path):
+    project = tmp_path / 'project'
+    project.mkdir()
+    monkeypatch.setattr(signing, 'ROOT', project)
+    monkeypatch.setenv('RELEASE_KEYSTORE_PATH', 'private/key.jks')
+    monkeypatch.setenv('RELEASE_KEYSTORE_BASE64', base64.b64encode(test_key).decode())
+    config = signing.prepare(signing.resolve(project))
+    expected = project / 'android/app/private/key.jks'
+    assert Path(config['releaseStoreFile']) == expected
+    assert expected.read_bytes() == test_key
+
+
 def test_invalid_decoded_key_does_not_create_a_release_keystore(local_home, monkeypatch):
-    configure_credentials(local_home)
     monkeypatch.setenv("RELEASE_KEYSTORE_BASE64", base64.b64encode(b"not a keystore").decode())
     with pytest.raises(signing.SigningError, match="validation failed"):
         signing.prepare(signing.resolve())
@@ -130,7 +146,6 @@ def test_invalid_decoded_key_does_not_create_a_release_keystore(local_home, monk
 
 def test_different_base64_never_replaces_existing_signing_identity(local_home, test_key, monkeypatch):
     key = install_key(local_home, test_key)
-    configure_credentials(local_home)
     monkeypatch.setenv("RELEASE_KEYSTORE_BASE64", base64.b64encode(b"different").decode())
     with pytest.raises(signing.SigningError, match="refusing to replace"):
         signing.prepare(signing.resolve())
@@ -139,9 +154,8 @@ def test_different_base64_never_replaces_existing_signing_identity(local_home, t
 
 def test_wrong_password_never_changes_gradle_properties(local_home, test_key, monkeypatch):
     key = install_key(local_home, test_key)
-    configure_credentials(local_home)
     props = key.parent / "gradle.properties"
-    signing.write_properties(props, {"custom.flag": "unchanged"})
+    props.write_text("custom.flag=unchanged\n")
     before = props.read_bytes()
     monkeypatch.setenv("ORG_GRADLE_PROJECT_releaseKeyPassword", "wrong-secret")
     with pytest.raises(signing.SigningError, match="validation failed"):
@@ -151,50 +165,104 @@ def test_wrong_password_never_changes_gradle_properties(local_home, test_key, mo
 
 
 def test_missing_key_is_actionable_and_no_key_is_generated(local_home):
-    configure_credentials(local_home)
     with pytest.raises(signing.SigningError, match="incomplete"):
         signing.prepare(signing.resolve())
-    assert not (local_home / ".gradle/release-key.jks").exists()
+    assert not (local_home / ".gradle").exists()
+
+
+def test_existing_key_never_supplies_implicit_passwords(local_home, test_key, monkeypatch):
+    install_key(local_home, test_key)
+    monkeypatch.delenv("RELEASE_STORE_PASSWORD")
+    monkeypatch.delenv("RELEASE_KEY_PASSWORD")
+    config = signing.resolve()
+    assert not config["releaseStorePassword"]
+    assert not config["releaseKeyPassword"]
 
 
 def test_properties_roundtrip_preserves_escaped_passwords_and_paths(tmp_path):
     path = tmp_path / "settings.properties"
-    values = {"storeFile": "/home/space path/key.jks", "password": " pass=word:!#\\\nع"}
+    values = {"storeFile": "/home/space path/key.jks", "password": " pass=word:!#\\\nع🔑"}
     signing.write_properties(path, values)
     assert signing.properties(path) == values
 
 
+def test_ephemeral_runner_setup_never_persists_credentials(local_home, test_key, monkeypatch):
+    destination = local_home / 'runner-temporary/release.jks'
+    monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseStoreFile', str(destination))
+    monkeypatch.setenv('RELEASE_KEYSTORE_BASE64', base64.b64encode(test_key).decode())
+    config = signing.prepare(signing.resolve(), persist=False)
+    assert Path(config['releaseStoreFile']).read_bytes() == test_key
+    assert not (local_home / '.gradle/gradle.properties').exists()
+
+
+def test_interactive_setup_hides_input_and_reuses_existing_key(local_home, test_key, test_password, monkeypatch):
+    key = install_key(local_home, test_key)
+    for alias, _ in signing.ALIASES.values():
+        monkeypatch.delenv(alias, raising=False)
+    master, slave = pty.openpty()
+    proc = subprocess.Popen(['bash', str(ROOT / 'scripts/setup_local_signing.sh')],
+                            stdin=slave, stdout=slave, stderr=slave)
+    os.close(slave)
+    output = b''
+    prompts = [('releaseStorePassword', test_password), ('releaseKeyAlias', 'release'),
+               ('releaseKeyPassword', test_password)]
+    sent = 0
+    deadline = time.monotonic() + 20
+    try:
+        while time.monotonic() < deadline:
+            if select.select([master], [], [], 0.2)[0]:
+                try: output += os.read(master, 8192)
+                except OSError: break
+            if sent < len(prompts) and (prompts[sent][0] + ' (hidden): ').encode() in output:
+                os.write(master, (prompts[sent][1] + '\n').encode())
+                sent += 1
+            if proc.poll() is not None:
+                break
+        assert proc.wait(timeout=5) == 0, output.decode(errors='replace')
+    finally:
+        if proc.poll() is None: proc.kill()
+        os.close(master)
+    assert sent == 3
+    assert test_password.encode() not in output
+    assert key.read_bytes() == test_key
+    signing.validate(signing.resolve())
+
+
 def test_bash_setup_and_guard_use_existing_key_without_environment_credentials(local_home, test_key, monkeypatch):
     key = install_key(local_home, test_key)
-    configure_credentials(local_home)
     # Signing-only preparation must not bootstrap/download Flutter inside Termux.
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
+    signing.write_properties(key.parent / "gradle.properties", signing.resolve())
+    for alias, _ in signing.ALIASES.values():
+        monkeypatch.delenv(alias, raising=False)
     setup = subprocess.run(["bash", "-x", str(ROOT / "scripts/local-release.sh"), "--setup-only"],
                            capture_output=True, text=True, timeout=30)
     assert setup.returncode == 0, setup.stdout + setup.stderr
-    assert "deutsch2026" not in setup.stdout + setup.stderr
+    assert signing.resolve()["releaseStorePassword"] not in setup.stdout + setup.stderr
     guard = subprocess.run(["bash", str(ROOT / "scripts/signing_guard.sh")],
                            capture_output=True, text=True, timeout=30)
     assert guard.returncode == 0, guard.stdout + guard.stderr
     assert key.read_bytes() == test_key
 
 
-def test_guard_accepts_java21_and_does_not_call_disk_probe(tmp_path, monkeypatch):
+def test_guard_accepts_java21_and_checks_conservative_disk_policy(tmp_path, monkeypatch):
     tools = tmp_path / "sdk/bin"
     tools.mkdir(parents=True)
     android = tmp_path / "android"
     (android / "platforms/android-36").mkdir(parents=True)
     (android / "build-tools/36.0.0").mkdir(parents=True)
+    (android / "ndk/28.2.13676358").mkdir(parents=True)
     for name, output in {
         "flutter": "Flutter 3.44.9", "dart": "Dart SDK version: 3.12.2",
         "java": 'openjdk version "21.0.12"',
+        "javac": "javac 21.0.12",
     }.items():
         path = tools / name
         path.write_text("#!/bin/sh\nprintf '%s\\n' '" + output + "'\n")
         path.chmod(0o755)
     disk_marker = tmp_path / "disk-called"
     df = tools / "df"
-    df.write_text(f"#!/bin/sh\ntouch '{disk_marker}'\nexit 1\n")
+    df.write_text(f"#!/bin/sh\ntouch '{disk_marker}'\nprintf 'Filesystem 1024-blocks Used Available Capacity Mounted\nfs 4194304 0 2097152 0 /\n'\n")
     df.chmod(0o755)
     monkeypatch.setenv("PATH", str(tools) + os.pathsep + os.environ["PATH"])
     monkeypatch.setenv("ANDROID_SDK_ROOT", str(android))
@@ -202,16 +270,16 @@ def test_guard_accepts_java21_and_does_not_call_disk_probe(tmp_path, monkeypatch
                           capture_output=True, text=True, timeout=30)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "Java 21 (validated)" in proc.stdout
-    assert not disk_marker.exists()
+    assert disk_marker.exists()
+    assert "WARN" in proc.stdout
 
 
 @pytest.mark.parametrize("mode", ["fallback", "properties", "cli", "environment", "key_properties"])
-def test_real_gradle_signing_resolution_on_java21(local_home, test_key, tmp_path, mode):
+def test_real_gradle_signing_resolution_on_java21(local_home, test_key, test_password, tmp_path, mode):
     gradle = os.environ.get("LOCAL_SIGNING_GRADLE")
     if not gradle:
         pytest.skip("Set LOCAL_SIGNING_GRADLE to run the isolated real Gradle fixture")
     key = install_key(local_home, test_key)
-    configure_credentials(local_home)
     fixture = tmp_path / "gradle-fixture"
     fixture.mkdir()
     shutil.copy(ROOT / "android/release-signing.gradle", fixture)
@@ -236,20 +304,16 @@ tasks.register('verifySigning') {
     doLast {
         def config = resolveReleaseSigning()
         assert config.releaseStoreFile == System.getenv('EXPECTED_KEYSTORE')
-        assert config.releaseStorePassword == System.getenv('EXPECTED_STORE_PASSWORD')
+        assert config.releaseStorePassword == System.getenv('EXPECTED_TEST_PASSWORD')
         assert config.releaseKeyAlias == System.getenv('EXPECTED_ALIAS')
-        assert config.releaseKeyPassword == System.getenv('EXPECTED_KEY_PASSWORD')
+        assert config.releaseKeyPassword == System.getenv('EXPECTED_TEST_PASSWORD')
         println 'SIGNING RESOLUTION PASS'
     }
 }
 """)
-    env = {
-        **os.environ,
-        "EXPECTED_KEYSTORE": str(key),
-        "EXPECTED_ALIAS": expected_alias,
-        "EXPECTED_STORE_PASSWORD": TEST_STORE_PASSWORD,
-        "EXPECTED_KEY_PASSWORD": TEST_KEY_PASSWORD,
-    }
+    env = {**os.environ, "EXPECTED_KEYSTORE": str(key), "EXPECTED_ALIAS": expected_alias, "EXPECTED_TEST_PASSWORD": test_password}
+    if mode == "key_properties":
+        env.pop("RELEASE_KEY_ALIAS", None)
     if mode == "environment":
         signing.write_properties(key.parent / "gradle.properties", {"releaseKeyAlias": "stale-alias"})
         env["ORG_GRADLE_PROJECT_releaseKeyAlias"] = "env-alias"
@@ -260,28 +324,25 @@ tasks.register('verifySigning') {
     assert "SIGNING RESOLUTION PASS" in proc.stdout
 
 
-def test_production_signing_sources_have_no_embedded_password_defaults():
-    tool = (ROOT / "tool/release_signing.py").read_text(encoding="utf-8")
-    gradle = (ROOT / "android/release-signing.gradle").read_text(encoding="utf-8")
-    for source in (tool, gradle):
-        assert "deutsch2026" not in source
-        assert "releaseStorePassword:" not in source or "null" in source
-        assert "releaseKeyPassword:" not in source or "null" in source
-
-
-def test_release_signing_cli_never_emits_credentials(local_home, test_key):
+def test_release_signing_cli_never_emits_credentials(local_home, test_key, test_password):
     install_key(local_home, test_key)
-    configure_credentials(local_home)
-    proc = subprocess.run(
-        ["python3", str(ROOT / "tool/release_signing.py"), "--prepare"],
-        capture_output=True,
-        text=True,
-        timeout=30,
-        env=os.environ.copy(),
-    )
-    output = proc.stdout + proc.stderr
-    assert proc.returncode == 0, output
-    assert TEST_STORE_PASSWORD not in output
-    assert TEST_KEY_PASSWORD not in output
-    assert "ORG_GRADLE_PROJECT_releaseStorePassword" not in output
-    assert "ORG_GRADLE_PROJECT_releaseKeyPassword" not in output
+    proc = subprocess.run(["python3", str(ROOT / "tool/release_signing.py"), "--prepare"],
+                          capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert test_password not in proc.stdout + proc.stderr
+    assert "ORG_GRADLE_PROJECT_releaseStorePassword" not in proc.stdout + proc.stderr
+    forbidden = subprocess.run(["python3", str(ROOT / "tool/release_signing.py"), "--exports"],
+                               capture_output=True, text=True, timeout=30)
+    assert forbidden.returncode != 0
+    assert test_password not in forbidden.stdout + forbidden.stderr
+
+
+def test_production_signing_sources_have_no_embedded_password_defaults(local_home, test_key, monkeypatch):
+    install_key(local_home, test_key)
+    for alias, _ in signing.ALIASES.values():
+        monkeypatch.delenv(alias, raising=False)
+    config = signing.resolve()
+    assert config['releaseStorePassword'] == config['releaseKeyPassword'] == ''
+    source = (ROOT / 'android/release-signing.gradle').read_text()
+    assert 'releaseStorePassword: null' in source
+    assert 'releaseKeyPassword: null' in source

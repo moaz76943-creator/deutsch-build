@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Source this file; never trace signing credentials, even with bash -x.
+# Shared local/runner signing contract. Never trace credentials.
 set +x
 
 prepare_release_signing() {
-  # The Python helper validates the key and persists private credentials only
-  # under ~/.gradle/gradle.properties (0600). It never prints secret exports.
-  python3 "$ROOT/tool/release_signing.py" --prepare
+  # Local setup persists only private user properties; ephemeral runner setup
+  # consumes canonical step environment values and never emits credentials.
+  python3 "$ROOT/tool/release_signing.py" --prepare "$@"
 }
 
 check_release_signing() {

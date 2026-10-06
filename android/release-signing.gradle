@@ -10,7 +10,7 @@ ext.resolveReleaseSigning = {
     def defaults = [
         releaseStoreFile: localKeystore.isFile() ? localKeystore.absolutePath : null,
         releaseStorePassword: null,
-        releaseKeyAlias: 'release',
+        releaseKeyAlias: null,
         releaseKeyPassword: null,
     ]
     def aliases = [

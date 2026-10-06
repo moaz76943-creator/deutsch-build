@@ -7,6 +7,8 @@ plugins {
 apply from: rootProject.file('release-signing.gradle')
 def releaseSigning = resolveReleaseSigning()
 def hasReleaseSigning = releaseSigning.values().every { it != null && it.toString().trim() }
+def androidToolchain = new Properties()
+rootProject.file('../toolchain.lock').withInputStream { androidToolchain.load(it) }
 
 def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
     taskName.toLowerCase(java.util.Locale.ROOT).contains('release')
@@ -22,7 +24,8 @@ if (releaseTaskRequested && !hasReleaseSigning) {
 android {
     namespace "com.deutschbilarabi.app"
     compileSdk 36
-    // ndkVersion disabled
+    buildToolsVersion androidToolchain.getProperty('ANDROID_BUILD_TOOLS_VERSION')
+    ndkVersion androidToolchain.getProperty('ANDROID_NDK_VERSION')
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -40,6 +43,16 @@ android {
         targetSdk 36
         versionCode 133
         versionName "3.3.10"
+        // Flutter's defaults also include dependency JNI libraries for other ABIs.
+        // Honor a single ARM64 request without changing universal/split builds.
+        def phoneHost = (System.getenv('PREFIX') ?: '') ==~ /\/data\/data\/[^\/]+\/files\/usr/
+        if ((project.findProperty('target-platform') == 'android-arm64' || phoneHost) &&
+                project.findProperty('split-per-abi')?.toString() != 'true') {
+            ndk {
+                abiFilters.clear()
+                abiFilters.add('arm64-v8a')
+            }
+        }
     }
 
     signingConfigs {
@@ -66,6 +79,9 @@ android {
         }
     }
 }
+
+apply from: rootProject.file('termux-packaging.gradle')
+configureTermuxPackaging(android)
 
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"

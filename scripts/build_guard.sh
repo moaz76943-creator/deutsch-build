@@ -26,12 +26,13 @@ done
 command -v flutter >/dev/null 2>&1 || fatal "Flutter is not in PATH"
 command -v dart >/dev/null 2>&1 || fatal "Dart is not in PATH"
 command -v java >/dev/null 2>&1 || fatal "Java is not in PATH"
-FLUTTER_BIN="$(command -v flutter)"
-DART_BIN="$(command -v dart)"
+command -v javac >/dev/null 2>&1 || fatal "A full JDK is required; javac is not in PATH (a Java runtime alone cannot build Android)"
+FLUTTER_BIN="$(readlink -f "$(command -v flutter)")"
+DART_BIN="$(readlink -f "$(command -v dart)")"
 FLUTTER_ROOT="$(cd "$(dirname "$FLUTTER_BIN")/.." && pwd)"
 DART_ROOT="$(cd "$(dirname "$DART_BIN")/.." && pwd)"
-case "$DART_ROOT" in "$FLUTTER_ROOT"*) ;; *) fatal "Dart is not from the selected Flutter toolchain: $DART_ROOT";; esac
-[[ ":$PATH:" == *":$(dirname "$FLUTTER_BIN"):"* ]] || fatal "Flutter bin directory is not present in PATH: $(dirname "$FLUTTER_BIN")"
+case "$DART_ROOT" in "$FLUTTER_ROOT"|"$FLUTTER_ROOT"/*) ;; *) fatal "Dart is not from the selected Flutter toolchain: $DART_ROOT";; esac
+[[ ":$PATH:" == *":$(dirname "$(command -v flutter)"):"* ]] || fatal "Flutter bin directory is not present in PATH"
 check_version "Flutter" "$FLUTTER_VERSION" "$(flutter --version | head -1)"
 check_version "Dart" "$DART_VERSION" "$(dart --version 2>&1 | head -1)"
 JAVA_VERSION="$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2; exit}')"
@@ -57,6 +58,8 @@ log OK "Android SDK ${ANDROID_COMPILE_SDK} / Build Tools ${ANDROID_BUILD_TOOLS_V
 
 if [[ -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION" ]]; then
   log OK "NDK $ANDROID_NDK_VERSION"
+elif is_termux; then
+  log OK "Termux packages prebuilt JNI libraries; no Google host NDK/CMake execution required"
 elif grep -Eq '^[[:space:]]*ndkVersion[[:space:]=]' android/app/build.gradle; then
   fatal "Project declares an NDK but required $ANDROID_NDK_VERSION is missing."
 else
@@ -77,9 +80,10 @@ grep -F "targetSdk $ANDROID_TARGET_SDK" android/app/build.gradle >/dev/null || f
 grep -F "minSdkVersion flutter.minSdkVersion" android/app/build.gradle >/dev/null || fatal "minSdk contract mismatch"
 log OK "AGP $AGP_VERSION / Kotlin $KOTLIN_VERSION / Android targets"
 
-if [[ "$ARCH" =~ ^(aarch64|arm64)$ ]]; then
+if is_termux && [[ "$ARCH" =~ ^(aarch64|arm64)$ ]]; then
   command -v aapt2 >/dev/null 2>&1 || fatal "Termux ARM64 build requires native aapt2 in PATH"
 fi
 
-log OK "Disk space gate disabled; no minimum free-space requirement"
+check_disk_space "$ROOT"
+check_disk_space "$HOME"
 log OK "Build Guard passed"

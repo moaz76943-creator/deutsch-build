@@ -4,6 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$ROOT/toolchain.lock"
+source "$ROOT/scripts/common.sh"
 PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 FLUTTER_VERSION="$FLUTTER_VERSION"
 ANDROID_API="$ANDROID_COMPILE_SDK"
@@ -87,7 +88,7 @@ setup_java() {
     java -version 2>&1 | head -1
     if command -v javac >/dev/null 2>&1; then javac -version 2>&1 | head -1; fi
     major="$(java -version 2>&1 | awk -F'[".]' '/version/ {print $2; exit}')"
-    case "$major" in 17|21) java_ok=true ;; esac
+    case "$major" in 17|21) if command -v javac >/dev/null 2>&1; then java_ok=true; fi ;; esac
   fi
   if [[ "$java_ok" != true ]]; then
     log "Java ${JAVA_MAJOR} not active; installing the pinned OpenJDK only if needed"
@@ -155,9 +156,15 @@ setup_flutter() {
   asset_url="https://github.com/${TERMUX_FLUTTER_REPOSITORY}/releases/download/${TERMUX_FLUTTER_RELEASE_TAG}/${TERMUX_FLUTTER_DEB}"
   mkdir -p "$HOME/.cache/flutter"
 
-  log "Fetching immutable GitHub Release metadata: $TERMUX_FLUTTER_RELEASE_TAG"
-  curl -fL --retry 3 --retry-delay 2 -o "$metadata" "$release_api" || fatal "Could not fetch pinned Termux Flutter release metadata."
-  expected_digest="$(python - "$metadata" "$TERMUX_FLUTTER_DEB" <<'PY'
+  if [[ -n "${TERMUX_FLUTTER_DEB_PATH:-}" ]]; then
+    archive="$TERMUX_FLUTTER_DEB_PATH"
+    expected_digest="${TERMUX_FLUTTER_DEB_SHA256:-}"
+    [[ -f "$archive" && "$expected_digest" =~ ^[0-9a-fA-F]{64}$ ]] || fatal "A local native Flutter package requires its trusted SHA256."
+    printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - || fatal "Local native Flutter package SHA256 mismatch."
+  else
+    log "Fetching immutable GitHub Release metadata: $TERMUX_FLUTTER_RELEASE_TAG"
+    curl -fL --retry 3 --retry-delay 2 -o "$metadata" "$release_api" || fatal "Pinned Termux Flutter release is unavailable. Reuse the installed matching SDK, or supply a trusted TERMUX_FLUTTER_DEB_PATH and TERMUX_FLUTTER_DEB_SHA256; no unverified SDK will be installed."
+    expected_digest="$(python - "$metadata" "$TERMUX_FLUTTER_DEB" <<'PY'
 import json
 import re
 import sys
@@ -176,14 +183,16 @@ if not re.fullmatch(r'sha256:[0-9a-fA-F]{64}', digest):
 
 print(digest.split(':', 1)[1].lower())
 PY
-)" || fatal "Could not resolve a trusted SHA-256 digest for $TERMUX_FLUTTER_DEB."
+  )" || fatal "Could not resolve a trusted SHA-256 digest for $TERMUX_FLUTTER_DEB."
 
-  if [[ -s "$archive" ]] && printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - >/dev/null 2>&1; then
-    log "Verified cached Termux Flutter package: $archive"
-  else
-    download_resumable "$asset_url" "$archive"
+    if [[ -s "$archive" ]] && printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - >/dev/null 2>&1; then
+      log "Verified cached Termux Flutter package: $archive"
+    else
+      download_resumable "$asset_url" "$archive"
+    fi
+    printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - || fatal "Termux Flutter package SHA-256 verification failed."
+
   fi
-  printf '%s  %s\n' "$expected_digest" "$archive" | sha256sum -c - || fatal "Termux Flutter package SHA-256 verification failed."
 
   log "Installing pinned Termux-native Flutter package: $TERMUX_FLUTTER_DEB"
   if ! dpkg -i "$archive"; then
@@ -400,6 +409,7 @@ print_summary() {
 main() {
   exec > >(tee -a "$LOG_FILE") 2>&1
   check_architecture
+  check_disk_space "$HOME"
   setup_repositories
   ensure_required_commands
   check_network
@@ -412,4 +422,4 @@ main() {
   print_summary
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi

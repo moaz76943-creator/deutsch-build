@@ -3,6 +3,7 @@
 set +x
 set -Eeuo pipefail
 IFS=$'\n\t'
+umask 077
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/common.sh"
 load_toolchain
@@ -11,13 +12,15 @@ source "$ROOT/scripts/release-signing.sh"
 SETUP_ONLY=false
 VERIFY=false
 BOOTSTRAP=false
+MODE=release
 for argument in "$@"; do
   case "$argument" in
     --setup-only) SETUP_ONLY=true ;;
     --verify) VERIFY=true ;;
     --bootstrap) BOOTSTRAP=true ;;
+    --debug) MODE=debug ;;
     --help)
-      printf 'Usage: bash scripts/local-release.sh [--setup-only] [--verify] [--bootstrap]\n'
+      printf 'Usage: bash scripts/local-release.sh [--setup-only] [--verify] [--bootstrap] [--debug]\n'
       printf 'Reuses ~/.gradle/release-key.jks or decodes RELEASE_KEYSTORE_BASE64[_FILE].\n'
       exit 0 ;;
     *) fatal "Unknown option: $argument" ;;
@@ -34,7 +37,7 @@ case "${PREFIX:-}" in
   /data/data/*/files/usr)
     # Source the existing bootstrap functions without invoking its debug-build main.
     source "$ROOT/termux_first_build.sh"
-    if [[ "$BOOTSTRAP" == true ]] || ! command -v flutter >/dev/null 2>&1 || ! command -v java >/dev/null 2>&1; then
+    if [[ "$BOOTSTRAP" == true ]] || ! command -v flutter >/dev/null 2>&1 || ! command -v java >/dev/null 2>&1 || ! command -v javac >/dev/null 2>&1; then
       bash "$ROOT/install_flutter.sh"
     fi
     if [[ -z "${FLUTTER_ROOT:-}" ]] && command -v flutter >/dev/null 2>&1; then
@@ -52,8 +55,10 @@ if [[ -z "${JAVA_HOME:-}" ]]; then
 fi
 export PATH="$JAVA_HOME/bin:$PATH"
 
-log CHECK "Validate and persist release signing"
-prepare_release_signing || fatal "Local release signing could not be prepared"
+if [[ "$MODE" == release || "$SETUP_ONLY" == true ]]; then
+  log CHECK "Validate local release signing"
+  prepare_release_signing --interactive || fatal "Run scripts/setup_local_signing.sh once to configure the existing production key"
+fi
 if [[ "$SETUP_ONLY" == true ]]; then
   log OK "Signing configured; run cd android && ./gradlew assembleRelease in a prepared Flutter checkout"
   exit 0
@@ -69,9 +74,15 @@ if [[ -z "$ANDROID_SDK_ROOT" ]]; then
 fi
 [[ -d "$ANDROID_SDK_ROOT" ]] || fatal "Set ANDROID_SDK_ROOT to an installed Android SDK"
 export ANDROID_HOME="$ANDROID_SDK_ROOT"
-export PATH="$ANDROID_SDK_ROOT/build-tools/$ANDROID_BUILD_TOOLS_VERSION:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-python3 "$ROOT/tool/local_build_environment.py" "$FLUTTER_ROOT" "$ANDROID_SDK_ROOT"
+if is_termux && [[ ! -x "$PREFIX/bin/aapt" || ! -x "$PREFIX/bin/aapt2" ]]; then
+  log CHECK "Install native Termux packaging tools"
+  pkg install -y aapt || fatal "Could not install the native Termux aapt package"
+fi
+configure_android_build_path
+build_exports="$(python3 "$ROOT/tool/local_build_environment.py" "$FLUTTER_ROOT" "$ANDROID_SDK_ROOT")"
+eval "$build_exports"
 bash "$ROOT/scripts/build_guard.sh"
+(cd "$ROOT/android" && ./gradlew --version)
 
 snapshot_lockfile
 flutter pub get --enforce-lockfile
@@ -83,26 +94,41 @@ fi
 if [[ "$VERIFY" == true ]]; then
   bash "$ROOT/scripts/local_quality_gate.sh"
 fi
-bash "$ROOT/scripts/signing_guard.sh"
+bash "$ROOT/scripts/check-dart-errors.sh"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
 
 mkdir -p "$ROOT/build/symbols"
-log BUILD "Signed ARM64 release (incremental build and Gradle/pub caches preserved)"
-flutter build apk --release --no-pub \
+log BUILD "ARM64 $MODE (incremental build and Gradle/pub caches preserved)"
+build_options=()
+if [[ "$MODE" == release ]]; then
+  # Flutter 3.44 delegates Android stripping to a host NDK by default. Generate
+  # a stripped AOT snapshot directly so native Termux packaging exposes no DWARF.
+  build_options=(--obfuscate "--split-debug-info=$ROOT/build/symbols" --extra-gen-snapshot-options=--strip)
+fi
+flutter build apk "--$MODE" --no-pub \
   --target-platform android-arm64 \
   --dart-define="DEUTSCH_JSON_CONTENT=${DEUTSCH_JSON_CONTENT:-false}" \
-  --obfuscate --split-debug-info="$ROOT/build/symbols"
+  "${build_options[@]}"
 assert_lockfile_unchanged
 
-APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
-bash "$ROOT/scripts/apk_verify.sh" "$APK" release
+APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"
+bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE"
 {
   printf 'Git Commit: %s\n' "$(git_commit)"
   printf 'Version: %s+%s\n' "$(app_version)" "$(app_build_number)"
   printf 'APK: %s\n' "$APK"
   sha256sum "$APK"
-} > "$ROOT/build/local-release-info.txt"
-if [[ -d "$HOME/storage/downloads" && -w "$HOME/storage/downloads" ]]; then
-  cp "$APK" "$HOME/storage/downloads/deutsch-bilarabi-release.apk"
-fi
-log OK "Signed release verified: $APK"
-cat "$ROOT/build/local-release-info.txt"
+} > "$ROOT/build/local-${MODE}-info.txt"
+for downloads in "${DOWNLOAD_DIR:-/sdcard/Download}" "$HOME/storage/downloads"; do
+  if [[ -d "$downloads" && -w "$downloads" ]]; then
+    destination="$downloads/deutsch-bilarabi-${MODE}.apk"
+    if cp "$APK" "$destination" && cmp -s "$APK" "$destination"; then
+      log OK "Downloads: $destination"
+    else
+      log WARN "Could not copy to Downloads; verified APK remains at $APK"
+    fi
+    break
+  fi
+done
+log OK "$MODE APK verified: $APK"
+cat "$ROOT/build/local-${MODE}-info.txt"

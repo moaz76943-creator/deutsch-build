@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- The current production contract has no notification UI/opt-in wiring.
+         The plugin declares this permission transitively; retain the existing
+         release policy until that feature is explicitly integrated. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"
+        tools:node="remove" />
+</manifest>

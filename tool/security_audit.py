@@ -8,7 +8,7 @@ errors=[]
 def read(path):
     p=ROOT/path
     return p.read_text(encoding='utf-8') if p.exists() else ''
-manifest=read(Path('android/app/src/main/AndroidManifest.xml')); gradle=read(Path('android/app/build.gradle')); workflow=read(Path('.github/workflows/build-apk.yml')); quality=read(Path('.github/workflows/quality.yml')); build_script=read(Path('scripts/build.sh')); source='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (ROOT/'lib').rglob('*.dart'))
+manifest=read(Path('android/app/src/main/AndroidManifest.xml')); gradle=read(Path('android/app/build.gradle')); workflow=read(Path('.github/workflows/worker_release_apk.yml')); quality=read(Path('.github/workflows/quality_gate_ci.yml')); build_script=read(Path('scripts/build.sh')); source='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (ROOT/'lib').rglob('*.dart'))
 checks=[
 ('android.permission.INTERNET' not in manifest,'Offline-first manifest must not request INTERNET.'),
 ('android.permission.RECORD_AUDIO' in manifest,'Pronunciation microphone permission is missing.'),
@@ -25,12 +25,12 @@ checks=[
 ('signingConfig signingConfigs.secureRelease' in gradle,'Release build is not strictly bound to secureRelease signing.'),
 ('--obfuscate' in build_script and '--split-debug-info' in build_script,'Dart obfuscation is missing from the central release build.'),
 ("github.event.repository.private == true" in workflow,'CI has no private-repository gate.'),
-("github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master'" in workflow,'Release workflow manual dispatch is not restricted to main/master.'),
-("github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository" in quality,'Private quality workflow lacks an external-PR execution boundary.'),
+("github.ref_name == 'main'" in workflow and "github.repository == 'sali97m-cpu/deutsch-bilarabi-worker'" in workflow and "vars.BUILD_WORKER_ENABLED == 'true'" in workflow,'Worker release is not restricted to canonical enabled main.'),
+("github.event.repository.private == true" in quality and "github.event_name == 'workflow_dispatch'" in quality and 'pull_request:' not in quality,'Private manual quality workflow lacks an external-PR execution boundary.'),
 ('persist-credentials: false' in workflow and 'persist-credentials: false' in quality,'Checkout persists credentials.'),
-('permissions:\n  contents: read\n  actions: none\n  checks: none\n  id-token: none\n  pull-requests: none' in workflow and 'permissions:\n  contents: read\n  actions: none\n  checks: none\n  id-token: none\n  pull-requests: none' in quality,'CI token permissions are not explicitly minimized.'),
+('permissions:\n  contents: write\n' in workflow and not re.search(r'^  (?:actions|checks|id-token|pull-requests): write$', workflow, re.M) and 'permissions:\n  contents: read\n  actions: none\n  checks: none\n  id-token: none\n  pull-requests: none' in quality,'CI token permissions exceed Worker publication or quality-read requirements.'),
 ('cache: false' in quality and 'pub-cache: false' in quality,'Quality workflow must disable Flutter and pub caches on PR/test surface.'),
-('cache-disabled: true' in quality,'Quality workflow must disable Gradle User Home cache on PR/test surface.'),
+('gradle/actions/setup-gradle@' not in quality or 'cache-disabled: true' in quality,'Quality workflow must disable Gradle User Home cache transfer on test surface.'),
 
 ('retention-days:' in workflow,'Artifact retention is not bounded.'),
 ('GRADLE_WRAPPER_JAR_SHA256=' in read(Path('toolchain.lock')) and 'gradle_wrapper_integrity.py' in read(Path('scripts/build_guard.sh')),'Gradle Wrapper integrity is not pinned.'),

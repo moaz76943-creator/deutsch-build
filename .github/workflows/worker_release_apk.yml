@@ -12,8 +12,9 @@ concurrency:
 
 jobs:
   build-release:
-    if: github.repository == 'sali97m-cpu/deutsch-bilarabi-worker' && vars.BUILD_WORKER_ENABLED == 'true'
-    runs-on: ubuntu-latest
+    if: github.event.repository.private == true && github.repository == 'sali97m-cpu/deutsch-bilarabi-worker' && github.ref_name == 'main' && vars.BUILD_WORKER_ENABLED == 'true'
+    # Default hosted compute; later set JSON labels ["self-hosted","linux","android-build"].
+    runs-on: ${{ fromJSON(vars.BUILD_WORKER_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 35
 
     steps:
@@ -45,25 +46,42 @@ jobs:
           cache: true
           pub-cache: true
 
+      - name: Preserve Gradle caches
+        uses: gradle/actions/setup-gradle@d9c87d481d55275bb5441eef3fe0e46805f9ef70 # v4
+        with:
+          cache-disabled: ${{ vars.BUILD_WORKER_RUNNER_LABELS != '' }}
+
+      - name: Set up Python for the existing content gate
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install lightweight gate dependencies
+        run: python3 -m pip install pytest==8.3.5
+
+      - name: Ensure locked Android SDK tools
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:?Android SDK must be installed on this runner}}"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          SDKMANAGER="${SDKMANAGER:-$SDK/cmdline-tools/latest/bin/sdkmanager}"
+          "$SDKMANAGER" "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" "ndk;${ANDROID_NDK_VERSION}" platform-tools
+          printf 'ANDROID_SDK_ROOT=%s\nANDROID_HOME=%s\n' "$SDK" "$SDK" >> "$GITHUB_ENV"
+          printf '%s\n' "$SDK/build-tools/$ANDROID_BUILD_TOOLS_VERSION" >> "$GITHUB_PATH"
+
+      - name: Materialize verified Gradle wrapper
+        run: python3 tool/gradle_wrapper_bootstrap.py
+
+      - name: Validate build environment
+        run: bash scripts/build_guard.sh
+
       - name: Resolve locked dependencies
         run: flutter pub get --enforce-lockfile
 
       - name: Zero-error Dart pre-check
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          status=0
-          output="$(dart analyze lib/ 2>&1)" || status=$?
-          printf '%s\n' "$output"
-          if grep -Fq "error •" <<<"$output"; then
-            echo "::error::Blocking Dart analyzer errors found under lib/."
-            grep -F "error •" <<<"$output" || true
-            exit 1
-          fi
-          case "$status" in
-            0|2) ;;
-            *) echo "::error::dart analyze failed with unexpected exit code $status"; exit "$status" ;;
-          esac
+        run: bash scripts/check-dart-errors.sh
 
       - name: Verify content ingestion engine
         run: python -m pytest -q tests/quality_gate/test_content_ingestion_engine.py
@@ -72,31 +90,25 @@ jobs:
         shell: bash
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseStoreFile: ${{ runner.temp }}/deutsch-release.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.RELEASE_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          set +x
           set -Eeuo pipefail
           : "${RELEASE_KEYSTORE_BASE64:?Missing RELEASE_KEYSTORE_BASE64}"
-          : "${RELEASE_STORE_PASSWORD:?Missing RELEASE_STORE_PASSWORD}"
-          : "${RELEASE_KEY_ALIAS:?Missing RELEASE_KEY_ALIAS}"
-          : "${RELEASE_KEY_PASSWORD:?Missing RELEASE_KEY_PASSWORD}"
-
           umask 077
-          KEYSTORE="$RUNNER_TEMP/deutsch-release.jks"
-          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
-          test -s "$KEYSTORE"
-
-          mkdir -p "$HOME/.gradle"
-          {
-            printf 'releaseStoreFile=%s\n' "$KEYSTORE"
-            printf 'releaseStorePassword=%s\n' "$RELEASE_STORE_PASSWORD"
-            printf 'releaseKeyAlias=%s\n' "$RELEASE_KEY_ALIAS"
-            printf 'releaseKeyPassword=%s\n' "$RELEASE_KEY_PASSWORD"
-          } >> "$HOME/.gradle/gradle.properties"
-          chmod 600 "$HOME/.gradle/gradle.properties"
+          ROOT="$GITHUB_WORKSPACE"
+          source scripts/release-signing.sh
+          prepare_release_signing --ephemeral
+          printf 'ORG_GRADLE_PROJECT_releaseStoreFile=%s\n' "$ORG_GRADLE_PROJECT_releaseStoreFile" >> "$GITHUB_ENV"
 
       - name: Build signed ARM64 release APK
+        env:
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.RELEASE_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           flutter build apk --release \
             --target-platform android-arm64 \
@@ -106,10 +118,15 @@ jobs:
       - name: Verify release artifact
         id: artifact
         shell: bash
+        env:
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.RELEASE_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           set -Eeuo pipefail
           APK="build/app/outputs/flutter-apk/app-release.apk"
-          test -s "$APK"
+          bash scripts/apk_verify.sh "$APK" release
+          (cd build/app/outputs/flutter-apk && sha256sum app-release.apk > SHA256SUMS.txt && sha256sum --check SHA256SUMS.txt)
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
           printf 'sha256=%s\n' "$SHA256" >> "$GITHUB_OUTPUT"
           printf 'APK: %s\nSHA256: %s\n' "$APK" "$SHA256"
@@ -118,7 +135,10 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: deutsch-bilarabi-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/SHA256SUMS.txt
+            build/symbols/
           if-no-files-found: error
           retention-days: 1
 
@@ -132,6 +152,7 @@ jobs:
           gh release delete worker-latest --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag >/dev/null 2>&1 || true
           gh release create worker-latest \
             build/app/outputs/flutter-apk/app-release.apk#app-release.apk \
+            build/app/outputs/flutter-apk/SHA256SUMS.txt#SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Worker signed APK — ${GITHUB_SHA::12}" \
@@ -181,3 +202,13 @@ jobs:
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=❌ Build Failed - SHA: $GITHUB_SHA
           $RUN_URL" || echo '::warning::Telegram failure notification failed.'
+
+      - name: Remove this job's temporary signing material
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          (Path(os.environ['RUNNER_TEMP']) / 'deutsch-release.jks').unlink(missing_ok=True)
+          PY

@@ -7,13 +7,16 @@ Private source repository for the **DEUTSCH بالعربي** application.
 With the existing Termux keystore at `~/.gradle/release-key.jks`:
 
 ```bash
-cd ~/deutsch-bilarabi && git switch main && git pull --ff-only origin main && bash scripts/local-release.sh
+cd ~/deutsch-bilarabi && git switch main && git pull --ff-only origin main && ./scripts/termux_release.sh
 ```
 
-The script validates and configures signing, preserves build caches, builds an
-ARM64 release, and verifies the APK signature. Java 17 and 21 are supported;
-there is no minimum disk-space gate. See [local release setup](docs/LOCAL_RELEASE.md)
-for Base64 import, first-time toolchain installation, and optional quality checks.
+The script verifies secure local signing (hidden one-time setup when needed),
+preserves caches, checks Dart errors, builds and verifies an ARM64 release, and
+copies it to Downloads when available. Java 17 and 21 are supported. Storage below
+1 GiB stops; below the recommended 3 GiB warns and continues.
+See [Android build and delivery](docs/LOCAL_RELEASE.md) for signing bootstrap,
+phone resource settings, the separate full quality gate, Worker quota fallback
+and future self-hosted migration.
 
 ## CANONICAL ACTIVE REPOSITORY
 
