@@ -24,6 +24,47 @@ python3 tool/content_pack.py export
 
 The CI gate will be able to validate the packs before any later stage makes them runtime-canonical.
 
+## Canonical JSON/CSV ingestion
+
+New vocabulary authoring should use `tools/content_ingestion_engine.py`.
+It accepts UTF-8 JSON or CSV and compiles the rows into the existing canonical
+language-pack document consumed by `tools/language_pack_factory.py`.
+
+Raw JSON/CSV is a **build-time authoring format**. Production runtime remains the
+admitted indexed SQLite corpus, so large datasets are not decoded into the UI
+isolate.
+
+Required fields:
+
+- `id`
+- `level` — `A1`, `A2`, `B1`, or `B2`
+- `german`
+- `arabic`
+
+Optional fields:
+
+- `partOfSpeech`, `article`, `plural`
+- `exampleGerman`, `exampleArabic`
+- `topic`, `skill`, `register`
+- `accepted` — JSON array or `|`-delimited CSV cell
+
+Example:
+
+```bash
+python3 tools/content_ingestion_engine.py \
+  --input content/german/batches/core_a1.csv \
+  --output content/german/generated/core_a1.pack-source.json \
+  --pack-id de-core-a1 \
+  --version 1.0.0
+```
+
+The compiler writes CEFR into `fields.canonical.cefr` and maps the learner-facing
+text fields to the existing SQLite migration contract
+(`translation`, `example`, `exampleTranslation`, `topic`, `skill`,
+`article`, `plural`, and `accepted`). Duplicate IDs, unsupported levels,
+unknown columns/keys, malformed IDs, and unsupported register/article values
+fail closed.
+
 ## Language-owned ingestion manifest (V355)
 
 Each language may declare a small manifest under `content/<language>/` that
