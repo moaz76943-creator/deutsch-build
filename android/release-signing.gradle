@@ -9,9 +9,9 @@ ext.resolveReleaseSigning = {
     def localKeystore = new File(home, '.gradle/release-key.jks')
     def defaults = [
         releaseStoreFile: localKeystore.isFile() ? localKeystore.absolutePath : null,
-        releaseStorePassword: 'deutsch2026',
+        releaseStorePassword: null,
         releaseKeyAlias: 'release',
-        releaseKeyPassword: 'deutsch2026',
+        releaseKeyPassword: null,
     ]
     def aliases = [
         releaseStoreFile: ['RELEASE_KEYSTORE_PATH', 'storeFile'],

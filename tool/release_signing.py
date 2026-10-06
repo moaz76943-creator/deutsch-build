@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 import base64
+import getpass
 import os
 from pathlib import Path
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -58,7 +58,12 @@ def resolve(root: Path = ROOT) -> dict[str, str]:
     gradle_props = properties(root / "android/gradle.properties")
     gradle_props.update(properties(gradle_home / "gradle.properties"))
     keys = properties(root / "android/key.properties")
-    defaults = dict(zip(ALIASES, (str(default) if default.is_file() else "", "deutsch2026", "release", "deutsch2026")))
+    defaults = {
+        "releaseStoreFile": str(default) if default.is_file() else "",
+        "releaseStorePassword": "",
+        "releaseKeyAlias": "release",
+        "releaseKeyPassword": "",
+    }
     result = {}
     for name, (env_alias, file_alias) in ALIASES.items():
         result[name] = next((value for value in (
@@ -143,15 +148,38 @@ def prepare(config: dict[str, str]) -> dict[str, str]:
         local = Path.home() / ".gradle/release-key.jks"
         explicit = os.environ.get("ORG_GRADLE_PROJECT_releaseStoreFile") or os.environ.get("RELEASE_KEYSTORE_PATH")
         if local.is_file() and not explicit:
-            # Recover a stale cloud/worker path in user Gradle properties.
-            config = dict(zip(ALIASES, (str(local), "deutsch2026", "release", "deutsch2026")))
-            for name, (alias, _) in ALIASES.items():
-                config[name] = os.environ.get("ORG_GRADLE_PROJECT_" + name) or os.environ.get(alias) or config[name]
+            # Recover only the local path. Credentials must always come from
+            # private user properties, environment variables, or an interactive
+            # setup prompt; they are never embedded in tracked source.
+            config = dict(config)
+            config["releaseStoreFile"] = str(local)
     validate(config)
     Path(config["releaseStoreFile"]).chmod(0o600)
     gradle_home = Path(os.environ.get("GRADLE_USER_HOME", Path.home() / ".gradle"))
     write_properties(gradle_home / "gradle.properties", config)
     return config
+
+
+def _prompt_missing_credentials(config: dict[str, str]) -> dict[str, str]:
+    """Fill missing private credentials only on an interactive terminal."""
+    if not sys.stdin.isatty():
+        return config
+    has_key_input = bool(
+        config.get("releaseStoreFile")
+        or os.environ.get("RELEASE_KEYSTORE_BASE64")
+        or os.environ.get("RELEASE_KEYSTORE_BASE64_FILE")
+    )
+    if not has_key_input:
+        return config
+    resolved = dict(config)
+    if not resolved.get("releaseStorePassword"):
+        resolved["releaseStorePassword"] = getpass.getpass("Release keystore password: ")
+    if not resolved.get("releaseKeyAlias"):
+        alias = input("Release key alias [release]: ").strip()
+        resolved["releaseKeyAlias"] = alias or "release"
+    if not resolved.get("releaseKeyPassword"):
+        resolved["releaseKeyPassword"] = getpass.getpass("Release key password: ")
+    return resolved
 
 
 def main() -> int:
@@ -161,11 +189,10 @@ def main() -> int:
     try:
         config = resolve()
         if args.prepare:
-            config = prepare(config)
+            config = prepare(_prompt_missing_credentials(config))
         else:
             validate(config)
-        for name, value in config.items():
-            print(f"export ORG_GRADLE_PROJECT_{name}={shlex.quote(value)}")
+        print("[OK] Release signing configuration validated.")
         return 0
     except SigningError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)

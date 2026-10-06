@@ -3,14 +3,11 @@
 set +x
 
 prepare_release_signing() {
-  local signing_exports
-  signing_exports="$(python3 "$ROOT/tool/release_signing.py" --prepare)" || return 1
-  # The helper emits only shell-quoted assignments with fixed variable names.
-  eval "$signing_exports"
+  # The Python helper validates the key and persists private credentials only
+  # under ~/.gradle/gradle.properties (0600). It never prints secret exports.
+  python3 "$ROOT/tool/release_signing.py" --prepare
 }
 
 check_release_signing() {
-  local signing_exports
-  signing_exports="$(python3 "$ROOT/tool/release_signing.py")" || return 1
-  eval "$signing_exports"
+  python3 "$ROOT/tool/release_signing.py"
 }
