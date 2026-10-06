@@ -8,23 +8,24 @@ from tools.language_pack_factory import PackFactoryValidationError, write_catalo
 from tools.pack_manifest_signing import sign_catalog
 
 
-TEST_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
------END PRIVATE KEY-----
-"""
-TEST_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
------END PUBLIC KEY-----
-"""
-
-
 def _write_keys(tmp_path):
     private_key = tmp_path / "test-ed25519-private.pem"
     public_key = tmp_path / "test-ed25519-public.pem"
-    private_key.write_text(TEST_PRIVATE_KEY, encoding="ascii")
-    public_key.write_text(TEST_PUBLIC_KEY, encoding="ascii")
+    generated = subprocess.run(
+        ["openssl", "genpkey", "-algorithm", "ED25519", "-out", str(private_key)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert generated.returncode == 0, generated.stderr.decode(errors="replace")
+    derived = subprocess.run(
+        ["openssl", "pkey", "-in", str(private_key), "-pubout", "-out", str(public_key)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert derived.returncode == 0, derived.stderr.decode(errors="replace")
     return private_key, public_key
-
 
 def _descriptor():
     return {

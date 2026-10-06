@@ -3,6 +3,7 @@ import gzip
 import hashlib
 import json
 import sqlite3
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -17,15 +18,15 @@ from tools.language_pack_factory import (
 
 
 
-_TEST_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
------END PRIVATE KEY-----
-"""
-
-
 def _signing_key(tmp_path: Path) -> Path:
     path = tmp_path / "manifest-test-key.pem"
-    path.write_text(_TEST_PRIVATE_KEY, encoding="ascii")
+    generated = subprocess.run(
+        ["openssl", "genpkey", "-algorithm", "ED25519", "-out", str(path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert generated.returncode == 0, generated.stderr.decode(errors="replace")
     return path
 
 def _source(*, direction="ltr"):

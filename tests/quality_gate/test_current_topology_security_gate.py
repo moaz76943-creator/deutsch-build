@@ -183,6 +183,21 @@ def test_tracked_source_contains_no_signing_key_material_or_literal_credentials(
     ]
     assert not forbidden_files, forbidden_files
 
+    private_key_markers = []
+    private_key_pattern = re.compile(
+        r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"
+    )
+    for path in tracked:
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        if private_key_pattern.search(text):
+            private_key_markers.append(path.relative_to(ROOT).as_posix())
+    assert not private_key_markers, private_key_markers
+
     credential_names = (
         "releaseStorePassword",
         "releaseKeyPassword",
