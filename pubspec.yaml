@@ -39,6 +39,8 @@ flutter:
   assets:
     - content/german/audio_manifest.json
     - content/german/audio/
+    - content/german/batches/core_a1_100.csv
+    - assets/content/a2_pack.csv
     - assets/media/assets_manifest.json
     - assets/media/images/
     - assets/l10n/explain_why/

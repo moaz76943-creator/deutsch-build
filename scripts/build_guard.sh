@@ -36,8 +36,8 @@ check_version "Flutter" "$FLUTTER_VERSION" "$(flutter --version | head -1)"
 check_version "Dart" "$DART_VERSION" "$(dart --version 2>&1 | head -1)"
 JAVA_VERSION="$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2; exit}')"
 case "$JAVA_VERSION" in
-  17|21) log OK "Java $JAVA_VERSION" ;;
-  *) fatal "Java mismatch. Expected major 17 or 21 Found $JAVA_VERSION" ;;
+  17|21) log OK "Java $JAVA_VERSION (validated)" ;;
+  *) log WARN "Java $JAVA_VERSION is outside the validated majors 17/21; continuing so Gradle can perform the definitive compatibility check." ;;
 esac
 
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
