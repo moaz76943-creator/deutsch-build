@@ -2,7 +2,7 @@ final class SrsCorpusContract {
   const SrsCorpusContract._();
 
   /// Schema of the derived, language-neutral runtime SRS corpus.
-  static const int schemaVersion = 1;
+  static const int schemaVersion = 2;
 
   static const String metadataTable = 'srs_corpus_metadata';
   static const String contentTable = 'srs_corpus_content';
@@ -18,6 +18,7 @@ final class SrsCorpusContract {
   static const Set<String> requiredIndexes = <String>{
     'idx_srs_content_topic_skill_id',
     'idx_srs_content_german',
+    'idx_srs_content_cefr_id',
     'idx_srs_accepted_form',
     'idx_srs_verbs_infinitive_person',
   };
@@ -38,6 +39,7 @@ CREATE TABLE srs_corpus_content (
   sentence_ar TEXT NOT NULL,
   topic TEXT NOT NULL,
   skill TEXT NOT NULL,
+  cefr TEXT NOT NULL CHECK (cefr IN ('unknown', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
   article TEXT NOT NULL,
   plural TEXT NOT NULL
 )
@@ -82,6 +84,10 @@ ON srs_corpus_content(topic, skill, id)
     '''
 CREATE INDEX idx_srs_content_german
 ON srs_corpus_content(german, id)
+''',
+    '''
+CREATE INDEX idx_srs_content_cefr_id
+ON srs_corpus_content(cefr, id)
 ''',
     '''
 CREATE INDEX idx_srs_accepted_form

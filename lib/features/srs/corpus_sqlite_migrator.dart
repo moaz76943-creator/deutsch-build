@@ -29,6 +29,16 @@ final class SrsCorpusSqliteMigrator {
     this.pageSize = 256,
   }) : assert(pageSize > 0 && pageSize <= 1024);
 
+  static const Set<String> _supportedCefrLevels = <String>{
+    'unknown',
+    'A1',
+    'A2',
+    'B1',
+    'B2',
+    'C1',
+    'C2',
+  };
+
   final int pageSize;
 
   Future<SrsCorpusMigrationReport> migrate({
@@ -78,13 +88,19 @@ final class SrsCorpusSqliteMigrator {
     String? afterId;
 
     while (true) {
-      final rows = await source.query(
-        'lexicon',
-        columns: const <String>['id', 'surface', 'fields_json'],
-        where: afterId == null ? null : 'id > ?',
-        whereArgs: afterId == null ? null : <Object?>[afterId],
-        orderBy: 'id ASC',
-        limit: pageSize,
+      final rows = await source.rawQuery(
+        '''
+SELECT l.id, l.surface, l.fields_json, c.cefr
+FROM lexicon l
+JOIN concepts c ON c.concept_id = l.id
+${afterId == null ? '' : 'WHERE l.id > ?'}
+ORDER BY l.id ASC
+LIMIT ?
+''',
+        <Object?>[
+          if (afterId != null) afterId,
+          pageSize,
+        ],
       );
       if (rows.isEmpty) break;
 
@@ -127,6 +143,7 @@ final class SrsCorpusSqliteMigrator {
               const <String>['skill'],
               fallback: 'recall',
             ),
+            'cefr': _requiredCefr(row['cefr'], id),
             'article': _firstString(
               fields,
               const <String>['article', 'grammaticalMarker'],
@@ -272,13 +289,21 @@ final class SrsCorpusSqliteMigrator {
   }) async {
     final rows = await source.rawQuery(
       "SELECT name FROM sqlite_master "
-      "WHERE type = 'table' AND name = 'lexicon'",
+      "WHERE type = 'table' AND name IN ('lexicon', 'concepts')",
     );
-    if (rows.length != 1) {
+    final tables = rows
+        .map((row) => row['name']?.toString())
+        .whereType<String>()
+        .toSet();
+    if (!tables.contains('lexicon')) {
       throw StateError('srs_corpus_legacy_lexicon_missing');
     }
+    if (!tables.contains('concepts')) {
+      throw StateError('srs_corpus_concepts_missing');
+    }
     final countRows = await source.rawQuery(
-      'SELECT COUNT(*) AS count FROM lexicon',
+      'SELECT COUNT(*) AS count FROM lexicon l '
+      'JOIN concepts c ON c.concept_id = l.id',
     );
     final raw = countRows.length == 1 ? countRows.single['count'] : null;
     final actual = raw is int ? raw : int.tryParse(raw?.toString() ?? '');
@@ -317,6 +342,17 @@ final class SrsCorpusSqliteMigrator {
       throw const FormatException('srs_corpus_fields_not_object');
     }
     return Map<String, dynamic>.from(decoded);
+  }
+
+  String _requiredCefr(Object? raw, String id) {
+    if (raw is! String) {
+      throw StateError('srs_corpus_cefr_invalid:$id');
+    }
+    final value = raw.trim();
+    if (!_supportedCefrLevels.contains(value)) {
+      throw StateError('srs_corpus_cefr_invalid:$id');
+    }
+    return value;
   }
 
   String _requiredString(
