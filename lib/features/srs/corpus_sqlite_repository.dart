@@ -11,6 +11,7 @@ final class SrsCorpusItem {
     required this.sentenceAr,
     required this.topic,
     required this.skill,
+    required this.cefr,
     required this.article,
     required this.plural,
     required this.accepted,
@@ -23,6 +24,7 @@ final class SrsCorpusItem {
   final String sentenceAr;
   final String topic;
   final String skill;
+  final String cefr;
   final String article;
   final String plural;
   final List<String> accepted;
@@ -205,6 +207,7 @@ final class IndexedSrsCorpusRepository {
         'sentence_ar',
         'topic',
         'skill',
+        'cefr',
         'article',
         'plural',
       ],
@@ -235,7 +238,7 @@ final class IndexedSrsCorpusRepository {
         List<String>.filled(normalized.length, '?').join(',');
     final rows = await _database.rawQuery(
       '''
-SELECT id, german, arabic, sentence, sentence_ar, topic, skill, article, plural
+SELECT id, german, arabic, sentence, sentence_ar, topic, skill, cefr, article, plural
 FROM ${SrsCorpusContract.contentTable}
 WHERE id IN ($placeholders)
 ''',
@@ -304,6 +307,7 @@ ORDER BY content_id ASC, ordinal ASC
             sentenceAr: row['sentence_ar']!.toString(),
             topic: row['topic']!.toString(),
             skill: row['skill']!.toString(),
+            cefr: row['cefr']!.toString(),
             article: row['article']!.toString(),
             plural: row['plural']!.toString(),
             accepted: List<String>.unmodifiable(
