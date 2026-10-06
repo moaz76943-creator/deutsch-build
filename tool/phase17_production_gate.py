@@ -23,7 +23,7 @@ def main() -> int:
 
     gradle = read("android/app/build.gradle")
     proguard = read("android/app/proguard-rules.pro")
-    main_dart = read("lib/main.dart")
+    bootstrap_dart = read("lib/bootstrap/production_bootstrap.dart")
     reporter = read("lib/services/runtime_failure_reporter.dart")
     bundle_script = read("scripts/build-aab.sh")
 
@@ -48,9 +48,9 @@ def main() -> int:
         if token not in proguard:
             fail(f"R8 production rule missing: {token}", errors)
 
-    if "NoopRuntimeFailureReporter" not in main_dart:
+    if "NoopRuntimeFailureReporter" not in bootstrap_dart:
         fail("Unified release crash reporter boundary is not wired.", errors)
-    if "if (!kReleaseMode)" not in main_dart:
+    if "if (!kReleaseMode)" not in bootstrap_dart:
         fail("FlutterError details are not release-gated.", errors)
     if "print(" in reporter or "debugPrint(" in reporter:
         fail("Crash reporter stub emits debug output.", errors)

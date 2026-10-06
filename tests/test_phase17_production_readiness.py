@@ -30,12 +30,12 @@ def test_phase17_r8_preserves_native_boundaries_and_strips_logs():
 
 
 def test_phase17_release_flutter_errors_do_not_print_details():
-    main = read("lib/main.dart")
+    bootstrap = read("lib/bootstrap/production_bootstrap.dart")
     reporter = read("lib/services/runtime_failure_reporter.dart")
     migration = read("lib/services/database_migration_helper.dart")
-    assert "NoopRuntimeFailureReporter" in main
-    assert "if (!kReleaseMode)" in main
-    assert "runtimeFailureReporter.record" in main
+    assert "NoopRuntimeFailureReporter" in bootstrap
+    assert "if (!kReleaseMode)" in bootstrap
+    assert "runtimeFailureReporter.record" in bootstrap
     assert "print(" not in reporter
     assert "debugPrint(" not in reporter
     assert "print(" not in migration
