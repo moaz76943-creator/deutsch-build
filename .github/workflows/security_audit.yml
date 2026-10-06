@@ -22,6 +22,7 @@ concurrency:
 jobs:
   security-audit:
     name: Offline-First Security Audit
+    if: vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

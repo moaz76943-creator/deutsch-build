@@ -17,6 +17,9 @@ concurrency:
 jobs:
   check-url:
     name: Check privacy policy URL
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 2
 

@@ -20,7 +20,9 @@ concurrency:
 jobs:
   guard:
     name: Presentation performance guard
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

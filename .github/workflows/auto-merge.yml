@@ -15,6 +15,7 @@ concurrency:
 jobs:
   enable-auto-merge:
     if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
       github.event.pull_request.base.ref == 'main' &&
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
