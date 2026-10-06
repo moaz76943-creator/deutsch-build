@@ -76,8 +76,29 @@ else
   log TEST "Dart application analyzer (lib/ errors only)"
   bash "$ROOT/scripts/check-dart-errors.sh"
 
-  log TEST "Flutter behavioral tests"
-  flutter test
+  if is_termux; then
+    log SKIP "Flutter behavioral tests skipped on Termux/Android Bionic because Linux flutter_tester is not ABI-compatible"
+
+    PURE_DART_TESTS=()
+    while IFS= read -r dart_test; do
+      if grep -q "package:test/test.dart" "$dart_test" \
+          && ! grep -Eq "package:flutter_test/|package:flutter/|dart:ui" "$dart_test"; then
+        PURE_DART_TESTS+=("$dart_test")
+      fi
+    done < <(
+      find "$ROOT/test" -maxdepth 3 -type f -name '*_test.dart' -print | LC_ALL=C sort
+    )
+
+    if (( ${#PURE_DART_TESTS[@]} > 0 )); then
+      log TEST "Pure Dart behavioral tests (Termux-native Dart VM)"
+      dart test "${PURE_DART_TESTS[@]}"
+    else
+      log SKIP "No pure package:test Dart tests are currently present; Flutter-engine tests remain required on a compatible non-Termux runner"
+    fi
+  else
+    log TEST "Flutter behavioral tests"
+    flutter test
+  fi
 fi
 
 if [[ "$RUN_LEGACY_TEXT_REGRESSIONS" == "1" ]]; then

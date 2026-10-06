@@ -19,7 +19,7 @@ concurrency:
 jobs:
   capture:
     name: Capture Recovery Checkpoint result
-    if: vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
+    if: ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout latest main

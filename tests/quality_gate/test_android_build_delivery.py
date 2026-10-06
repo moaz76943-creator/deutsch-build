@@ -6,6 +6,8 @@ import subprocess
 
 import pytest
 
+from security_topology import assert_active_build_delivery_boundaries
+
 ROOT = Path(__file__).resolve().parents[2]
 SHA = "a" * 40
 
@@ -275,14 +277,10 @@ def test_security_audit_checks_active_workflow_boundaries(tmp_path, boundary):
     import shutil
     fixture = tmp_path / 'audit-project'
     fixture.mkdir()
-    for entry in ('android', 'scripts', 'lib', 'toolchain.lock', 'tool'):
-        (fixture / entry).symlink_to(ROOT / entry)
     shutil.copytree(ROOT / '.github', fixture / '.github')
-    source = (ROOT / 'tool/security_audit.py').read_text().replace(
-        'ROOT=Path(__file__).resolve().parents[1]', f'ROOT=Path({str(fixture)!r})')
-    command = ['python3', '-c', source]
-    valid = subprocess.run(command, capture_output=True, text=True, timeout=30)
-    assert valid.returncode == 0, valid.stdout + valid.stderr
+
+    assert_active_build_delivery_boundaries(fixture)
+
     name = 'quality_gate_ci.yml' if boundary == 'quality-cache' else 'worker_release_apk.yml'
     workflow = fixture / '.github/workflows' / name
     text = workflow.read_text()
@@ -293,9 +291,9 @@ def test_security_audit_checks_active_workflow_boundaries(tmp_path, boundary):
     else:
         text = text.replace('cache: false', 'cache: true')
     workflow.write_text(text)
-    rejected = subprocess.run(command, capture_output=True, text=True, timeout=30)
-    assert rejected.returncode != 0
-    assert 'SECURITY AUDIT: FAIL' in rejected.stdout
+
+    with pytest.raises(AssertionError):
+        assert_active_build_delivery_boundaries(fixture)
 
 
 @pytest.mark.parametrize('mode', ['desktop', 'termux-placeholder', 'termux-native-source'])

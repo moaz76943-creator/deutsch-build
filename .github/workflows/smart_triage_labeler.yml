@@ -12,7 +12,7 @@ permissions:
 jobs:
   triage:
     name: Apply changed-file labels
-    if: vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
+    if: ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Apply labels based on changed files

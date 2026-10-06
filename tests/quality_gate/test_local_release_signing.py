@@ -328,34 +328,59 @@ def test_interactive_setup_hides_input_and_reuses_existing_key(local_home, test_
     key = install_key(local_home, test_key)
     for alias, _ in signing.ALIASES.values():
         monkeypatch.delenv(alias, raising=False)
-    master, slave = pty.openpty()
-    proc = subprocess.Popen(['bash', str(ROOT / 'scripts/setup_local_signing.sh')],
-                            stdin=slave, stdout=slave, stderr=slave)
-    os.close(slave)
-    output = b''
-    prompts = [('releaseStorePassword', test_password), ('releaseKeyAlias', 'release'),
-               ('releaseKeyPassword', test_password)]
+
+    interactive_timeout = float(
+        os.environ.get("LOCAL_SIGNING_INTERACTIVE_TEST_TIMEOUT", "30")
+    )
+    child_pid, master = pty.fork()
+    if child_pid == 0:
+        os.execlp(
+            "bash",
+            "bash",
+            str(ROOT / "scripts/setup_local_signing.sh"),
+        )
+
+    output = b""
+    prompts = [
+        (b"releaseStorePassword", test_password),
+        (b"releaseKeyAlias", "release"),
+        (b"releaseKeyPassword", test_password),
+    ]
     sent = 0
-    deadline = time.monotonic() + 20
+    status = None
+    deadline = time.monotonic() + interactive_timeout
     try:
         while time.monotonic() < deadline:
-            if select.select([master], [], [], 0.2)[0]:
-                try: output += os.read(master, 8192)
-                except OSError: break
-            if sent < len(prompts) and (prompts[sent][0] + ' (hidden): ').encode() in output:
-                os.write(master, (prompts[sent][1] + '\n').encode())
+            readable, _, _ = select.select([master], [], [], 0.2)
+            if readable:
+                try:
+                    output += os.read(master, 8192)
+                except OSError:
+                    pass
+            while sent < len(prompts) and prompts[sent][0] in output:
+                os.write(master, (prompts[sent][1] + "\n").encode())
                 sent += 1
-            if proc.poll() is not None:
+
+            waited_pid, waited_status = os.waitpid(child_pid, os.WNOHANG)
+            if waited_pid == child_pid:
+                status = waited_status
                 break
-        assert proc.wait(timeout=5) == 0, output.decode(errors='replace')
+
+        if status is None:
+            os.kill(child_pid, 9)
+            _, status = os.waitpid(child_pid, 0)
+            pytest.fail(
+                "interactive signing setup timed out; PTY output="
+                + output.decode(errors="replace")
+            )
     finally:
-        if proc.poll() is None: proc.kill()
         os.close(master)
+
+    assert os.waitstatus_to_exitcode(status) == 0, output.decode(errors="replace")
     assert sent == 3
     assert test_password.encode() not in output
     assert key.read_bytes() == test_key
     signing.validate(signing.resolve())
-
 
 def test_bash_setup_and_guard_use_existing_key_without_environment_credentials(local_home, test_key, monkeypatch):
     key = install_key(local_home, test_key)

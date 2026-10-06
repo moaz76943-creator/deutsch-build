@@ -232,6 +232,25 @@ def active_workflows() -> dict[str, WorkflowModel]:
     }
 
 
+
+def assert_active_build_delivery_boundaries(root: Path = ROOT) -> None:
+    workflows = root / ".github" / "workflows"
+
+    worker = parse_workflow(workflows / "worker_release_apk.yml")
+    worker_job = next(job for job in worker.jobs if job.key == "build-release")
+    assert "github.event.repository.private == true" in worker_job.condition
+    assert "github.repository == 'sali97m-cpu/deutsch-bilarabi-worker'" in worker_job.condition
+    assert "github.ref_name == 'main'" in worker_job.condition
+
+    quality = parse_workflow(workflows / "quality_gate_ci.yml")
+    quality_job = next(job for job in quality.jobs if job.key == "quality-gate-ci")
+    setup_flutter = next(
+        step for step in quality_job.steps
+        if step.name == "Set up locked Flutter SDK"
+    )
+    assert setup_flutter.with_values.get("cache") == "false"
+    assert setup_flutter.with_values.get("pub-cache") == "false"
+
 def effective_permissions(
     workflow: WorkflowModel,
     job: WorkflowJob,

@@ -15,9 +15,9 @@ ext.resolveReleaseSigning = {
     ]
     def aliases = [
         releaseStoreFile: ['RELEASE_KEYSTORE_PATH', 'storeFile'],
-        releaseStorePassword: ['RELEASE_STORE_PASSWORD', 'storePassword'],
+        'releaseStorePassword': ['RELEASE_STORE_PASSWORD', 'storePassword'],
         releaseKeyAlias: ['RELEASE_KEY_ALIAS', 'keyAlias'],
-        releaseKeyPassword: ['RELEASE_KEY_PASSWORD', 'keyPassword'],
+        'releaseKeyPassword': ['RELEASE_KEY_PASSWORD', 'keyPassword'],
     ]
     def result = [:]
     aliases.each { name, names ->

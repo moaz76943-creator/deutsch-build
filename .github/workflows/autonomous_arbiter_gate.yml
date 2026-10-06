@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   zero-drift-boundary:
-    if: vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
+    if: ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

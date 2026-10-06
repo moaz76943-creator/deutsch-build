@@ -9,6 +9,7 @@ from security_topology import (
     ANDROID_NS,
     ROOT,
     active_workflows,
+    assert_active_build_delivery_boundaries,
     effective_permissions,
     extract_braced_block,
     manifest_permissions,
@@ -216,8 +217,13 @@ def test_tracked_source_contains_no_signing_key_material_or_literal_credentials(
         "ANDROID_KEYSTORE_BASE64",
         "CM_KEYSTORE_BASE64",
     )
+    # Shell parameter expansion such as \${TOKEN:?Missing TOKEN} is a
+    # runtime reference, not an assignment. Exclude only that syntax while
+    # retaining literal assignment detection everywhere else.
+    credential_alternation = "|".join(map(re.escape, credential_names))
     assignment = re.compile(
-        rf"\b({'|'.join(map(re.escape, credential_names))})\b\s*[:=]\s*(?:['\"]([^'\"]+)['\"]|([^\s#]+))"
+        r"(?<!\$\{)\b(" + credential_alternation + r")\b"
+        r"\s*[:=]\s*(?:['\"]([^'\"]+)['\"]|([^\s#]+))"
     )
     excluded_roots = ("assets/", "content/", "docs/", "tests/")
     source_suffixes = {
@@ -302,6 +308,7 @@ def test_release_signing_is_mandatory_and_worker_materialization_is_ephemeral():
 
 
 def test_all_active_workflows_obey_current_zero_billing_and_supply_chain_policy():
+    assert_active_build_delivery_boundaries()
     workflows = active_workflows()
     assert set(workflows) == set(WORKFLOW_CLASS)
     assert len(workflows) == 30

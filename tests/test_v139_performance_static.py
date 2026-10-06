@@ -26,12 +26,10 @@ def test_verb_index_is_lazy_not_static_constructor_work():
     assert 'LanguageTextNormalizer _textNormalizer' in src
 
 
-def test_search_index_keeps_single_cached_instance_without_eager_map_at_import():
+def test_search_index_uses_explicit_instance_state_without_global_singleton():
     src = read('lib/services/search_index.dart')
-    legacy = read('lib/services/search_index_legacy.dart')
-    assert 'static SearchIndex? _instance;' in legacy
+    assert 'static SearchIndex? _instance;' not in src
     assert 'SearchIndex get instance' not in src
-    assert 'GermanContentPack' in legacy
     assert 'final Map<String, _Entry<T>> _entryCache' in src
 
 

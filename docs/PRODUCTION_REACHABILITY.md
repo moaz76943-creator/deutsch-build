@@ -84,7 +84,7 @@ There is no production import edge from this root chain to either
 | `lib/ui_v35/shared/text/bidi_text.dart` | **LEGACY_COMPATIBILITY** | **No** from the production root | No — consumed by V35 modules as well as tested | No generated reference found | No | No | **Yes** — used by V35 commute, grammar, pronunciation, placement, gamification and word-family modules | A shared V35 presentation component, but no import edge from the current Phase3 production closure was found. |
 | `lib/services/app_dependencies.dart` | **LEGACY_COMPATIBILITY** | **No** — neither production bootstrap nor production runtime imports `AppDependencies` | No — consumed by historical UI modules | No generated reference found | No | No | **Yes** — consumed by `lib/ui/app.dart` and multiple V35 pages | Historical application-wide dependency facade. Current production composes explicit Phase3/runtime dependencies instead. |
 | `lib/services/auth_session_controller.dart` | **LEGACY_COMPATIBILITY** | **No** from the current production root | No — consumed by V35 account/UI code | No generated reference found | No | No | **Yes** — `ui_v35/app.dart` and `ui_v35/account_auth_page.dart` | Account controller is outside the current Phase3 production closure. |
-| `lib/services/search_index_legacy.dart` | **DEAD** | **No** — targeted code search found no `lib/` importer and no `LegacySearchIndex` consumer outside its own definition | **Yes in practice** — tests inspect the file/architecture boundary; they do not consume the runtime API | No generated reference found | No | No | **No current code consumer found** | Historical compatibility facade that would compose `GermanContentPack + SearchIndex + VerbIndex + GermanTextNormalizer`, but the compatibility API is no longer consumed by application code. Retained tests/docs must be reconciled before any deletion. |
+| `lib/services/search_index_legacy.dart` | **RETIRED (was DEAD)** | **No** at the TASK 5 baseline | Historical lexical assertions migrated/retired in TASK 5B | No generated reference found | No | Historical plans remain historical records | **No** | Removed in TASK 5B after reconfirming zero `lib/` consumers. `SearchIndex` behavior guards now assert the dependency-explicit engine directly. |
 
 ## Critical target findings
 
@@ -120,7 +120,7 @@ The file advertises itself as a temporary compatibility facade, but current code
 - V35 architecture tests explicitly forbid V35 from constructing/importing the legacy facade;
 - historical tests still inspect the file and documentation still describes its prior migration role.
 
-Therefore the runtime node is classified **DEAD**, not **LEGACY_COMPATIBILITY**, because no current compatibility caller remains. This is an analysis result only; deletion is outside TASK 5 and would require test/document reconciliation plus normal build/analyzer verification.
+At the TASK 5 baseline the runtime node was classified **DEAD**, not **LEGACY_COMPATIBILITY**, because no current compatibility caller remained. TASK 5B retired the file after migrating meaningful `SearchIndex` assertions away from the facade. Historical versioned architecture documents remain historical records.
 
 ### 4. Historical composition facade
 
@@ -170,3 +170,14 @@ The authoritative production topology at
 with `lib/bootstrap/production_runtime.dart` providing the production runtime/corpus/pack composition and Phase3-specific presentation/runtime modules providing the active UI graph.
 
 Neither historical top-level shell participates in production startup. The V35 directory must be handled file-by-file rather than by directory name, and the old search singleton facade currently has no application consumer.
+
+
+## TASK 5B retirement record
+
+Starting from `main@30081e1fc73f53e1e4da124d06c8659d08a75a79`, TASK 5B used the DEAD classification above as its deletion allowlist.
+
+- Retired: `lib/services/search_index_legacy.dart`.
+- Preserved: `lib/ui/app.dart`, `lib/ui_v35/app.dart`, `lib/ui_v35/safe_ui.dart`, `lib/ui_v35/shared/text/bidi_text.dart`, `lib/services/app_dependencies.dart`, and `lib/services/auth_session_controller.dart` because they are classified `LEGACY_COMPATIBILITY`, not `DEAD`.
+- Meaningful search-index assertions were moved to the dependency-explicit `SearchIndex` implementation.
+- Lexical assertions whose only purpose was to inspect the deleted facade were retired.
+- The V345 guard that forbids reintroducing `LegacySearchIndex` into V35 remains in place.
