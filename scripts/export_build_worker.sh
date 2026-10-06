@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Never trace interactive signing values, even when invoked with bash -x.
+set +x
 set -Eeuo pipefail
 IFS=$'\n\t'
 
@@ -8,37 +10,20 @@ WORKER_NAME="${BUILD_WORKER_NAME:-deutsch-bilarabi-worker}"
 WORKER_REPO="${BUILD_WORKER_REPO:-$WORKER_OWNER/$WORKER_NAME}"
 WORKER_BRANCH="${BUILD_WORKER_BRANCH:-main}"
 SOURCE_BRANCH="${BUILD_WORKER_SOURCE_BRANCH:-main}"
-GRADLE_PROPS="${GRADLE_USER_HOME:-$HOME/.gradle}/gradle.properties"
+SIGNING_SECRETS=(
+  RELEASE_KEYSTORE_BASE64
+  RELEASE_STORE_PASSWORD
+  RELEASE_KEY_ALIAS
+  RELEASE_KEY_PASSWORD
+)
+REQUIRED_SECRETS=("${SIGNING_SECRETS[@]}" TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID)
 
 log() { printf '[worker-export] %s\n' "$*"; }
 fatal() { printf '[worker-export][ERROR] %s\n' "$*" >&2; exit 1; }
 
-read_gradle_property() {
-  local key="$1"
-  [[ -f "$GRADLE_PROPS" ]] || return 0
-  sed -nE "s/^${key}=(.*)$/\\1/p" "$GRADLE_PROPS" | tail -n 1
-}
-
-resolve_keystore_path() {
-  local candidate="$1"
-  [[ -n "$candidate" ]] || return 1
-  if [[ -f "$candidate" ]]; then
-    (cd "$(dirname "$candidate")" && printf '%s/%s\n' "$PWD" "$(basename "$candidate")")
-    return 0
-  fi
-  for base in "$ROOT/android/app" "$ROOT/android" "$ROOT"; do
-    if [[ -f "$base/$candidate" ]]; then
-      (cd "$base/$(dirname "$candidate")" && printf '%s/%s\n' "$PWD" "$(basename "$candidate")")
-      return 0
-    fi
-  done
-  return 1
-}
-
 ensure_auth() {
   command -v gh >/dev/null 2>&1 || fatal "GitHub CLI (gh) is required"
   command -v git >/dev/null 2>&1 || fatal "git is required"
-  command -v base64 >/dev/null 2>&1 || fatal "base64 is required"
 
   if [[ -n "${GITHUB_PAT:-}" && -z "${GH_TOKEN:-}" ]]; then
     export GH_TOKEN="$GITHUB_PAT"
@@ -58,6 +43,8 @@ ensure_worker_repo() {
       --description "Private build worker mirror for Deutsch بالعربي" \
       --disable-issues \
       --disable-wiki
+    # Bootstrap a new repository; preserve an existing repository's enable gate.
+    gh variable set BUILD_WORKER_ENABLED --repo "$WORKER_REPO" --body "true"
   fi
 
   gh api --method PUT "repos/$WORKER_REPO/actions/permissions" \
@@ -67,30 +54,59 @@ ensure_worker_repo() {
     -f default_workflow_permissions=write \
     -F can_approve_pull_request_reviews=false >/dev/null
 
-  gh variable set BUILD_WORKER_ENABLED \
-    --repo "$WORKER_REPO" \
-    --body "true"
 }
 
 sync_signing_secrets() {
-  local store_file store_password key_alias key_password resolved_store
+  local secret_names secret_name secret_value
+  local -a missing=()
+  secret_names="$(gh secret list --repo "$WORKER_REPO" --json name --jq '.[].name')" ||
+    fatal "Unable to list worker secrets; check repository permissions."
+  for secret_name in "${SIGNING_SECRETS[@]}"; do
+    if ! grep -Fxq "$secret_name" <<<"$secret_names"; then
+      missing+=("$secret_name")
+    fi
+  done
+  if [[ "${#missing[@]}" -eq 0 ]]; then
+    log "Signing secrets already exist; skipping bootstrap"
+    return 0
+  fi
 
-  store_file="${RELEASE_KEYSTORE_PATH:-${RELEASE_STORE_FILE:-$(read_gradle_property releaseStoreFile)}}"
-  store_password="${RELEASE_STORE_PASSWORD:-$(read_gradle_property releaseStorePassword)}"
-  key_alias="${RELEASE_KEY_ALIAS:-$(read_gradle_property releaseKeyAlias)}"
-  key_password="${RELEASE_KEY_PASSWORD:-$(read_gradle_property releaseKeyPassword)}"
+  [[ -t 0 ]] || fatal "Missing signing secrets: ${missing[*]}. Run interactively to bootstrap them once."
+  log "One-time signing bootstrap: enter only the missing secrets (input is hidden)."
+  log "Paste RELEASE_KEYSTORE_BASE64 as a single line; it is never decoded or saved locally."
+  for secret_name in "${missing[@]}"; do
+    secret_value=''
+    if ! IFS= read -r -s -p "$secret_name: " secret_value; then
+      unset secret_value
+      printf '\n' >&2
+      fatal "Signing bootstrap interrupted; no build dispatched."
+    fi
+    printf '\n' >&2
+    [[ -n "$secret_value" ]] || fatal "Empty value for $secret_name; no build dispatched."
+    if ! printf '%s' "$secret_value" | gh secret set "$secret_name" --repo "$WORKER_REPO"; then
+      unset secret_value
+      fatal "Unable to set $secret_name; no build dispatched."
+    fi
+    unset secret_value
+  done
+}
 
-  resolved_store="$(resolve_keystore_path "$store_file" || true)"
-  [[ -n "$resolved_store" ]] || fatal "Release keystore was not found. Set RELEASE_KEYSTORE_PATH or configure releaseStoreFile in $GRADLE_PROPS."
-  [[ -n "$store_password" ]] || fatal "Missing RELEASE_STORE_PASSWORD/releaseStorePassword."
-  [[ -n "$key_alias" ]] || fatal "Missing RELEASE_KEY_ALIAS/releaseKeyAlias."
-  [[ -n "$key_password" ]] || fatal "Missing RELEASE_KEY_PASSWORD/releaseKeyPassword."
-
-  log "Synchronizing release-signing secrets to $WORKER_REPO"
-  base64 -w 0 "$resolved_store" | gh secret set RELEASE_KEYSTORE_BASE64 --repo "$WORKER_REPO"
-  printf '%s' "$store_password" | gh secret set RELEASE_STORE_PASSWORD --repo "$WORKER_REPO"
-  printf '%s' "$key_alias" | gh secret set RELEASE_KEY_ALIAS --repo "$WORKER_REPO"
-  printf '%s' "$key_password" | gh secret set RELEASE_KEY_PASSWORD --repo "$WORKER_REPO"
+preflight_check() {
+  local enabled secret_names secret_name
+  local -a missing=()
+  enabled="$(gh variable list --repo "$WORKER_REPO" --json name,value \
+    --jq '.[] | select(.name == "BUILD_WORKER_ENABLED") | .value')" ||
+    fatal "Preflight: unable to read BUILD_WORKER_ENABLED in $WORKER_REPO."
+  [[ "$enabled" == true ]] || fatal "Preflight: BUILD_WORKER_ENABLED must be true in $WORKER_REPO."
+  secret_names="$(gh secret list --repo "$WORKER_REPO" --json name --jq '.[].name')" ||
+    fatal "Preflight: unable to list secrets in $WORKER_REPO."
+  for secret_name in "${REQUIRED_SECRETS[@]}"; do
+    if ! grep -Fxq "$secret_name" <<<"$secret_names"; then
+      missing+=("$secret_name")
+    fi
+  done
+  [[ "${#missing[@]}" -eq 0 ]] || fatal "Preflight: missing worker secrets: ${missing[*]}. Set them with gh secret set before dispatch."
+  log "Preflight passed: worker enabled and all required secrets present"
 }
 
 push_source() {
@@ -120,22 +136,18 @@ push_source() {
 }
 
 dispatch_build() {
-  local attempt
+  preflight_check
   log "Dispatching worker_release_apk.yml (workflow_dispatch avoids [skip ci] suppression)"
-  for attempt in 1 2 3 4 5; do
-    if gh workflow run worker_release_apk.yml --repo "$WORKER_REPO" --ref "$WORKER_BRANCH"; then
-      return 0
-    fi
-    [[ "$attempt" -lt 5 ]] || break
-    sleep 2
-  done
-  fatal "Worker source was pushed, but workflow dispatch failed."
+  # Do not retry an ambiguous dispatch response: GitHub may have accepted it.
+  gh workflow run worker_release_apk.yml --repo "$WORKER_REPO" --ref "$WORKER_BRANCH" ||
+    fatal "Workflow dispatch failed; check worker Actions before retrying."
 }
 
 main() {
   ensure_auth
   ensure_worker_repo
   sync_signing_secrets
+  preflight_check
   push_source
   dispatch_build
 

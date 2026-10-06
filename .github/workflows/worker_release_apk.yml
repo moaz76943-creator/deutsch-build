@@ -1,8 +1,6 @@
 name: Worker Signed Release APK
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -10,7 +8,7 @@ permissions:
 
 concurrency:
   group: worker-signed-release-${{ github.repository }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-release:
@@ -84,6 +82,7 @@ jobs:
           : "${RELEASE_KEY_ALIAS:?Missing RELEASE_KEY_ALIAS}"
           : "${RELEASE_KEY_PASSWORD:?Missing RELEASE_KEY_PASSWORD}"
 
+          umask 077
           KEYSTORE="$RUNNER_TEMP/deutsch-release.jks"
           printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
           test -s "$KEYSTORE"
@@ -150,3 +149,35 @@ jobs:
             echo "- Direct asset: https://github.com/${GITHUB_REPOSITORY}/releases/download/worker-latest/app-release.apk"
             echo "- SHA256: ${APK_SHA256}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Telegram on success
+        if: success()
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/download/worker-latest/app-release.apk
+        run: |
+          set -Eeuo pipefail
+          curl --silent --fail --output /dev/null \
+            --connect-timeout 10 --max-time 30 \
+            --request POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=✅ APK ready - SHA: $GITHUB_SHA
+          $RELEASE_URL" || echo '::warning::Telegram success notification failed.'
+
+      - name: Notify Telegram on failure
+        if: failure()
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -Eeuo pipefail
+          curl --silent --fail --output /dev/null \
+            --connect-timeout 10 --max-time 30 \
+            --request POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=❌ Build Failed - SHA: $GITHUB_SHA
+          $RUN_URL" || echo '::warning::Telegram failure notification failed.'
