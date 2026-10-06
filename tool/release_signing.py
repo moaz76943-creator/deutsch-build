@@ -79,6 +79,26 @@ def resolve(root: Path = ROOT) -> dict[str, str]:
     return result
 
 
+def resolve_ephemeral(root: Path = ROOT) -> dict[str, str]:
+    """Resolve runner signing exclusively from environment variables.
+
+    Ephemeral mode deliberately ignores Gradle/user/key property files so a
+    self-hosted runner cannot inherit stale durable credentials from HOME.
+    """
+    result = {}
+    for name, (env_alias, _) in ALIASES.items():
+        result[name] = next((value for value in (
+            os.environ.get("ORG_GRADLE_PROJECT_" + name),
+            os.environ.get(env_alias),
+        ) if value and value.strip()), "")
+    if result["releaseStoreFile"]:
+        path = Path(result["releaseStoreFile"]).expanduser()
+        if not path.is_absolute():
+            path = root / "android/app" / path
+        result["releaseStoreFile"] = str(path.resolve())
+    return result
+
+
 def validate(config: dict[str, str]) -> None:
     if not all(config.values()):
         raise SigningError("Release signing is incomplete. Provide an existing ~/.gradle/release-key.jks or RELEASE_KEYSTORE_BASE64[_FILE] and signing credentials.")
@@ -96,6 +116,32 @@ def validate(config: dict[str, str]) -> None:
     proc = subprocess.run(command, env=env, capture_output=True, timeout=30)
     if proc.returncode:
         raise SigningError("Keystore validation failed: check store password, private-key alias and key password. The existing keystore was preserved.")
+
+
+def certificate_sha256(config: dict[str, str]) -> str:
+    """Return the public signing-certificate fingerprint without exposing secrets."""
+    env = os.environ.copy()
+    env["DEUTSCH_STORE_PASS"] = config["releaseStorePassword"]
+    proc = subprocess.run(
+        [
+            "keytool",
+            "-exportcert",
+            "-keystore",
+            config["releaseStoreFile"],
+            "-alias",
+            config["releaseKeyAlias"],
+            "-storepass:env",
+            "DEUTSCH_STORE_PASS",
+        ],
+        env=env,
+        capture_output=True,
+        timeout=30,
+    )
+    if proc.returncode or not proc.stdout:
+        raise SigningError(
+            "Signing certificate fingerprint could not be read from the configured keystore."
+        )
+    return hashlib.sha256(proc.stdout).hexdigest()
 
 
 def escape(value: str) -> str:
@@ -144,7 +190,18 @@ def write_properties(path: Path, config: dict[str, str]) -> None:
     temporary.replace(path)
 
 
-def prepare(config: dict[str, str], interactive: bool = False, persist: bool = True) -> dict[str, str]:
+def prepare(
+    config: dict[str, str],
+    interactive: bool = False,
+    persist: bool = True,
+    ephemeral: bool = False,
+) -> dict[str, str]:
+    if ephemeral:
+        if interactive:
+            raise SigningError(
+                "Ephemeral runner signing is non-interactive and must use environment variables."
+            )
+        persist = False
     # Setup is an explicit reconfiguration operation. RELEASE_* inputs must be
     # able to repair an obsolete profile; normal Gradle resolution stays unchanged.
     for name, (alias, _) in ALIASES.items():
@@ -164,7 +221,13 @@ def prepare(config: dict[str, str], interactive: bool = False, persist: bool = T
         encoded = Path(encoded_file).expanduser().read_text(encoding="ascii")
     local = Path.home() / ".gradle/release-key.jks"
     explicit = os.environ.get("ORG_GRADLE_PROJECT_releaseStoreFile") or os.environ.get("RELEASE_KEYSTORE_PATH")
-    if not encoded and local.is_file() and not explicit and not Path(config["releaseStoreFile"]).is_file():
+    if (
+        not ephemeral
+        and not encoded
+        and local.is_file()
+        and not explicit
+        and not Path(config["releaseStoreFile"]).is_file()
+    ):
         config["releaseStoreFile"] = str(local)
     if interactive and sys.stdin.isatty():
         # Already configured credentials are verified before any prompting or writes.
@@ -184,8 +247,21 @@ def prepare(config: dict[str, str], interactive: bool = False, persist: bool = T
         payload = base64.b64decode("".join(encoded.split()), validate=True)
         if not payload:
             raise SigningError("Decoded keystore is empty.")
-        # Explicit decoding repairs stale worker paths without writing under RUNNER_TEMP.
-        destination = Path(config["releaseStoreFile"] if explicit else local).expanduser().resolve()
+        if ephemeral and not explicit:
+            raise SigningError(
+                "Ephemeral signing requires an explicit runner keystore path in the environment."
+            )
+        destination = Path(
+            config["releaseStoreFile"] if explicit else local
+        ).expanduser().resolve()
+        if ephemeral:
+            runner_temp_raw = os.environ.get("RUNNER_TEMP", "").strip()
+            if runner_temp_raw:
+                runner_temp = Path(runner_temp_raw).expanduser().resolve()
+                if destination != runner_temp and runner_temp not in destination.parents:
+                    raise SigningError(
+                        "Ephemeral signing keystore path must stay inside RUNNER_TEMP."
+                    )
         config["releaseStoreFile"] = str(destination)
         if destination.exists():
             if destination.read_bytes() != payload:
@@ -196,9 +272,15 @@ def prepare(config: dict[str, str], interactive: bool = False, persist: bool = T
                 temporary = Path(tmp.name)
                 tmp.write(payload)
             try:
-                validate({**config, "releaseStoreFile": str(temporary)})
+                temporary_config = {**config, "releaseStoreFile": str(temporary)}
+                validate(temporary_config)
+                expected_certificate = certificate_sha256(temporary_config)
                 temporary.chmod(0o600)
                 temporary.replace(destination)
+                if certificate_sha256(config) != expected_certificate:
+                    raise SigningError(
+                        "Signing certificate identity changed while materializing the keystore."
+                    )
             finally:
                 temporary.unlink(missing_ok=True)
     validate(config)
@@ -217,17 +299,18 @@ def main() -> int:
     parser.add_argument("--fingerprint", action="store_true", help="Print the public signing certificate SHA256")
     args = parser.parse_args()
     try:
-        config = resolve()
+        config = resolve_ephemeral() if args.ephemeral else resolve()
         if args.prepare:
-            config = prepare(config, interactive=args.interactive, persist=not args.ephemeral)
+            config = prepare(
+                config,
+                interactive=args.interactive,
+                persist=not args.ephemeral,
+                ephemeral=args.ephemeral,
+            )
         else:
             validate(config)
         if args.fingerprint:
-            env = {**os.environ, "DEUTSCH_STORE_PASS": config["releaseStorePassword"]}
-            cert = subprocess.run(["keytool", "-exportcert", "-keystore", config["releaseStoreFile"],
-                "-alias", config["releaseKeyAlias"], "-storepass:env", "DEUTSCH_STORE_PASS"],
-                env=env, capture_output=True, timeout=30, check=True).stdout
-            print(hashlib.sha256(cert).hexdigest())
+            print(certificate_sha256(config))
         else:
             print("Release signing: verified")
         return 0

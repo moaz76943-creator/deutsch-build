@@ -187,12 +187,141 @@ def test_properties_roundtrip_preserves_escaped_passwords_and_paths(tmp_path):
 
 
 def test_ephemeral_runner_setup_never_persists_credentials(local_home, test_key, monkeypatch):
-    destination = local_home / 'runner-temporary/release.jks'
+    runner_temp = local_home / 'runner-temporary'
+    destination = runner_temp / 'release.jks'
+    props = local_home / '.gradle/gradle.properties'
+    props.parent.mkdir(parents=True, exist_ok=True)
+    props.write_text('custom.keep=yes\n')
+    before = props.read_bytes()
+    monkeypatch.setenv('RUNNER_TEMP', str(runner_temp))
     monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseStoreFile', str(destination))
     monkeypatch.setenv('RELEASE_KEYSTORE_BASE64', base64.b64encode(test_key).decode())
-    config = signing.prepare(signing.resolve(), persist=False)
+    config = signing.prepare(
+        signing.resolve_ephemeral(),
+        ephemeral=True,
+    )
     assert Path(config['releaseStoreFile']).read_bytes() == test_key
+    assert props.read_bytes() == before
+    assert signing.properties(props) == {'custom.keep': 'yes'}
+
+
+def test_ephemeral_resolution_ignores_durable_gradle_credentials(
+    local_home, test_key, test_password, monkeypatch
+):
+    props = local_home / '.gradle/gradle.properties'
+    props.parent.mkdir(parents=True, exist_ok=True)
+    props.write_text(
+        'releaseStorePassword=stale-secret\n'
+        'releaseKeyAlias=stale-alias\n'
+        'releaseKeyPassword=stale-secret\n'
+    )
+    runner_temp = local_home / 'runner'
+    destination = runner_temp / 'release.jks'
+    monkeypatch.setenv('RUNNER_TEMP', str(runner_temp))
+    monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseStoreFile', str(destination))
+    monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseStorePassword', test_password)
+    monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseKeyAlias', 'release')
+    monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseKeyPassword', test_password)
+    config = signing.resolve_ephemeral()
+    assert config['releaseStorePassword'] == test_password
+    assert config['releaseKeyAlias'] == 'release'
+    assert config['releaseKeyPassword'] == test_password
+
+
+def test_worker_shell_ephemeral_forwards_flag_keeps_home_clean_and_preserves_identity(
+    local_home, test_key, test_password, monkeypatch, tmp_path
+):
+    runner_temp = tmp_path / 'runner-temp'
+    runner_temp.mkdir()
+    destination = runner_temp / 'release.jks'
+    props = local_home / '.gradle/gradle.properties'
+    props.parent.mkdir(parents=True, exist_ok=True)
+    props.write_text('custom.keep=yes\n')
+    before = props.read_bytes()
+    encoded = base64.b64encode(test_key).decode()
+
+    source_key = tmp_path / 'source.jks'
+    source_key.write_bytes(test_key)
+    expected_fingerprint = signing.certificate_sha256({
+        'releaseStoreFile': str(source_key),
+        'releaseStorePassword': test_password,
+        'releaseKeyAlias': 'release',
+        'releaseKeyPassword': test_password,
+    })
+
+    env = {
+        **os.environ,
+        'ROOT': str(ROOT),
+        'RUNNER_TEMP': str(runner_temp),
+        'RELEASE_KEYSTORE_BASE64': encoded,
+        'ORG_GRADLE_PROJECT_releaseStoreFile': str(destination),
+        'ORG_GRADLE_PROJECT_releaseStorePassword': test_password,
+        'ORG_GRADLE_PROJECT_releaseKeyAlias': 'release',
+        'ORG_GRADLE_PROJECT_releaseKeyPassword': test_password,
+    }
+    proc = subprocess.run(
+        [
+            'bash',
+            '-c',
+            'set -Eeuo pipefail; source "$ROOT/scripts/release-signing.sh"; '
+            'prepare_release_signing --ephemeral',
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    output = proc.stdout + proc.stderr
+    assert proc.returncode == 0, output
+    assert props.read_bytes() == before
+    assert destination.read_bytes() == test_key
+    assert test_password not in output
+    assert encoded not in output
+    assert signing.certificate_sha256({
+        'releaseStoreFile': str(destination),
+        'releaseStorePassword': test_password,
+        'releaseKeyAlias': 'release',
+        'releaseKeyPassword': test_password,
+    }) == expected_fingerprint
+
+
+def test_ephemeral_cli_refuses_home_fallback(local_home, test_key, monkeypatch, tmp_path):
+    runner_temp = tmp_path / 'runner-temp'
+    runner_temp.mkdir()
+    monkeypatch.setenv('RUNNER_TEMP', str(runner_temp))
+    monkeypatch.setenv('RELEASE_KEYSTORE_BASE64', base64.b64encode(test_key).decode())
+    monkeypatch.delenv('ORG_GRADLE_PROJECT_releaseStoreFile', raising=False)
+    monkeypatch.delenv('RELEASE_KEYSTORE_PATH', raising=False)
+    proc = subprocess.run(
+        ['python3', str(ROOT / 'tool/release_signing.py'), '--prepare', '--ephemeral'],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert proc.returncode != 0
+    assert 'explicit runner keystore path' in proc.stderr
+    assert not (local_home / '.gradle/release-key.jks').exists()
     assert not (local_home / '.gradle/gradle.properties').exists()
+
+
+def test_ephemeral_cli_rejects_keystore_outside_runner_temp(
+    local_home, test_key, monkeypatch, tmp_path
+):
+    runner_temp = tmp_path / 'runner-temp'
+    runner_temp.mkdir()
+    outside = tmp_path / 'outside/release.jks'
+    monkeypatch.setenv('RUNNER_TEMP', str(runner_temp))
+    monkeypatch.setenv('ORG_GRADLE_PROJECT_releaseStoreFile', str(outside))
+    monkeypatch.setenv('RELEASE_KEYSTORE_BASE64', base64.b64encode(test_key).decode())
+    proc = subprocess.run(
+        ['python3', str(ROOT / 'tool/release_signing.py'), '--prepare', '--ephemeral'],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert proc.returncode != 0
+    assert 'inside RUNNER_TEMP' in proc.stderr
+    assert not outside.exists()
 
 
 def test_interactive_setup_hides_input_and_reuses_existing_key(local_home, test_key, test_password, monkeypatch):
