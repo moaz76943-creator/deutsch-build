@@ -13,7 +13,8 @@ permissions:
 jobs:
   sync-decision-ledger:
     if: >-
-      ${{ vars.ARCHITECTURE_LEDGER_SYNC_ENABLED == 'true' &&
+      ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+          vars.ARCHITECTURE_LEDGER_SYNC_ENABLED == 'true' &&
           vars.ARCHITECTURE_LEDGER_BILLING_APPROVED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
