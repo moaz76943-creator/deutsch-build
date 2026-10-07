@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/multilingual_service.dart';
+import '../services/progress_storage_service.dart';
 import 'vocabulary_detail_screen.dart';
 import 'articles_quiz_screen.dart';
 import 'verbs_screen.dart';
@@ -8,6 +9,7 @@ import 'analytics_screen.dart';
 import 'conversation_screen.dart';
 import 'lessons_path_screen.dart';
 import 'notifications_screen.dart';
+import 'settings_screen.dart';
 
 class LanguagesScreen extends StatefulWidget {
   const LanguagesScreen({Key? key}) : super(key: key);
@@ -18,28 +20,66 @@ class LanguagesScreen extends StatefulWidget {
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
   final MultilingualService _service = MultilingualService();
+
   final List<Map<String, String>> _languages = [
-    {'code': 'de', 'name': 'Deutsch', 'sub': 'German / الألمانية'},
+    {'code': 'de', 'name': 'Deutsch', 'sub': 'الألمانية'},
     {'code': 'en', 'name': 'English', 'sub': 'الإنجليزية'},
-    {'code': 'fr', 'name': 'Français', 'sub': 'French / الفرنسية'},
-    {'code': 'tr', 'name': 'Türkçe', 'sub': 'Turkish / التركية'},
-    {'code': 'es', 'name': 'Español', 'sub': 'Spanish / الإسبانية'},
+    {'code': 'fr', 'name': 'Français', 'sub': 'الفرنسية'},
+    {'code': 'es', 'name': 'Español', 'sub': 'الإسبانية'},
+    {'code': 'it', 'name': 'Italiano', 'sub': 'الإيطالية'},
+    {'code': 'tr', 'name': 'Türkçe', 'sub': 'التركية'},
+    {'code': 'ru', 'name': 'Русский', 'sub': 'الروسية'},
+    {'code': 'nl', 'name': 'Nederlands', 'sub': 'الهولندية'},
+    {'code': 'pt', 'name': 'Português', 'sub': 'البرتغالية'},
+    {'code': 'sv', 'name': 'Svenska', 'sub': 'السويدية'},
+    {'code': 'pl', 'name': 'Polski', 'sub': 'البولندية'},
+    {'code': 'da', 'name': 'Dansk', 'sub': 'الدانماركية'},
+    {'code': 'fi', 'name': 'Suomi', 'sub': 'الفنلندية'},
+    {'code': 'el', 'name': 'Ελληνικά', 'sub': 'اليونانية'},
+    {'code': 'ja', 'name': '日本語', 'sub': 'اليابانية'},
+    {'code': 'ko', 'name': '한국어', 'sub': 'الكورية'},
+    {'code': 'zh', 'name': '中文', 'sub': 'الصينية'},
+    {'code': 'hi', 'name': 'हिन्दी', 'sub': 'الهندية'},
+    {'code': 'fa', 'name': 'فارسی', 'sub': 'الفارسية'},
+    {'code': 'ar', 'name': 'العربية', 'sub': 'العربية'},
   ];
 
   String _currentLangCode = 'de';
-  String _currentLangName = 'Deutsch (German)';
+  String _currentLangName = 'Deutsch (الألمانية)';
   Map<String, dynamic>? _currentData;
   bool _isLoading = false;
   int _navIndex = 0;
 
+  int _streak = 14;
+  int _points = 1450;
+  int _accuracy = 98;
+
   @override
   void initState() {
     super.initState();
-    _loadData('de', 'Deutsch (German)');
+    _loadUserProgressAndLanguage();
+  }
+
+  void _loadUserProgressAndLanguage() async {
+    final stats = await ProgressStorageService.getUserStats();
+    final savedCode = stats['langCode'] as String;
+    final match = _languages.firstWhere(
+      (l) => l['code'] == savedCode,
+      orElse: () => _languages[0],
+    );
+
+    setState(() {
+      _streak = stats['streak'] as int;
+      _points = stats['points'] as int;
+      _accuracy = stats['accuracy'] as int;
+    });
+
+    _loadData(match['code']!, '${match['name']} (${match['sub']})');
   }
 
   void _loadData(String code, String name) async {
     setState(() => _isLoading = true);
+    await ProgressStorageService.saveSelectedLanguage(code);
     final data = await _service.loadLanguagePack(code);
     setState(() {
       _currentData = data;
@@ -70,6 +110,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
       MaterialPageRoute(
         builder: (context) => VerbsScreen(
           languageName: _currentLangName,
+          languageCode: _currentLangCode,
           verbs: verbs,
         ),
       ),
@@ -93,7 +134,10 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ConversationScreen(languageName: _currentLangName),
+        builder: (context) => ConversationScreen(
+          languageName: _currentLangName,
+          languageCode: _currentLangCode,
+        ),
       ),
     );
   }
@@ -107,13 +151,17 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     );
   }
 
-  void _openArticlesQuizScreen() {
-    Navigator.push(
+  void _openArticlesQuizScreen() async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const ArticlesQuizScreen(),
       ),
     );
+    final stats = await ProgressStorageService.getUserStats();
+    setState(() {
+      _points = stats['points'] as int;
+    });
   }
 
   void _openNotificationsScreen() {
@@ -121,6 +169,15 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => const NotificationsScreen(),
+      ),
+    );
+  }
+
+  void _openSettingsScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(),
       ),
     );
   }
@@ -152,7 +209,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         return [
           {'article': 'the', 'label': 'Definite / معرفة', 'color': const Color(0xFF2563EB)},
           {'article': 'a', 'label': 'Indefinite / نكرة', 'color': const Color(0xFF10B981)},
-          {'article': 'an', 'label': 'Vowel / قبل حرف علة', 'color': const Color(0xFFF59E0B)},
+          {'article': 'an', 'label': 'Vowel / علة', 'color': const Color(0xFFF59E0B)},
         ];
       case 'fr':
         return [
@@ -166,9 +223,15 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           {'article': 'la', 'label': 'Femenino / مؤنث', 'color': const Color(0xFFEC4899)},
           {'article': 'los', 'label': 'Plural / جمع', 'color': const Color(0xFF10B981)},
         ];
+      case 'it':
+        return [
+          {'article': 'il / lo', 'label': 'Maschile / مذكر', 'color': const Color(0xFF2563EB)},
+          {'article': 'la', 'label': 'Femminile / مؤنث', 'color': const Color(0xFFEC4899)},
+          {'article': 'i / gli', 'label': 'Plurale / جمع', 'color': const Color(0xFF10B981)},
+        ];
       case 'tr':
         return [
-          {'article': '-i', 'label': 'Belirtme / تعريف المفعول', 'color': const Color(0xFF2563EB)},
+          {'article': '-i', 'label': 'Belirtme / مفعول', 'color': const Color(0xFF2563EB)},
           {'article': '-e', 'label': 'Yönelme / إلى', 'color': const Color(0xFF10B981)},
           {'article': '-de', 'label': 'Bulunma / في', 'color': const Color(0xFFF59E0B)},
         ];
@@ -204,7 +267,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text('Deutsch بالعربي', style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('Multilingual Master • إتقان اللغات', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                Text('20 Languages Suite • إتقان اللغات', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
               ],
             ),
           ],
@@ -213,7 +276,11 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF334155)),
             onPressed: _openNotificationsScreen,
-          )
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Color(0xFF334155)),
+            onPressed: _openSettingsScreen,
+          ),
         ],
       ),
       body: _isLoading
@@ -326,11 +393,11 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        _buildStatBox(Icons.local_fire_department_rounded, Colors.orange, '14', 'Day Streak / أيام'),
+                        _buildStatBox(Icons.local_fire_department_rounded, Colors.orange, '$_streak', 'Day Streak / أيام'),
                         const SizedBox(width: 12),
-                        _buildStatBox(Icons.star_rounded, Colors.amber, '1,450', 'Points / نقاط'),
+                        _buildStatBox(Icons.star_rounded, Colors.amber, '$_points', 'Points / نقاط'),
                         const SizedBox(width: 12),
-                        _buildStatBox(Icons.verified_rounded, Colors.green, '98%', 'Accuracy / دقة'),
+                        _buildStatBox(Icons.verified_rounded, Colors.green, '$_accuracy%', 'Accuracy / دقة'),
                       ],
                     ),
                     const SizedBox(height: 24),
