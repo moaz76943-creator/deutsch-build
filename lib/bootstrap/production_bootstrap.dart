@@ -10,6 +10,7 @@ import '../core/agents/agents.dart';
 import '../core/content_contract.dart';
 import '../core/explainer/explainer.dart';
 import '../core/quick_review/quick_review.dart';
+import '../core/storage/local_db/learner_state_database.dart';
 import '../core/curriculum/canonical_curriculum_50.dart';
 import '../core/infrastructure/audio/flutter_tts_audio_engine.dart';
 import '../features/audio/data/android_recorded_audio_player.dart';
@@ -30,6 +31,8 @@ import '../language/german/german_language_pack.dart';
 import '../language/german/german_speech_profile.dart';
 import '../models/learner.dart';
 import '../services/learner_persistence.dart';
+import '../services/learner_state_migration.dart';
+import '../services/legacy_learner_snapshot_reader.dart';
 import '../services/open_source_license_registry.dart';
 import '../services/preferences_service.dart';
 import '../services/repository.dart';
@@ -220,6 +223,7 @@ Future<_ActivatedPhase3App> _activateProduction({
         await resolvedCorpusSession.resolution.closeCorpus();
         await resolvedCorpusSession.resolution.grammarHubService.close();
         await recoveryPairProgress?.close();
+        await learnerRepository.persistence.close();
         await gamificationRepository.close();
         await _runtimeCoordinator.shutdownActivatedRuntime(
           runtime: systemAgents,
@@ -297,6 +301,8 @@ final class _RenderFirstBootstrapAppState
     });
 
     GamificationRepository? gamificationRepository;
+    LearnerPersistence? learnerPersistence;
+    LearnerStateDatabase? unownedLearnerDatabase;
     try {
       final prefs = await PreferencesService.instance();
       _updateBootstrapStatus('جاري فتح بيانات التقدم المحلية…');
@@ -308,14 +314,42 @@ final class _RenderFirstBootstrapAppState
             const AndroidGamificationClockIntegritySource(),
       );
       gamificationRepository = openedGamificationRepository;
-      final learnerPersistence = LearnerPersistence(
+
+      final openedLearnerDatabase = await LearnerStateDatabase.open();
+      unownedLearnerDatabase = openedLearnerDatabase;
+      final preparedLearnerPersistence = LearnerPersistence(
         prefs,
         LearnerRepository.key,
         LearnerRepository.legacyFavoriteKey,
       );
+      learnerPersistence = preparedLearnerPersistence;
+      final learnerMigration = LearnerStateMigration(
+        database: openedLearnerDatabase,
+        legacyReader: LegacyLearnerSnapshotReader(
+          prefs: prefs,
+          storageKey: LearnerRepository.key,
+          legacyFavoriteKey: LearnerRepository.legacyFavoriteKey,
+        ),
+      );
+
+      try {
+        final migrationResult = await learnerMigration.migrateAndVerify();
+        await preparedLearnerPersistence.bindVerifiedSqliteAuthority(
+          database: openedLearnerDatabase,
+          migrationRecord: migrationResult.record,
+        );
+        unownedLearnerDatabase = null;
+      } on Object {
+        final fallbackAllowed =
+            await learnerMigration.canFallbackToLegacy();
+        if (!fallbackAllowed) rethrow;
+        await openedLearnerDatabase.close();
+        unownedLearnerDatabase = null;
+      }
+
       final learnerRepository = LearnerRepository(
         prefs,
-        persistence: learnerPersistence,
+        persistence: preparedLearnerPersistence,
         gamificationReviewSink: openedGamificationRepository,
       );
       final state = learnerRepository.load();
@@ -355,6 +389,7 @@ final class _RenderFirstBootstrapAppState
         if (next is _ActivatedPhase3App) {
           await next.shutdown();
         } else {
+          await preparedLearnerPersistence.close();
           await openedGamificationRepository.close();
         }
         return;
@@ -364,6 +399,8 @@ final class _RenderFirstBootstrapAppState
         _loading = false;
       });
     } catch (error) {
+      await learnerPersistence?.close();
+      await unownedLearnerDatabase?.close();
       await gamificationRepository?.close();
       await _runtimeCoordinator.dispatchRecoveryError(
         error: error,
@@ -536,6 +573,7 @@ final class _PlacementBootstrapAppState
     _notifier.dispose();
     unawaited(_closePlacementAudio());
     if (_activated == null) {
+      unawaited(widget.learnerRepository.persistence.close());
       unawaited(widget.gamificationRepository.close());
     }
     super.dispose();

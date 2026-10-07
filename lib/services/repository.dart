@@ -204,7 +204,7 @@ class LearnerRepository {
           _withoutLegacyPairProgress(s),
         );
         await persistence.save(persisted);
-        _cachedState = persisted;
+        _cachedState = persistence.load();
       });
 
   Future<Set<String>> loadAndMigrateFavoriteVerbs() => _enqueue(() async {
@@ -230,8 +230,7 @@ class LearnerRepository {
       });
 
   Future<void> recordAssessment(AssessmentResult result) => _enqueue(() async {
-        final s = load();
-        final history = [
+        final persisted = await persistence.recordAssessmentOnce(
           AssessmentHistory(
             id: result.id,
             at: result.at,
@@ -239,14 +238,12 @@ class LearnerRepository {
             weakSkills: result.weakSkills,
             answered: result.answered,
           ),
-          ...s.assessmentHistory,
-        ].take(100).toList();
-        await _saveNow(s.copyWith(assessmentHistory: history));
+        );
+        _cachedState = persisted;
       });
 
   Future<void> recordWritingMistake({required String issue, DateTime? at}) =>
       _enqueue(() async {
-        final s = load();
         final key = 'writing:${issue.trim().toLowerCase()}';
         final now = at ?? DateTime.now();
         final attempt = Attempt(
@@ -259,25 +256,24 @@ class LearnerRepository {
           seconds: 5,
           at: now,
         );
-        final attempts = [...s.attempts, attempt];
-        await _saveNow(
-          s.copyWith(
-            attempts: attempts.length > maxAttempts
-                ? attempts.sublist(attempts.length - maxAttempts)
-                : attempts,
-          ),
+        final result = await persistence.applyReviewAttemptOnce(
+          reviewEventId: attempt.id,
+          attempt: attempt,
+          compatibilityXpDelta: 0,
         );
+        _cachedState = result.state;
       });
 
   Future<void> toggleFavoriteVerb(String infinitive) => _enqueue(() async {
         final value = infinitive.trim();
         if (value.isEmpty || value.length > 120) return;
-        final s = load();
-        final f = {...s.favoriteVerbs};
-        if (f.contains(value))
-          f.remove(value);
-        else if (f.length < maxCollectionItems) f.add(value);
-        await _saveNow(s.copyWith(favoriteVerbs: f));
+        final current = load();
+        final shouldFavorite = !current.favoriteVerbs.contains(value);
+        final persisted = await persistence.setFavoriteMembership(
+          value,
+          isFavorite: shouldFavorite,
+        );
+        _cachedState = persisted;
       });
 
   Future<void> _saveNow(LearnerState s) async {
@@ -285,7 +281,7 @@ class LearnerRepository {
       _withoutLegacyPairProgress(s),
     );
     await persistence.save(persisted);
-    _cachedState = persisted;
+    _cachedState = persistence.load();
   }
 
   Future<void> _reconcileAcceptedReviewBestEffort({
@@ -488,7 +484,6 @@ class LearnerRepository {
     required bool hinted,
   }) =>
       _enqueue(() async {
-        final s = load();
         final now = DateTime.now();
         final safeId = itemId.trim();
         if (safeId.isEmpty || safeId.length > 160) return;
@@ -502,16 +497,12 @@ class LearnerRepository {
           seconds: seconds.clamp(0, 3600).toInt(),
           at: now,
         );
-        final bounded = [...s.attempts, attempt];
-        final kept = bounded.length > maxAttempts
-            ? bounded.sublist(bounded.length - maxAttempts)
-            : bounded;
-        await _saveNow(
-          s.copyWith(
-            xp: (s.xp + (correct ? 10 : 2)).clamp(0, maxXp),
-            attempts: kept,
-          ),
+        final result = await persistence.applyReviewAttemptOnce(
+          reviewEventId: attempt.id,
+          attempt: attempt,
+          compatibilityXpDelta: correct ? 10 : 2,
         );
+        _cachedState = result.state;
       });
 }
 
@@ -638,13 +629,7 @@ final class _PairProgressAuthority {
 extension PlacementDiagnosticRepository on LearnerRepository {
   Future<void> recordPlacementDiagnostic(PlacementDiagnosticRecord record) =>
       _enqueue(() async {
-        final state = load();
-        final history = <PlacementDiagnosticRecord>[
-          record,
-          ...state.placementHistory.where(
-            (existing) => existing.id != record.id,
-          ),
-        ].take(20).toList(growable: false);
-        await _saveNow(state.copyWith(placementHistory: history));
+        final persisted = await persistence.recordPlacementOnce(record);
+        _cachedState = persisted;
       });
 }

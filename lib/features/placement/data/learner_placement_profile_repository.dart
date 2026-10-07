@@ -55,17 +55,12 @@ final class LearnerPlacementProfileRepository
           (result.learningGoal ?? PlacementLearningGoal.general).name,
     );
 
-    final history = <PlacementDiagnosticRecord>[
-      record,
-      ...state.placementHistory.where((entry) => entry.id != record.id),
-    ].take(20).toList(growable: false);
-
     await repository.save(
       state.copyWith(
         review: review,
         reviewCards: cards,
-        placementHistory: history,
       ),
     );
+    await repository.recordPlacementDiagnostic(record);
   }
 }

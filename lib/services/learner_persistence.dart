@@ -3,7 +3,9 @@ import 'dart:convert';
 import '../models/learner.dart';
 import '../models/diagnostic_placement.dart';
 import '../core/srs_facets.dart';
+import '../core/storage/local_db/learner_state_database.dart';
 import 'preferences_service.dart';
+import 'legacy_learner_snapshot_reader.dart';
 
 enum LearnerPersistenceFailureCode { payloadTooLarge, writeFailed }
 
@@ -46,11 +48,17 @@ final class ReviewAttemptApplyException implements Exception {
 /// Owns the physical representation and migration of persisted learner state.
 /// It contains no learner-domain orchestration and no UI/authentication logic.
 class LearnerPersistence {
-  const LearnerPersistence(this.prefs, this.storageKey, this.legacyFavoriteKey);
+  LearnerPersistence(this.prefs, this.storageKey, this.legacyFavoriteKey);
 
   final PreferencesService prefs;
   final String storageKey;
   final String legacyFavoriteKey;
+
+  LearnerStateDatabase? _sqliteDatabase;
+  LearnerMigrationRecord? _cutoverRecord;
+  LearnerSqliteSnapshot? _sqliteSnapshot;
+  LearnerState? _legacyStateCache;
+  bool _closed = false;
   static const maxAttempts = 2000;
   static const maxCollectionItems = 20000;
   static const maxReviewStorageKeyLength = 1024;
@@ -59,7 +67,87 @@ class LearnerPersistence {
   static const maxMistakeProgress = 5000;
   static const maxPayloadBytes = 4 * 1024 * 1024;
 
+  bool get hasVerifiedSqliteAuthority =>
+      _sqliteDatabase != null &&
+      _cutoverRecord != null &&
+      _sqliteSnapshot != null;
+
+  Future<void> bindVerifiedSqliteAuthority({
+    required LearnerStateDatabase database,
+    required LearnerMigrationRecord migrationRecord,
+  }) async {
+    if (_closed) {
+      throw const LearnerPersistenceSqliteException(
+        'learner_persistence_closed',
+      );
+    }
+
+    final revision = await database.loadRevision();
+    if (revision < migrationRecord.cutoverRevision) {
+      throw const LearnerPersistenceSqliteException(
+        'learner_store_revision_regressed',
+      );
+    }
+
+    final snapshot = await database.readSnapshot();
+    if (revision == migrationRecord.cutoverRevision) {
+      final hash =
+          await LegacyLearnerSnapshotReader.canonicalSnapshotSha256(
+        snapshot,
+      );
+      if (hash != migrationRecord.importedSnapshotSha256 ||
+          snapshot.attempts.length != migrationRecord.attemptCount ||
+          snapshot.assessmentHistory.length !=
+              migrationRecord.assessmentCount ||
+          snapshot.placementHistory.length !=
+              migrationRecord.placementCount ||
+          snapshot.favoriteVerbs.length !=
+              migrationRecord.favoriteCount) {
+        throw const LearnerPersistenceSqliteException(
+          'verified_learner_sqlite_snapshot_mismatch',
+        );
+      }
+    }
+
+    _sqliteDatabase = database;
+    _cutoverRecord = migrationRecord;
+    _sqliteSnapshot = snapshot;
+    _legacyStateCache = _loadLegacy();
+  }
+
+  Future<bool> canUseLegacyRollbackBuffer() async {
+    final database = _sqliteDatabase;
+    final record = _cutoverRecord;
+    if (database == null || record == null) return true;
+    try {
+      final revision = await database.loadRevision();
+      return revision <= record.cutoverRevision;
+    } on Object {
+      return false;
+    }
+  }
+
   LearnerState load() {
+    final snapshot = _sqliteSnapshot;
+    if (!hasVerifiedSqliteAuthority || snapshot == null) {
+      return _loadLegacy();
+    }
+    final legacy = _legacyStateCache ?? _loadLegacy();
+    return LearnerState(
+      xp: legacy.xp,
+      streak: legacy.streak,
+      learned: legacy.learned,
+      review: legacy.review,
+      favoriteVerbs: snapshot.favoriteVerbs,
+      reviewCards: legacy.reviewCards,
+      attempts: snapshot.attempts,
+      assessmentHistory: snapshot.assessmentHistory,
+      placementHistory: snapshot.placementHistory,
+      updatedAt: legacy.updatedAt,
+    );
+  }
+
+  LearnerState _loadLegacy() {
     try {
       final raw = prefs.getString(storageKey);
       if (raw == null || raw.length > 4 * 1024 * 1024)
@@ -157,8 +245,32 @@ class LearnerPersistence {
     }
   }
 
-  Future<void> save(LearnerState s) async {
-    final payload = jsonEncode(_toJson(s));
+  Future<void> save(LearnerState state) async {
+    final normalized = normalize(state);
+    if (!hasVerifiedSqliteAuthority) {
+      await _writeLegacy(normalized);
+      return;
+    }
+
+    final rollback = _legacyStateCache ?? _loadLegacy();
+    final legacyOnly = LearnerState(
+      xp: normalized.xp,
+      streak: normalized.streak,
+      learned: normalized.learned,
+      review: normalized.review,
+      favoriteVerbs: rollback.favoriteVerbs,
+      reviewCards: normalized.reviewCards,
+      attempts: rollback.attempts,
+      assessmentHistory: rollback.assessmentHistory,
+      placementHistory: rollback.placementHistory,
+      updatedAt: normalized.updatedAt,
+    );
+    await _writeLegacy(legacyOnly);
+    _legacyStateCache = legacyOnly;
+  }
+
+  Future<void> _writeLegacy(LearnerState state) async {
+    final payload = jsonEncode(_toJson(state));
     final encodedPayloadBytes = utf8.encode(payload);
     if (encodedPayloadBytes.length > maxPayloadBytes) {
       throw const LearnerPersistenceFailure(
@@ -169,6 +281,9 @@ class LearnerPersistence {
       throw const LearnerPersistenceFailure(
         LearnerPersistenceFailureCode.writeFailed,
       );
+    }
+    if (hasVerifiedSqliteAuthority) {
+      _legacyStateCache = state;
     }
   }
 
@@ -215,6 +330,20 @@ class LearnerPersistence {
       );
     }
 
+    final database = _sqliteDatabase;
+    if (hasVerifiedSqliteAuthority && database != null) {
+      final result = await database.applyAttemptOnce(normalizedAttempt);
+      if (!result.alreadyApplied) {
+        await _refreshSqliteSnapshot();
+      }
+      return ReviewAttemptApplyResult(
+        status: result.alreadyApplied
+            ? ReviewAttemptApplyStatus.alreadyApplied
+            : ReviewAttemptApplyStatus.applied,
+        state: load(),
+      );
+    }
+
     final current = load();
     final existing = current.attempts
         .where((candidate) => candidate.id == normalizedReviewEventId)
@@ -258,19 +387,174 @@ class LearnerPersistence {
     );
   }
 
-  Future<LearnerState> loadAndMigrateFavoriteVerbs(LearnerState current) async {
+  Future<LearnerState> recordAssessmentOnce(
+    AssessmentHistory assessment,
+  ) async {
+    final database = _sqliteDatabase;
+    if (hasVerifiedSqliteAuthority && database != null) {
+      final result = await database.recordAssessmentOnce(
+        _normalizeAssessmentHistory(assessment),
+      );
+      if (!result.alreadyApplied) {
+        await _refreshSqliteSnapshot();
+      }
+      return load();
+    }
+
+    final current = load();
+    final existing = current.assessmentHistory
+        .where((item) => item.id == assessment.id)
+        .toList(growable: false);
+    if (existing.isNotEmpty) {
+      if (!existing.every(
+        (item) => _assessmentsEquivalent(item, assessment),
+      )) {
+        throw const LearnerPersistenceSqliteException(
+          'assessment_payload_mismatch',
+        );
+      }
+      return current;
+    }
+    final history = <AssessmentHistory>[
+      _normalizeAssessmentHistory(assessment),
+      ...current.assessmentHistory,
+    ].take(100).toList(growable: false);
+    final next = normalize(
+      current.copyWith(assessmentHistory: history),
+    );
+    await save(next);
+    return next;
+  }
+
+  Future<LearnerState> recordPlacementOnce(
+    PlacementDiagnosticRecord placement,
+  ) async {
+    final database = _sqliteDatabase;
+    if (hasVerifiedSqliteAuthority && database != null) {
+      final result = await database.recordPlacementOnce(placement);
+      if (!result.alreadyApplied) {
+        await _refreshSqliteSnapshot();
+      }
+      return load();
+    }
+
+    final current = load();
+    final existing = current.placementHistory
+        .where((item) => item.id == placement.id)
+        .toList(growable: false);
+    if (existing.isNotEmpty) {
+      if (!existing.every(
+        (item) => _placementsEquivalent(item, placement),
+      )) {
+        throw const LearnerPersistenceSqliteException(
+          'placement_payload_mismatch',
+        );
+      }
+      return current;
+    }
+    final history = <PlacementDiagnosticRecord>[
+      placement,
+      ...current.placementHistory,
+    ].take(20).toList(growable: false);
+    final next = normalize(
+      current.copyWith(placementHistory: history),
+    );
+    await save(next);
+    return next;
+  }
+
+  Future<LearnerState> setFavoriteMembership(
+    String verb, {
+    required bool isFavorite,
+  }) async {
+    final value = verb.trim();
+    if (value.isEmpty || value.length > 160) {
+      throw ArgumentError.value(
+        verb,
+        'verb',
+        'must be 1..160 characters',
+      );
+    }
+
+    final database = _sqliteDatabase;
+    if (hasVerifiedSqliteAuthority && database != null) {
+      final result = await database.setFavoriteMembership(
+        verb: value,
+        isFavorite: isFavorite,
+      );
+      if (!result.alreadyApplied) {
+        await _refreshSqliteSnapshot();
+      }
+      return load();
+    }
+
+    final current = load();
+    final favorites = <String>{...current.favoriteVerbs};
+    if (isFavorite) {
+      if (favorites.length >= maxCollectionItems &&
+          !favorites.contains(value)) {
+        throw const LearnerPersistenceSqliteException(
+          'favorite_row_bound_exceeded',
+        );
+      }
+      favorites.add(value);
+    } else {
+      favorites.remove(value);
+    }
+    final next = normalize(
+      current.copyWith(favoriteVerbs: favorites),
+    );
+    await save(next);
+    return next;
+  }
+
+  Future<void> _refreshSqliteSnapshot() async {
+    final database = _sqliteDatabase;
+    final record = _cutoverRecord;
+    if (database == null || record == null) {
+      throw const LearnerPersistenceSqliteException(
+        'sqlite_authority_not_bound',
+      );
+    }
+    try {
+      _sqliteSnapshot = await database.readSnapshot();
+    } on Object {
+      final revision = await database.loadRevision();
+      if (revision > record.cutoverRevision) {
+        throw const LearnerPersistenceSqliteException(
+          'stale_legacy_fallback_forbidden',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<LearnerState> loadAndMigrateFavoriteVerbs(
+    LearnerState current,
+  ) async {
+    if (hasVerifiedSqliteAuthority) {
+      return load();
+    }
     final legacy = prefs.getStringList(legacyFavoriteKey) ?? const <String>[];
     if (legacy.isEmpty) return current;
     final merged = {...current.favoriteVerbs, ..._boundedStrings(legacy)};
     final persisted = normalize(current.copyWith(favoriteVerbs: merged));
     await save(persisted);
-    await prefs.remove(legacyFavoriteKey);
     return persisted;
   }
 
   Future<bool> clearLocalData() async {
     var success = true;
     try {
+      final database = _sqliteDatabase;
+      if (database != null) {
+        await database.clearAuthoritativeStateForUserReset();
+        await database.close();
+        _sqliteDatabase = null;
+        _cutoverRecord = null;
+        _sqliteSnapshot = null;
+        _legacyStateCache = null;
+      }
       final hadPrimary = prefs.getString(storageKey) != null;
       final hadLegacy = prefs.getStringList(legacyFavoriteKey) != null;
       if (hadPrimary && !await prefs.remove(storageKey)) success = false;
@@ -278,6 +562,18 @@ class LearnerPersistence {
       return success;
     } catch (_) {
       return false;
+    }
+  }
+
+  Future<void> close() async {
+    if (_closed) return;
+    _closed = true;
+    final database = _sqliteDatabase;
+    _sqliteDatabase = null;
+    _cutoverRecord = null;
+    _sqliteSnapshot = null;
+    if (database != null) {
+      await database.close();
     }
   }
 
@@ -360,6 +656,62 @@ class LearnerPersistence {
       ReviewFacetKey.normalizeVariant(left.variantKey) ==
           ReviewFacetKey.normalizeVariant(right.variantKey);
 
+  static bool _assessmentsEquivalent(
+    AssessmentHistory left,
+    AssessmentHistory right,
+  ) =>
+      left.id == right.id &&
+      left.at.toUtc().microsecondsSinceEpoch ==
+          right.at.toUtc().microsecondsSinceEpoch &&
+      left.score == right.score &&
+      left.answered == right.answered &&
+      _orderedStringsEqual(left.weakSkills, right.weakSkills);
+
+  static bool _placementsEquivalent(
+    PlacementDiagnosticRecord left,
+    PlacementDiagnosticRecord right,
+  ) {
+    if (left.id != right.id ||
+        left.at.toUtc().microsecondsSinceEpoch !=
+            right.at.toUtc().microsecondsSinceEpoch ||
+        left.answered != right.answered ||
+        left.scoredAnswers != right.scoredAnswers ||
+        left.score != right.score ||
+        left.confidence != right.confidence ||
+        left.band != right.band ||
+        left.curriculumStartLevel != right.curriculumStartLevel ||
+        left.recommendedStartTaskOrder !=
+            right.recommendedStartTaskOrder ||
+        left.learningGoal != right.learningGoal ||
+        !_orderedStringsEqual(left.reviewItemIds, right.reviewItemIds) ||
+        left.weakDimensions.length != right.weakDimensions.length ||
+        left.dimensionScores.length != right.dimensionScores.length) {
+      return false;
+    }
+    for (var index = 0;
+        index < left.weakDimensions.length;
+        index += 1) {
+      if (left.weakDimensions[index] != right.weakDimensions[index]) {
+        return false;
+      }
+    }
+    for (final entry in left.dimensionScores.entries) {
+      if (right.dimensionScores[entry.key] != entry.value) return false;
+    }
+    return true;
+  }
+
+  static bool _orderedStringsEqual(
+    List<String> left,
+    List<String> right,
+  ) {
+    if (left.length != right.length) return false;
+    for (var index = 0; index < left.length; index += 1) {
+      if (left[index] != right[index]) return false;
+    }
+    return true;
+  }
+
   static Map<String, ReviewCard> _normalizeReviewCards(
     Map<String, ReviewCard> source,
   ) {
@@ -413,4 +765,14 @@ class LearnerPersistence {
           .take(maxCollectionItems)
           .toSet()
       : <String>{};
+}
+
+
+final class LearnerPersistenceSqliteException implements Exception {
+  const LearnerPersistenceSqliteException(this.code);
+
+  final String code;
+
+  @override
+  String toString() => 'LearnerPersistenceSqliteException($code)';
 }
