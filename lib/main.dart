@@ -1,36 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'screens/languages_screen.dart';
+import 'views/home_hub_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
-  runApp(const MyApp());
+  runApp(const DeutschBiArabiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class DeutschBiArabiApp extends StatelessWidget {
+  const DeutschBiArabiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Deutsch بالعربي',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2563EB),
-          primary: const Color(0xFF2563EB),
+          seedColor: Colors.blueAccent,
+          brightness: Brightness.light,
         ),
-        fontFamily: 'Roboto',
       ),
-      home: const LanguagesScreen(),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blueAccent,
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: ThemeMode.system,
+      home: const HomeHubScreen(),
     );
   }
 }
