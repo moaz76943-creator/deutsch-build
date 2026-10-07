@@ -22,6 +22,7 @@ from verification_cache import fingerprint, load as load_cache, is_valid as cach
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT_JSON = ROOT / "content" / "content_items.json"
 VERB_JSON = ROOT / "content" / "verb_conjugations.json"
+EDITORIAL_CORRECTIONS = ROOT / "content" / "german" / "editorial_corrections.jsonl"
 PARSER = ROOT / "tool" / "content_pack.py"
 
 CONTENT_FIELDS = ("id", "german", "arabic", "sentence", "sentenceAr", "topic", "skill", "article", "plural", "accepted")
@@ -57,12 +58,60 @@ def verb_row(row: dict[str, object]) -> str:
     return "VerbConjugation(" + ",".join(parts) + "),"
 
 
+def _load_editorial_corrections(path: Path = EDITORIAL_CORRECTIONS) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    corrections: list[dict[str, str]] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"invalid editorial correction at line {line_number}") from exc
+        if not isinstance(row, dict) or set(row) != {"id", "field", "from", "to", "rule"}:
+            raise ValueError(f"editorial correction schema mismatch at line {line_number}")
+        if row["field"] != "sentence" or row["rule"] != "REMOVE_DUPLICATED_GERMAN_ARTICLE":
+            raise ValueError(f"unsupported editorial correction at line {line_number}")
+        corrections.append({key: str(value) for key, value in row.items()})
+    return corrections
+
+
+def _apply_editorial_corrections(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    corrections = _load_editorial_corrections()
+    if not corrections:
+        return rows
+    by_id = {str(row.get("id")): index for index, row in enumerate(rows)}
+    updated = [dict(row) for row in rows]
+    seen: set[tuple[str, str]] = set()
+    for correction in corrections:
+        key = (correction["id"], correction["field"])
+        if key in seen:
+            raise ValueError(f"duplicate editorial correction: {key}")
+        seen.add(key)
+        if correction["id"] not in by_id:
+            raise ValueError(f"editorial correction references unknown id: {correction['id']}")
+        row = updated[by_id[correction["id"]]]
+        field = correction["field"]
+        if row.get(field) != correction["from"]:
+            raise ValueError(f"editorial correction precondition mismatch: {correction['id']}/{field}")
+        row[field] = correction["to"]
+    return updated
+
+
+def _fingerprint_sources(content_path: Path, verb_path: Path) -> list[Path]:
+    sources = [content_path, verb_path]
+    if EDITORIAL_CORRECTIONS.exists():
+        sources.append(EDITORIAL_CORRECTIONS)
+    return sources
+
+
 def load(content_path: Path = CONTENT_JSON, verb_path: Path = VERB_JSON) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     content = json.loads(content_path.read_text(encoding="utf-8"))
     verbs = json.loads(verb_path.read_text(encoding="utf-8"))
     if not isinstance(content, list) or not isinstance(verbs, list):
         raise ValueError("content pack roots must be arrays")
-    return content, verbs
+    return _apply_editorial_corrections(content), verbs
 
 
 def _write_if_changed(path: Path, text: str) -> bool:
@@ -114,7 +163,7 @@ def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: P
     output_dir.mkdir(parents=True, exist_ok=True)
     cache_key = "content_compilation"
     if cache_path is not None:
-        fp = fingerprint([content_path, verb_path], config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
+        fp = fingerprint(_fingerprint_sources(content_path, verb_path), config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
         cached = load_cache(cache_path)
         if cache_valid(cached.get(cache_key, {}), fp) and (output_dir / "content_items_generated.dart").exists() and (output_dir / "verb_conjugations_generated.dart").exists():
             return output_dir / "content_items_generated.dart", output_dir / "verb_conjugations_generated.dart"
@@ -135,7 +184,7 @@ def compile_to(output_dir: Path, content_path: Path = CONTENT_JSON, verb_path: P
     _write_aggregate(content_out, f"import '{content_model_uri}';", content_imports, "generatedContentItems = <ContentItem>", content_spread)
     _write_aggregate(verbs_out, f"import '{verb_model_uri}';", verb_imports, "generatedVerbConjugations = <VerbConjugation>", verb_spread)
     if cache_path is not None:
-        fp = fingerprint([content_path, verb_path], config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
+        fp = fingerprint(_fingerprint_sources(content_path, verb_path), config={"chunk_size": CHUNK_SIZE, "fields": CONTENT_FIELDS + VERB_FIELDS}, tool_version="V379")
         store_cache(cache_path, "content_compilation", fp, {"status": "PASS", "content_chunk_hashes": content_hashes, "verb_chunk_hashes": verb_hashes})
     return content_out, verbs_out
 
