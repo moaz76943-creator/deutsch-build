@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../services/multilingual_service.dart';
 import 'vocabulary_detail_screen.dart';
 import 'articles_quiz_screen.dart';
+import 'verbs_screen.dart';
+import 'grammar_screen.dart';
+import 'analytics_screen.dart';
 
 class LanguagesScreen extends StatefulWidget {
   const LanguagesScreen({Key? key}) : super(key: key);
@@ -24,6 +27,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   String _currentLangName = 'Deutsch (الألمانية)';
   Map<String, dynamic>? _currentData;
   bool _isLoading = false;
+  int _navIndex = 0;
 
   @override
   void initState() {
@@ -56,6 +60,32 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     );
   }
 
+  void _openVerbsScreen() {
+    final verbs = (_currentData?['verbConjugations'] as List?) ?? [];
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VerbsScreen(
+          languageName: _currentLangName,
+          verbs: verbs,
+        ),
+      ),
+    );
+  }
+
+  void _openGrammarScreen() {
+    final rules = (_currentData?['grammarRules'] as List?) ?? [];
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GrammarScreen(
+          languageName: _currentLangName,
+          rules: rules,
+        ),
+      ),
+    );
+  }
+
   void _openArticlesQuizScreen() {
     Navigator.push(
       context,
@@ -63,6 +93,17 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         builder: (context) => const ArticlesQuizScreen(),
       ),
     );
+  }
+
+  void _onBottomNavTapped(int index) {
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
+      );
+    } else {
+      setState(() => _navIndex = index);
+    }
   }
 
   @override
@@ -119,11 +160,11 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected ? const Color(0xFF2563EB) : Colors.white,
                                 borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
-                                    color: isSelected ? const Color(0x402563EB) : const Color(0x08000000),
+                                    color: Color(0x08000000),
                                     blurRadius: 8,
-                                    offset: const Offset(0, 4),
+                                    offset: Offset(0, 4),
                                   )
                                 ],
                               ),
@@ -226,8 +267,16 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                           borderRadius: BorderRadius.circular(16),
                           child: _buildFeatureCard(Icons.library_books_rounded, 'المفردات', '300,000 كلمة', const Color(0xFF3B82F6), const Color(0xFFEFF6FF)),
                         ),
-                        _buildFeatureCard(Icons.transform_rounded, 'الأفعال', '60,000 تصريف', const Color(0xFF10B981), const Color(0xFFECFDF5)),
-                        _buildFeatureCard(Icons.menu_book_outlined, 'القواعد', '14,000 قاعدة', const Color(0xFFF59E0B), const Color(0xFFFFFBEB)),
+                        InkWell(
+                          onTap: _openVerbsScreen,
+                          borderRadius: BorderRadius.circular(16),
+                          child: _buildFeatureCard(Icons.transform_rounded, 'الأفعال', '60,000 تصريف', const Color(0xFF10B981), const Color(0xFFECFDF5)),
+                        ),
+                        InkWell(
+                          onTap: _openGrammarScreen,
+                          borderRadius: BorderRadius.circular(16),
+                          child: _buildFeatureCard(Icons.menu_book_outlined, 'القواعد', '14,000 قاعدة', const Color(0xFFF59E0B), const Color(0xFFFFFBEB)),
+                        ),
                         _buildFeatureCard(Icons.record_voice_over_rounded, 'المحادثة', 'نطق سليم', const Color(0xFF8B5CF6), const Color(0xFFF5F3FF)),
                       ],
                     ),
@@ -252,7 +301,8 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         selectedItemColor: const Color(0xFF2563EB),
         unselectedItemColor: const Color(0xFF94A3B8),
         showUnselectedLabels: true,
-        currentIndex: 0,
+        currentIndex: _navIndex,
+        onTap: _onBottomNavTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'الرئيسية'),
           BottomNavigationBarItem(icon: Icon(Icons.school_rounded), label: 'الدروس'),
