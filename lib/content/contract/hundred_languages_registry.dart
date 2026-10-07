@@ -2,6 +2,7 @@ class LanguageDefinition {
   const LanguageDefinition({
     required this.code,
     required this.name,
+    required this.nativeName,
     required this.family,
     this.hasGenderCases = false,
     this.hasComplexVerbConjugation = true,
@@ -9,6 +10,7 @@ class LanguageDefinition {
 
   final String code;
   final String name;
+  final String nativeName;
   final String family;
   final bool hasGenderCases;
   final bool hasComplexVerbConjugation;
@@ -16,6 +18,7 @@ class LanguageDefinition {
   Map<String, dynamic> toJson() => {
         'code': code,
         'name': name,
+        'nativeName': nativeName,
         'family': family,
         'hasGenderCases': hasGenderCases,
         'hasComplexVerbConjugation': hasComplexVerbConjugation,
@@ -27,30 +30,35 @@ class HundredLanguagesRegistry {
     const LanguageDefinition(
       code: 'de',
       name: 'German',
+      nativeName: 'Deutsch',
       family: 'Germanic',
       hasGenderCases: true,
     ),
     const LanguageDefinition(
       code: 'ar',
       name: 'Arabic',
+      nativeName: 'العربية',
       family: 'Semitic',
       hasGenderCases: true,
     ),
     const LanguageDefinition(
       code: 'en',
       name: 'English',
+      nativeName: 'English',
       family: 'Germanic',
       hasGenderCases: false,
     ),
     const LanguageDefinition(
       code: 'fr',
       name: 'French',
+      nativeName: 'Français',
       family: 'Romance',
       hasGenderCases: true,
     ),
     const LanguageDefinition(
       code: 'es',
       name: 'Spanish',
+      nativeName: 'Español',
       family: 'Romance',
       hasGenderCases: true,
     ),
