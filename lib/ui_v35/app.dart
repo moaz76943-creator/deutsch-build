@@ -77,6 +77,8 @@ import 'conversation_pages.dart';
 
 import 'progress_pages.dart';
 
+part 'app_progress_section.dart';
+
 
 Widget rtlAppBuilder(BuildContext context, Widget? child) => Directionality(
       textDirection: TextDirection.rtl,
@@ -243,7 +245,7 @@ class _HomeState extends State<HomeV35> {
       case 2:
         return _practiceTab(c);
       case 3:
-        return _progressTab(c);
+        return this._progressTab(c);
       case 4:
         return _practiceTab(c);
       case 0:
@@ -373,9 +375,10 @@ class _HomeState extends State<HomeV35> {
       child: FutureBuilder<GamificationSnapshot>(
         future: _homeGamification,
         builder: (context, snapshot) {
-          final profile = snapshot.data?.profile;
-          final streak = profile?.currentStreak ?? state.streak;
-          final xp = profile?.totalXp ?? state.xp;
+          final profile =
+              snapshot.data?.profile ?? const GamificationProfile();
+          final streak = profile.currentStreak;
+          final xp = profile.totalXp;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 112),
@@ -881,197 +884,7 @@ class _HomeState extends State<HomeV35> {
         ],
       );
 
-  Widget _progressTab(BuildContext c) => ListView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
-        children: [
-          _sectionTitle(
-            c,
-            'تقدمك ومسارك',
-            'التقدم ليس رقمًا واحدًا؛ نراقب الاستدعاء والاستماع والإنتاج والنقل.',
-          ),
-          _featureCard(
-            c,
-            'لوحة المتعلم وخطة اليوم',
-            'تحليلات دقيقة + مراجعة SRS تكيفية حسب العناصر المستحقة',
-            Icons.psychology_outlined,
-            () {
-              final bundle = DashboardAnalyticsBuilder.build(
-                state: widget.repo.load(),
-                corpus: widget.dependencies.corpus,
-                contentIntelligence:
-                    widget.dependencies.languagePack.contentIntelligence,
-                nowUtc: DateTime.now().toUtc(),
-                timezoneOffsetMinutes: DateTime.now().timeZoneOffset.inMinutes,
-              );
-              Navigator.push(
-                c,
-                MaterialPageRoute(
-                  builder: (dashboardContext) => LearnerDashboardView(
-                    analytics: bundle.analytics,
-                    languageCode: widget.dependencies.languagePack.sourceLocale,
-                    onStartQuickReview: (ids) {
-                      final candidates = [
-                        for (final id in ids)
-                          if (bundle.mistakesByItem[id] != null)
-                            bundle.mistakesByItem[id]!,
-                      ];
-                      if (candidates.isEmpty) return;
-                      Navigator.push(
-                        dashboardContext,
-                        MaterialPageRoute(
-                          builder: (_) => MistakeRepairPage(
-                            repo: widget.repo,
-                            mistake: candidates.first,
-                            corpus: widget.dependencies.corpus,
-                            exerciseStrategy:
-                                widget.dependencies.languagePack.exerciseStrategy,
-                            contentQuality:
-                                widget.dependencies.languagePack.contentQuality,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              );
-            },
-            primary: true,
-          ),
-          _featureCard(
-            c,
-            'تطوري ومستواي',
-            'اعرض اتجاه تقدمك',
-            Icons.trending_up_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => ProgressPage(
-                  repo: widget.repo,
-                  corpus: widget.dependencies.corpus,
-                  exerciseStrategy:
-                      widget.dependencies.languagePack.exerciseStrategy,
-                  presentation: widget.dependencies.languagePack.presentation,
-                  contentQuality:
-                      widget.dependencies.languagePack.contentQuality,
-                  textNormalizer:
-                      widget.dependencies.languagePack.textNormalizer,
-                  contentIntelligence:
-                      widget.dependencies.languagePack.contentIntelligence,
-                ),
-              ),
-            ),
-          ),
-          _featureCard(
-            c,
-            'الإنجازات و XP',
-            'السلسلة اليومية والشارات والمعلم التالي',
-            Icons.workspace_premium_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => GamificationDashboardPage(
-                  repository: widget.dependencies.gamificationRepository,
-                ),
-              ),
-            ),
-          ),
-          _featureCard(
-            c,
-            'تقرير الأسبوع',
-            'محاولات ودقة ومراجعات',
-            Icons.insights_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(builder: (_) => WeeklyPage(state: state)),
-            ),
-          ),
-          _featureCard(
-            c,
-            'مساري الشخصي',
-            'خطة تعلم تتكيف مع نقاط ضعفك',
-            Icons.route_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => PersonalizedPathPage(
-                  repo: widget.repo,
-                  corpus: widget.dependencies.corpus,
-                  searchIndex: widget.dependencies.searchIndex,
-                  verbIndex: widget.dependencies.verbIndex,
-                  onDone: refresh,
-                  exerciseStrategy:
-                      widget.dependencies.languagePack.exerciseStrategy,
-                  presentation: widget.dependencies.languagePack.presentation,
-                  textNormalizer:
-                      widget.dependencies.languagePack.textNormalizer,
-                  contentQuality:
-                      widget.dependencies.languagePack.contentQuality,
-                  contentIntelligence:
-                      widget.dependencies.languagePack.contentIntelligence,
-                ),
-              ),
-            ),
-          ),
-          _featureCard(
-            c,
-            'حالة أدوات التطبيق',
-            'ما هو مفعّل وما يحتاج تطويرًا',
-            Icons.verified_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(builder: (_) => FeatureStatusPage()),
-            ),
-          ),
-          _featureCard(
-            c,
-            'الخصوصية والميزات المتصلة',
-            'تحكم واضح في الميزات السحابية',
-            Icons.privacy_tip_outlined,
-            () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => PrivacyCenterPage(
-                  privacySettings: widget.dependencies.privacySettings,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
 
-  Widget _sectionTitle(BuildContext c, String title, String subtitle) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(c)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 5),
-            Text(subtitle),
-          ],
-        ),
-      );
-  Widget _featureCard(
-    BuildContext c,
-    String title,
-    String subtitle,
-    IconData icon,
-    VoidCallback onTap, {
-    bool primary = false,
-  }) =>
-      FeatureNavigationCard(
-        title: title,
-        subtitle: subtitle,
-        icon: icon,
-        onTap: onTap,
-        primary: primary,
-      );
 }
 
 class DynamicUiVariationHelpers {

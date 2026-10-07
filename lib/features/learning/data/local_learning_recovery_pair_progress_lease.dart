@@ -20,6 +20,7 @@ final class LocalLearningRecoveryPairProgressLease {
     required String targetLanguageId,
     required bool sourceIsRtl,
     required bool targetIsRtl,
+    required int migratedAchievementPoints,
     AppSqlitePolicy sqlitePolicy = const AppSqlitePolicy(),
   }) async {
     if (repository.hasPairProgressAuthority) {
@@ -69,7 +70,7 @@ final class LocalLearningRecoveryPairProgressLease {
         engine: engine,
         pair: pair,
         migrateLegacy: needsMigration,
-        migratedAchievementPoints: legacy.xp,
+        migratedAchievementPoints: migratedAchievementPoints,
       );
       return LocalLearningRecoveryPairProgressLease._(store);
     } on Object {

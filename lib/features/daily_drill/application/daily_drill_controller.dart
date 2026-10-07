@@ -97,6 +97,7 @@ final class DailyDrillController extends ChangeNotifier {
 
   void start({
     required LearnerState learnerState,
+    required int currentStreak,
     required Iterable<LearningContent> corpus,
     required DateTime now,
     int limit = 10,
@@ -119,12 +120,12 @@ final class DailyDrillController extends ChangeNotifier {
       _state = DailyDrillState(
         status: DailyDrillStatus.completed,
         session: session,
-        currentStreak: learnerState.streak,
+        currentStreak: currentStreak,
         summary: DrillResultSummary(
           reviewedCards: 0,
           correctCards: 0,
           totalSeconds: 0,
-          currentStreak: learnerState.streak,
+          currentStreak: currentStreak,
           sessionXp: 0,
         ),
       );
@@ -132,7 +133,7 @@ final class DailyDrillController extends ChangeNotifier {
       _state = DailyDrillState(
         status: DailyDrillStatus.active,
         session: session,
-        currentStreak: learnerState.streak,
+        currentStreak: currentStreak,
       );
     }
     notifyListeners();

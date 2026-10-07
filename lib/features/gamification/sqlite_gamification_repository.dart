@@ -40,6 +40,8 @@ final class GamificationReviewEventException implements Exception {
 }
 
 final class SqliteGamificationRepository implements GamificationRepository {
+  static const int schemaVersion = 4;
+  static const String metaTable = 'gamification_store_meta';
   SqliteGamificationRepository._(
     this._database,
     this._clockIntegritySource,
@@ -54,7 +56,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     GamificationClockIntegritySource clockIntegritySource =
         const UnavailableGamificationClockIntegritySource(),
   }) =>
-      openWithFactory(
+      SqliteGamificationRepository.openWithFactory(
         sqflite.databaseFactory,
         databasePath,
         clockIntegritySource: clockIntegritySource,
@@ -69,7 +71,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
     final database = await factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: SqliteGamificationRepository.schemaVersion,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
@@ -110,7 +112,8 @@ final class SqliteGamificationRepository implements GamificationRepository {
               unlocked_at_utc TEXT NOT NULL
             )
           ''');
-          await _resetProfile(db);
+          await SqliteGamificationRepository._createMeta(db);
+          await SqliteGamificationRepository._resetProfile(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -131,6 +134,11 @@ final class SqliteGamificationRepository implements GamificationRepository {
             await db.execute(
               'ALTER TABLE gamification_review_events ADD COLUMN boot_count INTEGER',
             );
+          }
+          if (oldVersion < 4) {
+            await SqliteGamificationRepository._createMeta(db);
+            await SqliteGamificationRepository
+                ._initializeRevisionForUpgrade(db);
           }
         },
       ),
@@ -158,11 +166,18 @@ final class SqliteGamificationRepository implements GamificationRepository {
         ? null
         : timezoneOffsetMinutes.clamp(-840, 840).toInt();
     final localDay = safeReviewAt != null && safeOffset != null
-        ? _dayKey(safeReviewAt, safeOffset)
+        ? SqliteGamificationRepository._dayKey(
+            safeReviewAt,
+            safeOffset,
+          )
         : null;
 
     return _database.transaction((txn) async {
-      final current = await _readProfile(txn);
+      final revision =
+          await SqliteGamificationRepository._readRevision(txn);
+      if (revision != 0) return false;
+      final current =
+          await SqliteGamificationRepository._readProfile(txn);
       final events = await txn.query(
         'gamification_review_events',
         columns: const <String>['event_id'],
@@ -222,6 +237,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }
+      await SqliteGamificationRepository._bumpRevision(txn);
       return true;
     });
   }
@@ -287,7 +303,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
         limit: 1,
       );
       if (duplicate.isNotEmpty) {
-        if (!_matchesImmutableReviewPayload(
+        if (!SqliteGamificationRepository._matchesImmutableReviewPayload(
           duplicate.first,
           expectedPayload,
         )) {
@@ -301,8 +317,10 @@ final class SqliteGamificationRepository implements GamificationRepository {
         );
       }
 
-      final current = await _readProfile(txn);
-      final unlocked = await _readUnlocked(txn);
+      final current =
+          await SqliteGamificationRepository._readProfile(txn);
+      final unlocked =
+          await SqliteGamificationRepository._readUnlocked(txn);
       final unlockedIds = unlocked.map((item) => item.badgeId).toSet();
       final transition = GamificationEngine.apply(
         current,
@@ -364,6 +382,7 @@ final class SqliteGamificationRepository implements GamificationRepository {
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }
+      await SqliteGamificationRepository._bumpRevision(txn);
 
       return GamificationReviewApplyResult(
         status: GamificationReviewApplyStatus.applied,
@@ -400,8 +419,20 @@ final class SqliteGamificationRepository implements GamificationRepository {
       await txn.delete('gamification_review_events');
       await txn.delete('gamification_badges');
       await txn.delete('gamification_profile');
-      await _resetProfile(txn);
+      await SqliteGamificationRepository._resetProfile(txn);
+      await txn.update(
+        SqliteGamificationRepository.metaTable,
+        <String, Object?>{'revision': 0},
+        where: 'id = 1',
+      );
     });
+  }
+
+  Future<int> loadRevision() async {
+    if (_closed) {
+      throw StateError('gamification_repository_closed');
+    }
+    return SqliteGamificationRepository._readRevision(_database);
   }
 
   @override
@@ -413,13 +444,107 @@ final class SqliteGamificationRepository implements GamificationRepository {
         badges: GamificationMilestones.defaults,
       );
     }
-    final profile = await _readProfile(_database);
-    final unlocked = await _readUnlocked(_database);
+    final profile =
+        await SqliteGamificationRepository._readProfile(_database);
+    final unlocked =
+        await SqliteGamificationRepository._readUnlocked(_database);
     return GamificationSnapshot(
       profile: profile,
       unlocked: unlocked,
       badges: GamificationMilestones.defaults,
     );
+  }
+
+  static Future<void> _createMeta(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ${SqliteGamificationRepository.metaTable} (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        schema_version INTEGER NOT NULL,
+        revision INTEGER NOT NULL CHECK (revision >= 0)
+      )
+    ''');
+    await db.insert(
+      SqliteGamificationRepository.metaTable,
+      <String, Object?>{
+        'id': 1,
+        'schema_version': SqliteGamificationRepository.schemaVersion,
+        'revision': 0,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  static Future<void> _initializeRevisionForUpgrade(
+    DatabaseExecutor db,
+  ) async {
+    final profile = await SqliteGamificationRepository._readProfile(db);
+    final events = await db.query(
+      'gamification_review_events',
+      columns: const <String>['event_id'],
+      limit: 1,
+    );
+    final badges = await db.query(
+      'gamification_badges',
+      columns: const <String>['badge_id'],
+      limit: 1,
+    );
+    final mutated = profile.totalXp != 0 ||
+        profile.currentStreak != 0 ||
+        profile.longestStreak != 0 ||
+        profile.lastReviewAtUtc != null ||
+        profile.lastLocalDay != null ||
+        profile.lastMonotonicElapsedMilliseconds != null ||
+        profile.lastBootCount != null ||
+        events.isNotEmpty ||
+        badges.isNotEmpty;
+    await db.update(
+      SqliteGamificationRepository.metaTable,
+      <String, Object?>{
+        'schema_version': SqliteGamificationRepository.schemaVersion,
+        'revision': mutated ? 1 : 0,
+      },
+      where: 'id = 1',
+    );
+  }
+
+  static Future<int> _readRevision(DatabaseExecutor db) async {
+    final rows = await db.query(
+      SqliteGamificationRepository.metaTable,
+      where: 'id = 1',
+      limit: 1,
+    );
+    if (rows.length != 1) {
+      throw const GamificationReviewEventException(
+        'gamification_meta_missing',
+      );
+    }
+    final version = rows.single['schema_version'];
+    final revision = rows.single['revision'];
+    if (version is! num ||
+        version.toInt() != SqliteGamificationRepository.schemaVersion ||
+        revision is! num ||
+        revision.toInt() < 0) {
+      throw const GamificationReviewEventException(
+        'gamification_meta_invalid',
+      );
+    }
+    return revision.toInt();
+  }
+
+  static Future<int> _bumpRevision(DatabaseExecutor db) async {
+    final current = await SqliteGamificationRepository._readRevision(db);
+    if (current >= (1 << 62)) {
+      throw const GamificationReviewEventException(
+        'gamification_revision_overflow',
+      );
+    }
+    final next = current + 1;
+    await db.update(
+      SqliteGamificationRepository.metaTable,
+      <String, Object?>{'revision': next},
+      where: 'id = 1',
+    );
+    return next;
   }
 
   static Future<void> _resetProfile(DatabaseExecutor db) async {
@@ -464,12 +589,17 @@ final class SqliteGamificationRepository implements GamificationRepository {
       lastReviewAtUtc: DateTime.tryParse(
         row['last_review_utc']?.toString() ?? '',
       )?.toUtc(),
-      lastLocalDay: _safeDay(row['last_local_day']),
+      lastLocalDay:
+          SqliteGamificationRepository._safeDay(row['last_local_day']),
       lastTimezoneOffsetMinutes: offset,
       lastMonotonicElapsedMilliseconds:
-          _safeNullableNonNegativeInt(row['last_monotonic_elapsed_ms']),
+          SqliteGamificationRepository._safeNullableNonNegativeInt(
+        row['last_monotonic_elapsed_ms'],
+      ),
       lastBootCount:
-          _safeNullableNonNegativeInt(row['last_boot_count']),
+          SqliteGamificationRepository._safeNullableNonNegativeInt(
+        row['last_boot_count'],
+      ),
       clockAnomalyDetected: row['clock_anomaly_detected'] == 1,
       streakFreezeAvailable: row['streak_freeze_available'] != 0,
     );

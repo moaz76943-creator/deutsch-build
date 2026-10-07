@@ -40,8 +40,10 @@ def test_v153_home_refreshes_dynamic_state_and_gamification_snapshot():
 
     home = text[text.index('  Widget _homeTab'):text.index('  Widget _learnTab')]
     assert 'ProgressSnapshotService.build(' in home
-    assert 'profile?.currentStreak ?? state.streak' in home
-    assert 'profile?.totalXp ?? state.xp' in home
+    assert 'final streak = profile.currentStreak;' in home
+    assert 'final xp = profile.totalXp;' in home
+    assert 'state.streak' not in home
+    assert 'state.xp' not in home
     assert 'masteredWords: state.learned.length' in home
     assert 'totalWords: widget.dependencies.corpus.length' in home
 

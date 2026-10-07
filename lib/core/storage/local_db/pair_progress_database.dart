@@ -390,6 +390,49 @@ final class PairProgressDatabase {
     });
   }
 
+  Future<ReviewTransactionAcceptance> recordReviewDeliveryEnvelope({
+    required ReviewTransactionEnvelope envelope,
+  }) async {
+    final payloadHash = await envelope.computePayloadHash();
+    final createdAtUtc = DateTime.now().toUtc();
+
+    return _database.transaction((txn) async {
+      final existing = await txn.query(
+        journalTable,
+        where: 'review_event_id = ?',
+        whereArgs: <Object?>[envelope.reviewEventId],
+        limit: 1,
+      );
+      if (existing.isNotEmpty) {
+        final accepted = await _verifiedJournalEntry(existing.first);
+        if (accepted.payloadHash != payloadHash) {
+          throw const ReviewTransactionJournalException(
+            'review_event_payload_mismatch',
+          );
+        }
+        return ReviewTransactionAcceptance(
+          reviewEventId: envelope.reviewEventId,
+          payloadHash: payloadHash,
+          alreadyAccepted: true,
+        );
+      }
+
+      await txn.insert(
+        journalTable,
+        envelope.toJournalValues(
+          payloadHash: payloadHash,
+          createdAtUtc: createdAtUtc,
+        ),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      return ReviewTransactionAcceptance(
+        reviewEventId: envelope.reviewEventId,
+        payloadHash: payloadHash,
+        alreadyAccepted: false,
+      );
+    });
+  }
+
   Future<List<ReviewTransactionJournalEntry>>
       loadPendingReviewTransactions({int limit = 128}) async {
     final boundedLimit = limit.clamp(1, 128).toInt();

@@ -62,15 +62,20 @@ class ProgressPage extends StatelessWidget {
           Text('عدد الاختبارات المحفوظة: ${p.assessedCount}'),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: () => Navigator.push(
-              c,
-              MaterialPageRoute(
-                builder: (_) => MilestoneBadgesPage(
-                  currentStreak: state.streak,
-                  engine: StreakMilestonesEngine.getInstance(),
+            onPressed: () async {
+              final gamification = await repo.loadGamificationSnapshot();
+              if (!c.mounted) return;
+              await Navigator.push(
+                c,
+                MaterialPageRoute(
+                  builder: (_) => MilestoneBadgesPage(
+                    currentStreak:
+                        gamification.profile.currentStreak,
+                    engine: StreakMilestonesEngine.getInstance(),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
             icon: const Icon(Icons.stars_outlined),
             label: const Text('إنجازات الاستمرارية'),
           ),

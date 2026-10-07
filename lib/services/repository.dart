@@ -10,9 +10,9 @@ import '../core/progress/pair_progress_models.dart';
 import '../core/progress/review_transaction_envelope.dart';
 import '../models/assessment.dart';
 import '../models/diagnostic_placement.dart';
-import '../core/date_utils.dart';
 import '../features/gamification/domain/gamification_models.dart';
 import '../features/gamification/domain/gamification_review_sink.dart';
+import '../features/gamification/gamification_repository.dart';
 import '../features/error_pattern_agent/domain/error_diagnostic_repository.dart';
 import '../features/error_pattern_agent/domain/error_pattern_models.dart';
 
@@ -35,10 +35,7 @@ class LearnerRepository {
   ResolvedLanguagePair? _activeResolvedPair;
   static const key = 'v34_state';
   static const legacyFavoriteKey = 'verb_favorites_v1';
-  static const maxAttempts = LearnerPersistence.maxAttempts;
-  static const maxCollectionItems = LearnerPersistence.maxCollectionItems;
   static const maxXp = LearnerPersistence.maxXp;
-  static const maxStreak = LearnerPersistence.maxStreak;
   Future<void> _writeQueue = Future<void>.value();
   LearnerState? _cachedState;
 
@@ -48,7 +45,6 @@ class LearnerRepository {
     return next;
   }
 
-  static const maxMistakeProgress = 5000;
 
   LearnerState load() {
     final cached = _cachedState;
@@ -75,6 +71,20 @@ class LearnerRepository {
 
   LearnerState _loadFromPrefs() => persistence.load();
 
+  Future<GamificationSnapshot> loadGamificationSnapshot() {
+    final sink = gamificationReviewSink;
+    if (sink is GamificationRepository) {
+      return sink.loadSnapshot();
+    }
+    return Future<GamificationSnapshot>.value(
+      const GamificationSnapshot(
+        profile: GamificationProfile(),
+        unlocked: <UnlockedMilestone>[],
+        badges: GamificationMilestones.defaults,
+      ),
+    );
+  }
+
   bool get hasPairProgressAuthority =>
       _pairProgressEngine != null && _activeResolvedPair != null;
 
@@ -89,11 +99,11 @@ class LearnerRepository {
   }) =>
       _enqueue(() async {
         if (migratedAchievementPoints < 0 ||
-            migratedAchievementPoints > maxXp) {
+            migratedAchievementPoints > LearnerRepository.maxXp) {
           throw ArgumentError.value(
             migratedAchievementPoints,
             'migratedAchievementPoints',
-            'must be 0..$maxXp',
+            'must be 0..${LearnerRepository.maxXp}',
           );
         }
 
@@ -259,7 +269,6 @@ class LearnerRepository {
         final result = await persistence.applyReviewAttemptOnce(
           reviewEventId: attempt.id,
           attempt: attempt,
-          compatibilityXpDelta: 0,
         );
         _cachedState = result.state;
       });
@@ -304,8 +313,6 @@ class LearnerRepository {
           facetType: envelope.facetType,
           variantKey: envelope.variantKey,
         ),
-        compatibilityXpDelta: envelope.requestedXp,
-        compatibilityStreakTarget: envelope.compatibilityStreakTarget,
       );
       _cachedState = result.state;
       await authority.engine.acknowledgeReviewTransaction(
@@ -391,29 +398,16 @@ class LearnerRepository {
   }) =>
       _enqueue(() async {
         final authority = _requirePairProgressAuthority();
-        final state = load();
         final now = at ?? DateTime.now();
         final safeAnswer = answer.length > 1000
             ? answer.substring(0, 1000)
             : answer;
         final safeSeconds = seconds.clamp(0, 3600).toInt();
-        final last =
-            state.attempts.isEmpty ? null : state.attempts.last.at;
-        final today = now.toUtcMidnight;
-        final sameDay =
-            last != null && last.toUtcMidnight == today;
-        final yesterday = last != null &&
-            today.difference(last.toUtcMidnight).inDays == 1;
-        final nextStreak = state.attempts.isEmpty
-            ? 1
-            : (sameDay
-                ? state.streak
-                : (yesterday ? state.streak + 1 : 1));
         final xpReward = unifiedSrsScheduler.xpRewardForReview(
           correct: correct,
           hinted: hinted,
         );
-        final stableReviewEventId = _reviewEventId(
+        final stableReviewEventId = LearnerRepository._reviewEventId(
           kind: 'meaning',
           occurredAt: now,
           supplied: reviewEventId,
@@ -431,8 +425,6 @@ class LearnerRepository {
           occurredAt: now,
           timezoneOffsetMinutes: now.timeZoneOffset.inMinutes,
           requestedXp: xpReward,
-          compatibilityStreakTarget:
-              nextStreak.clamp(0, maxStreak).toInt(),
         );
 
         final pairSnapshot =
@@ -482,27 +474,49 @@ class LearnerRepository {
     required bool correct,
     required int seconds,
     required bool hinted,
+    DateTime? at,
+    String? reviewEventId,
   }) =>
       _enqueue(() async {
-        final now = DateTime.now();
+        final authority = _requirePairProgressAuthority();
+        final now = at ?? DateTime.now();
         final safeId = itemId.trim();
         if (safeId.isEmpty || safeId.length > 160) return;
-        final attempt = Attempt(
-          id: 'c_${now.microsecondsSinceEpoch}',
-          itemId: safeId,
-          skill: skill.trim().isEmpty ? 'production' : skill.trim(),
-          answer: answer.length > 1000 ? answer.substring(0, 1000) : answer,
+        final safeSkill =
+            skill.trim().isEmpty ? 'production' : skill.trim();
+        final safeAnswer =
+            answer.length > 1000 ? answer.substring(0, 1000) : answer;
+        final safeSeconds = seconds.clamp(0, 3600).toInt();
+        final stableReviewEventId = LearnerRepository._reviewEventId(
+          kind: 'conversation',
+          occurredAt: now,
+          supplied: reviewEventId,
+        );
+        final envelope = ReviewTransactionEnvelope(
+          reviewEventId: stableReviewEventId,
+          sourceLanguageId: authority.pair.source.id,
+          targetLanguageId: authority.pair.target.id,
+          conceptId: safeId,
+          facetType: ReviewFacetType.production,
+          skill: safeSkill,
+          answer: safeAnswer,
           correct: correct,
           hinted: hinted,
-          seconds: seconds.clamp(0, 3600).toInt(),
-          at: now,
+          seconds: safeSeconds,
+          occurredAt: now,
+          timezoneOffsetMinutes: now.timeZoneOffset.inMinutes,
+          requestedXp: correct ? 10 : 2,
         );
-        final result = await persistence.applyReviewAttemptOnce(
-          reviewEventId: attempt.id,
-          attempt: attempt,
-          compatibilityXpDelta: correct ? 10 : 2,
+        final acceptance =
+            await authority.engine.persistReviewDeliveryEnvelope(
+          pair: authority.pair,
+          envelope: envelope,
         );
-        _cachedState = result.state;
+        await _reconcileAcceptedReviewBestEffort(
+          authority: authority,
+          envelope: envelope,
+          payloadHash: acceptance.payloadHash,
+        );
       });
 }
 

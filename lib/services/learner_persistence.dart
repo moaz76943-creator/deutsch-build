@@ -45,6 +45,16 @@ final class ReviewAttemptApplyException implements Exception {
   String toString() => 'ReviewAttemptApplyException($code)';
 }
 
+final class LegacyGamificationSeed {
+  const LegacyGamificationSeed({
+    required this.xp,
+    required this.streak,
+  });
+
+  final int xp;
+  final int streak;
+}
+
 /// Owns the physical representation and migration of persisted learner state.
 /// It contains no learner-domain orchestration and no UI/authentication logic.
 class LearnerPersistence {
@@ -127,15 +137,34 @@ class LearnerPersistence {
     }
   }
 
-  LearnerState load() {
-    final snapshot = _sqliteSnapshot;
-    if (!hasVerifiedSqliteAuthority || snapshot == null) {
-      return _loadLegacy();
-    }
+  LegacyGamificationSeed loadLegacyGamificationSeed() {
     final legacy = _legacyStateCache ?? _loadLegacy();
-    return LearnerState(
+    return LegacyGamificationSeed(
       xp: legacy.xp,
       streak: legacy.streak,
+    );
+  }
+
+  LearnerState load() {
+    final legacy = _legacyStateCache ?? _loadLegacy();
+    final snapshot = _sqliteSnapshot;
+    if (!hasVerifiedSqliteAuthority || snapshot == null) {
+      return LearnerState(
+        xp: 0,
+        streak: 0,
+        learned: legacy.learned,
+        review: legacy.review,
+        favoriteVerbs: legacy.favoriteVerbs,
+        reviewCards: legacy.reviewCards,
+        attempts: legacy.attempts,
+        assessmentHistory: legacy.assessmentHistory,
+        placementHistory: legacy.placementHistory,
+        updatedAt: legacy.updatedAt,
+      );
+    }
+    return LearnerState(
+      xp: 0,
+      streak: 0,
       learned: legacy.learned,
       review: legacy.review,
       favoriteVerbs: snapshot.favoriteVerbs,
@@ -247,15 +276,28 @@ class LearnerPersistence {
 
   Future<void> save(LearnerState state) async {
     final normalized = normalize(state);
+    final rollback = _legacyStateCache ?? _loadLegacy();
+
     if (!hasVerifiedSqliteAuthority) {
-      await _writeLegacy(normalized);
+      final legacyOnly = LearnerState(
+        xp: rollback.xp,
+        streak: rollback.streak,
+        learned: normalized.learned,
+        review: normalized.review,
+        favoriteVerbs: normalized.favoriteVerbs,
+        reviewCards: normalized.reviewCards,
+        attempts: normalized.attempts,
+        assessmentHistory: normalized.assessmentHistory,
+        placementHistory: normalized.placementHistory,
+        updatedAt: normalized.updatedAt,
+      );
+      await _writeLegacy(legacyOnly);
       return;
     }
 
-    final rollback = _legacyStateCache ?? _loadLegacy();
     final legacyOnly = LearnerState(
-      xp: normalized.xp,
-      streak: normalized.streak,
+      xp: rollback.xp,
+      streak: rollback.streak,
       learned: normalized.learned,
       review: normalized.review,
       favoriteVerbs: rollback.favoriteVerbs,
@@ -290,8 +332,6 @@ class LearnerPersistence {
   Future<ReviewAttemptApplyResult> applyReviewAttemptOnce({
     required String reviewEventId,
     required Attempt attempt,
-    required int compatibilityXpDelta,
-    int? compatibilityStreakTarget,
   }) async {
     final normalizedReviewEventId = reviewEventId.trim();
     if (normalizedReviewEventId.isEmpty ||
@@ -303,22 +343,6 @@ class LearnerPersistence {
     if (attempt.id.trim() != normalizedReviewEventId) {
       throw const ReviewAttemptApplyException(
         'review_attempt_event_id_mismatch',
-      );
-    }
-    if (compatibilityXpDelta < 0 || compatibilityXpDelta > 100) {
-      throw ArgumentError.value(
-        compatibilityXpDelta,
-        'compatibilityXpDelta',
-        'must be 0..100',
-      );
-    }
-    if (compatibilityStreakTarget != null &&
-        (compatibilityStreakTarget < 0 ||
-            compatibilityStreakTarget > maxStreak)) {
-      throw ArgumentError.value(
-        compatibilityStreakTarget,
-        'compatibilityStreakTarget',
-        'must be 0..$maxStreak',
       );
     }
 
@@ -374,16 +398,12 @@ class LearnerPersistence {
         ? attempts.sublist(attempts.length - maxAttempts)
         : attempts;
     final next = normalize(
-      current.copyWith(
-        xp: (current.xp + compatibilityXpDelta).clamp(0, maxXp),
-        streak: compatibilityStreakTarget ?? current.streak,
-        attempts: boundedAttempts,
-      ),
+      current.copyWith(attempts: boundedAttempts),
     );
     await save(next);
     return ReviewAttemptApplyResult(
       status: ReviewAttemptApplyStatus.applied,
-      state: next,
+      state: load(),
     );
   }
 

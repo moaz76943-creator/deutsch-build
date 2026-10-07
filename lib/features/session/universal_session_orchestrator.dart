@@ -124,7 +124,9 @@ final class UniversalSessionOrchestrator extends ChangeNotifier {
   Future<SessionStateSnapshot> _recordNow<T extends LearningContent>(
     SessionReviewInput<T> input,
   ) async {
-    final beforeXp = _repository.load().xp;
+    final beforeGamification =
+        await _repository.loadGamificationSnapshot();
+    final beforeXp = beforeGamification.profile.totalXp;
 
     if (input.facetType == ReviewFacetType.meaningRecall &&
         ReviewFacetKey.normalizeVariant(input.variantKey) == null) {
@@ -148,9 +150,13 @@ final class UniversalSessionOrchestrator extends ChangeNotifier {
       );
     }
 
-    final after = await _repository.reloadPersisted();
+    await _repository.reloadPersisted();
+    final afterGamification =
+        await _repository.loadGamificationSnapshot();
     final awardedXp =
-        (after.xp - beforeXp).clamp(0, LearnerRepository.maxXp).toInt();
+        (afterGamification.profile.totalXp - beforeXp)
+            .clamp(0, LearnerRepository.maxXp)
+            .toInt();
     final combo = input.correct ? _state.combo + 1 : 0;
     final correctCount = _state.correct + (input.correct ? 1 : 0);
 

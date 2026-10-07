@@ -134,6 +134,18 @@ final class OfflinePairProgressEngine {
     );
   }
 
+  Future<ReviewTransactionAcceptance> persistReviewDeliveryEnvelope({
+    required ResolvedLanguagePair pair,
+    required ReviewTransactionEnvelope envelope,
+  }) {
+    final context = _validatePair(pair);
+    if (envelope.sourceLanguageId != context.source ||
+        envelope.targetLanguageId != context.target) {
+      throw StateError('review_envelope_pair_context_mismatch');
+    }
+    return _store.recordReviewDeliveryEnvelope(envelope: envelope);
+  }
+
   Future<ReviewCard> scheduleReview({
     required ResolvedLanguagePair pair,
     required String conceptId,

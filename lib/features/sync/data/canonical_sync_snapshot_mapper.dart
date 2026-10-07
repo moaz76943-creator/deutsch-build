@@ -30,20 +30,13 @@ abstract final class CanonicalSyncSnapshotMapper {
     }
 
     final profile = gamification.profile;
-    final currentStreak = learner.streak > profile.currentStreak
-        ? learner.streak
-        : profile.currentStreak;
-    final longestStreak = profile.longestStreak > currentStreak
-        ? profile.longestStreak
-        : currentStreak;
-    final xp = learner.xp > profile.totalXp ? learner.xp : profile.totalXp;
 
     return SyncProgressSnapshot(
       revision: revision,
       updatedAtUtc: learner.updatedAt.toUtc(),
-      currentStreak: currentStreak,
-      longestStreak: longestStreak,
-      totalXp: xp,
+      currentStreak: profile.currentStreak,
+      longestStreak: profile.longestStreak,
+      totalXp: profile.totalXp,
       srs: srs,
       achievementIds: gamification.unlockedBadgeIds,
     );
@@ -76,8 +69,6 @@ abstract final class CanonicalSyncSnapshotMapper {
     }
 
     return local.copyWith(
-      xp: snapshot.totalXp,
-      streak: snapshot.currentStreak,
       reviewCards: reviewCards,
     );
   }

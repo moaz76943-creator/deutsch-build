@@ -2,9 +2,9 @@
 
 **Task:** 6A — Persistence Authority Map  
 **Baseline:** `main@56be6496b1e19c8a664e6835bf980fcf22f6d795`  
-**Specification version:** 1  
-**Behavior change:** NONE  
-**Status:** Normative persistence ownership specification
+**Specification version:** 4  
+**Behavior change:** TASK 6B/6C/6D convergence implemented  
+**Status:** Normative persistence ownership specification, reconciled through TASK 6D
 
 ---
 
@@ -53,18 +53,18 @@ domains.
 
 | ENTITY | CANONICAL STORE | MIRROR STORE | WRITE ORDER | RECOVERY RULE | IDEMPOTENCY KEY | MIGRATION VERSION | CURRENT IMPLEMENTATION STATUS |
 |---|---|---|---|---|---|---|---|
-| **Global XP** | `gamification.sqlite → gamification_profile.total_xp` through `SqliteGamificationRepository` | `v34_state.xp` is **legacy migration seed only**, not a valid authority after gamification initialization | Canonical gamification event transaction first. No independent learner-state XP write is permitted after cutover. | If gamification DB is pristine, legacy `v34_state.xp` may seed it once through `migrateLegacyProfileIfPristine()`. Once any gamification state/event exists, SQLite wins permanently. | `GamificationReviewEvent.reviewId` → `gamification_review_events.event_id` | Gamification DB **v3**; legacy source `v34_state`; pristine migration currently has no explicit migration marker | **DRIFT RISK:** normal review paths still update `LearnerState.xp`; `recordConversationAttempt()` also increments learner XP without a gamification event. Must be reconciled in a later behavior-change task. |
-| **Streak** | `gamification.sqlite → gamification_profile.current_streak / longest_streak` | `v34_state.streak` is **legacy migration seed only** | Gamification event and profile update occur atomically in SQLite. No post-cutover learner-state streak writer. | Legacy streak may seed a completely pristine gamification DB once. Otherwise SQLite profile/event history wins. | Same `reviewId/event_id` used by the triggering review | Gamification DB **v3**; legacy `v34_state` seed | **DRIFT RISK:** `LearnerRepository.record()` still computes and writes `state.streak` before recording gamification. Quick-review production reads already use canonical gamification streak. |
+| **Global XP** | `gamification.sqlite → gamification_profile.total_xp` through `SqliteGamificationRepository` | `v34_state.xp` is an immutable **legacy seed/rollback buffer only** and is not exposed by normal `LearnerPersistence.load()` reads | New reward operations are accepted as idempotent gamification events; profile mutation and revision increment occur in the same SQLite transaction. Learner attempts never award XP. | Legacy XP may seed only while `gamification_store_meta.revision == 0` and profile/events/badges are pristine. Successful seed or any accepted event advances revision and permanently blocks reseeding. | `GamificationReviewEvent.reviewId` → `gamification_review_events.event_id` | Gamification DB **v4**; durable `gamification_store_meta.revision`; legacy source `v34_state` | **COMPLIANT after TASK 6D:** `SqliteGamificationRepository` is the sole production XP writer; conversation rewards use the same event ledger. |
+| **Streak** | `gamification.sqlite → gamification_profile.current_streak / longest_streak` | `v34_state.streak` is an immutable **legacy seed/rollback buffer only** and is not exposed by normal learner-state reads | Streak transition is computed only by the gamification engine and committed with the accepted event/profile/revision transaction. | Legacy streak may seed only at revision 0 on a pristine gamification store. After revision advances, SQLite profile wins and stale legacy fallback/reseed is forbidden. | Same stable `reviewId/event_id` used by the triggering review | Gamification DB **v4**; durable revision contract | **COMPLIANT after TASK 6D:** no learner-state streak writer remains in the production review/conversation paths. |
 | **Learned IDs** | `pair_progress_v2.db → pair_card_progress.learned` | `v34_state.learned` is **pre-bind migration staging only** | Before pair authority exists, placement/legacy code may stage state in learner JSON. During binding: migrate into pair DB → successful pair commit → clear learner `learned/review/reviewCards`. After binding: pair DB only. | If target pair contains any canonical pair/card rows, do not import learner legacy progress over it. Pair DB wins. | Entity key: `(source_language_id, target_language_id, card_id)`. Logical review replay also requires a stable review operation ID in a future implementation. | Pair progress schema **v2**; legacy source `v34_state` | **COMPLIANT authority boundary:** `_withoutLegacyPairProgress()` strips this field from SharedPreferences after pair binding. |
 | **Review cards** | `pair_progress_v2.db → pair_card_progress` | `v34_state.reviewCards` is **legacy/pre-bind staging only** | Load canonical pair card → schedule with unified SRS → commit updated card in pair SQLite transaction. Never mirror it back to learner JSON after binding. | Pair DB wins whenever pair authority exists. Legacy review cards may migrate only into an empty target pair. | Canonical entity identity: `(pair, ReviewFacetKey.storageKey)`. Required logical mutation idempotency: stable review/attempt ID; current pair schema does not yet persist one. | Pair progress schema **v2**, including Phase16b SRS columns | **PARTIALLY COMPLIANT:** single card authority exists after bind; replay protection for additive pair mutations is still missing. |
-| **Raw attempts** | `SharedPreferences → v34_state.attempts` through `LearnerPersistence` | None. `MemoryAgentSnapshot.tasks[].attempts` is an aggregate in a separate domain and must never replace raw attempts. | Build stable `Attempt` → normalize bounded payload → `prefs.setString(v34_state)` must succeed → update repository cache. | Invalid individual records are discarded without discarding all history. Maximum 2000 records. A failed canonical write must not be represented as a successful attempt. | `Attempt.id` (`a_*`, `f_*`, `c_*`, `w_*`). Retried writes must eventually dedupe by this ID; current list persistence does not enforce dedupe. | Learner JSON **`v34_state`**; no embedded schemaVersion | **GAP:** physical schema version is implicit in the preference key and attempt IDs are not currently deduplicated on persistence. |
-| **Favorites (production learner verb favorites)** | `SharedPreferences → v34_state.favoriteVerbs` | `verb_favorites_v1` is **migration source only** | Normal write: mutate canonical set → normalize/save `v34_state` → update cache. Legacy migration: merge legacy values → save canonical successfully → delete legacy key. | Never delete `verb_favorites_v1` before canonical save succeeds. If both survive after interrupted migration, merge bounded values and retry migration. | Entity key: normalized verb infinitive. Retry-safe mutation contract should be `(infinitive, desiredMembership)`; current toggle API itself is not retry-idempotent. | Canonical `v34_state`; legacy `verb_favorites_v1` | **CANONICAL ownership already established**, but toggle semantics need explicit idempotent command semantics in a later task. |
-| **Placement history** | `SharedPreferences → v34_state.placementHistory` | None | Produce `PlacementDiagnosticRecord` → replace/dedupe same record ID → prepend bounded history → canonical save → cache update. | Corrupt records are ignored. Keep max 20. Production onboarding reads this canonical history. | `PlacementDiagnosticRecord.id`, currently typically `placement_<microsecondsSinceEpoch>` | Learner JSON `v34_state` | **COMPLIANT.** `recordPlacementDiagnostic()` and `LearnerPlacementProfileRepository` both write the same canonical learner store. |
-| **Assessment history** | `SharedPreferences → v34_state.assessmentHistory` | None | Build normalized `AssessmentHistory` → canonical save → cache update. | Corrupt records are ignored; history bounded to 100. No secondary store may override it. | `AssessmentHistory.id` / source `AssessmentResult.id` | Learner JSON `v34_state` | **GAP:** `recordAssessment()` prepends records but currently does not dedupe by ID, so retry may duplicate history. |
-| **Pair progress** | `pair_progress_v2.db → pair_progress + pair_card_progress` | None. Learner `learned/review/reviewCards` are migration sources only. Agent task progress is a separate domain. | Pair-level and card-level mutations occur inside a SQLite transaction. Pair row and card row commit atomically. | Existing canonical pair/card data prevents legacy snapshot migration. Never resolve pair DB from learner JSON after canonical pair state exists. | Pair aggregate: `(source_language_id,target_language_id)`. Card identity: `(source_language_id,target_language_id,card_id)`. Additive review mutations still require a future stable operation/event ID. | `PairProgressDatabase.schemaVersion = 2`; file `pair_progress_v2.db` | **CANONICAL**, but additive `achievement_points/correct_count/incorrect_count` currently have no durable operation dedupe key. |
-| **SRS facet state** | `pair_progress_v2.db → pair_card_progress.{facet_type,variant_key,repetitions,interval_days,lapses,successes,failures,difficulty,stability_days,due_at_utc,last_reviewed_at_utc}` | `v34_state.reviewCards` only before/while legacy migration | Read current facet card from pair DB → run `unifiedSrsScheduler` → write scheduled state atomically to pair DB. | Pair DB is authoritative. If target pair is non-empty, legacy state cannot overwrite it. Invalid legacy cards are rejected during normalization/migration. | Entity: `pairKey + ReviewFacetKey.storageKey`. Logical review operation must eventually be keyed by stable `Attempt.id/reviewId` to prevent double scheduling on retry. | Pair DB **v2** | **CANONICAL scheduler/store relationship is established.** Durable mutation idempotency is the remaining gap. |
-| **Gamification audit/events** | `gamification.sqlite → gamification_review_events` | None | Within one SQLite transaction: reject duplicate `event_id` → read profile/unlocked badges → compute transition → insert immutable event → update profile projection → insert newly unlocked badges → commit. | Duplicate `event_id` is a no-op. Partial event/profile/badge state cannot commit because all writes share one transaction. Future repair should rebuild projections from canonical event history rather than from learner XP/streak. | `event_id = GamificationReviewEvent.reviewId` | Gamification DB **v3** | **COMPLIANT idempotency boundary.** |
-| **Gamification profile projection** | `gamification.sqlite → gamification_profile` | Event table is the audit ledger, not a competing writer. `v34_state.xp/streak` are legacy migration seeds only. | Updated only as part of the same transaction that accepts the canonical review event. | If a future integrity repair is required, event history is the reconstruction input. Legacy learner fields may only initialize a pristine DB. | Projection version is implied by accepted `event_id`s | Gamification DB **v3** | **CANONICAL read authority** for XP/streak in production-facing gamification consumers. |
+| **Raw attempts** | `learner_state.sqlite → learner_attempts` through `LearnerStateDatabase` | `v34_state.attempts` is retained as legacy rollback material only | Stable `Attempt.id` → exactly-once SQLite append/upsert contract → hydrated synchronous cache. Attempt persistence is XP/streak-neutral. | Verified TASK 6C cutover uses transactional migration + SHA-256 read-back. After cutover revision advances, stale legacy fallback is forbidden. | `Attempt.id`, including review/conversation stable event IDs | Learner DB **v1**; legacy source `v34_state` | **COMPLIANT after TASK 6C/6D.** |
+| **Favorites (production learner verb favorites)** | `learner_state.sqlite → learner_favorite_verbs` | `v34_state.favoriteVerbs` and `verb_favorites_v1` are preserved legacy rollback/migration inputs | Persist explicit desired membership with a discrete SQLite operation; hydrate synchronous learner cache after success. | TASK 6C migration is all-or-nothing and keeps both legacy sources untouched. Post-cutover SQLite revision prevents stale legacy fallback. | `(normalized verb, desiredMembership)` | Learner DB **v1** | **COMPLIANT after TASK 6C.** |
+| **Placement history** | `learner_state.sqlite → learner_placement_history` and bounded child tables | `v34_state.placementHistory` is legacy rollback material only | Strict validated record → idempotent SQLite insert by ID → bounded retention → cache hydration. | TASK 6C transactional migration/read-back verification prevents partial authority. | `PlacementDiagnosticRecord.id` | Learner DB **v1** | **COMPLIANT after TASK 6C.** |
+| **Assessment history** | `learner_state.sqlite → learner_assessment_history` and weak-skill child rows | `v34_state.assessmentHistory` is legacy rollback material only | Strict validated record → idempotent SQLite insert by ID → bounded retention → cache hydration. | TASK 6C transactional migration/read-back verification prevents partial authority. | `AssessmentHistory.id` | Learner DB **v1** | **COMPLIANT after TASK 6C.** |
+| **Pair progress** | `pair_progress_v2.db → pair_progress + pair_card_progress + review_transaction_journal` | None. Learner `learned/review/reviewCards` are migration sources only. Agent task progress is a separate domain. | Pair/SRS mutation and stable review outbox acceptance occur atomically; journal-only deliveries support non-SRS review rewards such as conversation. | Existing canonical pair/card data prevents legacy snapshot overwrite; pending journal rows reconcile boundedly after restart. | Stable `review_event_id` plus payload SHA-256; entity keys remain directed pair/card keys | `PairProgressDatabase.schemaVersion = 3`; file remains `pair_progress_v2.db` | **COMPLIANT after TASK 6B/6D.** |
+| **SRS facet state** | `pair_progress_v2.db → pair_card_progress.{facet_type,variant_key,repetitions,interval_days,lapses,successes,failures,difficulty,stability_days,due_at_utc,last_reviewed_at_utc}` | `v34_state.reviewCards` only before/while legacy migration | Read canonical card → schedule → atomically persist SRS mutation and stable review journal acceptance. | Pair DB wins; replay with the same event ID/payload is benign, while ID/payload mismatch fails closed. | `review_event_id` + payload SHA-256, scoped card identity via `ReviewFacetKey.storageKey` | Pair DB **v3** | **COMPLIANT after TASK 6B.** |
+| **Gamification audit/events** | `gamification.sqlite → gamification_review_events` | None | Within one SQLite transaction: validate duplicate payload → insert immutable event → update profile/badges → increment durable revision. | Exact duplicate `event_id` is a no-op; mismatched duplicate payload fails closed. Crash replay is safe through the TASK 6B journal reconciler. | `event_id = GamificationReviewEvent.reviewId` | Gamification DB **v4** | **COMPLIANT.** |
+| **Gamification profile projection** | `gamification.sqlite → gamification_profile` | Event table is the audit ledger; `v34_state.xp/streak` are immutable seed/rollback inputs only | Updated only in `SqliteGamificationRepository` as part of accepted event/seed transactions. | `gamification_store_meta.revision` blocks reseeding once any canonical mutation has occurred. Production readers use the gamification profile, never learner XP/streak. | Projection is advanced by accepted event IDs and durable revision | Gamification DB **v4** | **SOLE XP/STREAK AUTHORITY after TASK 6D.** |
 
 ---
 
@@ -163,11 +163,10 @@ pack or the derived indexed corpus.
 
 ## 7. Stores explicitly denied authority
 
-`SecureLocalGamificationRepository` implements the gamification interface but
-has no production construction path at the audited baseline. It is therefore
-not a concurrent production authority. If it is activated in the future, it
-requires an explicit one-way authority migration; it must never run beside
-`SqliteGamificationRepository` for the same profile.
+`SecureLocalGamificationRepository` was removed in TASK 6D because it had no
+production consumer and retained a competing XP/streak write implementation.
+No alternate local gamification writer may coexist with
+`SqliteGamificationRepository`.
 
 `ProgressTrackerService` contains historical SQLite tables such as
 `daily_streaks`, `review_scores`, and `spaced_repetition`, but no production
@@ -226,21 +225,18 @@ The derived database is disposable and rebuildable.
 
 ---
 
-## 9. Known authority violations to resolve after TASK 6A
+## 9. Persistence convergence status after TASK 6D
 
-| ISSUE | CURRENT STATE | REQUIRED FUTURE STATE |
-|---|---|---|
-| Global XP dual writing | `LearnerState.xp` and `gamification_profile.total_xp` both mutate | Only gamification SQLite writes global XP |
-| Streak dual writing | `LearnerState.streak` and gamification profile both mutate | Only gamification SQLite writes streak |
-| Conversation XP | `recordConversationAttempt()` modifies learner XP without gamification event | Route award through canonical gamification event |
-| Pair review replay | pair achievement/correct/incorrect counters are additive with no review-event dedupe | Persist stable applied-operation/review ID |
-| Raw attempt replay | `Attempt.id` exists but JSON list does not dedupe | Enforce exactly-once append by ID |
-| Assessment retry | `AssessmentHistory.id` exists but `recordAssessment()` does not remove same-ID record before prepend | Dedupe/upsert by result ID |
-| Favorite toggle retry | toggle operation is not idempotent | Persist desired membership or command/event ID |
-| Learner JSON schema | `v34_state` encodes version only in key name | Future migration should use explicit payload schema version before next structural change |
-
-These are implementation findings, not authorization to change behavior in
-TASK 6A.
+| ISSUE | RESOLUTION |
+|---|---|
+| Global XP dual writing | **RESOLVED 6D** — only `SqliteGamificationRepository` mutates XP. |
+| Streak dual writing | **RESOLVED 6D** — only the gamification event/profile transaction mutates streak. |
+| Conversation XP | **RESOLVED 6D** — conversation uses stable journal delivery + canonical gamification event. |
+| Pair review replay | **RESOLVED 6B** — stable review event journal with SHA-256 replay validation. |
+| Raw attempt replay | **RESOLVED 6B/6C** — stable Attempt ID and SQLite exactly-once sink. |
+| Assessment retry | **RESOLVED 6C** — SQLite ID/payload idempotency. |
+| Favorite retry | **RESOLVED 6C** — explicit desired membership SQLite operation. |
+| Learner JSON structural authority | **RESOLVED 6C** for attempts/assessment/placement/favorites; JSON remains bounded legacy rollback material. |
 
 ---
 
@@ -250,14 +246,14 @@ The authoritative production ownership model is:
 
 | DOMAIN | AUTHORITY |
 |---|---|
-| XP / streak / gamification badges and profile | `SqliteGamificationRepository` / `gamification.sqlite` |
+| XP / streak / gamification badges and profile | `SqliteGamificationRepository` / `gamification.sqlite` v4 |
 | Gamification event audit | `gamification_review_events` |
 | Pair-scoped concept progress | `PairProgressDatabase` / `pair_progress_v2.db` |
 | SRS facet/card state | `PairProgressDatabase` / `pair_card_progress` |
-| Raw attempts | `LearnerPersistence` / `v34_state.attempts` |
-| Assessment history | `LearnerPersistence` / `v34_state.assessmentHistory` |
-| Placement history | `LearnerPersistence` / `v34_state.placementHistory` |
-| Verb favorites | `LearnerPersistence` / `v34_state.favoriteVerbs` |
+| Raw attempts | `LearnerStateDatabase` / `learner_state.sqlite → learner_attempts` |
+| Assessment history | `LearnerStateDatabase` / `learner_state.sqlite → learner_assessment_history` |
+| Placement history | `LearnerStateDatabase` / `learner_state.sqlite → learner_placement_history` |
+| Verb favorites | `LearnerStateDatabase` / `learner_state.sqlite → learner_favorite_verbs` |
 | Curriculum task/agent progress | `OfflineProgressService` under `sys_memory_agent_v1` |
 | Signed content | admitted encrypted pack `content.sqlite` |
 | Runtime indexed corpus | rebuildable derived SQLCipher SRS corpus; never learner authority |

@@ -162,12 +162,16 @@ Future<_ActivatedPhase3App> _activateProduction({
   try {
     const activeLanguagePack = GermanLanguagePack();
     final audioCatalogFuture = _runtimeCoordinator.loadGermanAudioCatalog();
+    final canonicalGamification =
+        await gamificationRepository.loadSnapshot();
     recoveryPairProgress = await LocalLearningRecoveryPairProgressLease.bind(
       repository: learnerRepository,
       sourceLanguageId: activeLanguagePack.sourceLocale,
       targetLanguageId: activeLanguagePack.languageCode,
       sourceIsRtl: true,
       targetIsRtl: false,
+      migratedAchievementPoints:
+          canonicalGamification.profile.totalXp,
     );
     final reconciler = ReviewTransactionReconciler(
       pairProgressEngine: learnerRepository.boundPairProgressEngine,
@@ -352,6 +356,8 @@ final class _RenderFirstBootstrapAppState
         persistence: preparedLearnerPersistence,
         gamificationReviewSink: openedGamificationRepository,
       );
+      final legacyGamificationSeed =
+          preparedLearnerPersistence.loadLegacyGamificationSeed();
       final state = learnerRepository.load();
       Attempt? legacyLastReview;
       for (final attempt in state.attempts) {
@@ -361,15 +367,20 @@ final class _RenderFirstBootstrapAppState
         }
       }
       await openedGamificationRepository.migrateLegacyProfileIfPristine(
-        totalXp: state.xp,
-        currentStreak: state.streak,
+        totalXp: legacyGamificationSeed.xp,
+        currentStreak: legacyGamificationSeed.streak,
         lastReviewAtUtc: legacyLastReview?.at.toUtc(),
         timezoneOffsetMinutes:
             legacyLastReview?.at.timeZoneOffset.inMinutes,
       );
+      final canonicalGamification =
+          await openedGamificationRepository.loadSnapshot();
 
       late final Widget next;
-      if (_runtimeCoordinator.needsPlacementOnboarding(state)) {
+      if (_runtimeCoordinator.needsPlacementOnboarding(
+        state,
+        canonicalXp: canonicalGamification.profile.totalXp,
+      )) {
         _updateBootstrapStatus('جاري تجهيز اختبار تحديد المستوى…');
         next = _PlacementBootstrapApp(
           prefs: prefs,

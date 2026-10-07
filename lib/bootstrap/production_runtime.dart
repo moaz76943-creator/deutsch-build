@@ -37,8 +37,14 @@ final class ProductionRuntimeCoordinator {
   Future<AudioManifestCatalog> loadGermanAudioCatalog() =>
       _loadGermanAudioCatalog();
 
-  bool needsPlacementOnboarding(LearnerState state) =>
-      _needsPlacementOnboarding(state);
+  bool needsPlacementOnboarding(
+    LearnerState state, {
+    required int canonicalXp,
+  }) =>
+      _needsPlacementOnboarding(
+        state,
+        canonicalXp: canonicalXp,
+      );
 
   int placementStartTaskOrder(LearnerState state) =>
       _placementStartTaskOrder(state);
@@ -103,13 +109,16 @@ Future<AudioManifestCatalog> _loadGermanAudioCatalog() async {
   }
 }
 
-bool _needsPlacementOnboarding(LearnerState state) =>
+bool _needsPlacementOnboarding(
+  LearnerState state, {
+  required int canonicalXp,
+}) =>
     state.placementHistory.isEmpty &&
     state.attempts.isEmpty &&
     state.assessmentHistory.isEmpty &&
     state.learned.isEmpty &&
     state.reviewCards.isEmpty &&
-    state.xp == 0;
+    canonicalXp == 0;
 
 int _placementStartTaskOrder(LearnerState state) {
   for (final record in state.placementHistory) {

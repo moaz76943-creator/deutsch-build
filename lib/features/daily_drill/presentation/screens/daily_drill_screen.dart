@@ -14,6 +14,7 @@ class DailyDrillScreen extends StatefulWidget {
   const DailyDrillScreen({
     required this.controller,
     required this.learnerState,
+    required this.currentStreak,
     required this.corpus,
     this.limit = 10,
     this.sourceLanguageCode = 'de',
@@ -23,6 +24,7 @@ class DailyDrillScreen extends StatefulWidget {
 
   final DailyDrillController controller;
   final LearnerState learnerState;
+  final int currentStreak;
   final List<LearningContent> corpus;
   final int limit;
   final String sourceLanguageCode;
@@ -41,6 +43,7 @@ class _DailyDrillScreenState extends State<DailyDrillScreen> {
     _cardStartedAt = DateTime.now();
     widget.controller.start(
       learnerState: widget.learnerState,
+      currentStreak: widget.currentStreak,
       corpus: widget.corpus,
       now: _cardStartedAt,
       limit: widget.limit,

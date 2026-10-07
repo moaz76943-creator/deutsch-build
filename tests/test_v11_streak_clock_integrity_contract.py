@@ -48,4 +48,6 @@ def test_clock_integrity_is_persisted_in_sqlite_profile_and_events():
     assert "last_boot_count" in store
     assert "monotonic_elapsed_ms" in store
     assert "boot_count" in store
-    assert "version: 3" in store
+    assert "static const int schemaVersion = 4" in store
+    assert "gamification_store_meta" in store
+    assert "_bumpRevision" in store

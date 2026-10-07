@@ -74,11 +74,12 @@ void main() {
       learner.attempts.where((attempt) => attempt.id == reviewEventId).length,
       1,
     );
-    expect(learner.xp, reward);
-    expect(learner.streak, 1);
+    expect(learner.xp, 0);
+    expect(learner.streak, 0);
 
     final gamification = await fixture.gamification.loadSnapshot();
     expect(gamification.profile.totalXp, reward);
+    expect(gamification.profile.currentStreak, 1);
 
     final journal =
         await fixture.engine.loadReviewTransaction(reviewEventId);
@@ -111,7 +112,6 @@ void main() {
       occurredAt: at,
       timezoneOffsetMinutes: 0,
       requestedXp: reward,
-      compatibilityStreakTarget: 1,
     );
     final scheduled = await unifiedSrsScheduler.schedule(
       ReviewCard(itemId: 'gehen', dueAt: at),
@@ -140,8 +140,6 @@ void main() {
         seconds: 3,
         at: at,
       ),
-      compatibilityXpDelta: reward,
-      compatibilityStreakTarget: 1,
     );
 
     final beforeRecovery =
@@ -167,7 +165,8 @@ void main() {
       learner.attempts.where((attempt) => attempt.id == reviewEventId).length,
       1,
     );
-    expect(learner.xp, reward);
+    expect(learner.xp, 0);
+    expect(learner.streak, 0);
 
     final pair = await fixture.engine.loadPair(fixture.pair);
     expect(pair.achievementPoints, reward);
@@ -187,11 +186,11 @@ void main() {
       limit: 128,
     );
     expect(replay.inspected, 0);
-    expect(fixture.persistence.load().xp, reward);
+    expect(fixture.persistence.load().xp, 0);
     expect((await fixture.gamification.loadSnapshot()).profile.totalXp, reward);
   });
 
-  test('payload mismatches fail closed at journal, attempt, and XP sinks',
+  test('payload mismatches fail closed at journal, attempt, and gamification',
       () async {
     final fixture = await _ReviewFixture.create();
     addTearDown(fixture.dispose);
@@ -216,7 +215,6 @@ void main() {
       occurredAt: at,
       timezoneOffsetMinutes: 0,
       requestedXp: reward,
-      compatibilityStreakTarget: 1,
     );
     final scheduled = await unifiedSrsScheduler.schedule(
       ReviewCard(itemId: 'lernen', dueAt: at),
@@ -245,7 +243,6 @@ void main() {
       occurredAt: at,
       timezoneOffsetMinutes: 0,
       requestedXp: reward,
-      compatibilityStreakTarget: 1,
     );
     await expectLater(
       fixture.engine.persistReviewEnvelope(
@@ -281,8 +278,6 @@ void main() {
     await fixture.persistence.applyReviewAttemptOnce(
       reviewEventId: reviewEventId,
       attempt: originalAttempt,
-      compatibilityXpDelta: reward,
-      compatibilityStreakTarget: 1,
     );
     await expectLater(
       fixture.persistence.applyReviewAttemptOnce(
@@ -297,8 +292,6 @@ void main() {
           seconds: 5,
           at: at,
         ),
-        compatibilityXpDelta: reward,
-        compatibilityStreakTarget: 1,
       ),
       throwsA(
         isA<ReviewAttemptApplyException>().having(
@@ -308,7 +301,7 @@ void main() {
         ),
       ),
     );
-    expect(fixture.persistence.load().xp, reward);
+    expect(fixture.persistence.load().xp, 0);
 
     final originalGamification = GamificationReviewEvent(
       reviewId: reviewEventId,

@@ -85,8 +85,6 @@ final class ReviewTransactionReconciler {
         facetType: envelope.facetType,
         variantKey: envelope.variantKey,
       ),
-      compatibilityXpDelta: envelope.requestedXp,
-      compatibilityStreakTarget: envelope.compatibilityStreakTarget,
     );
   }
 
