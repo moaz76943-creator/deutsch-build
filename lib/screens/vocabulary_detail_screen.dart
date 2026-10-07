@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/tts_service.dart';
 
 class VocabularyDetailScreen extends StatefulWidget {
   final String languageCode;
@@ -17,6 +18,7 @@ class VocabularyDetailScreen extends StatefulWidget {
 }
 
 class _VocabularyDetailScreenState extends State<VocabularyDetailScreen> {
+  final TtsService _tts = TtsService();
   String _selectedLevel = 'ALL';
   String _searchQuery = '';
 
@@ -39,8 +41,8 @@ class _VocabularyDetailScreenState extends State<VocabularyDetailScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('مفردات ${widget.languageName}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('${filtered.length} مفردة متاحة', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+            Text('Vocabulary / مفردات ${widget.languageName}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('${filtered.length} terms available', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
           ],
         ),
       ),
@@ -92,6 +94,7 @@ class _VocabularyDetailScreenState extends State<VocabularyDetailScreen> {
                     itemCount: filtered.length > 300 ? 300 : filtered.length,
                     itemBuilder: (context, index) {
                       final item = filtered[index];
+                      final term = item['term']?.toString() ?? '';
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(16),
@@ -131,13 +134,13 @@ class _VocabularyDetailScreenState extends State<VocabularyDetailScreen> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF2563EB), size: 22),
-                                  onPressed: () {},
+                                  onPressed: () => _tts.speak(term, langCode: widget.languageCode),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              item['term'] ?? '',
+                              term,
                               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                             ),
                             const SizedBox(height: 4),
@@ -145,16 +148,33 @@ class _VocabularyDetailScreenState extends State<VocabularyDetailScreen> {
                               item['meaning_ar'] ?? '',
                               style: const TextStyle(fontSize: 15, color: Color(0xFF334155), fontWeight: FontWeight.w500),
                             ),
-                            const Divider(height: 20),
-                            Text(
-                              item['example'] ?? '',
-                              style: const TextStyle(fontSize: 13, color: Color(0xFF475569), fontStyle: FontStyle.italic),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item['example_ar'] ?? '',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                            ),
+                            if (item['example'] != null) ...[
+                              const Divider(height: 20),
+                              InkWell(
+                                onTap: () => _tts.speak(item['example'].toString(), langCode: widget.languageCode),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item['example'] ?? '',
+                                            style: const TextStyle(fontSize: 13, color: Color(0xFF475569), fontStyle: FontStyle.italic),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            item['example_ar'] ?? '',
+                                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(Icons.volume_down_rounded, color: Color(0xFF94A3B8), size: 18),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       );

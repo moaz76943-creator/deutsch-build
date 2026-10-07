@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import '../services/tts_service.dart';
 
 class VerbsScreen extends StatefulWidget {
   final String languageName;
+  final String languageCode;
   final List<dynamic> verbs;
 
   const VerbsScreen({
     Key? key,
     required this.languageName,
+    this.languageCode = 'de',
     required this.verbs,
   }) : super(key: key);
 
@@ -15,6 +18,7 @@ class VerbsScreen extends StatefulWidget {
 }
 
 class _VerbsScreenState extends State<VerbsScreen> {
+  final TtsService _tts = TtsService();
   String _selectedLevel = 'ALL';
   String _searchQuery = '';
 
@@ -37,8 +41,8 @@ class _VerbsScreenState extends State<VerbsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('أفعال وتصريفات ${widget.languageName}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('${filteredVerbs.length} فعل متاح', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+            Text('Verbs / أفعال وتصريفات ${widget.languageName}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('${filteredVerbs.length} verbs available', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
           ],
         ),
       ),
@@ -90,6 +94,7 @@ class _VerbsScreenState extends State<VerbsScreen> {
                     itemCount: filteredVerbs.length > 200 ? 200 : filteredVerbs.length,
                     itemBuilder: (context, index) {
                       final item = filteredVerbs[index];
+                      final verbText = item['verb']?.toString() ?? '';
                       return Container(
                         margin: const EdgeInsets.only(bottom: 14),
                         padding: const EdgeInsets.all(16),
@@ -120,13 +125,13 @@ class _VerbsScreenState extends State<VerbsScreen> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF10B981), size: 22),
-                                  onPressed: () {},
+                                  onPressed: () => _tts.speak(verbText, langCode: widget.languageCode),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              item['verb'] ?? '',
+                              verbText,
                               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                             ),
                             if (item['meaning_ar'] != null) ...[
@@ -147,9 +152,9 @@ class _VerbsScreenState extends State<VerbsScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
-                                  _buildTenseColumn('الحاضر (Präsens)', item['present'] ?? '-'),
+                                  _buildTenseColumn('الحاضر (Present)', item['present'] ?? '-', widget.languageCode),
                                   Container(height: 28, width: 1, color: const Color(0xFFCBD5E1)),
-                                  _buildTenseColumn('الماضي (Past)', item['past'] ?? '-'),
+                                  _buildTenseColumn('الماضي (Past)', item['past'] ?? '-', widget.languageCode),
                                 ],
                               ),
                             ),
@@ -164,13 +169,23 @@ class _VerbsScreenState extends State<VerbsScreen> {
     );
   }
 
-  Widget _buildTenseColumn(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-      ],
+  Widget _buildTenseColumn(String label, String value, String langCode) {
+    return InkWell(
+      onTap: () => _tts.speak(value, langCode: langCode),
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              const SizedBox(width: 4),
+              const Icon(Icons.volume_down_rounded, size: 14, color: Color(0xFF94A3B8)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

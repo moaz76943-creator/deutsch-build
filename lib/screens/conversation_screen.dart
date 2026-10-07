@@ -1,43 +1,51 @@
 import 'package:flutter/material.dart';
+import '../services/tts_service.dart';
 
 class ConversationScreen extends StatefulWidget {
   final String languageName;
+  final String languageCode;
 
-  const ConversationScreen({Key? key, required this.languageName}) : super(key: key);
+  const ConversationScreen({
+    Key? key,
+    required this.languageName,
+    this.languageCode = 'de',
+  }) : super(key: key);
 
   @override
   State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
+  final TtsService _tts = TtsService();
+
   final List<Map<String, dynamic>> _dialogues = [
     {
       'role': 'bot',
-      'speaker': 'المعلم الذكي',
+      'speaker': 'المعلم الذكي / AI Tutor',
       'text_target': 'Guten Tag! Wie kann ich Ihnen heute helfen?',
       'text_ar': 'يوم سعيد! كيف يمكنني مساعدتك اليوم؟',
     },
     {
       'role': 'user',
-      'speaker': 'أنت (المتعلم)',
+      'speaker': 'أنت (المتعلم) / You',
       'text_target': 'Ich möchte bitte ein Kilo Äpfel kaufen.',
       'text_ar': 'أود شراء كيلو من التفاح من فضلك.',
     },
     {
       'role': 'bot',
-      'speaker': 'المعلم الذكي',
+      'speaker': 'المعلم الذكي / AI Tutor',
       'text_target': 'Sehr gerne! Möchten Sie die roten oder die grünen Äpfel?',
       'text_ar': 'بكل سرور! هل تفضل التفاح الأحمر أم الأخضر؟',
     },
     {
       'role': 'user',
-      'speaker': 'أنت (المتعلم)',
+      'speaker': 'أنت (المتعلم) / You',
       'text_target': 'Die roten bitte. Wie viel kostet das?',
       'text_ar': 'الأحمر لو سمحت. كم ثمن ذلك؟',
     },
     {
       'role': 'bot',
-      'speaker': 'المعلم الذكي',
+      'speaker': 'المعلم الذكي / AI Tutor',
       'text_target': 'Das macht zusammen zwei Euro fünfzig.',
       'text_ar': 'المجموع يورو ونصف.',
     },
@@ -54,8 +62,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('محادثة تفاعلية (${widget.languageName})', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
-            const Text('موقف: في السوبرماركت والتسوق', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+            Text('Dialogue / محادثة (${widget.languageName})', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Supermarket & Shopping / في السوق', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
           ],
         ),
       ),
@@ -68,11 +76,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
               itemBuilder: (context, index) {
                 final d = _dialogues[index];
                 final isUser = d['role'] == 'user';
+                final targetText = d['text_target'] as String;
+
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isUser ? const Color(0xFF2563EB) : Colors.white,
@@ -91,7 +101,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               d['speaker'],
@@ -101,17 +111,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 color: isUser ? Colors.white70 : const Color(0xFF64748B),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.volume_up_rounded,
-                              size: 16,
-                              color: isUser ? Colors.white70 : const Color(0xFF2563EB),
+                            IconButton(
+                              constraints: const BoxConstraints(),
+                              padding: EdgeInsets.zero,
+                              icon: Icon(
+                                Icons.volume_up_rounded,
+                                size: 18,
+                                color: isUser ? Colors.white : const Color(0xFF2563EB),
+                              ),
+                              onPressed: () => _tts.speak(targetText, langCode: widget.languageCode),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          d['text_target'],
+                          targetText,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -133,7 +147,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
               },
             ),
           ),
-          // شريط التفاعل السفلي العصري
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -149,7 +162,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    child: const Text('اضغط على الميكروفون للتحدث والتدرب...', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+                    child: const Text('اضغط على الميكروفون للتدرب على النطق...', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -158,7 +171,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   backgroundColor: const Color(0xFF2563EB),
                   child: IconButton(
                     icon: const Icon(Icons.mic_rounded, color: Colors.white),
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('التعرف الصوتي الذكي قيد التجهيز للتفاعل المباشر!'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

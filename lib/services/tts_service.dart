@@ -1,119 +1,97 @@
-import '../core/infrastructure/audio/flutter_tts_audio_engine.dart';
-import '../features/audio/domain/entities/audio_playback_result.dart';
-import '../features/audio/domain/entities/audio_request.dart';
-import '../features/audio/offline_audio_runtime.dart';
-import '../language/german/german_speech_profile.dart';
-import '../language/language_speech_profile.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
-export '../core/infrastructure/audio/flutter_tts_audio_engine.dart'
-    show FlutterOfflineTtsEngine;
+class FlutterOfflineTtsEngine {
+  final FlutterTts _flutterTts = FlutterTts();
 
-/// Compatibility adapter. New code should receive IAudioRuntime from the
-/// composition root rather than constructing TTS directly in widgets.
-class SafeTtsController {
-  SafeTtsController({
-    OfflineAudioRuntime? runtime,
-    LanguageSpeechProfile profile = const GermanSpeechProfile(),
-  })  : _profile = profile,
-        _runtime = runtime ??
-            OfflineAudioRuntime(
-              speechProfile: profile,
-              ttsEngine: FlutterOfflineTtsEngine(),
-            );
-
-  final LanguageSpeechProfile _profile;
-  final OfflineAudioRuntime _runtime;
-  AudioPlaybackResult? _lastResult;
-  bool _disposed = false;
-  bool _operationBusy = false;
-
-  Future<void> speak(String text, {double rate = .46}) async {
-    if (_disposed || text.trim().isEmpty) return;
-    _operationBusy = true;
+  Future<void> speak(String text, {String lang = 'de-DE', double? rate}) async {
+    if (text.trim().isEmpty) return;
     try {
-      _lastResult = await _runtime.play(
-        AudioRequest(
-          text: text,
-          languageCode: _profile.languageCode,
-          rate: rate,
-        ),
-      );
-    } finally {
-      _operationBusy = false;
-    }
+      if (rate != null) await _flutterTts.setSpeechRate(rate);
+      await _flutterTts.setLanguage(lang);
+      await _flutterTts.speak(text);
+    } catch (_) {}
   }
 
-  Future<void> stop() => _runtime.stop();
-
-  Future<void> shutdown() async {
-    if (_disposed) return;
-    _disposed = true;
-    await _runtime.shutdown();
+  Future<void> stop() async {
+    await _flutterTts.stop();
   }
 
   void dispose() {
-    if (_disposed) return;
-    _disposed = true;
-    Future<void>(() => _runtime.shutdown());
+    _flutterTts.stop();
+  }
+}
+
+class SafeTtsController {
+  static final SafeTtsController _instance = SafeTtsController._internal();
+  factory SafeTtsController() => _instance;
+  SafeTtsController._internal();
+
+  final FlutterTts _tts = FlutterTts();
+
+  Future<void> speak(String text, {String? languageCode, double? rate}) async {
+    if (text.trim().isEmpty) return;
+    try {
+      if (rate != null) await _tts.setSpeechRate(rate);
+      await _tts.setLanguage(languageCode ?? 'de-DE');
+      await _tts.speak(text);
+    } catch (_) {}
   }
 
-  bool get isDisposed => _disposed;
-  bool get isBusy => _operationBusy;
-  bool get isGermanVoiceReady =>
-      _lastResult?.source == AudioPlaybackSource.offlineTts;
-  String? get voiceError =>
-      _lastResult?.source == AudioPlaybackSource.unavailable
-          ? _profile.offlineVoiceUnavailableMessage
-          : null;
+  Future<void> stop() async {
+    await _tts.stop();
+  }
+
+  void dispose() {
+    _tts.stop();
+  }
 }
 
-class _TtsGate {
-  Future<void> tail = Future<void>.value();
-  int generation = 0;
-  bool closed = false;
-}
+class TtsService {
+  static final TtsService _instance = TtsService._internal();
+  factory TtsService() => _instance;
+  TtsService._internal() {
+    _initTts();
+  }
 
-final Expando<_TtsGate> _ttsGates = Expando<_TtsGate>('ttsGates');
+  final FlutterTts _flutterTts = FlutterTts();
 
-_TtsGate _gateFor(SafeTtsController tts) => _ttsGates[tts] ??= _TtsGate();
+  void _initTts() async {
+    await _flutterTts.setSpeechRate(0.45);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
 
-Future<void> _enqueueTts(
-  SafeTtsController tts,
-  Future<void> Function(_TtsGate gate, int generation) action,
-) {
-  final gate = _gateFor(tts);
-  final generation = gate.generation;
-  gate.tail =
-      gate.tail.then<void>((_) => action(gate, generation)).catchError((_) {});
-  return gate.tail;
-}
+  String _mapLanguageCode(String code) {
+    switch (code.toLowerCase()) {
+      case 'de':
+        return 'de-DE';
+      case 'en':
+        return 'en-US';
+      case 'fr':
+        return 'fr-FR';
+      case 'es':
+        return 'es-ES';
+      case 'tr':
+        return 'tr-TR';
+      default:
+        return 'de-DE';
+    }
+  }
 
-Future<void> safeSpeak(
-  SafeTtsController tts,
-  String text, {
-  double rate = .46,
-}) async {
-  if (text.trim().isEmpty) return;
-  final gate = _gateFor(tts);
-  if (gate.closed) return;
-  await _enqueueTts(tts, (gate, generation) async {
-    if (gate.closed || generation != gate.generation) return;
-    await tts.speak(text, rate: rate);
-  });
-}
+  Future<void> speak(String text, {String langCode = 'de'}) async {
+    if (text.trim().isEmpty) return;
+    try {
+      final locale = _mapLanguageCode(langCode);
+      await _flutterTts.setLanguage(locale);
+      await _flutterTts.speak(text);
+    } catch (_) {}
+  }
 
-Future<void> safeTtsStop(SafeTtsController tts) async {
-  final gate = _gateFor(tts);
-  gate.generation++;
-  await _enqueueTts(tts, (gate, _) async {
-    await tts.stop();
-  });
-}
+  Future<void> stop() async {
+    await _flutterTts.stop();
+  }
 
-Future<void> safeTtsShutdown(SafeTtsController tts) async {
-  final gate = _gateFor(tts);
-  gate.generation++;
-  gate.closed = true;
-  await gate.tail;
-  await tts.shutdown();
+  void dispose() {
+    _flutterTts.stop();
+  }
 }
