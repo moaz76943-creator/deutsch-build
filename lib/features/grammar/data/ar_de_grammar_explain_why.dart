@@ -15,9 +15,6 @@ abstract final class ArDeGrammarExplainWhyCatalog {
     );
     return DeterministicExplainWhyEngine.fromDictionary(
       dictionary: dictionary,
-      userLanguageCode: 'ar',
-      sourceLanguageCode: 'ar',
-      targetLanguageCode: 'de',
     );
   }
 

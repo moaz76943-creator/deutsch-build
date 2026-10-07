@@ -121,7 +121,7 @@ final class Phase6L10nController extends ChangeNotifier {
     String key, {
     Map<String, Object?> arguments = const <String, Object?>{},
   }) =>
-      _engine.text(key, arguments: arguments);
+      _engine.uiText(key, arguments: arguments);
 
   LearningLanguageIdentity language(String id) =>
       matrix.requireLanguage(id);

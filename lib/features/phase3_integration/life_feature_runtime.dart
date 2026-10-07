@@ -119,11 +119,11 @@ final class LifeFeatureRuntime extends ChangeNotifier {
     _ensureOpen();
     final text = raw.trim();
     if (text.isEmpty) return raw;
-    final key = _ensureLiteral(
+    final key = _ensureUiLiteral(
       raw: raw,
       primaryLocale: _inferLiteralLocale(raw),
     );
-    return _engine.text(key);
+    return _engine.uiText(key);
   }
 
   String resolveDirectionalLiteral(
@@ -133,16 +133,12 @@ final class LifeFeatureRuntime extends ChangeNotifier {
     _ensureOpen();
     final text = raw.trim();
     if (text.isEmpty) return raw;
-    final locale = AppLocale.parse(languageCode).languageTag;
-    final key = _ensureLiteral(
-      raw: raw,
-      primaryLocale: locale,
-    );
-    return _engine.findMessage(
-          key,
-          languageTag: locale,
-        )?.render() ??
-        raw;
+
+    // Directional source/target text is learning content, not UI chrome.
+    // Validate the explicit language identity, then preserve canonical content
+    // exactly instead of admitting it into the UI fallback dictionaries.
+    AppLocale.parse(languageCode);
+    return raw;
   }
 
   bool isTargetLanguage(String languageTag) {
@@ -249,17 +245,17 @@ final class LifeFeatureRuntime extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
-  String _ensureLiteral({
+  String _ensureUiLiteral({
     required String raw,
     required String primaryLocale,
   }) {
     final key = 'life.literal.' + _fnv1a32(raw);
-    _putLiteral(primaryLocale, key, raw);
-    _putLiteral('en', key, raw);
+    _putUiLiteral(primaryLocale, key, raw);
+    _putUiLiteral('en', key, raw);
     return key;
   }
 
-  void _putLiteral(String localeTag, String key, String raw) {
+  void _putUiLiteral(String localeTag, String key, String raw) {
     final locale = AppLocale.parse(localeTag).languageTag;
     final messages = _literalMessages.putIfAbsent(
       locale,
