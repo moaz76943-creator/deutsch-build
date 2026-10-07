@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'ui/language_selector_screen.dart';
+import 'screens/languages_screen.dart';
 
 void main() {
-  runApp(const DeutschBilarabiApp());
+  runApp(MyApp());
 }
 
-class DeutschBilarabiApp extends StatelessWidget {
-  const DeutschBilarabiApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LanguageSelectorScreen(),
+      title: 'Deutsch بالعربي',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: LanguagesScreen(),
     );
   }
 }
