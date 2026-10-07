@@ -10,7 +10,6 @@ import 'package:deutsch_bilarabi/features/srs/corpus_sqlite_contract.dart';
 import 'package:deutsch_bilarabi/features/srs/corpus_sqlite_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 const String _termuxFfiSkipReason =

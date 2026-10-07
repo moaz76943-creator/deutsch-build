@@ -19,7 +19,6 @@ final class Phase10PresentationBridge {
     required OfflineProgressSnapshot initialSnapshot,
   })  : _eventBus = eventBus,
         _kernel = kernel,
-        _endpoint = endpoint,
         _batchDispatcher = batchDispatcher,
         _validationCache = validationCache,
         _snapshot = initialSnapshot {
@@ -96,7 +95,6 @@ final class Phase10PresentationBridge {
 
   final AgentEventBus _eventBus;
   final OrchestrationKernel _kernel;
-  final AgentEndpoint _endpoint;
   final AgentEventBatchDispatcher _batchDispatcher;
   final ValidationHashCache _validationCache;
   final StreamController<OfflineProgressSnapshot> _progressController =
