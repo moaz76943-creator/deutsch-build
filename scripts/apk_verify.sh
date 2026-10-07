@@ -27,11 +27,18 @@ BADGING="$(aapt dump badging "$APK")" || fatal "aapt could not parse APK manifes
 grep -F "package: name='com.deutschbilarabi.app'" <<<"$BADGING" >/dev/null || fatal "Package ID mismatch"
 grep -F "versionCode='$APP_BUILD'" <<<"$BADGING" >/dev/null || fatal "Version code mismatch: expected $APP_BUILD"
 grep -F "versionName='$APP_VERSION'" <<<"$BADGING" >/dev/null || fatal "Version name mismatch: expected $APP_VERSION"
-grep -F "native-code: 'arm64-v8a'" <<<"$BADGING" >/dev/null || fatal "APK does not advertise arm64-v8a native code"
+APK_ABI="arm64-v8a"
+grep -F "native-code: '$APK_ABI'" <<<"$BADGING" >/dev/null || fatal "APK does not advertise $APK_ABI native code"
 
 PERMISSIONS="$(aapt dump permissions "$APK")" || fatal "aapt could not inspect APK permissions"
 grep -F "android.permission.RECORD_AUDIO" <<<"$PERMISSIONS" >/dev/null || fatal "Required pronunciation permission is missing from merged APK"
-for forbidden_permission in android.permission.INTERNET android.permission.POST_NOTIFICATIONS; do
+for forbidden_permission in \
+  android.permission.INTERNET \
+  android.permission.ACCESS_NETWORK_STATE \
+  android.permission.CHANGE_NETWORK_STATE \
+  android.permission.ACCESS_WIFI_STATE \
+  android.permission.CHANGE_WIFI_STATE \
+  android.permission.POST_NOTIFICATIONS; do
   if [[ "$MODE" == release ]] && grep -F "$forbidden_permission" <<<"$PERMISSIONS" >/dev/null; then
     fatal "Unexpected release permission in merged APK: $forbidden_permission"
   fi

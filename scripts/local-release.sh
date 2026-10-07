@@ -91,7 +91,8 @@ assert_lockfile_unchanged
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
   python3 "$ROOT/tool/content_compiler.py" compile --output-dir "$ROOT/lib/data/generated"
 fi
-if [[ "$VERIFY" == true ]]; then
+if [[ "$MODE" == "release" || "$VERIFY" == true ]]; then
+  log CHECK "Mandatory local quality gate before release"
   bash "$ROOT/scripts/local_quality_gate.sh"
 fi
 bash "$ROOT/scripts/check-dart-errors.sh"
