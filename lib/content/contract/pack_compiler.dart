@@ -1,17 +1,15 @@
-// Deterministic Pack Compiler - Post-V1 Expansion
-// Compiles canonical source into distributable runtime artifacts
+import 'hundred_languages_registry.dart';
+import 'language_intelligence_contract.dart';
 
 class PackCompiler {
-  final String sourcePath;
-  final String outputPath;
+  static Map<String, dynamic> compileLanguagePack(String languageCode) {
+    final language = HundredLanguagesRegistry.getLanguage(languageCode);
+    final conjugations = LanguageIntelligenceContract.getStandardConjugations(languageCode);
 
-  const PackCompiler({
-    required this.sourcePath,
-    required this.outputPath,
-  });
-
-  bool compilePack() {
-    // Deterministic compilation pipeline stub
-    return sourcePath.isNotEmpty && outputPath.isNotEmpty;
+    return {
+      'metadata': language.toJson(),
+      'conjugations': conjugations.map((rule) => rule.toJson()).toList(),
+      'compiledAt': DateTime.now().toIso8601String(),
+    };
   }
 }

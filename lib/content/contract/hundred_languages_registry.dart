@@ -1,41 +1,65 @@
-// 100-Language Registry - Post-V1 Expansion
-// Manages language records and readiness states without forcing production visibility
-
-enum LanguageReadinessState {
-  registered,
-  specified,
-  implemented,
-  tested,
-  verified,
-  productionReady,
-}
-
-class LanguageRecord {
-  final String id;
-  final String bcpCode;
-  final String nativeName;
-  final LanguageReadinessState readinessState;
-
-  const LanguageRecord({
-    required this.id,
-    required this.bcpCode,
-    required this.nativeName,
-    this.readinessState = LanguageReadinessState.registered,
+class LanguageDefinition {
+  const LanguageDefinition({
+    required this.code,
+    required this.name,
+    required this.family,
+    this.hasGenderCases = false,
+    this.hasComplexVerbConjugation = true,
   });
+
+  final String code;
+  final String name;
+  final String family;
+  final bool hasGenderCases;
+  final bool hasComplexVerbConjugation;
+
+  Map<String, dynamic> toJson() => {
+        'code': code,
+        'name': name,
+        'family': family,
+        'hasGenderCases': hasGenderCases,
+        'hasComplexVerbConjugation': hasComplexVerbConjugation,
+      };
 }
 
 class HundredLanguagesRegistry {
-  static final List<LanguageRecord> supportedLanguages = [
-    const LanguageRecord(id: 'de', bcpCode: 'de-DE', nativeName: 'Deutsch', readinessState: LanguageReadinessState.productionReady),
-    const LanguageRecord(id: 'ar', bcpCode: 'ar-SA', nativeName: 'العربية', readinessState: LanguageReadinessState.productionReady),
-    const LanguageRecord(id: 'en', bcpCode: 'en-US', nativeName: 'English', readinessState: LanguageReadinessState.registered),
+  static final List<LanguageDefinition> supportedLanguages = [
+    const LanguageDefinition(
+      code: 'de',
+      name: 'German',
+      family: 'Germanic',
+      hasGenderCases: true,
+    ),
+    const LanguageDefinition(
+      code: 'ar',
+      name: 'Arabic',
+      family: 'Semitic',
+      hasGenderCases: true,
+    ),
+    const LanguageDefinition(
+      code: 'en',
+      name: 'English',
+      family: 'Germanic',
+      hasGenderCases: false,
+    ),
+    const LanguageDefinition(
+      code: 'fr',
+      name: 'French',
+      family: 'Romance',
+      hasGenderCases: true,
+    ),
+    const LanguageDefinition(
+      code: 'es',
+      name: 'Spanish',
+      family: 'Romance',
+      hasGenderCases: true,
+    ),
   ];
 
-  static LanguageRecord? getLanguage(String id) {
-    try {
-      return supportedLanguages.firstWhere((lang) => lang.id == id);
-    } catch (_) {
-      return null;
-    }
+  static LanguageDefinition getLanguage(String code) {
+    return supportedLanguages.firstWhere(
+      (lang) => lang.code == code,
+      orElse: () => supportedLanguages.first,
+    );
   }
 }

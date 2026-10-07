@@ -1,31 +1,37 @@
-// Language Intelligence Contract - Post-V1 Expansion
-// Encapsulates language-specific capabilities (morphology, normalization, grammar) behind a unified boundary
-
-enum CapabilityStatus { supported, limited, unsupported }
-
-abstract class LanguageIntelligenceContract {
-  String get languageCode;
-  CapabilityStatus getCapability(String capabilityName);
-  String normalizeText(String input);
-}
-
-class BaseLanguageIntelligence implements LanguageIntelligenceContract {
-  @override
-  final String languageCode;
-  final Map<String, CapabilityStatus> capabilities;
-
-  BaseLanguageIntelligence({
-    required this.languageCode,
-    this.capabilities = const {},
+class VerbConjugationRule {
+  const VerbConjugationRule({
+    required this.tense,
+    required this.pronounSuffixes,
   });
 
-  @override
-  CapabilityStatus getCapability(String capabilityName) {
-    return capabilities[capabilityName] ?? CapabilityStatus.unsupported;
-  }
+  final String tense;
+  final Map<String, String> pronounSuffixes;
 
-  @override
-  String normalizeText(String input) {
-    return input.trim();
+  Map<String, dynamic> toJson() => {
+        'tense': tense,
+        'pronounSuffixes': pronounSuffixes,
+      };
+}
+
+class LanguageIntelligenceContract {
+  static List<VerbConjugationRule> getStandardConjugations(String languageCode) {
+    switch (languageCode) {
+      case 'de':
+        return [
+          const VerbConjugationRule(
+            tense: 'Present',
+            pronounSuffixes: {'ich': '-e', 'du': '-st', 'er/sie/es': '-t'},
+          ),
+        ];
+      case 'ar':
+        return [
+          const VerbConjugationRule(
+            tense: 'Past',
+            pronounSuffixes: {'هو': 'َ', 'هي': 'َت', 'أنا': 'ْتُ'},
+          ),
+        ];
+      default:
+        return [];
+    }
   }
 }
