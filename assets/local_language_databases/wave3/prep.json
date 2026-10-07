@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "wave": 3,
+  "preparedFromWave": 2,
+  "state": "ONE_WAVE_AHEAD_PREP_SATISFIED",
+  "canonical": false,
+  "contentPromotionAuthorized": false,
+  "productionActivationAuthorized": false,
+  "mutationParallelism": 1,
+  "languages": [
+    {
+      "languageCode": "tr",
+      "script": "Latn",
+      "textDirection": "ltr",
+      "plannedRoles": [
+        "USER",
+        "SOURCE",
+        "TARGET"
+      ],
+      "roleReadiness": "UNASSESSED"
+    },
+    {
+      "languageCode": "pl",
+      "script": "Latn",
+      "textDirection": "ltr",
+      "plannedRoles": [
+        "USER",
+        "SOURCE",
+        "TARGET"
+      ],
+      "roleReadiness": "UNASSESSED"
+    },
+    {
+      "languageCode": "sv",
+      "script": "Latn",
+      "textDirection": "ltr",
+      "plannedRoles": [
+        "USER",
+        "SOURCE",
+        "TARGET"
+      ],
+      "roleReadiness": "UNASSESSED"
+    },
+    {
+      "languageCode": "el",
+      "script": "Grek",
+      "textDirection": "ltr",
+      "plannedRoles": [
+        "USER",
+        "SOURCE",
+        "TARGET"
+      ],
+      "roleReadiness": "UNASSESSED"
+    },
+    {
+      "languageCode": "id",
+      "script": "Latn",
+      "textDirection": "ltr",
+      "plannedRoles": [
+        "USER",
+        "SOURCE",
+        "TARGET"
+      ],
+      "roleReadiness": "UNASSESSED"
+    }
+  ],
+  "requiredBeforeCanonical": [
+    "qualified_linguistic_review",
+    "provenance_license_review",
+    "pack_self_test",
+    "semantic_benchmark",
+    "directed_pair_golden",
+    "pair_readiness_evidence",
+    "runtime_pack_compatibility",
+    "canonical_quality_gate"
+  ]
+}

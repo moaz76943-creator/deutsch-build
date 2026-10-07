@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "maxParallel": 1,
+  "cachePath": ".agent-pulse-cache/wave3_content_validation_cache.json",
+  "packs": [
+    {
+      "id": "wave3-tr-core",
+      "languageCode": "tr",
+      "path": "assets/local_language_databases/wave3/source/tr.json"
+    },
+    {
+      "id": "wave3-pl-core",
+      "languageCode": "pl",
+      "path": "assets/local_language_databases/wave3/source/pl.json"
+    },
+    {
+      "id": "wave3-sv-core",
+      "languageCode": "sv",
+      "path": "assets/local_language_databases/wave3/source/sv.json"
+    },
+    {
+      "id": "wave3-el-core",
+      "languageCode": "el",
+      "path": "assets/local_language_databases/wave3/source/el.json"
+    },
+    {
+      "id": "wave3-id-core",
+      "languageCode": "id",
+      "path": "assets/local_language_databases/wave3/source/id.json"
+    }
+  ]
+}

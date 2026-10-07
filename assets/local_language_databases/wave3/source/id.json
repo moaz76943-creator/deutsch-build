@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "pack": {
+    "id": "wave3-id-core",
+    "languageCode": "id"
+  },
+  "cards": [
+    {
+      "id": "wave3-id-core-001",
+      "semanticId": "greeting.hello",
+      "languageCode": "id",
+      "text": "Halo!",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "greeting",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-002",
+      "semanticId": "farewell.goodbye",
+      "languageCode": "id",
+      "text": "Sampai jumpa.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "farewell",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-003",
+      "semanticId": "courtesy.please",
+      "languageCode": "id",
+      "text": "Tolong.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-004",
+      "semanticId": "courtesy.thanks",
+      "languageCode": "id",
+      "text": "Terima kasih.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-005",
+      "semanticId": "courtesy.excuse",
+      "languageCode": "id",
+      "text": "Permisi.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "courtesy",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-006",
+      "semanticId": "help.need",
+      "languageCode": "id",
+      "text": "Saya butuh bantuan.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "help",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-007",
+      "semanticId": "transport.station",
+      "languageCode": "id",
+      "text": "Di mana stasiun kereta?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "transport",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-008",
+      "semanticId": "shopping.price",
+      "languageCode": "id",
+      "text": "Berapa harganya?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "shopping",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-009",
+      "semanticId": "food.water",
+      "languageCode": "id",
+      "text": "Saya ingin air, tolong.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "food",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-010",
+      "semanticId": "location.restroom",
+      "languageCode": "id",
+      "text": "Di mana toilet?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "location",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-011",
+      "semanticId": "emergency.doctor",
+      "languageCode": "id",
+      "text": "Saya butuh dokter.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "emergency",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-012",
+      "semanticId": "language.understand",
+      "languageCode": "id",
+      "text": "Saya tidak mengerti.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-013",
+      "semanticId": "language.slower",
+      "languageCode": "id",
+      "text": "Tolong bicara lebih pelan.",
+      "register": "formal",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-014",
+      "semanticId": "language.repeat",
+      "languageCode": "id",
+      "text": "Tolong ulangi.",
+      "register": "formal",
+      "metadata": {
+        "cefr": "A1",
+        "category": "language",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-015",
+      "semanticId": "transport.ticket",
+      "languageCode": "id",
+      "text": "Saya butuh tiket.",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "transport",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    },
+    {
+      "id": "wave3-id-core-016",
+      "semanticId": "location.hotel",
+      "languageCode": "id",
+      "text": "Di mana hotel saya?",
+      "register": "neutral",
+      "metadata": {
+        "cefr": "A1",
+        "category": "location",
+        "wave": "3",
+        "reviewStatus": "pending",
+        "culturalReview": "pending",
+        "provenanceStatus": "pending-qualified-review",
+        "origin": "task13-wave3-local-agent-candidate"
+      }
+    }
+  ]
+}

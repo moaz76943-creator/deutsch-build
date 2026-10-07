@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "maxParallel": 1,
+  "cachePath": ".agent-pulse-cache/wave4_content_validation_cache.json",
+  "packs": [
+    {
+      "id": "wave4-ja-core",
+      "languageCode": "ja",
+      "path": "assets/local_language_databases/wave4/source/ja.json"
+    },
+    {
+      "id": "wave4-ko-core",
+      "languageCode": "ko",
+      "path": "assets/local_language_databases/wave4/source/ko.json"
+    },
+    {
+      "id": "wave4-fa-core",
+      "languageCode": "fa",
+      "path": "assets/local_language_databases/wave4/source/fa.json"
+    },
+    {
+      "id": "wave4-ur-core",
+      "languageCode": "ur",
+      "path": "assets/local_language_databases/wave4/source/ur.json"
+    }
+  ]
+}
