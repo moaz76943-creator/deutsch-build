@@ -106,10 +106,14 @@ jobs:
 
       - name: Build signed ARM64 release APK
         env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
           ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.RELEASE_STORE_PASSWORD }}
           ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.RELEASE_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          set +x
+          set -Eeuo pipefail
+          bash scripts/signing_guard.sh --ephemeral
           flutter build apk --release \
             --target-platform android-arm64 \
             --obfuscate \
@@ -123,9 +127,10 @@ jobs:
           ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.RELEASE_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          set +x
           set -Eeuo pipefail
           APK="build/app/outputs/flutter-apk/app-release.apk"
-          bash scripts/apk_verify.sh "$APK" release
+          bash scripts/apk_verify.sh "$APK" release --ephemeral
           (cd build/app/outputs/flutter-apk && sha256sum app-release.apk > SHA256SUMS.txt && sha256sum --check SHA256SUMS.txt)
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
           printf 'sha256=%s\n' "$SHA256" >> "$GITHUB_OUTPUT"

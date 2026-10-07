@@ -9,5 +9,5 @@ prepare_release_signing() {
 }
 
 check_release_signing() {
-  python3 "$ROOT/tool/release_signing.py"
+  python3 "$ROOT/tool/release_signing.py" "$@"
 }

@@ -8,8 +8,10 @@ load_toolchain
 
 APK="${1:-}"
 MODE="${2:-release}"
-[[ -n "$APK" ]] || fatal "Usage: ./scripts/apk_verify.sh <apk> <debug|release>"
+SIGNING_MODE="${3:-}"
+[[ -n "$APK" ]] || fatal "Usage: ./scripts/apk_verify.sh <apk> <debug|release> [--ephemeral]"
 [[ "$MODE" == "debug" || "$MODE" == "release" ]] || fatal "Build mode must be debug or release"
+[[ -z "$SIGNING_MODE" || "$SIGNING_MODE" == "--ephemeral" ]] || fatal "Usage: ./scripts/apk_verify.sh <apk> <debug|release> [--ephemeral]"
 [[ -f "$APK" ]] || fatal "APK does not exist: $APK"
 [[ -s "$APK" ]] || fatal "APK is empty: $APK"
 
@@ -77,7 +79,11 @@ PY
 
 if [[ "$MODE" == "release" ]]; then
   CERT_INFO="$(apksigner verify --verbose --print-certs "$APK")" || fatal "Release APK signature verification failed"
-  EXPECTED_CERT="$(python3 "$ROOT/tool/release_signing.py" --fingerprint)" || fatal "Could not verify expected production signing certificate"
+  signing_args=(--fingerprint)
+  if [[ "$SIGNING_MODE" == "--ephemeral" ]]; then
+    signing_args+=(--ephemeral)
+  fi
+  EXPECTED_CERT="$(python3 "$ROOT/tool/release_signing.py" "${signing_args[@]}")" || fatal "Could not verify expected production signing certificate"
   grep -Fi "certificate SHA-256 digest: $EXPECTED_CERT" <<<"$CERT_INFO" >/dev/null || fatal "APK certificate differs from the configured release identity"
 fi
 

@@ -7,9 +7,23 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/common.sh"
 load_toolchain
 
+SIGNING_ARGS=()
+case "${1:-}" in
+  --ephemeral)
+    SIGNING_ARGS=(--ephemeral)
+    shift
+    ;;
+  "")
+    ;;
+  *)
+    fatal "Usage: ./scripts/signing_guard.sh [--ephemeral]"
+    ;;
+esac
+[[ "$#" -eq 0 ]] || fatal "Usage: ./scripts/signing_guard.sh [--ephemeral]"
+
 # shellcheck disable=SC1091
 source "$ROOT/scripts/release-signing.sh"
-check_release_signing || fatal "Run bash scripts/local-release.sh to prepare local signing."
+check_release_signing "${SIGNING_ARGS[@]}" || fatal "Run bash scripts/local-release.sh to prepare local signing."
 grep -F 'secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal "secureRelease signing config is missing"
 grep -F 'signingConfig signingConfigs.secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal "Release build is not bound to secureRelease signing"
 ! grep -F 'signingConfigs.debug' "$ROOT/android/app/build.gradle" >/dev/null || fatal "Release signing must never fall back to the debug keystore"

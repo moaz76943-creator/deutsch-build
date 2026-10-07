@@ -395,3 +395,42 @@ def test_legacy_security_audit_is_only_a_compatibility_notice():
     assert "HISTORICAL / NON-CANONICAL" in text
     assert "test_current_topology_security_gate.py" in text
     assert "checks=[" not in text
+
+
+def test_worker_release_signing_credentials_remain_step_scoped_and_ephemeral():
+    worker = active_workflows()["worker_release_apk.yml"]
+    configure_step = next(
+        step
+        for job in worker.jobs
+        for step in job.steps
+        if step.name == "Configure release signing"
+    )
+    build_step = next(
+        step
+        for job in worker.jobs
+        for step in job.steps
+        if step.name == "Build signed ARM64 release APK"
+    )
+    verify_step = next(
+        step
+        for job in worker.jobs
+        for step in job.steps
+        if step.name == "Verify release artifact"
+    )
+
+    assert "prepare_release_signing --ephemeral" in configure_step.run
+    assert "bash scripts/signing_guard.sh --ephemeral" in build_step.run
+    assert "-Dorg.gradle.daemon=false" in build_step.raw
+    assert 'bash scripts/apk_verify.sh "$APK" release --ephemeral' in verify_step.run
+
+    password_names = (
+        "ORG_GRADLE_PROJECT_releaseStorePassword",
+        "ORG_GRADLE_PROJECT_releaseKeyPassword",
+    )
+    for job in worker.jobs:
+        for step in job.steps:
+            if "$GITHUB_ENV" not in step.run:
+                continue
+            for line in step.run.splitlines():
+                if "$GITHUB_ENV" in line:
+                    assert not any(name in line for name in password_names)

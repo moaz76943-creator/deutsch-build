@@ -500,3 +500,58 @@ def test_production_signing_sources_have_no_embedded_password_defaults(local_hom
     source = (ROOT / 'android/release-signing.gradle').read_text()
     assert 'releaseStorePassword: null' in source
     assert 'releaseKeyPassword: null' in source
+
+
+def test_ephemeral_shell_check_never_falls_back_to_home_credentials(
+    local_home, test_key, test_password, monkeypatch, tmp_path
+):
+    runner_temp = tmp_path / "runner-temp"
+    runner_temp.mkdir()
+    destination = runner_temp / "release.jks"
+    destination.write_bytes(test_key)
+
+    props = local_home / ".gradle/gradle.properties"
+    props.parent.mkdir(parents=True, exist_ok=True)
+    signing.write_properties(
+        props,
+        {
+            "releaseStorePassword": test_password,
+            "releaseKeyAlias": "release",
+            "releaseKeyPassword": test_password,
+        },
+    )
+    before = props.read_bytes()
+
+    env = {
+        **os.environ,
+        "HOME": str(local_home),
+        "GRADLE_USER_HOME": str(local_home / ".gradle"),
+        "RUNNER_TEMP": str(runner_temp),
+        "ORG_GRADLE_PROJECT_releaseStoreFile": str(destination),
+    }
+    for name in (
+        "ORG_GRADLE_PROJECT_releaseStorePassword",
+        "ORG_GRADLE_PROJECT_releaseKeyAlias",
+        "ORG_GRADLE_PROJECT_releaseKeyPassword",
+        "RELEASE_STORE_PASSWORD",
+        "RELEASE_KEY_ALIAS",
+        "RELEASE_KEY_PASSWORD",
+    ):
+        env.pop(name, None)
+
+    proc = subprocess.run(
+        [
+            "bash",
+            "-c",
+            'set -Eeuo pipefail; source "$ROOT/scripts/release-signing.sh"; '
+            "check_release_signing --ephemeral",
+        ],
+        env={**env, "ROOT": str(ROOT)},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+    assert proc.returncode != 0
+    assert "Release signing is incomplete" in proc.stderr
+    assert props.read_bytes() == before
