@@ -5,6 +5,8 @@ import 'articles_quiz_screen.dart';
 import 'verbs_screen.dart';
 import 'grammar_screen.dart';
 import 'analytics_screen.dart';
+import 'conversation_screen.dart';
+import 'lessons_path_screen.dart';
 
 class LanguagesScreen extends StatefulWidget {
   const LanguagesScreen({Key? key}) : super(key: key);
@@ -86,6 +88,24 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     );
   }
 
+  void _openConversationScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConversationScreen(languageName: _currentLangName),
+      ),
+    );
+  }
+
+  void _openLessonsScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LessonsPathScreen(languageName: _currentLangName),
+      ),
+    );
+  }
+
   void _openArticlesQuizScreen() {
     Navigator.push(
       context,
@@ -96,7 +116,11 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   }
 
   void _onBottomNavTapped(int index) {
-    if (index == 3) {
+    if (index == 1) {
+      _openLessonsScreen();
+    } else if (index == 2) {
+      _openConversationScreen();
+    } else if (index == 3) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
@@ -277,7 +301,11 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                           borderRadius: BorderRadius.circular(16),
                           child: _buildFeatureCard(Icons.menu_book_outlined, 'القواعد', '14,000 قاعدة', const Color(0xFFF59E0B), const Color(0xFFFFFBEB)),
                         ),
-                        _buildFeatureCard(Icons.record_voice_over_rounded, 'المحادثة', 'نطق سليم', const Color(0xFF8B5CF6), const Color(0xFFF5F3FF)),
+                        InkWell(
+                          onTap: _openConversationScreen,
+                          borderRadius: BorderRadius.circular(16),
+                          child: _buildFeatureCard(Icons.record_voice_over_rounded, 'المحادثة', 'حوار ذكي', const Color(0xFF8B5CF6), const Color(0xFFF5F3FF)),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
