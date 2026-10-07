@@ -6,12 +6,51 @@ class LessonsPathScreen extends StatelessWidget {
   const LessonsPathScreen({Key? key, required this.languageName}) : super(key: key);
 
   final List<Map<String, dynamic>> _units = const [
-    {'unit': 1, 'title': 'الأساسيات والتحيات', 'level': 'A1', 'progress': 1.0, 'isCompleted': true},
-    {'unit': 2, 'title': 'في المدينة والمواصلات', 'level': 'A1', 'progress': 0.75, 'isCompleted': false},
-    {'unit': 3, 'title': 'المطعم والمأكولات', 'level': 'A1', 'progress': 0.30, 'isCompleted': false},
-    {'unit': 4, 'title': 'العائلة والبيت', 'level': 'A2', 'progress': 0.0, 'isCompleted': false},
-    {'unit': 5, 'title': 'العمل والمهن', 'level': 'A2', 'progress': 0.0, 'isCompleted': false},
-    {'unit': 6, 'title': 'الصحة والعيادة', 'level': 'B1', 'progress': 0.0, 'isCompleted': false},
+    {
+      'unit': '1',
+      'title': 'الأساسيات والتحيات / Greetings & Basics',
+      'level': 'A1.1',
+      'lessons': 6,
+      'completed': 6,
+      'isLocked': false,
+      'color': Color(0xFF2563EB),
+    },
+    {
+      'unit': '2',
+      'title': 'المطعم والتسوق / Shopping & Dining',
+      'level': 'A1.2',
+      'lessons': 8,
+      'completed': 5,
+      'isLocked': false,
+      'color': Color(0xFF10B981),
+    },
+    {
+      'unit': '3',
+      'title': 'الروتين اليومي والوقت / Daily Life & Time',
+      'level': 'A2.1',
+      'lessons': 8,
+      'completed': 0,
+      'isLocked': false,
+      'color': Color(0xFFF59E0B),
+    },
+    {
+      'unit': '4',
+      'title': 'العمل والمهن / Career & Profession',
+      'level': 'A2.2',
+      'lessons': 10,
+      'completed': 0,
+      'isLocked': true,
+      'color': Color(0xFF8B5CF6),
+    },
+    {
+      'unit': '5',
+      'title': 'السفر واستكشاف المدينة / Travel & City Life',
+      'level': 'B1.1',
+      'lessons': 12,
+      'completed': 0,
+      'isLocked': true,
+      'color': Color(0xFFEC4899),
+    },
   ];
 
   @override
@@ -22,74 +61,102 @@ class LessonsPathScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
-        title: Text('مسار دروس $languageName', style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 17)),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Learning Path / مسار $languageName', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('خريطة الرحلة التعليمية المنظمة', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+          ],
+        ),
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         itemCount: _units.length,
         itemBuilder: (context, index) {
           final u = _units[index];
-          final completed = u['isCompleted'] as bool;
-          final progress = u['progress'] as double;
+          final isLocked = u['isLocked'] as bool;
+          final total = u['lessons'] as int;
+          final done = u['completed'] as int;
+          final progress = done / total;
+          final unitColor = u['color'] as Color;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: const [
-                BoxShadow(color: Color(0x04000000), blurRadius: 10, offset: Offset(0, 4)),
-              ],
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: completed ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
-                  child: Icon(
-                    completed ? Icons.check_circle_rounded : Icons.lock_open_rounded,
-                    color: completed ? const Color(0xFF10B981) : const Color(0xFF2563EB),
-                    size: 28,
-                  ),
+          return Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: isLocked ? const Color(0xFFF1F5F9) : Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: isLocked ? const Color(0xFFE2E8F0) : unitColor.withValues(alpha: 0.3)),
+                  boxShadow: isLocked
+                      ? []
+                      : [BoxShadow(color: unitColor.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('الوحدة ${u['unit']}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(u['level'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: isLocked ? const Color(0xFFCBD5E1) : unitColor,
+                          child: Icon(
+                            isLocked ? Icons.lock_outline_rounded : (done == total ? Icons.check_rounded : Icons.play_arrow_rounded),
+                            color: Colors.white,
+                            size: 18,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(u['title'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                      const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 6,
-                          backgroundColor: const Color(0xFFF1F5F9),
-                          valueColor: AlwaysStoppedAnimation<Color>(completed ? const Color(0xFF10B981) : const Color(0xFF2563EB)),
                         ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'الوحدة ${u['unit']} • ${u['level']}',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isLocked ? const Color(0xFF94A3B8) : unitColor),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                u['title'] as String,
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isLocked ? const Color(0xFF64748B) : const Color(0xFF0F172A)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 6,
+                        backgroundColor: const Color(0xFFE2E8F0),
+                        valueColor: AlwaysStoppedAnimation<Color>(unitColor),
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('$done من $total دروس مكتملة', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        Text('${(progress * 100).toInt()}%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isLocked ? const Color(0xFF94A3B8) : unitColor)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (index < _units.length - 1)
+                Container(
+                  width: 3,
+                  height: 28,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-              ],
-            ),
+            ],
           );
         },
       ),

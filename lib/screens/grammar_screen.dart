@@ -22,9 +22,10 @@ class _GrammarScreenState extends State<GrammarScreen> {
   Widget build(BuildContext context) {
     final filteredRules = widget.rules.where((r) {
       final matchesLevel = _selectedLevel == 'ALL' || r['cefr_level'] == _selectedLevel;
-      final matchesSearch = _searchQuery.isEmpty ||
-          r['title'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          r['rule'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+      final title = (r['title'] ?? '').toString().toLowerCase();
+      final rule = (r['rule'] ?? '').toString().toLowerCase();
+      final query = _searchQuery.toLowerCase();
+      final matchesSearch = _searchQuery.isEmpty || title.contains(query) || rule.contains(query);
       return matchesLevel && matchesSearch;
     }).toList();
 
@@ -37,8 +38,8 @@ class _GrammarScreenState extends State<GrammarScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('قواعد ${widget.languageName}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('${filteredRules.length} قاعدة وهيكل نحوي', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+            Text('Grammar / قواعد ${widget.languageName}', style: const TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('${filteredRules.length} rules available', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
           ],
         ),
       ),
@@ -49,7 +50,7 @@ class _GrammarScreenState extends State<GrammarScreen> {
             child: TextField(
               onChanged: (val) => setState(() => _searchQuery = val),
               decoration: InputDecoration(
-                hintText: 'ابحث عن قاعدة أو عنوان نحوي...',
+                hintText: 'ابحث في القواعد والشروحات...',
                 prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B)),
                 filled: true,
                 fillColor: Colors.white,
@@ -90,15 +91,19 @@ class _GrammarScreenState extends State<GrammarScreen> {
                     itemCount: filteredRules.length > 150 ? 150 : filteredRules.length,
                     itemBuilder: (context, index) {
                       final item = filteredRules[index];
+                      final title = item['title'] ?? 'قاعدة نحو';
+                      final rule = item['rule'] ?? '';
+                      final level = item['cefr_level'] ?? 'A1';
+
                       return Container(
                         margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                           boxShadow: const [
-                            BoxShadow(color: Color(0x05000000), blurRadius: 8, offset: Offset(0, 4)),
+                            BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 4)),
                           ],
                         ),
                         child: Column(
@@ -114,17 +119,24 @@ class _GrammarScreenState extends State<GrammarScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    item['cefr_level'] ?? 'A1',
+                                    level,
                                     style: const TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 11),
                                   ),
                                 ),
-                                const Icon(Icons.bookmark_border_rounded, color: Color(0xFF94A3B8), size: 22),
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF1F5F9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.bookmark_border_rounded, size: 16, color: Color(0xFF64748B)),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             Text(
-                              item['title'] ?? '',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                              title,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                             ),
                             const SizedBox(height: 8),
                             Container(
@@ -136,8 +148,8 @@ class _GrammarScreenState extends State<GrammarScreen> {
                                 border: Border.all(color: const Color(0xFFE2E8F0)),
                               ),
                               child: Text(
-                                item['rule'] ?? '',
-                                style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5),
+                                rule,
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.5),
                               ),
                             ),
                           ],

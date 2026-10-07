@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/progress_storage_service.dart';
 
 class ArticlesQuizScreen extends StatefulWidget {
   const ArticlesQuizScreen({Key? key}) : super(key: key);
@@ -8,93 +9,83 @@ class ArticlesQuizScreen extends StatefulWidget {
 }
 
 class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
-  final List<Map<String, dynamic>> _quizData = [
-    {'word': 'Tisch', 'meaning': 'طاولة', 'correct': 'der', 'plural': 'die Tische'},
-    {'word': 'Sonne', 'meaning': 'شمس', 'correct': 'die', 'plural': 'die Sonnen'},
-    {'word': 'Buch', 'meaning': 'كتاب', 'correct': 'das', 'plural': 'die Bücher'},
-    {'word': 'Apfel', 'meaning': 'تفاحة', 'correct': 'der', 'plural': 'die Äpfel'},
-    {'word': 'Stadt', 'meaning': 'مدينة', 'correct': 'die', 'plural': 'die Städte'},
-    {'word': 'Auto', 'meaning': 'سيارة', 'correct': 'das', 'plural': 'die Autos'},
-    {'word': 'Lehrer', 'meaning': 'معلم', 'correct': 'der', 'plural': 'die Lehrer'},
-    {'word': 'Schule', 'meaning': 'مدرسة', 'correct': 'die', 'plural': 'die Schulen'},
-    {'word': 'Haus', 'meaning': 'منزل', 'correct': 'das', 'plural': 'die Häuser'},
-    {'word': 'Mond', 'meaning': 'قمر', 'correct': 'der', 'plural': 'die Monde'},
+  final List<Map<String, dynamic>> _questions = const [
+    {'word': 'Tisch', 'meaning': 'طاولة', 'correct': 'der'},
+    {'word': 'Sonne', 'meaning': 'شمس', 'correct': 'die'},
+    {'word': 'Buch', 'meaning': 'كتاب', 'correct': 'das'},
+    {'word': 'Stuhl', 'meaning': 'كرسي', 'correct': 'der'},
+    {'word': 'Lampe', 'meaning': 'مصباح', 'correct': 'die'},
+    {'word': 'Auto', 'meaning': 'سيارة', 'correct': 'das'},
+    {'word': 'Apfel', 'meaning': 'تفاحة', 'correct': 'der'},
+    {'word': 'Katze', 'meaning': 'قطة', 'correct': 'die'},
+    {'word': 'Haus', 'meaning': 'منزل', 'correct': 'das'},
   ];
 
   int _currentIndex = 0;
   int _score = 0;
-  int _streak = 0;
   String? _selectedAnswer;
   bool _answered = false;
 
-  void _checkAnswer(String article) {
+  void _submitAnswer(String article) async {
     if (_answered) return;
-
-    final isCorrect = article == _quizData[_currentIndex]['correct'];
+    final isCorrect = article == _questions[_currentIndex]['correct'];
     setState(() {
       _selectedAnswer = article;
       _answered = true;
       if (isCorrect) {
         _score += 10;
-        _streak += 1;
-      } else {
-        _streak = 0;
       }
     });
 
+    if (isCorrect) {
+      await ProgressStorageService.addPoints(10);
+    }
+
     Future.delayed(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      setState(() {
-        if (_currentIndex < _quizData.length - 1) {
-          _currentIndex++;
-          _answered = false;
-          _selectedAnswer = null;
-        } else {
-          _showCompletionDialog();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (_currentIndex < _questions.length - 1) {
+            _currentIndex++;
+            _selectedAnswer = null;
+            _answered = false;
+          } else {
+            _showFinishDialog();
+          }
+        });
+      }
     });
   }
 
-  void _showCompletionDialog() {
+  void _showFinishDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: const [
-            Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 28),
-            SizedBox(width: 8),
-            Text('إنجاز رائع!', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('أحسنت! إنجاز رائع 🏆', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('لقد جمعت $_score نقطة جديدة تمت إضافتها إلى رصيدك الإجمالي!', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF475569))),
+            const SizedBox(height: 16),
+            const Icon(Icons.stars_rounded, color: Colors.amber, size: 48),
           ],
         ),
-        content: Text('حصلت على $_score نقطة من إجمالي ${_quizData.length * 10} نقطة.'),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _currentIndex = 0;
-                _score = 0;
-                _streak = 0;
-                _answered = false;
-                _selectedAnswer = null;
-              });
-            },
-            child: const Text('إعادة التدريب', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pop(context);
+              },
+              child: const Text('العودة للرئيسية', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text('العودة للرئيسية', style: TextStyle(color: Colors.white)),
-          ),
+          )
         ],
       ),
     );
@@ -102,8 +93,7 @@ class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentItem = _quizData[_currentIndex];
-    final progress = (_currentIndex + 1) / _quizData.length;
+    final q = _questions[_currentIndex];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -111,25 +101,21 @@ class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
-        title: const Text('تحدي أدوات التعريف', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text('Articles Challenge / تحدي الأدوات', style: TextStyle(color: Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.bold)),
         actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.bolt_rounded, color: Colors.amber, size: 18),
-                    const SizedBox(width: 4),
-                    Text('$_score نقطة', style: const TextStyle(color: Color(0xFF92400E), fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
-                ),
-              ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                const SizedBox(width: 4),
+                Text('+$_score Pts', style: const TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 13)),
+              ],
             ),
           )
         ],
@@ -141,25 +127,16 @@ class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: progress,
+                value: (_currentIndex + 1) / _questions.length,
+                minHeight: 8,
                 backgroundColor: const Color(0xFFE2E8F0),
                 valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
-                minHeight: 10,
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('سؤال ${_currentIndex + 1} من ${_quizData.length}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                if (_streak > 1)
-                  Row(
-                    children: [
-                      const Icon(Icons.local_fire_department_rounded, color: Colors.orange, size: 18),
-                      Text('سلسلة حماسية: $_streak', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12)),
-                    ],
-                  ),
-              ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('السؤال ${_currentIndex + 1} من ${_questions.length}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
             ),
             const Spacer(),
             Container(
@@ -168,35 +145,23 @@ class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(color: Color(0x0A000000), blurRadius: 20, offset: Offset(0, 10)),
-                ],
                 border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x06000000), blurRadius: 16, offset: Offset(0, 8)),
+                ],
               ),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text('ما هي أداة التعريف الصحيحة؟', style: TextStyle(color: Color(0xFF2563EB), fontSize: 13, fontWeight: FontWeight.w600)),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    currentItem['word'],
-                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    currentItem['meaning'],
-                    style: const TextStyle(fontSize: 18, color: Color(0xFF64748B)),
-                  ),
+                  const Text('اختر أداة التعريف المناسبة:', style: TextStyle(color: Color(0xFF64748B), fontSize: 14)),
                   const SizedBox(height: 16),
                   Text(
-                    'الجمع: ${currentItem['plural']}',
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
+                    q['word'],
+                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Color(0xFF0F172A), letterSpacing: 1.2),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    q['meaning'],
+                    style: const TextStyle(fontSize: 16, color: Color(0xFF334155), fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -204,11 +169,11 @@ class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
             const Spacer(),
             Row(
               children: [
-                _buildChoiceButton('der', 'مذكر', const Color(0xFF2563EB), currentItem['correct']),
+                _buildArticleButton('der', const Color(0xFF2563EB), q['correct']),
                 const SizedBox(width: 12),
-                _buildChoiceButton('die', 'مؤنث', const Color(0xFFEC4899), currentItem['correct']),
+                _buildArticleButton('die', const Color(0xFFEC4899), q['correct']),
                 const SizedBox(width: 12),
-                _buildChoiceButton('das', 'محايد', const Color(0xFF10B981), currentItem['correct']),
+                _buildArticleButton('das', const Color(0xFF10B981), q['correct']),
               ],
             ),
             const SizedBox(height: 20),
@@ -218,41 +183,42 @@ class _ArticlesQuizScreenState extends State<ArticlesQuizScreen> {
     );
   }
 
-  Widget _buildChoiceButton(String article, String label, Color defaultColor, String correctArticle) {
-    Color btnColor = defaultColor;
+  Widget _buildArticleButton(String article, Color defaultColor, String correct) {
+    Color bg = Colors.white;
+    Color border = defaultColor.withValues(alpha: 0.3);
+    Color textCol = defaultColor;
+
     if (_answered) {
-      if (article == correctArticle) {
-        btnColor = Colors.green;
+      if (article == correct) {
+        bg = const Color(0xFF10B981);
+        border = const Color(0xFF10B981);
+        textCol = Colors.white;
       } else if (article == _selectedAnswer) {
-        btnColor = Colors.red;
-      } else {
-        btnColor = Colors.grey.shade400;
+        bg = const Color(0xFFEF4444);
+        border = const Color(0xFFEF4444);
+        textCol = Colors.white;
       }
     }
 
     return Expanded(
       child: GestureDetector(
-        onTap: () => _checkAnswer(article),
+        onTap: () => _submitAnswer(article),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
-            color: btnColor.withValues(alpha: 0.1),
+            color: bg,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: btnColor, width: _selectedAnswer == article ? 2.5 : 1.5),
-          ),
-          child: Column(
-            children: [
-              Text(
-                article,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: btnColor),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(fontSize: 12, color: btnColor.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
-              ),
+            border: Border.all(color: border, width: 2),
+            boxShadow: [
+              BoxShadow(color: defaultColor.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4)),
             ],
+          ),
+          child: Center(
+            child: Text(
+              article,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textCol),
+            ),
           ),
         ),
       ),
