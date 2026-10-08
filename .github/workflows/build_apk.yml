@@ -28,7 +28,9 @@ jobs:
       - name: Verify Static Analysis
         run: dart analyze lib/
 
-      - name: Build APK
+      - name: Build APK with Extended Heap
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
         run: flutter build apk --debug --no-tree-shake-icons
 
       - name: Upload APK Artifact
