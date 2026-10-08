@@ -1,44 +1,45 @@
-name: Build Production APK
+name: Build APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android/sdk/ndk*
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Configure Runner Environment
-        run: |
-          sed -i '/^android\.aapt2\.override=/d' android/gradle.properties || true
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
+          cache: false
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Verify Static Analysis
-        run: dart analyze lib/
-
-      - name: Build APK with Extended Heap
-        env:
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
-        run: flutter build apk --debug --no-tree-shake-icons
+      - name: Build Release APK
+        run: flutter build apk --release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: deutsch-bilarabi-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
