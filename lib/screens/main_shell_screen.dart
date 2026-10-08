@@ -1,7 +1,7 @@
-
 import '../design_system/design_system.dart';
 import 'home_screen.dart';
 import 'curriculum_units_screen.dart';
+import 'offline_dictionary_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -18,8 +18,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final pages = <Widget>[
       HomeScreen(onNavigateToUnits: () => setState(() => _currentIndex = 1)),
       const CurriculumUnitsScreen(),
-      const Scaffold(body: Center(child: Text('المعجم والبحث (الدفعة 4)', style: TextStyle(color: Colors.white)))),
-      const Scaffold(body: Center(child: Text('الملف والإحصائيات (الدفعة 5)', style: TextStyle(color: Colors.white)))),
+      const OfflineDictionaryScreen(),
+      const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Text('الملف والإحصائيات وإدارة التخزين (الدفعة 5)', style: TextStyle(color: Colors.white)),
+        ),
+      ),
     ];
 
     return Scaffold(

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'design_system/design_system.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/main_shell_screen.dart';
