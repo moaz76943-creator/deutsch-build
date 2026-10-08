@@ -43,3 +43,4 @@ flutter_launcher_icons:
 flutter:
   assets:
     - assets/content/packs/de/sqlite/
+    - content/multilingual/generated/
