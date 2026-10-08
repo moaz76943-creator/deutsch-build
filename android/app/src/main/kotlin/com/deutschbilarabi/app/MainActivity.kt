@@ -55,5 +55,8 @@ class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         // Prevent the OS/app-switcher from exposing learning data in screenshots.
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 }
