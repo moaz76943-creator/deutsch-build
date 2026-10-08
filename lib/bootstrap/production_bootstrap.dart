@@ -409,7 +409,12 @@ final class _RenderFirstBootstrapAppState
         _resolved = next;
         _loading = false;
       });
-    } catch (error) {
+    } catch (error, stack) {
+      assert(() {
+        debugPrint('[BOOTSTRAP] error: $error');
+        debugPrintStack(stackTrace: stack, maxFrames: 10);
+        return true;
+      }());
       await learnerPersistence?.close();
       await unownedLearnerDatabase?.close();
       await gamificationRepository?.close();
