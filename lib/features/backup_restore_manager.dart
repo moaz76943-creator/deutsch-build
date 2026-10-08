@@ -1,55 +1,50 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BackupRestoreManager {
   static const List<String> _trackedKeys = [
-    'user_custom_smart_notes',
-    'srs_records',
-    'user_favorite_words',
-    'streak_count',
-    'streak_last_active_date',
-    'user_mistakes_bank',
+    'error_fingerprints',
+    'user_xp_total',
+    'user_streak_days',
+    'user_last_session_epoch',
   ];
 
-  /// تصدير جميع بيانات المستخدم إلى نص JSON آمن
-  static Future<String> exportBackupData() async {
+  static Future<String> createBackupJson() async {
     final prefs = await SharedPreferences.getInstance();
-    final Map<String, dynamic> exportMap = {
-      'app': 'Deutsch بالعربي',
-      'version': '1.0',
-      'timestamp': DateTime.now().toIso8601String(),
+    final Map<String, dynamic> backupData = {
+      'app': 'Deutsch-BiArabi',
+      'version': '2.0.0',
+      'createdAt': DateTime.now().toIso8601String(),
       'data': {},
     };
 
     for (final key in _trackedKeys) {
       if (prefs.containsKey(key)) {
-        exportMap['data'][key] = prefs.get(key);
+        backupData['data'][key] = prefs.get(key);
       }
     }
 
-    return const JsonEncoder.withIndent('  ').convert(exportMap);
+    return json.encode(backupData);
   }
 
-  /// استيراد واستعادة بيانات المستخدم من JSON
-  static Future<bool> restoreFromBackupJson(String jsonString) async {
+  static Future<bool> restoreFromJson(String jsonContent) async {
     try {
-      final decoded = json.decode(jsonString);
-      if (decoded is! Map<String, dynamic> || !decoded.containsKey('data')) {
+      final Map<String, dynamic> parsed = json.decode(jsonContent);
+      if (parsed['app'] != 'Deutsch-BiArabi' || !parsed.containsKey('data')) {
         return false;
       }
 
       final prefs = await SharedPreferences.getInstance();
-      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded['data']);
+      final Map<String, dynamic> data = parsed['data'];
 
       for (final entry in data.entries) {
-        final val = entry.value;
-        if (val is String) {
-          await prefs.setString(entry.key, val);
-        } else if (val is int) {
-          await prefs.setInt(entry.key, val);
-        } else if (val is List) {
-          await prefs.setStringList(entry.key, val.cast<String>());
+        if (entry.value is int) {
+          await prefs.setInt(entry.key, entry.value);
+        } else if (entry.value is String) {
+          await prefs.setString(entry.key, entry.value);
+        } else if (entry.value is bool) {
+          await prefs.setBool(entry.key, entry.value);
         }
       }
       return true;
@@ -58,10 +53,14 @@ class BackupRestoreManager {
     }
   }
 
-  /// نسخ النسخة الاحتياطية مباشرة إلى الحافظة
-  static Future<void> copyBackupToClipboard() async {
-    final jsonText = await exportBackupData();
-    await Clipboard.setData(ClipboardData(text: jsonText));
-    HapticFeedback.lightImpact();
+  static Future<bool> exportBackupToFile(String targetPath) async {
+    try {
+      final jsonStr = await createBackupJson();
+      final file = File(targetPath);
+      await file.writeAsString(jsonStr);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
