@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'views/home_hub_screen.dart';
+import 'screens/languages_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +29,7 @@ class DeutschBiArabiApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.system,
-      home: const HomeHubScreen(),
+      home: const LanguagesScreen(),
     );
   }
 }
