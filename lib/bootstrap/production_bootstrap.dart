@@ -219,8 +219,8 @@ Future<_ActivatedPhase3App> _activateProduction({
       gamificationRepository: gamificationRepository,
       quickReviewService: quickReviewService,
       explainerService: explainerService,
-      reviewSourceLanguageCode: activeLanguagePack.languageCode,
-      reviewTranslationLanguageCode: activeLanguagePack.sourceLocale,
+      reviewSourceLanguageCode: "de",
+      reviewTranslationLanguageCode: "ar",
       startTaskOrder: _runtimeCoordinator.placementStartTaskOrder(routeState),
       shutdown: () async {
         await audioRuntime.shutdown();
@@ -824,7 +824,7 @@ final class _ActivatedPhase3AppState extends State<_ActivatedPhase3App> {
                 gamificationRepository: widget.gamificationRepository,
                 quickReviewService: widget.quickReviewService,
                 explainerService: widget.explainerService,
-                reviewSourceLanguageCode: widget.reviewSourceLanguageCode,
+                reviewSourceLanguageCode: "de",
                 reviewTranslationLanguageCode:
                     widget.reviewTranslationLanguageCode,
                 startTaskOrder: widget.startTaskOrder,
