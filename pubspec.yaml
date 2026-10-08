@@ -45,3 +45,4 @@ flutter:
     - assets/content/packs/de/sqlite/
     - assets/l10n/explain_why/
     - assets/content/packs/de/bundles/
+    - assets/content/packs/de/catalog.json

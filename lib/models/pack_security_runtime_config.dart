@@ -6,9 +6,13 @@ final class PackSecurityRuntimeConfig {
 
   factory PackSecurityRuntimeConfig.fromEnvironment() =>
       const PackSecurityRuntimeConfig(
-        manifestKeyId: String.fromEnvironment('PACK_MANIFEST_KEY_ID'),
+        manifestKeyId: String.fromEnvironment(
+          'PACK_MANIFEST_KEY_ID',
+          defaultValue: 'de-pack-v2',
+        ),
         manifestPublicKeyBase64: String.fromEnvironment(
           'PACK_MANIFEST_PUBLIC_KEY_B64',
+          defaultValue: 'RH4nVDKTvu+EQG90clQ4/Aar51eyfQa88HYFckkgerI=',
         ),
       );
 

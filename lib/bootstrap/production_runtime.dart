@@ -10,6 +10,7 @@ import '../core/curriculum/canonical_curriculum_50.dart';
 import '../core/curriculum/curriculum_models.dart';
 import '../features/audio/data/audio_manifest_catalog.dart';
 import '../language/german/german_language_pack.dart';
+import '../language/german/bundled_german_pack_downloader.dart';
 import '../models/content.dart';
 import '../models/learner.dart';
 import '../models/pack_security_runtime_config.dart';
@@ -138,6 +139,56 @@ final class ResolvedCorpusSession {
   final List<LearningContent> initialCorpus;
 }
 
+Future<void> _ensureBundledGermanPackActive(
+  PackManagerService manager,
+) async {
+  if (manager.activePackId == 'de') return;
+
+  if (manager.activePackId != null) {
+    throw StateError(
+      'A different language pack is active. '
+      'Refusing to override the existing selection.',
+    );
+  }
+
+  if (manager.installedFor('de') != null) {
+    await manager.setActivePack('de');
+    return;
+  }
+
+  final packDirectory = Directory(
+    p.join(manager.rootDirectory.path, 'packs', 'de'),
+  );
+
+  if (await packDirectory.exists()) {
+    throw StateError(
+      'Unregistered German pack directory exists. '
+      'Manual recovery is required.',
+    );
+  }
+
+  final rawCatalog = await rootBundle.loadString(
+    'assets/content/packs/de/catalog.json',
+  );
+
+  final manifest = await manager.loadManifestJson(rawCatalog);
+  final descriptor = manifest.packById('de');
+
+  if (descriptor == null) {
+    throw StateError('German pack not present in signed catalog.');
+  }
+
+  await manager.install(descriptor);
+
+  if (manager.activePackId != 'de') {
+    await manager.setActivePack('de');
+  }
+
+  if (manager.activePackId != 'de') {
+    throw StateError('German pack activation failed.');
+  }
+}
+
 Future<ResolvedCorpusSession> _resolveActiveCorpusSession(
   PreferencesService prefs,
 ) async {
@@ -158,10 +209,13 @@ Future<ResolvedCorpusSession> _resolveActiveCorpusSession(
     manifestVerifier: manifestVerifier,
     databaseKeyStore: packDatabaseKeyStore,
     databaseCipher: packDatabaseSecurity,
+    downloader: const BundledGermanPackDownloader(),
     rootDirectory: Directory(
       p.join(databaseRoot, 'offline_language_packs'),
     ),
   );
+
+  await _ensureBundledGermanPackActive(packManager);
 
   final resolution = await ActivePackRuntimeProvider(
     packManager: packManager,
