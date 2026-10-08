@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
 
 import '../../../../core/media/media_loader_service.dart';
 import '../../../../design_system/design_system.dart';

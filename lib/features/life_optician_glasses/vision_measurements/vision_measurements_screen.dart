@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart' hide Text;
-import 'package:deutsch_bilarabi/features/phase3_integration/life_feature_text.dart';
 
 import '../../../design_system/design_system.dart';
 import '../optician_models.dart';

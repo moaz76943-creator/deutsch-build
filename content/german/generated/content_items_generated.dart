@@ -76,5 +76,5 @@ const generatedContentItems = <ContentItem>[
   ...generatedContentItemsChunk034,
   ...generatedContentItemsChunk035,
   ...generatedContentItemsChunk036,
-  ...generatedContentItemsChunk037,
+  ...generatedContentItemsChunk037
 ];

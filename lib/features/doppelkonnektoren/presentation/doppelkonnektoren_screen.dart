@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 
 import '../../../design_system/design_system.dart';
 import '../application/doppelkonnektoren_notifier.dart';

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class AppDesignTokens {
   static const double spaceS = 8.0;

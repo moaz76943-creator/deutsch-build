@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 import '../../../design_system/design_system.dart';
 import '../application/passiversatz_engine.dart';
@@ -15,7 +14,6 @@ abstract final class _PassiversatzLayout {
   static const double gapXs = 6;
   static const double gapS = 10;
   static const double gapM = 14;
-  static const double gapL = 18;
   static const double icon = 28;
 }
 
