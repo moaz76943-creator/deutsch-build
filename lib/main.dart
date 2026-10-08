@@ -27,9 +27,7 @@ Future<void> _ensureDatabaseReady() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _ensureDatabaseReady();
-  WidgetsFlutterBinding.ensureInitialized();
   await bootstrapDeutschApp();
-  runApp(const DeutschBiArabiApp());
 }
 
 class DeutschBiArabiApp extends StatelessWidget {
