@@ -1,4 +1,3 @@
-import '../features/cefr_readiness_screen.dart';
 import 'package:flutter/material.dart';
 import '../ui/app_design_system.dart';
 import '../features/smart_notebook_screen.dart';
@@ -12,10 +11,39 @@ import '../features/branching_dialogues_screen.dart';
 import '../features/grammar_microscopy_screen.dart';
 import '../features/sentence_transformer_screen.dart';
 import '../features/universal_search_engine.dart';
+import '../features/cefr_readiness_screen.dart';
+import '../features/smart_mistake_bank_screen.dart';
+import '../features/real_life_simulation_screen.dart';
+import '../features/adaptive_stories_screen.dart';
+import '../features/hands_free_commute_screen.dart';
+import '../features/rescue_session_screen.dart';
+import '../features/skills_mastery_map_screen.dart';
+import '../features/local_pronunciation_trainer_screen.dart';
+import '../core/smart_resume_session_manager.dart';
 import 'privacy_dashboard_screen.dart';
 
-class HomeHubScreen extends StatelessWidget {
+class HomeHubScreen extends StatefulWidget {
   const HomeHubScreen({super.key});
+
+  @override
+  State<HomeHubScreen> createState() => _HomeHubScreenState();
+}
+
+class _HomeHubScreenState extends State<HomeHubScreen> {
+  bool _hasSavedSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSavedSession();
+  }
+
+  Future<void> _checkSavedSession() async {
+    final session = await SmartResumeSessionManager.getSavedProgress();
+    if (session != null && mounted) {
+      setState(() => _hasSavedSession = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +84,37 @@ class HomeHubScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text('مستواك الحالي: B1', style: AppStyles.subtitle),
-              const SizedBox(height: 20),
-              
+              const SizedBox(height: 16),
+
+              if (_hasSavedSession) ...[
+                AppCard(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.history_toggle_off_rounded, color: AppColors.warning, size: 32),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('جلسة غير مكتملة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('لديك تقدم سابق محفوظ محلياً جاهز للاستئناف.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          SmartResumeSessionManager.clearSavedProgress();
+                          setState(() => _hasSavedSession = false);
+                        },
+                        child: const Text('تجاهل'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // بطاقة الجلسة اليومية
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,11 +170,11 @@ class HomeHubScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 28),
               const Text('مسارات ومختبرات التعلم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 14),
-              
+
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -126,13 +183,20 @@ class HomeHubScreen extends StatelessWidget {
                 mainAxisSpacing: 12,
                 childAspectRatio: 1.15,
                 children: [
-                  _buildTile(context, 'مجهر القواعد', Icons.biotech_rounded, Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GrammarMicroscopyScreen()))),
+                  _buildTile(context, 'دفتر أخطائي', Icons.rule_folder_rounded, Colors.redAccent, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SmartMistakeBankScreen()))),
+                  _buildTile(context, 'مواقف حياتية', Icons.domain_rounded, Colors.blueGrey, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RealLifeSimulationScreen()))),
+                  _buildTile(context, 'قصص تفاعلية', Icons.menu_book_rounded, Colors.brown, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdaptiveStoriesScreen()))),
+                  _buildTile(context, 'استماع تلقائي', Icons.headphones_rounded, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HandsFreeCommuteScreen()))),
+                  _buildTile(context, 'تدريب النطق', Icons.record_voice_over_rounded, Colors.deepOrange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LocalPronunciationTrainerScreen()))),
+                  _buildTile(context, 'جاهزية B1', Icons.assessment_outlined, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CefrReadinessScreen()))),
+                  _buildTile(context, 'إنقاذ سريع', Icons.flash_on_rounded, Colors.amber, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RescueSessionScreen()))),
+                  _buildTile(context, 'خريطة إتقاني', Icons.account_tree_outlined, Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SkillsMasteryMapScreen()))),
+                  _buildTile(context, 'مجهر القواعد', Icons.biotech_rounded, Colors.blue, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GrammarMicroscopyScreen()))),
                   _buildTile(context, 'سلّم الاستماع', Icons.hearing_rounded, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ListeningLadderScreen()))),
                   _buildTile(context, 'محادثات متفرعة', Icons.alt_route_rounded, Colors.green, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BranchingDialoguesScreen()))),
                   _buildTile(context, 'إكمال الفراغ', Icons.edit_note_rounded, Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClozeExerciseScreen()))),
                   _buildTile(context, 'محوّل الجمل', Icons.transform_rounded, Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SentenceTransformerScreen()))),
                   _buildTile(context, 'تصريف الأفعال', Icons.bolt_rounded, AppColors.warning, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VerbConjugatorScreen()))),
-                  _buildTile(context, 'جاهزية B1', Icons.assessment_outlined, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CefrReadinessScreen()))),
                   _buildTile(context, 'دفتر الملاحظات', Icons.note_alt_rounded, Colors.deepPurple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SmartNotebookScreen()))),
                   _buildTile(context, 'مؤقت التركيز', Icons.timer_rounded, AppColors.error, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SmartStudyTimerScreen()))),
                 ],
