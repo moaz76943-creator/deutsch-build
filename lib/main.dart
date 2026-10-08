@@ -1,59 +1,31 @@
-import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart';
 import 'package:flutter/material.dart';
-import 'bootstrap/production_bootstrap.dart';
-import 'screens/languages_screen.dart';
+import 'design_system/design_system.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/main_shell_screen.dart';
 
-Future<void> _ensureDatabaseReady() async {
-  try {
-    final dbDir = await getDatabasesPath();
-    final targetPath = p.join(dbDir, 'de-1.0.0.sqlite');
-    final file = File(targetPath);
-
-    if (!await file.exists() || (await file.length()) < 1000000) {
-      await Directory(dbDir).create(recursive: true);
-      final byteData = await rootBundle.load('assets/content/packs/de/sqlite/de-1.0.0.sqlite');
-      final bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
-      await file.writeAsBytes(bytes, flush: true);
-    }
-  } catch (e) {
-    // تجاوز الخطأ لضمان عمل الواجهة
-  }
+void main() {
+  runApp(const DeutschApp());
 }
 
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await _ensureDatabaseReady();
-  await bootstrapDeutschApp();
-}
-
-class DeutschBiArabiApp extends StatelessWidget {
-  const DeutschBiArabiApp({super.key});
+class DeutschApp extends StatelessWidget {
+  const DeutschApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Deutsch بالعربي',
+      theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueAccent,
-          brightness: Brightness.light,
+      home: Builder(
+        builder: (context) => OnboardingScreen(
+          onStart: () {
+            // الانتقال الفوري للواجهة الرئيسية المجمعة عند الضغط على زر "ابدأ"
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const MainShellScreen()),
+            );
+          },
         ),
       ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueAccent,
-          brightness: Brightness.dark,
-        ),
-      ),
-      themeMode: ThemeMode.system,
-      home: const LanguagesScreen(),
     );
   }
 }
