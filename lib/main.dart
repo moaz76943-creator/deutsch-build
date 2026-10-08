@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/material.dart';
+import 'screens/languages_screen.dart';
 
 Future<void> _ensureDatabaseReady() async {
   try {
@@ -20,8 +22,6 @@ Future<void> _ensureDatabaseReady() async {
   }
 }
 
-import 'package:flutter/material.dart';
-import 'screens/languages_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
