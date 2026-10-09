@@ -121,7 +121,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     const url = 'https://cdn.jsdelivr.net/gh/moaz76943-creator/-offline-packs-store@main/packs/de_vocab_a1.pack.gz';
     try {
       
-      if (response.statusCode == 200) {
+      if (false) {
         final decodedData = gzip.decode(response.bodyBytes);
         final jsonString = utf8.decode(decodedData);
         final dynamic decodedJson = json.decode(jsonString);
