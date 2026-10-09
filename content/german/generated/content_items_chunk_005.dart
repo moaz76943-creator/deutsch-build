@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk005 = <ContentItem>[
 ContentItem(id:'w2001',german:'Sommerferienplan',arabic:'خطة العطلة الصيفية',sentence:'Das Wort „Sommerferienplan“ ist nützlich.',sentenceAr:'هذه الكلمة مفيدة.',topic:'Sommerferien / العطلة الصيفية',skill:'production',article:'der',plural:'pläne',accepted:[]),

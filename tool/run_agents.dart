@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../lib/core/content_pipeline/parallel_content_pipeline.dart';
-import '../lib/core/content_pipeline/validation_cache.dart';
-import '../lib/core/orchestration/agent_batch_processing.dart';
-import '../lib/core/orchestration/agent_data_integrity.dart';
-import '../lib/core/orchestration/event_bus.dart';
-import '../lib/core/orchestration/orchestration_kernel.dart';
-import '../lib/core/orchestration/orchestration_models.dart';
-import '../lib/core/orchestration/service_container.dart';
+import 'package:deutsch_bilarabi/core/content_pipeline/parallel_content_pipeline.dart';
+import 'package:deutsch_bilarabi/core/content_pipeline/validation_cache.dart';
+import 'package:deutsch_bilarabi/core/orchestration/agent_batch_processing.dart';
+import 'package:deutsch_bilarabi/core/orchestration/agent_data_integrity.dart';
+import 'package:deutsch_bilarabi/core/orchestration/event_bus.dart';
+import 'package:deutsch_bilarabi/core/orchestration/orchestration_kernel.dart';
+import 'package:deutsch_bilarabi/core/orchestration/orchestration_models.dart';
+import 'package:deutsch_bilarabi/core/orchestration/service_container.dart';
 
 Future<void> main(List<String> args) async {
   final manifestPath = _contentPipelineManifest(args);
@@ -198,13 +198,13 @@ Map<String, Object?> _stringKeyedMap(
   String field,
 ) {
   if (raw is! Map) {
-    throw FormatException(field + ' must be an object');
+    throw FormatException('$field must be an object');
   }
   final result = <String, Object?>{};
   for (final entry in raw.entries) {
     if (entry.key is! String) {
       throw FormatException(
-        field + ' keys must be strings',
+        '$field keys must be strings',
       );
     }
     result[entry.key as String] = entry.value;

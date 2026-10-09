@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk028 = <VerbConjugation>[
 VerbConjugation(infinitive:'fotografieren',arabic:'يصور',group:'5. الحياة اليومية والترفيه',person:'es',personAr:'هو/هي/ذلك',form:'fotografiert',past:'hat fotografieiert',pastArabic:'هو/هي/ذلك صور',example:'Es fotografiert das Gebäude.',exampleAr:'هو/هي/ذلك يصوّر المبنى.',pastExample:'Es hat das Gebäude fotografieiert.',pastExampleAr:'هو/هي/ذلك صور المبنى.'),

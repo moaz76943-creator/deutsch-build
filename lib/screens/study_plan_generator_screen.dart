@@ -10,7 +10,7 @@ class StudyPlanGeneratorScreen extends StatefulWidget {
 
 class _StudyPlanGeneratorScreenState extends State<StudyPlanGeneratorScreen> {
   double _dailyMinutes = 15;
-  String _goal = "تطوير المحادثة اليومية والسفر";
+  final String _goal = "تطوير المحادثة اليومية والسفر";
 
   @override
   Widget build(BuildContext context) {

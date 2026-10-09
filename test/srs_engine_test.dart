@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../lib/core/srs_engine.dart';
+import 'package:deutsch_bilarabi/core/srs_engine.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

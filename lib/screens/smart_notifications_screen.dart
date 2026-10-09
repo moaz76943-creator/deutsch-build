@@ -44,7 +44,7 @@ class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
                       ),
                       Switch(
                         value: _remindersEnabled,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _remindersEnabled = val;

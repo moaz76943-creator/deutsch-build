@@ -56,11 +56,11 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      AppBaseGlassCard(
-                        padding: const EdgeInsets.all(20),
+                      const AppBaseGlassCard(
+                        padding: EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text('🌸 خريطة اليقين المعرفي (بدون عدادات توتر)', style: TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.bold)),
                             SizedBox(height: 8),
                             Text(
@@ -76,7 +76,7 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('إجمالي الغلال المعرفي: ${_totalWords} مفردة مستقرة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.bold)),
+                            Text('إجمالي الغلال المعرفي: $_totalWords مفردة مستقرة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
                             ...(_fieldCounts.entries.map((entry) {
                               return Padding(

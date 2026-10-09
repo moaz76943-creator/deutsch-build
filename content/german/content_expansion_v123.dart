@@ -1,4 +1,4 @@
-import '../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 /// V123 — curated A2 curriculum bridge.
 /// These entries are intentionally marked as an internal A2 curriculum band;

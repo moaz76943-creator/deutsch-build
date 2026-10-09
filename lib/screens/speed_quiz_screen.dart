@@ -10,8 +10,8 @@ class SpeedQuizScreen extends StatefulWidget {
 
 class _SpeedQuizScreenState extends State<SpeedQuizScreen> {
   int _score = 0;
-  int _timeLeft = 60;
-  bool _isPlaying = true;
+  final int _timeLeft = 60;
+  final bool _isPlaying = true;
 
   final Map<String, dynamic> _currentQuestion = {
     "question": "ما هو معنى كلمة 'Wasser' بالألمانية؟",

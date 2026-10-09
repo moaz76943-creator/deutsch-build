@@ -1,6 +1,6 @@
-import '../../lib/core/explain_why/deterministic_explain_why_engine.dart';
-import '../../lib/core/explainer/explainer_models.dart';
-import '../../lib/core/l10n/l10n.dart';
+import 'package:deutsch_bilarabi/core/explain_why/deterministic_explain_why_engine.dart';
+import 'package:deutsch_bilarabi/core/explainer/explainer_models.dart';
+import 'package:deutsch_bilarabi/core/l10n/l10n.dart';
 
 Future<void> main() async {
   final arabic = L10nDictionaryCodec.decodeJson(

@@ -1,4 +1,4 @@
-import '../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const a1ExpansionV125 = <ContentItem>[
   ContentItem(

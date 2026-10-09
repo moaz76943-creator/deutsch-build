@@ -44,7 +44,7 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                       ),
                       Switch(
                         value: _adaptiveActive,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _adaptiveActive = val;

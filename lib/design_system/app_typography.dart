@@ -11,28 +11,28 @@ abstract final class AppTextDirection {
 }
 
 abstract final class AppTypography {
-  static TextStyle get display => TextStyle(
+  static TextStyle get display => const TextStyle(
         fontFamily: 'Cairo',
         fontSize: 30,
         fontWeight: FontWeight.w900,
         height: 1.18,
       );
 
-  static TextStyle get title => TextStyle(
+  static TextStyle get title => const TextStyle(
         fontFamily: 'Cairo',
         fontSize: 20,
         fontWeight: FontWeight.w800,
         height: 1.3,
       );
 
-  static TextStyle get body => TextStyle(
+  static TextStyle get body => const TextStyle(
         fontFamily: 'Cairo',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         height: 1.55,
       );
 
-  static TextStyle get label => TextStyle(
+  static TextStyle get label => const TextStyle(
         fontFamily: 'Cairo',
         fontSize: 12,
         fontWeight: FontWeight.w700,

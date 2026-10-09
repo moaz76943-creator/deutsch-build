@@ -44,7 +44,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                       ),
                       Switch(
                         value: _offlineAudioMode,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _offlineAudioMode = val;
@@ -70,7 +70,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                       ),
                       Switch(
                         value: _compressData,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _compressData = val;

@@ -19,8 +19,8 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   
   String _selectedLanguage = 'de';
   String _selectedArticle = 'der';
-  String _selectedSemanticField = 'حياة يومية';
-  String _selectedProfessionalContext = 'صيدلاني / طبي';
+  final String _selectedSemanticField = 'حياة يومية';
+  final String _selectedProfessionalContext = 'صيدلاني / طبي';
   
   int _consecutiveFailures = 0; // درع التنفس البصري الإيقاعي عند العبء الحاد
   bool _isOverloadMode = false;
@@ -48,8 +48,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _updateTtsLanguage(String langCode) async {
     String ttsLang = "de-DE";
-    if (langCode == 'en') ttsLang = "en-US";
-    else if (langCode == 'fr') ttsLang = "fr-FR";
+    if (langCode == 'en') {
+      ttsLang = "en-US";
+    } else if (langCode == 'fr') ttsLang = "fr-FR";
     else if (langCode == 'es') ttsLang = "es-ES";
     await _flutterTts.setLanguage(ttsLang);
   }
@@ -354,10 +355,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                       : visibleItems.isEmpty
-                          ? Center(
+                          ? const Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
+                                children: [
                                   Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
                                   Text('المفكرة هادئة.\nأضف أول مستوى خطاب!', 

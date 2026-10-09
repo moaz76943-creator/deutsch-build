@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk022 = <VerbConjugation>[
 VerbConjugation(infinitive:'gestehen',arabic:'يعترف',group:'1. الحياة اليومية',person:'sie',personAr:'هم',form:'gestehen',past:'haben gesteht',pastArabic:'هم عترفوا',example:'Sie gestehen heute.',exampleAr:'هم يعترفون اليوم.',pastExample:'Sie haben heute gesteht.',pastExampleAr:'هم عترفوا يعترفون اليوم.'),

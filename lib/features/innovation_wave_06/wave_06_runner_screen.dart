@@ -10,27 +10,27 @@ class Wave06RunnerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scenarios = [
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '1. معايرة الشاهدية واليقين (Evidentiality)',
         contract: Wave06Scenarios.evidentialityScenario,
         mode: InteractionMode.discreteSlider,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '2. حقل التلازم اللفظي (Collocations)',
         contract: Wave06Scenarios.collocationScenario,
         mode: InteractionMode.relationalMatrix,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '3. كابح التفرع النحوي (Branching Guard)',
         contract: Wave06Scenarios.centerEmbeddingScenario,
         mode: InteractionMode.kineticBlocks,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '4. مزلاق التلطيف الدبلوماسي (Face Saving)',
         contract: Wave06Scenarios.faceSavingScenario,
         mode: InteractionMode.discreteSlider,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '5. ماسح الحذف والاختزال (Zero Equivalence)',
         contract: Wave06Scenarios.zeroEquivalenceScenario,
         mode: InteractionMode.maskedInspection,

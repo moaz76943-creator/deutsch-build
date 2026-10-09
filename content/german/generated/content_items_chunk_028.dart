@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk028 = <ContentItem>[
 ContentItem(id:'v69_0198',german:'Dokumentenplan',arabic:'المستندات خطة',sentence:'Ich brauche den Dokumentenplan.',sentenceAr:'أحتاج إلى المستندات خطة.',topic:'الإدارة والخدمات',skill:'production',article:'der',plural:'Pläne',accepted:['Dokumentenplan']),

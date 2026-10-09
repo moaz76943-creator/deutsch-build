@@ -81,11 +81,11 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      AppBaseGlassCard(
-                        padding: const EdgeInsets.all(20),
+                      const AppBaseGlassCard(
+                        padding: EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Row(
                               children: [
                                 Icon(Icons.spa_rounded, color: Color(0xFF34D399), size: 28),

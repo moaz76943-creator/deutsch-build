@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk017 = <VerbConjugation>[
 VerbConjugation(infinitive:'unterbringen',arabic:'يؤمّن مكانًا لـ / يستضيف',group:'11. أفعال إضافية مهمة',person:'wir',personAr:'نحن',form:'unterbringen',past:'haben geunterbringt',pastArabic:'نحن ؤمّن مكانًا لـنا',example:'Wir unterbringen die Aufgabe.',exampleAr:'نحن يؤمّن مكانًا لـ / يستضيف المهمة.',pastExample:'Wir haben die Aufgabe geunterbringt.',pastExampleAr:'نحن ؤمّن مكانًا لـنا مكانًا لـ / يستضيف المهمة.'),
