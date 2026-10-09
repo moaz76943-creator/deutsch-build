@@ -1,6 +1,6 @@
-export '../core/app_haptics.dart';
 import 'package:flutter/material.dart';
 export 'app_typography.dart';
+export '../core/app_haptics.dart';
 
 class AppGradients {
   static const LinearGradient purpleCard = LinearGradient(
@@ -15,10 +15,10 @@ class AppGradients {
 }
 
 class AppBaseGlassCard extends StatelessWidget {
-  final Gradient? gradient;
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
+  final Gradient? gradient;
 
   const AppBaseGlassCard({
     super.key,
@@ -36,7 +36,7 @@ class AppBaseGlassCard extends StatelessWidget {
         padding: padding ?? const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: gradient,
-        color: gradient == null ? Colors.white.withOpacity(0.08) : null,
+          color: gradient == null ? Colors.white.withOpacity(0.08) : null,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withOpacity(0.12)),
         ),
