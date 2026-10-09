@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../design_system/design_system.dart';
 import '../repositories/vocabulary_repository.dart';
 import '../models/vocabulary_item.dart';
@@ -19,13 +20,28 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   String _selectedArticle = 'der';
   
   final VocabularyRepository _repository = VocabularyRepository();
+  final FlutterTts _flutterTts = FlutterTts();
   List<VocabularyItem> _journalItems = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _initTts();
     _loadData();
+  }
+
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage("de-DE");
+    await _flutterTts.setSpeechRate(0.45); // سرعة هادئة ومناسبة للتعلم
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> _speakWord(String textToSpeak) async {
+    HapticFeedback.lightImpact();
+    await _flutterTts.stop();
+    await _flutterTts.speak(textToSpeak);
   }
 
   Future<void> _loadData() async {
@@ -46,7 +62,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         plural: _pluralController.text.trim(),
         preposition: _prepositionController.text.trim(),
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي مدمج",
-        example: "تمت مزامنة المفردة لتظهر في نظام التكرار المتباعد (SRS).",
+        example: "تم دمج النطق الصوتي الألماني المحلي بنجاح.",
       );
 
       setState(() {
@@ -64,7 +80,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✨ ممتاز! تمت إضافة المفردة وربطها بنظام SRS بسلام وهدوء.'),
+            content: Text('🔊 تمت إضافة المفردة وتفعيل محرك النطق الصوتي لها!'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -98,7 +114,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الشاملة (مرتبطة بـ SRS وتصميم هادئ)'),
+        title: const Text('المفكرة الشاملة (مع النطق الصوتي المحلي)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -111,7 +127,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                // تصميم نفسي خالٍ من الشعور بالذنب (Zero-Guilt UX)
+                // إطار دعم نفسي وتوجيه صوتي
                 Container(
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 12),
@@ -121,7 +137,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                     border: Border.all(color: Colors.white10),
                   ),
                   child: const Text(
-                    '🌿 مساحة آمنة تماماً: كل كلمة تضيفها هنا تذهب تلقائياً لبطاقات SRS دون أي ضغوط أو إشعارات مزعجة. تعلم بالسرعة التي تناسبك.',
+                    '🎧 تدريب الاستماع المحلي: اضغط على أيقونة السماعة بجانب أي كلمة لسماع نطقها باللغة الألمانية بوضوح ودون الحاجة لإنترنت.',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
@@ -130,7 +146,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة جديدة للذاكرة الذكية:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة جديدة مع النطق الصوتي:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       Row(
@@ -160,7 +176,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _wordController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'الكلمة الأساسية...',
+                          hintText: 'الكلمة الأساسية (مثل: Sprechen)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -212,13 +228,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ وربط ببطاقات SRS', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ وتفعيل النطق الصوتي', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('السجل المرتبط بـ SRS (اسحب يميناً أو يساراً للحذف النظيف):', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                const Text('السجل الصوتي الأكاديمي (اسحب للحذف):', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -228,9 +244,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.all_inclusive_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.volume_up_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة تماماً.\nأضف مفردة لتنضم مباشرة لنظام التكرار الذكي!', 
+                                  Text('المفكرة هادئة.\nأضف مفردة لتستمع لنطقها الألماني فوراً!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -242,6 +258,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               itemBuilder: (context, index) {
                                 final item = _journalItems[index];
                                 final articleColor = _getArticleColor(item.article);
+                                final fullTextToSpeak = '${item.article} ${item.word}';
                                 
                                 return Dismissible(
                                   key: Key('${item.word}_$index'),
@@ -296,6 +313,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                   Text('حرف الجر: ${item.preposition}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
                                               ],
                                             ),
+                                          ),
+                                          // زر النطق الصوتي
+                                          IconButton(
+                                            icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
+                                            onPressed: () => _speakWord(fullTextToSpeak),
+                                            tooltip: 'استمع للنطق الألماني',
                                           ),
                                         ],
                                       ),
