@@ -1,0 +1,24 @@
+{
+  "languageCode": "fr",
+  "familyName": "رومانسية",
+  "items": [
+    {
+      "word": "Ordonnance",
+      "article": "la",
+      "plural": "Ordonnances",
+      "meaning": "وصفة طبية",
+      "semanticField": "صيدلة وطب",
+      "professionalContext": "صيدلاني / طبي",
+      "politenessRegister": "مهني / رسمي"
+    },
+    {
+      "word": "Pharmacie",
+      "article": "la",
+      "plural": "Pharmacies",
+      "meaning": "صيدلية",
+      "semanticField": "صيدلة وطب",
+      "professionalContext": "صيدلاني / طبي",
+      "politenessRegister": "يومي / مهني"
+    }
+  ]
+}

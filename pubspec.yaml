@@ -22,5 +22,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/data/packs/
     - assets/data/master_vocabulary.json
     - assets/
