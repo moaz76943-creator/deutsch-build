@@ -72,12 +72,23 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     
     // تسجيل قرار المستخدم في قاعدة التقدم المستقلة
     await progressDb.rawInsert('''
-      INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-      VALUES (?, 'de', 
-        COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-        ?
-      )
-    ''', [card['lexeme_id'], card['lexeme_id'], isEasy ? 'review' : 'learning']);
+      INSERT OR REPLACE INTO srs_progress (
+        lexeme_id,
+        target_language_code,
+        repetition_count,
+        interval_days,
+        ease_factor,
+        next_due_at,
+        status
+      ) VALUES (?, 'de', ?, ?, ?, ?, ?)
+    ''', [
+      card['lexeme_id'],
+      sm2Result.repetitions,
+      sm2Result.intervalDays,
+      sm2Result.easeFactor,
+      sm2Result.nextReviewDate.millisecondsSinceEpoch,
+      isEasy ? 'review' : 'learning',
+    ]);
 
     setState(() {
       _showBack = false;

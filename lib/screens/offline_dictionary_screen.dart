@@ -1,3 +1,4 @@
+import 'package:deutsch_bilarabi/services/trie_search_engine.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../design_system/design_system.dart';
@@ -36,7 +37,11 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
     setState(() => _isLoading = true);
     try {
       // جلب البيانات الحقيقية من قاعدة البيانات
-      final results = await DatabaseService.instance.searchDictionary(_searchQuery, 'de');
+      final normalizedQuery = TrieSearchEngine.normalizeGerman(_searchQuery);
+    final results = await DatabaseService.instance.searchDictionary(
+      normalizedQuery.isEmpty ? _searchQuery : normalizedQuery,
+      'de',
+    );
       
       List<Map<String, dynamic>> filtered = results;
       if (['der', 'die', 'das'].contains(_selectedFilter)) {
