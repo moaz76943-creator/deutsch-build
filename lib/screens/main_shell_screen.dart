@@ -1,3 +1,4 @@
+import 'package:deutsch_bilarabi/design_system/floating_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
@@ -42,10 +43,4 @@ class _MainShellScreenState extends State<MainShellScreen> {
       ),
     );
   }
-}
-
-class NavBarItemData {
-  final IconData icon;
-  final String label;
-  NavBarItemData({required this.icon, required this.label});
 }

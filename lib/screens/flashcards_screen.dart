@@ -1,3 +1,4 @@
+import 'package:deutsch_bilarabi/screens/offline_dictionary_screen.dart';
 import 'package:flutter/material.dart';
 import '../design_system/design_system.dart';
 import '../services/database_service.dart';
@@ -141,7 +142,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                       children: <Widget>[
                         if (!_showBack) ...<Widget>[
                           if (article.toString().isNotEmpty)
-                            ArticleBadge(article: article.toString(), label: article.toString()),
+                            ArticleBadge(article: article.toString()),
                           const SizedBox(height: 20),
                           Text(
                             german.toString(),

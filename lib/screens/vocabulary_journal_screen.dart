@@ -8,10 +8,12 @@ class VocabularyJournalScreen extends StatefulWidget {
   const VocabularyJournalScreen({super.key});
 
   @override
-  State<VocabularyJournalScreen> createState() =>> _VocabularyJournalScreenState();
+  State<VocabularyJournalScreen> createState() => _VocabularyJournalScreenState();
 }
 
 class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
+  // ignore: unused_field
+  bool _isOverloadMode = false;
   final TextEditingController _wordController = TextEditingController();
   final TextEditingController _pluralController = TextEditingController();
   final TextEditingController _registerController = TextEditingController();
@@ -50,8 +52,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     String ttsLang = "de-DE";
     if (langCode == 'en') {
       ttsLang = "en-US";
-    } else if (langCode == 'fr') ttsLang = "fr-FR";
-    else if (langCode == 'es') ttsLang = "es-ES";
+    } else if (langCode == 'fr') {
+      ttsLang = "fr-FR";
+    } else if (langCode == 'es') {
+      ttsLang = "es-ES";
+    }
     await _flutterTts.setLanguage(ttsLang);
   }
 
@@ -75,7 +80,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   // درع التنفس البصري الإيقاعي المضاد للعبء الحاد (Acute Cognitive Overload Visual Pacer)
   void _triggerAcuteOverloadShield() {
     setState(() {
-      false = true;
+      _isOverloadMode = true;
     });
     showDialog(
       context: context,
@@ -95,7 +100,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
               onPressed: () {
                 Navigator.pop(dialogContext);
                 setState(() {
-                  false = false;
+                  _isOverloadMode = false;
                   _consecutiveFailures = 0;
                 });
               },
@@ -148,7 +153,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _registerController.clear();
       _meaningController.clear();
       
-      if (!mounted) return;
+      if (!mounted) {
+      return;
+    }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('🌿 تمت إضافة العنصر مع مؤشر مستويات الخطاب بنجاح.'),
@@ -177,7 +184,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     final rawList = _journalItems.map((e) => e.toJson()).toList();
     await _repository.saveVocabularyList(rawList);
     
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('⏱️ التبريد الزمني القادم بعد ${_journalItems[index].interval} أيام.'),
@@ -383,7 +392,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   direction: DismissDirection.horizontal,
                                   onDismissed: (direction) {
                                     _deleteItem(index);
-                                    if (!context.mounted) return;
+                                    if (!context.mounted) {
+      return;
+    }
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('تم إزالة العنصر بهدوء.')),
                                     );
@@ -456,7 +467,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
-                                                onPressed: () =>> _speakWord(fullTextToSpeak, item.languageCode),
+                                                onPressed: () => _speakWord(fullTextToSpeak, item.languageCode),
                                                 tooltip: 'نطق صوتي',
                                               ),
                                             ],
@@ -469,17 +480,17 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                               const SizedBox(width: 8),
                                               TextButton(
                                                 style: TextButton.styleFrom(foregroundColor: Colors.orangeAccent, padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                                onPressed: () =>> _reviewItemSm2(index, 1),
+                                                onPressed: () => _reviewItemSm2(index, 1),
                                                 child: const Text('تحفيز نمو', style: TextStyle(fontSize: 12)),
                                               ),
                                               TextButton(
                                                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF38BDF8), padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                                onPressed: () =>> _reviewItemSm2(index, 4),
+                                                onPressed: () => _reviewItemSm2(index, 4),
                                                 child: const Text('جيد', style: TextStyle(fontSize: 12)),
                                               ),
                                               TextButton(
                                                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF34D399), padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                                onPressed: () =>> _reviewItemSm2(index, 5),
+                                                onPressed: () => _reviewItemSm2(index, 5),
                                                 child: const Text('تثبيت عميق', style: TextStyle(fontSize: 12)),
                                               ),
                                             ],

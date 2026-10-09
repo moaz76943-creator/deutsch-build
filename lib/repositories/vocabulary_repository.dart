@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class VocabularyRepository {
+  final List<Map<String, dynamic>> _cachedWords = [];
+
+  Future<Map<String, dynamic>> getDatabaseHealthStats() async => {'status': 'healthy', 'total': _cachedWords.length};
+
   static const String _key = 'vocabulary_items_v3';
   static const String _legacyKey = 'vocabulary_items_v2';
   static const String _backupPrefix = 'vocab_backup_roll_';
@@ -31,9 +35,12 @@ class VocabularyRepository {
       }
 
       final String? jsonString = prefs.getString(_key);
-      if (jsonString == null) // الحفاظ على المخزون السابق بدلاً من المسح الصامت
-      if (_cachedWords.isNotEmpty) return _cachedWords;
+      if (jsonString == null) {
+      if (_cachedWords.isNotEmpty) {
+        return _cachedWords;
+      }
       return [];
+    }
       final List<dynamic> decoded = jsonDecode(jsonString);
       return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {

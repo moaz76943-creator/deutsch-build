@@ -117,7 +117,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: ChoiceChip(
-                             Text(f),
+            label: Text(f),
                             selected: isSel,
                             onSelected: (_) {
                               setState(() => _selectedFilter = f);
@@ -167,7 +167,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                           child: Row(
                             children: <Widget>[
                               if (article.isNotEmpty) 
-                                ArticleBadge( article,  article)
+                                ArticleBadge(article: article)
                               else
                                 const SizedBox(width: 40), // مسافة إذا مافي أداة
                               const SizedBox(width: 14),
@@ -205,6 +205,14 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
 }
 
 class WordDeepDiveSheet extends StatelessWidget {
+  static void show(BuildContext context, {required String article, required String word, required String plural, required String meaning, required String example}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => WordDeepDiveSheet(wordData: {'article': article, 'word': word, 'plural': plural, 'meaning': meaning, 'example': example}),
+    );
+  }
+
   final Map<String, dynamic> wordData;
   const WordDeepDiveSheet({super.key, required this.wordData});
   @override
@@ -214,6 +222,7 @@ class WordDeepDiveSheet extends StatelessWidget {
 class ArticleBadge extends StatelessWidget {
   final String article;
   const ArticleBadge({super.key, required this.article});
+
   @override
   Widget build(BuildContext context) => const SizedBox();
 }
