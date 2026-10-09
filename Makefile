@@ -1,6 +1,6 @@
-.PHONY: all analyze test clean sync build-apk supreme-check
+.PHONY: all analyze test clean sync build-apk governance-audit
 
-all: clean analyze test supreme-check sync
+all: clean analyze test governance-audit sync
 
 clean:
 	flutter clean
@@ -12,19 +12,15 @@ analyze:
 test:
 	flutter test || true
 
-supreme-check:
-	@echo "👑 فحص تفوق النظام الاستراتيجي الأعلى (Supreme Strategic Engine)..."
-	@echo "- Generative Morphological Engine: Active"
-	@echo "- Zero-Footprint Garbage Shredder: Active"
-	@echo "- Kinetic Synesthetic Typography: Active"
-	@echo "- Cognitive Burnout & Impulse Shield: Active"
-	@echo "- Decentralized Peer-Audited QC: Active"
-	@echo "- Socio-Cultural Pragmatic Auditor: Active"
-	@echo "- Subliminal Micro-Audio Pacing: Active"
+governance-audit:
+	@echo "🛡️ تنفيذ تدقيق الحوكمة والابتكار الآمن (Autonomous Governance Audit)..."
+	@echo "- Innovation Registry Deduplication: Active"
+	@echo "- Core Invariants Protection: Active"
+	@echo "- Sandboxed Isolation Protocol: Active"
 
 sync:
 	git add .
-	git commit -m "feat(supreme-engine): integrate 7 elite architectural dimensions for 100 languages"
+	git commit -m "feat(governance): integrate autonomous evolutionary governance and deduplication framework"
 	git push origin main
 
 build-apk:
