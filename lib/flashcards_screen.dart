@@ -119,7 +119,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   Future<void> _syncFromCdnInBackground() async {
     const url = 'https://cdn.jsdelivr.net/gh/moaz76943-creator/-offline-packs-store@main/packs/de_vocab_a1.pack.gz';
     try {
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+      final response = await Future.value(null)).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final decodedData = gzip.decode(response.bodyBytes);
         final jsonString = utf8.decode(decodedData);

@@ -1,71 +1,79 @@
 {
   "language": "de",
   "name": "الألمانية",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "items": [
     {
-      "word": "Guten Morgen",
-      "article": "",
-      "meaning": "صباح الخير",
-      "example": "Guten Morgen, wie geht es Ihnen?",
-      "exampleMeaning": "صباح الخير، كيف حالكم؟",
-      "category": "Greeting"
-    },
-    {
-      "word": "Danke",
-      "article": "",
-      "meaning": "شكراً جزيلاً",
-      "example": "Vielen Dank für deine Hilfe.",
-      "exampleMeaning": "شكراً جزيلاً لمساعدتك.",
-      "category": "Common"
-    },
-    {
-      "word": "Wasser",
+      "word": "Rezept",
       "article": "das",
-      "meaning": "ماء",
-      "example": "Ich trinke jeden Tag frisches Wasser.",
-      "exampleMeaning": "أشرب ماءً عذباً كل يوم.",
-      "category": "Drink"
+      "meaning": "وصفة طبية / روشتة",
+      "example": "Der Arzt schreibt dem Patienten ein Rezept für die Apotheke.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
     },
     {
-      "word": "Buch",
-      "article": "das",
-      "meaning": "كتاب",
-      "example": "Ich lese ein interessantes Buch.",
-      "exampleMeaning": "أنا أقرأ كتاباً ممتعاً.",
-      "category": "Education"
+      "word": "Apotheke",
+      "article": "die",
+      "meaning": "صيدلية",
+      "example": "Die nächste Apotheke hat heute Nacht Notdienst.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
     },
     {
-      "word": "Freund",
+      "word": "Schmerz",
       "article": "der",
-      "meaning": "صديق",
-      "example": "Ein wahrer Freund hilft immer.",
-      "exampleMeaning": "الصديق الحقيقي يساعد دائماً.",
-      "category": "People"
+      "meaning": "ألم / وجع",
+      "example": "Dieses Medikament hilft schnell gegen akute Schmerzen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
     },
     {
-      "word": "Sonne",
+      "word": "Tablette",
       "article": "die",
-      "meaning": "شمس",
-      "example": "Die Sonne scheint am Himmel.",
-      "exampleMeaning": "الشمس مشرقة في السماء.",
-      "category": "Nature"
+      "meaning": "حبة دواء / قرص",
+      "example": "Nehmen Sie morgens und abends eine Tablette vor dem Essen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
     },
     {
-      "word": "Arbeit",
+      "word": "Diagnose",
       "article": "die",
-      "meaning": "عمل / وظيفة",
-      "example": "Gute Arbeit führt zum Erfolg.",
-      "exampleMeaning": "العمل المتقن يقود للنجاح.",
-      "category": "Work"
+      "meaning": "تشخيص طبي",
+      "example": "Nach den Testergebnissen konnte der Arzt eine klare Diagnose stellen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
     },
     {
-      "word": "Stadt",
-      "article": "die",
-      "meaning": "مدينة",
-      "example": "Die Stadt ist lebendig und schön.",
-      "exampleMeaning": "المدينة حيوية وجميلة.",
-      "category": "Place"
+      "word": "Blutdruck",
+      "article": "der",
+      "meaning": "ضغط الدم",
+      "example": "Es ist wichtig, den Blutdruck regelmäßig in der Apotheke zu kontrollieren.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "Patient",
+      "article": "der",
+      "meaning": "مريض / مراجِع",
+      "example": "Der Apotheker berät den Patienten fachgerecht über die Nebenwirkungen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "verstehen",
+      "article": "",
+      "meaning": "يَفهم / يُدرك",
+      "example": "Ich verstehe die Dosierungsanleitung auf dem Rezept sehr gut.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "حياة يومية وأكاديمية"
     }
   ]
 }
