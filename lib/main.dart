@@ -27,6 +27,25 @@ class DeutschBiLarabiApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF6366F1),
+          surface: Color(0xFF121212),
+          onSurface: Colors.white,
+        ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF111111),
+          elevation: 0,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      themeMode: ThemeMode.system,
         fontFamily: 'Roboto',
       ),
       home: const DashboardScreen(),
