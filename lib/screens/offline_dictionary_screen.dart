@@ -1,7 +1,9 @@
+import 'dart:async';
 import '../design_system/design_system.dart';
 import 'word_deep_dive_sheet.dart';
 import 'articles_matrix_screen.dart';
 import 'verb_conjugation_screen.dart';
+import '../services/database_service.dart';
 
 class OfflineDictionaryScreen extends StatefulWidget {
   const OfflineDictionaryScreen({super.key});
@@ -13,62 +15,53 @@ class OfflineDictionaryScreen extends StatefulWidget {
 class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'الكل';
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isLoading = true;
+  Timer? _debounce;
 
-  final List<Map<String, String>> _words = const [
-    {
-      'article': 'der',
-      'word': 'Tisch',
-      'plural': 'die Tische',
-      'meaning': 'الطاولة',
-      'example': 'Der Tisch ist aus Holz.',
-      'level': 'A1',
-    },
-    {
-      'article': 'die',
-      'word': 'Stadt',
-      'plural': 'die Städte',
-      'meaning': 'المدينة',
-      'example': 'Berlin ist eine schöne Stadt.',
-      'level': 'A1',
-    },
-    {
-      'article': 'das',
-      'word': 'Auto',
-      'plural': 'die Autos',
-      'meaning': 'السيارة',
-      'example': 'Das Auto fährt sehr schnell.',
-      'level': 'A1',
-    },
-    {
-      'article': 'der',
-      'word': 'Beruf',
-      'plural': 'die Berufe',
-      'meaning': 'المهنة / العمل',
-      'example': 'Was ist dein Beruf?',
-      'level': 'A2',
-    },
-    {
-      'article': 'die',
-      'word': 'Wohnung',
-      'plural': 'die Wohnungen',
-      'meaning': 'الشقة',
-      'example': 'Die Wohnung hat drei Zimmer.',
-      'level': 'A2',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      // جلب البيانات الحقيقية من قاعدة البيانات
+      final results = await DatabaseService.instance.searchDictionary(_searchQuery, 'de');
+      
+      List<Map<String, dynamic>> filtered = results;
+      if (['der', 'die', 'das'].contains(_selectedFilter)) {
+        filtered = results.where((w) => w['article'] == _selectedFilter).toList();
+      }
+
+      setState(() {
+        _searchResults = filtered;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _onSearchChanged(String val) {
+    setState(() => _searchQuery = val);
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    // تأخير بسيط عشان ما يبحث مع كل حرف بنكتبه (بيخفف الضغط)
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _loadData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filteredWords = _words.where((w) {
-      final matchesSearch = w['word']!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          w['meaning']!.contains(_searchQuery);
-      if (_selectedFilter == 'الكل') return matchesSearch;
-      if (['der', 'die', 'das'].contains(_selectedFilter)) {
-        return matchesSearch && w['article'] == _selectedFilter;
-      }
-      return matchesSearch && w['level'] == _selectedFilter;
-    }).toList();
-
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
       child: SafeArea(
@@ -88,28 +81,18 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                       IconButton(
                         icon: const Icon(Icons.table_chart_rounded, color: Color(0xFF38BDF8)),
                         tooltip: 'مصفوفة الأدوات',
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const ArticlesMatrixScreen()),
-                          );
-                        },
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArticlesMatrixScreen())),
                       ),
                       IconButton(
                         icon: const Icon(Icons.menu_book_rounded, color: Color(0xFFF39C6B)),
                         tooltip: 'القواعد والأفعال',
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const VerbConjugationScreen()),
-                          );
-                        },
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VerbConjugationScreen())),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
                   TextField(
-                    onChanged: (val) => setState(() => _searchQuery = val),
+                    onChanged: _onSearchChanged,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'ابحث عن كلمة ألمانية أو عربية...',
@@ -128,14 +111,17 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['الكل', 'der', 'die', 'das', 'A1', 'A2'].map((f) {
+                      children: ['الكل', 'der', 'die', 'das'].map((f) {
                         final isSel = _selectedFilter == f;
                         return Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: ChoiceChip(
                             label: Text(f),
                             selected: isSel,
-                            onSelected: (_) => setState(() => _selectedFilter = f),
+                            onSelected: (_) {
+                              setState(() => _selectedFilter = f);
+                              _loadData();
+                            },
                           ),
                         );
                       }).toList(),
@@ -145,62 +131,70 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
               ),
             ),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
-                itemCount: filteredWords.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, idx) {
-                  final item = filteredWords[idx];
-                  return AppBaseGlassCard(
-                    onTap: () {
-                      WordDeepDiveSheet.show(
-                        context,
-                        article: item['article']!,
-                        word: item['word']!,
-                        plural: item['plural']!,
-                        meaning: item['meaning']!,
-                        example: item['example']!,
-                      );
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        ArticleBadge(article: item['article']!, label: item['article']!),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                : _searchResults.isEmpty
+                  ? Center(
+                      child: Text(
+                        'لم نجد نتائج مطابقة',
+                        style: AppTypography.body.copyWith(color: Colors.white54),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+                      itemCount: _searchResults.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final item = _searchResults[idx];
+                        final article = item['article'] ?? '';
+                        final word = item['lemma'] ?? '';
+                        final plural = item['plural'] ?? '-';
+                        final meaning = item['translation_ar'] ?? 'بدون ترجمة';
+                        final example = item['sentence'] ?? 'بدون مثال';
+
+                        return AppBaseGlassCard(
+                          onTap: () {
+                            WordDeepDiveSheet.show(
+                              context,
+                              article: article.isEmpty ? '?' : article,
+                              word: word,
+                              plural: plural,
+                              meaning: meaning,
+                              example: example,
+                            );
+                          },
+                          child: Row(
                             children: <Widget>[
-                              Text(
-                                item['word']!,
-                                style: AppTypography.title.copyWith(color: Colors.white, fontSize: 17),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                item['meaning']!,
-                                style: AppTypography.body.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 13,
+                              if (article.isNotEmpty) 
+                                ArticleBadge(article: article, label: article)
+                              else
+                                const SizedBox(width: 40), // مسافة إذا مافي أداة
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      word,
+                                      style: AppTypography.title.copyWith(color: Colors.white, fontSize: 17),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      meaning,
+                                      style: AppTypography.body.copyWith(
+                                        color: Colors.white.withValues(alpha: 0.75),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
+                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
                             ],
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            item['level']!,
-                            style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11),
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
