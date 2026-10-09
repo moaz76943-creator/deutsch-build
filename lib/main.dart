@@ -1,30 +1,30 @@
-import 'design_system/design_system.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/main_shell_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'screens/bento_home_screen.dart';
 
 void main() {
-  runApp(const DeutschApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const ProviderScope(
+      child: DeutschBiLarabiApp(),
+    ),
+  );
 }
 
-class DeutschApp extends StatelessWidget {
-  const DeutschApp({super.key});
+class DeutschBiLarabiApp extends StatelessWidget {
+  const DeutschBiLarabiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Deutsch بالعربي',
-      theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: Builder(
-        builder: (context) => OnboardingScreen(
-          onStart: () {
-            // الانتقال الفوري للواجهة الرئيسية المجمعة عند الضغط على زر "ابدأ"
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const MainShellScreen()),
-            );
-          },
-        ),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        fontFamily: 'sans-serif',
       ),
+      home: const BentoHomeScreen(),
     );
   }
 }
