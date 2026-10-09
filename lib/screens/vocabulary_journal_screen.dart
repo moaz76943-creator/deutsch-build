@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../design_system/design_system.dart';
 
 class VocabularyJournalScreen extends StatefulWidget {
@@ -10,16 +12,44 @@ class VocabularyJournalScreen extends StatefulWidget {
 
 class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _wordController = TextEditingController();
-  final List<Map<String, String>> _journalItems = [
-    {"word": "die Herausforderung", "meaning": "التحدي / الصعوبة", "example": "Das ist eine große Herausforderung."},
-    {"word": "nachhaltig", "meaning": "مستدام / دائم", "example": "Wir brauchen nachhaltige Lösungen."},
-  ];
+  List<Map<String, String>> _journalItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedWords();
+  }
+
+  // تحميل الكلمات المخزنة محلياً بصفة دائمة
+  Future<void> _loadSavedWords() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? storedData = prefs.getString('saved_vocabulary_list');
+    if (storedData != null) {
+      final List<dynamic> decoded = jsonDecode(storedData);
+      setState(() {
+        _journalItems = decoded.map((item) => Map<String, String>.from(item)).toList();
+      });
+    } else {
+      // عناصر افتراضية أولية إذا كانت القاعدة فارغة
+      _journalItems = [
+        {"word": "die Herausforderung", "meaning": "التحدي / الصعوبة", "example": "Das ist eine große Herausforderung."},
+        {"word": "nachhaltig", "meaning": "مستدام / دائم", "example": "Wir brauchen nachhaltige Lösungen."},
+      ];
+      _saveWordsToLocal();
+    }
+  }
+
+  // حفظ الكلمات في ذاكرة الجهاز المحلية بصورة دائمة
+  Future<void> _saveWordsToLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('saved_vocabulary_list', jsonEncode(_journalItems));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('مفكرة الكلمات الحية الشخصية'),
+        title: const Text('مفكرة الكلمات الحية (محفوظة محلياً)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -37,7 +67,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('أضف كلمة جديدة تدربت عليها:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('أضف كلمة جديدة (ستحفظ بشكل دائم على جهازك):', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _wordController,
@@ -58,25 +88,29 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           if (_wordController.text.trim().isNotEmpty) {
                             setState(() {
                               _journalItems.insert(0, {
                                 "word": _wordController.text.trim(),
-                                "meaning": "تم توليد المعنى والأمثلة تلقائياً",
-                                "example": "مثال توضيحي ذكي للكلمة الجديدة."
+                                "meaning": "معنى مُضاف محلياً",
+                                "example": "مثال توضيحي مخزن في الذاكرة الدائمة."
                               });
-                              _wordController.clear();
                             });
+                            await _saveWordsToLocal();
+                            _wordController.clear();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('تم حفظ الكلمة محلياً بشكل دائم بنجاح!'), backgroundColor: Color(0xFF34D399)),
+                            );
                           }
                         },
-                        child: const Text('إضافة وتحليل بالذكاء الاصطناعي', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ دائم في قاعدة البيانات', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('سجل كلماتك الشخصية:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('سجل كلماتك المخزنة محلياً:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: ListView.builder(

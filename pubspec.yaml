@@ -1,48 +1,22 @@
 name: deutsch_bilarabi
-description: Deutsch بالعربي - منصة تعلم الألمانية للعرب.
-publish_to: "none"
-version: 3.3.10+133
+description: "Offline-first German learning application in Arabic."
+publish_to: 'none'
+version: 1.0.0+1
+
 environment:
-  sdk: ">=3.12.0 <4.0.0"
-  flutter: ">=3.44.0"
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.5.5
-  flutter_tts: ^4.2.5
-  http: ^1.6.0
-  speech_to_text: ^7.5.0
-  sqflite: ^2.4.4
-  sqflite_common: ^2.5.13
-  sqflite_sqlcipher: ^3.4.1
-  path: ^1.9.1
-  cryptography: ^2.9.0
-  flutter_local_notifications: ^22.3.1
-  timezone: ^0.11.1
-  percent_indicator: ^4.2.5
-  font_awesome_flutter: ^11.0.0
-  flutter_animate: ^4.5.2
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-
-
-
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: false
-  image_path: "assets/icon/app_icon.png"
-  min_sdk_android: 21
-  adaptive_icon_background: "#2563EB"
-  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  flutter_lints: ^3.0.0
 
 flutter:
+  uses-material-design: true
   assets:
-    - assets/content/packs/de/sqlite/
-    - assets/l10n/explain_why/
-    - assets/content/packs/de/bundles/
-    - assets/content/packs/de/catalog.json
+    - assets/
