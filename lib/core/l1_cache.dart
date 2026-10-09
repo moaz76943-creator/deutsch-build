@@ -9,7 +9,13 @@ class L1VocabularyCache {
     _memoryCache[langCode] = List.unmodifiable(items);
   }
 
-  List<Map<String, dynamic>>? get(String langCode) => _memoryCache[langCode];
+  List<Map<String, dynamic>>? get(String langCode) {
+    return _memoryCache[langCode];
+  }
+
   bool has(String langCode) => _memoryCache.containsKey(langCode);
-  void clear() => _memoryCache.clear();
+
+  void clear() {
+    _memoryCache.clear();
+  }
 }
