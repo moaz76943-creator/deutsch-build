@@ -37,7 +37,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
     setState(() => _isLoading = true);
     try {
       // جلب البيانات الحقيقية من قاعدة البيانات
-      final normalizedQuery = TrieSearchEngine.normalizeGerman(_searchQuery);
+      final normalizedQuery = TrieSearchEngine.normalizeUniversal(_searchQuery);
     final results = await DatabaseService.instance.searchDictionary(
       normalizedQuery.isEmpty ? _searchQuery : normalizedQuery,
       'de',

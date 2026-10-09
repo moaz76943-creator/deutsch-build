@@ -34,7 +34,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                e.translation_ar, e.sentence
         FROM lexemes l
         LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
-        WHERE l.language_code = 'de'
+        WHERE l.language_code = (card['language_code'] ?? 'de')
         LIMIT 10
       ''');
 
@@ -72,15 +72,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     
     // تسجيل قرار المستخدم في قاعدة التقدم المستقلة
     await progressDb.rawInsert('''
-      INSERT OR REPLACE INTO srs_progress (
-        lexeme_id,
-        target_language_code,
-        repetition_count,
-        interval_days,
-        ease_factor,
-        next_due_at,
-        status
-      ) VALUES (?, 'de', ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, interval_days, ease_factor, next_due_at, status) VALUES (?, (card['target_language_code'] ?? 'de'), ?, ?, ?, ?, ?)
     ''', [
       card['lexeme_id'],
       sm2Result.repetitions,
