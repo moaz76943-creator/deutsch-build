@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "Wiedza",
+      "word": "Salute (pl)",
       "article": "",
-      "meaning": "المعرفة",
-      "example": "Wiedza otwiera drzwi.",
-      "exampleMeaning": "المعرفة تفتح الأبواب.",
-      "image": "pl.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (البولندية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (pl)",
+      "article": "",
+      "meaning": "الشكر والتقدير (البولندية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (pl)",
+      "article": "",
+      "meaning": "الماء العذب (البولندية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (pl)",
+      "article": "",
+      "meaning": "كتاب المعرفة (البولندية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (pl)",
+      "article": "",
+      "meaning": "الصديق الوفي (البولندية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (pl)",
+      "article": "",
+      "meaning": "الشمس والضياء (البولندية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (pl)",
+      "article": "",
+      "meaning": "العمل المتقن (البولندية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (pl)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (البولندية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }

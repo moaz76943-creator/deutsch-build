@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "지혜 (Jihye)",
+      "word": "Salute (ko)",
       "article": "",
-      "meaning": "الحكمة",
-      "example": "지혜는 최고의 보물이다.",
-      "exampleMeaning": "الحكمة كنز ثمين.",
-      "image": "ko.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (الكورية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (ko)",
+      "article": "",
+      "meaning": "الشكر والتقدير (الكورية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (ko)",
+      "article": "",
+      "meaning": "الماء العذب (الكورية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (ko)",
+      "article": "",
+      "meaning": "كتاب المعرفة (الكورية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (ko)",
+      "article": "",
+      "meaning": "الصديق الوفي (الكورية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (ko)",
+      "article": "",
+      "meaning": "الشمس والضياء (الكورية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (ko)",
+      "article": "",
+      "meaning": "العمل المتقن (الكورية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (ko)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (الكورية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }

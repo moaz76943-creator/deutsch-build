@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
+      "word": "صباح الخير",
+      "article": "",
+      "meaning": "تحية الصباح المباركة",
+      "example": "صباح الخير والبركة والعافية.",
+      "exampleMeaning": "تمني الخير والنشاط مع إشراقة الصباح.",
+      "category": "Greeting"
+    },
+    {
+      "word": "شكراً",
+      "article": "",
+      "meaning": "امتنان وعرفان بالجميل",
+      "example": "شكراً على حسن التعاون والمبادرة.",
+      "exampleMeaning": "تقدير العطاء وحسن العمل.",
+      "category": "Common"
+    },
+    {
+      "word": "الماء",
+      "article": "الـ",
+      "meaning": "عصب الحياة والنماء",
+      "example": "الماء النقي سر بقاء الكائنات.",
+      "exampleMeaning": "أساس الحياة والصحة البدنية.",
+      "category": "Drink"
+    },
+    {
+      "word": "الكتاب",
+      "article": "الـ",
+      "meaning": "منهل العلم والمعارف",
+      "example": "الكتاب خير جليس في الزمان.",
+      "exampleMeaning": "القراءة تصنع الفكر الراسخ.",
+      "category": "Education"
+    },
+    {
+      "word": "الصديق",
+      "article": "الـ",
+      "meaning": "الوفي المخلص في كل عسر ويسر",
+      "example": "الصديق الحق مرآة لأخيه.",
+      "exampleMeaning": "العلاقات الصادقة تدوم بالوفاء.",
+      "category": "People"
+    },
+    {
+      "word": "الشمس",
+      "article": "الـ",
+      "meaning": "مصدر الضياء والدفء",
+      "example": "تشرق الشمس فتبعث الأمل والنشاط.",
+      "exampleMeaning": "رمز التجدد والانطلاق اليومي.",
+      "category": "Nature"
+    },
+    {
       "word": "الإتقان",
       "article": "الـ",
-      "meaning": "إحكام العمل",
-      "example": "الإتقان أساس النجاح.",
-      "exampleMeaning": "إتقان العمل طريق التميز.",
-      "image": "ar.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "إحكام العمل وبلوغ منتهى الجودة",
+      "example": "الإتقان عنوان الاحترافية والنهضة.",
+      "exampleMeaning": "الاهتمام بأدق التفاصيل يثمر التميز.",
+      "category": "Work"
+    },
+    {
+      "word": "البصيرة",
+      "article": "الـ",
+      "meaning": "نفاذ الرؤية وحكمة التصرف",
+      "example": "البصيرة تهدي إلى أصوب القرارات.",
+      "exampleMeaning": "الفطنة العميقة تمنح الأمان الفكري.",
+      "category": "Mindset"
     }
   ]
 }

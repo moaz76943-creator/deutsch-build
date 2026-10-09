@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "ज्ञान (Gyan)",
+      "word": "Salute (hi)",
       "article": "",
-      "meaning": "المعرفة",
-      "example": "ज्ञान ही शक्ति है।",
-      "exampleMeaning": "المعرفة هي القوة.",
-      "image": "hi.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (الهندية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (hi)",
+      "article": "",
+      "meaning": "الشكر والتقدير (الهندية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (hi)",
+      "article": "",
+      "meaning": "الماء العذب (الهندية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (hi)",
+      "article": "",
+      "meaning": "كتاب المعرفة (الهندية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (hi)",
+      "article": "",
+      "meaning": "الصديق الوفي (الهندية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (hi)",
+      "article": "",
+      "meaning": "الشمس والضياء (الهندية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (hi)",
+      "article": "",
+      "meaning": "العمل المتقن (الهندية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (hi)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (الهندية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }

@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "Apfel",
+      "word": "Guten Morgen",
+      "article": "",
+      "meaning": "صباح الخير",
+      "example": "Guten Morgen, wie geht es Ihnen?",
+      "exampleMeaning": "صباح الخير، كيف حالكم؟",
+      "category": "Greeting"
+    },
+    {
+      "word": "Danke",
+      "article": "",
+      "meaning": "شكراً جزيلاً",
+      "example": "Vielen Dank für deine Hilfe.",
+      "exampleMeaning": "شكراً جزيلاً لمساعدتك.",
+      "category": "Common"
+    },
+    {
+      "word": "Wasser",
+      "article": "das",
+      "meaning": "ماء",
+      "example": "Ich trinke jeden Tag frisches Wasser.",
+      "exampleMeaning": "أشرب ماءً عذباً كل يوم.",
+      "category": "Drink"
+    },
+    {
+      "word": "Buch",
+      "article": "das",
+      "meaning": "كتاب",
+      "example": "Ich lese ein interessantes Buch.",
+      "exampleMeaning": "أنا أقرأ كتاباً ممتعاً.",
+      "category": "Education"
+    },
+    {
+      "word": "Freund",
       "article": "der",
-      "meaning": "تفاحة",
-      "example": "Der Apfel ist frisch.",
-      "exampleMeaning": "التفاحة طازجة.",
-      "image": "de.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "صديق",
+      "example": "Ein wahrer Freund hilft immer.",
+      "exampleMeaning": "الصديق الحقيقي يساعد دائماً.",
+      "category": "People"
+    },
+    {
+      "word": "Sonne",
+      "article": "die",
+      "meaning": "شمس",
+      "example": "Die Sonne scheint am Himmel.",
+      "exampleMeaning": "الشمس مشرقة في السماء.",
+      "category": "Nature"
+    },
+    {
+      "word": "Arbeit",
+      "article": "die",
+      "meaning": "عمل / وظيفة",
+      "example": "Gute Arbeit führt zum Erfolg.",
+      "exampleMeaning": "العمل المتقن يقود للنجاح.",
+      "category": "Work"
+    },
+    {
+      "word": "Stadt",
+      "article": "die",
+      "meaning": "مدينة",
+      "example": "Die Stadt ist lebendig und schön.",
+      "exampleMeaning": "المدينة حيوية وجميلة.",
+      "category": "Place"
     }
   ]
 }

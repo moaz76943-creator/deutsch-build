@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "Išmintis",
+      "word": "Salute (lt)",
       "article": "",
-      "meaning": "الحكمة",
-      "example": "Išmintis padeda gyventi.",
-      "exampleMeaning": "الحكمة تعين على الحياة.",
-      "image": "lt.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (الليتوانية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (lt)",
+      "article": "",
+      "meaning": "الشكر والتقدير (الليتوانية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (lt)",
+      "article": "",
+      "meaning": "الماء العذب (الليتوانية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (lt)",
+      "article": "",
+      "meaning": "كتاب المعرفة (الليتوانية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (lt)",
+      "article": "",
+      "meaning": "الصديق الوفي (الليتوانية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (lt)",
+      "article": "",
+      "meaning": "الشمس والضياء (الليتوانية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (lt)",
+      "article": "",
+      "meaning": "العمل المتقن (الليتوانية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (lt)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (الليتوانية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }

@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "Tarkus",
+      "word": "Salute (et)",
       "article": "",
-      "meaning": "الحكمة",
-      "example": "Tarkus on väärtus.",
-      "exampleMeaning": "الحكمة قيمة رفيعة.",
-      "image": "et.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (الإستونية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (et)",
+      "article": "",
+      "meaning": "الشكر والتقدير (الإستونية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (et)",
+      "article": "",
+      "meaning": "الماء العذب (الإستونية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (et)",
+      "article": "",
+      "meaning": "كتاب المعرفة (الإستونية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (et)",
+      "article": "",
+      "meaning": "الصديق الوفي (الإستونية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (et)",
+      "article": "",
+      "meaning": "الشمس والضياء (الإستونية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (et)",
+      "article": "",
+      "meaning": "العمل المتقن (الإستونية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (et)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (الإستونية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }

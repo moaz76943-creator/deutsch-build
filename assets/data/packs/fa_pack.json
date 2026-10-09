@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "دانش",
+      "word": "Salute (fa)",
       "article": "",
-      "meaning": "المعرفة",
-      "example": "دانش چراغ راه است.",
-      "exampleMeaning": "المعرفة مصباح الطريق.",
-      "image": "fa.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (الفارسية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (fa)",
+      "article": "",
+      "meaning": "الشكر والتقدير (الفارسية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (fa)",
+      "article": "",
+      "meaning": "الماء العذب (الفارسية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (fa)",
+      "article": "",
+      "meaning": "كتاب المعرفة (الفارسية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (fa)",
+      "article": "",
+      "meaning": "الصديق الوفي (الفارسية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (fa)",
+      "article": "",
+      "meaning": "الشمس والضياء (الفارسية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (fa)",
+      "article": "",
+      "meaning": "العمل المتقن (الفارسية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (fa)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (الفارسية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }

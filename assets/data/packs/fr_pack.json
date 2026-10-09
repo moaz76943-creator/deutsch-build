@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
+      "word": "Bonjour",
+      "article": "",
+      "meaning": "صباح الخير / مرحباً",
+      "example": "Bonjour et bienvenue parmi nous.",
+      "exampleMeaning": "صباح الخير ومرحباً بكم بيننا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Merci",
+      "article": "",
+      "meaning": "شكراً",
+      "example": "Merci beaucoup pour votre attention.",
+      "exampleMeaning": "شكراً جزيلاً لاهتمامكم.",
+      "category": "Common"
+    },
+    {
+      "word": "Eau",
+      "article": "l'",
+      "meaning": "ماء",
+      "example": "L'eau fraîche est une bénédiction.",
+      "exampleMeaning": "الماء البارد نعمة.",
+      "category": "Drink"
+    },
+    {
+      "word": "Livre",
+      "article": "le",
+      "meaning": "كتاب",
+      "example": "Ce livre contient de grandes idées.",
+      "exampleMeaning": "هذا الكتاب يحتوي أفكاراً عظيمة.",
+      "category": "Education"
+    },
+    {
+      "word": "Ami",
+      "article": "l'",
+      "meaning": "صديق",
+      "example": "Un ami fidèle est précieux.",
+      "exampleMeaning": "الصديق المخلص نفيس وغالٍ.",
+      "category": "People"
+    },
+    {
+      "word": "Soleil",
+      "article": "le",
+      "meaning": "الشمس",
+      "example": "Le soleil réchauffe le monde.",
+      "exampleMeaning": "الشمس تدفئ أرجاء الكون.",
+      "category": "Nature"
+    },
+    {
+      "word": "Travail",
+      "article": "le",
+      "meaning": "العمل والجهد",
+      "example": "Le travail bien fait porte ses fruits.",
+      "exampleMeaning": "العمل المتقن يؤتي ثماره دائماً.",
+      "category": "Work"
+    },
+    {
       "word": "Sagesse",
       "article": "la",
-      "meaning": "الحكمة",
-      "example": "La sagesse commence par l'écoute.",
-      "exampleMeaning": "الحكمة تبدأ بالاستماع.",
-      "image": "fr.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "الحكمة والروية",
+      "example": "La sagesse vient avec l'expérience.",
+      "exampleMeaning": "الحكمة تنمو مع التجارب.",
+      "category": "Mindset"
     }
   ]
 }

@@ -4,13 +4,68 @@
   "version": "1.0.0",
   "items": [
     {
-      "word": "Múdrosť",
+      "word": "Salute (sk)",
       "article": "",
-      "meaning": "الحكمة",
-      "example": "Múdrosť je dar.",
-      "exampleMeaning": "الحكمة عطاء.",
-      "image": "sk.webp",
-      "semanticField": "Core Vocabulary"
+      "meaning": "تحية السلام (السلوفاكية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (sk)",
+      "article": "",
+      "meaning": "الشكر والتقدير (السلوفاكية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (sk)",
+      "article": "",
+      "meaning": "الماء العذب (السلوفاكية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (sk)",
+      "article": "",
+      "meaning": "كتاب المعرفة (السلوفاكية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (sk)",
+      "article": "",
+      "meaning": "الصديق الوفي (السلوفاكية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (sk)",
+      "article": "",
+      "meaning": "الشمس والضياء (السلوفاكية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (sk)",
+      "article": "",
+      "meaning": "العمل المتقن (السلوفاكية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (sk)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (السلوفاكية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
     }
   ]
 }
