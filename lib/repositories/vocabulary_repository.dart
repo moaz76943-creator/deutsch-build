@@ -12,7 +12,6 @@ class VocabularyRepository {
       final List<dynamic> decoded = jsonDecode(jsonString);
       return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {
-      // اعتراض الأخطاء وضمان الاستقرار (Graceful Degradation)
       return [];
     }
   }
@@ -21,6 +20,24 @@ class VocabularyRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String jsonString = jsonEncode(items);
+      return await prefs.setString(_key, jsonString);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // تصدير البيانات بالكامل كـ JSON نصي للنسخ الاحتياطي
+  Future<String> exportBackupJson() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_key) ?? '[]';
+  }
+
+  // استعادة البيانات من ملف النسخ الاحتياطي
+  Future<bool> importBackupJson(String jsonString) async {
+    try {
+      // التحقق من صحة بنية الـ JSON
+      jsonDecode(jsonString);
+      final prefs = await SharedPreferences.getInstance();
       return await prefs.setString(_key, jsonString);
     } catch (e) {
       return false;
