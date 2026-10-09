@@ -12,6 +12,8 @@ import 'core/design/bidi_text_isolator.dart';
 import 'services/language_pack_manager.dart';
 
 class FlashcardsScreen extends StatefulWidget {
+  final String languageCode;
+  const FlashcardsScreen({super.key, this.languageCode = "de"});
   final String langCode;
   final List<Map<String, dynamic>>? initialVocab;
 
