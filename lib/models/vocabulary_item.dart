@@ -14,7 +14,8 @@ class VocabularyItem {
   final String languageCode;
   final String etymologyRoot;
   final String semanticField;
-  final String professionalContext; // السياق المهني أو التخصصي (صيدلاني، تقني، أكاديمي)
+  final String professionalContext;
+  final String grammaticalValency; // مصفوفة التحكم الإعرابي (مثل: Akk / Dat للأفعال الألمانية)
 
   VocabularyItem({
     required this.word,
@@ -33,6 +34,7 @@ class VocabularyItem {
     this.etymologyRoot = '',
     this.semanticField = 'حياة يومية',
     this.professionalContext = 'عام',
+    this.grammaticalValency = '',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -43,21 +45,9 @@ class VocabularyItem {
     return 'كونية عامة';
   }
 
-  // التلميح السياقي المتدرج (Graduated Contextual Prompting)
-  String getStagedHint(int stage) {
-    switch (stage) {
-      case 1:
-        return 'المعنى بالعربي: ${meaning.isNotEmpty ? meaning : "غير متوفر"}';
-      case 2:
-        return 'المثال والسياق: ${example.isNotEmpty ? example : collocation}';
-      case 3:
-        return 'الجذر أو العائلة: ${etymologyRoot.isNotEmpty ? etymologyRoot : wordFamily}';
-      default:
-        return 'الكلمة: ${article.isNotEmpty ? "$article $word" : word}';
-    }
-  }
-
   VocabularyItem calculateSm2(int quality) {
+    // تبريد زمني حي متكيف مع جودة الاسترجاع العصبي
+    double adaptiveDecayFactor = (quality < 3) ? 0.8 : 1.0;
     double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
 
@@ -70,7 +60,7 @@ class VocabularyItem {
       } else if (newRepetitions == 1) {
         newInterval = 6;
       } else {
-        newInterval = (interval * newEase).round();
+        newInterval = (interval * newEase * adaptiveDecayFactor).round();
       }
       newRepetitions++;
     } else {
@@ -95,6 +85,7 @@ class VocabularyItem {
       etymologyRoot: etymologyRoot,
       semanticField: semanticField,
       professionalContext: professionalContext,
+      grammaticalValency: grammaticalValency,
     );
   }
 
@@ -116,6 +107,7 @@ class VocabularyItem {
       'etymologyRoot': etymologyRoot,
       'semanticField': semanticField,
       'professionalContext': professionalContext,
+      'grammaticalValency': grammaticalValency,
     };
   }
 
@@ -137,6 +129,7 @@ class VocabularyItem {
       etymologyRoot: json['etymologyRoot'] as String? ?? '',
       semanticField: json['semanticField'] as String? ?? 'حياة يومية',
       professionalContext: json['professionalContext'] as String? ?? 'عام',
+      grammaticalValency: json['grammaticalValency'] as String? ?? '',
     );
   }
 }
