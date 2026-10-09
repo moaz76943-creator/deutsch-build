@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../design_system/design_system.dart';
@@ -22,7 +21,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   String _selectedArticle = 'der';
   double _currentDifficulty = 1.0;
   
-  // مؤشر طاقة الدماغ الحالي (تكيّف الحمل المعرفي)
   String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
   
   final VocabularyRepository _repository = VocabularyRepository();
@@ -164,7 +162,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // فلترة أو تعديل حجم العرض بناءً على طاقة الدماغ المختارة
     int displayLimit = _userEnergyState.contains('خفيفة') ? 5 : _journalItems.length;
     final visibleItems = _journalItems.take(displayLimit).toList();
 
@@ -183,7 +180,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                // عنصر اختيار حالة طاقة الدماغ المتكيفة
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   margin: const EdgeInsets.only(bottom: 12),
