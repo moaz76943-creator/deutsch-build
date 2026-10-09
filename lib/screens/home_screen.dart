@@ -1,9 +1,45 @@
-
+import 'package:flutter/material.dart';
 import '../design_system/design_system.dart';
+import '../services/database_service.dart';
+import 'flashcards_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.onNavigateToUnits, super.key});
   final VoidCallback onNavigateToUnits;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _learnedWordsCount = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final db = await DatabaseService.instance.progressDb;
+      // حساب عدد الكلمات اللي تم التفاعل معها
+      final result = await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
+      final count = (result.first['count'] as int?) ?? 0;
+      
+      if (mounted) {
+        setState(() {
+          _learnedWordsCount = count;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,23 +57,26 @@ class HomeScreen extends StatelessWidget {
                   child: const Icon(Icons.person_rounded, color: Colors.white),
                 ),
                 const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'أهلاً بك يا بطل! 🇩🇪',
-                      style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
-                    ),
-                    Text(
-                      'مستوى A1 • 14 كلمة تم تثبيتها',
-                      style: AppTypography.body.copyWith(
-                        color: Colors.white.withValues(alpha: 0.75),
-                        fontSize: 12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'أهلاً بك يا بطل! 🇩🇪',
+                        style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
                       ),
-                    ),
-                  ],
+                      _isLoading 
+                        ? const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF38BDF8)))
+                        : Text(
+                            'مستوى A1 • $_learnedWordsCount كلمة قيد التعلم',
+                            style: AppTypography.body.copyWith(
+                              color: Colors.white.withValues(alpha: 0.75),
+                              fontSize: 12,
+                            ),
+                          ),
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -71,7 +110,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
-                    onPressed: onNavigateToUnits,
+                    onPressed: widget.onNavigateToUnits,
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF0B1F4D),
@@ -96,7 +135,12 @@ class HomeScreen extends StatelessWidget {
                     subtitle: 'تثبيت بالـ SRS',
                     icon: Icons.style_rounded,
                     gradient: AppGradients.purpleCard,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
+                      ).then((_) => _loadStats()); // تحديث العداد بعد العودة من المراجعة
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
