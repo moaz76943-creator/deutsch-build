@@ -10,8 +10,6 @@ import 'core/srs_engine.dart';
 import 'core/design/bidi_text_isolator.dart';
 import 'services/language_pack_manager.dart';
 
-as http;
-
 class FlashcardsScreen extends StatefulWidget {
   final List<dynamic>? initialVocab;
   final String langCode;
