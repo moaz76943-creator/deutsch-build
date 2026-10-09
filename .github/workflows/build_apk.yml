@@ -18,6 +18,19 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Generate Release Keystore
+        run: |
+          mkdir -p ~/.gradle
+          keytool -genkeypair -v \
+            -keystore ~/.gradle/release-key.jks \
+            -alias release \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO" || true
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
