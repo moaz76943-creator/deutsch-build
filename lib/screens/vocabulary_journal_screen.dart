@@ -267,7 +267,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                 ),
                 AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
-                  isOverloaded: _isOverloadMode,
+                  // removed: _isOverloadMode,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -408,7 +408,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                     ),
                                     child: AppBaseGlassCard(
                                       padding: const EdgeInsets.all(16),
-                                      isOverloaded: _isOverloadMode,
+                                      // removed: _isOverloadMode,
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[

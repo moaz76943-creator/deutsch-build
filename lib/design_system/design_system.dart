@@ -15,6 +15,7 @@ class AppGradients {
 }
 
 class AppBaseGlassCard extends StatelessWidget {
+  final Gradient? gradient;
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
@@ -24,6 +25,7 @@ class AppBaseGlassCard extends StatelessWidget {
     required this.child,
     this.padding,
     this.onTap,
+    this.gradient,
   });
 
   @override
@@ -33,7 +35,8 @@ class AppBaseGlassCard extends StatelessWidget {
       child: Container(
         padding: padding ?? const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
+          gradient: gradient,
+        color: gradient == null ? Colors.white.withOpacity(0.08) : null,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withOpacity(0.12)),
         ),
