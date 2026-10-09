@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:deutsch_bilarabi/features/flashcards/card_physics_helper.dart';
 import 'package:deutsch_bilarabi/services/srs_sm2_engine.dart';
 import 'package:deutsch_bilarabi/design_system/app_cognitive_tokens.dart';
 import 'package:deutsch_bilarabi/screens/offline_dictionary_screen.dart';
@@ -6,7 +8,8 @@ import '../design_system/design_system.dart';
 import '../services/database_service.dart';
 
 class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key});
+  final String languageCode;
+  const FlashcardsScreen({super.key, this.languageCode = 'de'});
 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
@@ -154,55 +157,87 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.7)),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(() => _showBack = !_showBack),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(32),
-                    gradient: AppGradients.blueCard,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        if (!_showBack) ...<Widget>[
-                          if (article.toString().isNotEmpty)
-                            ArticleBadge(article: article.toString()),
-                          const SizedBox(height: 20),
-                          Text(
-                            german.toString(),
-                            style: AppTypography.display.copyWith(color: Colors.white, fontSize: 34),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'الجمع: $plural',
-                            style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8)),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'المس للقلب ومعرفة المعنى',
-                            style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
-                          ),
-                        ] else ...<Widget>[
-                          Text(
-                            arabic.toString(),
-                            style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 32),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
+            GestureDetector(
+              onTap: () => setState(() => _showBack = !_showBack),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: _showBack ? 1.0 : 0.0),
+                duration: const Duration(milliseconds: 380),
+                curve: Curves.easeInOutCubic,
+                builder: (context, value, child) {
+                  final isBack = CardPhysicsHelper.isBackSide(value);
+                  return Transform(
+                    alignment: Alignment.center,
+                    transform: CardPhysicsHelper.compute3dFlipTransform(value),
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(32),
+                      gradient: AppGradients.blueCard,
+                      child: isBack
+                          ? Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.identity()..rotateY(math.pi),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Text(
+                                    arabic.toString(),
+                                    style: AppTypography.display.copyWith(
+                                      color: const Color(0xFF38BDF8),
+                                      fontSize: 32,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      example.toString(),
+                                      style: AppTypography.body.copyWith(
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                if (article.toString().isNotEmpty)
+                                  ArticleBadge(article: article.toString()),
+                                const SizedBox(height: 20),
+                                Text(
+                                  german.toString(),
+                                  style: AppTypography.display.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 34,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'جمع: $plural',
+                                  style: AppTypography.body.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'المعنى، اقلب للفرع والمس',
+                                  style: AppTypography.body.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: Text(
-                              example.toString(),
-                              style: AppTypography.body.copyWith(color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ],
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
+            ),
                 const Spacer(),
                 Row(
                   children: <Widget>[
