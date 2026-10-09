@@ -1,14 +1,4 @@
-include: package:flutter_lints/flutter.yaml
-
 analyzer:
-  errors:
-    inference_failure_on_untyped_parameter: ignore
-    inference_failure_on_function_return_type: ignore
-    inference_failure_on_function_invocation: ignore
-    override_on_non_overriding_member: ignore
-    deprecated_member_use: ignore
-    curly_braces_in_flow_control_structures: ignore
-    avoid_print: ignore
-  exclude:
-    - build/**
-    - android/**
+  plugins:
+    - custom_lint
+include: package:flutter_lints/flutter.yaml
