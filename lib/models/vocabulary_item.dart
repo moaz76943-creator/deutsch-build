@@ -4,6 +4,8 @@ class VocabularyItem {
   final String plural;
   final String preposition;
   final String collocation;
+  final String wordFamily;
+  final double difficultyScore;
   final String meaning;
   final String example;
 
@@ -13,6 +15,8 @@ class VocabularyItem {
     required this.plural,
     required this.preposition,
     required this.collocation,
+    required this.wordFamily,
+    required this.difficultyScore,
     required this.meaning,
     required this.example,
   });
@@ -24,6 +28,8 @@ class VocabularyItem {
       'plural': plural,
       'preposition': preposition,
       'collocation': collocation,
+      'wordFamily': wordFamily,
+      'difficultyScore': difficultyScore,
       'meaning': meaning,
       'example': example,
     };
@@ -36,6 +42,8 @@ class VocabularyItem {
       plural: json['plural'] ?? '',
       preposition: json['preposition'] ?? '',
       collocation: json['collocation'] ?? '',
+      wordFamily: json['wordFamily'] ?? '',
+      difficultyScore: (json['difficultyScore'] as num?)?.toDouble() ?? 1.0,
       meaning: json['meaning'] ?? '',
       example: json['example'] ?? '',
     );

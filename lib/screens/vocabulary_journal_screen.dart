@@ -17,8 +17,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _pluralController = TextEditingController();
   final TextEditingController _prepositionController = TextEditingController();
   final TextEditingController _collocationController = TextEditingController();
+  final TextEditingController _wordFamilyController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
   String _selectedArticle = 'der';
+  double _currentDifficulty = 1.0;
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -67,8 +69,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         plural: _pluralController.text.trim(),
         preposition: _prepositionController.text.trim(),
         collocation: _collocationController.text.trim(),
+        wordFamily: _wordFamilyController.text.trim(),
+        difficultyScore: _currentDifficulty,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي",
-        example: "مفردة متقدمة مزودة بالمتلازمات النحوية.",
+        example: "عائلة لغوية وتقييم نفسي مرن للذاكرة.",
       );
 
       setState(() {
@@ -82,12 +86,16 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _pluralController.clear();
       _prepositionController.clear();
       _collocationController.clear();
+      _wordFamilyController.clear();
       _meaningController.clear();
+      setState(() {
+        _currentDifficulty = 1.0;
+      });
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🎯 تمت إضافة المفردة مع المتلازمات الأكاديمية بنجاح!'),
+            content: Text('🌱 تمت الإضافة بنجاح مع العائلة اللغوية والتقييم الهادئ!'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -117,12 +125,19 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
+  String _getDifficultyLabel(double score) {
+    if (score <= 1.5) return '😌 محفوظ ومستقر';
+    if (score <= 2.5) return '🤔 بحاجة لمراجعة خفيفة';
+    return '🔥 جديد وبحاجة لتثبيت';
+  }
+
   @override
   void dispose() {
     _wordController.dispose();
     _pluralController.dispose();
     _prepositionController.dispose();
     _collocationController.dispose();
+    _wordFamilyController.dispose();
     _meaningController.dispose();
     _flutterTts.stop();
     super.dispose();
@@ -132,7 +147,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الاحترافية (متلازمات وحماية الذاكرة)'),
+        title: const Text('المفكرة المتقدمة (العائلات اللغوية والتقييم)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -154,7 +169,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                     border: Border.all(color: Colors.white10),
                   ),
                   child: const Text(
-                    '🌟 مستوى متقدم: أضف المتلازمات اللفظية (Wortverbindungen) لضمان صياغة جمل ألمانية طبيعية كالمتحدث الأصلي.',
+                    '🧠 مساحة تعلّم واعية: اربط المفردة بعائلتها الجذرية وحدد مقياس رسوخها الذهني بهدوء ودون ضغط.',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
@@ -163,7 +178,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة متقدمة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة متقدمة مع العائلة اللغوية:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       Row(
@@ -229,7 +244,19 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _collocationController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'المتلازمة الفعلية (مثل: eine Entscheidung treffen)...',
+                          hintText: 'المتلازمة اللفظية...',
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _wordFamilyController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'عائلة الكلمة (Wortfamilie)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -248,7 +275,22 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
+                      Text('مقياس الاستقرار الذهني: ${_getDifficultyLabel(_currentDifficulty)}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                      Slider(
+                        value: _currentDifficulty,
+                        min: 1.0,
+                        max: 3.0,
+                        divisions: 2,
+                        activeColor: const Color(0xFF38BDF8),
+                        inactiveColor: Colors.white24,
+                        onChanged: (val) {
+                          setState(() {
+                            _currentDifficulty = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 8),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF38BDF8),
@@ -257,13 +299,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ في المفكرة الاحترافية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ في المفكرة مع التقييم والعائلة اللغوية', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('السجل الاحترافي (دعم الكلمات المركبة الطويلة):', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                const Text('السجل الأكاديمي المطور:', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -273,9 +315,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.verified_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة آمنة ونظيفة.\nأضف أول متلازمة لغوية لبدء التعلم الاحترافي!', 
+                                  Text('المفكرة هادئة ومنظمة.\nأضف أول عائلة لغوية للبدء!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -295,7 +337,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   onDismissed: (direction) {
                                     _deleteItem(index);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تمت إزالة المفردة وتنظيف الذاكرة بهدوء.')),
+                                      const SnackBar(content: Text('تمت إزالة المفردة بهدوء.')),
                                     );
                                   },
                                   background: Container(
@@ -318,7 +360,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                         children: <Widget>[
                                           Container(
                                             width: 4,
-                                            height: 55,
+                                            height: 65,
                                             decoration: BoxDecoration(
                                               color: articleColor,
                                               borderRadius: BorderRadius.circular(2),
@@ -339,10 +381,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                if (item.preposition.isNotEmpty)
-                                                  Text('حرف الجر: ${item.preposition}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
-                                                if (item.collocation.isNotEmpty)
-                                                  Text('متلازمة: ${item.collocation}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
+                                                if (item.wordFamily.isNotEmpty)
+                                                  Text('العائلة اللغوية: ${item.wordFamily}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
+                                                Text('الحالة: ${_getDifficultyLabel(item.difficultyScore)}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
                                               ],
                                             ),
                                           ),
