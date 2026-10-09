@@ -27,7 +27,9 @@ class VocabularyItem {
     this.easeFactor = 2.5,
   });
 
-  // دالة تصف الخصائص المادية الحسية لأداة التعريف لتثبيت الذاكرة العصبية
+  // هل الكلمة بحاجة لمراجعة ملحة اليوم؟
+  bool get isReviewDue => interval <= 1;
+
   String get texturalMnemonic {
     switch (article.toLowerCase()) {
       case 'der':
@@ -36,7 +38,7 @@ class VocabularyItem {
         return 'مادة عضوية وناعمة (حياة وانسيابية)';
       case 'das':
         return 'مادة هادئة ومستقرة (سكون وتوازن)';
-      else:
+      default:
         return 'هيكل محايد';
     }
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../design_system/design_system.dart';
@@ -22,6 +23,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   double _currentDifficulty = 1.0;
   
   String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
+  int _actionCounter = 0;
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -45,7 +47,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _speakWord(String textToSpeak) async {
-    HapticFeedback.lightImpact(); // نبضة لمسية خفيفة عند الاستماع
+    HapticFeedback.lightImpact();
     await _flutterTts.stop();
     await _flutterTts.speak(textToSpeak);
   }
@@ -60,9 +62,25 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
+  void _checkEyeStrainPause() {
+    _actionCounter++;
+    if (_actionCounter >= 5) {
+      _actionCounter = 0;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('👁️ استراحة بصرية قصيرة: أبعد نظرك عن الشاشة لثوانٍ وأرح عينيك.'),
+            backgroundColor: Color(0xFF38BDF8),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _addItem() async {
     if (_wordController.text.trim().isNotEmpty) {
-      HapticFeedback.heavyImpact(); // نبضة لمسية قوية ومرضية عند الحفظ الناجح
+      HapticFeedback.heavyImpact();
 
       final newItem = VocabularyItem(
         word: _wordController.text.trim(),
@@ -73,7 +91,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: _wordFamilyController.text.trim(),
         difficultyScore: _currentDifficulty,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي",
-        example: "مفردة مهيكلة بـ SM-2 والترميز المادي.",
+        example: "مفردة مهيكلة بـ SM-2 وتصميم ديناميكي.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
@@ -96,10 +114,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         _currentDifficulty = 1.0;
       });
       
+      _checkEyeStrainPause();
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🌿 تمت الإضافة بنجاح وتفعيل الترميز المادي للأداة.'),
+            content: Text('🌿 تمت الإضافة وتفعيل التصميم الزجاجي الديناميكي.'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -108,17 +128,19 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _reviewItemSm2(int index, int quality) async {
-    HapticFeedback.mediumImpact(); // نبضة لمسية متوسطة عند التقييم
+    HapticFeedback.mediumImpact();
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
     });
     final rawList = _journalItems.map((e) => e.toJson()).toList();
     await _repository.saveVocabularyList(rawList);
     
+    _checkEyeStrainPause();
+    
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⏱️ تم جدولة المراجعة بعد ${_journalItems[index].interval} أيام.'),
+          content: Text('⏱️ المراجعة القادمة بعد ${_journalItems[index].interval} أيام.'),
           backgroundColor: const Color(0xFF38BDF8),
           duration: const Duration(seconds: 1),
         ),
@@ -127,7 +149,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _deleteItem(int index) async {
-    HapticFeedback.selectionClick(); // نبضة خفيفة عند الحذف الهادئ
+    HapticFeedback.selectionClick();
     setState(() {
       _journalItems.removeAt(index);
     });
@@ -167,7 +189,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الاحترافية (التسلسل اللمسي والترميز)'),
+        title: const Text('المفكرة الاحترافية (زجاج ديناميكي وعناية بالعين)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -196,7 +218,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         children: <Widget>[
                           const Text('✨ حصادك المعرفي التراكمي', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 2),
-                          Text('${_journalItems.length} مفردة مهيكلة حسياً وعصبياً', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                          Text('${_journalItems.length} مفردة بإضاءة زجاجية ديناميكية', style: const TextStyle(color: Colors.white70, fontSize: 11)),
                         ],
                       ),
                       DropdownButton<String>(
@@ -223,7 +245,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة مع الترميز المادي:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة جديدة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       Row(
@@ -329,7 +351,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ في المفكرة بنبضة حسية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بجدولة SM-2', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -345,9 +367,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.fingerprint_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.lightbulb_outline_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة تماماً.\nأضف مفردة لتشعر بالتسلسل اللمسي!', 
+                                  Text('المفكرة هادئة ونظيفة.\nأضف أول مفردة لمراقبة الإضاءة الديناميكية!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -361,13 +383,18 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                 final articleColor = _getArticleColor(item.article);
                                 final fullTextToSpeak = '${item.article} ${item.word}';
                                 
+                                // تصميم زجاجي ديناميكي: حافة مضيئة إذا كانت الكلمة بحاجة لمراجعة ملحة اليوم
+                                final cardBorderColor = item.isReviewDue 
+                                    ? const Color(0xFF38BDF8).withValues(alpha: 0.8) 
+                                    : Colors.white10;
+
                                 return Dismissible(
                                   key: Key('${item.word}_$index'),
                                   direction: DismissDirection.horizontal,
                                   onDismissed: (direction) {
                                     _deleteItem(index);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تمت إزالة المفردة بهدوء تام.')),
+                                      const SnackBar(content: Text('تم إزالة المفردة بهدوء.')),
                                     );
                                   },
                                   background: Container(
@@ -384,6 +411,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   ),
                                   child: Container(
                                     margin: const EdgeInsets.only(bottom: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: cardBorderColor, width: item.isReviewDue ? 1.5 : 1),
+                                    ),
                                     child: AppBaseGlassCard(
                                       padding: const EdgeInsets.all(16),
                                       child: Column(
@@ -414,7 +445,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    Text('الترميز المادي: ${item.texturalMnemonic}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                                                    Text(
+                                                      item.isReviewDue ? '⚡ موعد المراجعة اليوم!' : '🌿 مستقرة (مراجعة بعد ${item.interval} أيام)', 
+                                                      style: TextStyle(color: item.isReviewDue ? const Color(0xFF38BDF8) : const Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
