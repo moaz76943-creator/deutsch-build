@@ -167,7 +167,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                           child: Row(
                             children: <Widget>[
                               if (article.isNotEmpty) 
-                                ArticleBadge(article: article,  article)
+                                ArticleBadge( article,  article)
                               else
                                 const SizedBox(width: 40), // مسافة إذا مافي أداة
                               const SizedBox(width: 14),
