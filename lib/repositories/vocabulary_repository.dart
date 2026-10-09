@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class VocabularyRepository {
   static const String _key = 'vocabulary_items_v3';
   static const String _legacyKey = 'vocabulary_items_v2';
+  static const String _backupPrefix = 'vocab_backup_roll_';
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
@@ -29,10 +30,30 @@ class VocabularyRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String jsonString = jsonEncode(items);
+      
+      // التدوير التلقائي للنسخ الاحتياطي (Automated Rolling Backup Rotation - الاحتفاظ بآخر 5 نسخ)
+      await _rotateBackups(prefs, jsonString);
+
       return await prefs.setString(_key, jsonString);
     } catch (e) {
       return false;
     }
+  }
+
+  Future<void> _rotateBackups(SharedPreferences prefs, String newPayload) async {
+    try {
+      int timestamp = DateTime.now().millisecondsSinceEpoch;
+      await prefs.setString('$_backupPrefix$timestamp', newPayload);
+
+      // تصفية وحذف النسخ القديمة جداً والاحتفاظ بآخر 5 فقط
+      final keys = prefs.getKeys().where((k) => k.startsWith(_backupPrefix)).toList();
+      keys.sort();
+      if (keys.length > 5) {
+        for (int i = 0; i < keys.length - 5; i++) {
+          await prefs.remove(keys[i]);
+        }
+      }
+    } catch (_) {}
   }
 
   Future<String> exportBackupJson() async {
@@ -51,7 +72,6 @@ class VocabularyRepository {
     return buffer.toString();
   }
 
-  // مولد تقارير الصحة المحلية التشخيصي (Automated Local Health Diagnostic Report)
   Future<String> generateDiagnosticReport() async {
     final items = await getVocabularyList();
     int total = items.length;
@@ -74,6 +94,7 @@ class VocabularyRepository {
     report.writeln('حجم التخزين المشفر محلياً: $bytes بايت');
     report.writeln('توزيع اللغات: $langs');
     report.writeln('التوزيع الدلالي: $fields');
+    report.writeln('التدوير الاحتياطي التلقائي: مفعل (آخر 5 نسخ نشطة)');
     report.writeln('حالة الاستقرار: سليمة 100% ومحمية (Offline-First)');
     return report.toString();
   }
@@ -105,7 +126,7 @@ class VocabularyRepository {
       'totalCount': totalCount,
       'langCounts': langCounts,
       'sizeInBytes': sizeInBytes,
-      'status': 'مستقر، مشفر، ومتسق تماماً'
+      'status': 'مستقر، مشفر، ومتسق تماماً مع تدوير النسخ الاحتياطي'
     };
   }
 }

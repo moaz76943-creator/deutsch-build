@@ -7,31 +7,46 @@ class AppGradients {
     end: Alignment.bottomCenter,
     colors: [
       Color(0xFF000000), // أسود مطلق لشاشات OLED
-      Color(0xFF050811),
+      Color(0xFF03050C),
       Color(0xFF0F172A),
     ],
   );
 
-  // تأثير التشتت تحت السطحي للزجاج الرقمي (Subsurface Scattering)
-  static const LinearGradient glassCard = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0x22FFFFFF), // إضاءة علوية ناعمة
-      Color(0x08FFFFFF),
-      Color(0x02FFFFFF), // تشتت عميق
-    ],
-  );
+  // طبقات العمق المزمن للزجاج الرقمي (Chronomorphic Ambient Depth)
+  static LinearGradient chronomorphicGlassCard(int continuousFocusMinutes) {
+    if (continuousFocusMinutes > 20) {
+      return const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0x2A10B981), // تدرج أخضر مهدئ وعميق عند استمرار التأمل الطويل
+          Color(0x0A065F46),
+          Color(0x02FFFFFF),
+        ],
+      );
+    }
+    return const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x22FFFFFF),
+        Color(0x08FFFFFF),
+        Color(0x02FFFFFF),
+      ],
+    );
+  }
 }
 
 class AppBaseGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
+  final int focusMinutes;
 
   const AppBaseGlassCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
+    this.focusMinutes = 0,
   });
 
   @override
@@ -39,7 +54,7 @@ class AppBaseGlassCard extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        gradient: AppGradients.glassCard,
+        gradient: AppGradients.chronomorphicGlassCard(focusMinutes),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
         boxShadow: [

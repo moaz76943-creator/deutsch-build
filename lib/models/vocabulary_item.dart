@@ -17,7 +17,8 @@ class VocabularyItem {
   final String professionalContext;
   final String grammaticalValency;
   final String pragmaticScenario;
-  final String cognateNote; // التقابلات الإدراكية والروابط المشتركة بين اللغات
+  final String cognateNote;
+  final String morphologicalTree; // أشجار الجذور المرفولوجية والاشتقاق المقارن
 
   VocabularyItem({
     required this.word,
@@ -39,6 +40,7 @@ class VocabularyItem {
     this.grammaticalValency = '',
     this.pragmaticScenario = '',
     this.cognateNote = '',
+    this.morphologicalTree = '',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -91,6 +93,7 @@ class VocabularyItem {
       grammaticalValency: grammaticalValency,
       pragmaticScenario: pragmaticScenario,
       cognateNote: cognateNote,
+      morphologicalTree: morphologicalTree,
     );
   }
 
@@ -115,6 +118,7 @@ class VocabularyItem {
       'grammaticalValency': grammaticalValency,
       'pragmaticScenario': pragmaticScenario,
       'cognateNote': cognateNote,
+      'morphologicalTree': morphologicalTree,
     };
   }
 
@@ -139,6 +143,7 @@ class VocabularyItem {
       grammaticalValency: json['grammaticalValency'] as String? ?? '',
       pragmaticScenario: json['pragmaticScenario'] as String? ?? '',
       cognateNote: json['cognateNote'] as String? ?? '',
+      morphologicalTree: json['morphologicalTree'] as String? ?? '',
     );
   }
 }
