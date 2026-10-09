@@ -1,9 +1,9 @@
+import 'package:flutter_tts/flutter_tts.dart';
+import 'services/language_pack_manager.dart';
 import 'core/srs_engine.dart';
 import 'flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'repositories/vocabulary_repository.dart';
-import 'services/language_pack_manager.dart';
-import 'modules/contextual_scenarios/scenario_synthesizer.dart';
 import 'core/app_master_engine.dart';
 
 void main() async {
@@ -38,6 +38,131 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _dueTodayCount = 0;
+
+  Future<void> _speakExample(String text, String langCode) async {
+    final tts = FlutterTts();
+    final locale = LanguagePackManager.getTtsLocale(langCode);
+    await tts.setLanguage(locale);
+    await tts.setSpeechRate(0.42);
+    await tts.speak(text);
+  }
+
+  void _showContextDialog(Map<String, dynamic> item) {
+    final word = item['word']?.toString() ?? '';
+    final meaning = item['meaning']?.toString() ?? '';
+    final example = item['example']?.toString() ?? 'لا يتوفر مثال مسجل حالياً.';
+    final exampleMeaning = item['exampleMeaning']?.toString() ?? '';
+    final langName = LanguagePackManager.getLanguageName(_selectedLang);
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            word,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          Text(
+                            meaning,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.volume_up_rounded, color: Colors.indigo, size: 30),
+                      onPressed: () => _speakExample(word, _selectedLang),
+                    ),
+                  ],
+                ),
+                const Divider(height: 26),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'سياق الاستخدام في جملة ($langName):',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              example,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.volume_down_rounded, color: Colors.indigoAccent, size: 22),
+                            onPressed: () => _speakExample(example, _selectedLang),
+                          ),
+                        ],
+                      ),
+                      if (exampleMeaning.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          exampleMeaning,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _calculateDueStats(List<Map<String, dynamic>> items) async {
     int due = 0;
@@ -91,6 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _vocabularyList = packItems.isNotEmpty ? packItems : _vocabularyList;
       _isLoading = false;
     });
+    _calculateDueStats(_vocabularyList);
   }
 
   @override
@@ -210,7 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute<void>(
-                          builder: (_) => const FlashcardsScreen(),
+                          builder: (_) => FlashcardsScreen(langCode: _selectedLang, initialVocab: _vocabularyList),
                         ),
                       ).then((_) => _loadData());
                     },
@@ -263,42 +389,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                               trailing: IconButton(
-                                icon: const Icon(Icons.chat_bubble_outline, color: Colors.indigo),
-                                onPressed: () {
-                                  // استدعاء محرك السيناريوهات الحية لهذه الكلمة
-                                  final scenario = ContextualScenarioSynthesizer.generateMicroScenario(word, field);
-                                  final sDetails = scenario['scenario'] as Map<String, dynamic>;
-                                  
-                                  showModalBottomSheet<void>(
-                                    context: context,
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                    ),
-                                    builder: (_) => Container(
-                                      padding: const EdgeInsets.all(20),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('سيناريو حي: $word', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.indigo)),
-                                          const SizedBox(height: 10),
-                                          Text('الموقف: ${sDetails['setting']}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                                          const SizedBox(height: 8),
-                                          Text('• ${sDetails['lineA']}'),
-                                          const SizedBox(height: 4),
-                                          Text('• ${sDetails['lineB']}'),
-                                          const SizedBox(height: 12),
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                                            child: Text('قاعدة نحوية: ${sDetails['grammarFocus']}', style: const TextStyle(fontSize: 12)),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                    icon: const Icon(Icons.chat_bubble_outline, color: Colors.indigo),
+                    onPressed: () => _showContextDialog(item),
+                  ),
                             ),
                           );
                         },

@@ -9,9 +9,17 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'repositories/vocabulary_repository.dart';
 import 'core/srs_engine.dart';
 import 'core/design/bidi_text_isolator.dart';
+import 'services/language_pack_manager.dart';
 
 class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key});
+  final String langCode;
+  final List<Map<String, dynamic>>? initialVocab;
+
+  const FlashcardsScreen({
+    super.key,
+    this.langCode = 'de',
+    this.initialVocab,
+  });
 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
@@ -30,11 +38,12 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   void initState() {
     super.initState();
     _initTts();
-    _loadOfflineFirst();
+    _loadVocabulary();
   }
 
   Future<void> _initTts() async {
-    await _tts.setLanguage('de-DE');
+    final String locale = LanguagePackManager.getTtsLocale(widget.langCode);
+    await _tts.setLanguage(locale);
     await _tts.setSpeechRate(0.42);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);
@@ -51,17 +60,48 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   Color _getArticleColor(String article) {
     switch (article.toLowerCase().trim()) {
       case 'der':
+      case 'el':
+      case 'il':
+      case 'le':
         return const Color(0xFF1E88E5);
       case 'die':
+      case 'la':
         return const Color(0xFFE53935);
       case 'das':
+      case 'lo':
         return const Color(0xFF43A047);
       default:
-        return const Color(0xFF5C6BC0);
+        return const Color(0xFF6366F1);
     }
   }
 
-  Future<void> _loadOfflineFirst() async {
+  Future<void> _loadVocabulary() async {
+    // 1. إذا تم تمرير كلمات محددة من الشاشة الرئيسية، استخدمها فوراً
+    if (widget.initialVocab != null && widget.initialVocab!.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          vocabulary = List<Map<String, dynamic>>.from(widget.initialVocab!);
+          isLoading = false;
+        });
+        _speakCurrentWord();
+      }
+      return;
+    }
+
+    // 2. إذا كانت اللغة غير الألمانية، حمّل حزمتها مباشرة من مدير اللغات
+    if (widget.langCode != 'de') {
+      final items = await LanguagePackManager.loadPack(widget.langCode);
+      if (mounted) {
+        setState(() {
+          vocabulary = items;
+          isLoading = false;
+        });
+        _speakCurrentWord();
+      }
+      return;
+    }
+
+    // 3. في حالة الألمانية: استراتيجية Offline-First المحلية والمزامنة
     final localItems = await _repo.getVocabularyList();
     if (localItems.isNotEmpty) {
       if (mounted) {
@@ -102,7 +142,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         }
       }
     } catch (_) {
-      // الاستمرار في العمل دون انقطاع بالبيانات المحلية
+      // استمرار العمل بالبيانات المحلية تلقائياً
     } finally {
       if (mounted && isLoading) {
         setState(() => isLoading = false);
@@ -186,18 +226,26 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     if (vocabulary.isEmpty) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8F9FA),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: const BackButton(color: Colors.black87),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.inbox_rounded, size: 70, color: Colors.grey),
               const SizedBox(height: 16),
-              const Text('لا توجد مفردات متاحة حالياً', style: TextStyle(fontSize: 18)),
+              Text(
+                'لا توجد مفردات حالياً لقسم (${LanguagePackManager.getLanguageName(widget.langCode)})',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _loadOfflineFirst,
+                onPressed: _loadVocabulary,
                 icon: const Icon(Icons.refresh),
-                label: const Text('تحديث'),
+                label: const Text('إعادة المحاولة'),
               ),
             ],
           ),
@@ -211,14 +259,37 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.indigo.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          LanguagePackManager.getLanguageName(widget.langCode),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.indigo.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Text(
                     '${currentIndex + 1} / ${vocabulary.length}',
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey,
                     ),
@@ -246,16 +317,20 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   final String word = item['word']?.toString() ?? '';
                   final String article = item['article']?.toString() ?? '';
                   final String meaning = item['meaning']?.toString() ?? '';
+                  final String example = item['example']?.toString() ?? '';
+                  final String exampleMeaning = item['exampleMeaning']?.toString() ?? '';
                   final String imageName = item['image']?.toString() ?? '';
                   final String imageUrl =
                       'https://cdn.jsdelivr.net/gh/moaz76943-creator/-offline-packs-store@main/images/$imageName';
                   final Color themeColor = _getArticleColor(article);
 
                   return _FlipCardItem(
-                    key: ValueKey(word),
+                    key: ValueKey('${widget.langCode}_$word'),
                     word: word,
                     article: article,
                     meaning: meaning,
+                    example: example,
+                    exampleMeaning: exampleMeaning,
                     imageUrl: imageUrl,
                     themeColor: themeColor,
                   );
@@ -301,6 +376,8 @@ class _FlipCardItem extends StatefulWidget {
   final String word;
   final String article;
   final String meaning;
+  final String example;
+  final String exampleMeaning;
   final String imageUrl;
   final Color themeColor;
 
@@ -309,6 +386,8 @@ class _FlipCardItem extends StatefulWidget {
     required this.word,
     required this.article,
     required this.meaning,
+    required this.example,
+    required this.exampleMeaning,
     required this.imageUrl,
     required this.themeColor,
   });
@@ -453,7 +532,7 @@ class _FlipCardItemState extends State<_FlipCardItem>
                 Icon(Icons.touch_app_outlined, size: 18, color: Colors.grey.shade600),
                 const SizedBox(width: 6),
                 Text(
-                  'المس لاكتشاف المعنى',
+                  'المس لاكتشاف المعنى والسياق',
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -481,7 +560,7 @@ class _FlipCardItemState extends State<_FlipCardItem>
       child: Container(
         width: MediaQuery.of(context).size.width * 0.90,
         height: MediaQuery.of(context).size.height * 0.65,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(22),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -500,21 +579,57 @@ class _FlipCardItemState extends State<_FlipCardItem>
                 ),
               ),
             ),
-            const Spacer(),
-            const Icon(Icons.translate_rounded, size: 48, color: Color(0xFF64748B)),
             const SizedBox(height: 16),
+            const Icon(Icons.translate_rounded, size: 40, color: Color(0xFF64748B)),
+            const SizedBox(height: 10),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
                 isolatedMeaning,
                 style: const TextStyle(
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
+            if (widget.example.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      widget.example,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (widget.exampleMeaning.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.exampleMeaning,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
