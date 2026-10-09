@@ -1,10 +1,50 @@
-/// تطبيق خوارزمية SuperMemo-2 (SM-2) القياسية الرياضية الموثقة
-/// q: التقييم من 0 إلى 5 (0-2: فشل / إعادة، 3: مقبول، 4: جيد، 5: ممتاز)
-/// EF: معامل السهولة (Ease Factor) - الحد الأدنى 1.3
-/// I: الفاصل الزمني بالأيام (Interval)
+class SrsItemState {
+  final int repetitions;
+  final int interval;
+  final double easeFactor;
+  final DateTime nextReviewDate;
+  final DateTime lastReviewed;
+
+  SrsItemState({
+    this.repetitions = 0,
+    this.interval = 1,
+    this.easeFactor = 2.5,
+    DateTime? nextReviewDate,
+    DateTime? lastReviewed,
+  })  : nextReviewDate = nextReviewDate ?? DateTime.now(),
+        lastReviewed = lastReviewed ?? DateTime.now();
+
+  dynamic operator [](String key) {
+    switch (key) {
+      case 'repetitions':
+        return repetitions;
+      case 'interval':
+        return interval;
+      case 'easeFactor':
+        return easeFactor;
+      case 'nextReviewDate':
+        return nextReviewDate;
+      case 'lastReviewed':
+        return lastReviewed;
+      default:
+        return null;
+    }
+  }
+}
+
 class SrsEngine {
+  static Future<SrsItemState> getItemState(dynamic key) async {
+    return SrsItemState(
+      repetitions: 0,
+      interval: 1,
+      easeFactor: 2.5,
+      nextReviewDate: DateTime.now().add(const Duration(days: 1)),
+      lastReviewed: DateTime.now(),
+    );
+  }
+
   static Map<String, dynamic> calculateNextReview({
-    required int grade, // 0 to 5
+    required int grade,
     required int repetitions,
     required double previousEaseFactor,
     required int previousInterval,
@@ -27,7 +67,6 @@ class SrsEngine {
       nextInterval = 1;
     }
 
-    // معادلة SM-2 الرسمية لتحديث معامل السهولة
     nextEaseFactor = previousEaseFactor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
     if (nextEaseFactor < 1.3) {
       nextEaseFactor = 1.3;
