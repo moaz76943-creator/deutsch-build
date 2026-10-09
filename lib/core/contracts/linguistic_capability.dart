@@ -4,12 +4,14 @@ enum LinguisticCapability {
   pragmaticMitigation,     // التلطيف والتسلسل الهرمي
   anaphoraCohesion,        // الإحالة والضمائر
   phonologicalStress,      // النبر والتزامن الإيقاعي
-  evidentiality,           // اليقين ونقل المعرفة
+  evidentiality,           // الشاهدية ومصدر المعرفة
+  collocationalTension,    // التلازم اللفظي والجذب الدلالي
+  zeroEquivalence,         // الحذف والاختزال التداولي
 }
 
 class LanguagePair {
-  final String sourceIso; // e.g., 'ar'
-  final String targetIso; // e.g., 'de', 'es', 'tr'
+  final String sourceIso;
+  final String targetIso;
 
   const LanguagePair({
     required this.sourceIso,

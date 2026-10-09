@@ -2,9 +2,11 @@ import '../contracts/linguistic_capability.dart';
 import '../contracts/universal_scenario_contract.dart';
 
 enum FeatureId {
-  morphologyStacker,    // دمج الكلمات المركبة + المغناطيسية الصرفية
-  semanticMapper,       // دمج الأصدقاء الكاذبين + الاستعارات
-  pragmaticMasker,      // دمج فجوة المعلومات + تحمل الغموض
+  morphologyStacker,
+  semanticMapper,
+  pragmaticMasker,
+  evidentialityCalibrator,
+  collocationField,
 }
 
 class FeatureMetadata {
@@ -41,12 +43,26 @@ class FeatureRegistry {
     FeatureId.pragmaticMasker: FeatureMetadata(
       id: FeatureId.pragmaticMasker,
       title: 'محرك الحجب الدلالي والتداولية',
-      capabilities: {LinguisticCapability.pragmaticMitigation},
+      capabilities: {
+        LinguisticCapability.pragmaticMitigation,
+        LinguisticCapability.zeroEquivalence,
+      },
+      isGloballyEnabled: true,
+    ),
+    FeatureId.evidentialityCalibrator: FeatureMetadata(
+      id: FeatureId.evidentialityCalibrator,
+      title: 'محاكي الشاهدية واليقين المعرفي',
+      capabilities: {LinguisticCapability.evidentiality},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.collocationField: FeatureMetadata(
+      id: FeatureId.collocationField,
+      title: 'محرك الجذب والتلازم اللفظي',
+      capabilities: {LinguisticCapability.collocationalTension},
       isGloballyEnabled: true,
     ),
   };
 
-  /// فحص توفر الميزة وسيناريوهاتها مع تطبيق Fail-Closed المزدوج
   static bool isFeatureOperable<T>({
     required FeatureId featureId,
     required UniversalScenarioContract<T> scenario,
