@@ -11,6 +11,7 @@ class VocabularyItem {
   final int interval;
   final int repetitions;
   final double easeFactor;
+  final String languageCode; // رمز اللغة ('de', 'en', 'fr', 'es', etc.)
 
   VocabularyItem({
     required this.word,
@@ -25,29 +26,35 @@ class VocabularyItem {
     this.interval = 0,
     this.repetitions = 0,
     this.easeFactor = 2.5,
+    this.languageCode = 'de',
   });
 
   bool get isReviewDue => interval <= 1;
 
   String get texturalMnemonic {
-    switch (article.toLowerCase()) {
-      case 'der':
-        return 'مادة صلبة ولامعة (صلابة وبنية واضحة)';
-      case 'die':
-        return 'مادة عضوية وناعمة (حياة وانسيابية)';
-      case 'das':
-        return 'مادة هادئة ومستقرة (سكون وتوازن)';
-      default:
-        return 'هيكل محايد ومنتظم';
+    if (languageCode == 'de') {
+      switch (article.toLowerCase()) {
+        case 'der':
+          return 'مادة صلبة ولامعة (مذكر ألماني)';
+        case 'die':
+          return 'مادة عضوية وناعمة (مؤنث ألماني)';
+        case 'das':
+          return 'مادة هادئة ومستقرة (محايد ألماني)';
+        default:
+          return 'هيكل محايد';
+      }
     }
+    return 'مفردة كونية دلالية (${languageCode.toUpperCase()})';
   }
 
-  // محاكي بصري لقاعدة قوس الجملة الألمانية (Satzklammer)
   String get satzklammerVisualization {
-    if (preposition.isNotEmpty) {
-      return 'قوس الجملة: [فعل متصرف في المركز الثاني] ... [حرف الجر والتكملة مع ${word}]';
+    if (languageCode == 'de') {
+      if (preposition.isNotEmpty) {
+        return 'قوس الجملة: [فعل متصرف] ... [حرف الجر مع ${word}]';
+      }
+      return 'قوس الجملة: [فعل متصرف] ... [${article} ${word} في النهاية]';
     }
-    return 'قوس الجملة: [فعل متصرف] ... [${article} ${word} في النهاية]';
+    return 'هيكل بنيوي متناسق (${languageCode.toUpperCase()})';
   }
 
   VocabularyItem calculateSm2(int quality) {
@@ -84,6 +91,7 @@ class VocabularyItem {
       interval: newInterval,
       repetitions: newRepetitions,
       easeFactor: newEase,
+      languageCode: languageCode,
     );
   }
 
@@ -101,13 +109,14 @@ class VocabularyItem {
       'interval': interval,
       'repetitions': repetitions,
       'easeFactor': easeFactor,
+      'languageCode': languageCode,
     };
   }
 
   factory VocabularyItem.fromJson(Map<dynamic, dynamic> json) {
     return VocabularyItem(
       word: json['word'] ?? '',
-      article: json['article'] ?? 'der',
+      article: json['article'] ?? '',
       plural: json['plural'] ?? '',
       preposition: json['preposition'] ?? '',
       collocation: json['collocation'] ?? '',
@@ -118,6 +127,7 @@ class VocabularyItem {
       interval: json['interval'] ?? 0,
       repetitions: json['repetitions'] ?? 0,
       easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
+      languageCode: json['languageCode'] ?? 'de',
     );
   }
 }

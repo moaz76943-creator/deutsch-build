@@ -19,11 +19,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _collocationController = TextEditingController();
   final TextEditingController _wordFamilyController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
+  
+  String _selectedLanguage = 'de'; // اللغة الافتتاحية: الألمانية
   String _selectedArticle = 'der';
   double _currentDifficulty = 1.0;
   
   String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
-  int _consecutiveHardCount = 0; // حارس الوتيرة النفسية لتتبع التعثر
+  int _switchFatigueCounter = 0; // حارس إجهاد التبديل اللغوي
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -39,15 +41,24 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _initTts() async {
     try {
-      await _flutterTts.setLanguage("de-DE");
+      await _updateTtsLanguage(_selectedLanguage);
       await _flutterTts.setSpeechRate(0.45);
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(1.0);
     } catch (_) {}
   }
 
-  Future<void> _speakWord(String textToSpeak) async {
+  Future<void> _updateTtsLanguage(String langCode) async {
+    String ttsLang = "de-DE";
+    if (langCode == 'en') ttsLang = "en-US";
+    else if (langCode == 'fr') ttsLang = "fr-FR";
+    else if (langCode == 'es') ttsLang = "es-ES";
+    await _flutterTts.setLanguage(ttsLang);
+  }
+
+  Future<void> _speakWord(String textToSpeak, String langCode) async {
     HapticFeedback.lightImpact();
+    await _updateTtsLanguage(langCode);
     await _flutterTts.stop();
     await _flutterTts.speak(textToSpeak);
   }
@@ -62,24 +73,22 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
-  // فحص حارس الوتيرة النفسية عند التعثر المتكرر
-  void _checkFrustrationGuardian(int quality) {
-    if (quality <= 1) {
-      _consecutiveHardCount++;
-      if (_consecutiveHardCount >= 2) {
-        _consecutiveHardCount = 0;
+  // فحص حارس إجهاد التبديل بين اللغات
+  void _checkCodeSwitchingFatigue(String newLang) {
+    if (_selectedLanguage != newLang) {
+      _switchFatigueCounter++;
+      if (_switchFatigueCounter >= 3) {
+        _switchFatigueCounter = 0;
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('🧠 ملاحظة ودية: لاحظت بعض التحدي اليوم. خذ نفساً عميقاً، الدماغ ينمو أكثر مع الهدوء والاسترخاء.'),
+              content: Text('🌐 ملاحظة عصبية: القفز السريع بين اللغات يستهلك طاقة الفص الصدغي. خذ لحظة هدوء!'),
               backgroundColor: Color(0xFF38BDF8),
               duration: Duration(seconds: 4),
             ),
           );
         }
       }
-    } else {
-      _consecutiveHardCount = 0; // إعادة ضبط عند التذكر الناجح
     }
   }
 
@@ -89,17 +98,18 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
       final newItem = VocabularyItem(
         word: _wordController.text.trim(),
-        article: _selectedArticle,
+        article: _selectedLanguage == 'de' ? _selectedArticle : '',
         plural: _pluralController.text.trim(),
         preposition: _prepositionController.text.trim(),
         collocation: _collocationController.text.trim(),
         wordFamily: _wordFamilyController.text.trim(),
         difficultyScore: _currentDifficulty,
-        meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي",
-        example: "مفردة مهيكلة بـ SM-2 ومدمجة بقوس الجملة.",
+        meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
+        example: "مفردة كونية متعددة اللغات.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
+        languageCode: _selectedLanguage,
       );
 
       setState(() {
@@ -122,7 +132,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🌿 تمت الإضافة وتفعيل تحليل قوس الجملة النحوي.'),
+            content: Text('🌿 تمت إضافة المفردة الكونية بنجاح.'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -132,8 +142,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _reviewItemSm2(int index, int quality) async {
     HapticFeedback.mediumImpact();
-    _checkFrustrationGuardian(quality);
-
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
     });
@@ -169,7 +177,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       case 'das':
         return const Color(0xFF34D399);
       default:
-        return Colors.white70;
+        return const Color(0xFF34D399);
     }
   }
 
@@ -192,7 +200,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة (حارس الوتيرة وقوس الجملة)'),
+        title: const Text('المفكرة الكونية متعددة اللغات (Polyglot)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -206,7 +214,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.03),
@@ -216,26 +224,23 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          const Text('✨ حصادك المعرفي الهادئ', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 2),
-                          Text('${_journalItems.length} مفردة مدعومة بالحماية النفسية', style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                        ],
-                      ),
+                      const Text('🌐 لغة التعلم النشطة:', style: TextStyle(color: Colors.white70, fontSize: 12)),
                       DropdownButton<String>(
-                        value: _userEnergyState,
+                        value: _selectedLanguage,
                         dropdownColor: const Color(0xFF1E293B),
-                        style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.bold),
                         underline: const SizedBox(),
-                        items: ['منعش ومستعد (جلسة كاملة)', 'متعب (جلسة خفيفة سريعة)']
-                            .map((energy) => DropdownMenuItem(value: energy, child: Text(energy)))
-                            .toList(),
+                        items: const [
+                          DropdownMenuItem(value: 'de', child: Text('🇩🇪 الألمانية (Deutsch)')),
+                          DropdownMenuItem(value: 'en', child: Text('🇬🇧 الإنجليزية (English)')),
+                          DropdownMenuItem(value: 'fr', child: Text('🇫🇷 الفرنسية (Français)')),
+                          DropdownMenuItem(value: 'es', child: Text('🇪🇸 الإسبانية (Español)')),
+                        ],
                         onChanged: (val) {
                           if (val != null) {
+                            _checkCodeSwitchingFatigue(val);
                             setState(() {
-                              _userEnergyState = val;
+                              _selectedLanguage = val;
                             });
                           }
                         },
@@ -248,31 +253,33 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة جديدة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('إضافة مفردة لـ (${_selectedLanguage.toUpperCase()}):', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: ['der', 'die', 'das'].map((article) {
-                          final isSelected = _selectedArticle == article;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: ChoiceChip(
-                              label: Text(article),
-                              selected: isSelected,
-                              selectedColor: _getArticleColor(article),
-                              backgroundColor: Colors.white12,
-                              labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold),
-                              onSelected: (selected) {
-                                setState(() {
-                                  _selectedArticle = article;
-                                });
-                              },
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 10),
+                      if (_selectedLanguage == 'de') ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: ['der', 'die', 'das'].map((article) {
+                            final isSelected = _selectedArticle == article;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: ChoiceChip(
+                                label: Text(article),
+                                selected: isSelected,
+                                selectedColor: _getArticleColor(article),
+                                backgroundColor: Colors.white12,
+                                labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white, fontWeight: FontWeight.bold),
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _selectedArticle = article;
+                                  });
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
 
                       TextField(
                         controller: _wordController,
@@ -286,54 +293,20 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      TextField(
-                        controller: _pluralController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'صيغة الجمع...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      if (_selectedLanguage == 'de') ...[
+                        TextField(
+                          controller: _pluralController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'صيغة الجمع (Plural)...',
+                            hintStyle: const TextStyle(color: Colors.white38),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _prepositionController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'حرف الجر...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _collocationController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'المتلازمة اللفظية...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _wordFamilyController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'عائلة الكلمة (Wortfamilie)...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 10),
+                      ],
                       TextField(
                         controller: _meaningController,
                         style: const TextStyle(color: Colors.white),
@@ -354,13 +327,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ بجدولة SM-2 الذكية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بجدولة SM-2 الكونية', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text('السجل المعرفي المحمي (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('السجل الكوني (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -370,9 +343,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.psychology_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.translate_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة ومحمية.\nأضف مفردة لنبدأ التدريب!', 
+                                  Text('المفكرة الكونية هادئة تماماً.\nأضف أول مفردة بأي لغة!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -384,7 +357,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               itemBuilder: (context, index) {
                                 final item = visibleItems[index];
                                 final articleColor = _getArticleColor(item.article);
-                                final fullTextToSpeak = '${item.article} ${item.word}';
+                                final fullTextToSpeak = item.languageCode == 'de' ? '${item.article} ${item.word}' : item.word;
                                 final cardBorderColor = item.isReviewDue 
                                     ? const Color(0xFF38BDF8).withValues(alpha: 0.8) 
                                     : Colors.white10;
@@ -395,7 +368,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   onDismissed: (direction) {
                                     _deleteItem(index);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تم إزالة المفردة بهدوء تام.')),
+                                      const SnackBar(content: Text('تم إزالة المفردة بهدوء.')),
                                     );
                                   },
                                   background: Container(
@@ -425,7 +398,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                             children: <Widget>[
                                               Container(
                                                 width: 4,
-                                                height: 65,
+                                                height: 55,
                                                 decoration: BoxDecoration(
                                                   color: articleColor,
                                                   borderRadius: BorderRadius.circular(2),
@@ -439,22 +412,35 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     Wrap(
                                                       crossAxisAlignment: WrapCrossAlignment.center,
                                                       children: <Widget>[
-                                                        Text('${item.article} ${item.word}', style: TextStyle(color: articleColor, fontSize: 18, fontWeight: FontWeight.bold)),
-                                                        if (item.plural.isNotEmpty)
-                                                          Text(' (Pl: ${item.plural})', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                                                        Text(
+                                                          item.languageCode == 'de' ? '${item.article} ${item.word}' : item.word,
+                                                          style: TextStyle(color: articleColor, fontSize: 18, fontWeight: FontWeight.bold),
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white.withValues(alpha: 0.1),
+                                                            borderRadius: BorderRadius.circular(4),
+                                                          ),
+                                                          child: Text(item.languageCode.toUpperCase(), style: const TextStyle(color: Colors.white70, fontSize: 9)),
+                                                        ),
                                                       ],
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
                                                     const SizedBox(height: 2),
-                                                    Text(item.satzklammerVisualization, style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                                                    Text(
+                                                      item.isReviewDue ? '⚡ موعد المراجعة اليوم!' : '🌿 مستقرة (بعد ${item.interval} أيام)', 
+                                                      style: TextStyle(color: item.isReviewDue ? const Color(0xFF38BDF8) : const Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
-                                                onPressed: () => _speakWord(fullTextToSpeak),
-                                                tooltip: 'استمع للنطق',
+                                                onPressed: () => _speakWord(fullTextToSpeak, item.languageCode),
+                                                tooltip: 'نطق صوتي للغة',
                                               ),
                                             ],
                                           ),
