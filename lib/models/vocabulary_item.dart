@@ -12,10 +12,10 @@ class VocabularyItem {
   final int repetitions;
   final double easeFactor;
   final String languageCode;
-  final String etymologyRoot;
+  final String etymologyRoot; // التقابل الجذري العكسي والعمق التاريخي
   final String semanticField;
   final String professionalContext;
-  final String grammaticalValency; // مصفوفة التحكم الإعرابي (مثل: Akk / Dat للأفعال الألمانية)
+  final String grammaticalValency;
 
   VocabularyItem({
     required this.word,
@@ -46,7 +46,6 @@ class VocabularyItem {
   }
 
   VocabularyItem calculateSm2(int quality) {
-    // تبريد زمني حي متكيف مع جودة الاسترجاع العصبي
     double adaptiveDecayFactor = (quality < 3) ? 0.8 : 1.0;
     double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEase < 1.3) newEase = 1.3;

@@ -34,7 +34,7 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('مملكة الرفاهية والاحتفاء الذاتي'),
+        title: const Text('مملكة الرفاهية والرضا المعرفي'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -49,7 +49,6 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // مساحة اللاتنافسية المطلقة
                       AppBaseGlassCard(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -59,31 +58,30 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
                               children: [
                                 Icon(Icons.spa_rounded, color: Color(0xFF34D399), size: 28),
                                 SizedBox(width: 12),
-                                Text('مساحة اللاتنافسية المطلقة', style: TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.bold)),
+                                Text('مؤشر الرضا المعرفي الكلي', style: TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.bold)),
                               ],
                             ),
                             SizedBox(height: 12),
                             Text(
-                              'لا توجد لوحات صدارة، ولا مقارنات رقمية مع الآخرين. رحلتك اللغوية هي حوار داخلي نقي بينك وبين استيعابك الخاص، محمية بالكامل من أي ضغوط خارجية.',
+                              'لا توجد لوحات صدارة ولا مقارنات رقمية. يقاس نجاحك هنا بمدى شعورك بالهدوء والعمق الإدراكي بعد كل جلسة استيعاب.',
                               style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // نظام الاحتفاء بالقدرة الذاتية
                       AppBaseGlassCard(
                         padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('✨ مؤشرات التطور والقدرة الذاتية', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+                            const Text('✨ حالة الوعي والاتزان العصبي', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
-                            Text('إجمالي الغلال المعرفي المستقر: $_totalItems وحدة لغوية', style: const TextStyle(color: Colors.white, fontSize: 14)),
+                            Text('حجم الغلال المعرفي المستقر: $_totalItems وحدة', style: const TextStyle(color: Colors.white, fontSize: 14)),
                             const SizedBox(height: 8),
-                            const Text('استقرار الذاكرة طويلة المدى: ممتاز وثابت', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            const Text('مستوى الاستقرار والهدوء العصبي: عالٍ ومستدام', style: TextStyle(color: Colors.white70, fontSize: 13)),
                             const SizedBox(height: 8),
-                            const Text('سرعة استدعاء المعاني: في تصاعد عضوي مستمر', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            const Text('التناغم مع الإيقاع الحيوي: متوافق تماماً', style: TextStyle(color: Colors.white70, fontSize: 13)),
                           ],
                         ),
                       ),
