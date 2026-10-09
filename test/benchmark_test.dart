@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/core/l1_cache.dart';
+import 'package:deutsch_bilarabi/core/l1_cache.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

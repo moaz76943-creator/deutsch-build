@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/core/bidi_helper.dart';
-import '../lib/core/l1_cache.dart';
+import 'package:deutsch_bilarabi/core/bidi_helper.dart';
+import 'package:deutsch_bilarabi/core/l1_cache.dart';
 
 void main() {
   test('BiDi Helper - Correct Text Direction Detection', () {

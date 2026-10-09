@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../../lib/core/audio/offline_audio_pool.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

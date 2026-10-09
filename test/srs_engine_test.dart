@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/core/srs_engine.dart';
+import 'package:deutsch_bilarabi/core/srs_engine.dart';
 
 void main() {
   test('Standard SM-2 Algorithm Exact Mathematical Verification', () {

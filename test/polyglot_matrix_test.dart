@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/services/language_pack_manager.dart';
+import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
 
 void main() {
   test('100 Polyglot Matrix Data & Architecture Verification', () {
