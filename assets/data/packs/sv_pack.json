@@ -1,0 +1,16 @@
+{
+  "language": "sv",
+  "name": "السويدية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Visdom",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Visdom ger lugn.",
+      "exampleMeaning": "الحكمة تجلب السكينة.",
+      "image": "sv.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

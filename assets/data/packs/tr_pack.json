@@ -1,0 +1,16 @@
+{
+  "language": "tr",
+  "name": "التركية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Bilgi",
+      "article": "",
+      "meaning": "المعرفة",
+      "example": "Bilgi en büyük güçtür.",
+      "exampleMeaning": "المعرفة هي أعظم قوة.",
+      "image": "tr.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "uk",
+  "name": "الأوكرانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Мудрість",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Мудрість веде вперед.",
+      "exampleMeaning": "الحكمة تقود للأمام.",
+      "image": "uk.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

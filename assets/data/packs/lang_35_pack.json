@@ -1,0 +1,16 @@
+{
+  "language": "lang_35",
+  "name": "لغة دولية 35",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_35",
+      "article": "",
+      "meaning": "مفردة لغوية 35",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_35.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

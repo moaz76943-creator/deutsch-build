@@ -1,0 +1,16 @@
+{
+  "language": "lang_47",
+  "name": "لغة دولية 47",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_47",
+      "article": "",
+      "meaning": "مفردة لغوية 47",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_47.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

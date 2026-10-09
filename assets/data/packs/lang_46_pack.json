@@ -1,0 +1,16 @@
+{
+  "language": "lang_46",
+  "name": "لغة دولية 46",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_46",
+      "article": "",
+      "meaning": "مفردة لغوية 46",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_46.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

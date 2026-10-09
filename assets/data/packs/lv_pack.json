@@ -1,0 +1,16 @@
+{
+  "language": "lv",
+  "name": "اللاتفية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Gudrība",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Gudrība atver durvis.",
+      "exampleMeaning": "الحكمة تفتح الأبواب.",
+      "image": "lv.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

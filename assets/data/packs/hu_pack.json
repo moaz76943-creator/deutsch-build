@@ -1,0 +1,16 @@
+{
+  "language": "hu",
+  "name": "المجرية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Bölcsesség",
+      "article": "a",
+      "meaning": "الحكمة",
+      "example": "A bölcsesség békét hoz.",
+      "exampleMeaning": "الحكمة تجلب السلام.",
+      "image": "hu.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

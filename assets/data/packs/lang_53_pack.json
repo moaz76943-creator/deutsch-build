@@ -1,0 +1,16 @@
+{
+  "language": "lang_53",
+  "name": "لغة دولية 53",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_53",
+      "article": "",
+      "meaning": "مفردة لغوية 53",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_53.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

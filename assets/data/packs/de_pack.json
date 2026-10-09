@@ -1,24 +1,16 @@
 {
-  "languageCode": "de",
-  "familyName": "جرمانية",
+  "language": "de",
+  "name": "الألمانية",
+  "version": "1.0.0",
   "items": [
     {
-      "word": "Rezept",
-      "article": "das",
-      "plural": "Rezepte",
-      "meaning": "وصفة طبية / روشتة",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "مهني / رسمي"
-    },
-    {
-      "word": "Apotheke",
-      "article": "die",
-      "plural": "Apotheken",
-      "meaning": "صيدلية",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "يومي / مهني"
+      "word": "Apfel",
+      "article": "der",
+      "meaning": "تفاحة",
+      "example": "Der Apfel ist frisch.",
+      "exampleMeaning": "التفاحة طازجة.",
+      "image": "de.webp",
+      "semanticField": "Core Vocabulary"
     }
   ]
 }

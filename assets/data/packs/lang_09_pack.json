@@ -1,0 +1,16 @@
+{
+  "language": "lang_09",
+  "name": "لغة دولية 9",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_9",
+      "article": "",
+      "meaning": "مفردة لغوية 9",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_09.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

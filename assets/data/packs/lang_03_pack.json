@@ -1,0 +1,16 @@
+{
+  "language": "lang_03",
+  "name": "لغة دولية 3",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_3",
+      "article": "",
+      "meaning": "مفردة لغوية 3",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_03.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "bn",
+  "name": "البنغالية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "জ্ঞান (Gyan)",
+      "article": "",
+      "meaning": "المعرفة",
+      "example": "জ্ঞান আলো ছড়ায়।",
+      "exampleMeaning": "المعرفة تنشر النور.",
+      "image": "bn.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

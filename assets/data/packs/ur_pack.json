@@ -1,0 +1,16 @@
+{
+  "language": "ur",
+  "name": "الأردية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "حکمت",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "حکمت بہترین دولت ہے۔",
+      "exampleMeaning": "الحكمة أعظم ثروة.",
+      "image": "ur.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "bg",
+  "name": "البلغارية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Мъдрост",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Мъдростта носи мир.",
+      "exampleMeaning": "الحكمة تجلب السلام.",
+      "image": "bg.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

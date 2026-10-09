@@ -1,0 +1,16 @@
+{
+  "language": "el",
+  "name": "اليونانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Γνώση",
+      "article": "η",
+      "meaning": "المعرفة",
+      "example": "Η γνώση είναι δύναμη.",
+      "exampleMeaning": "المعرفة قوة.",
+      "image": "el.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "id",
+  "name": "الإندونيسية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Kebijaksanaan",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Kebijaksanaan membawa kedamaian.",
+      "exampleMeaning": "الحكمة تجلب السلام.",
+      "image": "id.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "cs",
+  "name": "التشيكية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Moudrost",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Moudrost je cenná.",
+      "exampleMeaning": "الحكمة قيمة.",
+      "image": "cs.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

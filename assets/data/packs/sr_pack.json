@@ -1,0 +1,16 @@
+{
+  "language": "sr",
+  "name": "الصربية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Мудрост",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Мудрост је врлина.",
+      "exampleMeaning": "الحكمة فضيلة.",
+      "image": "sr.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

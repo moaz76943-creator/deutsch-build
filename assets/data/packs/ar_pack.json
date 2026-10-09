@@ -1,0 +1,16 @@
+{
+  "language": "ar",
+  "name": "العربية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "الإتقان",
+      "article": "الـ",
+      "meaning": "إحكام العمل",
+      "example": "الإتقان أساس النجاح.",
+      "exampleMeaning": "إتقان العمل طريق التميز.",
+      "image": "ar.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

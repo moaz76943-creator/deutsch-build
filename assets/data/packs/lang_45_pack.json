@@ -1,0 +1,16 @@
+{
+  "language": "lang_45",
+  "name": "لغة دولية 45",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_45",
+      "article": "",
+      "meaning": "مفردة لغوية 45",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_45.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

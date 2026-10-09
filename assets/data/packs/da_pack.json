@@ -1,0 +1,16 @@
+{
+  "language": "da",
+  "name": "الدنماركية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Visdom",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Visdom styrker sindet.",
+      "exampleMeaning": "الحكمة تقوي العقل.",
+      "image": "da.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

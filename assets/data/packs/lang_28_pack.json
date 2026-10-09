@@ -1,0 +1,16 @@
+{
+  "language": "lang_28",
+  "name": "لغة دولية 28",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_28",
+      "article": "",
+      "meaning": "مفردة لغوية 28",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_28.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

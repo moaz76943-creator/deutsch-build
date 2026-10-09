@@ -1,0 +1,16 @@
+{
+  "language": "lang_07",
+  "name": "لغة دولية 7",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_7",
+      "article": "",
+      "meaning": "مفردة لغوية 7",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_07.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

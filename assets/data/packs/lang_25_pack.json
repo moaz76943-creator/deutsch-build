@@ -1,0 +1,16 @@
+{
+  "language": "lang_25",
+  "name": "لغة دولية 25",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_25",
+      "article": "",
+      "meaning": "مفردة لغوية 25",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_25.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

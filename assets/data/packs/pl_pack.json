@@ -1,0 +1,16 @@
+{
+  "language": "pl",
+  "name": "البولندية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Wiedza",
+      "article": "",
+      "meaning": "المعرفة",
+      "example": "Wiedza otwiera drzwi.",
+      "exampleMeaning": "المعرفة تفتح الأبواب.",
+      "image": "pl.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

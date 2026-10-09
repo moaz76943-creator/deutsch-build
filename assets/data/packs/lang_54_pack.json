@@ -1,0 +1,16 @@
+{
+  "language": "lang_54",
+  "name": "لغة دولية 54",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_54",
+      "article": "",
+      "meaning": "مفردة لغوية 54",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_54.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

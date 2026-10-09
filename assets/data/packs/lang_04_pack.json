@@ -1,0 +1,16 @@
+{
+  "language": "lang_04",
+  "name": "لغة دولية 4",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_4",
+      "article": "",
+      "meaning": "مفردة لغوية 4",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_04.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

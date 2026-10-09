@@ -1,0 +1,16 @@
+{
+  "language": "lang_43",
+  "name": "لغة دولية 43",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_43",
+      "article": "",
+      "meaning": "مفردة لغوية 43",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_43.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

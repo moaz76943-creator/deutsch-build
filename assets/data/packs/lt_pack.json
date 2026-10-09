@@ -1,0 +1,16 @@
+{
+  "language": "lt",
+  "name": "الليتوانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Išmintis",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Išmintis padeda gyventi.",
+      "exampleMeaning": "الحكمة تعين على الحياة.",
+      "image": "lt.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "lang_59",
+  "name": "لغة دولية 59",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_59",
+      "article": "",
+      "meaning": "مفردة لغوية 59",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_59.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

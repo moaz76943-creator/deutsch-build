@@ -1,0 +1,16 @@
+{
+  "language": "lang_10",
+  "name": "لغة دولية 10",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_10",
+      "article": "",
+      "meaning": "مفردة لغوية 10",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_10.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

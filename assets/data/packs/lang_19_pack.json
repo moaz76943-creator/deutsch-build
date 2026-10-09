@@ -1,0 +1,16 @@
+{
+  "language": "lang_19",
+  "name": "لغة دولية 19",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_19",
+      "article": "",
+      "meaning": "مفردة لغوية 19",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_19.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

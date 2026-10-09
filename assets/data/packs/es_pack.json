@@ -1,0 +1,16 @@
+{
+  "language": "es",
+  "name": "الإسبانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Esperanza",
+      "article": "la",
+      "meaning": "الأمل",
+      "example": "La esperanza nunca se pierde.",
+      "exampleMeaning": "الأمل لا ينقطع.",
+      "image": "es.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

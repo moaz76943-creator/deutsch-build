@@ -1,0 +1,16 @@
+{
+  "language": "ja",
+  "name": "اليابانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "知恵 (Chie)",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "知恵は力なり。",
+      "exampleMeaning": "الحكمة قوة.",
+      "image": "ja.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

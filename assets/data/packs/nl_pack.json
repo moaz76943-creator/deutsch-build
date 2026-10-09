@@ -1,0 +1,16 @@
+{
+  "language": "nl",
+  "name": "الهولندية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Kennis",
+      "article": "de",
+      "meaning": "المعرفة",
+      "example": "Kennis is waardevol.",
+      "exampleMeaning": "المعرفة قيمة.",
+      "image": "nl.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

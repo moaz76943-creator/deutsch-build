@@ -1,0 +1,16 @@
+{
+  "language": "fi",
+  "name": "الفنلندية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Viisaus",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Viisaus auttaa elämässä.",
+      "exampleMeaning": "الحكمة تساعد في الحياة.",
+      "image": "fi.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

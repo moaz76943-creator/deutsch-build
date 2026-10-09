@@ -1,0 +1,16 @@
+{
+  "language": "lang_30",
+  "name": "لغة دولية 30",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_30",
+      "article": "",
+      "meaning": "مفردة لغوية 30",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_30.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "lang_39",
+  "name": "لغة دولية 39",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_39",
+      "article": "",
+      "meaning": "مفردة لغوية 39",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_39.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

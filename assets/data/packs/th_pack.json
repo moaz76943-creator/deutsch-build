@@ -1,0 +1,16 @@
+{
+  "language": "th",
+  "name": "التايلاندية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "ปัญญา (Panya)",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "ปัญญาคือแสงสว่าง",
+      "exampleMeaning": "الحكمة هي النور.",
+      "image": "th.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

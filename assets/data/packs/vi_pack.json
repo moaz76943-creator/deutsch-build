@@ -1,0 +1,16 @@
+{
+  "language": "vi",
+  "name": "الفيتنامية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Trí tuệ",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Trí tuệ là chìa khóa.",
+      "exampleMeaning": "الحكمة هي المفتاح.",
+      "image": "vi.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

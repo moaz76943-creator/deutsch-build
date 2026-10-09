@@ -1,0 +1,16 @@
+{
+  "language": "lang_06",
+  "name": "لغة دولية 6",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_6",
+      "article": "",
+      "meaning": "مفردة لغوية 6",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_06.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

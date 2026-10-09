@@ -1,0 +1,16 @@
+{
+  "language": "lang_33",
+  "name": "لغة دولية 33",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_33",
+      "article": "",
+      "meaning": "مفردة لغوية 33",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_33.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "lang_11",
+  "name": "لغة دولية 11",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_11",
+      "article": "",
+      "meaning": "مفردة لغوية 11",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_11.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

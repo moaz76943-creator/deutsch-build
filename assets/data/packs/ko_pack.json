@@ -1,0 +1,16 @@
+{
+  "language": "ko",
+  "name": "الكورية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "지혜 (Jihye)",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "지혜는 최고의 보물이다.",
+      "exampleMeaning": "الحكمة كنز ثمين.",
+      "image": "ko.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "pt",
+  "name": "البرتغالية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Sabedoria",
+      "article": "a",
+      "meaning": "الحكمة",
+      "example": "A sabedoria vem com o tempo.",
+      "exampleMeaning": "الحكمة تأتي مع الوقت.",
+      "image": "pt.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

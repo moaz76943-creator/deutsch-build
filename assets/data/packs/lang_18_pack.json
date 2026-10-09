@@ -1,0 +1,16 @@
+{
+  "language": "lang_18",
+  "name": "لغة دولية 18",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_18",
+      "article": "",
+      "meaning": "مفردة لغوية 18",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_18.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "lang_26",
+  "name": "لغة دولية 26",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_26",
+      "article": "",
+      "meaning": "مفردة لغوية 26",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_26.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

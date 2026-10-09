@@ -1,0 +1,16 @@
+{
+  "language": "ro",
+  "name": "الرومانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Înțelepciune",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Înțelepciunea ghidează calea.",
+      "exampleMeaning": "الحكمة ترشد الطريق.",
+      "image": "ro.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

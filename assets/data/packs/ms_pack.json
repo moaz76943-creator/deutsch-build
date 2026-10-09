@@ -1,0 +1,16 @@
+{
+  "language": "ms",
+  "name": "الملايو",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Kebijaksanaan",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Kebijaksanaan memandu hidup.",
+      "exampleMeaning": "الحكمة تقود الحياة.",
+      "image": "ms.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

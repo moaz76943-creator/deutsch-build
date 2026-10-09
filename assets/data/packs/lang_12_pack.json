@@ -1,0 +1,16 @@
+{
+  "language": "lang_12",
+  "name": "لغة دولية 12",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_12",
+      "article": "",
+      "meaning": "مفردة لغوية 12",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_12.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

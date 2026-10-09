@@ -1,0 +1,16 @@
+{
+  "language": "ru",
+  "name": "الروسية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Мудрость",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Мудрость приходит с опытом.",
+      "exampleMeaning": "الحكمة تأتي مع الخبرة.",
+      "image": "ru.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

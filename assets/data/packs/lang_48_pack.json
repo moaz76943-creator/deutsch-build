@@ -1,0 +1,16 @@
+{
+  "language": "lang_48",
+  "name": "لغة دولية 48",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_48",
+      "article": "",
+      "meaning": "مفردة لغوية 48",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_48.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "language": "lang_55",
+  "name": "لغة دولية 55",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_55",
+      "article": "",
+      "meaning": "مفردة لغوية 55",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_55.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

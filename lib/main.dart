@@ -39,6 +39,111 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _dueTodayCount = 0;
 
+  void _openLanguagePicker() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        String searchQuery = '';
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final allLangs = LanguagePackManager.supportedLanguages;
+            final filtered = allLangs.where((code) {
+              final name = LanguagePackManager.getLanguageName(code);
+              return name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                     code.toLowerCase().contains(searchQuery.toLowerCase());
+            }).toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.85,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (_, scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'مصفوفة الـ 100 لغة للتعلم',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            '${filtered.length} متاحة',
+                            style: const TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'ابحث عن لغة أو رمزها...',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: const Color(0xFFF1F5F9),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                        ),
+                        onChanged: (val) {
+                          setModalState(() => searchQuery = val);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: filtered.length,
+                          itemBuilder: (context, idx) {
+                            final code = filtered[idx];
+                            final name = LanguagePackManager.getLanguageName(code);
+                            final isSel = _selectedLang == code;
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: isSel ? Colors.indigoAccent : Colors.grey.shade200,
+                                foregroundColor: isSel ? Colors.white : Colors.black87,
+                                child: Text(code.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              ),
+                              title: Text(name, style: TextStyle(fontWeight: isSel ? FontWeight.bold : FontWeight.normal)),
+                              trailing: isSel ? const Icon(Icons.check_circle, color: Colors.indigoAccent) : null,
+                              onTap: () {
+                                Navigator.pop(context);
+                                _switchLanguage(code);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+
   Future<void> _speakExample(String text, String langCode) async {
     final tts = FlutterTts();
     final locale = LanguagePackManager.getTtsLocale(langCode);
@@ -255,28 +360,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // شريط اختيار اللغات السريع (Polyglot Bar)
           Container(
-            padding: const EdgeInsets.all(12),
-            color: const Color(0xFF1E293B),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              color: const Color(0xFF1E293B),
               child: Row(
-                children: ['de', 'en', 'fr', 'es', 'it', 'ar', 'zh'].map((lang) {
-                  bool isSelected = _selectedLang == lang;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: ChoiceChip(
-                      label: Text(lang.toUpperCase()),
-                      selected: isSelected,
-                      selectedColor: Colors.indigoAccent,
-                      backgroundColor: Colors.white24,
-                      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),
-                      onSelected: (_) => _switchLanguage(lang),
+                children: [
+                  ActionChip(
+                    avatar: const Icon(Icons.language, size: 18, color: Colors.white),
+                    label: const Text('كل الـ 100 لغة', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    backgroundColor: Colors.indigoAccent,
+                    onPressed: _openLanguagePicker,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: ['de', 'en', 'fr', 'es', 'it', 'ar', 'zh', 'tr', 'ru', 'ja', 'ko'].map((lang) {
+                          final bool isSelected = _selectedLang == lang;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: ChoiceChip(
+                              label: Text(LanguagePackManager.getLanguageName(lang)),
+                              selected: isSelected,
+                              selectedColor: Colors.indigoAccent,
+                              backgroundColor: Colors.white24,
+                              labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white70),
+                              onSelected: (_) => _switchLanguage(lang),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
             ),
-          ),
           
           // المحتوى الرئيسي للقائمة والمعرفات
             // بطاقة مؤشرات المراجعة الذكية (SRS Smart Banner)

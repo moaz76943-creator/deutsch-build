@@ -1,0 +1,16 @@
+{
+  "language": "hr",
+  "name": "الكرواتية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Mudrost",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Mudrost vodi naprijed.",
+      "exampleMeaning": "الحكمة تقود للأمام.",
+      "image": "hr.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

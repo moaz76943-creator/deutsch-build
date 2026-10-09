@@ -1,0 +1,16 @@
+{
+  "language": "lang_50",
+  "name": "لغة دولية 50",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_50",
+      "article": "",
+      "meaning": "مفردة لغوية 50",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_50.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

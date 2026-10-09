@@ -1,0 +1,16 @@
+{
+  "language": "no",
+  "name": "النرويجية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Kunnskap",
+      "article": "",
+      "meaning": "المعرفة",
+      "example": "Kunnskap er nøkkelen.",
+      "exampleMeaning": "المعرفة هي المفتاح.",
+      "image": "no.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

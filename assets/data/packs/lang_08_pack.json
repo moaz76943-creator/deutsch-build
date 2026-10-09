@@ -1,0 +1,16 @@
+{
+  "language": "lang_08",
+  "name": "لغة دولية 8",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_8",
+      "article": "",
+      "meaning": "مفردة لغوية 8",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_08.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

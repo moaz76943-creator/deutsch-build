@@ -1,0 +1,16 @@
+{
+  "language": "lang_38",
+  "name": "لغة دولية 38",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_38",
+      "article": "",
+      "meaning": "مفردة لغوية 38",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_38.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

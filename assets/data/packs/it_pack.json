@@ -1,0 +1,16 @@
+{
+  "language": "it",
+  "name": "الإيطالية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Bellezza",
+      "article": "la",
+      "meaning": "الجمال",
+      "example": "La bellezza risiede nella semplicità.",
+      "exampleMeaning": "الجمال يكمن في البساطة.",
+      "image": "it.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

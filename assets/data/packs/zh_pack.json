@@ -1,0 +1,16 @@
+{
+  "language": "zh",
+  "name": "الصينية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "智慧 (Zhìhuì)",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "智慧引领未来。",
+      "exampleMeaning": "الحكمة تقود المستقبل.",
+      "image": "zh.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

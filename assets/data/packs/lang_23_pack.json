@@ -1,0 +1,16 @@
+{
+  "language": "lang_23",
+  "name": "لغة دولية 23",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_23",
+      "article": "",
+      "meaning": "مفردة لغوية 23",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_23.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

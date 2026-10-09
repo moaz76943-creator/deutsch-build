@@ -1,0 +1,16 @@
+{
+  "language": "lang_15",
+  "name": "لغة دولية 15",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_15",
+      "article": "",
+      "meaning": "مفردة لغوية 15",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_15.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

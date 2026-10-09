@@ -1,0 +1,16 @@
+{
+  "language": "sl",
+  "name": "السلوفينية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Modrost",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Modrost prinaša mir.",
+      "exampleMeaning": "الحكمة تجلب السلام.",
+      "image": "sl.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

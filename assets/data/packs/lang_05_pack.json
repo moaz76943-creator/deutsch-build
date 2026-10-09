@@ -1,0 +1,16 @@
+{
+  "language": "lang_05",
+  "name": "لغة دولية 5",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_5",
+      "article": "",
+      "meaning": "مفردة لغوية 5",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_05.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

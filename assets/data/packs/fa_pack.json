@@ -1,0 +1,16 @@
+{
+  "language": "fa",
+  "name": "الفارسية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "دانش",
+      "article": "",
+      "meaning": "المعرفة",
+      "example": "دانش چراغ راه است.",
+      "exampleMeaning": "المعرفة مصباح الطريق.",
+      "image": "fa.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

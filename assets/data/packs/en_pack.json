@@ -1,24 +1,16 @@
 {
-  "languageCode": "en",
-  "familyName": "جرمانية غربية",
+  "language": "en",
+  "name": "الإنجليزية",
+  "version": "1.0.0",
   "items": [
     {
-      "word": "Prescription",
-      "article": "",
-      "plural": "Prescriptions",
-      "meaning": "وصفة طبية",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "مهني / رسمي"
-    },
-    {
-      "word": "Pharmacy",
-      "article": "",
-      "plural": "Pharmacies",
-      "meaning": "صيدلية",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "يومي / مهني"
+      "word": "Knowledge",
+      "article": "the",
+      "meaning": "المعرفة",
+      "example": "Knowledge is power.",
+      "exampleMeaning": "المعرفة قوة.",
+      "image": "en.webp",
+      "semanticField": "Core Vocabulary"
     }
   ]
 }

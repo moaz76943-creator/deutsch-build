@@ -1,0 +1,16 @@
+{
+  "language": "sk",
+  "name": "السلوفاكية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Múdrosť",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Múdrosť je dar.",
+      "exampleMeaning": "الحكمة عطاء.",
+      "image": "sk.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

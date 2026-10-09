@@ -1,0 +1,16 @@
+{
+  "language": "et",
+  "name": "الإستونية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Tarkus",
+      "article": "",
+      "meaning": "الحكمة",
+      "example": "Tarkus on väärtus.",
+      "exampleMeaning": "الحكمة قيمة رفيعة.",
+      "image": "et.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

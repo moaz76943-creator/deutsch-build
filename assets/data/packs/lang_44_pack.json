@@ -1,0 +1,16 @@
+{
+  "language": "lang_44",
+  "name": "لغة دولية 44",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_44",
+      "article": "",
+      "meaning": "مفردة لغوية 44",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_44.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

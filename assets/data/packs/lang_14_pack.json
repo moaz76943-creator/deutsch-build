@@ -1,0 +1,16 @@
+{
+  "language": "lang_14",
+  "name": "لغة دولية 14",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_14",
+      "article": "",
+      "meaning": "مفردة لغوية 14",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_14.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

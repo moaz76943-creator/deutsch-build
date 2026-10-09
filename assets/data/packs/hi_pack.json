@@ -1,0 +1,16 @@
+{
+  "language": "hi",
+  "name": "الهندية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "ज्ञान (Gyan)",
+      "article": "",
+      "meaning": "المعرفة",
+      "example": "ज्ञान ही शक्ति है।",
+      "exampleMeaning": "المعرفة هي القوة.",
+      "image": "hi.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

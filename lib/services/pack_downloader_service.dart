@@ -32,7 +32,7 @@ class PackDownloaderService {
     await sink.flush();
     await sink.close();
     final bytes = await gzFile.readAsBytes();
-    final decodedBytes = GZipDecoder().decodeBytes(bytes);
+    final decodedBytes = const GZipDecoder().decodeBytes(bytes);
     final dbFile = File('${packDir.path}/$langCode-1.0.0.sqlite');
     await dbFile.writeAsBytes(decodedBytes);
     if (await gzFile.exists()) {

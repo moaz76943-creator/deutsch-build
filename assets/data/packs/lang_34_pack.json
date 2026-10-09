@@ -1,0 +1,16 @@
+{
+  "language": "lang_34",
+  "name": "لغة دولية 34",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_34",
+      "article": "",
+      "meaning": "مفردة لغوية 34",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_34.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

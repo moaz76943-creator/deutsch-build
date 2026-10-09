@@ -1,0 +1,16 @@
+{
+  "language": "lang_24",
+  "name": "لغة دولية 24",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Lexicon_24",
+      "article": "",
+      "meaning": "مفردة لغوية 24",
+      "example": "Learning leads to success.",
+      "exampleMeaning": "التعلم يقود إلى النجاح.",
+      "image": "lang_24.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}

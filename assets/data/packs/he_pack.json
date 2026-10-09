@@ -1,0 +1,16 @@
+{
+  "language": "he",
+  "name": "العبرية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "חוכמה",
+      "article": "ה",
+      "meaning": "الحكمة",
+      "example": "החוכמה מאירה את הדרך.",
+      "exampleMeaning": "الحكمة تنير الطريق.",
+      "image": "he.webp",
+      "semanticField": "Core Vocabulary"
+    }
+  ]
+}
