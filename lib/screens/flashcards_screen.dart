@@ -1,3 +1,5 @@
+import 'package:deutsch_bilarabi/services/srs_sm2_engine.dart';
+import 'package:deutsch_bilarabi/design_system/app_cognitive_tokens.dart';
 import 'package:deutsch_bilarabi/screens/offline_dictionary_screen.dart';
 import 'package:flutter/material.dart';
 import '../design_system/design_system.dart';
@@ -49,6 +51,23 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     if (_cards.isEmpty || _currentIndex >= _cards.length) return;
     
     final card = _cards[_currentIndex];
+
+    // الموجة 01: استجابة لمسية حسية فورية بناءً على نتيجة التقييم
+    if (isEasy) {
+      AppCognitiveTokens.triggerSuccessHaptic();
+    } else {
+      AppCognitiveTokens.triggerErrorHaptic();
+    }
+
+    // الموجة 02: حساب موعد المراجعة القادم وفق خوارزمية SM-2
+    final int quality = isEasy ? 4 : 2;
+    final sm2Result = SrsSm2Engine.calculateNextReview(
+      quality: quality,
+      currentEaseFactor: 2.5,
+      repetitions: isEasy ? 1 : 0,
+      intervalDays: 1,
+    );
+    debugPrint('SM-2: Word ${card['lemma']} scheduled in ${sm2Result.intervalDays}d (EF: ${sm2Result.easeFactor})');
     final progressDb = await DatabaseService.instance.progressDb;
     
     // تسجيل قرار المستخدم في قاعدة التقدم المستقلة
