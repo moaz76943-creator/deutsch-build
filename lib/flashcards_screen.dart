@@ -510,8 +510,8 @@ class _FlipCardItemState extends State<_FlipCardItem>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          widget.themeColor.withOpacity(0.12),
-                          widget.themeColor.withOpacity(0.04),
+                          widget.themeColor.withValues(alpha: 0.12),
+                          widget.themeColor.withValues(alpha: 0.04),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -531,7 +531,7 @@ class _FlipCardItemState extends State<_FlipCardItem>
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
+                                  color: Colors.black.withValues(alpha: 0.04),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
