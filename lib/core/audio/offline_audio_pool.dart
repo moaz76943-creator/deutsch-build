@@ -11,6 +11,8 @@ class OfflineAudioPool {
 
   Future<void> playWord(String text, {String locale = 'de-DE'}) async {
     try {
+      // إيقاف أي صوت جارٍ فوراً لمنع التداخل والتشويش
+      await _tts.stop();
       _isPlaying = true;
       await _tts.setLanguage(locale);
       await _tts.setSpeechRate(0.45);
@@ -19,6 +21,11 @@ class OfflineAudioPool {
     } finally {
       _isPlaying = false;
     }
+  }
+
+  Future<void> stop() async {
+    _isPlaying = false;
+    await _tts.stop();
   }
 
   void dispose() {
