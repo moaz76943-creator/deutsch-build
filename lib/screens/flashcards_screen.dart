@@ -1,3 +1,4 @@
+import 'package:deutsch_bilarabi/services/cefr_classifier.dart';
 import 'dart:math' as math;
 import 'package:deutsch_bilarabi/features/flashcards/card_physics_helper.dart';
 import 'package:deutsch_bilarabi/services/srs_sm2_engine.dart';
@@ -206,8 +207,39 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                           : Column(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                if (article.toString().isNotEmpty)
-                                  ArticleBadge(article: article.toString()),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (article.toString().isNotEmpty) ...[
+                                      ArticleBadge(article: article.toString()),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    Builder(builder: (_) {
+                                      final rank = (card['frequency_rank'] is int) ? card['frequency_rank'] as int : 500;
+                                      final wordLen = german.toString().length;
+                                      final lvl = CefrClassifier.detectLevel(rank, wordLen);
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: CefrClassifier.getLevelColor(lvl).withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: CefrClassifier.getLevelColor(lvl),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          CefrClassifier.getCode(lvl),
+                                          style: TextStyle(
+                                            color: CefrClassifier.getLevelColor(lvl),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
                                 const SizedBox(height: 20),
                                 Text(
                                   german.toString(),
