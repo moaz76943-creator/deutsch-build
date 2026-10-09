@@ -24,4 +24,8 @@ class LruMemoryCache<K, V> {
   }
 
   int get length => _cache.length;
+
+  void clear() => _cache.clear();
+
+  bool containsKey(K key) => _cache.containsKey(key);
 }

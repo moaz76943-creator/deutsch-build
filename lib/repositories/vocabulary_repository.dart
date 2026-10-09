@@ -1,8 +1,11 @@
+import '../core/cache/lru_memory_cache.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class VocabularyRepository {
+  final LruMemoryCache<String, List<Map<String, dynamic>>> _lruCache =
+      LruMemoryCache<String, List<Map<String, dynamic>>>(maxCapacity: 100);
   final List<Map<String, dynamic>> _cachedWords = [];
 
   Future<Map<String, dynamic>> getDatabaseHealthStats() async => {'status': 'healthy', 'total': _cachedWords.length};
@@ -11,7 +14,12 @@ class VocabularyRepository {
   static const String _legacyKey = 'vocabulary_items_v2';
   static const String _backupPrefix = 'vocab_backup_roll_';
 
-  Future<List<Map<String, dynamic>>> getVocabularyList() async {
+  Future<List<Map<String, dynamic>>> getVocabularyList([String? languageCode]) async {
+    final cacheKey = languageCode ?? '__all__';
+    final cached = _lruCache.get(cacheKey);
+    if (cached != null) {
+      return List<Map<String, dynamic>>.from(cached);
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
       
@@ -42,7 +50,18 @@ class VocabularyRepository {
       return [];
     }
       final List<dynamic> decoded = jsonDecode(jsonString);
-      return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+      final list = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+      _cachedWords
+        ..clear()
+        ..addAll(list);
+      _lruCache.put('__all__', list);
+
+      if (languageCode != null) {
+        final filtered = list.where((item) => (item['languageCode'] ?? 'de') == languageCode).toList();
+        _lruCache.put(languageCode, filtered);
+        return List<Map<String, dynamic>>.from(filtered);
+      }
+      return List<Map<String, dynamic>>.from(list);
     } catch (e) {
       // الحفاظ على المخزون السابق بدلاً من المسح الصامت
       if (_cachedWords.isNotEmpty) return _cachedWords;
@@ -69,7 +88,14 @@ class VocabularyRepository {
       int timestamp = DateTime.now().millisecondsSinceEpoch;
       await prefs.setString('$_backupPrefix$timestamp', jsonString);
 
-      return await prefs.setString(_key, jsonString);
+      final success = await prefs.setString(_key, jsonString);
+      if (success) {
+        _cachedWords
+          ..clear()
+          ..addAll(items);
+        _lruCache.clear();
+      }
+      return success;
     } catch (e) {
       return false;
     }
