@@ -31,10 +31,14 @@ class VocabularyRepository {
       }
 
       final String? jsonString = prefs.getString(_key);
-      if (jsonString == null) return [];
+      if (jsonString == null) // الحفاظ على المخزون السابق بدلاً من المسح الصامت
+      if (_cachedWords.isNotEmpty) return _cachedWords;
+      return [];
       final List<dynamic> decoded = jsonDecode(jsonString);
       return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {
+      // الحفاظ على المخزون السابق بدلاً من المسح الصامت
+      if (_cachedWords.isNotEmpty) return _cachedWords;
       return [];
     }
   }
