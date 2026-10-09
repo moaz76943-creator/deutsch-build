@@ -1,38 +1,28 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VocabularyRepository {
-  static const String _storageKey = 'saved_vocabulary_list';
+  static const String _key = 'vocabulary_items_v2';
 
-  // جلب الكلمات بشكل آمن مع التعامل مع الاستثناءات
-  Future<List<Map<String, String>>> getVocabularyList() async {
+  Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? storedData = prefs.getString(_storageKey);
-      if (storedData != null) {
-        final List<dynamic> decoded = jsonDecode(storedData);
-        return decoded.map((item) => Map<String, String>.from(item)).toList();
-      }
+      final String? jsonString = prefs.getString(_key);
+      if (jsonString == null) return [];
+      final List<dynamic> decoded = jsonDecode(jsonString);
+      return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {
-      // معالجة الأخطاء محلياً دون تعطل التطبيق
-      print('Error loading vocabulary: $e');
+      // اعتراض الأخطاء وضمان الاستقرار (Graceful Degradation)
+      return [];
     }
-    
-    // العودة لقائمة افتراضية آمنة في حال الفشل أو فراغ التخزين
-    return [
-      {"word": "die Herausforderung", "meaning": "التحدي / الصعوبة", "example": "Das ist eine große Herausforderung."},
-      {"word": "nachhaltig", "meaning": "مستدام / دائم", "example": "Wir brauchen nachhaltige Lösungen."},
-    ];
   }
 
-  // حفظ الكلمات بشكل آمن ومحمي
-  Future<bool> saveVocabularyList(List<Map<String, String>> list) async {
+  Future<bool> saveVocabularyList(List<Map<String, dynamic>> items) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String encoded = jsonEncode(list);
-      return await prefs.setString(_storageKey, encoded);
+      final String jsonString = jsonEncode(items);
+      return await prefs.setString(_key, jsonString);
     } catch (e) {
-      print('Error saving vocabulary: $e');
       return false;
     }
   }

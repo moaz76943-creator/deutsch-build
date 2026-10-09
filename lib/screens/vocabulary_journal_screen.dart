@@ -16,6 +16,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _wordController = TextEditingController();
   final TextEditingController _pluralController = TextEditingController();
   final TextEditingController _prepositionController = TextEditingController();
+  final TextEditingController _collocationController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
   String _selectedArticle = 'der';
   
@@ -32,10 +33,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage("de-DE");
-    await _flutterTts.setSpeechRate(0.45); // سرعة هادئة ومناسبة للتعلم
-    await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
+    try {
+      await _flutterTts.setLanguage("de-DE");
+      await _flutterTts.setSpeechRate(0.45);
+      await _flutterTts.setVolume(1.0);
+      await _flutterTts.setPitch(1.0);
+    } catch (_) {}
   }
 
   Future<void> _speakWord(String textToSpeak) async {
@@ -46,10 +49,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _loadData() async {
     final rawList = await _repository.getVocabularyList();
-    setState(() {
-      _journalItems = rawList.map((e) => VocabularyItem.fromJson(e)).toList();
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _journalItems = rawList.map((e) => VocabularyItem.fromJson(e)).toList();
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _addItem() async {
@@ -61,8 +66,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         article: _selectedArticle,
         plural: _pluralController.text.trim(),
         preposition: _prepositionController.text.trim(),
-        meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي مدمج",
-        example: "تم دمج النطق الصوتي الألماني المحلي بنجاح.",
+        collocation: _collocationController.text.trim(),
+        meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي",
+        example: "مفردة متقدمة مزودة بالمتلازمات النحوية.",
       );
 
       setState(() {
@@ -70,17 +76,18 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       });
       
       final rawList = _journalItems.map((e) => e.toJson()).toList();
-      final success = await _repository.saveVocabularyList(rawList);
+      await _repository.saveVocabularyList(rawList);
       
       _wordController.clear();
       _pluralController.clear();
       _prepositionController.clear();
+      _collocationController.clear();
       _meaningController.clear();
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🔊 تمت إضافة المفردة وتفعيل محرك النطق الصوتي لها!'),
+            content: Text('🎯 تمت إضافة المفردة مع المتلازمات الأكاديمية بنجاح!'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -111,10 +118,21 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   @override
+  void dispose() {
+    _wordController.dispose();
+    _pluralController.dispose();
+    _prepositionController.dispose();
+    _collocationController.dispose();
+    _meaningController.dispose();
+    _flutterTts.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الشاملة (مع النطق الصوتي المحلي)'),
+        title: const Text('المفكرة الاحترافية (متلازمات وحماية الذاكرة)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -127,7 +145,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                // إطار دعم نفسي وتوجيه صوتي
                 Container(
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 12),
@@ -137,7 +154,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                     border: Border.all(color: Colors.white10),
                   ),
                   child: const Text(
-                    '🎧 تدريب الاستماع المحلي: اضغط على أيقونة السماعة بجانب أي كلمة لسماع نطقها باللغة الألمانية بوضوح ودون الحاجة لإنترنت.',
+                    '🌟 مستوى متقدم: أضف المتلازمات اللفظية (Wortverbindungen) لضمان صياغة جمل ألمانية طبيعية كالمتحدث الأصلي.',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
@@ -146,7 +163,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة جديدة مع النطق الصوتي:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة متقدمة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       Row(
@@ -176,7 +193,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _wordController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'الكلمة الأساسية (مثل: Sprechen)...',
+                          hintText: 'الكلمة الأساسية...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -209,6 +226,18 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                       ),
                       const SizedBox(height: 10),
                       TextField(
+                        controller: _collocationController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'المتلازمة الفعلية (مثل: eine Entscheidung treffen)...',
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
                         controller: _meaningController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -228,13 +257,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ وتفعيل النطق الصوتي', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ في المفكرة الاحترافية', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('السجل الصوتي الأكاديمي (اسحب للحذف):', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                const Text('السجل الاحترافي (دعم الكلمات المركبة الطويلة):', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -244,9 +273,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.volume_up_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.verified_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة.\nأضف مفردة لتستمع لنطقها الألماني فوراً!', 
+                                  Text('المفكرة آمنة ونظيفة.\nأضف أول متلازمة لغوية لبدء التعلم الاحترافي!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -266,7 +295,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   onDismissed: (direction) {
                                     _deleteItem(index);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تم إزالة المفردة بهدوء بنجاح.')),
+                                      const SnackBar(content: Text('تمت إزالة المفردة وتنظيف الذاكرة بهدوء.')),
                                     );
                                   },
                                   background: Container(
@@ -289,7 +318,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                         children: <Widget>[
                                           Container(
                                             width: 4,
-                                            height: 45,
+                                            height: 55,
                                             decoration: BoxDecoration(
                                               color: articleColor,
                                               borderRadius: BorderRadius.circular(2),
@@ -300,7 +329,8 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: <Widget>[
-                                                Row(
+                                                Wrap(
+                                                  crossAxisAlignment: WrapCrossAlignment.center,
                                                   children: <Widget>[
                                                     Text('${item.article} ${item.word}', style: TextStyle(color: articleColor, fontSize: 18, fontWeight: FontWeight.bold)),
                                                     if (item.plural.isNotEmpty)
@@ -311,10 +341,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                 Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
                                                 if (item.preposition.isNotEmpty)
                                                   Text('حرف الجر: ${item.preposition}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
+                                                if (item.collocation.isNotEmpty)
+                                                  Text('متلازمة: ${item.collocation}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
                                               ],
                                             ),
                                           ),
-                                          // زر النطق الصوتي
                                           IconButton(
                                             icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
                                             onPressed: () => _speakWord(fullTextToSpeak),
