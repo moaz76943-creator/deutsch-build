@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:path_provider/path_provider.dart';
 import '../design_system/design_system.dart';
 import '../repositories/vocabulary_repository.dart';
 import '../models/vocabulary_item.dart';
@@ -99,7 +101,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🧠 تمت الإضافة وربطها بنظام التكرار المتباعد SM-2 بنجاح!'),
+            content: Text('🌱 تمت الإضافة بنجاح وتحديث الحصاد المعرفي بهدوء.'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -135,6 +137,40 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     await _repository.saveVocabularyList(rawList);
   }
 
+  // تصدير المفردات إلى ملف نصي محلي جاهز للاستيراد في Anki
+  Future<void> _exportAnkiFile() async {
+    HapticFeedback.mediumImpact();
+    try {
+      final buffer = StringBuffer();
+      for (var item in _journalItems) {
+        buffer.writeln('${item.article} ${item.word}\t${item.meaning}\tPl: ${item.plural}\tPrp: ${item.preposition}\tCol: ${item.collocation}\tFamily: ${item.wordFamily}');
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/deutsch_anki_deck.txt');
+      await file.writeAsString(buffer.toString());
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('📁 تم حفظ ملف Anki بنجاح في:\n${file.path}'),
+            backgroundColor: const Color(0xFF34D399),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ تعذر حفظ الملف المحلي، يجدر التحقق من الصلاحيات.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   Color _getArticleColor(String article) {
     switch (article.toLowerCase()) {
       case 'der':
@@ -167,9 +203,16 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الخوارزمية (SM-2 & طاقة الدماغ)'),
+        title: const Text('المفكرة الاحترافية (تصدير ملف Anki)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_shared_rounded, color: Color(0xFF38BDF8)),
+            onPressed: _exportAnkiFile,
+            tooltip: 'تصدير كملف نصي لبرنامج Anki',
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -181,7 +224,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.all(14),
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.03),
@@ -191,11 +234,18 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Text('⚡ طاقة الدماغ اليوم:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const Text('🌿 حصادك المعرفي التراكمي', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text('${_journalItems.length} مفردة ألمانية منظمة بسلام', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                        ],
+                      ),
                       DropdownButton<String>(
                         value: _userEnergyState,
                         dropdownColor: const Color(0xFF1E293B),
-                        style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.bold),
                         underline: const SizedBox(),
                         items: ['منعش ومستعد (جلسة كاملة)', 'متعب (جلسة خفيفة سريعة)']
                             .map((energy) => DropdownMenuItem(value: energy, child: Text(energy)))
@@ -216,7 +266,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة خوارزمية ذكية:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة جديدة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       Row(
@@ -322,13 +372,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ في المفكرة بجدولة SM-2', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بجدولة SM-2 الذكية', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text('السجل الخوارزمي المجدول (${visibleItems.length} عنصر معروض):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('السجل الخوارزمي (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -338,9 +388,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.psychology_alt_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.spa_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة تماماً.\nأضف مفردة لتتولى خوارزمية SM-2 جدولتها!', 
+                                  Text('المفكرة هادئة تماماً.\nأضف مفردة لنبدأ الحصاد!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -407,14 +457,14 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    Text('الفترة القادمة للمراجعة: ${item.interval} أيام (Rep: ${item.repetitions})', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                                                    Text('المراجعة بعد: ${item.interval} أيام', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
                                                   ],
                                                 ),
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
                                                 onPressed: () => _speakWord(fullTextToSpeak),
-                                                tooltip: 'استمع للنطق الألماني',
+                                                tooltip: 'استمع للنطق',
                                               ),
                                             ],
                                           ),
