@@ -1,3 +1,4 @@
+import '../services/audio_feedback_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../design_system/design_system.dart';
@@ -49,18 +50,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _updateTtsLanguage(String langCode) async {
-    String ttsLang = "de-DE";
-    if (langCode == 'en') {
-      ttsLang = "en-US";
-    } else if (langCode == 'fr') {
-      ttsLang = "fr-FR";
-    } else if (langCode == 'es') {
-      ttsLang = "es-ES";
-    }
+    final ttsLang = AudioFeedbackEngine.resolveLocaleTag(langCode);
     await _flutterTts.setLanguage(ttsLang);
+    await _flutterTts.setSpeechRate(AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false));
   }
 
-  Future<void> _speakWord(String textToSpeak, String langCode) async {
+  Future<void> _speakWord(String textToSpeak, String langCode, [String? genderOrArticle]) async {
+    await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(genderOrArticle ?? ''));
     AppHaptics.light();
     await _updateTtsLanguage(langCode);
     await _flutterTts.stop();
