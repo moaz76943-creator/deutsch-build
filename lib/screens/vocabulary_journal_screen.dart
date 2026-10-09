@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../design_system/design_system.dart';
 import '../repositories/vocabulary_repository.dart';
@@ -24,9 +23,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   String _selectedLanguage = 'de';
   String _selectedArticle = 'der';
   String _selectedSemanticField = 'حياة يومية';
-  double _currentDifficulty = 1.0;
+  String _selectedProfessionalContext = 'صيدلاني / طبي';
   
-  String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
+  int _sessionReviewCount = 0;
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -52,13 +51,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   Future<void> _updateTtsLanguage(String langCode) async {
     String ttsLang = "de-DE";
     if (langCode == 'en') ttsLang = "en-US";
-    else if (langCode == 'fr') ttsLang, ttsLang = "fr-FR";
+    else if (langCode == 'fr') ttsLang = "fr-FR";
     else if (langCode == 'es') ttsLang = "es-ES";
     await _flutterTts.setLanguage(ttsLang);
   }
 
   Future<void> _speakWord(String textToSpeak, String langCode) async {
-    HapticFeedback.lightImpact();
+    AppHaptics.light();
     await _updateTtsLanguage(langCode);
     await _flutterTts.stop();
     await _flutterTts.speak(textToSpeak);
@@ -74,9 +73,39 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
+  void _checkBurnoutShield() {
+    _sessionReviewCount++;
+    if (_sessionReviewCount >= 8) {
+      _sessionReviewCount = 0;
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: const Color(0xFF0F172A),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF38BDF8).withValues(alpha: 0.5))),
+            title: const Text('🛡️ درع الاحتراق العصبي', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            content: const Text(
+              'أتممت جلسة مكثفة بوعي تام.\n\nاسترح قليلاً لتثبيت الذاكرة بعيدة المدى بسلام.',
+              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+            ),
+            actions: [
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8)),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('سأستريح بوعي', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _addItem() async {
     if (_wordController.text.trim().isNotEmpty) {
-      HapticFeedback.heavyImpact();
+      AppHaptics.deepFixation();
 
       final newItem = VocabularyItem(
         word: _wordController.text.trim(),
@@ -85,15 +114,16 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         preposition: _prepositionController.text.trim(),
         collocation: _collocationController.text.trim(),
         wordFamily: _wordFamilyController.text.trim(),
-        difficultyScore: _currentDifficulty,
+        difficultyScore: 1.0,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
-        example: "كتلة معجمية متكاملة.",
+        example: "سياق مهني وأكاديمي متكامل.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
         languageCode: _selectedLanguage,
         etymologyRoot: _etymologyController.text.trim(),
         semanticField: _selectedSemanticField,
+        professionalContext: _selectedProfessionalContext,
       );
 
       setState(() {
@@ -110,14 +140,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _wordFamilyController.clear();
       _meaningController.clear();
       _etymologyController.clear();
-      setState(() {
-        _currentDifficulty = 1.0;
-      });
       
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🌿 تمت إضافة الكتلة المعجمية بنجاح.'),
+          content: Text('🌿 تمت إضافة الكتلة مع السياق المهني بنجاح.'),
           backgroundColor: Color(0xFF34D399),
         ),
       );
@@ -125,7 +152,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _reviewItemSm2(int index, int quality) async {
-    HapticFeedback.mediumImpact();
+    if (quality == 1) {
+      AppHaptics.growthTrigger();
+    } else {
+      AppHaptics.deepFixation();
+    }
+    _checkBurnoutShield();
+
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
     });
@@ -143,7 +176,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _deleteItem(int index) async {
-    HapticFeedback.selectionClick();
+    AppHaptics.light();
     setState(() {
       _journalItems.removeAt(index);
     });
@@ -151,14 +184,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     await _repository.saveVocabularyList(rawList);
   }
 
-  // تحديد التوزيع الكروماتيكي للون البطافة بناءً على عائلة اللغة
   Color _getFamilyColor(String langCode) {
-    if (langCode == 'de' || langCode == 'en') {
-      return const Color(0xFF38BDF8); // أزرق جليدي للعائلات الجرمانية
-    } else if (langCode == 'fr' || langCode == 'es') {
-      return const Color(0xFFF472B6); // وردي دافئ للعائلات الرومانسية
-    }
-    return const Color(0xFF34D399); // أخضر محايد
+    if (langCode == 'de' || langCode == 'en') return const Color(0xFF38BDF8);
+    if (langCode == 'fr' || langCode == 'es') return const Color(0xFFF472B6);
+    return const Color(0xFF34D399);
   }
 
   @override
@@ -176,12 +205,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int displayLimit = _userEnergyState.contains('خفيفة') ? 5 : _journalItems.length;
-    final visibleItems = _journalItems.take(displayLimit).toList();
+    final visibleItems = _journalItems;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة (الكتل المعجمية والمعايرة العصبية)'),
+        title: const Text('المفكرة الكونية (محاكاة السياق واللمس)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -274,18 +302,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                       ),
                       const SizedBox(height: 10),
                       TextField(
-                        controller: _collocationController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'الكتلة المعجمية / المتلازمة (Collocation)...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
                         controller: _meaningController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -296,6 +312,34 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                         ),
                       ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Text('السياق المهني:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButton<String>(
+                              value: _selectedProfessionalContext,
+                              dropdownColor: const Color(0xFF0F172A),
+                              style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold),
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(value: 'صيدلاني / طبي', child: Text('صيدلاني / طبي')),
+                                DropdownMenuItem(value: 'تقني / هندسي', child: Text('تقني / هندسي')),
+                                DropdownMenuItem(value: 'أكاديمي / بحثي', child: Text('أكاديمي / بحثي')),
+                                DropdownMenuItem(value: 'حياة يومية', child: Text('حياة يومية')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _selectedProfessionalContext = val;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -305,7 +349,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ الكتلة المعجمية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ في السياق المهني', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -323,7 +367,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                 children: const [
                                   Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة.\nأضف أول كتلة معجمية!', 
+                                  Text('المفكرة هادئة.\nأضف أول كتلة سياقية!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -402,16 +446,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                             color: Colors.white.withValues(alpha: 0.1),
                                                             borderRadius: BorderRadius.circular(4),
                                                           ),
-                                                          child: Text(item.languageFamilyGroup, style: const TextStyle(color: Colors.white70, fontSize: 9)),
+                                                          child: Text(item.professionalContext, style: const TextStyle(color: Color(0xFF34D399), fontSize: 9)),
                                                         ),
                                                       ],
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    if (item.collocation.isNotEmpty) ...[
-                                                      const SizedBox(height: 2),
-                                                      Text('الكتلة: ${item.collocation}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
-                                                    ],
                                                   ],
                                                 ),
                                               ),

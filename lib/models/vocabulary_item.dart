@@ -3,7 +3,7 @@ class VocabularyItem {
   final String article;
   final String plural;
   final String preposition;
-  final String collocation; // الكتلة المعجمية أو المتلازمة اللفظية الثابتة
+  final String collocation;
   final String wordFamily;
   final double difficultyScore;
   final String meaning;
@@ -14,6 +14,7 @@ class VocabularyItem {
   final String languageCode;
   final String etymologyRoot;
   final String semanticField;
+  final String professionalContext; // السياق المهني أو التخصصي (صيدلاني، تقني، أكاديمي)
 
   VocabularyItem({
     required this.word,
@@ -31,15 +32,29 @@ class VocabularyItem {
     this.languageCode = 'de',
     this.etymologyRoot = '',
     this.semanticField = 'حياة يومية',
+    this.professionalContext = 'عام',
   });
 
   bool get isReviewDue => interval <= 1;
 
-  // التوزيع الكروماتيكي حسب عائلة اللغات
   String get languageFamilyGroup {
     if (languageCode == 'de' || languageCode == 'en') return 'جرمانية';
     if (languageCode == 'fr' || languageCode == 'es') return 'رومانسية';
     return 'كونية عامة';
+  }
+
+  // التلميح السياقي المتدرج (Graduated Contextual Prompting)
+  String getStagedHint(int stage) {
+    switch (stage) {
+      case 1:
+        return 'المعنى بالعربي: ${meaning.isNotEmpty ? meaning : "غير متوفر"}';
+      case 2:
+        return 'المثال والسياق: ${example.isNotEmpty ? example : collocation}';
+      case 3:
+        return 'الجذر أو العائلة: ${etymologyRoot.isNotEmpty ? etymologyRoot : wordFamily}';
+      default:
+        return 'الكلمة: ${article.isNotEmpty ? "$article $word" : word}';
+    }
   }
 
   VocabularyItem calculateSm2(int quality) {
@@ -79,6 +94,7 @@ class VocabularyItem {
       languageCode: languageCode,
       etymologyRoot: etymologyRoot,
       semanticField: semanticField,
+      professionalContext: professionalContext,
     );
   }
 
@@ -99,26 +115,28 @@ class VocabularyItem {
       'languageCode': languageCode,
       'etymologyRoot': etymologyRoot,
       'semanticField': semanticField,
+      'professionalContext': professionalContext,
     };
   }
 
   factory VocabularyItem.fromJson(Map<dynamic, dynamic> json) {
     return VocabularyItem(
-      word: json['word'] ?? '',
-      article: json['article'] ?? '',
-      plural: json['plural'] ?? '',
-      preposition: json['preposition'] ?? '',
-      collocation: json['collocation'] ?? '',
-      wordFamily: json['wordFamily'] ?? '',
+      word: json['word'] as String? ?? '',
+      article: json['article'] as String? ?? '',
+      plural: json['plural'] as String? ?? '',
+      preposition: json['preposition'] as String? ?? '',
+      collocation: json['collocation'] as String? ?? '',
+      wordFamily: json['wordFamily'] as String? ?? '',
       difficultyScore: (json['difficultyScore'] as num?)?.toDouble() ?? 1.0,
-      meaning: json['meaning'] ?? '',
-      example: json['example'] ?? '',
-      interval: json['interval'] ?? 0,
-      repetitions: json['repetitions'] ?? 0,
+      meaning: json['meaning'] as String? ?? '',
+      example: json['example'] as String? ?? '',
+      interval: json['interval'] as int? ?? 0,
+      repetitions: json['repetitions'] as int? ?? 0,
       easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
-      languageCode: json['languageCode'] ?? 'de',
-      etymologyRoot: json['etymologyRoot'] ?? '',
-      semanticField: json['semanticField'] ?? 'حياة يومية',
+      languageCode: json['languageCode'] as String? ?? 'de',
+      etymologyRoot: json['etymologyRoot'] as String? ?? '',
+      semanticField: json['semanticField'] as String? ?? 'حياة يومية',
+      professionalContext: json['professionalContext'] as String? ?? 'عام',
     );
   }
 }

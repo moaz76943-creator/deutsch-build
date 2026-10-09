@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppGradients {
-  // تدرج سينمائي عميق متوافق تماماً مع شاشات OLED السوداء لتوفير الطاقة وإبراز الزجاج
   static const LinearGradient darkScaffold = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
       Color(0xFF000000), // أسود مطلق لشاشات OLED
-      Color(0xFF090D16), // أزرق ليلي عميق وهادئ
+      Color(0xFF070B14),
       Color(0xFF0F172A),
     ],
   );
@@ -16,8 +16,8 @@ class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0x15FFFFFF), // شفافية ناعمة جداً
-      Color(0x05FFFFFF),
+      Color(0x18FFFFFF),
+      Color(0x06FFFFFF),
     ],
   );
 }
@@ -42,7 +42,7 @@ class AppBaseGlassCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -50,5 +50,20 @@ class AppBaseGlassCard extends StatelessWidget {
       ),
       child: child,
     );
+  }
+}
+
+// الاستجابة اللمسية الإيقاعية المتدرجة (Harmonic Haptic Choreo-Feedback)
+class AppHaptics {
+  static void light() {
+    HapticFeedback.lightImpact();
+  }
+
+  static void growthTrigger() {
+    HapticFeedback.mediumImpact();
+  }
+
+  static void deepFixation() {
+    HapticFeedback.heavyImpact();
   }
 }
