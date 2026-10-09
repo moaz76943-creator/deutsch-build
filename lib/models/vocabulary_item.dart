@@ -42,6 +42,14 @@ class VocabularyItem {
     }
   }
 
+  // محاكي بصري لقاعدة قوس الجملة الألمانية (Satzklammer)
+  String get satzklammerVisualization {
+    if (preposition.isNotEmpty) {
+      return 'قوس الجملة: [فعل متصرف في المركز الثاني] ... [حرف الجر والتكملة مع ${word}]';
+    }
+    return 'قوس الجملة: [فعل متصرف] ... [${article} ${word} في النهاية]';
+  }
+
   VocabularyItem calculateSm2(int quality) {
     double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
