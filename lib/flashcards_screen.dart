@@ -28,6 +28,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   bool _isLoading = true;
   int _currentIndex = 0;
   bool _isFlipped = false;
+  bool _zenMode = false;
 
   @override
   void initState() {
@@ -151,6 +152,11 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         title: Text('بطاقات (${_currentIndex + 1}/${_vocabulary.length})'),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: Icon(_zenMode ? Icons.self_improvement : Icons.self_improvement_outlined),
+            tooltip: 'وضع التركيز الهادئ (Zen Mode)',
+            onPressed: () => setState(() => _zenMode = !_zenMode),
+          ),
           IconButton(
             icon: const Icon(Icons.volume_up_rounded),
             onPressed: _speakCurrentWord,
