@@ -180,13 +180,13 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
+                          color: Colors.black.withValues(alpha: 0.06),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         )
                       ],
                       border: Border.all(
-                        color: _getArticleColor(article).withOpacity(0.3),
+                        color: _getArticleColor(article).withValues(alpha: 0.3),
                         width: 2,
                       ),
                     ),
@@ -199,7 +199,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _getArticleColor(article).withOpacity(0.12),
+                              color: _getArticleColor(article).withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(

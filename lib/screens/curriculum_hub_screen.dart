@@ -52,7 +52,7 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
                       borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF4F46E5).withOpacity(0.1),
+                      backgroundColor: const Color(0xFF4F46E5).withValues(alpha: 0.1),
                       child: Text(
                         item['level'] ?? 'A1',
                         style: const TextStyle(
