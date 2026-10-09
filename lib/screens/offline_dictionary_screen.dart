@@ -117,7 +117,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: ChoiceChip(
-                            label: Text(f),
+                            // label: Text(f),
                             selected: isSel,
                             onSelected: (_) {
                               setState(() => _selectedFilter = f);
@@ -167,7 +167,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                           child: Row(
                             children: <Widget>[
                               if (article.isNotEmpty) 
-                                ArticleBadge(article: article, label: article)
+                                ArticleBadge(article: article, // label: article)
                               else
                                 const SizedBox(width: 40), // مسافة إذا مافي أداة
                               const SizedBox(width: 14),
