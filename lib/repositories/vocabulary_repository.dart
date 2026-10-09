@@ -2,11 +2,21 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class VocabularyRepository {
-  static const String _key = 'vocabulary_items_v2';
+  static const String _key = 'vocabulary_items_v3'; // ترقية الإصدار المعماري للبيانات
+  static const String _legacyKey = 'vocabulary_items_v2';
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      
+      // عملية الترحيل التلقائي (Schema Migration) من الإصدار القديم إن وجد
+      if (!prefs.containsKey(_key) && prefs.containsKey(_legacyKey)) {
+        final legacyData = prefs.getString(_legacyKey);
+        if (legacyData != null) {
+          await prefs.setString(_key, legacyData);
+        }
+      }
+
       final String? jsonString = prefs.getString(_key);
       if (jsonString == null) return [];
       final List<dynamic> decoded = jsonDecode(jsonString);
@@ -33,7 +43,7 @@ class VocabularyRepository {
 
   Future<bool> importBackupJson(String jsonString) async {
     try {
-      jsonDecode(jsonString); // التحقق من سلامة بنية الـ JSON
+      jsonDecode(jsonString);
       final prefs = await SharedPreferences.getInstance();
       return await prefs.setString(_key, jsonString);
     } catch (e) {
@@ -41,7 +51,6 @@ class VocabularyRepository {
     }
   }
 
-  // حساب إحصاءات الصحة المحلية وحجم البيانات
   Future<Map<String, dynamic>> getDatabaseHealthStats() async {
     final items = await getVocabularyList();
     int totalCount = items.length;
@@ -53,17 +62,13 @@ class VocabularyRepository {
     }
 
     final rawJson = await exportBackupJson();
-    int sizeInBytes = utfIdBytesLength(rawJson);
+    int sizeInBytes = utf8.encode(rawJson).length;
 
     return {
       'totalCount': totalCount,
       'langCounts': langCounts,
       'sizeInBytes': sizeInBytes,
-      'status': 'سليم ومستقر 100%'
+      'status': 'مرحل ومستقر (Schema v3)'
     };
-  }
-
-  int utfIdBytesLength(String str) {
-    return utf8.encode(str).length;
   }
 }

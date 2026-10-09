@@ -11,7 +11,8 @@ class VocabularyItem {
   final int interval;
   final int repetitions;
   final double easeFactor;
-  final String languageCode; // رمز اللغة ('de', 'en', 'fr', 'es', etc.)
+  final String languageCode;
+  final String etymologyRoot; // الجذر اللغوي المشترك عبر العائلات الهندو-أوروبية
 
   VocabularyItem({
     required this.word,
@@ -27,6 +28,7 @@ class VocabularyItem {
     this.repetitions = 0,
     this.easeFactor = 2.5,
     this.languageCode = 'de',
+    this.etymologyRoot = '',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -92,6 +94,7 @@ class VocabularyItem {
       repetitions: newRepetitions,
       easeFactor: newEase,
       languageCode: languageCode,
+      etymologyRoot: etymologyRoot,
     );
   }
 
@@ -110,6 +113,7 @@ class VocabularyItem {
       'repetitions': repetitions,
       'easeFactor': easeFactor,
       'languageCode': languageCode,
+      'etymologyRoot': etymologyRoot,
     };
   }
 
@@ -128,6 +132,7 @@ class VocabularyItem {
       repetitions: json['repetitions'] ?? 0,
       easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
       languageCode: json['languageCode'] ?? 'de',
+      etymologyRoot: json['etymologyRoot'] ?? '',
     );
   }
 }

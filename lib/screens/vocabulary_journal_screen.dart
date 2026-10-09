@@ -19,13 +19,14 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _collocationController = TextEditingController();
   final TextEditingController _wordFamilyController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
+  final TextEditingController _etymologyController = TextEditingController();
   
-  String _selectedLanguage = 'de'; // اللغة الافتتاحية: الألمانية
+  String _selectedLanguage = 'de';
   String _selectedArticle = 'der';
   double _currentDifficulty = 1.0;
   
   String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
-  int _switchFatigueCounter = 0; // حارس إجهاد التبديل اللغوي
+  int _reviewCounterForBloom = 0; // متتبع جلسات المراجعة لتفتح الدوبامين الصامت
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -73,21 +74,40 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
-  // فحص حارس إجهاد التبديل بين اللغات
-  void _checkCodeSwitchingFatigue(String newLang) {
-    if (_selectedLanguage != newLang) {
-      _switchFatigueCounter++;
-      if (_switchFatigueCounter >= 3) {
-        _switchFatigueCounter = 0;
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🌐 ملاحظة عصبية: القفز السريع بين اللغات يستهلك طاقة الفص الصدغي. خذ لحظة هدوء!'),
-              backgroundColor: Color(0xFF38BDF8),
-              duration: Duration(seconds: 4),
+  // تفتح الدوبامين الصامت (Intrinsic Bloom Feedback) عند إتمام عدد من مراجعات الهادئة
+  void _triggerIntrinsicBloom() {
+    _reviewCounterForBloom++;
+    if (_reviewCounterForBloom >= 4) {
+      _reviewCounterForBloom = 0;
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: const Color(0xFF0F172A),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF34D399).withValues(alpha: 0.5))),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.local_florist_rounded, size: 56, color: Color(0xFF34D399)),
+                SizedBox(height: 16),
+                Text('🌸 تفتح ذهني هادئ', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                Text('عقلك يستوعب الأنماط العميقة بسلام وثبات. لا عجلة، أنت تسير بخطى مباركة.', 
+                  style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5), 
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-          );
-        }
+            actions: [
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('متابعة بصفاء', style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
       }
     }
   }
@@ -105,11 +125,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: _wordFamilyController.text.trim(),
         difficultyScore: _currentDifficulty,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
-        example: "مفردة كونية متعددة اللغات.",
+        example: "مفردة مهيكلة بالجذر اللغوي.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
         languageCode: _selectedLanguage,
+        etymologyRoot: _etymologyController.text.trim(),
       );
 
       setState(() {
@@ -125,6 +146,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _collocationController.clear();
       _wordFamilyController.clear();
       _meaningController.clear();
+      _etymologyController.clear();
       setState(() {
         _currentDifficulty = 1.0;
       });
@@ -132,7 +154,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🌿 تمت إضافة المفردة الكونية بنجاح.'),
+            content: Text('🌿 تمت إضافة المفردة مع الجذر اللغوي بنجاح.'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -142,6 +164,8 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _reviewItemSm2(int index, int quality) async {
     HapticFeedback.mediumImpact();
+    _triggerIntrinsicBloom();
+
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
     });
@@ -189,6 +213,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     _collocationController.dispose();
     _wordFamilyController.dispose();
     _meaningController.dispose();
+    _etymologyController.dispose();
     _flutterTts.stop();
     super.dispose();
   }
@@ -200,7 +225,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الكونية متعددة اللغات (Polyglot)'),
+        title: const Text('المفكرة الكونية (الجذور العابرة للغات)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -227,7 +252,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                       const Text('🌐 لغة التعلم النشطة:', style: TextStyle(color: Colors.white70, fontSize: 12)),
                       DropdownButton<String>(
                         value: _selectedLanguage,
-                        dropdownColor: const Color(0xFF1E293B),
+                        dropdownColor: const Color(0xFF0F172A),
                         style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.bold),
                         underline: const SizedBox(),
                         items: const [
@@ -238,7 +263,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         ],
                         onChanged: (val) {
                           if (val != null) {
-                            _checkCodeSwitchingFatigue(val);
                             setState(() {
                               _selectedLanguage = val;
                             });
@@ -293,25 +317,23 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      if (_selectedLanguage == 'de') ...[
-                        TextField(
-                          controller: _pluralController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: 'صيغة الجمع (Plural)...',
-                            hintStyle: const TextStyle(color: Colors.white38),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
                       TextField(
                         controller: _meaningController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'المعنى بالعربي...',
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _etymologyController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'الجذر اللغوي المشترك (Etymology Root)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -327,7 +349,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ بجدولة SM-2 الكونية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ مع الجذر اللغوي', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -343,9 +365,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.translate_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة الكونية هادئة تماماً.\nأضف أول مفردة بأي لغة!', 
+                                  Text('المفكرة الكونية هادئة تماماً.\nأضف أول مفردة بجذرها!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -429,11 +451,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      item.isReviewDue ? '⚡ موعد المراجعة اليوم!' : '🌿 مستقرة (بعد ${item.interval} أيام)', 
-                                                      style: TextStyle(color: item.isReviewDue ? const Color(0xFF38BDF8) : const Color(0xFF34D399), fontSize: 11, fontWeight: FontWeight.bold),
-                                                    ),
+                                                    if (item.etymologyRoot.isNotEmpty) ...[
+                                                      const SizedBox(height: 2),
+                                                      Text('الجذر: ${item.etymologyRoot}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                                                    ],
                                                   ],
                                                 ),
                                               ),
