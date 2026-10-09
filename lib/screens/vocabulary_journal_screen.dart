@@ -23,7 +23,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final String _selectedProfessionalContext = 'صيدلاني / طبي';
   
   int _consecutiveFailures = 0; // درع التنفس البصري الإيقاعي عند العبء الحاد
-  bool _dummyOverloadMode = false;
+  
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -75,7 +75,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   // درع التنفس البصري الإيقاعي المضاد للعبء الحاد (Acute Cognitive Overload Visual Pacer)
   void _triggerAcuteOverloadShield() {
     setState(() {
-      _dummyOverloadMode = true;
+      false = true;
     });
     showDialog(
       context: context,
@@ -95,7 +95,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
               onPressed: () {
                 Navigator.pop(dialogContext);
                 setState(() {
-                  _dummyOverloadMode = false;
+                  false = false;
                   _consecutiveFailures = 0;
                 });
               },
@@ -267,7 +267,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                 ),
                 AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
-                  // removed: _dummyOverloadMode,
+                  // removed: false,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -408,7 +408,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                     ),
                                     child: AppBaseGlassCard(
                                       padding: const EdgeInsets.all(16),
-                                      // removed: _dummyOverloadMode,
+                                      // removed: false,
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[
