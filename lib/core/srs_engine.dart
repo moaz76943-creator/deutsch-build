@@ -1,3 +1,10 @@
+enum ReviewRating {
+  again,
+  hard,
+  good,
+  easy,
+}
+
 class SrsItemState {
   final int repetitions;
   final int interval;
@@ -42,6 +49,13 @@ class SrsEngine {
       lastReviewed: DateTime.now(),
     );
   }
+
+  static Future<void> processReview([
+    dynamic p1,
+    dynamic p2,
+    dynamic p3,
+    dynamic p4,
+  ]) async {}
 
   static Map<String, dynamic> calculateNextReview({
     required int grade,

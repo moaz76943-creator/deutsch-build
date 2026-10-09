@@ -12,16 +12,16 @@ import 'core/design/bidi_text_isolator.dart';
 import 'services/language_pack_manager.dart';
 
 class FlashcardsScreen extends StatefulWidget {
-  final String languageCode;
-  const FlashcardsScreen({super.key, this.languageCode = "de"});
+  final List<dynamic>? initialVocab;
   final String langCode;
-  final List<Map<String, dynamic>>? initialVocab;
+  String get languageCode => langCode;
 
   const FlashcardsScreen({
     super.key,
-    this.langCode = 'de',
     this.initialVocab,
-  });
+    String? langCode,
+    String? languageCode,
+  }) : langCode = languageCode ?? langCode ?? 'de';
 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
@@ -121,7 +121,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   Future<void> _syncFromCdnInBackground() async {
     const url = 'https://cdn.jsdelivr.net/gh/moaz76943-creator/-offline-packs-store@main/packs/de_vocab_a1.pack.gz';
     try {
-      final response = await Future.value(null)).timeout(const Duration(seconds: 10));
+      final dynamic response = null;
       if (response.statusCode == 200) {
         final decodedData = gzip.decode(response.bodyBytes);
         final jsonString = utf8.decode(decodedData);
