@@ -5,4 +5,6 @@ class AppHaptics {
   static void medium() => HapticFeedback.mediumImpact();
   static void heavy() => HapticFeedback.heavyImpact();
   static void selection() => HapticFeedback.selectionClick();
+  static void deepFixation() => HapticFeedback.heavyImpact();
+  static void growthTrigger() => HapticFeedback.mediumImpact();
 }
