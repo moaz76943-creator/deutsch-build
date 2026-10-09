@@ -2,6 +2,7 @@ import '../design_system/design_system.dart';
 import 'home_screen.dart';
 import 'curriculum_units_screen.dart';
 import 'offline_dictionary_screen.dart';
+import 'profile_hub_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -19,12 +20,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       HomeScreen(onNavigateToUnits: () => setState(() => _currentIndex = 1)),
       const CurriculumUnitsScreen(),
       const OfflineDictionaryScreen(),
-      const Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-          child: Text('الملف والإحصائيات وإدارة التخزين (الدفعة 5)', style: TextStyle(color: Colors.white)),
-        ),
-      ),
+      const ProfileHubScreen(),
     ];
 
     return Scaffold(
