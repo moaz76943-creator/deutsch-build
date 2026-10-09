@@ -1,0 +1,54 @@
+{
+  "version": "2.0.0",
+  "total_languages": 8,
+  "profiles": [
+    {
+      "code": "de",
+      "native": "Deutsch",
+      "ar": "الألمانية",
+      "dir": "ltr"
+    },
+    {
+      "code": "en",
+      "native": "English",
+      "ar": "الإنجليزية",
+      "dir": "ltr"
+    },
+    {
+      "code": "es",
+      "native": "Español",
+      "ar": "الإسبانية",
+      "dir": "ltr"
+    },
+    {
+      "code": "fr",
+      "native": "Français",
+      "ar": "الفرنسية",
+      "dir": "ltr"
+    },
+    {
+      "code": "it",
+      "native": "Italiano",
+      "ar": "الإيطالية",
+      "dir": "ltr"
+    },
+    {
+      "code": "tr",
+      "native": "Türkçe",
+      "ar": "التركية",
+      "dir": "ltr"
+    },
+    {
+      "code": "ru",
+      "native": "Русский",
+      "ar": "الروسية",
+      "dir": "ltr"
+    },
+    {
+      "code": "ar",
+      "native": "العربية",
+      "ar": "العربية",
+      "dir": "rtl"
+    }
+  ]
+}
