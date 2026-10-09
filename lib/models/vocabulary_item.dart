@@ -12,7 +12,7 @@ class VocabularyItem {
   // حقول خوارزمية SM-2 للتكرار المتباعد الذكي
   final int interval;      // الأيام الفاصلة للمراجعة القادمة
   final int repetitions;   // عدد مرات التذكر الناجح المتتالية
-  final double easeFactor; // معامل سهولة الكلمة
+  final double easeFactor; // معامل سهولة الكلمة (يبدأ بـ 2.5)
 
   VocabularyItem({
     required this.word,
@@ -31,6 +31,7 @@ class VocabularyItem {
 
   // حساب التحديث التالي وفق خوارزمية SuperMemo SM-2 الرياضية
   VocabularyItem calculateSm2(int quality) {
+    // quality: من 0 (نسيت تماماً) إلى 5 (تذكرت بامتياز وسهولة)
     double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
 
