@@ -16,7 +16,8 @@ class VocabularyItem {
   final String semanticField;
   final String professionalContext;
   final String grammaticalValency;
-  final String pragmaticScenario; // السيناريو البراغماتي التواصلي الحي
+  final String pragmaticScenario;
+  final String cognateNote; // التقابلات الإدراكية والروابط المشتركة بين اللغات
 
   VocabularyItem({
     required this.word,
@@ -37,6 +38,7 @@ class VocabularyItem {
     this.professionalContext = 'عام',
     this.grammaticalValency = '',
     this.pragmaticScenario = '',
+    this.cognateNote = '',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -88,6 +90,7 @@ class VocabularyItem {
       professionalContext: professionalContext,
       grammaticalValency: grammaticalValency,
       pragmaticScenario: pragmaticScenario,
+      cognateNote: cognateNote,
     );
   }
 
@@ -111,6 +114,7 @@ class VocabularyItem {
       'professionalContext': professionalContext,
       'grammaticalValency': grammaticalValency,
       'pragmaticScenario': pragmaticScenario,
+      'cognateNote': cognateNote,
     };
   }
 
@@ -134,6 +138,7 @@ class VocabularyItem {
       professionalContext: json['professionalContext'] as String? ?? 'عام',
       grammaticalValency: json['grammaticalValency'] as String? ?? '',
       pragmaticScenario: json['pragmaticScenario'] as String? ?? '',
+      cognateNote: json['cognateNote'] as String? ?? '',
     );
   }
 }
