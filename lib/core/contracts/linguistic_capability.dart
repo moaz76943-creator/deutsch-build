@@ -2,11 +2,14 @@ enum LinguisticCapability {
   morphologicalStacking,   // الالتصاق والتركيب الصرفي
   syntacticBranching,      // التفرع وبناء الجملة
   pragmaticMitigation,     // التلطيف والتسلسل الهرمي
-  anaphoraCohesion,        // الإحالة والضمائر
+  anaphoraCohesion,        // الإحالة والتماسك النصي
   phonologicalStress,      // النبر والتزامن الإيقاعي
   evidentiality,           // الشاهدية ومصدر المعرفة
   collocationalTension,    // التلازم اللفظي والجذب الدلالي
   zeroEquivalence,         // الحذف والاختزال التداولي
+  honorificDistance,       // المسافة الاجتماعية وصيغ الخطاب
+  conversationalImplicature, // الاستلزام الحواري والتضمين
+  hesitationRepair,        // حشوات التردد وإصلاح الحديث
 }
 
 class LanguagePair {

@@ -7,6 +7,11 @@ enum FeatureId {
   pragmaticMasker,
   evidentialityCalibrator,
   collocationField,
+  rhythmRegulator,
+  honorificDistanceGauge,
+  discourseAnaphoraMesh,
+  implicatureProbe,
+  hesitationBuffer,
 }
 
 class FeatureMetadata {
@@ -59,6 +64,36 @@ class FeatureRegistry {
       id: FeatureId.collocationField,
       title: 'محرك الجذب والتلازم اللفظي',
       capabilities: {LinguisticCapability.collocationalTension},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.rhythmRegulator: FeatureMetadata(
+      id: FeatureId.rhythmRegulator,
+      title: 'ناظم التزامن الإيقاعي والمقطعي',
+      capabilities: {LinguisticCapability.phonologicalStress},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.honorificDistanceGauge: FeatureMetadata(
+      id: FeatureId.honorificDistanceGauge,
+      title: 'مقياس المسافة الاجتماعية وصيغ الخطاب',
+      capabilities: {LinguisticCapability.honorificDistance},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.discourseAnaphoraMesh: FeatureMetadata(
+      id: FeatureId.discourseAnaphoraMesh,
+      title: 'شبكة الترابط الإحالي النصي',
+      capabilities: {LinguisticCapability.anaphoraCohesion},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.implicatureProbe: FeatureMetadata(
+      id: FeatureId.implicatureProbe,
+      title: 'مستشعر الاستلزام الحواري والتضمين',
+      capabilities: {LinguisticCapability.conversationalImplicature},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.hesitationBuffer: FeatureMetadata(
+      id: FeatureId.hesitationBuffer,
+      title: 'مخزن حشوات التردد وتدارك الكلام',
+      capabilities: {LinguisticCapability.hesitationRepair},
       isGloballyEnabled: true,
     ),
   };
