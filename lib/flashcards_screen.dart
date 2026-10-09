@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -101,7 +102,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         }
       }
     } catch (_) {
-      // استمرار العمل بالبيانات المحلية تلقائياً
+      // الاستمرار في العمل دون انقطاع بالبيانات المحلية
     } finally {
       if (mounted && isLoading) {
         setState(() => isLoading = false);
@@ -242,98 +243,21 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                 },
                 itemBuilder: (context, index) {
                   final item = vocabulary[index];
-                  final String rawWord = item['word']?.toString() ?? '';
+                  final String word = item['word']?.toString() ?? '';
                   final String article = item['article']?.toString() ?? '';
-                  final String rawMeaning = item['meaning']?.toString() ?? '';
+                  final String meaning = item['meaning']?.toString() ?? '';
                   final String imageName = item['image']?.toString() ?? '';
                   final String imageUrl =
                       'https://cdn.jsdelivr.net/gh/moaz76943-creator/-offline-packs-store@main/images/$imageName';
                   final Color themeColor = _getArticleColor(article);
 
-                  final String isolatedWord = BiDiTextIsolator.isolateGerman(rawWord);
-                  final String isolatedMeaning = BiDiTextIsolator.isolateArabic(rawMeaning);
-
-                  return Center(
-                    child: Card(
-                      elevation: 6,
-                      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                        side: BorderSide(color: themeColor.withValues(alpha: 0.35), width: 2),
-                      ),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.90,
-                        height: MediaQuery.of(context).size.height * 0.65,
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (article.isNotEmpty)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: themeColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  article.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: 14),
-                            Expanded(
-                              flex: 5,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: CachedNetworkImage(
-                                  imageUrl: imageUrl,
-                                  memCacheWidth: 600,
-                                  memCacheHeight: 600,
-                                  placeholder: (context, url) =>
-                                      const Center(child: CircularProgressIndicator()),
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.broken_image, size: 70, color: Colors.grey),
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                isolatedWord,
-                                style: const TextStyle(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            if (rawMeaning.isNotEmpty) ...[
-                              const SizedBox(height: 6),
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  isolatedMeaning,
-                                  style: const TextStyle(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
+                  return _FlipCardItem(
+                    key: ValueKey(word),
+                    word: word,
+                    article: article,
+                    meaning: meaning,
+                    imageUrl: imageUrl,
+                    themeColor: themeColor,
                   );
                 },
               ),
@@ -365,6 +289,243 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FlipCardItem extends StatefulWidget {
+  final String word;
+  final String article;
+  final String meaning;
+  final String imageUrl;
+  final Color themeColor;
+
+  const _FlipCardItem({
+    super.key,
+    required this.word,
+    required this.article,
+    required this.meaning,
+    required this.imageUrl,
+    required this.themeColor,
+  });
+
+  @override
+  State<_FlipCardItem> createState() => _FlipCardItemState();
+}
+
+class _FlipCardItemState extends State<_FlipCardItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _isFront = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
+    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _flipCard() {
+    HapticFeedback.lightImpact();
+    if (_controller.isAnimating) return;
+    if (_isFront) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+    setState(() => _isFront = !_isFront);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: GestureDetector(
+        onTap: _flipCard,
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            final double angle = _animation.value * math.pi;
+            final bool isUnder = angle > (math.pi / 2);
+
+            return Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0012)
+                ..rotateY(angle),
+              alignment: Alignment.center,
+              child: isUnder
+                  ? Transform(
+                      transform: Matrix4.identity()..rotateY(math.pi),
+                      alignment: Alignment.center,
+                      child: _buildBackCard(context),
+                    )
+                  : _buildFrontCard(context),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFrontCard(BuildContext context) {
+    final String isolatedWord = BiDiTextIsolator.isolateGerman(widget.word);
+
+    return Card(
+      elevation: 7,
+      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+        side: BorderSide(color: widget.themeColor.withValues(alpha: 0.35), width: 2),
+      ),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.90,
+        height: MediaQuery.of(context).size.height * 0.65,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.article.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: widget.themeColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  widget.article.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 14),
+            Expanded(
+              flex: 5,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: CachedNetworkImage(
+                  imageUrl: widget.imageUrl,
+                  memCacheWidth: 600,
+                  memCacheHeight: 600,
+                  placeholder: (context, url) =>
+                      const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) =>
+                      const Icon(Icons.broken_image, size: 70, color: Colors.grey),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                isolatedWord,
+                style: const TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.touch_app_outlined, size: 18, color: Colors.grey.shade600),
+                const SizedBox(width: 6),
+                Text(
+                  'المس لاكتشاف المعنى',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackCard(BuildContext context) {
+    final String isolatedWord = BiDiTextIsolator.isolateGerman(widget.word);
+    final String isolatedMeaning = BiDiTextIsolator.isolateArabic(widget.meaning);
+    final String headerText = widget.article.isNotEmpty
+        ? '${widget.article.toUpperCase()} $isolatedWord'
+        : isolatedWord;
+
+    return Card(
+      elevation: 7,
+      margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+        side: BorderSide(color: widget.themeColor, width: 2),
+      ),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.90,
+        height: MediaQuery.of(context).size.height * 0.65,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: widget.themeColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                headerText,
+                style: TextStyle(
+                  color: widget.themeColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            const Spacer(),
+            const Icon(Icons.translate_rounded, size: 48, color: Color(0xFF64748B)),
+            const SizedBox(height: 16),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                isolatedMeaning,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.flip_to_front_rounded, size: 18, color: Colors.grey.shade600),
+                const SizedBox(width: 6),
+                Text(
+                  'المس للعودة إلى الكلمة',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                ),
+              ],
             ),
           ],
         ),
