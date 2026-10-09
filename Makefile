@@ -1,6 +1,6 @@
-.PHONY: all analyze test clean sync build-apk governance-audit
+.PHONY: all analyze test clean sync build-apk
 
-all: clean analyze test governance-audit sync
+all: clean analyze test sync
 
 clean:
 	flutter clean
@@ -12,16 +12,10 @@ analyze:
 test:
 	flutter test || true
 
-governance-audit:
-	@echo "🛡️ تنفيذ تدقيق الحوكمة والابتكار الآمن (Autonomous Governance Audit)..."
-	@echo "- Innovation Registry Deduplication: Active"
-	@echo "- Core Invariants Protection: Active"
-	@echo "- Sandboxed Isolation Protocol: Active"
-
 sync:
 	git add .
-	git commit -m "feat(governance): integrate autonomous evolutionary governance and deduplication framework"
+	git commit -m "refactor(core): remove all restrictive gates for absolute developer freedom"
 	git push origin main
 
 build-apk:
-	flutter build apk --release
+    flutter build apk --release
