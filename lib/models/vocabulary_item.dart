@@ -12,7 +12,8 @@ class VocabularyItem {
   final int repetitions;
   final double easeFactor;
   final String languageCode;
-  final String etymologyRoot; // الجذر اللغوي المشترك عبر العائلات الهندو-أوروبية
+  final String etymologyRoot;
+  final String semanticField; // الحقل المعرفي الدلالي (طبي، أكاديمي، حياة يومية، إلخ)
 
   VocabularyItem({
     required this.word,
@@ -29,6 +30,7 @@ class VocabularyItem {
     this.easeFactor = 2.5,
     this.languageCode = 'de',
     this.etymologyRoot = '',
+    this.semanticField = 'حياة يومية',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -95,6 +97,7 @@ class VocabularyItem {
       easeFactor: newEase,
       languageCode: languageCode,
       etymologyRoot: etymologyRoot,
+      semanticField: semanticField,
     );
   }
 
@@ -114,6 +117,7 @@ class VocabularyItem {
       'easeFactor': easeFactor,
       'languageCode': languageCode,
       'etymologyRoot': etymologyRoot,
+      'semanticField': semanticField,
     };
   }
 
@@ -133,6 +137,7 @@ class VocabularyItem {
       easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
       languageCode: json['languageCode'] ?? 'de',
       etymologyRoot: json['etymologyRoot'] ?? '',
+      semanticField: json['semanticField'] ?? 'حياة يومية',
     );
   }
 }

@@ -23,10 +23,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   
   String _selectedLanguage = 'de';
   String _selectedArticle = 'der';
+  String _selectedSemanticField = 'حياة يومية';
   double _currentDifficulty = 1.0;
   
   String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
-  int _reviewCounterForBloom = 0; // متتبع جلسات المراجعة لتفتح الدوبامين الصامت
+  int _consecutiveHardCount = 0; // لمراقبة الحمل المعرفي
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -74,41 +75,27 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
-  // تفتح الدوبامين الصامت (Intrinsic Bloom Feedback) عند إتمام عدد من مراجعات الهادئة
-  void _triggerIntrinsicBloom() {
-    _reviewCounterForBloom++;
-    if (_reviewCounterForBloom >= 4) {
-      _reviewCounterForBloom = 0;
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            backgroundColor: const Color(0xFF0F172A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF34D399).withValues(alpha: 0.5))),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.local_florist_rounded, size: 56, color: Color(0xFF34D399)),
-                SizedBox(height: 16),
-                Text('🌸 تفتح ذهني هادئ', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                Text('عقلك يستوعب الأنماط العميقة بسلام وثبات. لا عجلة، أنت تسير بخطى مباركة.', 
-                  style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5), 
-                  textAlign: TextAlign.center,
-                ),
-              ],
+  // موازن الحمل المعرفي التلقائي (Cognitive Load Auto-Balancing)
+  void _checkCognitiveLoad(int quality) {
+    if (quality <= 1) {
+      _consecutiveHardCount++;
+      if (_consecutiveHardCount >= 2) {
+        _consecutiveHardCount = 0;
+        if (mounted) {
+          setState(() {
+            _userEnergyState = 'متعب (جلسة خفيفة سريعة)';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚖️ موازن الحمل المعرفي: تم تقليص حجم الجلسة تلقائياً لراحتك العصبية.'),
+              backgroundColor: Color(0xFF38BDF8),
+              duration: Duration(seconds: 4),
             ),
-            actions: [
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('متابعة بصفاء', style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        );
+          );
+        }
       }
+    } else {
+      _consecutiveHardCount = 0;
     }
   }
 
@@ -125,12 +112,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: _wordFamilyController.text.trim(),
         difficultyScore: _currentDifficulty,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
-        example: "مفردة مهيكلة بالجذر اللغوي.",
+        example: "مفردة مصنفة ضمن الحقل الدلالي.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
         languageCode: _selectedLanguage,
         etymologyRoot: _etymologyController.text.trim(),
+        semanticField: _selectedSemanticField,
       );
 
       setState(() {
@@ -151,20 +139,19 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         _currentDifficulty = 1.0;
       });
       
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🌿 تمت إضافة المفردة مع الجذر اللغوي بنجاح.'),
-            backgroundColor: Color(0xFF34D399),
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🌿 تمت إضافة المفردة وتصنيفها في الحقل المعرفي بنجاح.'),
+          backgroundColor: Color(0xFF34D399),
+        ),
+      );
     }
   }
 
   Future<void> _reviewItemSm2(int index, int quality) async {
     HapticFeedback.mediumImpact();
-    _triggerIntrinsicBloom();
+    _checkCognitiveLoad(quality);
 
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
@@ -172,15 +159,14 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     final rawList = _journalItems.map((e) => e.toJson()).toList();
     await _repository.saveVocabularyList(rawList);
     
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('⏱️ المراجعة القادمة بعد ${_journalItems[index].interval} أيام.'),
-          backgroundColor: const Color(0xFF38BDF8),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('⏱️ المراجعة القادمة بعد ${_journalItems[index].interval} أيام.'),
+        backgroundColor: const Color(0xFF38BDF8),
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   Future<void> _deleteItem(int index) async {
@@ -225,7 +211,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الكونية (الجذور العابرة للغات)'),
+        title: const Text('المفكرة (الحقول المعرفية وموازن الحمل)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -329,16 +315,32 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      TextField(
-                        controller: _etymologyController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'الجذر اللغوي المشترك (Etymology Root)...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        ),
+                      Row(
+                        children: [
+                          const Text('الحقل المعرفي:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButton<String>(
+                              value: _selectedSemanticField,
+                              dropdownColor: const Color(0xFF0F172A),
+                              style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold),
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(value: 'حياة يومية', child: Text('حياة يومية')),
+                                DropdownMenuItem(value: 'طبي وصيدلاني', child: Text('طبي وصيدلاني')),
+                                DropdownMenuItem(value: 'أكاديمي وعلمي', child: Text('أكاديمي وعلمي')),
+                                DropdownMenuItem(value: 'بيئة وعمل', child: Text('بيئة وعمل')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _selectedSemanticField = val;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
@@ -349,13 +351,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ مع الجذر اللغوي', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بالحقل المعرفي', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text('السجل الكوني (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('السجل المعرفي (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -365,9 +367,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.folder_special_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة الكونية هادئة تماماً.\nأضف أول مفردة بجذرها!', 
+                                  Text('المفكرة هادئة.\nأضف أول مفردة بحقلها المعرفي!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -389,6 +391,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   direction: DismissDirection.horizontal,
                                   onDismissed: (direction) {
                                     _deleteItem(index);
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('تم إزالة المفردة بهدوء.')),
                                     );
@@ -445,23 +448,19 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                             color: Colors.white.withValues(alpha: 0.1),
                                                             borderRadius: BorderRadius.circular(4),
                                                           ),
-                                                          child: Text(item.languageCode.toUpperCase(), style: const TextStyle(color: Colors.white70, fontSize: 9)),
+                                                          child: Text(item.semanticField, style: const TextStyle(color: Color(0xFF34D399), fontSize: 9)),
                                                         ),
                                                       ],
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    if (item.etymologyRoot.isNotEmpty) ...[
-                                                      const SizedBox(height: 2),
-                                                      Text('الجذر: ${item.etymologyRoot}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
-                                                    ],
                                                   ],
                                                 ),
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
                                                 onPressed: () => _speakWord(fullTextToSpeak, item.languageCode),
-                                                tooltip: 'نطق صوتي للغة',
+                                                tooltip: 'نطق صوتي',
                                               ),
                                             ],
                                           ),
