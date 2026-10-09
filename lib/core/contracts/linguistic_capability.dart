@@ -10,6 +10,11 @@ enum LinguisticCapability {
   honorificDistance,       // المسافة الاجتماعية وصيغ الخطاب
   conversationalImplicature, // الاستلزام الحواري والتضمين
   hesitationRepair,        // حشوات التردد وإصلاح الحديث
+  phonotacticHarmony,      // التناغم الصوتي وتتابع السواكن
+  scalarImplicature,       // السلالم الدلالية والاستلزام التدرجي
+  prosodicFocus,           // النبر البؤري والتنغيم النغمي
+  taxonomicGranularity,    // التخصيص المعجمي والتجريد
+  counterfactualMood,      // الشك والافتراض المضاد للواقع
 }
 
 class LanguagePair {

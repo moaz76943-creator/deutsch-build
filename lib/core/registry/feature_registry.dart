@@ -12,6 +12,11 @@ enum FeatureId {
   discourseAnaphoraMesh,
   implicatureProbe,
   hesitationBuffer,
+  phonotacticSieve,
+  scalarPolarityGauge,
+  prosodicFocusTracker,
+  taxonomicGranularitySieve,
+  counterfactualCompass,
 }
 
 class FeatureMetadata {
@@ -94,6 +99,36 @@ class FeatureRegistry {
       id: FeatureId.hesitationBuffer,
       title: 'مخزن حشوات التردد وتدارك الكلام',
       capabilities: {LinguisticCapability.hesitationRepair},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.phonotacticSieve: FeatureMetadata(
+      id: FeatureId.phonotacticSieve,
+      title: 'منخل التناغم الصوتي والقيود الفونوتكتيكية',
+      capabilities: {LinguisticCapability.phonotacticHarmony},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.scalarPolarityGauge: FeatureMetadata(
+      id: FeatureId.scalarPolarityGauge,
+      title: 'مقياس السلالم الدلالية والاستلزام التدرجي',
+      capabilities: {LinguisticCapability.scalarImplicature},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.prosodicFocusTracker: FeatureMetadata(
+      id: FeatureId.prosodicFocusTracker,
+      title: 'محاكي النبر البؤري والتنغيم النغمي',
+      capabilities: {LinguisticCapability.prosodicFocus},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.taxonomicGranularitySieve: FeatureMetadata(
+      id: FeatureId.taxonomicGranularitySieve,
+      title: 'منخل التخصيص المعجمي ومستويات التجريد',
+      capabilities: {LinguisticCapability.taxonomicGranularity},
+      isGloballyEnabled: true,
+    ),
+    FeatureId.counterfactualCompass: FeatureMetadata(
+      id: FeatureId.counterfactualCompass,
+      title: 'بوصلة الشك والافتراض المضاد للواقع',
+      capabilities: {LinguisticCapability.counterfactualMood},
       isGloballyEnabled: true,
     ),
   };
