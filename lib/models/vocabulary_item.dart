@@ -27,7 +27,6 @@ class VocabularyItem {
     this.easeFactor = 2.5,
   });
 
-  // هل الكلمة بحاجة لمراجعة ملحة اليوم؟
   bool get isReviewDue => interval <= 1;
 
   String get texturalMnemonic {
@@ -39,7 +38,7 @@ class VocabularyItem {
       case 'das':
         return 'مادة هادئة ومستقرة (سكون وتوازن)';
       default:
-        return 'هيكل محايد';
+        return 'هيكل محايد ومنتظم';
     }
   }
 
