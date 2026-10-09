@@ -1,3 +1,4 @@
+import 'core/srs_engine.dart';
 import 'flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'repositories/vocabulary_repository.dart';
@@ -36,6 +37,24 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _dueTodayCount = 0;
+
+  Future<void> _calculateDueStats(List<Map<String, dynamic>> items) async {
+    int due = 0;
+    final now = DateTime.now();
+    for (final item in items) {
+      final word = item['word']?.toString() ?? '';
+      if (word.isNotEmpty) {
+        final state = await SrsEngine.getItemState(word);
+        if (state.nextReviewDate.isBefore(now) || state.repetitions == 0) {
+          due++;
+        }
+      }
+    }
+    if (mounted) {
+      setState(() => _dueTodayCount = due);
+    }
+  }
   final VocabularyRepository _vocabRepo = VocabularyRepository();
   List<Map<String, dynamic>> _vocabularyList = [];
   String _selectedLang = 'de';
@@ -52,6 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _isLoading = true);
     // تحميل الكلمات الأساسية أو الحزمة اللغوية المحددة
     List<Map<String, dynamic>> items = await _vocabRepo.getVocabularyList();
+    _calculateDueStats(items);
     if (items.isEmpty && _selectedLang != 'de') {
       items = await LanguagePackManager.loadPack(_selectedLang);
     }
@@ -133,6 +153,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           
           // المحتوى الرئيسي للقائمة والمعرفات
+            // بطاقة مؤشرات المراجعة الذكية (SRS Smart Banner)
+            Container(
+              margin: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E293B), Color(0xFF334155)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$_dueTodayCount كلمة بانتظار المراجعة اليوم',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'إجمالي الرصيد: ${_vocabularyList.length} مفردة',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigoAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const FlashcardsScreen(),
+                        ),
+                      ).then((_) => _loadData());
+                    },
+                    icon: const Icon(Icons.style_rounded, size: 18),
+                    label: const Text('بدء الحفظ', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
