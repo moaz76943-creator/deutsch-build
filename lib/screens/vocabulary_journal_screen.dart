@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../design_system/design_system.dart';
 import '../repositories/vocabulary_repository.dart';
 
@@ -31,11 +32,14 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _addItem() async {
     if (_wordController.text.trim().isNotEmpty) {
+      // تفعيل التغذية الراجعة اللمسية (Haptic Feedback)
+      HapticFeedback.mediumImpact();
+
       setState(() {
         _journalItems.insert(0, {
           "word": _wordController.text.trim(),
-          "meaning": "معنى مُضاف ومحفوظ عبر Repository",
-          "example": "مثال توضيحي آمن ومنظم معمارياً."
+          "meaning": "معنى مُضاف حديثاً",
+          "example": "مثال توضيحي تفاعلي جديد."
         });
       });
       
@@ -45,7 +49,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? 'تم الحفظ المعماري الآمن بنجاح!' : 'حدث خطأ أثناء الحفظ'),
+            content: Text(success ? 'تم الحفظ بنجاح وتفعيل اللمس التفاعلي!' : 'حدث خطأ أثناء الحفظ'),
             backgroundColor: success ? const Color(0xFF34D399) : const Color(0xFFEF4444),
           ),
         );
@@ -57,7 +61,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة (معمارية المستودع الآمن)'),
+        title: const Text('المفكرة الذكية (تفاعلية وحالات فارغة)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -75,7 +79,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة كلمة جديدة عبر المعمارية النظيفة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('أضف كلمة جديدة مع استجابة حسية:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _wordController,
@@ -97,39 +101,53 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ عبر Repository', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ مع اهتزاز تفاعلي', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('سجل الكلمات المسترجع هندسياً:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('سجل الكلمات:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
-                      : ListView.builder(
-                          itemCount: _journalItems.length,
-                          itemBuilder: (context, index) {
-                            final item = _journalItems[index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: AppBaseGlassCard(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(item['word']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 18, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 4),
-                                    Text('المعنى: ${item['meaning']}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                    const SizedBox(height: 2),
-                                    Text('مثال: ${item['example']}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
-                                  ],
-                                ),
+                      : _journalItems.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.inbox_rounded, size: 48, color: Colors.white38),
+                                  SizedBox(height: 12),
+                                  Text('لا توجد كلمات محفوظة بعد.\nأضف كلمتك الأولى وابدأ التعلم!', 
+                                    style: TextStyle(color: Colors.white60, fontSize: 14), 
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            )
+                          : ListView.builder(
+                              itemCount: _journalItems.length,
+                              itemBuilder: (context, index) {
+                                final item = _journalItems[index];
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  child: AppBaseGlassCard(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(item['word']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 18, fontWeight: FontWeight.bold)),
+                                        const SizedBox(height: 4),
+                                        Text('المعنى: ${item['meaning']}', style: const TextStyle(color: Colors.white, fontSize: 14)),
+                                        const SizedBox(height: 2),
+                                        Text('مثال: ${item['example']}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                 ),
               ],
             ),
