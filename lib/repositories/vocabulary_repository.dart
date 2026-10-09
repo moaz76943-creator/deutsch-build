@@ -1,3 +1,4 @@
+import '../core/security/storage_guard.dart';
 import '../core/cache/lru_memory_cache.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -50,7 +51,7 @@ class VocabularyRepository {
       return [];
     }
       final List<dynamic> decoded = jsonDecode(jsonString);
-      final list = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+      final list = StorageGuard.sanitizeWordEntries(decoded);
       _cachedWords
         ..clear()
         ..addAll(list);
@@ -70,12 +71,8 @@ class VocabularyRepository {
   }
 
   Future<void> _runSelfHealingDaemon(SharedPreferences prefs) async {
-    try {
-      final String? jsonString = prefs.getString(_key);
-      if (jsonString != null) {
-        jsonDecode(jsonString);
-      }
-    } catch (_) {
+    final String? jsonString = prefs.getString(_key);
+    if (jsonString != null && !StorageGuard.validateJsonIntegrity(jsonString)) {
       await prefs.setString(_key, '[]');
     }
   }
