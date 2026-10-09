@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
+import '../../core/contracts/universal_scenario_contract.dart';
+import '../../core/contracts/contract_evaluator.dart';
 import 'wave_05_models.dart';
 
 class Wave05HubScreen extends StatefulWidget {
@@ -10,58 +11,60 @@ class Wave05HubScreen extends StatefulWidget {
 }
 
 class _Wave05HubScreenState extends State<Wave05HubScreen> {
-  // بيانات تجريبية للمغناطيسية الصرفية
-  final List<MorphemeBlock> _turkishAgglutination = const [
-    MorphemeBlock(text: 'Ev', isRoot: true, type: 'بيت'),
-    MorphemeBlock(text: 'ler', isRoot: false, type: 'جمع'),
-    MorphemeBlock(text: 'im', isRoot: false, type: 'ملكية (ي)'),
-    MorphemeBlock(text: 'de', isRoot: false, type: 'في'),
-  ];
+  // عقود البيانات النشطة
+  final _morphContract = Wave05Scenarios.morphemicScenario;
+  final _ambigContract = Wave05Scenarios.ambiguityScenario;
+  final _unverifiedContract = Wave05Scenarios.unverifiedScenario;
+
+  // حالات W05-01
   final List<MorphemeBlock> _assembledMorphemes = [];
+  ContractEvaluationResult? _morphResult;
 
-  // بيانات مقياس تحمل الغموض
-  final _ambiguityTask = const AmbiguityTask(
-    sentenceTokens: ['Der', 'Mann', 'ging', 'schnell', 'in', 'das', 'große', 'Gebäude.'],
-    blurredIndices: [3, 6], // طمس "schnell" و "große"
-    question: 'ما هو الحدث الرئيسي في هذه الجملة؟',
-    correctAnswer: 'شخص دخل إلى مبنى',
-    hint: 'الكلمات المطموسة هي مجرد صفات وظروف لا تغير الحدث الأساسي!',
-  );
+  // حالات W05-02
   bool _revealed = false;
-  bool _trustScorePenalty = false;
+  ContractEvaluationResult? _ambigResult;
 
-  // بيانات الاستعارات
-  final _metaphor = const MetaphorConcept(
-    coreConcept: 'الغضب (Anger)',
-    sourceLanguageMetaphor: 'نار تشتعل (العربية)',
-    targetLanguageMetaphor: 'وعاء يغلي وينفجر (الإنجليزية/الألمانية)',
-    explanation: 'لا تترجم الكلمة، بل ترجم الصورة الذهنية!',
-  );
+  void _evaluateMorphemes() {
+    final assembledString = _assembledMorphemes.map((e) => e.text).join('');
+    final result = ContractEvaluator.process(
+      contract: _morphContract,
+      userInput: assembledString,
+    );
+    setState(() => _morphResult = result);
+  }
+
+  void _evaluateAmbiguity() {
+    final result = ContractEvaluator.process(
+      contract: _ambigContract,
+      userInput: 'شخص دخل إلى مبنى',
+    );
+    setState(() => _ambigResult = result);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المختبر الإدراكي الكوني (Wave 05)'),
+        title: const Text('Wave 05 — المحرك المؤطر بالعقد الهندسي'),
         centerTitle: true,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // 1. المغناطيسية الصرفية
-          _buildCard(
-            title: '1. المغناطيسية الصرفية والالتصاق (INNOV-W05-01)',
-            subtitle: 'مثال للغة ملتصقة (التركية): Evlerimde (في بيوتي)',
-            content: Column(
+          // 1. ميزة المغناطيسية الصرفية (موثقة ومقيدة بالعقد)
+          _buildContractCard(
+            title: '1. المغناطيسية الصرفية (W05-01)',
+            contract: _morphContract,
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Wrap(
                   spacing: 8,
-                  children: _turkishAgglutination.map((block) {
+                  children: _morphContract.payload.map((block) {
                     final isUsed = _assembledMorphemes.contains(block);
                     return ActionChip(
                       label: Text('${block.text} (${block.type})'),
-                      backgroundColor: block.isRoot ? Colors.blue.shade100 : Colors.orange.shade100,
+                      backgroundColor: block.isRoot ? Colors.blue.shade100 : Colors.amber.shade100,
                       onPressed: isUsed
                           ? null
                           : () => setState(() => _assembledMorphemes.add(block)),
@@ -73,138 +76,174 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
                   padding: const EdgeInsets.all(12),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: Text(
                     _assembledMorphemes.isEmpty
-                        ? 'اسحب الكتل الممغنطة لتركيب الكلمة...'
+                        ? 'انقر الكتل لبناء المتتالية الصرفية...'
                         : _assembledMorphemes.map((e) => e.text).join(''),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 2),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-                if (_assembledMorphemes.isNotEmpty)
-                  TextButton(
-                    onPressed: () => setState(() => _assembledMorphemes.clear()),
-                    child: const Text('إعادة التركيب'),
-                  )
-              ],
-            ),
-          ),
-
-          // 2. تحمل الغموض
-          _buildCard(
-            title: '2. مقياس تحمل الغموض السياقي (INNOV-W05-02)',
-            subtitle: 'اقرأ الجملة واستنتج المعنى دون كشف الكلمات المطموسة',
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 4,
-                  children: List.generate(_ambiguityTask.sentenceTokens.length, (index) {
-                    final isBlurred = _ambiguityTask.blurredIndices.contains(index) && !_revealed;
-                    return isBlurred
-                        ? Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            color: Colors.grey.shade400,
-                            child: Text(
-                              _ambiguityTask.sentenceTokens[index],
-                              style: const TextStyle(color: Colors.transparent),
-                            ),
-                          )
-                        : Text(
-                            _ambiguityTask.sentenceTokens[index],
-                            style: const TextStyle(fontSize: 16),
-                          );
-                  }),
-                ),
-                const SizedBox(height: 12),
-                Text('السؤال: ${_ambiguityTask.question}', style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     ElevatedButton(
-                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('النتيجة الصحيحة: ${_ambiguityTask.correctAnswer}')),
+                      onPressed: _assembledMorphemes.isEmpty ? null : _evaluateMorphemes,
+                      child: const Text('تقييم عبر العقد'),
+                    ),
+                    const SizedBox(width: 8),
+                    if (_assembledMorphemes.isNotEmpty)
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _assembledMorphemes.clear();
+                          _morphResult = null;
+                        }),
+                        child: const Text('إعادة البدء'),
                       ),
-                      child: const Text('أجب بالتخمين'),
+                  ],
+                ),
+                if (_morphResult != null) _buildResultBox(_morphResult!),
+              ],
+            ),
+          ),
+
+          // 2. مقياس تحمل الغموض السياقي
+          _buildContractCard(
+            title: '2. تحمل الغموض السياقي (W05-02)',
+            contract: _ambigContract,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 4,
+                  children: List.generate(_ambigContract.payload.sentenceTokens.length, (index) {
+                    final isBlurred = _ambigContract.payload.blurredIndices.contains(index) && !_revealed;
+                    return isBlurred
+                        ? Container(
+                            color: Colors.grey.shade400,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text(
+                              _ambigContract.payload.sentenceTokens[index],
+                              style: const TextStyle(color: Colors.transparent),
+                            ),
+                          )
+                        : Text(_ambigContract.payload.sentenceTokens[index], style: const TextStyle(fontSize: 15));
+                  }),
+                ),
+                const SizedBox(height: 10),
+                Text('السؤال: ${_ambigContract.payload.question}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _evaluateAmbiguity,
+                      child: const Text('تخمين النواة الدلالية'),
                     ),
                     const SizedBox(width: 8),
                     TextButton(
-                      onPressed: () => setState(() {
-                        _revealed = true;
-                        _trustScorePenalty = true;
-                      }),
-                      child: const Text('كشف الكلمات', style: TextStyle(color: Colors.red)),
+                      onPressed: () => setState(() => _revealed = true),
+                      child: const Text('كشف النص المطموس', style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),
-                if (_trustScorePenalty)
-                  const Text('تم الكشف! (انخفض رصيد الثقة اللغوية - حاول التخمين مستقبلاً)', style: TextStyle(color: Colors.red, fontSize: 12))
+                if (_ambigResult != null) _buildResultBox(_ambigResult!),
               ],
             ),
           ),
 
-          // 3. الاستعارات المفاهيمية
-          _buildCard(
-            title: '3. الخريطة الكونية للاستعارات (INNOV-W05-03)',
-            subtitle: _metaphor.coreConcept,
-            content: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMetaphorNode(_metaphor.sourceLanguageMetaphor, Colors.blue),
-                    const Icon(Icons.arrow_forward_rounded, color: Colors.grey),
-                    _buildMetaphorNode(_metaphor.targetLanguageMetaphor, Colors.green),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(_metaphor.explanation, style: const TextStyle(fontStyle: FontStyle.italic)),
-              ],
-            ),
+          // 3. تجربة مبدأ التعطيل الصريح (Fail-Closed)
+          _buildContractCard(
+            title: '3. سيناريو تجريبي قيد الاعتماد (Fail-Closed Sandbox)',
+            contract: _unverifiedContract,
+            child: const Text('هذا المكون لن يظهر في بيئة الإنتاج ما دام غير موثق.'),
           ),
-
-          // 4 و 5. (معاينة مرئية للإيقاع والنبر)
-          _buildCard(
-            title: '4 & 5. ناظم الإيقاع والتزامن الصوتي (INNOV-W05-04/05)',
-            subtitle: 'محاكاة لحركة العين والنبر الإيقاعي',
-            content: const Text(
-              'تعمل في الخلفية كفلتر زمني فوق نصوص القراءة، تجبر العين على القفز كمتحدث أصلي (Saccades) وتطلب النقر لضبط الإيقاع المقطعي (Isochrony).',
-              style: TextStyle(color: Colors.grey),
-            ),
-          )
         ],
       ),
     );
   }
 
-  Widget _buildMetaphorNode(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      width: 120,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-    );
-  }
+  Widget _buildContractCard<T>({
+    required String title,
+    required UniversalScenarioContract<T> contract,
+    required Widget child,
+  }) {
+    final isAvailable = contract.isAvailable;
 
-  Widget _buildCard({required String title, required String subtitle, required Widget content}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isAvailable ? Colors.green.shade100 : Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    isAvailable ? 'عقد نشط (${contract.languagePair.key})' : 'معطل صراحةً (Fail-Closed)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isAvailable ? Colors.green.shade800 : Colors.red.shade800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              'المعرف: ${contract.scenarioId} | القدرات: ${contract.requiredCapabilities.map((e) => e.name).join(", ")}',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
             const Divider(),
-            content,
+            if (!isAvailable)
+              Container(
+                padding: const EdgeInsets.all(12),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'الميزة معطلة وقائياً: هذا السيناريو بانتظار مراجعة وتوثيق لغوي معتمد.',
+                  style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              )
+            else
+              child,
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultBox(ContractEvaluationResult res) {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: res.isSuccess ? Colors.green.shade50 : Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: res.isSuccess ? Colors.green : Colors.orange),
+      ),
+      child: Text(
+        res.feedback,
+        style: TextStyle(
+          color: res.isSuccess ? Colors.green.shade900 : Colors.orange.shade900,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
         ),
       ),
     );
