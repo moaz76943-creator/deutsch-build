@@ -1,3 +1,4 @@
+export '../core/app_haptics.dart';
 import 'package:flutter/material.dart';
 export 'app_typography.dart';
 
