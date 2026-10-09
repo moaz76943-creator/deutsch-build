@@ -14,8 +14,7 @@ class VocabularyJournalScreen extends StatefulWidget {
 class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _wordController = TextEditingController();
   final TextEditingController _pluralController = TextEditingController();
-  final TextEditingController _valencyController = TextEditingController();
-  final TextEditingController _morphologicalController = TextEditingController();
+  final TextEditingController _registerController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
   
   String _selectedLanguage = 'de';
@@ -23,7 +22,8 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   String _selectedSemanticField = 'حياة يومية';
   String _selectedProfessionalContext = 'صيدلاني / طبي';
   
-  int _sessionReviewCount = 0;
+  int _consecutiveFailures = 0; // درع التنفس البصري الإيقاعي عند العبء الحاد
+  bool _isOverloadMode = false;
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -71,36 +71,39 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
-  // موازن الحمل العصبي وفق الإيقاع الحيوي (Circadian Cognitive Load Balancer)
-  void _checkCognitiveLoadBalancer() {
-    _sessionReviewCount++;
-    if (_sessionReviewCount >= 7) {
-      _sessionReviewCount = 0;
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            backgroundColor: const Color(0xFF0F172A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF34D399).withValues(alpha: 0.5))),
-            title: const Text('🌿 موازن الحمل العصبي', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-            content: const Text(
-              'رصد موازن الحمل إيقاعاً مكثفاً في مراجعاتك.\n\n'
-              'تم الانتقال تدريجياً إلى وضع "الاستعراض الهادئ" لحماية نشاطك العصبي وضمان تثبيت الذاكرة بعيدة المدى بلا إجهاد.',
-              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+  // درع التنفس البصري الإيقاعي المضاد للعبء الحاد (Acute Cognitive Overload Visual Pacer)
+  void _triggerAcuteOverloadShield() {
+    setState(() {
+      _isOverloadMode = true;
+    });
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF38BDF8).withValues(alpha: 0.5))),
+        title: const Text('🌊 درع التنفس البصري الإيقاعي', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'رصد النظام تتابعاً في التعثر أو التردد.\n\n'
+          'تنفس بعمق ببطء مع نبضات الشاشة الزرقاء الهادئة لاستعادة الصفاء الذهني تماماً بلا أي ضغوط.',
+          style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8)),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                setState(() {
+                  _isOverloadMode = false;
+                  _consecutiveFailures = 0;
+                });
+              },
+              child: const Text('تنفس واستعادة الصفاء', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
-            actions: [
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399)),
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('فهمت، شكراً لاهتمامك', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
           ),
-        );
-      }
-    }
+        ],
+      ),
+    );
   }
 
   Future<void> _addItem() async {
@@ -116,7 +119,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: '',
         difficultyScore: 1.0,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
-        example: "شجرة مرفولوجية وسياق مقارن.",
+        example: "مستوى خطاب وبنية متكاملة.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
@@ -124,10 +127,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         etymologyRoot: '',
         semanticField: _selectedSemanticField,
         professionalContext: _selectedProfessionalContext,
-        grammaticalValency: _valencyController.text.trim(),
+        grammaticalValency: '',
         pragmaticScenario: '',
         cognateNote: '',
-        morphologicalTree: _morphologicalController.text.trim(),
+        morphologicalTree: '',
+        morphophonemicBridge: '',
+        politenessRegister: _registerController.text.trim().isNotEmpty ? _registerController.text.trim() : 'محايد / يومي',
       );
 
       setState(() {
@@ -139,14 +144,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       
       _wordController.clear();
       _pluralController.clear();
-      _valencyController.clear();
-      _morphologicalController.clear();
+      _registerController.clear();
       _meaningController.clear();
       
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🌿 تمت إضافة العنصر مع شجرة الجذور المرفولوجية بنجاح.'),
+          content: Text('🌿 تمت إضافة العنصر مع مؤشر مستويات الخطاب بنجاح.'),
           backgroundColor: Color(0xFF34D399),
         ),
       );
@@ -156,11 +160,15 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   Future<void> _reviewItemSm2(int index, int quality) async {
     if (quality == 1) {
       AppHaptics.growthTrigger();
+      _consecutiveFailures++;
+      if (_consecutiveFailures >= 3) {
+        _triggerAcuteOverloadShield();
+        return;
+      }
     } else {
       AppHaptics.deepFixation();
+      if (_consecutiveFailures > 0) _consecutiveFailures--;
     }
-    
-    _checkCognitiveLoadBalancer();
 
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
@@ -197,8 +205,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   void dispose() {
     _wordController.dispose();
     _pluralController.dispose();
-    _valencyController.dispose();
-    _morphologicalController.dispose();
+    _registerController.dispose();
     _meaningController.dispose();
     _flutterTts.stop();
     super.dispose();
@@ -210,7 +217,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة (أشجار المرفولوجيا)'),
+        title: const Text('المفكرة (مستويات الخطاب والعبء)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -259,11 +266,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                 ),
                 AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
-                  focusMinutes: _sessionReviewCount * 3,
+                  isOverloaded: _isOverloadMode,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text('إضافة مفردة بأشجار مرفولوجية لـ (${_selectedLanguage.toUpperCase()}):', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('إضافة مفردة بمستوى الخطاب لـ (${_selectedLanguage.toUpperCase()}):', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       if (_selectedLanguage == 'de') ...[
@@ -295,7 +302,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _wordController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'الكلمة أو التعبير الأساسي...',
+                          hintText: 'الكلمة الأساسية...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -304,10 +311,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                       ),
                       const SizedBox(height: 10),
                       TextField(
-                        controller: _morphologicalController,
+                        controller: _registerController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'شجرة الجذور المرفولوجية (الاشتقاق المقارن)...',
+                          hintText: 'مستوى الخطاب والطبقة الاجتماعية (مثل: رسمي، مهني، يومي)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -335,7 +342,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ بالشجرة المرفولوجية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بمستوى الخطاب', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -353,7 +360,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                 children: const [
                                   Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة.\nأضف أول شجرة مرفولوجية!', 
+                                  Text('المفكرة هادئة.\nأضف أول مستوى خطاب!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -400,6 +407,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                     ),
                                     child: AppBaseGlassCard(
                                       padding: const EdgeInsets.all(16),
+                                      isOverloaded: _isOverloadMode,
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[
@@ -438,9 +446,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    if (item.morphologicalTree.isNotEmpty) ...[
+                                                    if (item.politenessRegister.isNotEmpty) ...[
                                                       const SizedBox(height: 2),
-                                                      Text('الشجرة المرفولوجية: ${item.morphologicalTree}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11)),
+                                                      Text('مستوى الخطاب: ${item.politenessRegister}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11)),
                                                     ],
                                                   ],
                                                 ),

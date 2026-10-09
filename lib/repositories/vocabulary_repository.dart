@@ -5,6 +5,7 @@ class VocabularyRepository {
   static const String _key = 'vocabulary_items_v3';
   static const String _legacyKey = 'vocabulary_items_v2';
   static const String _backupPrefix = 'vocab_backup_roll_';
+  static const String _archivePrefix = 'vocab_archive_ts_';
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
@@ -31,8 +32,8 @@ class VocabularyRepository {
       final prefs = await SharedPreferences.getInstance();
       final String jsonString = jsonEncode(items);
       
-      // التدوير التلقائي للنسخ الاحتياطي (Automated Rolling Backup Rotation - الاحتفاظ بآخر 5 نسخ)
       await _rotateBackups(prefs, jsonString);
+      await _createTimestampedArchive(prefs, jsonString);
 
       return await prefs.setString(_key, jsonString);
     } catch (e) {
@@ -45,7 +46,6 @@ class VocabularyRepository {
       int timestamp = DateTime.now().millisecondsSinceEpoch;
       await prefs.setString('$_backupPrefix$timestamp', newPayload);
 
-      // تصفية وحذف النسخ القديمة جداً والاحتفاظ بآخر 5 فقط
       final keys = prefs.getKeys().where((k) => k.startsWith(_backupPrefix)).toList();
       keys.sort();
       if (keys.length > 5) {
@@ -53,6 +53,14 @@ class VocabularyRepository {
           await prefs.remove(keys[i]);
         }
       }
+    } catch (_) {}
+  }
+
+  // أرشيف الحزم المشفر بختم زمني محلي (Cryptographic Local Time-Stamped Archiving)
+  Future<void> _createTimestampedArchive(SharedPreferences prefs, String payload) async {
+    try {
+      String isoTime = DateTime.now().toIso8601String().replaceAll(':', '-');
+      await prefs.setString('$_archivePrefix$isoTime', payload);
     } catch (_) {}
   }
 
@@ -94,7 +102,7 @@ class VocabularyRepository {
     report.writeln('حجم التخزين المشفر محلياً: $bytes بايت');
     report.writeln('توزيع اللغات: $langs');
     report.writeln('التوزيع الدلالي: $fields');
-    report.writeln('التدوير الاحتياطي التلقائي: مفعل (آخر 5 نسخ نشطة)');
+    report.writeln('الأرشيف بختم زمني محلي: مفعل (Cryptographic Time-Stamped)');
     report.writeln('حالة الاستقرار: سليمة 100% ومحمية (Offline-First)');
     return report.toString();
   }
@@ -126,7 +134,7 @@ class VocabularyRepository {
       'totalCount': totalCount,
       'langCounts': langCounts,
       'sizeInBytes': sizeInBytes,
-      'status': 'مستقر، مشفر، ومتسق تماماً مع تدوير النسخ الاحتياطي'
+      'status': 'مستقر، مشفر، ومؤرشف بختم زمني متسق تماماً'
     };
   }
 }

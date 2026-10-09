@@ -18,7 +18,9 @@ class VocabularyItem {
   final String grammaticalValency;
   final String pragmaticScenario;
   final String cognateNote;
-  final String morphologicalTree; // أشجار الجذور المرفولوجية والاشتقاق المقارن
+  final String morphologicalTree;
+  final String morphophonemicBridge;
+  final String politenessRegister; // مؤشر مستويات الخطاب والطبقات الاجتماعية (رسمي، مهني، يومي)
 
   VocabularyItem({
     required this.word,
@@ -41,6 +43,8 @@ class VocabularyItem {
     this.pragmaticScenario = '',
     this.cognateNote = '',
     this.morphologicalTree = '',
+    this.morphophonemicBridge = '',
+    this.politenessRegister = 'محايد / يومي',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -94,6 +98,8 @@ class VocabularyItem {
       pragmaticScenario: pragmaticScenario,
       cognateNote: cognateNote,
       morphologicalTree: morphologicalTree,
+      morphophonemicBridge: morphophonemicBridge,
+      politenessRegister: politenessRegister,
     );
   }
 
@@ -119,6 +125,8 @@ class VocabularyItem {
       'pragmaticScenario': pragmaticScenario,
       'cognateNote': cognateNote,
       'morphologicalTree': morphologicalTree,
+      'morphophonemicBridge': morphophonemicBridge,
+      'politenessRegister': politenessRegister,
     };
   }
 
@@ -144,6 +152,8 @@ class VocabularyItem {
       pragmaticScenario: json['pragmaticScenario'] as String? ?? '',
       cognateNote: json['cognateNote'] as String? ?? '',
       morphologicalTree: json['morphologicalTree'] as String? ?? '',
+      morphophonemicBridge: json['morphophonemicBridge'] as String? ?? '',
+      politenessRegister: json['politenessRegister'] as String? ?? 'محايد / يومي',
     );
   }
 }
