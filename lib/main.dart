@@ -8,6 +8,11 @@ import 'core/app_master_engine.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // إقلاع مرن غير متزامن يضمن عدم تجميد واجهة المستخدم
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
+
   runApp(const DeutschBiLarabiApp());
 }
 

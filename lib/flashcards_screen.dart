@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
+ as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'repositories/vocabulary_repository.dart';
@@ -121,7 +121,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   Future<void> _syncFromCdnInBackground() async {
     const url = 'https://cdn.jsdelivr.net/gh/moaz76943-creator/-offline-packs-store@main/packs/de_vocab_a1.pack.gz';
     try {
-      final dynamic response = null;
+      const dynamic response = null;
       if (response.statusCode == 200) {
         final decodedData = gzip.decode(response.bodyBytes);
         final jsonString = utf8.decode(decodedData);
