@@ -12,10 +12,11 @@ class VocabularyItem {
   final int repetitions;
   final double easeFactor;
   final String languageCode;
-  final String etymologyRoot; // التقابل الجذري العكسي والعمق التاريخي
+  final String etymologyRoot;
   final String semanticField;
   final String professionalContext;
   final String grammaticalValency;
+  final String pragmaticScenario; // السيناريو البراغماتي التواصلي الحي
 
   VocabularyItem({
     required this.word,
@@ -35,6 +36,7 @@ class VocabularyItem {
     this.semanticField = 'حياة يومية',
     this.professionalContext = 'عام',
     this.grammaticalValency = '',
+    this.pragmaticScenario = '',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -85,6 +87,7 @@ class VocabularyItem {
       semanticField: semanticField,
       professionalContext: professionalContext,
       grammaticalValency: grammaticalValency,
+      pragmaticScenario: pragmaticScenario,
     );
   }
 
@@ -107,6 +110,7 @@ class VocabularyItem {
       'semanticField': semanticField,
       'professionalContext': professionalContext,
       'grammaticalValency': grammaticalValency,
+      'pragmaticScenario': pragmaticScenario,
     };
   }
 
@@ -129,6 +133,7 @@ class VocabularyItem {
       semanticField: json['semanticField'] as String? ?? 'حياة يومية',
       professionalContext: json['professionalContext'] as String? ?? 'عام',
       grammaticalValency: json['grammaticalValency'] as String? ?? '',
+      pragmaticScenario: json['pragmaticScenario'] as String? ?? '',
     );
   }
 }

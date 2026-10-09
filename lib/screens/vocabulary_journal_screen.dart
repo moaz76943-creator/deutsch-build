@@ -15,6 +15,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _wordController = TextEditingController();
   final TextEditingController _pluralController = TextEditingController();
   final TextEditingController _valencyController = TextEditingController();
+  final TextEditingController _scenarioController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
   
   String _selectedLanguage = 'de';
@@ -70,48 +71,23 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
-  // ملاذ الصمت المعرفي وتفريغ الشحنات (Cognitive Sanctuary & Mental Offloading Space)
   void _showCognitiveSanctuaryDialog() {
-    final TextEditingController offloadController = TextEditingController();
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF0F172A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF38BDF8).withValues(alpha: 0.5))),
         title: const Text('🕊️ ملاذ الصمت المعرفي', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'اكتب هنا أي تشتت فكري، قلق عابر، أو ضغط طارئ لتفريغه من عقلك قبل البدء بجلسة الاستيعاب الكوني:',
-              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: offloadController,
-              maxLines: 3,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: InputDecoration(
-                hintText: 'فرغ شحناتك هنا بهدوء...',
-                hintStyle: const TextStyle(color: Colors.white38),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.05),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-              ),
-            ),
-          ],
+        content: const Text(
+          'أغلق عينيك لسواند.. تذكر أن رحلتك هنا خالية من أي ضغوط رقمية أو مقارنات. استوعب بسلام تام.',
+          style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
         ),
         actions: [
           Center(
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8)),
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🌿 تم تفريغ الشحنات بنجاح. أنت الآن في صفاء ذهني تام.'), backgroundColor: Color(0xFF34D399)),
-                );
-              },
-              child: const Text('تفريغ والدخول بصفاء', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('دخول بصفاء تام', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -132,7 +108,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: '',
         difficultyScore: 1.0,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
-        example: "بنية إعرابية وسياق متكامل.",
+        example: "سيناريو براغماتي وتواصل حي.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
@@ -141,6 +117,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         semanticField: _selectedSemanticField,
         professionalContext: _selectedProfessionalContext,
         grammaticalValency: _valencyController.text.trim(),
+        pragmaticScenario: _scenarioController.text.trim(),
       );
 
       setState(() {
@@ -153,12 +130,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _wordController.clear();
       _pluralController.clear();
       _valencyController.clear();
+      _scenarioController.clear();
       _meaningController.clear();
       
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🌿 تمت إضافة الكتلة مع مصفوفة التحكم الإعرابي بنجاح.'),
+          content: Text('🌿 تمت إضافة الكتلة مع السيناريو البراغماتي بنجاح.'),
           backgroundColor: Color(0xFF34D399),
         ),
       );
@@ -218,6 +196,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     _wordController.dispose();
     _pluralController.dispose();
     _valencyController.dispose();
+    _scenarioController.dispose();
     _meaningController.dispose();
     _flutterTts.stop();
     super.dispose();
@@ -229,7 +208,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة (التحكم الإعرابي والملاذ)'),
+        title: const Text('المفكرة (السيناريوهات البراغماتية)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -288,7 +267,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text('إضافة مفردة بمرتكز إعرابي لـ (${_selectedLanguage.toUpperCase()}):', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('إضافة كتلة بسيناريو براغماتي لـ (${_selectedLanguage.toUpperCase()}):', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       if (_selectedLanguage == 'de') ...[
@@ -320,7 +299,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _wordController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'الكلمة الأساسية أو الفعل...',
+                          hintText: 'الكلمة أو التعبير الأساسي...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -329,10 +308,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                       ),
                       const SizedBox(height: 10),
                       TextField(
-                        controller: _valencyController,
+                        controller: _scenarioController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'التحكم الإعرابي (مثل: Akk / Dat أو Rection)...',
+                          hintText: 'السيناريو البراغماتي (مثل: استشارة صيدلانية / حوار عمل)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -360,7 +339,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ بمرتكز إعرابي', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بالسيناريو البراغماتي', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -378,7 +357,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                 children: const [
                                   Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة.\nأضف أول مفردة بمرتكز إعرابي!', 
+                                  Text('المفكرة هادئة.\nأضف أول سيناريو براغماتي!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -463,9 +442,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    if (item.grammaticalValency.isNotEmpty) ...[
+                                                    if (item.pragmaticScenario.isNotEmpty) ...[
                                                       const SizedBox(height: 2),
-                                                      Text('التحكم الإعرابي: ${item.grammaticalValency}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11)),
+                                                      Text('السيناريو: ${item.pragmaticScenario}', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11)),
                                                     ],
                                                   ],
                                                 ),
