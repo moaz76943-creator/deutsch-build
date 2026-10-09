@@ -5,6 +5,7 @@ import '../design_system/design_system.dart';
 import '../repositories/vocabulary_repository.dart';
 import 'vocabulary_journal_screen.dart';
 import 'focus_quiz_screen.dart';
+import 'db_health_screen.dart';
 
 class BentoHomeScreen extends ConsumerWidget {
   const BentoHomeScreen({super.key});
@@ -32,15 +33,20 @@ class BentoHomeScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'المنظومة الذكية (مع سيادة البيانات والراحة)',
-                          style: TextStyle(color: Colors.white60, fontSize: 12),
+                          'المنظومة الكونية (بدون موسيقى وبسيادة تامة)',
+                          style: TextStyle(color: Colors.white60, fontSize: 11),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.settings_backup_restore_rounded, color: Color(0xFF38BDF8)),
-                      onPressed: () => _showBackupRestoreDialog(context, ref),
-                      tooltip: 'النسخ الاحتياطي والاستعادة',
+                      icon: const Icon(Icons.monitor_heart_rounded, color: Color(0xFF34D399)),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const DbHealthScreen()),
+                        );
+                      },
+                      tooltip: 'صحة البيانات المحلية',
                     ),
                   ],
                 ),
@@ -52,8 +58,8 @@ class BentoHomeScreen extends ConsumerWidget {
                     mainAxisSpacing: 16,
                     children: [
                       _BentoTile(
-                        title: 'المفكرة الاحترافية',
-                        subtitle: 'SM-2 وقواعد Der/Die/Das',
+                        title: 'المفكرة الكونية',
+                        subtitle: 'SM-2 ولغات متعددة',
                         icon: Icons.menu_book_rounded,
                         color: const Color(0xFF38BDF8),
                         onTap: () {
@@ -76,17 +82,17 @@ class BentoHomeScreen extends ConsumerWidget {
                         },
                       ),
                       _BentoTile(
-                        title: 'تنفس واسترخِ',
-                        subtitle: 'إعادة ضبط عصبي سريعة',
-                        icon: Icons.spa_rounded,
+                        title: 'جسر الكلمات المخادعة',
+                        subtitle: 'False Friends & Cognates',
+                        icon: Icons.alt_route_rounded,
                         color: const Color(0xFFF472B6),
                         onTap: () {
-                          _showBreathingDialog(context);
+                          _showFalseFriendsDialog(context);
                         },
                       ),
                       _BentoTile(
                         title: 'لوحة الانتصارات',
-                        subtitle: 'تعزيز الثقة واليقين المعرفي',
+                        subtitle: 'اليقين المعرفي والدوبامين',
                         icon: Icons.star_rounded,
                         color: Colors.amberAccent,
                         onTap: () {
@@ -104,100 +110,29 @@ class BentoHomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showBreathingDialog(BuildContext context) {
+  void _showFalseFriendsDialog(BuildContext context) {
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('🧘 استراحة التنفس العصبي', style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.air_rounded, size: 64, color: Color(0xFF34D399)),
-            SizedBox(height: 16),
-            Text(
-              'خذ شهيقاً عميقاً ببطء...\nثم اطلق الزفير بهدوء وسلام.\n\nالدماغ يتعلم بشكل أفضل عندما يكون في حالة استقرار عصبي تام.',
-              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399)),
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('شكراً، شعرت بالهدوء', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBackupRestoreDialog(BuildContext context, WidgetRef ref) async {
-    final repo = VocabularyRepository();
-    final jsonBackup = await repo.exportBackupJson();
-    final TextEditingController importController = TextEditingController();
-
-    if (!context.mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text('💾 النسخ الاحتياطي للبيانات', style: TextStyle(color: Colors.white)),
-        content: SingleChildScrollView(
+        title: const Text('⚠️ جسر الكلمات المخادعة (False Friends)', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: const SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('نسخ كود الاحتياط الحالي (انسخه واحفظه في مكان آمن):', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              const SizedBox(height: 8),
-              SelectableText(
-                jsonBackup,
-                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 10),
-              ),
-              const SizedBox(height: 16),
-              const Text('أو الصق كود النسخ الاحتياطي للاستعادة:', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: importController,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'الصق كود الـ JSON هنا...',
-                  hintStyle: const TextStyle(color: Colors.white38),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                ),
-              ),
+              Text('احذر من الخلط بين الكلمات المتشابهة في اللغات:\n', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              Text('🇩🇪 Gift (ألمانية) = سم ☠️\n🇬🇧 Gift (إنجليزية) = هدية 🎁\n', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 12)),
+              Text('🇩🇪 Become (إنجليزية) = يصبح (Nicht werden!)\n🇩🇪 Bekommen (ألمانية) = يحصل على ✅', style: TextStyle(color: Color(0xFF34D399), fontSize: 12)),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.white60)),
-          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8)),
-            onPressed: () async {
-              if (importController.text.trim().isNotEmpty) {
-                final success = await repo.importBackupJson(importController.text.trim());
-                if (success && context.mounted) {
-                  Navigator.pop(dialogContext);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✨ تمت استعادة البيانات بنجاح تام!')),
-                  );
-                } else if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('⚠️ تنسيق البيانات غير صالح، تحقق من الكود.')),
-                  );
-                }
-              }
-            },
-            child: const Text('استعادة البيانات', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('فهمت التحذير بوعي', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -220,7 +155,7 @@ class BentoHomeScreen extends ConsumerWidget {
               controller: reflectionController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'مثلاً: استوعبت موقع الفعل بدقة اليوم...',
+                hintText: 'مثلاً: تجاوزت الخلط بين Gift و Gift...',
                 hintStyle: const TextStyle(color: Colors.white38),
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.05),

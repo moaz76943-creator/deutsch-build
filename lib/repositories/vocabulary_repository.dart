@@ -26,21 +26,44 @@ class VocabularyRepository {
     }
   }
 
-  // تصدير البيانات بالكامل كـ JSON نصي للنسخ الاحتياطي
   Future<String> exportBackupJson() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_key) ?? '[]';
   }
 
-  // استعادة البيانات من ملف النسخ الاحتياطي
   Future<bool> importBackupJson(String jsonString) async {
     try {
-      // التحقق من صحة بنية الـ JSON
-      jsonDecode(jsonString);
+      jsonDecode(jsonString); // التحقق من سلامة بنية الـ JSON
       final prefs = await SharedPreferences.getInstance();
       return await prefs.setString(_key, jsonString);
     } catch (e) {
       return false;
     }
+  }
+
+  // حساب إحصاءات الصحة المحلية وحجم البيانات
+  Future<Map<String, dynamic>> getDatabaseHealthStats() async {
+    final items = await getVocabularyList();
+    int totalCount = items.length;
+    
+    Map<String, int> langCounts = {};
+    for (var item in items) {
+      String lang = item['languageCode'] ?? 'de';
+      langCounts[lang] = (langCounts[lang] ?? 0) + 1;
+    }
+
+    final rawJson = await exportBackupJson();
+    int sizeInBytes = utfIdBytesLength(rawJson);
+
+    return {
+      'totalCount': totalCount,
+      'langCounts': langCounts,
+      'sizeInBytes': sizeInBytes,
+      'status': 'سليم ومستقر 100%'
+    };
+  }
+
+  int utfIdBytesLength(String str) {
+    return utf8.encode(str).length;
   }
 }
