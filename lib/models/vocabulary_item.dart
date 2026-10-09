@@ -3,7 +3,7 @@ class VocabularyItem {
   final String article;
   final String plural;
   final String preposition;
-  final String collocation;
+  final String collocation; // الكتلة المعجمية أو المتلازمة اللفظية الثابتة
   final String wordFamily;
   final double difficultyScore;
   final String meaning;
@@ -13,7 +13,7 @@ class VocabularyItem {
   final double easeFactor;
   final String languageCode;
   final String etymologyRoot;
-  final String semanticField; // الحقل المعرفي الدلالي (طبي، أكاديمي، حياة يومية، إلخ)
+  final String semanticField;
 
   VocabularyItem({
     required this.word,
@@ -35,30 +35,11 @@ class VocabularyItem {
 
   bool get isReviewDue => interval <= 1;
 
-  String get texturalMnemonic {
-    if (languageCode == 'de') {
-      switch (article.toLowerCase()) {
-        case 'der':
-          return 'مادة صلبة ولامعة (مذكر ألماني)';
-        case 'die':
-          return 'مادة عضوية وناعمة (مؤنث ألماني)';
-        case 'das':
-          return 'مادة هادئة ومستقرة (محايد ألماني)';
-        default:
-          return 'هيكل محايد';
-      }
-    }
-    return 'مفردة كونية دلالية (${languageCode.toUpperCase()})';
-  }
-
-  String get satzklammerVisualization {
-    if (languageCode == 'de') {
-      if (preposition.isNotEmpty) {
-        return 'قوس الجملة: [فعل متصرف] ... [حرف الجر مع ${word}]';
-      }
-      return 'قوس الجملة: [فعل متصرف] ... [${article} ${word} في النهاية]';
-    }
-    return 'هيكل بنيوي متناسق (${languageCode.toUpperCase()})';
+  // التوزيع الكروماتيكي حسب عائلة اللغات
+  String get languageFamilyGroup {
+    if (languageCode == 'de' || languageCode == 'en') return 'جرمانية';
+    if (languageCode == 'fr' || languageCode == 'es') return 'رومانسية';
+    return 'كونية عامة';
   }
 
   VocabularyItem calculateSm2(int quality) {
