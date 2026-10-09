@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:path_provider/path_provider.dart';
 import '../design_system/design_system.dart';
 import '../repositories/vocabulary_repository.dart';
 import '../models/vocabulary_item.dart';
@@ -47,7 +45,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _speakWord(String textToSpeak) async {
-    HapticFeedback.lightImpact();
+    HapticFeedback.lightImpact(); // نبضة لمسية خفيفة عند الاستماع
     await _flutterTts.stop();
     await _flutterTts.speak(textToSpeak);
   }
@@ -64,7 +62,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _addItem() async {
     if (_wordController.text.trim().isNotEmpty) {
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact(); // نبضة لمسية قوية ومرضية عند الحفظ الناجح
 
       final newItem = VocabularyItem(
         word: _wordController.text.trim(),
@@ -75,7 +73,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: _wordFamilyController.text.trim(),
         difficultyScore: _currentDifficulty,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي",
-        example: "مفردة مهيكلة بـ SM-2 ومدمجة بنظام طاقة الدماغ.",
+        example: "مفردة مهيكلة بـ SM-2 والترميز المادي.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
@@ -101,7 +99,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🌱 تمت الإضافة بنجاح وتحديث الحصاد المعرفي بهدوء.'),
+            content: Text('🌿 تمت الإضافة بنجاح وتفعيل الترميز المادي للأداة.'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -110,7 +108,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _reviewItemSm2(int index, int quality) async {
-    HapticFeedback.mediumImpact();
+    HapticFeedback.mediumImpact(); // نبضة لمسية متوسطة عند التقييم
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
     });
@@ -120,7 +118,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⏱️ تم جدولة المراجعة القادمة بعد ${_journalItems[index].interval} أيام بناءً على أداء ذاكرتك.'),
+          content: Text('⏱️ تم جدولة المراجعة بعد ${_journalItems[index].interval} أيام.'),
           backgroundColor: const Color(0xFF38BDF8),
           duration: const Duration(seconds: 1),
         ),
@@ -129,46 +127,12 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _deleteItem(int index) async {
-    HapticFeedback.lightImpact();
+    HapticFeedback.selectionClick(); // نبضة خفيفة عند الحذف الهادئ
     setState(() {
       _journalItems.removeAt(index);
     });
     final rawList = _journalItems.map((e) => e.toJson()).toList();
     await _repository.saveVocabularyList(rawList);
-  }
-
-  // تصدير المفردات إلى ملف نصي محلي جاهز للاستيراد في Anki
-  Future<void> _exportAnkiFile() async {
-    HapticFeedback.mediumImpact();
-    try {
-      final buffer = StringBuffer();
-      for (var item in _journalItems) {
-        buffer.writeln('${item.article} ${item.word}\t${item.meaning}\tPl: ${item.plural}\tPrp: ${item.preposition}\tCol: ${item.collocation}\tFamily: ${item.wordFamily}');
-      }
-
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/deutsch_anki_deck.txt');
-      await file.writeAsString(buffer.toString());
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('📁 تم حفظ ملف Anki بنجاح في:\n${file.path}'),
-            backgroundColor: const Color(0xFF34D399),
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⚠️ تعذر حفظ الملف المحلي، يجدر التحقق من الصلاحيات.'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    }
   }
 
   Color _getArticleColor(String article) {
@@ -203,16 +167,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الاحترافية (تصدير ملف Anki)'),
+        title: const Text('المفكرة الاحترافية (التسلسل اللمسي والترميز)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.folder_shared_rounded, color: Color(0xFF38BDF8)),
-            onPressed: _exportAnkiFile,
-            tooltip: 'تصدير كملف نصي لبرنامج Anki',
-          ),
-        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -237,9 +194,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          const Text('🌿 حصادك المعرفي التراكمي', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
+                          const Text('✨ حصادك المعرفي التراكمي', style: TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 2),
-                          Text('${_journalItems.length} مفردة ألمانية منظمة بسلام', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                          Text('${_journalItems.length} مفردة مهيكلة حسياً وعصبياً', style: const TextStyle(color: Colors.white70, fontSize: 11)),
                         ],
                       ),
                       DropdownButton<String>(
@@ -266,7 +223,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة مفردة جديدة:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة مع الترميز المادي:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       Row(
@@ -372,13 +329,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ بجدولة SM-2 الذكية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ في المفكرة بنبضة حسية', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text('السجل الخوارزمي (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('السجل المعرفي المطور (${visibleItems.length} عنصر):', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -388,9 +345,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.spa_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.fingerprint_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة تماماً.\nأضف مفردة لنبدأ الحصاد!', 
+                                  Text('المفكرة هادئة تماماً.\nأضف مفردة لتشعر بالتسلسل اللمسي!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -410,7 +367,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   onDismissed: (direction) {
                                     _deleteItem(index);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تم إزالة المفردة بهدوء.')),
+                                      const SnackBar(content: Text('تمت إزالة المفردة بهدوء تام.')),
                                     );
                                   },
                                   background: Container(
@@ -436,7 +393,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                             children: <Widget>[
                                               Container(
                                                 width: 4,
-                                                height: 45,
+                                                height: 55,
                                                 decoration: BoxDecoration(
                                                   color: articleColor,
                                                   borderRadius: BorderRadius.circular(2),
@@ -457,7 +414,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     Text('المعنى: ${item.meaning}', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                                    Text('المراجعة بعد: ${item.interval} أيام', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
+                                                    Text('الترميز المادي: ${item.texturalMnemonic}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 11)),
                                                   ],
                                                 ),
                                               ),

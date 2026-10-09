@@ -8,11 +8,9 @@ class VocabularyItem {
   final double difficultyScore;
   final String meaning;
   final String example;
-  
-  // حقول خوارزمية SM-2 للتكرار المتباعد الذكي
-  final int interval;      // الأيام الفاصلة للمراجعة القادمة
-  final int repetitions;   // عدد مرات التذكر الناجح المتتالية
-  final double easeFactor; // معامل سهولة الكلمة (يبدأ بـ 2.5)
+  final int interval;
+  final int repetitions;
+  final double easeFactor;
 
   VocabularyItem({
     required this.word,
@@ -29,9 +27,21 @@ class VocabularyItem {
     this.easeFactor = 2.5,
   });
 
-  // حساب التحديث التالي وفق خوارزمية SuperMemo SM-2 الرياضية
+  // دالة تصف الخصائص المادية الحسية لأداة التعريف لتثبيت الذاكرة العصبية
+  String get texturalMnemonic {
+    switch (article.toLowerCase()) {
+      case 'der':
+        return 'مادة صلبة ولامعة (صلابة وبنية واضحة)';
+      case 'die':
+        return 'مادة عضوية وناعمة (حياة وانسيابية)';
+      case 'das':
+        return 'مادة هادئة ومستقرة (سكون وتوازن)';
+      else:
+        return 'هيكل محايد';
+    }
+  }
+
   VocabularyItem calculateSm2(int quality) {
-    // quality: من 0 (نسيت تماماً) إلى 5 (تذكرت بامتياز وسهولة)
     double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
 
