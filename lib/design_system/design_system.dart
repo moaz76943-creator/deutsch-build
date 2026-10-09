@@ -3,9 +3,6 @@ export 'app_typography.dart';
 export '../core/app_haptics.dart';
 
 class AppGradients {
-  static const LinearGradient heroSunset = LinearGradient(
-    colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
-  );
   static const LinearGradient purpleCard = LinearGradient(
     colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
   );
@@ -14,6 +11,9 @@ class AppGradients {
   );
   static const LinearGradient darkScaffold = LinearGradient(
     colors: [Color(0xFF000000), Color(0xFF121212)],
+  );
+  static const LinearGradient heroSunset = LinearGradient(
+    colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
   );
 }
 
