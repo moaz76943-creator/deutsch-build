@@ -1,3 +1,4 @@
+import 'flashcards_screen.dart';
 import 'package:flutter/material.dart';
 import 'repositories/vocabulary_repository.dart';
 import 'services/language_pack_manager.dart';
@@ -10,7 +11,7 @@ void main() async {
 }
 
 class DeutschBiLarabiApp extends StatelessWidget {
-  const DeutschBiLarabiApp({Key? key}) : super(key: key);
+  const DeutschBiLarabiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +23,13 @@ class DeutschBiLarabiApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         fontFamily: 'Roboto',
       ),
-      home: const DashboardScreen(),
+      home: const FlashcardsScreen(),
     );
   }
 }
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -83,7 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.analytics_outlined),
             onPressed: () {
-              showDialog(
+              showDialog<void>(
                 context: context,
                 builder: (_) => AlertDialog(
                   title: const Text('تقرير الحوكمة والأداء الشامل'),
@@ -142,10 +143,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         padding: const EdgeInsets.all(12),
                         itemBuilder: (context, index) {
                           final item = _vocabularyList[index];
-                          final word = item['word'] ?? '';
-                          final article = item['article'] ?? '';
-                          final meaning = item['meaning'] ?? '';
-                          final field = item['semanticField'] ?? 'صيدلة وطب';
+                          final String word = item['word']?.toString() ?? '';
+                          final String article = item['article']?.toString() ?? '';
+                          final String meaning = item['meaning']?.toString() ?? '';
+                          final String field = item['semanticField']?.toString() ?? '';
 
                           return Card(
                             elevation: 2,
@@ -168,7 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   const SizedBox(height: 4),
                                   Chip(
                                     label: Text(field, style: const TextStyle(fontSize: 11, color: Colors.indigo)),
-                                    backgroundColor: Colors.indigo.withOpacity(0.08),
+                                    backgroundColor: Colors.indigo.withValues(alpha: 0.08),
                                     padding: EdgeInsets.zero,
                                   ),
                                 ],
@@ -180,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   final scenario = ContextualScenarioSynthesizer.generateMicroScenario(word, field);
                                   final sDetails = scenario['scenario'] as Map<String, dynamic>;
                                   
-                                  showModalBottomSheet(
+                                  showModalBottomSheet<void>(
                                     context: context,
                                     shape: const RoundedRectangleBorder(
                                       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -201,7 +202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           const SizedBox(height: 12),
                                           Container(
                                             padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(color: Colors.amber.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                                            decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                                             child: Text('قاعدة نحوية: ${sDetails['grammarFocus']}', style: const TextStyle(fontSize: 12)),
                                           ),
                                         ],
