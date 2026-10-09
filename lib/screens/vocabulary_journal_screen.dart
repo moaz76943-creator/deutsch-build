@@ -13,6 +13,7 @@ class VocabularyJournalScreen extends StatefulWidget {
 class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _wordController = TextEditingController();
   final TextEditingController _pluralController = TextEditingController();
+  final TextEditingController _prepositionController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
   String _selectedArticle = 'der';
   
@@ -40,25 +41,27 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
       final articleWord = '$_selectedArticle ${_wordController.text.trim()}';
       final pluralForm = _pluralController.text.trim().isNotEmpty ? ' (Pl: ${_pluralController.text.trim()})' : '';
-      final fullEntry = '$articleWord$pluralForm';
+      final prepForm = _prepositionController.text.trim().isNotEmpty ? ' [Prp: ${_prepositionController.text.trim()}]' : '';
+      final fullEntry = '$articleWord$pluralForm$prepForm';
 
       setState(() {
         _journalItems.insert(0, {
           "word": fullEntry,
-          "meaning": _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي مدمج",
-          "example": "خطوة موفقة! استمر بهدوء وبدون استعجال." // دعم نفسي تشجيعي
+          "meaning": _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى أكاديمي متقدم",
+          "example": "خذ وقتك، كل خطوة صغيرة تثبت معلوماتك بعمق." // دعم نفسي للحد من الحمل المعرفي
         });
       });
       
       final success = await _repository.saveVocabularyList(_journalItems);
       _wordController.clear();
       _pluralController.clear();
+      _prepositionController.clear();
       _meaningController.clear();
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✨ أحسنت! خطوة صغيرة إضافية تقربك لإتقان الألمانية بنجاح.'),
+            content: Text('🌱 ممتاز! أضفت قاعدة نحوية جديدة لسجلك الأكاديمي بهدوء.'),
             backgroundColor: Color(0xFF34D399),
           ),
         );
@@ -70,7 +73,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة الأكاديمية (مع صيغة الجمع الدقيقة)'),
+        title: const Text('المفكرة الشاملة (الأداة، الجمع وحرف الجر)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -83,7 +86,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                // رسالة نفسية هادئة تشجع المتعلم دون ضغط
+                // إطار دعم نفسي هادئ لتخفيف القلق المعرفي
                 Container(
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 12),
@@ -93,7 +96,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                     border: Border.all(color: Colors.white10),
                   ),
                   child: const Text(
-                    '🧠 نصيحة نفسية: التعلم المستدام والهادئ بكلمات قليلة يومياً أفضل بكثير من الحشو المكثف.',
+                    '🧘 مساحة مريحة: لا داعي للسرعة، تذكر أن التعلم الحقيقي يحدث بالاستمرارية الهادئة بعيداً عن التوتر.',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
@@ -102,7 +105,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const Text('إضافة كلمة جديدة بالأداة وصيغة الجمع الأكاديمية:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('إضافة مفردة بأعلى المعايير الأكاديمية:', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       
                       // اختيار الجنس الأكاديمي Der / Die / Das
@@ -133,7 +136,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _wordController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'الكلمة الأساسية (مثل: Buch)...',
+                          hintText: 'الكلمة الأساسية (مثل: Warten)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -145,7 +148,19 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _pluralController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'صيغة الجمع (مثل: Bücher)...',
+                          hintText: 'صيغة الجمع (إن وجدت)...',
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _prepositionController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'حرف الجر المرتبط (مثل: auf + Akkusativ)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -157,7 +172,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                         controller: _meaningController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'المعنى بالعربي (مثل: كتاب)...',
+                          hintText: 'المعنى بالعربي (مثل: ينتظر)...',
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
@@ -173,13 +188,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ الكلمة بصيغتها الأكاديمية', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ في السجل الأكاديمي المتقدم', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('سجل المفردات المحفوظة:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('سجل المفردات الأكاديمية:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Expanded(
                   child: _isLoading
@@ -189,9 +204,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.spa_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.psychology_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة وفارغة.\nابدأ بإضافة أول كلمة بجنسها وصيغة جمعها!', 
+                                  Text('المفكرة هادئة ومنظمة.\nأضف أول مفردة بأداتها وحرف جرها!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),
@@ -213,7 +228,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                         const SizedBox(height: 4),
                                         Text('المعنى: ${item['meaning']}', style: const TextStyle(color: Colors.white, fontSize: 14)),
                                         const SizedBox(height: 2),
-                                        Text('ملاحظة: ${item['example']}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
+                                        Text('توجيه نفسي: ${item['example']}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
                                       ],
                                     ),
                                   ),
