@@ -27,7 +27,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   double _currentDifficulty = 1.0;
   
   String _userEnergyState = 'منعش ومستعد (جلسة كاملة)';
-  int _consecutiveHardCount = 0; // لمراقبة الحمل المعرفي
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -75,28 +74,64 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     }
   }
 
-  // موازن الحمل المعرفي التلقائي (Cognitive Load Auto-Balancing)
-  void _checkCognitiveLoad(int quality) {
-    if (quality <= 1) {
-      _consecutiveHardCount++;
-      if (_consecutiveHardCount >= 2) {
-        _consecutiveHardCount = 0;
-        if (mounted) {
-          setState(() {
-            _userEnergyState = 'متعب (جلسة خفيفة سريعة)';
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚖️ موازن الحمل المعرفي: تم تقليص حجم الجلسة تلقائياً لراحتك العصبية.'),
-              backgroundColor: Color(0xFF38BDF8),
-              duration: Duration(seconds: 4),
+  // عرض درع الثبات النفسي (Imposter Shield) عند الطلب أو الحاجة
+  void _showPlateauShieldDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF38BDF8).withValues(alpha: 0.5))),
+        title: const Text('🛡️ درع الثبات المعرفي', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'هل تشعر أحياناً بأن تقدمك بطيء أو أن الكلمات تتداخل؟\n\n'
+          'علمياً ونفسياً: مرحلة الثبات (Language Plateau) ليست توقفاً، بل هي فترة إعادة ترتيب عميق في الذاكرة طويلة المدى وتثبيت عصبي حقيقي. أنت تسير في الطريق الصحيح تماماً!',
+          style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8)),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('شكراً، اطمأن قلبي', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
-          );
-        }
-      }
-    } else {
-      _consecutiveHardCount = 0;
-    }
+          ),
+        ],
+      ),
+    );
+  }
+
+  // عرض نافذة تصدير Anki
+  void _showAnkiExportDialog() async {
+    final tsvData = await _repository.exportAnkiTsv();
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        title: const Text('📦 تصدير الحصاد إلى Anki', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('انسخ هذا الكود والصقه في ملف نصي (.txt) ثم استورده في برنامج Anki مباشرة:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const SizedBox(height: 10),
+              SelectableText(
+                tsvData.isEmpty ? 'لا توجد مفردات للتصدير حالياً.' : tsvData,
+                style: const TextStyle(color: Color(0xFF34D399), fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.white60)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _addItem() async {
@@ -112,7 +147,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         wordFamily: _wordFamilyController.text.trim(),
         difficultyScore: _currentDifficulty,
         meaning: _meaningController.text.trim().isNotEmpty ? _meaningController.text.trim() : "معنى دلالي",
-        example: "مفردة مصنفة ضمن الحقل الدلالي.",
+        example: "مفردة مهيكلة.",
         interval: 0,
         repetitions: 0,
         easeFactor: 2.5,
@@ -142,7 +177,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🌿 تمت إضافة المفردة وتصنيفها في الحقل المعرفي بنجاح.'),
+          content: Text('🌿 تمت إضافة المفردة بنجاح وتفعيل درع الثبات.'),
           backgroundColor: Color(0xFF34D399),
         ),
       );
@@ -151,8 +186,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
   Future<void> _reviewItemSm2(int index, int quality) async {
     HapticFeedback.mediumImpact();
-    _checkCognitiveLoad(quality);
-
     setState(() {
       _journalItems[index] = _journalItems[index].calculateSm2(quality);
     });
@@ -211,9 +244,21 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المفكرة (الحقول المعرفية وموازن الحمل)'),
+        title: const Text('المفكرة (تصدير Anki ودعامات الثبات)'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shield_rounded, color: Color(0xFF38BDF8)),
+            onPressed: _showPlateauShieldDialog,
+            tooltip: 'درع الثبات النفسي',
+          ),
+          IconButton(
+            icon: const Icon(Icons.import_export_rounded, color: Color(0xFF34D399)),
+            onPressed: _showAnkiExportDialog,
+            tooltip: 'تصدير إلى Anki',
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -351,7 +396,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _addItem,
-                        child: const Text('حفظ بالحقل المعرفي', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('حفظ بجدولة SM-2', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -367,9 +412,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
-                                  Icon(Icons.folder_special_rounded, size: 48, color: Colors.white38),
+                                  Icon(Icons.style_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
-                                  Text('المفكرة هادئة.\nأضف أول مفردة بحقلها المعرفي!', 
+                                  Text('المفكرة هادئة.\nأضف مفردة لتصديرها لـ Anki!', 
                                     style: TextStyle(color: Colors.white60, fontSize: 14), 
                                     textAlign: TextAlign.center,
                                   ),

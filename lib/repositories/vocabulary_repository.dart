@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class VocabularyRepository {
-  static const String _key = 'vocabulary_items_v3'; // ترقية الإصدار المعماري للبيانات
+  static const String _key = 'vocabulary_items_v3';
   static const String _legacyKey = 'vocabulary_items_v2';
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // عملية الترحيل التلقائي (Schema Migration) من الإصدار القديم إن وجد
       if (!prefs.containsKey(_key) && prefs.containsKey(_legacyKey)) {
         final legacyData = prefs.getString(_legacyKey);
         if (legacyData != null) {
@@ -41,6 +40,18 @@ class VocabularyRepository {
     return prefs.getString(_key) ?? '[]';
   }
 
+  // تصدير البيانات بتنسيق Anki المتوافق (Tab-Separated Values: Front \t Back)
+  Future<String> exportAnkiTsv() async {
+    final items = await getVocabularyList();
+    StringBuffer buffer = StringBuffer();
+    for (var item in items) {
+      String front = item['languageCode'] == 'de' ? '${item['article']} ${item['word']}' : item['word'];
+      String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
+      buffer.write('$front\t$back\n');
+    }
+    return buffer.toString();
+  }
+
   Future<bool> importBackupJson(String jsonString) async {
     try {
       jsonDecode(jsonString);
@@ -68,7 +79,7 @@ class VocabularyRepository {
       'totalCount': totalCount,
       'langCounts': langCounts,
       'sizeInBytes': sizeInBytes,
-      'status': 'مرحل ومستقر (Schema v3)'
+      'status': 'مستقر ومجهز لتصدير Anki'
     };
   }
 }
