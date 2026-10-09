@@ -82,7 +82,7 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.between,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                                     Container(

@@ -203,3 +203,17 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
     );
   }
 }
+
+class WordDeepDiveSheet extends StatelessWidget {
+  final Map<String, dynamic> wordData;
+  const WordDeepDiveSheet({super.key, required this.wordData});
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+
+class ArticleBadge extends StatelessWidget {
+  final String article;
+  const ArticleBadge({super.key, required this.article});
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}

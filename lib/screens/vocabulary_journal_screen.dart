@@ -8,7 +8,7 @@ class VocabularyJournalScreen extends StatefulWidget {
   const VocabularyJournalScreen({super.key});
 
   @override
-  State<VocabularyJournalScreen> createState() => _VocabularyJournalScreenState();
+  State<VocabularyJournalScreen> createState() =>> _VocabularyJournalScreenState();
 }
 
 class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
@@ -456,7 +456,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8)),
-                                                onPressed: () => _speakWord(fullTextToSpeak, item.languageCode),
+                                                onPressed: () =>> _speakWord(fullTextToSpeak, item.languageCode),
                                                 tooltip: 'نطق صوتي',
                                               ),
                                             ],
@@ -469,17 +469,17 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                               const SizedBox(width: 8),
                                               TextButton(
                                                 style: TextButton.styleFrom(foregroundColor: Colors.orangeAccent, padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                                onPressed: () => _reviewItemSm2(index, 1),
+                                                onPressed: () =>> _reviewItemSm2(index, 1),
                                                 child: const Text('تحفيز نمو', style: TextStyle(fontSize: 12)),
                                               ),
                                               TextButton(
                                                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF38BDF8), padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                                onPressed: () => _reviewItemSm2(index, 4),
+                                                onPressed: () =>> _reviewItemSm2(index, 4),
                                                 child: const Text('جيد', style: TextStyle(fontSize: 12)),
                                               ),
                                               TextButton(
                                                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF34D399), padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                                onPressed: () => _reviewItemSm2(index, 5),
+                                                onPressed: () =>> _reviewItemSm2(index, 5),
                                                 child: const Text('تثبيت عميق', style: TextStyle(fontSize: 12)),
                                               ),
                                             ],

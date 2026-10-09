@@ -43,3 +43,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 }
+
+class NavBarItemData {
+  final IconData icon;
+  final String label;
+  NavBarItemData({required this.icon, required this.label});
+}
