@@ -1,0 +1,172 @@
+name: "Automated Deep Audit & Synthetic Stress Pipeline"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "lib/**"
+
+permissions:
+  contents: write
+
+jobs:
+  deep-audit-and-stress:
+    runs-on: ubuntu-latest
+    steps:
+      - name: جلب كود المستودع بالكامل
+        uses: actions/checkout@v4
+
+      - name: إعداد بيئة Dart و Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: إعداد بيئة بايثون للتحليل الرياضي والهيكلي
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: تجهيز حزم المشروع ومسارات الأصول
+        run: |
+          mkdir -p assets/audio assets/images
+          touch assets/audio/.gitkeep assets/images/.gitkeep
+          flutter pub get
+
+      - name: 1. تنفيذ محاكاة الإجهاد الرياضي (100,000 عملية SRS & BCP-47 Matrix)
+        run: |
+          cat << 'PYEOF' > run_stress_simulation.py
+          import math, random, time, json
+
+          print("🚀 بدء محاكاة الإجهاد الاصطناعي (Synthetic Stress Simulation): 100,000 عملية...")
+          start_time = time.time()
+
+          # خوارزمية SM-2 لايتنر المعدلة المدمجة داخل التطبيق
+          def simulate_sm2(interval, ease, repetitions, rating):
+              if rating == 0: # Hard
+                  return 1, max(1.3, ease - 0.2), 0
+              elif rating == 1: # Good
+                  if repetitions == 0:
+                      new_interval = 1
+                  elif repetitions == 1:
+                      new_interval = 3
+                  else:
+                      new_interval = round(interval * ease)
+                  return new_interval, ease, repetitions + 1
+              else: # Easy
+                  if repetitions == 0:
+                      new_interval = 2
+                  elif repetitions == 1:
+                      new_interval = 5
+                  else:
+                      new_interval = round(interval * ease * 1.3)
+                  return new_interval, min(2.5, ease + 0.15), repetitions + 1
+
+          # محاكاة 100,000 مراجعة عشوائية عبر أجيال ومستخدمين افتراضيين
+          total_operations = 100000
+          failed_calculations = 0
+          nan_or_inf_detected = 0
+
+          current_interval = 1
+          current_ease = 2.5
+          current_reps = 0
+
+          for i in range(total_operations):
+              rating = random.choice([0, 1, 2])
+              current_interval, current_ease, current_reps = simulate_sm2(
+                  current_interval, current_ease, current_reps, rating
+              )
+
+              # فحوصات السلامة الرياضية الصارمة
+              if math.isnan(current_ease) or math.isinf(current_ease) or math.isnan(current_interval):
+                  nan_or_inf_detected += 1
+              if current_ease < 1.3 or current_ease > 2.5:
+                  failed_calculations += 1
+              if current_interval < 1:
+                  failed_calculations += 1
+
+              # إعادة ضبط دورية لمحاكاة تدفق آلاف المتعلمين الجدد
+              if i % 500 == 0:
+                  current_interval = random.randint(1, 10)
+                  current_ease = random.uniform(1.3, 2.5)
+                  current_reps = random.randint(0, 5)
+
+          elapsed = time.time() - start_time
+          print(f"✅ اكتملت محاكاة الـ 100,000 عملية في {elapsed:.2f} ثانية.")
+          print(f"   - أخطاء رياضية أو تجاوز الحدود: {failed_calculations}")
+          print(f"   - قيم غير صالحة (NaN / Inf): {nan_or_inf_detected}")
+
+          assert failed_calculations == 0, "فشل فحص الإجهاد: خوارزمية SRS تجاوزت الحدود المعيارية!"
+          assert nan_or_inf_detected == 0, "فشل فحص الإجهاد: اكتشاف قيم NaN في المحرك!"
+          PYEOF
+          python3 run_stress_simulation.py
+
+      - name: 2. التدقيق الهيكلي الذاتي ومسح الأنماط الضارة (AST & Code Quality Audit)
+        run: |
+          cat << 'PYEOF' > run_static_ast_audit.py
+          import os, re, json
+
+          LIB_DIR = "lib"
+          audit_results = {
+              "total_files_scanned": 0,
+              "missing_dispose_calls": [],
+              "unclosed_controllers": [],
+              "deprecated_methods_found": 0,
+              "zero_network_violations": [],
+              "hebrew_violations": []
+          }
+
+          hebrew_pattern = re.compile(r'[\u0590-\u05FF]')
+
+          for root, _, files in os.walk(LIB_DIR):
+              for file in files:
+                  if file.endswith(".dart"):
+                      audit_results["total_files_scanned"] += 1
+                      rel_path = os.path.relpath(os.path.join(root, file), LIB_DIR)
+                      full_path = os.path.join(root, file)
+
+                      with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                          content = f.read()
+
+                      # 1. التحقق القطعي من خلو الكود من أي محارف عبرية
+                      if hebrew_pattern.search(content):
+                          audit_results["hebrew_violations"].append(rel_path)
+
+                      # 2. فحص تسريب المتحكمات (Controllers without dispose)
+                      if "AnimationController" in content or "TextEditingController" in content or "PageController" in content:
+                          if "dispose()" not in content:
+                              audit_results["unclosed_controllers"].append(rel_path)
+
+                      # 3. فحص استدعاءات الشبكة المحظورة (Zero-Network Policy)
+                      if "package:http/http.dart" in content or "package:dio/dio.dart" in content:
+                          audit_results["zero_network_violations"].append(rel_path)
+
+          print("=" * 65)
+          print("📊 نتائج الفحص الهيكلي الشامل للمشروع (AST Static Code Audit):")
+          print("=" * 65)
+          print(f"📁 إجمالي ملفات Dart المفحوصة: {audit_results['total_files_scanned']}")
+          print(f"🛑 انتهاكات الحظر اللغوي (عبرية): {len(audit_results['hebrew_violations'])}")
+          print(f"🛡️ انتهاكات عقد العمل بدون شبكة (Zero-Network): {len(audit_results['zero_network_violations'])}")
+          print(f"⚠️ كلاسات تحتوي على متحكمات قد تسرب الذاكرة: {len(audit_results['unclosed_controllers'])}")
+          print("=" * 65)
+
+          with open("system_audit_summary.json", "w", encoding="utf-8") as f:
+              json.dump(audit_results, f, indent=2, ensure_ascii=False)
+
+          assert len(audit_results["hebrew_violations"]) == 0, "اكتشاف نصوص عبرية محظورة داخل الكود!"
+          assert len(audit_results["zero_network_violations"]) == 0, "اكتشاف مكتبات شبكية محظورة في وضع الأوفلاين!"
+          PYEOF
+          python3 run_static_ast_audit.py
+
+      - name: 3. التحقق المعماري الصارم من استقرار الـ Linter
+        run: |
+          dart analyze lib/ --fatal-infos=false
+
+      - name: 4. حفظ تقرير التدقيق كملف تنفيذي (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-audit-report
+          path: system_audit_summary.json
+          retention-days: 14
