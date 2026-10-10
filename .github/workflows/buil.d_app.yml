@@ -31,6 +31,55 @@ jobs:
           touch assets/audio/.gitkeep assets/images/.gitkeep
           flutter pub get
 
+      - name: تجهيز مفتاح التوقيع الرقمي (Release Keystore & Gradle Config)
+        run: |
+          mkdir -p "$HOME/.gradle"
+
+          # 1. تشغيل سكربت التوقيع إن وُجد
+          if [ -f "scripts/local-release.sh" ]; then
+            chmod +x scripts/local-release.sh
+            bash scripts/local-release.sh || true
+          fi
+
+          # 2. إنشاء المفتاح الرقمي في المسار المطلوب بالكامل
+          if [ ! -f "$HOME/.gradle/release-key.jks" ]; then
+            keytool -genkeypair -v \
+              -keystore "$HOME/.gradle/release-key.jks" \
+              -alias releaseKey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO"
+          fi
+
+          # 3. تزويد جرادل بخصائص التوقيع المطلوبة
+          cat << 'EOF' > "$HOME/.gradle/gradle.properties"
+          releaseKeystoreFile=/home/runner/.gradle/release-key.jks
+          releaseKeyAlias=releaseKey
+          releaseKeyPassword=android
+          releaseKeystorePassword=android
+          EOF
+
+          cat << 'EOF' >> "android/gradle.properties"
+          releaseKeystoreFile=/home/runner/.gradle/release-key.jks
+          releaseKeyAlias=releaseKey
+          releaseKeyPassword=android
+          releaseKeystorePassword=android
+          EOF
+
+          cat << 'EOF' > "android/key.properties"
+          releaseKeystoreFile=/home/runner/.gradle/release-key.jks
+          releaseKeyAlias=releaseKey
+          releaseKeyPassword=android
+          releaseKeystorePassword=android
+          storeFile=/home/runner/.gradle/release-key.jks
+          keyAlias=releaseKey
+          keyPassword=android
+          storePassword=android
+          EOF
+
       - name: تجميع وبناء ملف الـ APK (Release)
         run: |
           flutter build apk --release
