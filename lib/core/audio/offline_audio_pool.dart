@@ -9,13 +9,28 @@ class OfflineAudioPool {
   bool _isPlaying = false;
   bool get isPlaying => _isPlaying;
 
-  Future<void> playWord(String text, {String locale = 'de-DE'}) async {
+  String _activeLocale = '';
+  double _activeSpeechRate = -1.0;
+
+  Future<void> playWord(
+    String text, {
+    String locale = 'de-DE',
+    double speechRate = 0.45,
+  }) async {
     try {
-      // إيقاف أي صوت جارٍ فوراً لمنع التداخل والتشويش
       await _tts.stop();
       _isPlaying = true;
-      await _tts.setLanguage(locale);
-      await _tts.setSpeechRate(0.45);
+
+      // Zero-latency optimization: only update channel state if parameters changed
+      if (_activeLocale != locale) {
+        await _tts.setLanguage(locale);
+        _activeLocale = locale;
+      }
+      if (_activeSpeechRate != speechRate) {
+        await _tts.setSpeechRate(speechRate);
+        _activeSpeechRate = speechRate;
+      }
+
       await _tts.speak(text);
     } catch (_) {
     } finally {
@@ -24,11 +39,9 @@ class OfflineAudioPool {
   }
 
   Future<void> stop() async {
+    try {
+      await _tts.stop();
+    } catch (_) {}
     _isPlaying = false;
-    await _tts.stop();
-  }
-
-  void dispose() {
-    _tts.stop();
   }
 }
