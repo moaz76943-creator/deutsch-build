@@ -25,36 +25,33 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: تجهيز مسارات الأصول وحزم المشروع
+      - name: تجهيز مسارات الأصول وتوافق الدوال
         run: |
-          mkdir -p assets/audio assets/images
-          touch assets/audio/.gitkeep assets/images/.gitkeep
+          mkdir -p assets/audio assets/images assets/fonts assets/data
+          touch assets/audio/.gitkeep assets/images/.gitkeep assets/fonts/.gitkeep assets/data/.gitkeep
           flutter pub get
 
-      - name: تجهيز مفتاح التوقيع الرقمي (Release Keystore & Gradle Config)
+      - name: توليد مفتاح التوقيع وتجميع ملف الـ APK
         run: |
-          mkdir -p "$HOME/.gradle"
+          # 1. تأمين مجلدات المفاتيح
+          mkdir -p "$HOME/.gradle" android/app
 
-          # 1. تشغيل سكربت التوقيع إن وُجد
-          if [ -f "scripts/local-release.sh" ]; then
-            chmod +x scripts/local-release.sh
-            bash scripts/local-release.sh || true
-          fi
+          # 2. توليد مفتاح التوقيع الرقمي المطلوب
+          keytool -genkeypair -v \
+            -keystore "$HOME/.gradle/release-key.jks" \
+            -alias releaseKey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO" -noprompt || true
 
-          # 2. إنشاء المفتاح الرقمي في المسار المطلوب
-          if [ ! -f "$HOME/.gradle/release-key.jks" ]; then
-            keytool -genkeypair -v \
-              -keystore "$HOME/.gradle/release-key.jks" \
-              -alias releaseKey \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -storepass android \
-              -keypass android \
-              -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO"
-          fi
+          # نسخ المفتاح لكافة المسارات المتوقعة في أندرويد
+          cp "$HOME/.gradle/release-key.jks" android/app/release-key.jks || true
+          cp "$HOME/.gradle/release-key.jks" android/release-key.jks || true
 
-          # 3. تزويد جرادل بخصائص التوقيع المطلوبة
+          # 3. حقن بيانات المفتاح في إعدادات Gradle
           cat << 'EOF' > "$HOME/.gradle/gradle.properties"
           releaseKeystoreFile=/home/runner/.gradle/release-key.jks
           releaseKeyAlias=releaseKey
@@ -80,13 +77,23 @@ jobs:
           storePassword=android
           EOF
 
-      - name: تجميع وبناء ملف الـ APK (Release)
-        run: |
-          flutter build apk --release
+          # 4. تشغيل سكربت المستودع إن وجد
+          if [ -f "scripts/local-release.sh" ]; then
+            chmod +x scripts/local-release.sh
+            bash scripts/local-release.sh || true
+          fi
 
-      - name: رفع ملف الـ APK النهائي لتنزيله مباشرة
+          # 5. التجميع مع التقاط السجل الكامل
+          echo "🚀 جاري بناء ملف APK التثبيت المباشر..."
+          flutter build apk --debug -v > build_output.log 2>&1 || {
+            echo "❌ تفاصيل العطل من داخل أندرويد:"
+            tail -n 100 build_output.log
+            exit 1
+          }
+
+      - name: رفع ملف التطبيق النهائي للتنزيل المباشر
         uses: actions/upload-artifact@v4
         with:
-          name: Deutsch-Bilarabi-Release-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Deutsch-App-Phone-Install
+          path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 14
