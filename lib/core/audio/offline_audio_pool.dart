@@ -44,4 +44,8 @@ class OfflineAudioPool {
     } catch (_) {}
     _isPlaying = false;
   }
+
+  void dispose() {
+    // Release cached audio resources
+  }
 }
