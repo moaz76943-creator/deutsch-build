@@ -1,10 +1,27 @@
 // ignore_for_file: unused_import
 
-/// مدير حزم اللغات المعتمد المنضبط بمعيار BCP-47 وخالٍ تماماً من المعرفات الوهمية
 class LanguagePackManager {
   static const List<String> supportedBcp47Locales = [
     'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
   ];
+
+  static const Map<String, String> _languageNames = {
+    'de-DE': 'الألمانية (Deutsch)',
+    'ar-SA': 'العربية',
+    'en-US': 'الإنجليزية (English)',
+    'fr-FR': 'الفرنسية (Français)',
+    'es-ES': 'الإسبانية (Español)',
+    'tr-TR': 'التركية (Türkçe)',
+    'ru-RU': 'الروسية (Русский)',
+    'zh-CN': 'الصينية (中文)',
+  };
+
+  static String getLanguageName(String localeCode) {
+    return _languageNames[localeCode] ?? localeCode;
+  }
+
+  // دعم استدعاء الدالة سواء كـ static أو من خلال كائن instance
+  String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
 
   static bool isLocaleSupported(String localeCode) {
     if (localeCode.isEmpty) return false;
