@@ -1,12 +1,12 @@
-name: Megabatch Runner
+name: "Megabatch Runner"
 
 on:
   workflow_dispatch:
     inputs:
       batch_number:
-        description: 'رقم الحزمة'
+        description: "رقم الحزمة"
         required: true
-        default: '2'
+        default: "2"
 
 permissions:
   contents: write
@@ -19,16 +19,14 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           cache: true
 
-      - name: تطبيق الحزمة الثانية (0201-0400: Concurrency, Audio & Workers)
+      - name: "Apply Megabatch 2 - Concurrency and Audio"
         run: |
           mkdir -p lib/core/concurrency lib/core/audio
 
-          # 1. CancellationToken (205, 206, 207)
           cat << 'DART' > lib/core/concurrency/cancellation_token.dart
-          /// رمز إلغاء المهام المتزامنة لمنع تسريب العمليات في الخلفية
           class CancellationToken {
             bool _isCancelled = false;
             final List<void Function()> _listeners = [];
@@ -60,12 +58,10 @@ jobs:
           }
           DART
 
-          # 2. WorkerTask (212, 213, 214)
           cat << 'DART' > lib/core/concurrency/worker_task.dart
           import 'dart:async';
           import 'cancellation_token.dart';
 
-          /// نموذج تنفيذ العمليات المعزولة مع حماية الإلغاء والمهلة الزمنية
           class WorkerTask<T> {
             final String taskId;
             final Future<T> Function(CancellationToken token) execute;
@@ -79,9 +75,7 @@ jobs:
           }
           DART
 
-          # 3. AudioSessionCoordinator (271, 272, 273, 274)
           cat << 'DART' > lib/core/audio/audio_session_coordinator.dart
-          /// منسق جلسات الصوت لمنع تداخل الصوتيات وتدبير التركيز الصوتي
           enum AudioPlaybackState { idle, buffering, playing, paused, ducked, stopped }
 
           class AudioSessionCoordinator {
@@ -119,9 +113,7 @@ jobs:
           }
           DART
 
-          # 4. AudioCacheManifest (288, 289, 290)
           cat << 'DART' > lib/core/audio/audio_cache_manifest.dart
-          /// سجل ملفات الصوت المحلية لضمان العمل أوفلاين والتحقق من سلامة البايتات
           class AudioEntry {
             final String audioKey;
             final String localPath;
@@ -153,17 +145,16 @@ jobs:
           }
           DART
 
-          # فحص سلامة ملفات الحزمة الثانية بدقة صارمة
           dart analyze \
             lib/core/concurrency/cancellation_token.dart \
             lib/core/concurrency/worker_task.dart \
             lib/core/audio/audio_session_coordinator.dart \
             lib/core/audio/audio_cache_manifest.dart
 
-      - name: تثبيت الكود في المستودع
+      - name: "Commit and Push"
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/
-          git commit -m "feat(megabatch-2): concurrency, background workers & audio runtime" || exit 0
+          git commit -m "feat(megabatch-2): concurrency and audio architecture" || exit 0
           git push
