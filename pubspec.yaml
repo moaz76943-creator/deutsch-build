@@ -17,7 +17,7 @@ dependencies:
   path: any
   crypto: ^3.0.7
   http: ^1.6.0
-  cached_network_image: ^4.0.4
+  cached_network_image: ^4.0.3
 
   archive: any
   flutter_animate: any
