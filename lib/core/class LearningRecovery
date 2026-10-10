@@ -1,0 +1,15 @@
+class LearningRecovery {
+  // رصد البطاقات المتعثرة (Leech Cards) بناءً على عدد مرات الخطأ المتكررة
+  static bool isCardLeeched(int repetitionCount, int consecutiveErrors) {
+    // إذا تكررت أخطاء التعلم بشكل متلاحق تتجاوز العتبة المعيارية
+    return consecutiveErrors >= 3 && repetitionCount > 5;
+  }
+
+  // تقديم اقتراح استشاري لتبسيط البطاقة المتعثرة
+  static Map<String, String> getRecoveryStrategy(String lemma) {
+    return {
+      'strategy': 'تجزئة المفهوم',
+      'message': 'الكلمة "$lemma" تتطلب مراجعة أمثلة أبسط أو تجزئة المعنى لسهولة الحفظ.',
+    };
+  }
+}
