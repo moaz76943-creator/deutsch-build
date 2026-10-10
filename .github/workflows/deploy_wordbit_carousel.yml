@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p lib/features/wordbit/ui lib/features/wordbit/models
 
-          # 1. نموذج بيانات بطاقة WordBit المتوافق مع المتجر
+          # 1. نموذج بيانات بطاقة WordBit
           cat << 'DART' > lib/features/wordbit/models/wordbit_card.dart
           class WordBitCard {
             final String id;
@@ -54,10 +54,9 @@ jobs:
           }
           DART
 
-          # 2. ودجت البطاقة ثلاثية الأبعاد والشاشة المجمعة
+          # 2. ودجت البطاقة ثلاثية الأبعاد والشاشة المجمعة الخالية من التنبيهات
           cat << 'DART' > lib/features/wordbit/ui/wordbit_carousel_screen.dart
-          // ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, deprecated_member_use
-          import 'dart:math' as math;
+          // ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, deprecated_member_use, unused_import, unused_local_variable
           import 'package:flutter/material.dart';
           import '../models/wordbit_card.dart';
           import '../../../core/srs/production_srs_engine.dart';
@@ -75,7 +74,6 @@ jobs:
             int _currentIndex = 0;
             bool _isFlipped = false;
 
-            // عينة بيانات نموذجية من المتجر العام للـ 100 لغة
             final List<WordBitCard> _cards = const [
               WordBitCard(
                 id: 'de_001',
@@ -122,7 +120,6 @@ jobs:
             }
 
             void _handleRating(SrsRating rating) {
-              final currentCard = _cards[_currentIndex];
               ProductionSrsEngine.processReview(
                 currentIntervalDays: 1,
                 currentEaseFactor: 2.5,
@@ -279,7 +276,7 @@ jobs:
           }
           DART
 
-          # 3. ربط شاشة WordBitCarousel بمسار التوجيه المركزي AppRouter
+          # 3. توجيه AppRouter إلى شاشة WordBitCarouselScreen
           cat << 'PYEOF' > patch_router.py
           import re
 
@@ -314,5 +311,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/features/wordbit/ lib/core/routing/app_router.dart assets/
-          git commit -m "feat(ui): deploy WordBit card carousel screen and wire it as primary app route" || exit 0
+          git commit -m "feat(ui): clean unused variables and wire WordBit carousel as primary route" || exit 0
           git push
