@@ -28,6 +28,15 @@ Future<void> handleCardRating(
   await srsPort.submit(command);
 }
 
+// --- كائن وهمي لمشغل الصوت لضمان عمل الواجهة بدون أخطاء مؤقتاً ---
+class OfflineAudioPoolStub {
+  static final OfflineAudioPoolStub instance = OfflineAudioPoolStub();
+  void stop() {
+    // سيتم تنفيذ إيقاف الصوت الفعلي هنا لاحقاً
+    debugPrint("تم استدعاء إيقاف الصوت.");
+  }
+}
+
 // --- واجهة البطاقات المعتمدة (P1) ---
 class FlashcardsScreen extends StatefulWidget {
   const FlashcardsScreen({Key? key}) : super(key: key);
@@ -56,6 +65,10 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   void dispose() {
     // 2. حماية الذاكرة: إغلاق المتحكمات لمنع الـ Memory Leaks
     _flipController.dispose();
+    
+    // إيقاف الصوت النشط عند الخروج من الشاشة (معالجة البند رقم 10 في التقرير)
+    OfflineAudioPoolStub.instance.stop(); // سيتم تبديله بالمشغل الفعلي لاحقاً
+    
     super.dispose();
   }
 
