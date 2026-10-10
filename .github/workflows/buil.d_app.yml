@@ -1,4 +1,4 @@
-name: "Build Production Release APK"
+name: "استخراج ملف التثبيت (APK) لتحميله وتجربته على الهاتف"
 
 on:
   workflow_dispatch:
@@ -31,17 +31,17 @@ jobs:
           touch assets/audio/.gitkeep assets/images/.gitkeep
           flutter pub get
 
-      - name: تجهيز مفتاح التوقيع الرقمي (Release Keystore & Gradle Config)
+      - name: توليد مفتاح التوقيع الرقمي وإعدادات Gradle تلقائياً
         run: |
           mkdir -p "$HOME/.gradle"
 
-          # 1. تشغيل سكربت التوقيع إن وُجد
+          # 1. تشغيل سكربت التوقيع المحلي إن وُجد
           if [ -f "scripts/local-release.sh" ]; then
             chmod +x scripts/local-release.sh
             bash scripts/local-release.sh || true
           fi
 
-          # 2. إنشاء المفتاح الرقمي في المسار المطلوب بالكامل
+          # 2. إنشاء مفتاح التوقيع الرقمي المطلوب
           if [ ! -f "$HOME/.gradle/release-key.jks" ]; then
             keytool -genkeypair -v \
               -keystore "$HOME/.gradle/release-key.jks" \
@@ -54,7 +54,11 @@ jobs:
               -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO"
           fi
 
-          # 3. تزويد جرادل بخصائص التوقيع المطلوبة
+          # نسخ المفتاح أيضاً داخل مجلد android/app احتياطاً
+          mkdir -p android/app
+          cp "$HOME/.gradle/release-key.jks" android/app/release-key.jks || true
+
+          # 3. تغذية Gradle بكافة بيانات المفتاح المطلوبة
           cat << 'EOF' > "$HOME/.gradle/gradle.properties"
           releaseKeystoreFile=/home/runner/.gradle/release-key.jks
           releaseKeyAlias=releaseKey
