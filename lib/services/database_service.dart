@@ -149,4 +149,21 @@ class DatabaseService {
 
     await batch.commit(noResult: true);
   }
+
+  Future<void> updateSrsProgressAtomic({
+    required String lexemeId,
+    required String status,
+    String languageCode = 'de',
+  }) async {
+    final db = await progressDb;
+    await db.transaction((txn) async {
+      await txn.rawInsert('''
+        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+        VALUES (?, ?,
+          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
+          ?
+        )
+      ''', [lexemeId, languageCode, lexemeId, status]);
+    });
+  }
 }

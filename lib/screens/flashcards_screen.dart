@@ -52,15 +52,10 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
 
     try {
       final card = _cards[_currentIndex];
-      final progressDb = await DatabaseService.instance.progressDb;
-      
-      await progressDb.rawInsert('''
-        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-        VALUES (?, 'de', 
-          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-          ?
-        )
-      ''', [card['lexeme_id'], card['lexeme_id'], isEasy ? 'review' : 'learning']);
+      await DatabaseService.instance.updateSrsProgressAtomic(
+        lexemeId: card['lexeme_id'].toString(),
+        status: isEasy ? 'review' : 'learning',
+      );
 
       setState(() {
         _showBack = false;
