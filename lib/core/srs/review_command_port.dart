@@ -1,0 +1,31 @@
+/// هوية المراجعة والتقييم لضمان عدم ازدواجية احتساب النقاط (XP)
+/// ولضمان ارتباطها بالزوج اللغوي الموجه الصحيح.
+enum ReviewRating { again, hard, good, easy }
+
+class ReviewCommand {
+  final String reviewId;
+  final String sourceLanguageId;
+  final String targetLanguageId;
+  final String cardId;
+  final String facetKey;
+  final int pairEpoch;
+  final ReviewRating rating;
+  final bool hinted;
+
+  const ReviewCommand({
+    required this.reviewId,
+    required this.sourceLanguageId,
+    required this.targetLanguageId,
+    required this.cardId,
+    required this.facetKey,
+    required this.pairEpoch,
+    required this.rating,
+    required this.hinted,
+  });
+}
+
+abstract interface class ReviewCommandPort {
+  /// ترسل أمر التقييم إلى UnifiedSrsScheduler
+  /// ليتم تنفيذه عبر Persistent CPU Worker وتخزينه كـ Atomic Transaction.
+  Future<void> submit(ReviewCommand command);
+}
