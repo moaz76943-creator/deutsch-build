@@ -28,9 +28,9 @@ void main() {
 
     testWidgets('Verify large accessibility text scaling', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+            data: MediaQueryData(textScaler: TextScaler.linear(1.5)),
             child: Scaffold(
               body: Center(
                 child: Text('اختبار الخط المكبر', maxLines: 2, overflow: TextOverflow.ellipsis),

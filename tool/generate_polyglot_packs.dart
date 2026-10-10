@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import '../lib/core/agents/memory_models.dart';
-import '../lib/core/agents/polyglot_agent_models.dart';
-import '../lib/core/agents/system_agent_runtime.dart';
-import '../lib/core/curriculum/canonical_curriculum_50.dart';
-import '../lib/core/curriculum/curriculum_models.dart';
-import '../lib/core/curriculum/omni_directional_matrix.dart';
-import '../lib/core/orchestration/agent_data_integrity.dart';
-import '../lib/core/orchestration/headless_localization_bridge.dart';
-import '../lib/core/orchestration/language_pack_repository.dart';
-import '../lib/core/orchestration/polyglot_language_pack.dart';
-import '../lib/core/storage/validation_hash_cache.dart';
-import '../lib/data/content_a1.dart';
-import '../lib/models/content.dart';
+import 'package:deutsch_bilarabi/core/agents/memory_models.dart';
+import 'package:deutsch_bilarabi/core/agents/polyglot_agent_models.dart';
+import 'package:deutsch_bilarabi/core/agents/system_agent_runtime.dart';
+import 'package:deutsch_bilarabi/core/curriculum/canonical_curriculum_50.dart';
+import 'package:deutsch_bilarabi/core/curriculum/curriculum_models.dart';
+import 'package:deutsch_bilarabi/core/curriculum/omni_directional_matrix.dart';
+import 'package:deutsch_bilarabi/core/orchestration/agent_data_integrity.dart';
+import 'package:deutsch_bilarabi/core/orchestration/headless_localization_bridge.dart';
+import 'package:deutsch_bilarabi/core/orchestration/language_pack_repository.dart';
+import 'package:deutsch_bilarabi/core/orchestration/polyglot_language_pack.dart';
+import 'package:deutsch_bilarabi/core/storage/validation_hash_cache.dart';
+import 'package:deutsch_bilarabi/data/content_a1.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const Set<String> _supportedPairs = <String>{
   'ar->de',
@@ -484,7 +484,7 @@ Future<void> _writeJson(
   await destination.parent.create(recursive: true);
   final temp = File('${destination.path}.tmp');
   await temp.writeAsString(
-    const JsonEncoder.withIndent('  ').convert(document) + '\n',
+    '${const JsonEncoder.withIndent('  ').convert(document)}\n',
     flush: true,
   );
   if (await destination.exists()) {

@@ -1,4 +1,4 @@
-import '../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 import 'content_expansion_v108.dart';
 import 'content_expansion_v111.dart';

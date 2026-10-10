@@ -101,7 +101,7 @@ class _UniversalPolyglotHubScreenState extends State<UniversalPolyglotHubScreen>
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -121,9 +121,9 @@ class _UniversalPolyglotHubScreenState extends State<UniversalPolyglotHubScreen>
           _buildSectionCard(
             title: '3. ميزان التكلفة المعرفية الذهنية (INNOV-W04-03)',
             subtitle: 'قياس حمل الذاكرة العاملة حسب الكثافة الصرفية للغة',
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text('• لغات قليلة التصريف (مثل الإنجليزية): تركيز 80% على السياق والكلمات.'),
                 SizedBox(height: 4),
                 Text('• لغات عالية التصريف (مثل الألمانية / الروسية / العربية): استهلاك عالي لمطابقة الجنس، الحالة، والعدد.'),

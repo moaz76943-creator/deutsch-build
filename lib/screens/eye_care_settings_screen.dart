@@ -44,7 +44,7 @@ class _EyeCareSettingsScreenState extends State<EyeCareSettingsScreen> {
                       ),
                       Switch(
                         value: _blueLightFilter,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _blueLightFilter = val;

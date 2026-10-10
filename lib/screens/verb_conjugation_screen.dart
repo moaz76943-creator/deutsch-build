@@ -1,4 +1,6 @@
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+
+import 'package:flutter/material.dart';
+import '../design_system/design_system.dart';
 import 'grammar_guide_screen.dart';
 
 class VerbConjugationScreen extends StatefulWidget {

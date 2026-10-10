@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk001 = <ContentItem>[
 ContentItem(id:'w0401',german:'hassen',arabic:'يكره',sentence:'Ich möchte hassen.',sentenceAr:'أريد أن أكره.',topic:'الأفعال',skill:'production',article:'',plural:'',accepted:['hassen']),

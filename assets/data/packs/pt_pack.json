@@ -1,0 +1,71 @@
+{
+  "language": "pt",
+  "name": "البرتغالية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Salute (pt)",
+      "article": "",
+      "meaning": "تحية السلام (البرتغالية)",
+      "example": "Greetings to everyone in our community.",
+      "exampleMeaning": "تحياتي للجميع في مجتمعنا.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gratia (pt)",
+      "article": "",
+      "meaning": "الشكر والتقدير (البرتغالية)",
+      "example": "Thank you warmly for your great kindness.",
+      "exampleMeaning": "شكراً جزيلاً على لطفك الكبير.",
+      "category": "Common"
+    },
+    {
+      "word": "Aqua (pt)",
+      "article": "",
+      "meaning": "الماء العذب (البرتغالية)",
+      "example": "Pure water sustains health and vitality.",
+      "exampleMeaning": "الماء النقي يدعم الصحة والحيوية.",
+      "category": "Drink"
+    },
+    {
+      "word": "Liber (pt)",
+      "article": "",
+      "meaning": "كتاب المعرفة (البرتغالية)",
+      "example": "Every book opens a window to knowledge.",
+      "exampleMeaning": "كل كتاب يفتح نافذة نحو العلم.",
+      "category": "Education"
+    },
+    {
+      "word": "Amicus (pt)",
+      "article": "",
+      "meaning": "الصديق الوفي (البرتغالية)",
+      "example": "True companionship makes life meaningful.",
+      "exampleMeaning": "الصحبة الصادقة تجعل الحياة ذات معنى.",
+      "category": "People"
+    },
+    {
+      "word": "Sol (pt)",
+      "article": "",
+      "meaning": "الشمس والضياء (البرتغالية)",
+      "example": "The sunshine brings new hope every day.",
+      "exampleMeaning": "ضوء الشمس يجلب أملاً متجدداً كل يوم.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opus (pt)",
+      "article": "",
+      "meaning": "العمل المتقن (البرتغالية)",
+      "example": "Dedicated work creates lasting value.",
+      "exampleMeaning": "العمل المخلص يخلق قيمة مستدامة.",
+      "category": "Work"
+    },
+    {
+      "word": "Sapientia (pt)",
+      "article": "",
+      "meaning": "الحكمة والبصيرة (البرتغالية)",
+      "example": "Wisdom guides our choices toward success.",
+      "exampleMeaning": "الحكمة ترشد اختياراتنا نحو النجاح.",
+      "category": "Mindset"
+    }
+  ]
+}

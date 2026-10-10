@@ -1,6 +1,5 @@
-import 'directed_pair_id.dart';
+import '../architecture/directed_pair_id.dart';
 
-/// أمر مراجعة غير قابل للتعديل يمثل مصدر الحقيقة الوحيد لعمليات التلعيب و SRS
 class ReviewCommand {
   final String eventId;
   final DirectedPairId pairId;

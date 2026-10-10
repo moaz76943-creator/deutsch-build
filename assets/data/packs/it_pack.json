@@ -1,0 +1,71 @@
+{
+  "language": "it",
+  "name": "الإيطالية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Buongiorno",
+      "article": "",
+      "meaning": "صباح الخير",
+      "example": "Buongiorno a tutti voi.",
+      "exampleMeaning": "صباح الخير لكم جميعاً.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Grazie",
+      "article": "",
+      "meaning": "شكراً",
+      "example": "Grazie mille per l'aiuto.",
+      "exampleMeaning": "ألف شكر على المساعدة.",
+      "category": "Common"
+    },
+    {
+      "word": "Acqua",
+      "article": "l'",
+      "meaning": "ماء",
+      "example": "L'acqua è fonte di vita.",
+      "exampleMeaning": "الماء ينبوع الحياة.",
+      "category": "Drink"
+    },
+    {
+      "word": "Libro",
+      "article": "il",
+      "meaning": "كتاب",
+      "example": "Questo libro è stimolante.",
+      "exampleMeaning": "هذا الكتاب ملهم ومحفز.",
+      "category": "Education"
+    },
+    {
+      "word": "Amico",
+      "article": "l'",
+      "meaning": "صديق",
+      "example": "Un vero amico non ti abbandona.",
+      "exampleMeaning": "الصديق الحقيقي لا يتركك.",
+      "category": "People"
+    },
+    {
+      "word": "Sole",
+      "article": "il",
+      "meaning": "الشمس",
+      "example": "Il sole illumina la giornata.",
+      "exampleMeaning": "الشمس تنير اليوم بضيائها.",
+      "category": "Nature"
+    },
+    {
+      "word": "Passione",
+      "article": "la",
+      "meaning": "الشغف والحماس",
+      "example": "La passione muove il mondo.",
+      "exampleMeaning": "الشغف يحرك عجلة العالم.",
+      "category": "Work"
+    },
+    {
+      "word": "Bellezza",
+      "article": "la",
+      "meaning": "الجمال",
+      "example": "La bellezza è nella semplicità.",
+      "exampleMeaning": "الجمال يكمن في بساطة الأشياء.",
+      "category": "Life"
+    }
+  ]
+}

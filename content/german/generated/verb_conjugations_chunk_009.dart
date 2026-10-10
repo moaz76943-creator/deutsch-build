@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk009 = <VerbConjugation>[
 VerbConjugation(infinitive:'weitergeben',arabic:'ظهر',group:'التواصل والمحادثة',person:'ich',personAr:'أنا',form:'gebe weiter',past:'habe geweitergebt',pastArabic:'أنا ظهرت',example:'Ich gebe weiter die Information.',exampleAr:'أنا ظهر المعلومة.',pastExample:'Ich habe weiter die Information geweitergebt.',pastExampleAr:'أنا ظهرت المعلومة.'),

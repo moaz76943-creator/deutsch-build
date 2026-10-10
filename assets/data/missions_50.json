@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1,
+    "level": "A1",
+    "titleAr": "التعارف والتحيات (1)",
+    "titleDe": "Begrüßung und Vorstellung 1",
+    "vocabulary": [
+      "Hallo",
+      "Guten Tag",
+      "Wie geht es Ihnen?",
+      "Ich heiße Salim",
+      "Auf Wiedersehen"
+    ],
+    "completed": false
+  },
+  {
+    "id": 2,
+    "level": "A1",
+    "titleAr": "في المطار ومكتب الجوازات (2)",
+    "titleDe": "Am Flughafen 2",
+    "vocabulary": [
+      "Pass",
+      "Flugticket",
+      "Koffer",
+      "Flugsteig",
+      "Zollkontrolle"
+    ],
+    "completed": false
+  },
+  {
+    "id": 3,
+    "level": "A1",
+    "titleAr": "حجز الفندق والإقامة (3)",
+    "titleDe": "Im Hotel 3",
+    "vocabulary": [
+      "Zimmer",
+      "Reservierung",
+      "Schlüssel",
+      "Frühstück",
+      "Übernachtung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 4,
+    "level": "A1",
+    "titleAr": "في المطعم وطلب الطعام (4)",
+    "titleDe": "Im Restaurant 4",
+    "vocabulary": [
+      "Speisekarte",
+      "Bestellung",
+      "Rechnung",
+      "Wasser",
+      "Guten Appetit"
+    ],
+    "completed": false
+  },
+  {
+    "id": 5,
+    "level": "A1",
+    "titleAr": "المواصلات العامة وشراء التذاكر (5)",
+    "titleDe": "Öffentliche Verkehrsmittel 5",
+    "vocabulary": [
+      "Fahrkarte",
+      "Zug",
+      "Bahnhof",
+      "Haltestelle",
+      "Umsteigen"
+    ],
+    "completed": false
+  },
+  {
+    "id": 6,
+    "level": "A1",
+    "titleAr": "التسوق في السوبرماركت (6)",
+    "titleDe": "Im Supermarkt 6",
+    "vocabulary": [
+      "Einkaufswagen",
+      "Kasse",
+      "Obst",
+      "Gemüse",
+      "Rabatt"
+    ],
+    "completed": false
+  },
+  {
+    "id": 7,
+    "level": "A1",
+    "titleAr": "السؤال عن الاتجاهات والشارع (7)",
+    "titleDe": "Nach dem Weg fragen 7",
+    "vocabulary": [
+      "Links",
+      "Rechts",
+      "Geradeaus",
+      "Kreuzung",
+      "Ampel"
+    ],
+    "completed": false
+  },
+  {
+    "id": 8,
+    "level": "A1",
+    "titleAr": "في الصيدلية وشراء الدواء (8)",
+    "titleDe": "In der Apotheke 8",
+    "vocabulary": [
+      "Medikament",
+      "Rezept",
+      "Schmerzmittel",
+      "Tabletten",
+      "Gute Besserung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 9,
+    "level": "A2",
+    "titleAr": "زيارة الطبيب والمستشفى (9)",
+    "titleDe": "Beim Arzt 9",
+    "vocabulary": [
+      "Termin",
+      "Untersuchung",
+      "Krankenversicherung",
+      "Fieber",
+      "Diagnose"
+    ],
+    "completed": false
+  },
+  {
+    "id": 10,
+    "level": "A2",
+    "titleAr": "البحث عن شقة وتوقيع العقد (10)",
+    "titleDe": "Wohnungssuche 10",
+    "vocabulary": [
+      "Miete",
+      "Kaution",
+      "Mietvertrag",
+      "Nebenkosten",
+      "Vermieter"
+    ],
+    "completed": false
+  },
+  {
+    "id": 11,
+    "level": "A2",
+    "titleAr": "فتح حساب بنكي (11)",
+    "titleDe": "Bankkonto eröffnen 11",
+    "vocabulary": [
+      "Konto",
+      "Überweisung",
+      "Geldautomat",
+      "PIN",
+      "Kreditkarte"
+    ],
+    "completed": false
+  },
+  {
+    "id": 12,
+    "level": "A2",
+    "titleAr": "التقديم على وظيفة والمقابلة (12)",
+    "titleDe": "Bewerbungsgespräch 12",
+    "vocabulary": [
+      "Lebenslauf",
+      "Erfahrung",
+      "Stelle",
+      "Gehalt",
+      "Vorstellungsgespräch"
+    ],
+    "completed": false
+  },
+  {
+    "id": 13,
+    "level": "A2",
+    "titleAr": "في دائرة شؤون الأجانب (13)",
+    "titleDe": "Ausländerbehörde 13",
+    "vocabulary": [
+      "Aufenthaltstitel",
+      "Antrag",
+      "Dokumente",
+      "Verlängerung",
+      "Termin"
+    ],
+    "completed": false
+  },
+  {
+    "id": 14,
+    "level": "A2",
+    "titleAr": "التسجيل في دورة لغة (14)",
+    "titleDe": "Sprachkurs Anmeldung 14",
+    "vocabulary": [
+      "Sprachschule",
+      "Niveau",
+      "Prüfung",
+      "Zertifikat",
+      "Lehrer"
+    ],
+    "completed": false
+  },
+  {
+    "id": 15,
+    "level": "A2",
+    "titleAr": "شراء الملابس والمقاسات (15)",
+    "titleDe": "Kleidung kaufen 15",
+    "vocabulary": [
+      "Größe",
+      "Anprobieren",
+      "Farbe",
+      "Umkleidekabine",
+      "Kassenzettel"
+    ],
+    "completed": false
+  },
+  {
+    "id": 16,
+    "level": "B1",
+    "titleAr": "التعامل مع حوادث السير والتأمين (16)",
+    "titleDe": "Autounfall und Versicherung 16",
+    "vocabulary": [
+      "Versicherung",
+      "Schaden",
+      "Polizei",
+      "Bericht",
+      "Abschleppdienst"
+    ],
+    "completed": false
+  },
+  {
+    "id": 17,
+    "level": "B1",
+    "titleAr": "المناقشة وإبداء الرأي في العمل (17)",
+    "titleDe": "Meinung äußern 17",
+    "vocabulary": [
+      "Meiner Meinung nach",
+      "Zustimmen",
+      "Widersprechen",
+      "Vorschlag",
+      "Entscheidung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 18,
+    "level": "A1",
+    "titleAr": "التعارف والتحيات (18)",
+    "titleDe": "Begrüßung und Vorstellung 18",
+    "vocabulary": [
+      "Hallo",
+      "Guten Tag",
+      "Wie geht es Ihnen?",
+      "Ich heiße Salim",
+      "Auf Wiedersehen"
+    ],
+    "completed": false
+  },
+  {
+    "id": 19,
+    "level": "A1",
+    "titleAr": "في المطار ومكتب الجوازات (19)",
+    "titleDe": "Am Flughafen 19",
+    "vocabulary": [
+      "Pass",
+      "Flugticket",
+      "Koffer",
+      "Flugsteig",
+      "Zollkontrolle"
+    ],
+    "completed": false
+  },
+  {
+    "id": 20,
+    "level": "A1",
+    "titleAr": "حجز الفندق والإقامة (20)",
+    "titleDe": "Im Hotel 20",
+    "vocabulary": [
+      "Zimmer",
+      "Reservierung",
+      "Schlüssel",
+      "Frühstück",
+      "Übernachtung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 21,
+    "level": "A1",
+    "titleAr": "في المطعم وطلب الطعام (21)",
+    "titleDe": "Im Restaurant 21",
+    "vocabulary": [
+      "Speisekarte",
+      "Bestellung",
+      "Rechnung",
+      "Wasser",
+      "Guten Appetit"
+    ],
+    "completed": false
+  },
+  {
+    "id": 22,
+    "level": "A1",
+    "titleAr": "المواصلات العامة وشراء التذاكر (22)",
+    "titleDe": "Öffentliche Verkehrsmittel 22",
+    "vocabulary": [
+      "Fahrkarte",
+      "Zug",
+      "Bahnhof",
+      "Haltestelle",
+      "Umsteigen"
+    ],
+    "completed": false
+  },
+  {
+    "id": 23,
+    "level": "A1",
+    "titleAr": "التسوق في السوبرماركت (23)",
+    "titleDe": "Im Supermarkt 23",
+    "vocabulary": [
+      "Einkaufswagen",
+      "Kasse",
+      "Obst",
+      "Gemüse",
+      "Rabatt"
+    ],
+    "completed": false
+  },
+  {
+    "id": 24,
+    "level": "A1",
+    "titleAr": "السؤال عن الاتجاهات والشارع (24)",
+    "titleDe": "Nach dem Weg fragen 24",
+    "vocabulary": [
+      "Links",
+      "Rechts",
+      "Geradeaus",
+      "Kreuzung",
+      "Ampel"
+    ],
+    "completed": false
+  },
+  {
+    "id": 25,
+    "level": "A1",
+    "titleAr": "في الصيدلية وشراء الدواء (25)",
+    "titleDe": "In der Apotheke 25",
+    "vocabulary": [
+      "Medikament",
+      "Rezept",
+      "Schmerzmittel",
+      "Tabletten",
+      "Gute Besserung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 26,
+    "level": "A2",
+    "titleAr": "زيارة الطبيب والمستشفى (26)",
+    "titleDe": "Beim Arzt 26",
+    "vocabulary": [
+      "Termin",
+      "Untersuchung",
+      "Krankenversicherung",
+      "Fieber",
+      "Diagnose"
+    ],
+    "completed": false
+  },
+  {
+    "id": 27,
+    "level": "A2",
+    "titleAr": "البحث عن شقة وتوقيع العقد (27)",
+    "titleDe": "Wohnungssuche 27",
+    "vocabulary": [
+      "Miete",
+      "Kaution",
+      "Mietvertrag",
+      "Nebenkosten",
+      "Vermieter"
+    ],
+    "completed": false
+  },
+  {
+    "id": 28,
+    "level": "A2",
+    "titleAr": "فتح حساب بنكي (28)",
+    "titleDe": "Bankkonto eröffnen 28",
+    "vocabulary": [
+      "Konto",
+      "Überweisung",
+      "Geldautomat",
+      "PIN",
+      "Kreditkarte"
+    ],
+    "completed": false
+  },
+  {
+    "id": 29,
+    "level": "A2",
+    "titleAr": "التقديم على وظيفة والمقابلة (29)",
+    "titleDe": "Bewerbungsgespräch 29",
+    "vocabulary": [
+      "Lebenslauf",
+      "Erfahrung",
+      "Stelle",
+      "Gehalt",
+      "Vorstellungsgespräch"
+    ],
+    "completed": false
+  },
+  {
+    "id": 30,
+    "level": "A2",
+    "titleAr": "في دائرة شؤون الأجانب (30)",
+    "titleDe": "Ausländerbehörde 30",
+    "vocabulary": [
+      "Aufenthaltstitel",
+      "Antrag",
+      "Dokumente",
+      "Verlängerung",
+      "Termin"
+    ],
+    "completed": false
+  },
+  {
+    "id": 31,
+    "level": "A2",
+    "titleAr": "التسجيل في دورة لغة (31)",
+    "titleDe": "Sprachkurs Anmeldung 31",
+    "vocabulary": [
+      "Sprachschule",
+      "Niveau",
+      "Prüfung",
+      "Zertifikat",
+      "Lehrer"
+    ],
+    "completed": false
+  },
+  {
+    "id": 32,
+    "level": "A2",
+    "titleAr": "شراء الملابس والمقاسات (32)",
+    "titleDe": "Kleidung kaufen 32",
+    "vocabulary": [
+      "Größe",
+      "Anprobieren",
+      "Farbe",
+      "Umkleidekabine",
+      "Kassenzettel"
+    ],
+    "completed": false
+  },
+  {
+    "id": 33,
+    "level": "B1",
+    "titleAr": "التعامل مع حوادث السير والتأمين (33)",
+    "titleDe": "Autounfall und Versicherung 33",
+    "vocabulary": [
+      "Versicherung",
+      "Schaden",
+      "Polizei",
+      "Bericht",
+      "Abschleppdienst"
+    ],
+    "completed": false
+  },
+  {
+    "id": 34,
+    "level": "B1",
+    "titleAr": "المناقشة وإبداء الرأي في العمل (34)",
+    "titleDe": "Meinung äußern 34",
+    "vocabulary": [
+      "Meiner Meinung nach",
+      "Zustimmen",
+      "Widersprechen",
+      "Vorschlag",
+      "Entscheidung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 35,
+    "level": "A1",
+    "titleAr": "التعارف والتحيات (35)",
+    "titleDe": "Begrüßung und Vorstellung 35",
+    "vocabulary": [
+      "Hallo",
+      "Guten Tag",
+      "Wie geht es Ihnen?",
+      "Ich heiße Salim",
+      "Auf Wiedersehen"
+    ],
+    "completed": false
+  },
+  {
+    "id": 36,
+    "level": "A1",
+    "titleAr": "في المطار ومكتب الجوازات (36)",
+    "titleDe": "Am Flughafen 36",
+    "vocabulary": [
+      "Pass",
+      "Flugticket",
+      "Koffer",
+      "Flugsteig",
+      "Zollkontrolle"
+    ],
+    "completed": false
+  },
+  {
+    "id": 37,
+    "level": "A1",
+    "titleAr": "حجز الفندق والإقامة (37)",
+    "titleDe": "Im Hotel 37",
+    "vocabulary": [
+      "Zimmer",
+      "Reservierung",
+      "Schlüssel",
+      "Frühstück",
+      "Übernachtung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 38,
+    "level": "A1",
+    "titleAr": "في المطعم وطلب الطعام (38)",
+    "titleDe": "Im Restaurant 38",
+    "vocabulary": [
+      "Speisekarte",
+      "Bestellung",
+      "Rechnung",
+      "Wasser",
+      "Guten Appetit"
+    ],
+    "completed": false
+  },
+  {
+    "id": 39,
+    "level": "A1",
+    "titleAr": "المواصلات العامة وشراء التذاكر (39)",
+    "titleDe": "Öffentliche Verkehrsmittel 39",
+    "vocabulary": [
+      "Fahrkarte",
+      "Zug",
+      "Bahnhof",
+      "Haltestelle",
+      "Umsteigen"
+    ],
+    "completed": false
+  },
+  {
+    "id": 40,
+    "level": "A1",
+    "titleAr": "التسوق في السوبرماركت (40)",
+    "titleDe": "Im Supermarkt 40",
+    "vocabulary": [
+      "Einkaufswagen",
+      "Kasse",
+      "Obst",
+      "Gemüse",
+      "Rabatt"
+    ],
+    "completed": false
+  },
+  {
+    "id": 41,
+    "level": "A1",
+    "titleAr": "السؤال عن الاتجاهات والشارع (41)",
+    "titleDe": "Nach dem Weg fragen 41",
+    "vocabulary": [
+      "Links",
+      "Rechts",
+      "Geradeaus",
+      "Kreuzung",
+      "Ampel"
+    ],
+    "completed": false
+  },
+  {
+    "id": 42,
+    "level": "A1",
+    "titleAr": "في الصيدلية وشراء الدواء (42)",
+    "titleDe": "In der Apotheke 42",
+    "vocabulary": [
+      "Medikament",
+      "Rezept",
+      "Schmerzmittel",
+      "Tabletten",
+      "Gute Besserung"
+    ],
+    "completed": false
+  },
+  {
+    "id": 43,
+    "level": "A2",
+    "titleAr": "زيارة الطبيب والمستشفى (43)",
+    "titleDe": "Beim Arzt 43",
+    "vocabulary": [
+      "Termin",
+      "Untersuchung",
+      "Krankenversicherung",
+      "Fieber",
+      "Diagnose"
+    ],
+    "completed": false
+  },
+  {
+    "id": 44,
+    "level": "A2",
+    "titleAr": "البحث عن شقة وتوقيع العقد (44)",
+    "titleDe": "Wohnungssuche 44",
+    "vocabulary": [
+      "Miete",
+      "Kaution",
+      "Mietvertrag",
+      "Nebenkosten",
+      "Vermieter"
+    ],
+    "completed": false
+  },
+  {
+    "id": 45,
+    "level": "A2",
+    "titleAr": "فتح حساب بنكي (45)",
+    "titleDe": "Bankkonto eröffnen 45",
+    "vocabulary": [
+      "Konto",
+      "Überweisung",
+      "Geldautomat",
+      "PIN",
+      "Kreditkarte"
+    ],
+    "completed": false
+  },
+  {
+    "id": 46,
+    "level": "A2",
+    "titleAr": "التقديم على وظيفة والمقابلة (46)",
+    "titleDe": "Bewerbungsgespräch 46",
+    "vocabulary": [
+      "Lebenslauf",
+      "Erfahrung",
+      "Stelle",
+      "Gehalt",
+      "Vorstellungsgespräch"
+    ],
+    "completed": false
+  },
+  {
+    "id": 47,
+    "level": "A2",
+    "titleAr": "في دائرة شؤون الأجانب (47)",
+    "titleDe": "Ausländerbehörde 47",
+    "vocabulary": [
+      "Aufenthaltstitel",
+      "Antrag",
+      "Dokumente",
+      "Verlängerung",
+      "Termin"
+    ],
+    "completed": false
+  },
+  {
+    "id": 48,
+    "level": "A2",
+    "titleAr": "التسجيل في دورة لغة (48)",
+    "titleDe": "Sprachkurs Anmeldung 48",
+    "vocabulary": [
+      "Sprachschule",
+      "Niveau",
+      "Prüfung",
+      "Zertifikat",
+      "Lehrer"
+    ],
+    "completed": false
+  },
+  {
+    "id": 49,
+    "level": "A2",
+    "titleAr": "شراء الملابس والمقاسات (49)",
+    "titleDe": "Kleidung kaufen 49",
+    "vocabulary": [
+      "Größe",
+      "Anprobieren",
+      "Farbe",
+      "Umkleidekabine",
+      "Kassenzettel"
+    ],
+    "completed": false
+  },
+  {
+    "id": 50,
+    "level": "B1",
+    "titleAr": "التعامل مع حوادث السير والتأمين (50)",
+    "titleDe": "Autounfall und Versicherung 50",
+    "vocabulary": [
+      "Versicherung",
+      "Schaden",
+      "Polizei",
+      "Bericht",
+      "Abschleppdienst"
+    ],
+    "completed": false
+  }
+]

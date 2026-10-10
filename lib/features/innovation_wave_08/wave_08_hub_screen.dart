@@ -111,11 +111,11 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
               content: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Draggable<String>(
+                  const Draggable<String>(
                     data: 'perfect',
-                    feedback: const Text('👌', style: TextStyle(fontSize: 40)),
-                    childWhenDragging: const Text('👌', style: TextStyle(fontSize: 40, color: Colors.grey)),
-                    child: const Text('👌', style: TextStyle(fontSize: 40)),
+                    feedback: Text('👌', style: TextStyle(fontSize: 40)),
+                    childWhenDragging: Text('👌', style: TextStyle(fontSize: 40, color: Colors.grey)),
+                    child: Text('👌', style: TextStyle(fontSize: 40)),
                   ),
                   DragTarget<String>(
                     builder: (context, candidateData, rejectedData) {

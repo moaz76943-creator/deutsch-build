@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk001 = <VerbConjugation>[
 VerbConjugation(infinitive:'geben',arabic:'يعطي',group:'6. أفعال التفكير والإدراك',person:'es',personAr:'هو/هي/ذلك',form:'gibt',past:'hat gegeben',pastArabic:'هو/هي/ذلك أعطى',example:'Es gibt dem Kind das Buch.',exampleAr:'هو/هي/ذلك يعطي الطفل الكتاب.',pastExample:'Es hat dem Kind das Buch gegeben.',pastExampleAr:'هو/هي/ذلك أعطى الطفل الكتاب.'),

@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk018 = <ContentItem>[
 ContentItem(id:'w8329',german:'anordnen',arabic:'يرتّب / يأمر',sentence:'Ich ordne die Bücher an.',sentenceAr:'أرتّب الكتب.',topic:'الأفعال — الحياة اليومية',skill:'production',article:'',plural:'',accepted:['anordnen']),

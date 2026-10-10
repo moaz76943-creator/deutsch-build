@@ -1,24 +1,71 @@
 {
-  "languageCode": "en",
-  "familyName": "جرمانية غربية",
+  "language": "en",
+  "name": "الإنجليزية",
+  "version": "1.0.0",
   "items": [
     {
-      "word": "Prescription",
+      "word": "Good morning",
       "article": "",
-      "plural": "Prescriptions",
-      "meaning": "وصفة طبية",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "مهني / رسمي"
+      "meaning": "صباح الخير",
+      "example": "Good morning to everyone!",
+      "exampleMeaning": "صباح الخير للجميع!",
+      "category": "Greeting"
     },
     {
-      "word": "Pharmacy",
+      "word": "Thank you",
       "article": "",
-      "plural": "Pharmacies",
-      "meaning": "صيدلية",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "يومي / مهني"
+      "meaning": "شكراً لك",
+      "example": "Thank you for your valuable support.",
+      "exampleMeaning": "شكراً لك على دعمك القيّم.",
+      "category": "Common"
+    },
+    {
+      "word": "Knowledge",
+      "article": "the",
+      "meaning": "المعرفة والعلم",
+      "example": "Knowledge empowers human minds.",
+      "exampleMeaning": "المعرفة تمكّن العقول البشرية.",
+      "category": "Education"
+    },
+    {
+      "word": "Water",
+      "article": "the",
+      "meaning": "ماء",
+      "example": "Clean water is essential for life.",
+      "exampleMeaning": "الماء النقي أساسي للحياة.",
+      "category": "Drink"
+    },
+    {
+      "word": "Friend",
+      "article": "a",
+      "meaning": "صديق",
+      "example": "A true friend is a treasure.",
+      "exampleMeaning": "الصديق الوفي كنز حقيقي.",
+      "category": "People"
+    },
+    {
+      "word": "Sun",
+      "article": "the",
+      "meaning": "الشمس",
+      "example": "The sun brightens up the morning sky.",
+      "exampleMeaning": "الشمس تضيء سماء الصباح.",
+      "category": "Nature"
+    },
+    {
+      "word": "Opportunity",
+      "article": "an",
+      "meaning": "فرصة سانحة",
+      "example": "Every day brings a new opportunity.",
+      "exampleMeaning": "كل يوم يحمل فرصة جديدة.",
+      "category": "Work"
+    },
+    {
+      "word": "Journey",
+      "article": "a",
+      "meaning": "رحلة مسار",
+      "example": "Enjoy every step of the learning journey.",
+      "exampleMeaning": "استمتع بكل خطوة في رحلة التعلم.",
+      "category": "Life"
     }
   ]
 }

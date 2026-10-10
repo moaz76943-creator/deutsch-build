@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk021 = <VerbConjugation>[
 VerbConjugation(infinitive:'wegnehmen',arabic:'يأخذ بعيدًا',group:'12. أفعال جديدة ومتنوعة',person:'sie',personAr:'هي',form:'nimmt weg',past:'hat weggenehmt',pastArabic:'هي أخذ بعيدًات',example:'Sie nimmt die Aufgabe weg.',exampleAr:'هي : يأخذ بعيدًا — المهمة.',pastExample:'Sie hat die Aufgabe weggenehmt.',pastExampleAr:'هي أخذ بعيدًات يأخذ بعيدًا — المهمة.'),

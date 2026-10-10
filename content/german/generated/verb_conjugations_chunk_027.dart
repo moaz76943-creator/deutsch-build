@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk027 = <VerbConjugation>[
 VerbConjugation(infinitive:'umbuchen',arabic:'يعيد الحجز',group:'9. السفر والمواصلات',person:'ich',personAr:'أنا',form:'buche um',past:'habe umgebucht',pastArabic:'أنا عيد الحجزت',example:'Ich buche den Flug um.',exampleAr:'أنا أعيد حجز الرحلة.',pastExample:'Ich habe den Flug umgebucht.',pastExampleAr:'أنا عيد الحجزت حجز الرحلة.'),

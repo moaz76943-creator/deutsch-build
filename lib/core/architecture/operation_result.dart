@@ -1,4 +1,3 @@
-/// تغليف صارم لنتائج العمليات يمنع استخدام catch عام دون تشخيص
 abstract class OperationFailure {
   final String code;
   final String message;
@@ -21,9 +20,6 @@ class OperationResult<T> {
   const OperationResult.failure(this._failure) : _data = null;
 
   bool get isSuccess => _failure == null;
-  T get data {
-    if (!isSuccess || _data == null) throw Exception('Cannot access data of a failed result');
-    return _data!;
-  }
+  T get data => _data!;
   OperationFailure get failure => _failure!;
 }

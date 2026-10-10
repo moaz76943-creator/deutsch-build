@@ -1,24 +1,79 @@
 {
-  "languageCode": "de",
-  "familyName": "جرمانية",
+  "language": "de",
+  "name": "الألمانية",
+  "version": "2.0.0",
   "items": [
     {
       "word": "Rezept",
       "article": "das",
-      "plural": "Rezepte",
       "meaning": "وصفة طبية / روشتة",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "مهني / رسمي"
+      "example": "Der Arzt schreibt dem Patienten ein Rezept für die Apotheke.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
     },
     {
       "word": "Apotheke",
       "article": "die",
-      "plural": "Apotheken",
       "meaning": "صيدلية",
-      "semanticField": "صيدلة وطب",
-      "professionalContext": "صيدلاني / طبي",
-      "politenessRegister": "يومي / مهني"
+      "example": "Die nächste Apotheke hat heute Nacht Notdienst.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "Schmerz",
+      "article": "der",
+      "meaning": "ألم / وجع",
+      "example": "Dieses Medikament hilft schnell gegen akute Schmerzen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "Tablette",
+      "article": "die",
+      "meaning": "حبة دواء / قرص",
+      "example": "Nehmen Sie morgens und abends eine Tablette vor dem Essen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "Diagnose",
+      "article": "die",
+      "meaning": "تشخيص طبي",
+      "example": "Nach den Testergebnissen konnte der Arzt eine klare Diagnose stellen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "Blutdruck",
+      "article": "der",
+      "meaning": "ضغط الدم",
+      "example": "Es ist wichtig, den Blutdruck regelmäßig in der Apotheke zu kontrollieren.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "Patient",
+      "article": "der",
+      "meaning": "مريض / مراجِع",
+      "example": "Der Apotheker berät den Patienten fachgerecht über die Nebenwirkungen.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "صيدلة وطب"
+    },
+    {
+      "word": "verstehen",
+      "article": "",
+      "meaning": "يَفهم / يُدرك",
+      "example": "Ich verstehe die Dosierungsanleitung auf dem Rezept sehr gut.",
+      "exampleMeaning": "",
+      "category": "A1",
+      "semanticField": "حياة يومية وأكاديمية"
     }
   ]
 }

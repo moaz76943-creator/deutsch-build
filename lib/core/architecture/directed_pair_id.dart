@@ -1,4 +1,3 @@
-/// هوية صارمة للزوج اللغوي تمنع الخلط بين الاتجاهين (ar->de لا يساوي de->ar)
 class DirectedPairId {
   final String sourceLocale;
   final String targetLocale;
@@ -12,6 +11,5 @@ class DirectedPairId {
 
   String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
   bool get isReflexive => sourceLocale == targetLocale;
-  
   bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
 }

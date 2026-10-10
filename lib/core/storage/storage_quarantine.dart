@@ -1,4 +1,3 @@
-/// نظام عزل البيانات التالفة (Quarantine) بدلاً من استبدالها بصمت
 class QuarantinedData {
   final String id;
   final String rawJson;
@@ -30,7 +29,6 @@ class StorageQuarantine {
   }
 
   List<QuarantinedData> get isolatedItems => List.unmodifiable(_quarantine);
-  
   void clearResolved(String id) {
     _quarantine.removeWhere((item) => item.id == id);
   }

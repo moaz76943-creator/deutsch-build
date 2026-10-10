@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk024 = <ContentItem>[
 ContentItem(id:'w10729',german:'die Reise planen',arabic:'التخطيط لـ الرحلة',sentence:'Ich plane die Reise.',sentenceAr:'أنا أخطط لـ الرحلة.',topic:'تراكيب فعلية — العمل والإدارة',skill:'production',article:'',plural:'',accepted:[]),

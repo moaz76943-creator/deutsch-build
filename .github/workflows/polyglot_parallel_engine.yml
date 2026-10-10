@@ -1,87 +1,51 @@
-name: Polyglot Parallel Engine
+name: Polyglot Parallel Engine (manual verified-only)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'tools/polyglot_v2/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: polyglot-v2-manual-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  db_factory_seeder:
-    name: Job 1 - 100-Languages SQLite Factory
+  sqlite_contract_test:
+    name: Verify SQLite V2 contracts
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Generate Universal DB Packs
-        run: |
-          echo "Simulating 120-minute generation of 100 languages..."
-          mkdir -p build/packs
-          python3 tools/polyglot_v2/create_pack_v2.py --source tools/polyglot_v2/source_de_train_v2.json --output build/packs
-      - name: Upload DB Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: language-packs
-          path: build/packs/
-
-  grammar_matrix:
-    name: Job 2 - Grammar & Conjugation Matrix
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "Simulating 90-minute Grammar Matrix generation..."
-
-  exercise_synth:
-    name: Job 3 - Exercise Synthesizer
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "Simulating 90-minute Exercise synthesis..."
-
-  audio_phonetics:
-    name: Job 4 - Phonetics & Audio Map
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "Simulating 120-minute TTS/IPA mapping..."
-
-  srs_validation:
-    name: Job 5 - SRS 100k Stress Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run SRS Tests
+      - name: Run deterministic SQLite V2 tests
         run: python3 -m unittest discover -s tools/polyglot_v2 -p 'test_polyglot_v2.py' -v
 
-  assemble_apk:
-    name: Job 6 - Production APK Compilation
-    needs: [db_factory_seeder, grammar_matrix, exercise_synth, audio_phonetics, srs_validation]
+  db_factory_seeder:
+    name: Build reviewed German development fixture
+    needs: sqlite_contract_test
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Download DB Artifacts
-        uses: actions/download-artifact@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          name: language-packs
-          path: assets/packs/
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: false
-      - name: Build APK with Extended Heap
-        env:
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
+          python-version: '3.12'
+      - name: Compile reviewed fixture only
         run: |
-          flutter pub get
-          flutter build apk --debug --no-tree-shake-icons
-      - name: Upload Final APK
+          python3 tools/polyglot_v2/create_pack_v2.py \
+            --source tools/polyglot_v2/source_de_train_v2.json \
+            --output build/packs
+      - name: Upload development pack artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug-apk
-
+          name: de-v2-development-fixture
+          path: |
+            build/packs/de.db.gz
+            build/packs/de.db.gz.sha256
+          if-no-files-found: error
+          retention-days: 3

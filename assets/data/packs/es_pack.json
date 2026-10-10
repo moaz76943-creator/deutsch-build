@@ -1,0 +1,71 @@
+{
+  "language": "es",
+  "name": "الإسبانية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "Buenos días",
+      "article": "",
+      "meaning": "صباح الخير",
+      "example": "Buenos días a toda la familia.",
+      "exampleMeaning": "صباح الخير لكل العائلة.",
+      "category": "Greeting"
+    },
+    {
+      "word": "Gracias",
+      "article": "",
+      "meaning": "شكراً",
+      "example": "Muchas gracias por su paciencia.",
+      "exampleMeaning": "شكراً جزيلاً على صبركم.",
+      "category": "Common"
+    },
+    {
+      "word": "Agua",
+      "article": "el",
+      "meaning": "ماء",
+      "example": "El agua pura es vital.",
+      "exampleMeaning": "الماء النقي عنصر حيوي.",
+      "category": "Drink"
+    },
+    {
+      "word": "Libro",
+      "article": "el",
+      "meaning": "كتاب",
+      "example": "El libro abre la mente.",
+      "exampleMeaning": "الكتاب يفتح آفاق العقل.",
+      "category": "Education"
+    },
+    {
+      "word": "Amigo",
+      "article": "el",
+      "meaning": "صديق",
+      "example": "Un amigo sincero está siempre presente.",
+      "exampleMeaning": "الصديق الصادق حاضر دوماً.",
+      "category": "People"
+    },
+    {
+      "word": "Sol",
+      "article": "el",
+      "meaning": "الشمس",
+      "example": "El sol brilla en el horizonte.",
+      "exampleMeaning": "الشمس تشرق في الأفق.",
+      "category": "Nature"
+    },
+    {
+      "word": "Éxito",
+      "article": "el",
+      "meaning": "النجاح والتفوق",
+      "example": "El éxito requiere constancia.",
+      "exampleMeaning": "النجاح يتطلب عزيمة واستمراراً.",
+      "category": "Work"
+    },
+    {
+      "word": "Esperanza",
+      "article": "la",
+      "meaning": "الأمل والرجاء",
+      "example": "La esperanza ilumina el futuro.",
+      "exampleMeaning": "الأمل ينير دروب المستقبل.",
+      "category": "Life"
+    }
+  ]
+}

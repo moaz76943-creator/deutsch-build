@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk034 = <ContentItem>[
 ContentItem(id:'w14734',german:'die Regel notieren',arabic:'القاعدة يدوّن',sentence:'Ich notiere die Regel.',sentenceAr:'أنا أدوّن القاعدة.',topic:'الدراسة والتعلم',skill:'transfer',article:'',plural:'',accepted:['die Regel notieren']),
