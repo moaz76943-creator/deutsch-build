@@ -1,0 +1,37 @@
+#!/bin/bash
+python3 - << 'PYEOF'
+import urllib.request, json, os
+
+token = "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"
+repo = "moaz76943-creator/deutsch-build"
+headers = {"Authorization": f"token {token}", "User-Agent": "Termux"}
+
+try:
+    print("⏳ جارٍ فحص وجود نسخة APK جاهزة...")
+    req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases/tags/latest", headers=headers)
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read().decode())
+        assets = [a for a in data.get("assets", []) if a["name"].endswith(".apk")]
+        if not assets:
+            print("⏳ السيرفر ما زال يجمع ملفات التطبيق، انتظر دقيقة وأعد المحاولة.")
+            exit(0)
+        
+        asset_url = assets[0]["url"]
+        target_path = os.path.expanduser("~/storage/downloads/deutsch-app.apk")
+        
+        print("⬇ جارٍ تنزيل deutsch-app.apk مباشرة إلى مجلد التنزيلات...")
+        cmd = f'curl -L -s -H "Authorization: token {token}" -H "Accept: application/octet-stream" -o "{target_path}" "{asset_url}"'
+        os.system(cmd)
+        
+        if os.path.exists(target_path) and os.path.getsize(target_path) > 1000000:
+            print("\n============================================")
+            print("✔ تم التحميل بنجاح 10/10!")
+            print("الملف موجود الآن في مجلد التنزيلات (Download):")
+            print("اسم الملف: deutsch-app.apk")
+            print("افتح مدير الملفات أو الإشعارات وثبّته فوراً!")
+            print("============================================")
+        else:
+            print("⚠️ حدث خطأ أثناء النقل، تأكد من اتصال الإنترنت.")
+except Exception as e:
+    print(f"⏳ النسخة قيد البناء حالياً أو لم تكتمل بعد، جرب بعد لحظات.")
+PYEOF
