@@ -117,4 +117,23 @@ class VocabularyRepository {
       return false;
     }
   }
+
+  Future<Map<String, dynamic>> getDatabaseHealthStats() async {
+    final items = await getVocabularyList();
+    final Map<String, int> langCounts = {};
+    for (final item in items) {
+      final String lang = (item['languageCode'] ?? 'de').toString();
+      langCounts[lang] = (langCounts[lang] ?? 0) + 1;
+    }
+    final raw = await exportBackupJson();
+    final int bytes = utf8.encode(raw).length;
+
+    return {
+      'totalCount': items.length,
+      'sizeInBytes': bytes,
+      'status': 'متصل وسليم',
+      'langCounts': langCounts,
+    };
+  }
+
 }
