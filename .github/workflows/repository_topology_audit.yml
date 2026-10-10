@@ -1,4 +1,4 @@
-name: "P0 Repository Topology & Architecture Audit"
+name: "P0 Production Reachability & Stub Audit"
 
 on:
   workflow_dispatch:
@@ -7,123 +7,103 @@ permissions:
   contents: read
 
 jobs:
-  topology-audit:
+  reachability-audit:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. جلب مستودع التطوير التجريبي (deutsch-build)
+      - name: جلب مستودع البناء (deutsch-build)
         uses: actions/checkout@v4
-        with:
-          path: current_dev
 
-      - name: 2. جلب النواة القانونية للإنتاج (deutsch-bilarabi)
-        run: |
-          git clone --depth 100 https://github.com/sali97m-cpu/deutsch-bilarabi.git canonical_prod || {
-            echo "⚠️ تعذر الاستنساخ المباشر، سيتم إنشاء هيكل فارغ للمقارنة."
-            mkdir -p canonical_prod/lib
-          }
-
-      - name: 3. إعداد بيئة بايثون للتدقيق الرقمي
+      - name: إعداد بيئة بايثون
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: 4. تشغيل سكربت الفحص والمقارنة الرياضية (SHA-256)
+      - name: تتبع شجرة الوصول من main.dart وكشف الـ Stubs
         run: |
-          cat << 'PYEOF' > audit.py
-          import os, hashlib, json
+          cat << 'PYEOF' > reachability_audit.py
+          import os, re, json
 
-          def compute_file_hash(filepath):
-              sha = hashlib.sha256()
-              try:
-                  with open(filepath, 'rb') as f:
-                      while chunk := f.read(8192):
-                          sha.update(chunk)
-                  return sha.hexdigest(), os.path.getsize(filepath)
-              except Exception:
-                  return None, 0
+          LIB_DIR = "lib"
 
-          def scan_tree(root_dir):
-              file_map = {}
-              if not os.path.exists(root_dir):
-                  return file_map
-              for root, _, files in os.walk(root_dir):
-                  for file in files:
-                      if file.endswith('.dart'):
-                          full_path = os.path.join(root, file)
-                          rel_path = os.path.relpath(full_path, root_dir)
-                          file_hash, file_size = compute_file_hash(full_path)
-                          if file_hash:
-                              file_map[rel_path] = {'hash': file_hash, 'size': file_size}
-              return file_map
+          # 1. جمع جميع ملفات Dart في المستودع
+          all_dart_files = {}
+          for root, _, files in os.walk(LIB_DIR):
+              for file in files:
+                  if file.endswith(".dart"):
+                      rel_path = os.path.relpath(os.path.join(root, file), LIB_DIR).replace("\\", "/")
+                      full_path = os.path.join(root, file)
+                      with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                          all_dart_files[rel_path] = f.read()
 
-          canonical_lib = 'canonical_prod/lib'
-          dev_lib = 'current_dev/lib'
+          total_count = len(all_dart_files)
 
-          print('🔍 جاري فحص ملفات النواة الإنتاجية (Canonical)...')
-          canonical_tree = scan_tree(canonical_lib)
-          print(f'   - تم إحصاء {len(canonical_tree)} ملف Dart في الإنتاج.')
+          # 2. تتبع مسار الوصول بدءاً من main.dart
+          reachable = set()
+          queue = ["main.dart"]
 
-          print('🔍 جاري فحص ملفات بيئة البناء والتطوير (Dev)...')
-          dev_tree = scan_tree(dev_lib)
-          print(f'   - تم إحصاء {len(dev_tree)} ملف Dart في بيئة البناء.')
+          while queue:
+              current = queue.pop(0)
+              if current not in all_dart_files or current in reachable:
+                  continue
+              reachable.add(current)
 
-          missing_in_dev = [f for f in canonical_tree if f not in dev_tree]
-          new_in_dev = [f for f in dev_tree if f not in canonical_tree]
-          modified_files = []
-          identical_files = []
+              content = all_dart_files[current]
+              # البحث عن جميع استيرادات package أو الاستيرادات النسبية
+              imports = re.findall(r"import\s+['\"]([^'\"]+)['\"]", content)
+              for imp in imports:
+                  target = None
+                  if imp.startswith("package:"):
+                      parts = imp.split("/", 1)
+                      if len(parts) == 2:
+                          target = parts[1]
+                  elif not imp.startswith("dart:"):
+                      base_dir = os.path.dirname(current)
+                      target = os.path.normpath(os.path.join(base_dir, imp)).replace("\\", "/")
 
-          for f in canonical_tree:
-              if f in dev_tree:
-                  if canonical_tree[f]['hash'] == dev_tree[f]['hash']:
-                      identical_files.append(f)
-                  else:
-                      modified_files.append({
-                          'file': f,
-                          'canonical_size': canonical_tree[f]['size'],
-                          'dev_size': dev_tree[f]['size'],
-                          'size_delta': dev_tree[f]['size'] - canonical_tree[f]['size']
-                      })
+                  if target and target in all_dart_files and target not in reachable:
+                      queue.append(target)
+
+          unreachable = [f for f in all_dart_files if f not in reachable]
+
+          # 3. فحص الدوال الفارغة والـ Stubs في جميع الملفات
+          stubs_detected = []
+          for rel_path, content in all_dart_files.items():
+              lines = content.splitlines()
+              # كشف دوال فارغة أو return افتراضي غير مكتمل
+              if re.search(r"processReview\s*\([^)]*\)\s*\{\s*\}", content):
+                  stubs_detected.append({"file": rel_path, "issue": "Empty processReview() stub"})
+              if re.search(r"throw\s+UnimplementedError", content):
+                  stubs_detected.append({"file": rel_path, "issue": "UnimplementedError stub"})
+              if "lang_01" in content:
+                  stubs_detected.append({"file": rel_path, "issue": "Fake lang_01 identifier used"})
+
+          print("=" * 65)
+          print("📊 تقرير فحص مسار الوصول وكشف المعمارية الصورية (Audit Report):")
+          print("=" * 65)
+          print(f"📁 إجمالي ملفات Dart المفحوصة: {total_count}")
+          print(f"🔗 ملفات متصلة فعلياً وتبدأ من main.dart: {len(reachable)}")
+          print(f"⚠️ ملفات معزولة تماماً لا يستدعيها التطبيق (Orphaned): {len(unreachable)}")
+          print(f"🚨 حالات Stubs ودوال فارغة مكتشفة: {len(stubs_detected)}")
+          print("=" * 65)
+
+          if stubs_detected:
+              print("\n[المخالفات والدوال الفارغة المكتشفة]:")
+              for s in stubs_detected:
+                  print(f"  - {s['file']}: {s['issue']}")
+
+          print(f"\n[عينة من أول 10 ملفات معزولة لا تعمل في التطبيق]:")
+          for u in unreachable[:10]:
+              print(f"  - {u}")
 
           report = {
-              'audit_status': 'COMPLETED',
-              'canonical_total_files': len(canonical_tree),
-              'dev_total_files': len(dev_tree),
-              'identical_count': len(identical_files),
-              'missing_in_dev_count': len(missing_in_dev),
-              'new_in_dev_count': len(new_in_dev),
-              'modified_count': len(modified_files),
-              'missing_files_sample': missing_in_dev[:15],
-              'new_files_sample': new_in_dev[:15],
-              'modified_files': modified_files[:15]
+              "total_files": total_count,
+              "reachable_count": len(reachable),
+              "unreachable_count": len(unreachable),
+              "stubs_count": len(stubs_detected),
+              "stubs": stubs_detected,
+              "unreachable_sample": unreachable[:30]
           }
-
-          with open('topology_audit_report.json', 'w', encoding='utf-8') as rf:
-              json.dump(report, rf, indent=2, ensure_ascii=False)
-
-          print('\n' + '='*65)
-          print('📊 نتيجة التدقيق الطبوغرافي الشامل (Topological Audit Summary):')
-          print('='*65)
-          print(f'✅ ملفات متطابقة تماماً: {len(identical_files)}')
-          print(f'🚨 ملفات مفقودة من الإنتاج في نسخة البناء: {len(missing_in_dev)}')
-          print(f'✨ ملفات جديدة مستحدثة في بيئة البناء: {len(new_in_dev)}')
-          print(f'⚠️ ملفات مشتركة تم تعديلها أو اختزالها: {len(modified_files)}')
-          print('='*65)
-
-          if modified_files:
-              print('\n[عينة من الملفات المعدلة وحجم التغيير]:')
-              for m in modified_files[:5]:
-                  print(f"  - {m['file']} (فرق الحجم: {m['size_delta']} بايت)")
-
-          if missing_in_dev:
-              print('\n[عينة من الملفات القانونية المفقودة التي يجب حمايتها]:')
-              for m in missing_in_dev[:5]:
-                  print(f'  - {m}')
+          with open("reachability_report.json", "w", encoding="utf-8") as f:
+              json.dump(report, f, indent=2, ensure_ascii=False)
           PYEOF
-          python3 audit.py
-
-      - name: 5. حفظ التقرير كملف للتحميل (Artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: topology-audit-report
-          path: topology_audit_report.json
-          retention-days: 7
+          python3 reachability_audit.py
