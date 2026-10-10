@@ -56,7 +56,7 @@ jobs:
 
           # 2. ودجت البطاقة ثلاثية الأبعاد والشاشة المجمعة
           cat << 'DART' > lib/features/wordbit/ui/wordbit_carousel_screen.dart
-          // ignore_for_file: prefer_const_constructors, library_private_types_in_public_api
+          // ignore_for_file: prefer_const_constructors, library_private_types_in_public_api, deprecated_member_use
           import 'dart:math' as math;
           import 'package:flutter/material.dart';
           import '../models/wordbit_card.dart';
@@ -123,7 +123,6 @@ jobs:
 
             void _handleRating(SrsRating rating) {
               final currentCard = _cards[_currentIndex];
-              // ربط حدث المراجعة بمحرك SRS الحقيقي
               ProductionSrsEngine.processReview(
                 currentIntervalDays: 1,
                 currentEaseFactor: 2.5,
@@ -236,7 +235,7 @@ jobs:
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.emerald.withOpacity(0.15) ?? Colors.green.withOpacity(0.15),
+                      color: Colors.green.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(card.domainName, style: const TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.w600)),
@@ -287,7 +286,6 @@ jobs:
           with open('lib/core/routing/app_router.dart', 'r', encoding='utf-8') as f:
               content = f.read()
 
-          # استبدال المسار المبدئي ليوجه المستخدم مباشرة إلى واجهة WordBit المكتملة
           import_stmt = "import '../../features/wordbit/ui/wordbit_carousel_screen.dart';\n"
           if 'wordbit_carousel_screen.dart' not in content:
               content = import_stmt + content
