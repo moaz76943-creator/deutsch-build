@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:crypto/crypto.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,22 +21,22 @@ class DeutschApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MainPackScreen(),
+      home: const SafePackScreen(),
     );
   }
 }
 
-class MainPackScreen extends StatefulWidget {
-  const MainPackScreen({super.key});
+class SafePackScreen extends StatefulWidget {
+  const SafePackScreen({super.key});
 
   @override
-  State<MainPackScreen> createState() => _MainPackScreenState();
+  State<SafePackScreen> createState() => _SafePackScreenState();
 }
 
-class _MainPackScreenState extends State<MainPackScreen> {
+class _SafePackScreenState extends State<SafePackScreen> {
   bool _isLoading = true;
-  String _statusMessage = 'جارٍ فحص حزم اللغات المحفوظة...';
-  Map<String, dynamic>? _loadedPack;
+  String _statusMessage = 'جارٍ التحقق من الحزم المثبتة...';
+  Map<String, dynamic>? _activePack;
   List<dynamic> _availableLanguages = [];
 
   final String _manifestUrl =
@@ -46,24 +47,31 @@ class _MainPackScreenState extends State<MainPackScreen> {
   @override
   void initState() {
     super.initState();
-    _checkSavedPack();
+    _initAppStorage();
   }
 
-  Future<File> _getLocalPackFile() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return File('${dir.path}/current_active_pack.json');
-  }
+  Future<Directory> _getAppDir() async => await getApplicationDocumentsDirectory();
 
-  Future<void> _checkSavedPack() async {
+  Future<void> _initAppStorage() async {
     try {
-      final file = await _getLocalPackFile();
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        setState(() {
-          _loadedPack = jsonDecode(content);
-          _isLoading = false;
-        });
-        return;
+      final dir = await _getAppDir();
+      final configFile = File('${dir.path}/active_lang.json');
+
+      if (await configFile.exists()) {
+        final config = jsonDecode(await configFile.readAsString());
+        final activeCode = config['active_code'];
+        final packFile = File('${dir.path}/pack_$activeCode.json');
+
+        if (await packFile.exists()) {
+          final packData = jsonDecode(await packFile.readAsString());
+          if (mounted) {
+            setState(() {
+              _activePack = packData;
+              _isLoading = false;
+            });
+            return;
+          }
+        }
       }
       await _fetchManifest();
     } catch (_) {
@@ -72,58 +80,115 @@ class _MainPackScreenState extends State<MainPackScreen> {
   }
 
   Future<void> _fetchManifest() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _statusMessage = 'جارٍ الاتصال بمخزن اللغات...';
     });
 
+    HttpClient? client;
     try {
-      final client = HttpClient();
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
       final req = await client.getUrl(Uri.parse(_manifestUrl));
       final res = await req.close();
+
+      if (res.statusCode != 200) {
+        throw HttpException('خطأ في السيرفر: ${res.statusCode}');
+      }
+
       final body = await res.transform(utf8.decoder).join();
       final data = jsonDecode(body);
 
-      setState(() {
-        _availableLanguages = data['languages'] ?? [];
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _availableLanguages = data['languages'] ?? [];
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _statusMessage = 'تعذر الاتصال بالمخزن. يرجى تفعيل الإنترنت.';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _statusMessage = 'تعذر الاتصال بالمخزن. يرجى التأكد من الإنترنت.';
+          _isLoading = false;
+        });
+      }
+    } finally {
+      client?.close();
     }
   }
 
-  Future<void> _downloadLanguage(String code, String packFile) async {
+  Future<void> _safeDownloadAndVerify(Map<String, dynamic> lang) async {
+    final code = lang['code'];
+    final fileName = lang['pack_file'];
+    final expectedSha = lang['sha256'];
+
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
-      _statusMessage = 'جارٍ تنزيل حزمة $code وحفظها أوفلاين...';
+      _statusMessage = 'جارٍ تنزيل حزمة $code...';
     });
 
+    HttpClient? client;
     try {
-      final client = HttpClient();
-      final req = await client.getUrl(Uri.parse('$_packsBaseUrl$packFile'));
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+      final req = await client.getUrl(Uri.parse('$_packsBaseUrl$fileName'));
       final res = await req.close();
-      final bytes = await res.fold<List<int>>([], (p, e) => p..addAll(e));
-      
-      final decompressed = gzip.decode(bytes);
-      final jsonStr = utf8.decode(decompressed);
-      final parsed = jsonDecode(jsonStr);
 
-      final file = await _getLocalPackFile();
-      await file.writeAsString(jsonStr);
+      if (res.statusCode != 200) {
+        throw HttpException('فشل التنزيل برمز: ${res.statusCode}');
+      }
 
-      setState(() {
-        _loadedPack = parsed;
-        _isLoading = false;
-      });
+      final compressedBytes = await res.fold<List<int>>([], (p, e) => p..addAll(e));
+
+      if (mounted) {
+        setState(() => _statusMessage = 'جارٍ التحقق من بصمة الأمان (SHA-256)...');
+      }
+
+      // 1. التحقق من بصمة الملف المضغوط
+      final actualSha = sha256.convert(compressedBytes).toString();
+      if (expectedSha != null && actualSha.toLowerCase() != expectedSha.toString().toLowerCase()) {
+        throw Exception('فشل التحقق الأمني: البصمة غير متطابقة.');
+      }
+
+      if (mounted) {
+        setState(() => _statusMessage = 'جارٍ فك الضغط والتثبيت الآمن...');
+      }
+
+      // 2. فك الضغط والتحقق من صحة الـ JSON
+      final decompressedBytes = gzip.decode(compressedBytes);
+      final jsonString = utf8.decode(decompressedBytes);
+      final parsedPack = jsonDecode(jsonString);
+
+      // 3. النشر الذري (Atomic Write) عبر ملف مؤقت
+      final dir = await _getAppDir();
+      final tempFile = File('${dir.path}/pack_${code}_temp.json');
+      await tempFile.writeAsString(jsonString);
+
+      final finalFile = File('${dir.path}/pack_$code.json');
+      if (await finalFile.exists()) {
+        await finalFile.delete();
+      }
+      await tempFile.rename(finalFile.path);
+
+      // 4. حفظ مؤشر اللغة النشطة
+      final configFile = File('${dir.path}/active_lang.json');
+      await configFile.writeAsString(jsonEncode({'active_code': code}));
+
+      if (mounted) {
+        setState(() {
+          _activePack = parsedPack;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _statusMessage = 'فشل التنزيل: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _statusMessage = 'تنبيه: $e';
+          _isLoading = false;
+        });
+      }
+    } finally {
+      client?.close();
     }
   }
 
@@ -137,27 +202,30 @@ class _MainPackScreenState extends State<MainPackScreen> {
             children: [
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
-              Text(_statusMessage, style: const TextStyle(fontSize: 15)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(_statusMessage, textAlign: TextAlign.center),
+              ),
             ],
           ),
         ),
       );
     }
 
-    if (_loadedPack != null) {
-      final header = _loadedPack!['header'] ?? {};
-      final domains = _loadedPack!['domains'] as List<dynamic>? ?? [];
+    if (_activePack != null) {
+      final header = _activePack!['header'] ?? {};
+      final domains = _activePack!['domains'] as List<dynamic>? ?? [];
 
       return Scaffold(
         appBar: AppBar(
-          title: Text('${header['native'] ?? header['name']} (أوفلاين)'),
+          title: Text('${header['native'] ?? header['name']} (مثبتة أوفلاين)'),
           centerTitle: true,
           actions: [
             IconButton(
               icon: const Icon(Icons.language),
-              tooltip: 'تغيير اللغة',
+              tooltip: 'المتجر واللغات',
               onPressed: () {
-                setState(() => _loadedPack = null);
+                setState(() => _activePack = null);
                 _fetchManifest();
               },
             )
@@ -170,27 +238,15 @@ class _MainPackScreenState extends State<MainPackScreen> {
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.deepPurple.shade50,
-                  child: Text('${d['id']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                ),
+                leading: CircleAvatar(child: Text('${d['id']}')),
                 title: Text(
                   d['name'] ?? '',
                   textDirection: TextDirection.rtl,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: const Text('المحور التعليمي • بطاقات تفاعلية'),
+                subtitle: const Text('محور تعليمي موثق'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => DomainCardScreen(domainName: d['name'] ?? ''),
-                    ),
-                  );
-                },
               ),
             );
           },
@@ -199,12 +255,12 @@ class _MainPackScreenState extends State<MainPackScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('اختر لغتك التعليمية'), centerTitle: true),
+      appBar: AppBar(title: const Text('اختر لغة التعلم'), centerTitle: true),
       body: _availableLanguages.isEmpty
           ? Center(
               child: ElevatedButton(
                 onPressed: _fetchManifest,
-                child: const Text('إعادة المحاولة'),
+                child: const Text('إعادة فحص المخزن'),
               ),
             )
           : ListView.builder(
@@ -212,70 +268,16 @@ class _MainPackScreenState extends State<MainPackScreen> {
               itemBuilder: (context, i) {
                 final lang = _availableLanguages[i];
                 return ListTile(
-                  leading: const Icon(Icons.public, color: Colors.deepPurple),
+                  leading: const Icon(Icons.public),
                   title: Text('${lang['name']} (${lang['native_name']})'),
                   subtitle: Text('حجم الحزمة: ${(lang['size_bytes'] / 1024).toStringAsFixed(1)} KB'),
                   trailing: ElevatedButton(
-                    onPressed: () => _downloadLanguage(lang['code'], lang['pack_file']),
-                    child: const Text('تنزيل'),
+                    onPressed: () => _safeDownloadAndVerify(lang),
+                    child: const Text('تثبيت آمن'),
                   ),
                 );
               },
             ),
-    );
-  }
-}
-
-class DomainCardScreen extends StatefulWidget {
-  final String domainName;
-  const DomainCardScreen({super.key, required this.domainName});
-
-  @override
-  State<DomainCardScreen> createState() => _DomainCardScreenState();
-}
-
-class _DomainCardScreenState extends State<DomainCardScreen> {
-  bool _showBack = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.domainName)),
-      body: Center(
-        child: GestureDetector(
-          onTap: () => setState(() => _showBack = !_showBack),
-          child: Card(
-            elevation: 6,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            margin: const EdgeInsets.all(24),
-            child: Container(
-              height: 220,
-              width: double.infinity,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _showBack ? 'الترجمة والمعنى' : 'المفردة / الجملة بالألمانية',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _showBack ? widget.domainName : 'Guten Tag',
-                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    _showBack ? 'اضغط للعودة إلى الوجه' : 'اضغط لقلب البطاقة ومعرفة المعنى',
-                    style: TextStyle(fontSize: 12, color: Colors.deepPurple.shade300),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
