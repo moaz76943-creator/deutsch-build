@@ -22,13 +22,12 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: "Apply Megabatch 4 - SRS, Behavioral Psychology and Linguistics"
+      - name: "Apply Megabatch 4 - SRS and Linguistics"
         run: |
           mkdir -p lib/core/srs lib/core/linguistics
 
-          # 1. LeitnerState & SRS Engine (602, 603, 604, 605)
+          # 1. LeitnerCardState
           cat << 'DART' > lib/core/srs/leitner_box_state.dart
-          /// نموذج صناديق لايتنر وحساب فترات النسيان رياضياً
           enum LeitnerBox { box1, box2, box3, box4, box5 }
 
           class LeitnerCardState {
@@ -53,17 +52,16 @@ jobs:
           }
           DART
 
-          # 2. SpacedRepetitionEngine (610, 611, 612, 613)
+          # 2. SpacedRepetitionEngine (تم تصحيح الاستيراد المباشر)
           cat << 'DART' > lib/core/srs/spaced_repetition_engine.dart
-          import 'dart0_stub.dart' if (dart.library.core) 'leitner_box_state.dart';
+          import 'leitner_box_state.dart';
 
-          /// محرك حساب فترات التكرار المتباعد بدون استهلاك معالج الهاتف
           class SpacedRepetitionEngine {
             static const int _oneDayMs = 86400000;
 
             static LeitnerCardState calculateNextInterval({
               required LeitnerCardState previousState,
-              required int rating, // 1: Hard/Fail, 2: Good, 3: Easy
+              required int rating,
             }) {
               final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -94,9 +92,8 @@ jobs:
           }
           DART
 
-          # 3. PhoneticToken (641, 642, 643)
+          # 3. PhoneticToken
           cat << 'DART' > lib/core/linguistics/phonetic_token.dart
-          /// تمثيل صوتي رمزي دقيق صالح لجميع اللغات (IPA)
           class PhoneticToken {
             final String rawText;
             final String ipaRepresentation;
@@ -112,9 +109,8 @@ jobs:
           }
           DART
 
-          # 4. GrammaticalRoleContract (670, 671, 672)
+          # 4. GrammarContract
           cat << 'DART' > lib/core/linguistics/grammatical_role.dart
-          /// عقود تصنيف القواعد النحوية الشاملة للغات المختلفة
           enum UniversalGrammaticalCategory {
             noun,
             verb,
@@ -150,5 +146,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/
-          git commit -m "feat(megabatch-4): spaced repetition algorithms and universal linguistics engine" || exit 0
+          git commit -m "feat(megabatch-4): SRS algorithms and universal linguistics engine" || exit 0
           git push
