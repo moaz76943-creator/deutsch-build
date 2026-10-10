@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// محرك مركزي لإدارة اتجاه النصوص وخصائص الـ 100 لغة
+/// Comprehensive BiDi & Typography controller for all 100 polyglot languages
 class LanguageBiDiHelper {
-  // اللغات التي تكتب من اليمين إلى اليسار حول العالم
   static const Set<String> _rtlLanguagePrefixes = {
-    'ar', 'fa', 'ur', 'ps', 'sd', 'ku', 'ug', 'ckb'
+    'ar', 'fa', 'ur', 'ps', 'sd', 'ku', 'ug', 'ckb', 'he', 'iw', 'yi'
   };
 
-  /// فحص اتجاه أي لغة عالمية عبر كود BCP-47
+  /// Resolves text direction from any BCP-47 locale code
   static TextDirection getDirection(String bcp47Code) {
     final prefix = bcp47Code.split('-').first.toLowerCase();
     if (_rtlLanguagePrefixes.contains(prefix)) {
@@ -16,7 +15,7 @@ class LanguageBiDiHelper {
     return TextDirection.ltr;
   }
 
-  /// التحقق الصارم من استبعاد اللغات المحظورة
+  /// Security / Policy filter
   static bool isLanguageAllowed(String bcp47Code) {
     final prefix = bcp47Code.split('-').first.toLowerCase();
     if (prefix == 'he' || prefix == 'iw') {
@@ -25,12 +24,22 @@ class LanguageBiDiHelper {
     return true;
   }
 
-  /// تحديد ارتفاع السطر والخط المناسب لكل عائلة لغوية
+  /// Dynamic line-height engine to prevent clipping of complex scripts and diacritics
   static double getLineHeight(String bcp47Code) {
     final prefix = bcp47Code.split('-').first.toLowerCase();
-    if (prefix == 'ar' || prefix == 'fa' || prefix == 'ur') {
-      return 1.4; // حماية علامات التشكيل العربية وما شابهها من القص
+    // Arabic-script languages: extra vertical padding for tashkeel and descenders
+    if (['ar', 'fa', 'ur', 'ps', 'sd', 'ku', 'ug', 'ckb'].contains(prefix)) {
+      return 1.45;
     }
-    return 1.2;
+    // Complex Indic scripts and Thai/Lao: room for vertical tone/vowel stacking
+    if (['hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'th', 'lo', 'my'].contains(prefix)) {
+      return 1.40;
+    }
+    // CJK Box glyph balance
+    if (['zh', 'ja', 'ko'].contains(prefix)) {
+      return 1.30;
+    }
+    // Standard Latin and Cyrillic
+    return 1.20;
   }
 }
