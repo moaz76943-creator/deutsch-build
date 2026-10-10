@@ -33,6 +33,8 @@ jobs:
       - name: 1. بناء الكتالوج الموحد للـ 50 مجالاً معرفياً
         run: |
           cat << 'DART' > lib/core/domain_catalog.dart
+          // ignore_for_file: unused_import
+
           /// كتالوج الـ 50 مجالاً معرفياً المعتمدة للتطبيق عبر كافة اللغات
           class DomainCatalog {
             static const List<Map<String, String>> domains = [
@@ -56,7 +58,6 @@ jobs:
               {'id': 'd18', 'key': 'emergency_safety', 'nameAr': 'الطوارئ والسلامة والإسعاف'},
               {'id': 'd19', 'key': 'finance_banking', 'nameAr': 'المالية والبنوك والمصارف'},
               {'id': 'd20', 'key': 'communication', 'nameAr': 'التواصل والمراسلات الرسمية'},
-              // استكمال المجالات المعرفية حتى 50 مجالاً
               {'id': 'd21', 'key': 'engineering', 'nameAr': 'الهندسة والصناعة'},
               {'id': 'd22', 'key': 'agriculture', 'nameAr': 'الزراعة والريف'},
               {'id': 'd23', 'key': 'aviation_space', 'nameAr': 'الطيران وعلوم الفضاء'},
@@ -99,11 +100,10 @@ jobs:
           }
           DART
 
-      - name: 2. بناء محرك التخزين المعجمي المنفصل (Lexical Repository)
+      - name: 2. بناء محرك التخزين المعجمي النظيف (Lexical Repository)
         run: |
           cat << 'DART' > lib/core/lexical_repository.dart
-          import 'dart:async';
-          import 'domain_catalog.dart';
+          // ignore_for_file: unused_import
           import 'language_bidi_helper.dart';
 
           /// نموذج المفردة اللغوية الكاملة
@@ -138,7 +138,6 @@ jobs:
             static void initializeStore(List<LexicalEntry> initialEntries) {
               _inMemoryStore.clear();
               for (final entry in initialEntries) {
-                // فلترة فورية لأي لغات أو مصطلحات محظورة
                 if (LanguageBiDiHelper.isLanguageAllowed(entry.targetLocale) &&
                     LanguageBiDiHelper.isLanguageAllowed(entry.sourceLocale)) {
                   _inMemoryStore.add(entry);
@@ -170,5 +169,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/core/domain_catalog.dart lib/core/lexical_repository.dart
-          git commit -m "feat(domains): implement 50 knowledge domains catalog and isolated lexical repository" || exit 0
+          git commit -m "feat(domains): clean imports and finalize 50 knowledge domains catalog" || exit 0
           git push
