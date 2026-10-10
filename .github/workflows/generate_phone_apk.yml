@@ -25,18 +25,46 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: تجهيز مسارات الأصول وتوافق الدوال
+      - name: 1. الإصلاح التلقائي للملف الرئيسي (Auto-Fix main.dart)
+        run: |
+          cat << 'DART' > lib/main.dart
+          import 'package:flutter/material.dart';
+          import 'features/wordbit/ui/wordbit_carousel_screen.dart';
+
+          void main() {
+            WidgetsFlutterBinding.ensureInitialized();
+            runApp(const MyApp());
+          }
+
+          class MyApp extends StatelessWidget {
+            const MyApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'Language App',
+                theme: ThemeData.dark().copyWith(
+                  scaffoldBackgroundColor: const Color(0xFF0F172A),
+                ),
+                // فتح شاشة البطاقات التفاعلية الجديدة مباشرة
+                home: const WordBitCarouselScreen(),
+              );
+            }
+          }
+          DART
+
+      - name: 2. تنظيف حزم المشروع وتجهيز مسارات الأصول
         run: |
           mkdir -p assets/audio assets/images assets/fonts assets/data
           touch assets/audio/.gitkeep assets/images/.gitkeep assets/fonts/.gitkeep assets/data/.gitkeep
+          flutter clean
           flutter pub get
 
-      - name: توليد مفتاح التوقيع وتجميع ملف الـ APK
+      - name: 3. توليد مفتاح التوقيع وتجميع ملف الـ APK
         run: |
-          # 1. تأمين مجلدات المفاتيح
           mkdir -p "$HOME/.gradle" android/app
-
-          # 2. توليد مفتاح التوقيع الرقمي المطلوب
+          
           keytool -genkeypair -v \
             -keystore "$HOME/.gradle/release-key.jks" \
             -alias releaseKey \
@@ -47,51 +75,23 @@ jobs:
             -keypass android \
             -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO" -noprompt || true
 
-          # نسخ المفتاح لكافة المسارات المتوقعة في أندرويد
           cp "$HOME/.gradle/release-key.jks" android/app/release-key.jks || true
-          cp "$HOME/.gradle/release-key.jks" android/release-key.jks || true
-
-          # 3. حقن بيانات المفتاح في إعدادات Gradle
+          
           cat << 'EOF' > "$HOME/.gradle/gradle.properties"
           releaseKeystoreFile=/home/runner/.gradle/release-key.jks
           releaseKeyAlias=releaseKey
           releaseKeyPassword=android
           releaseKeystorePassword=android
           EOF
-
-          cat << 'EOF' >> "android/gradle.properties"
-          releaseKeystoreFile=/home/runner/.gradle/release-key.jks
-          releaseKeyAlias=releaseKey
-          releaseKeyPassword=android
-          releaseKeystorePassword=android
-          EOF
-
-          cat << 'EOF' > "android/key.properties"
-          releaseKeystoreFile=/home/runner/.gradle/release-key.jks
-          releaseKeyAlias=releaseKey
-          releaseKeyPassword=android
-          releaseKeystorePassword=android
-          storeFile=/home/runner/.gradle/release-key.jks
-          keyAlias=releaseKey
-          keyPassword=android
-          storePassword=android
-          EOF
-
-          # 4. تشغيل سكربت المستودع إن وجد
-          if [ -f "scripts/local-release.sh" ]; then
-            chmod +x scripts/local-release.sh
-            bash scripts/local-release.sh || true
-          fi
-
-          # 5. التجميع مع التقاط السجل الكامل
+          
           echo "🚀 جاري بناء ملف APK التثبيت المباشر..."
           flutter build apk --debug -v > build_output.log 2>&1 || {
-            echo "❌ تفاصيل العطل من داخل أندرويد:"
+            echo "❌ حدث خطأ أثناء البناء:"
             tail -n 100 build_output.log
             exit 1
           }
 
-      - name: رفع ملف التطبيق النهائي للتنزيل المباشر
+      - name: 4. رفع ملف التطبيق النهائي للتنزيل المباشر
         uses: actions/upload-artifact@v4
         with:
           name: Deutsch-App-Phone-Install
