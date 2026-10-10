@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show rootBundle;
 // ignore_for_file: unused_import
 import 'dart:async';
 
