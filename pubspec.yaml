@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  uuid: ^4.4.0
   shared_preferences: ^2.2.2
   flutter_tts: ^3.8.5
   path_provider: ^2.1.2
@@ -22,6 +23,7 @@ dependencies:
   archive: any
   flutter_animate: any
   font_awesome_flutter: any
+
 dev_dependencies:
   custom_lint: ^0.6.0
   custom_lint_builder: ^0.6.0
@@ -30,6 +32,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
   sqflite_common_ffi: any
+
 flutter:
   uses-material-design: true
   assets:
