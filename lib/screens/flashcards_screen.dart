@@ -2,45 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math';
 import '../core/srs/review_command_port.dart';
+import '../core/audio/offline_audio_manager.dart';
+import '../services/local_database_service.dart';
 
-// --- دوال الأمان وقاعدة البيانات (تم بناؤها في P0) ---
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
-  return []; // مؤقت لحين ربط DB
-}
-
-Future<void> handleCardRating(
-  ReviewCommandPort? srsPort,
-  String cardId, 
-  ReviewRating rating, 
-  bool wasHinted
-) async {
-  if (srsPort == null) return;
-  final command = ReviewCommand(
-    reviewId: const Uuid().v4(),
-    sourceLanguageId: 'ar',
-    targetLanguageId: 'de',
-    cardId: cardId,
-    facetKey: 'core_meaning',
-    pairEpoch: 1,
-    rating: rating,
-    hinted: wasHinted,
+  final db = await LocalDatabaseService.instance.database;
+  return await db.rawQuery(
+    '''
+    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence 
+    FROM lexemes AS l 
+    LEFT JOIN examples AS e 
+      ON e.concept_id = l.concept_id AND e.language_code = l.language_code 
+    WHERE l.language_code = ? 
+    LIMIT 10
+    ''',
+    [targetLangCode], 
   );
-  await srsPort.submit(command);
 }
 
-// --- كائن وهمي لمشغل الصوت لضمان عمل الواجهة بدون أخطاء مؤقتاً ---
-class OfflineAudioPoolStub {
-  static final OfflineAudioPoolStub instance = OfflineAudioPoolStub();
-  void stop() {
-    debugPrint("تم استدعاء إيقاف الصوت.");
-  }
-}
-
-// --- واجهة البطاقات المعتمدة (P1) ---
 class FlashcardsScreen extends StatefulWidget {
-  // إصلاح التحذير رقم 2: استخدام super parameter
   const FlashcardsScreen({super.key}); 
-
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
 }
@@ -49,11 +30,11 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   late AnimationController _flipController;
   late Animation<double> _flipAnimation;
   bool _isFlipped = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    // 1. زمن التقليب المعتمد (200ms) لمنع الإرهاق الإدراكي
     _flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -63,23 +44,35 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
 
   @override
   void dispose() {
-    // 2. حماية الذاكرة: إغلاق المتحكمات لمنع الـ Memory Leaks
     _flipController.dispose();
-    
-    // إيقاف الصوت النشط عند الخروج من الشاشة
-    OfflineAudioPoolStub.instance.stop();
-    
+    OfflineAudioManager.instance.stop(); 
     super.dispose();
   }
 
   void _toggleFlip() {
+    if (_isSubmitting) return;
     setState(() {
       _isFlipped = !_isFlipped;
     });
     if (_isFlipped) {
       _flipController.forward();
+      OfflineAudioManager.instance.speak("das Buch"); 
     } else {
       _flipController.reverse();
+    }
+  }
+
+  Future<void> _handleRating(ReviewRating rating) async {
+    if (_isSubmitting) return; 
+    setState(() => _isSubmitting = true);
+
+    await Future.delayed(const Duration(milliseconds: 300)); 
+    
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+        _toggleFlip(); 
+      });
     }
   }
 
@@ -122,20 +115,22 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
             if (_isFlipped)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildRatingButton('مجدداً', Colors.redAccent, ReviewRating.again),
-                    _buildRatingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
-                    _buildRatingButton('جيد', Colors.blueAccent, ReviewRating.good),
-                    _buildRatingButton('سهل', Colors.green, ReviewRating.easy),
-                  ],
-                ),
+                child: _isSubmitting 
+                  ? const CircularProgressIndicator()
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildRatingButton('مجدداً', Colors.redAccent, ReviewRating.again),
+                        _buildRatingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
+                        _buildRatingButton('جيد', Colors.blueAccent, ReviewRating.good),
+                        _buildRatingButton('سهل', Colors.green, ReviewRating.easy),
+                      ],
+                    ),
               )
             else
               const Padding(
                 padding: EdgeInsets.all(40.0),
-                child: Text('اضغط للكشف عن المعنى', style: TextStyle(color: Colors.white54)),
+                child: Text('اضغط للكشف والاستماع', style: TextStyle(color: Colors.white54)),
               ),
           ],
         ),
@@ -187,19 +182,15 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   }
 
   Widget _buildRatingButton(String label, Color color, ReviewRating rating) {
-    // إصلاح التحذير رقم 3: استخدام withAlpha بدلاً من withOpacity المتقادمة
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: color.withAlpha(51), // 51 يعادل 20% شفافية تقريباً
+        backgroundColor: color.withAlpha(51),
         foregroundColor: color,
         elevation: 0,
         minimumSize: const Size(70, 56), 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      onPressed: () {
-        handleCardRating(null, 'test_card_1', rating, false);
-        _toggleFlip(); 
-      },
+      onPressed: () => _handleRating(rating),
       child: Text(label, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
     );
   }
