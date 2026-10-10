@@ -1,83 +1,135 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:deutsch_bilarabi/services/database_service.dart';
+import 'package:sqflite/sqflite.dart';
 
 class VocabularyRepository {
-  static const String _key = 'vocabulary_items_v3';
-  static const String _legacyKey = 'vocabulary_items_v2';
-  static const String _backupPrefix = 'vocab_backup_roll_';
+  static const String _key = 'vocabulary_list';
+  static const String _legacyKey = 'custom_vocabulary';
+
+  Future<Database> _getDb() async {
+    final db = await DatabaseService.instance.progressDb;
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS vocabulary_items (
+        word TEXT PRIMARY KEY,
+        language_code TEXT NOT NULL DEFAULT 'de',
+        json_data TEXT NOT NULL
+      )
+    ''');
+    return db;
+  }
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      
-      // نظام الإقلاع والتعبئة التلقائية (First-Run Seeder) إذا كانت المفكرة فارغة
-      if (!prefs.containsKey(_key) || prefs.getString(_key) == '[]' || prefs.getString(_key) == null) {
-        try {
-          String jsonString = await rootBundle.loadString('assets/data/master_vocabulary.json');
-          await prefs.setString(_key, jsonString);
-        } catch (_) {
-          // في حال عدم توفر الأصول المؤقتة يتم العودة لقائمة فارغة آمنة
-        }
+      final db = await _getDb();
+      final List<Map<String, dynamic>> records = await db.query(
+        'vocabulary_items',
+        orderBy: 'rowid ASC',
+      );
+
+      if (records.isEmpty) {
+        return await _seedAndMigrate(db);
       }
 
-      await _runSelfHealingDaemon(prefs);
-
-      if (!prefs.containsKey(_key) && prefs.containsKey(_legacyKey)) {
-        final legacyData = prefs.getString(_legacyKey);
-        if (legacyData != null) {
-          await prefs.setString(_key, legacyData);
-        }
-      }
-
-      final String? jsonString = prefs.getString(_key);
-      if (jsonString == null) {
-      return [];
-    }
-      final List<dynamic> decoded = jsonDecode(jsonString);
-      return decoded.map((e) => Map<String, dynamic>.from(e)).toList();
-    } catch (e) {
+      return records.map((row) {
+        final jsonStr = row['json_data'] as String;
+        return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+      }).toList();
+    } catch (_) {
       return [];
     }
   }
 
-  Future<void> _runSelfHealingDaemon(SharedPreferences prefs) async {
+  Future<List<Map<String, dynamic>>> _seedAndMigrate(Database db) async {
     try {
-      final String? jsonString = prefs.getString(_key);
-      if (jsonString != null) {
-        jsonDecode(jsonString);
+      final prefs = await SharedPreferences.getInstance();
+      String? jsonString = prefs.getString(_key) ?? prefs.getString(_legacyKey);
+
+      if (jsonString == null || jsonString.isEmpty || jsonString == '[]') {
+        try {
+          jsonString = await rootBundle.loadString('assets/data/master_vocabulary.json');
+        } catch (_) {}
       }
-    } catch (_) {
-      await prefs.setString(_key, '[]');
-    }
+
+      if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        await saveVocabularyList(items);
+        return items;
+      }
+    } catch (_) {}
+    return [];
   }
 
   Future<bool> saveVocabularyList(List<Map<String, dynamic>> items) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String jsonString = jsonEncode(items);
-      
-      int timestamp = DateTime.now().millisecondsSinceEpoch;
-      await prefs.setString('$_backupPrefix$timestamp', jsonString);
+      final db = await _getDb();
+      await db.transaction((txn) async {
+        await txn.delete('vocabulary_items');
+        final batch = txn.batch();
+        for (final item in items) {
+          final word = (item['word'] ?? '').toString();
+          if (word.isEmpty) continue;
+          final lang = (item['languageCode'] ?? 'de').toString();
+          final jsonStr = jsonEncode(item);
+          batch.insert(
+            'vocabulary_items',
+            {'word': word, 'language_code': lang, 'json_data': jsonStr},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        await batch.commit(noResult: true);
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
-      return await prefs.setString(_key, jsonString);
-    } catch (e) {
+  Future<bool> upsertVocabularyItem(Map<String, dynamic> item) async {
+    try {
+      final db = await _getDb();
+      final word = (item['word'] ?? '').toString();
+      if (word.isEmpty) return false;
+      final lang = (item['languageCode'] ?? 'de').toString();
+      final jsonStr = jsonEncode(item);
+      await db.insert(
+        'vocabulary_items',
+        {'word': word, 'language_code': lang, 'json_data': jsonStr},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteVocabularyItem(String word) async {
+    try {
+      final db = await _getDb();
+      await db.delete('vocabulary_items', where: 'word = ?', whereArgs: [word]);
+      return true;
+    } catch (_) {
       return false;
     }
   }
 
   Future<String> exportBackupJson() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_key) ?? '[]';
+    final items = await getVocabularyList();
+    return jsonEncode(items);
   }
 
   Future<String> exportAnkiTsv() async {
     final items = await getVocabularyList();
-    StringBuffer buffer = StringBuffer();
+    final StringBuffer buffer = StringBuffer();
     for (var item in items) {
-      String front = item['languageCode'] == 'de' ? '${item['article']} ${item['word']}' : item['word'];
-      String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
-      buffer.write('$front\t$back\n');
+      final String front = item['languageCode'] == 'de'
+          ? '${item['article']} ${item['word']}'
+          : item['word'];
+      final String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
+      buffer.write('$front	$back
+');
     }
     return buffer.toString();
   }
@@ -99,21 +151,21 @@ class VocabularyRepository {
     int bytes = utf8.encode(rawJson).length;
 
     StringBuffer report = StringBuffer();
-    report.writeln('=== تقرير الصحة التشخيصي وتعبئة البذور ===');
-    report.writeln('إجمالي الوحدات المعرفية الحقيقية: $total');
-    report.writeln('حجم التخزين المؤصل محلياً: $bytes بايت');
+    report.writeln('=== تقرير صحة قاعدة البيانات (SQLite Storage) ===');
+    report.writeln('إجمالي المفردات: $total');
+    report.writeln('حجم التخزين الفعلي: $bytes بايت');
     report.writeln('توزيع اللغات: $langs');
-    report.writeln('التوزيع الدلالي والمهني: $fields');
-    report.writeln('حالة التعبئة التلقائية (First-Run Seeder): مجهزة ومفعلة بنجاح');
+    report.writeln('توزيع المجالات: $fields');
+    report.writeln('محرك التخزين: SQLite Engine (ACID Protected)');
     return report.toString();
   }
 
   Future<bool> importBackupJson(String jsonString) async {
     try {
-      jsonDecode(jsonString);
-      final prefs = await SharedPreferences.getInstance();
-      return await prefs.setString(_key, jsonString);
-    } catch (e) {
+      final List<dynamic> decoded = jsonDecode(jsonString);
+      final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      return await saveVocabularyList(items);
+    } catch (_) {
       return false;
     }
   }
@@ -131,9 +183,8 @@ class VocabularyRepository {
     return {
       'totalCount': items.length,
       'sizeInBytes': bytes,
-      'status': 'متصل وسليم',
+      'status': 'متصل وسليم (SQLite Engine)',
       'langCounts': langCounts,
     };
   }
-
 }
