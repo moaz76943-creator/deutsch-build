@@ -54,63 +54,63 @@ jobs:
           python3 -c "
           import os, re
 
-          # قراءة اسم الكلاس الفعلي من أي شاشة لضمان عدم وجود أخطاء في الاستدعاء
-          def find_widget_class(filepath):
+          def find_widget_class(filepath, fallback):
               if not os.path.exists(filepath):
-                  return None
+                  return fallback
               with open(filepath, 'r', encoding='utf-8') as f:
                   content = f.read()
               match = re.search(r'class\s+([A-Za-z0-9_]+)\s+extends\s+(?:StatefulWidget|StatelessWidget)', content)
-              return match.group(1) if match else None
+              return match.group(1) if match else fallback
 
-          dashboard_cls = find_widget_class('lib/screens/dashboard_screen.dart') or 'DashboardScreen'
-          flashcards_cls = find_widget_class('lib/screens/flashcards_screen.dart') or 'FlashcardsScreen'
-          onboarding_cls = find_widget_class('lib/screens/onboarding_screen.dart') or 'OnboardingScreen'
-          journal_cls = find_widget_class('lib/screens/vocabulary_journal_screen.dart') or 'VocabularyJournalScreen'
-          quiz_cls = find_widget_class('lib/screens/speed_quiz_screen.dart') or 'SpeedQuizScreen'
+          dashboard_cls = find_widget_class('lib/screens/dashboard_screen.dart', 'DashboardScreen')
+          flashcards_cls = find_widget_class('lib/screens/flashcards_screen.dart', 'FlashcardsScreen')
+          onboarding_cls = find_widget_class('lib/screens/onboarding_screen.dart', 'OnboardingScreen')
+          journal_cls = find_widget_class('lib/screens/vocabulary_journal_screen.dart', 'VocabularyJournalScreen')
+          quiz_cls = find_widget_class('lib/screens/speed_quiz_screen.dart', 'SpeedQuizScreen')
 
-          router_content = f'''import \\'package:flutter/material.dart\\';
-          import \\'../../screens/dashboard_screen.dart\\';
-          import \\'../../screens/flashcards_screen.dart\\';
-          import \\'../../screens/onboarding_screen.dart\\';
-          import \\'../../screens/vocabulary_journal_screen.dart\\';
-          import \\'../../screens/speed_quiz_screen.dart\\';
-
-          class AppRouter {{
-            static const String initialRoute = \\'/\\';
-            static const String dashboard = \\'/dashboard\\';
-            static const String flashcards = \\'/flashcards\\';
-            static const String vocabJournal = \\'/journal\\';
-            static const String speedQuiz = \\'/speed-quiz\\';
-
-            static Route<dynamic> generateRoute(RouteSettings settings) {{
-              switch (settings.name) {{
-                case initialRoute:
-                  return MaterialPageRoute(builder: (_) => {onboarding_cls}());
-                case dashboard:
-                  return MaterialPageRoute(builder: (_) => {dashboard_cls}());
-                case flashcards:
-                  return MaterialPageRoute(builder: (_) => {flashcards_cls}());
-                case vocabJournal:
-                  return MaterialPageRoute(builder: (_) => {journal_cls}());
-                case speedQuiz:
-                  return MaterialPageRoute(builder: (_) => {quiz_cls}());
-                default:
-                  return MaterialPageRoute(
-                    builder: (_) => Scaffold(
-                      body: Center(
-                        child: Text(\\'المسار غير موجود: ${{settings.name}}\\'),
-                      ),
-                    ),
-                  );
-              }}
-            }}
-          }}
-          '''
+          router_lines = [
+              \"import 'package:flutter/material.dart';\",
+              \"import '../../screens/dashboard_screen.dart';\",
+              \"import '../../screens/flashcards_screen.dart';\",
+              \"import '../../screens/onboarding_screen.dart';\",
+              \"import '../../screens/vocabulary_journal_screen.dart';\",
+              \"import '../../screens/speed_quiz_screen.dart';\",
+              \"\",
+              \"class AppRouter {\",
+              \"  static const String initialRoute = '/';\",
+              \"  static const String dashboard = '/dashboard';\",
+              \"  static const String flashcards = '/flashcards';\",
+              \"  static const String vocabJournal = '/journal';\",
+              \"  static const String speedQuiz = '/speed-quiz';\",
+              \"\",
+              \"  static Route<dynamic> generateRoute(RouteSettings settings) {\",
+              \"    switch (settings.name) {\",
+              \"      case initialRoute:\",
+              \"        return MaterialPageRoute(builder: (_) => \" + onboarding_cls + \"());\",
+              \"      case dashboard:\",
+              \"        return MaterialPageRoute(builder: (_) => \" + dashboard_cls + \"());\",
+              \"      case flashcards:\",
+              \"        return MaterialPageRoute(builder: (_) => \" + flashcards_cls + \"());\",
+              \"      case vocabJournal:\",
+              \"        return MaterialPageRoute(builder: (_) => \" + journal_cls + \"());\",
+              \"      case speedQuiz:\",
+              \"        return MaterialPageRoute(builder: (_) => \" + quiz_cls + \"());\",
+              \"      default:\",
+              \"        return MaterialPageRoute(\",
+              \"          builder: (_) => Scaffold(\",
+              \"            body: Center(\",
+              \"              child: Text('المسار غير موجود: ' + (settings.name ?? '')),\",
+              \"            ),\",
+              \"          ),\",
+              \"        );\",
+              \"    }\",
+              \"  }\",
+              \"}\",
+          ]
 
           os.makedirs('lib/core/routing', exist_ok=True)
           with open('lib/core/routing/app_router.dart', 'w', encoding='utf-8') as f:
-              f.write(router_content)
+              f.write('\n'.join(router_lines))
 
           print('✅ تم توليد lib/core/routing/app_router.dart بنجاح وتوافق تام.')
           "
