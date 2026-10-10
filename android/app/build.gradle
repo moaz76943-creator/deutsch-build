@@ -42,7 +42,7 @@ android {
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
         // نرفع الإصدار لـ 21 فقط لدعم SQLite و TTS
-        minSdkVersion 21
+        minSdkVersion flutter.minSdkVersion
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
