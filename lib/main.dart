@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'screens/flashcards_screen.dart';
+import 'features/onboarding/fast_onboarding_screen.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(const DeutschApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class DeutschApp extends StatelessWidget {
+  const DeutschApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Deutsch بالعربي',
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: 'Cairo',
       ),
-      // توجيه إقلاع التطبيق مباشرة لشاشة البطاقات المؤمنة
-      home: const FlashcardsScreen(),
+      // توجيه التطبيق لشاشة البداية السريعة
+      home: const FastOnboardingScreen(),
     );
   }
 }
