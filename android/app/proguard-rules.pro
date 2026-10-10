@@ -12,3 +12,6 @@
 # تحسين وتقليص استهلاك الذاكرة
 -repackageclasses
 -allowaccessmodification
+-dontwarn com.google.android.play.core.**
+-dontwarn io.flutter.app.**
+-keep class io.flutter.app.** { *; }
