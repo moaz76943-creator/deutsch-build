@@ -62,6 +62,7 @@ class SrsEngine {
     required int repetitions,
     required double previousEaseFactor,
     required int previousInterval,
+    double morphologicalMultiplier = 1.0,
   }) {
     int nextRepetitions = repetitions;
     int nextInterval = previousInterval;
@@ -73,7 +74,7 @@ class SrsEngine {
       } else if (repetitions == 1) {
         nextInterval = 6;
       } else {
-        nextInterval = (previousInterval * previousEaseFactor).round();
+        nextInterval = (previousInterval * previousEaseFactor * morphologicalMultiplier).round();
       }
       nextRepetitions += 1;
     } else {
