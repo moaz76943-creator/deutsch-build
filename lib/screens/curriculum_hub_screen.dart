@@ -1,3 +1,4 @@
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,10 +47,8 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final item = _missions[index];
-                return Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                return AppBaseGlassCard(
+                  
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: const Color(0xFF4F46E5).withValues(alpha: 0.1),
@@ -57,7 +56,7 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
                         item['level'] ?? 'A1',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF4F46E5)),
+                            ),
                       ),
                     ),
                     title: Text(item['titleAr'] ?? '',

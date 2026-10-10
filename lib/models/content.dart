@@ -38,4 +38,7 @@ class ContentItem implements LearningContent {
 
   @override
   List<String> get acceptedForms => accepted;
+
+  @override
+  Map<String, dynamic> toMap() => <String, dynamic>{};
 }

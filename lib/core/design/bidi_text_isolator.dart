@@ -4,10 +4,10 @@ import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
 
 class BiDiTextIsolator {
   // Unicode isolation control characters (Unicode 15.0)
-  static const String lri = '⁦'; // Left-to-Right Isolate
-  static const String rli = '⁧'; // Right-to-Left Isolate
-  static const String fsi = '⁨'; // First Strong Isolate
-  static const String pdi = '⁩'; // Pop Directional Isolate
+  static const String lri = '\u2066'; // Left-to-Right Isolate
+  static const String rli = '\u2067'; // Right-to-Left Isolate
+  static const String fsi = '\u2068'; // First Strong Isolate
+  static const String pdi = '\u2069'; // Pop Directional Isolate
 
   /// Backward compatible: German isolation (LRI)
   static String isolateGerman(String text) => '$lri$text$pdi';

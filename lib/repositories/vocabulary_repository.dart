@@ -187,8 +187,7 @@ class VocabularyRepository {
           ? '${item['article']} ${item['word']}'
           : item['word'];
       final String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
-      buffer.write('$front	$back
-');
+      buffer.writeln('$front\t$back');
     }
     return buffer.toString();
   }

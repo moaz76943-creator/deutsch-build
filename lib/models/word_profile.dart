@@ -21,7 +21,7 @@ class WordProfile<T extends LearningContent> {
     this.masteryScore = 0,
   });
 
-  String get displayForm => item.grammaticalMarker.isEmpty
+  String get displayForm => item.grammaticalMarker.isEmpty == true
       ? item.sourceText
       : '${item.grammaticalMarker} ${item.sourceText}';
   double get successRate => attempts == 0 ? 0 : (attempts - errors) / attempts;

@@ -104,7 +104,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                         transform: Matrix4.identity()
                           ..setEntry(3, 2, 0.001)
                           ..rotateX(angle),
-                        child: isFront ? _buildFrontCard() : _buildBackCard(),
+                        child: isFront ? _buildFrontAppBaseGlassCard() : _buildBackAppBaseGlassCard(),
                       );
                     },
                   ),
@@ -137,7 +137,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildFrontCard() {
+  Widget _buildFrontAppBaseGlassCard() {
     return Container(
       width: 320,
       height: 400,
@@ -154,7 +154,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildBackCard() {
+  Widget _buildBackAppBaseGlassCard() {
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
