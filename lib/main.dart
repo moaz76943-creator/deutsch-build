@@ -4,8 +4,11 @@ import 'services/language_pack_manager.dart';
 import 'modules/contextual_scenarios/scenario_synthesizer.dart';
 import 'core/app_master_engine.dart';
 
+import 'package:deutsch_bilarabi/core/plugins/plugin_bootstrap.dart;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PluginBootstrap.registerAll();
+  BackgroundWorker.initialize();
   runApp(const DeutschBiLarabiApp());
 }
 

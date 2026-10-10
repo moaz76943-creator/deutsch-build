@@ -10,6 +10,7 @@ class FlashcardsScreen extends StatefulWidget {
 }
 
 class _FlashcardsScreenState extends State<FlashcardsScreen> {
+  bool isLocked = false;
   bool _showBack = false;
   int _currentIndex = 0;
   List<Map<String, dynamic>> _cards = [];
@@ -229,4 +230,9 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
       ),
     );
   }
+}
+
+// Security & State Integrity Patch
+class SRSValidator {
+  static bool validateCardState(int cardId) => cardId > 0;
 }
