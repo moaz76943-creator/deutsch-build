@@ -6,7 +6,7 @@ on:
       batch_number:
         description: "رقم الحزمة"
         required: true
-        default: "2"
+        default: "3"
 
 permissions:
   contents: write
@@ -22,139 +22,95 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: "Apply Megabatch 2 - Concurrency and Audio"
+      - name: "Apply Megabatch 3 - UI Contracts, Design Tokens and 3D Cards"
         run: |
-          mkdir -p lib/core/concurrency lib/core/audio
+          mkdir -p lib/core/ui/tokens lib/core/ui/contracts
 
-          cat << 'DART' > lib/core/concurrency/cancellation_token.dart
-          class CancellationToken {
-            bool _isCancelled = false;
-            final List<void Function()> _listeners = [];
+          # 1. AppSpacing (402, 403, 404, 405)
+          cat << 'DART' > lib/core/ui/tokens/app_spacing.dart
+          /// شبكة المسافات القياسية لتوحيد التصميم وتجنب الأرقام العشوائية
+          class AppSpacing {
+            static const double none = 0.0;
+            static const double xxs = 2.0;
+            static const double xs = 4.0;
+            static const double sm = 8.0;
+            static const double md = 12.0;
+            static const double lg = 16.0;
+            static const double xl = 20.0;
+            static const double xxl = 24.0;
+            static const double xxxl = 32.0;
+            static const double huge = 48.0;
 
-            bool get isCancelled => _isCancelled;
-
-            void cancel() {
-              if (_isCancelled) return;
-              _isCancelled = true;
-              for (final listener in _listeners) {
-                listener();
-              }
-              _listeners.clear();
-            }
-
-            void onCancel(void Function() callback) {
-              if (_isCancelled) {
-                callback();
-              } else {
-                _listeners.add(callback);
-              }
-            }
-
-            void throwIfCancelled() {
-              if (_isCancelled) {
-                throw StateError('Operation was cancelled by user or timeout');
-              }
-            }
+            static const double cardRadiusSm = 8.0;
+            static const double cardRadiusMd = 14.0;
+            static const double cardRadiusLg = 20.0;
+            static const double buttonRadius = 12.0;
           }
           DART
 
-          cat << 'DART' > lib/core/concurrency/worker_task.dart
-          import 'dart:async';
-          import 'cancellation_token.dart';
+          # 2. AppMotionTokens (412, 413, 414, 415)
+          cat << 'DART' > lib/core/ui/tokens/app_motion.dart
+          /// ثوابت الحركة التفاعلية لتوفير تجربة بصرية 60fps مستقرة
+          class AppMotion {
+            static const Duration instant = Duration(milliseconds: 100);
+            static const Duration fast = Duration(milliseconds: 180);
+            static const Duration normal = Duration(milliseconds: 280);
+            static const Duration slow = Duration(milliseconds: 400);
+            static const Duration cardFlip = Duration(milliseconds: 320);
 
-          class WorkerTask<T> {
-            final String taskId;
-            final Future<T> Function(CancellationToken token) execute;
-            final Duration timeout;
+            static const double elevationIdle = 1.0;
+            static const double elevationHovered = 4.0;
+            static const double elevationPressed = 0.5;
+            static const double card3dPerspective = 0.0015;
+          }
+          DART
 
-            const WorkerTask({
-              required this.taskId,
-              required this.execute,
-              this.timeout = const Duration(seconds: 30),
+          # 3. CardSurfaceContract (431, 432, 433, 434)
+          cat << 'DART' > lib/core/ui/contracts/card_surface_contract.dart
+          /// عقد صريح لتفاعل البطاقات ثلاثية الأبعاد بدون فوضى في الواجهات
+          enum CardFlipSide { front, back }
+
+          abstract class CardSurfaceContract {
+            String get cardId;
+            CardFlipSide get currentSide;
+            bool get isInteractable;
+            void onCardFlipped(CardFlipSide newSide);
+            void onDragThresholdExceeded(double deltaX);
+          }
+          DART
+
+          # 4. ColorTokenContract (448, 449, 450)
+          cat << 'DART' > lib/core/ui/tokens/app_colors_contract.dart
+          /// عقد الألوان المجرد لتسهيل دعم الثيمات والتباين العالي
+          class SemanticColorTokens {
+            final int primaryRgba;
+            final int surfaceBackgroundRgba;
+            final int textHighEmphasisRgba;
+            final int textMediumEmphasisRgba;
+            final int successRgba;
+            final int failureRgba;
+
+            const SemanticColorTokens({
+              required this.primaryRgba,
+              required this.surfaceBackgroundRgba,
+              required this.textHighEmphasisRgba,
+              required this.textMediumEmphasisRgba,
+              required this.successRgba,
+              required this.failureRgba,
             });
-          }
-          DART
-
-          cat << 'DART' > lib/core/audio/audio_session_coordinator.dart
-          enum AudioPlaybackState { idle, buffering, playing, paused, ducked, stopped }
-
-          class AudioSessionCoordinator {
-            AudioPlaybackState _state = AudioPlaybackState.idle;
-            String? _activeAudioId;
-
-            AudioPlaybackState get state => _state;
-            String? get activeAudioId => _activeAudioId;
-
-            bool requestFocus(String audioId) {
-              if (_state == AudioPlaybackState.playing && _activeAudioId != audioId) {
-                stopCurrent();
-              }
-              _activeAudioId = audioId;
-              _state = AudioPlaybackState.playing;
-              return true;
-            }
-
-            void duck() {
-              if (_state == AudioPlaybackState.playing) {
-                _state = AudioPlaybackState.ducked;
-              }
-            }
-
-            void restoreVolume() {
-              if (_state == AudioPlaybackState.ducked) {
-                _state = AudioPlaybackState.playing;
-              }
-            }
-
-            void stopCurrent() {
-              _state = AudioPlaybackState.stopped;
-              _activeAudioId = null;
-            }
-          }
-          DART
-
-          cat << 'DART' > lib/core/audio/audio_cache_manifest.dart
-          class AudioEntry {
-            final String audioKey;
-            final String localPath;
-            final int fileSizeBytes;
-            final int lastVerifiedEpoch;
-
-            const AudioEntry({
-              required this.audioKey,
-              required this.localPath,
-              required this.fileSizeBytes,
-              required this.lastVerifiedEpoch,
-            });
-
-            bool get isValid => fileSizeBytes > 0 && localPath.isNotEmpty;
-          }
-
-          class AudioCacheManifest {
-            final Map<String, AudioEntry> _cache = {};
-
-            void register(AudioEntry entry) {
-              if (entry.isValid) {
-                _cache[entry.audioKey] = entry;
-              }
-            }
-
-            AudioEntry? getEntry(String key) => _cache[key];
-            bool contains(String key) => _cache.containsKey(key);
-            int get totalCachedFiles => _cache.length;
           }
           DART
 
           dart analyze \
-            lib/core/concurrency/cancellation_token.dart \
-            lib/core/concurrency/worker_task.dart \
-            lib/core/audio/audio_session_coordinator.dart \
-            lib/core/audio/audio_cache_manifest.dart
+            lib/core/ui/tokens/app_spacing.dart \
+            lib/core/ui/tokens/app_motion.dart \
+            lib/core/ui/contracts/card_surface_contract.dart \
+            lib/core/ui/tokens/app_colors_contract.dart
 
       - name: "Commit and Push"
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/
-          git commit -m "feat(megabatch-2): concurrency and audio architecture" || exit 0
+          git commit -m "feat(megabatch-3): UI contracts, design tokens & 3d card foundation" || exit 0
           git push
