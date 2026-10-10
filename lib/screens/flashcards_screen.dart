@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import 'dart:math';
 import '../core/srs/review_command_port.dart';
 import '../core/audio/offline_audio_manager.dart';
