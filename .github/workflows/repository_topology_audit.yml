@@ -1,0 +1,129 @@
+name: "P0 Repository Topology & Architecture Audit"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  topology-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. جلب مستودع التطوير التجريبي (deutsch-build)
+        uses: actions/checkout@v4
+        with:
+          path: current_dev
+
+      - name: 2. جلب النواة القانونية للإنتاج (deutsch-bilarabi)
+        run: |
+          git clone --depth 100 https://github.com/sali97m-cpu/deutsch-bilarabi.git canonical_prod || {
+            echo "⚠️ تعذر الاستنساخ المباشر، سيتم إنشاء هيكل فارغ للمقارنة."
+            mkdir -p canonical_prod/lib
+          }
+
+      - name: 3. إعداد بيئة بايثون للتدقيق الرقمي
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 4. تشغيل سكربت الفحص والمقارنة الرياضية (SHA-256)
+        run: |
+          cat << 'PYEOF' > audit.py
+          import os, hashlib, json
+
+          def compute_file_hash(filepath):
+              sha = hashlib.sha256()
+              try:
+                  with open(filepath, 'rb') as f:
+                      while chunk := f.read(8192):
+                          sha.update(chunk)
+                  return sha.hexdigest(), os.path.getsize(filepath)
+              except Exception:
+                  return None, 0
+
+          def scan_tree(root_dir):
+              file_map = {}
+              if not os.path.exists(root_dir):
+                  return file_map
+              for root, _, files in os.walk(root_dir):
+                  for file in files:
+                      if file.endswith('.dart'):
+                          full_path = os.path.join(root, file)
+                          rel_path = os.path.relpath(full_path, root_dir)
+                          file_hash, file_size = compute_file_hash(full_path)
+                          if file_hash:
+                              file_map[rel_path] = {'hash': file_hash, 'size': file_size}
+              return file_map
+
+          canonical_lib = 'canonical_prod/lib'
+          dev_lib = 'current_dev/lib'
+
+          print('🔍 جاري فحص ملفات النواة الإنتاجية (Canonical)...')
+          canonical_tree = scan_tree(canonical_lib)
+          print(f'   - تم إحصاء {len(canonical_tree)} ملف Dart في الإنتاج.')
+
+          print('🔍 جاري فحص ملفات بيئة البناء والتطوير (Dev)...')
+          dev_tree = scan_tree(dev_lib)
+          print(f'   - تم إحصاء {len(dev_tree)} ملف Dart في بيئة البناء.')
+
+          missing_in_dev = [f for f in canonical_tree if f not in dev_tree]
+          new_in_dev = [f for f in dev_tree if f not in canonical_tree]
+          modified_files = []
+          identical_files = []
+
+          for f in canonical_tree:
+              if f in dev_tree:
+                  if canonical_tree[f]['hash'] == dev_tree[f]['hash']:
+                      identical_files.append(f)
+                  else:
+                      modified_files.append({
+                          'file': f,
+                          'canonical_size': canonical_tree[f]['size'],
+                          'dev_size': dev_tree[f]['size'],
+                          'size_delta': dev_tree[f]['size'] - canonical_tree[f]['size']
+                      })
+
+          report = {
+              'audit_status': 'COMPLETED',
+              'canonical_total_files': len(canonical_tree),
+              'dev_total_files': len(dev_tree),
+              'identical_count': len(identical_files),
+              'missing_in_dev_count': len(missing_in_dev),
+              'new_in_dev_count': len(new_in_dev),
+              'modified_count': len(modified_files),
+              'missing_files_sample': missing_in_dev[:15],
+              'new_files_sample': new_in_dev[:15],
+              'modified_files': modified_files[:15]
+          }
+
+          with open('topology_audit_report.json', 'w', encoding='utf-8') as rf:
+              json.dump(report, rf, indent=2, ensure_ascii=False)
+
+          print('\n' + '='*65)
+          print('📊 نتيجة التدقيق الطبوغرافي الشامل (Topological Audit Summary):')
+          print('='*65)
+          print(f'✅ ملفات متطابقة تماماً: {len(identical_files)}')
+          print(f'🚨 ملفات مفقودة من الإنتاج في نسخة البناء: {len(missing_in_dev)}')
+          print(f'✨ ملفات جديدة مستحدثة في بيئة البناء: {len(new_in_dev)}')
+          print(f'⚠️ ملفات مشتركة تم تعديلها أو اختزالها: {len(modified_files)}')
+          print('='*65)
+
+          if modified_files:
+              print('\n[عينة من الملفات المعدلة وحجم التغيير]:')
+              for m in modified_files[:5]:
+                  print(f"  - {m['file']} (فرق الحجم: {m['size_delta']} بايت)")
+
+          if missing_in_dev:
+              print('\n[عينة من الملفات القانونية المفقودة التي يجب حمايتها]:')
+              for m in missing_in_dev[:5]:
+                  print(f'  - {m}')
+          PYEOF
+          python3 audit.py
+
+      - name: 5. حفظ التقرير كملف للتحميل (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: topology-audit-report
+          path: topology_audit_report.json
+          retention-days: 7
