@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'srs_flashcard_deck_screen.dart';
 import 'ai_pronunciation_coach_screen.dart';
 import 'vocabulary_journal_screen.dart';

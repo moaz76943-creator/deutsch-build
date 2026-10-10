@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../design_system/design_system.dart';
-import '../repositories/vocabulary_repository.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
 import 'vocabulary_journal_screen.dart';
 import 'focus_quiz_screen.dart';
 import 'db_health_screen.dart';

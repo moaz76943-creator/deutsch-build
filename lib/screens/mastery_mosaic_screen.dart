@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
-import '../repositories/vocabulary_repository.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
 
 class MasteryMosaicScreen extends StatefulWidget {
   const MasteryMosaicScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../design_system/design_system.dart';
-import '../services/database_service.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/services/database_service.dart';
 
 class AudioPracticeScreen extends StatefulWidget {
   const AudioPracticeScreen({super.key});

@@ -1,5 +1,5 @@
 
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
 class LanguageSelectScreen extends StatefulWidget {
   const LanguageSelectScreen({required this.onContinue, super.key});

@@ -1,4 +1,4 @@
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'offline_storage_screen.dart';
 
 class ProfileHubScreen extends StatelessWidget {

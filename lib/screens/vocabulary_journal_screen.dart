@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../design_system/design_system.dart';
-import '../repositories/vocabulary_repository.dart';
-import '../models/vocabulary_item.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
+import 'package:deutsch_bilarabi/models/vocabulary_item.dart';
 
 class VocabularyJournalScreen extends StatefulWidget {
   const VocabularyJournalScreen({super.key});
