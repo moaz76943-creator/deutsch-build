@@ -3,22 +3,21 @@ import 'features/onboarding/fast_onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
   };
+
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Material(
-      color: const Color(0xFF1E293B),
+      color: const Color(0xFF0F172A),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
             child: Text(
-              "CRASH DETECTED:
-
-" + details.exceptionAsString() + "
-
-" + details.stack.toString(),
+              "CRASH REASON:\n\n${details.exceptionAsString()}\n\nSTACK TRACE:\n${details.stack}",
               style: const TextStyle(color: Color(0xFFF87171), fontSize: 11, fontFamily: "monospace"),
             ),
           ),
@@ -27,8 +26,6 @@ void main() {
     );
   };
 
-  
-  
   runApp(const DeutschApp());
 }
 
@@ -44,7 +41,6 @@ class DeutschApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Cairo',
       ),
-      // توجيه التطبيق لشاشة البداية السريعة
       home: const FastOnboardingScreen(),
     );
   }
