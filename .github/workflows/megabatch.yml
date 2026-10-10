@@ -6,7 +6,7 @@ on:
       batch_number:
         description: "رقم الحزمة"
         required: true
-        default: "3"
+        default: "4"
 
 permissions:
   contents: write
@@ -22,95 +22,133 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: "Apply Megabatch 3 - UI Contracts, Design Tokens and 3D Cards"
+      - name: "Apply Megabatch 4 - SRS, Behavioral Psychology and Linguistics"
         run: |
-          mkdir -p lib/core/ui/tokens lib/core/ui/contracts
+          mkdir -p lib/core/srs lib/core/linguistics
 
-          # 1. AppSpacing (402, 403, 404, 405)
-          cat << 'DART' > lib/core/ui/tokens/app_spacing.dart
-          /// شبكة المسافات القياسية لتوحيد التصميم وتجنب الأرقام العشوائية
-          class AppSpacing {
-            static const double none = 0.0;
-            static const double xxs = 2.0;
-            static const double xs = 4.0;
-            static const double sm = 8.0;
-            static const double md = 12.0;
-            static const double lg = 16.0;
-            static const double xl = 20.0;
-            static const double xxl = 24.0;
-            static const double xxxl = 32.0;
-            static const double huge = 48.0;
+          # 1. LeitnerState & SRS Engine (602, 603, 604, 605)
+          cat << 'DART' > lib/core/srs/leitner_box_state.dart
+          /// نموذج صناديق لايتنر وحساب فترات النسيان رياضياً
+          enum LeitnerBox { box1, box2, box3, box4, box5 }
 
-            static const double cardRadiusSm = 8.0;
-            static const double cardRadiusMd = 14.0;
-            static const double cardRadiusLg = 20.0;
-            static const double buttonRadius = 12.0;
+          class LeitnerCardState {
+            final String cardId;
+            final LeitnerBox currentBox;
+            final int lastReviewedEpoch;
+            final int nextReviewEpoch;
+            final double easeFactor;
+            final int consecutiveSuccesses;
+
+            const LeitnerCardState({
+              required this.cardId,
+              required this.currentBox,
+              required this.lastReviewedEpoch,
+              required this.nextReviewEpoch,
+              this.easeFactor = 2.5,
+              this.consecutiveSuccesses = 0,
+            });
+
+            bool get isDueForReview =>
+                DateTime.now().millisecondsSinceEpoch >= nextReviewEpoch;
           }
           DART
 
-          # 2. AppMotionTokens (412, 413, 414, 415)
-          cat << 'DART' > lib/core/ui/tokens/app_motion.dart
-          /// ثوابت الحركة التفاعلية لتوفير تجربة بصرية 60fps مستقرة
-          class AppMotion {
-            static const Duration instant = Duration(milliseconds: 100);
-            static const Duration fast = Duration(milliseconds: 180);
-            static const Duration normal = Duration(milliseconds: 280);
-            static const Duration slow = Duration(milliseconds: 400);
-            static const Duration cardFlip = Duration(milliseconds: 320);
+          # 2. SpacedRepetitionEngine (610, 611, 612, 613)
+          cat << 'DART' > lib/core/srs/spaced_repetition_engine.dart
+          import 'dart0_stub.dart' if (dart.library.core) 'leitner_box_state.dart';
 
-            static const double elevationIdle = 1.0;
-            static const double elevationHovered = 4.0;
-            static const double elevationPressed = 0.5;
-            static const double card3dPerspective = 0.0015;
+          /// محرك حساب فترات التكرار المتباعد بدون استهلاك معالج الهاتف
+          class SpacedRepetitionEngine {
+            static const int _oneDayMs = 86400000;
+
+            static LeitnerCardState calculateNextInterval({
+              required LeitnerCardState previousState,
+              required int rating, // 1: Hard/Fail, 2: Good, 3: Easy
+            }) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+
+              if (rating <= 1) {
+                return LeitnerCardState(
+                  cardId: previousState.cardId,
+                  currentBox: LeitnerBox.box1,
+                  lastReviewedEpoch: now,
+                  nextReviewEpoch: now + (1 * _oneDayMs),
+                  easeFactor: (previousState.easeFactor - 0.2).clamp(1.3, 3.0),
+                  consecutiveSuccesses: 0,
+                );
+              }
+
+              final newSuccesses = previousState.consecutiveSuccesses + 1;
+              final nextBoxIndex = (previousState.currentBox.index + 1).clamp(0, LeitnerBox.values.length - 1);
+              final intervalDays = [1, 3, 7, 14, 30][nextBoxIndex];
+
+              return LeitnerCardState(
+                cardId: previousState.cardId,
+                currentBox: LeitnerBox.values[nextBoxIndex],
+                lastReviewedEpoch: now,
+                nextReviewEpoch: now + (intervalDays * _oneDayMs),
+                easeFactor: (previousState.easeFactor + (rating == 3 ? 0.15 : 0.0)).clamp(1.3, 3.0),
+                consecutiveSuccesses: newSuccesses,
+              );
+            }
           }
           DART
 
-          # 3. CardSurfaceContract (431, 432, 433, 434)
-          cat << 'DART' > lib/core/ui/contracts/card_surface_contract.dart
-          /// عقد صريح لتفاعل البطاقات ثلاثية الأبعاد بدون فوضى في الواجهات
-          enum CardFlipSide { front, back }
+          # 3. PhoneticToken (641, 642, 643)
+          cat << 'DART' > lib/core/linguistics/phonetic_token.dart
+          /// تمثيل صوتي رمزي دقيق صالح لجميع اللغات (IPA)
+          class PhoneticToken {
+            final String rawText;
+            final String ipaRepresentation;
+            final String audioAssetKey;
+            final double pitchMultiplier;
 
-          abstract class CardSurfaceContract {
-            String get cardId;
-            CardFlipSide get currentSide;
-            bool get isInteractable;
-            void onCardFlipped(CardFlipSide newSide);
-            void onDragThresholdExceeded(double deltaX);
+            const PhoneticToken({
+              required this.rawText,
+              required this.ipaRepresentation,
+              required this.audioAssetKey,
+              this.pitchMultiplier = 1.0,
+            });
           }
           DART
 
-          # 4. ColorTokenContract (448, 449, 450)
-          cat << 'DART' > lib/core/ui/tokens/app_colors_contract.dart
-          /// عقد الألوان المجرد لتسهيل دعم الثيمات والتباين العالي
-          class SemanticColorTokens {
-            final int primaryRgba;
-            final int surfaceBackgroundRgba;
-            final int textHighEmphasisRgba;
-            final int textMediumEmphasisRgba;
-            final int successRgba;
-            final int failureRgba;
+          # 4. GrammaticalRoleContract (670, 671, 672)
+          cat << 'DART' > lib/core/linguistics/grammatical_role.dart
+          /// عقود تصنيف القواعد النحوية الشاملة للغات المختلفة
+          enum UniversalGrammaticalCategory {
+            noun,
+            verb,
+            adjective,
+            adverb,
+            preposition,
+            pronoun,
+            conjunction,
+            particle,
+          }
 
-            const SemanticColorTokens({
-              required this.primaryRgba,
-              required this.surfaceBackgroundRgba,
-              required this.textHighEmphasisRgba,
-              required this.textMediumEmphasisRgba,
-              required this.successRgba,
-              required this.failureRgba,
+          class GrammarContract {
+            final String wordId;
+            final UniversalGrammaticalCategory category;
+            final Map<String, String> morphologicalFeatures;
+
+            const GrammarContract({
+              required this.wordId,
+              required this.category,
+              this.morphologicalFeatures = const {},
             });
           }
           DART
 
           dart analyze \
-            lib/core/ui/tokens/app_spacing.dart \
-            lib/core/ui/tokens/app_motion.dart \
-            lib/core/ui/contracts/card_surface_contract.dart \
-            lib/core/ui/tokens/app_colors_contract.dart
+            lib/core/srs/leitner_box_state.dart \
+            lib/core/srs/spaced_repetition_engine.dart \
+            lib/core/linguistics/phonetic_token.dart \
+            lib/core/linguistics/grammatical_role.dart
 
       - name: "Commit and Push"
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/
-          git commit -m "feat(megabatch-3): UI contracts, design tokens & 3d card foundation" || exit 0
+          git commit -m "feat(megabatch-4): spaced repetition algorithms and universal linguistics engine" || exit 0
           git push
