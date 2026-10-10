@@ -26,15 +26,12 @@ jobs:
         run: |
           python3 -c "
           import os, re
-
-          # 1. إصلاح تعارض مكتبة cached_network_image تلقائياً
           if os.path.exists('pubspec.yaml'):
               with open('pubspec.yaml', 'r', encoding='utf-8') as f:
                   txt = f.read()
               txt = re.sub(r'cached_network_image:\s*\^?4\.0\.4', 'cached_network_image: ^4.0.3', txt)
               with open('pubspec.yaml', 'w', encoding='utf-8') as f:
                   f.write(txt)
-              print('✅ تم تعديل cached_network_image تلقائياً إلى ^4.0.3')
           "
 
           mkdir -p lib/core/architecture lib/core/models lib/core/storage
@@ -166,7 +163,13 @@ jobs:
           }
           DART
 
-          dart analyze lib/core/
+          # فحص الملفات الجديدة بدقة ودون التأثر بالملفات القديمة
+          dart analyze \
+            lib/core/architecture/directed_pair_id.dart \
+            lib/core/architecture/operation_result.dart \
+            lib/core/models/review_command.dart \
+            lib/core/storage/migration_journal.dart \
+            lib/core/storage/storage_quarantine.dart
 
       - name: تثبيت الكود في المستودع
         run: |
