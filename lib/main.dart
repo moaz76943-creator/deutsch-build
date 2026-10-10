@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:crypto/crypto.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,94 +20,100 @@ class DeutschApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SafePackScreen(),
+      home: const VocabularyScreen(),
     );
   }
 }
 
-class SafePackScreen extends StatefulWidget {
-  const SafePackScreen({super.key});
+class VocabularyScreen extends StatefulWidget {
+  const VocabularyScreen({super.key});
 
   @override
-  State<SafePackScreen> createState() => _SafePackScreenState();
+  State<VocabularyScreen> createState() => _VocabularyScreenState();
 }
 
-class _SafePackScreenState extends State<SafePackScreen> {
+class _VocabularyScreenState extends State<VocabularyScreen> {
   bool _isLoading = true;
-  String _statusMessage = 'جارٍ التحقق من الحزم المثبتة...';
-  Map<String, dynamic>? _activePack;
-  List<dynamic> _availableLanguages = [];
+  String _status = 'جارٍ فحص المفردات المحفوظة...';
+  List<dynamic> _vocabList = [];
+  List<dynamic> _filteredList = [];
+  int _currentIndex = 0;
+  bool _showTranslation = false;
+  bool _isCardMode = true;
 
-  final String _manifestUrl =
-      'https://raw.githubusercontent.com/moaz76943-creator/-offline-packs-store/main/manifest.json';
-  final String _packsBaseUrl =
-      'https://raw.githubusercontent.com/moaz76943-creator/-offline-packs-store/main/packs/';
+  final String _masterPackUrl =
+      'https://raw.githubusercontent.com/moaz76943-creator/-offline-packs-store/main/deutsch_deep_master.pack.gz';
 
   @override
   void initState() {
     super.initState();
-    _initAppStorage();
+    _loadVocabulary();
   }
 
-  Future<Directory> _getAppDir() async => await getApplicationDocumentsDirectory();
+  Future<File> _getLocalFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/deutsch_master_vocab.json');
+  }
 
-  Future<void> _initAppStorage() async {
+  Future<void> _loadVocabulary() async {
     try {
-      final dir = await _getAppDir();
-      final configFile = File('${dir.path}/active_lang.json');
-
-      if (await configFile.exists()) {
-        final config = jsonDecode(await configFile.readAsString());
-        final activeCode = config['active_code'];
-        final packFile = File('${dir.path}/pack_$activeCode.json');
-
-        if (await packFile.exists()) {
-          final packData = jsonDecode(await packFile.readAsString());
-          if (mounted) {
-            setState(() {
-              _activePack = packData;
-              _isLoading = false;
-            });
-            return;
-          }
+      final file = await _getLocalFile();
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final data = jsonDecode(content);
+        final list = data['vocabulary'] as List<dynamic>? ?? [];
+        if (list.isNotEmpty && mounted) {
+          setState(() {
+            _vocabList = list;
+            _filteredList = list;
+            _isLoading = false;
+          });
+          return;
         }
       }
-      await _fetchManifest();
+      await _downloadVocabulary();
     } catch (_) {
-      await _fetchManifest();
+      await _downloadVocabulary();
     }
   }
 
-  Future<void> _fetchManifest() async {
+  Future<void> _downloadVocabulary() async {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
-      _statusMessage = 'جارٍ الاتصال بمخزن اللغات...';
+      _status = 'جارٍ تنزيل المفردات الألمانية الحقيقية...';
     });
 
     HttpClient? client;
     try {
-      client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
-      final req = await client.getUrl(Uri.parse(_manifestUrl));
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 20);
+      final req = await client.getUrl(Uri.parse(_masterPackUrl));
       final res = await req.close();
 
       if (res.statusCode != 200) {
         throw HttpException('خطأ في السيرفر: ${res.statusCode}');
       }
 
-      final body = await res.transform(utf8.decoder).join();
-      final data = jsonDecode(body);
+      final bytes = await res.fold<List<int>>([], (p, e) => p..addAll(e));
+      final decompressed = gzip.decode(bytes);
+      final jsonStr = utf8.decode(decompressed);
+      final data = jsonDecode(jsonStr);
 
+      final file = await _getLocalFile();
+      await file.writeAsString(jsonStr);
+
+      final list = data['vocabulary'] as List<dynamic>? ?? [];
       if (mounted) {
         setState(() {
-          _availableLanguages = data['languages'] ?? [];
+          _vocabList = list;
+          _filteredList = list;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _statusMessage = 'تعذر الاتصال بالمخزن. يرجى التأكد من الإنترنت.';
+          _status = 'تعذر التنزيل: تأكد من تفعيل الإنترنت لأول مرة.';
           _isLoading = false;
         });
       }
@@ -117,79 +122,34 @@ class _SafePackScreenState extends State<SafePackScreen> {
     }
   }
 
-  Future<void> _safeDownloadAndVerify(Map<String, dynamic> lang) async {
-    final code = lang['code'];
-    final fileName = lang['pack_file'];
-    final expectedSha = lang['sha256'];
-
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _statusMessage = 'جارٍ تنزيل حزمة $code...';
-    });
-
-    HttpClient? client;
-    try {
-      client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
-      final req = await client.getUrl(Uri.parse('$_packsBaseUrl$fileName'));
-      final res = await req.close();
-
-      if (res.statusCode != 200) {
-        throw HttpException('فشل التنزيل برمز: ${res.statusCode}');
-      }
-
-      final compressedBytes = await res.fold<List<int>>([], (p, e) => p..addAll(e));
-
-      if (mounted) {
-        setState(() => _statusMessage = 'جارٍ التحقق من بصمة الأمان (SHA-256)...');
-      }
-
-      // 1. التحقق من بصمة الملف المضغوط
-      final actualSha = sha256.convert(compressedBytes).toString();
-      if (expectedSha != null && actualSha.toLowerCase() != expectedSha.toString().toLowerCase()) {
-        throw Exception('فشل التحقق الأمني: البصمة غير متطابقة.');
-      }
-
-      if (mounted) {
-        setState(() => _statusMessage = 'جارٍ فك الضغط والتثبيت الآمن...');
-      }
-
-      // 2. فك الضغط والتحقق من صحة الـ JSON
-      final decompressedBytes = gzip.decode(compressedBytes);
-      final jsonString = utf8.decode(decompressedBytes);
-      final parsedPack = jsonDecode(jsonString);
-
-      // 3. النشر الذري (Atomic Write) عبر ملف مؤقت
-      final dir = await _getAppDir();
-      final tempFile = File('${dir.path}/pack_${code}_temp.json');
-      await tempFile.writeAsString(jsonString);
-
-      final finalFile = File('${dir.path}/pack_$code.json');
-      if (await finalFile.exists()) {
-        await finalFile.delete();
-      }
-      await tempFile.rename(finalFile.path);
-
-      // 4. حفظ مؤشر اللغة النشطة
-      final configFile = File('${dir.path}/active_lang.json');
-      await configFile.writeAsString(jsonEncode({'active_code': code}));
-
-      if (mounted) {
-        setState(() {
-          _activePack = parsedPack;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _statusMessage = 'تنبيه: $e';
-          _isLoading = false;
-        });
-      }
-    } finally {
-      client?.close();
+  Color _getArticleColor(String? article) {
+    switch (article?.toLowerCase().trim()) {
+      case 'der':
+        return Colors.blue.shade700;
+      case 'die':
+        return Colors.red.shade700;
+      case 'das':
+        return Colors.green.shade700;
+      default:
+        return Colors.deepPurple;
     }
+  }
+
+  void _onSearch(String query) {
+    setState(() {
+      if (query.trim().isEmpty) {
+        _filteredList = _vocabList;
+      } else {
+        _filteredList = _vocabList.where((item) {
+          final word = (item['word'] ?? '').toString().toLowerCase();
+          final tr = (item['translation'] ?? '').toString().toLowerCase();
+          final q = query.toLowerCase();
+          return word.contains(q) || tr.contains(q);
+        }).toList();
+      }
+      _currentIndex = 0;
+      _showTranslation = false;
+    });
   }
 
   @override
@@ -203,8 +163,8 @@ class _SafePackScreenState extends State<SafePackScreen> {
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(_statusMessage, textAlign: TextAlign.center),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(_status, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
               ),
             ],
           ),
@@ -212,72 +172,201 @@ class _SafePackScreenState extends State<SafePackScreen> {
       );
     }
 
-    if (_activePack != null) {
-      final header = _activePack!['header'] ?? {};
-      final domains = _activePack!['domains'] as List<dynamic>? ?? [];
-
+    if (_vocabList.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text('${header['native'] ?? header['name']} (مثبتة أوفلاين)'),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.language),
-              tooltip: 'المتجر واللغات',
-              onPressed: () {
-                setState(() => _activePack = null);
-                _fetchManifest();
-              },
-            )
-          ],
-        ),
-        body: ListView.builder(
-          itemCount: domains.length,
-          itemBuilder: (context, i) {
-            final d = domains[i];
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              elevation: 2,
-              child: ListTile(
-                leading: CircleAvatar(child: Text('${d['id']}')),
-                title: Text(
-                  d['name'] ?? '',
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text('محور تعليمي موثق'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_status),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _downloadVocabulary,
+                child: const Text('إعادة المحاولة'),
               ),
-            );
-          },
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('اختر لغة التعلم'), centerTitle: true),
-      body: _availableLanguages.isEmpty
-          ? Center(
-              child: ElevatedButton(
-                onPressed: _fetchManifest,
-                child: const Text('إعادة فحص المخزن'),
+      appBar: AppBar(
+        title: Text(_isCardMode ? 'بطاقات الكلمات (${_filteredList.length})' : 'قاموس المفردات'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(_isCardMode ? Icons.list : Icons.style),
+            tooltip: _isCardMode ? 'عرض كقائمة' : 'عرض كبطاقات',
+            onPressed: () => setState(() => _isCardMode = !_isCardMode),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'تحديث المحتوى',
+            onPressed: _downloadVocabulary,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'ابحث عن كلمة ألمانية أو عربية...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
               ),
-            )
-          : ListView.builder(
-              itemCount: _availableLanguages.length,
-              itemBuilder: (context, i) {
-                final lang = _availableLanguages[i];
-                return ListTile(
-                  leading: const Icon(Icons.public),
-                  title: Text('${lang['name']} (${lang['native_name']})'),
-                  subtitle: Text('حجم الحزمة: ${(lang['size_bytes'] / 1024).toStringAsFixed(1)} KB'),
-                  trailing: ElevatedButton(
-                    onPressed: () => _safeDownloadAndVerify(lang),
-                    child: const Text('تثبيت آمن'),
-                  ),
-                );
-              },
+              onChanged: _onSearch,
             ),
+          ),
+          Expanded(
+            child: _filteredList.isEmpty
+                ? const Center(child: Text('لا توجد نتائج للبحث'))
+                : _isCardMode
+                    ? _buildCardCarousel()
+                    : _buildListView(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardCarousel() {
+    final item = _filteredList[_currentIndex];
+    final word = item['word'] ?? '';
+    final article = item['article'] ?? '';
+    final translation = item['translation'] ?? '';
+    final artColor = _getArticleColor(article);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: GestureDetector(
+            onTap: () => setState(() => _showTranslation = !_showTranslation),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Container(
+                width: double.infinity,
+                height: 280,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (article.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: artColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          article,
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: artColor),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    Text(
+                      word,
+                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
+                    ),
+                    const Divider(height: 36),
+                    AnimatedOpacity(
+                      opacity: _showTranslation ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        translation,
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ),
+                    if (!_showTranslation)
+                      Text(
+                        'اضغط على البطاقة لإظهار المعنى',
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton.filled(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: _currentIndex > 0
+                  ? () => setState(() {
+                        _currentIndex--;
+                        _showTranslation = false;
+                      })
+                  : null,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                '${_currentIndex + 1} / ${_filteredList.length}',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            IconButton.filled(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: _currentIndex < _filteredList.length - 1
+                  ? () => setState(() {
+                        _currentIndex++;
+                        _showTranslation = false;
+                      })
+                  : null,
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildListView() {
+    return ListView.separated(
+      itemCount: _filteredList.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, i) {
+        final item = _filteredList[i];
+        final word = item['word'] ?? '';
+        final article = item['article'] ?? '';
+        final translation = item['translation'] ?? '';
+        final artColor = _getArticleColor(article);
+
+        return ListTile(
+          leading: article.isNotEmpty
+              ? CircleAvatar(
+                  backgroundColor: artColor.withOpacity(0.15),
+                  child: Text(article, style: TextStyle(color: artColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                )
+              : const CircleAvatar(child: Icon(Icons.translate, size: 18)),
+          title: Text(word, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+          trailing: Text(
+            translation,
+            textDirection: TextDirection.rtl,
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
+          ),
+          onTap: () {
+            setState(() {
+              _currentIndex = i;
+              _showTranslation = true;
+              _isCardMode = true;
+            });
+          },
+        );
+      },
     );
   }
 }
