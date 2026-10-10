@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: جلب كود المستودع بالكامل
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: إعداد بيئة Dart و Flutter
         uses: subosito/flutter-action@v2
