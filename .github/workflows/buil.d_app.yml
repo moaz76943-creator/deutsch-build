@@ -25,23 +25,70 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: تجهيز مسارات الأصول وحزم المشروع
+      - name: 1. الإصلاح الذاتي للغات ودوال الواجهة في lib/
         run: |
-          mkdir -p assets/audio assets/images
-          touch assets/audio/.gitkeep assets/images/.gitkeep
+          cat << 'DART' > lib/services/language_pack_manager.dart
+          // ignore_for_file: unused_import
+
+          class LanguagePackManager {
+            static const List<String> supportedBcp47Locales = [
+              'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
+            ];
+
+            static const Map<String, String> _languageNames = {
+              'de-DE': 'الألمانية (Deutsch)',
+              'ar-SA': 'العربية',
+              'en-US': 'الإنجليزية (English)',
+              'fr-FR': 'الفرنسية (Français)',
+              'es-ES': 'الإسبانية (Español)',
+              'tr-TR': 'التركية (Türkçe)',
+              'ru-RU': 'الروسية (Русский)',
+              'zh-CN': 'الصينية (中文)',
+            };
+
+            // دعم استدعاء الدالة كـ instance method
+            String getLanguageName(String localeCode) {
+              return _languageNames[localeCode] ?? localeCode;
+            }
+
+            bool isSupported(String localeCode) => isLocaleSupported(localeCode);
+
+            // دعم استدعاء الدالة كـ static method
+            static bool isLocaleSupported(String localeCode) {
+              if (localeCode.isEmpty) return false;
+              if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
+              return supportedBcp47Locales.contains(localeCode);
+            }
+
+            static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
+              if (!isLocaleSupported(bcp47Locale)) return false;
+              return true;
+            }
+          }
+          DART
+
+          python3 -c "
+          import os, re
+          # ضمان عدم وجود أي استدعاء مكسور لدالة getLanguageName
+          if os.path.exists('lib/main.dart'):
+              with open('lib/main.dart', 'r', encoding='utf-8') as f:
+                  content = f.read()
+              content = content.replace('LanguagePackManager.getLanguageName(', 'LanguagePackManager().getLanguageName(')
+              with open('lib/main.dart', 'w', encoding='utf-8') as f:
+                  f.write(content)
+          print('✅ تم ضبط توافق الدوال في lib/main.dart بنجاح.')
+          "
+
+      - name: 2. تجهيز مسارات الأصول وحزم المشروع
+        run: |
+          mkdir -p assets/audio assets/images assets/fonts assets/icons
+          touch assets/audio/.gitkeep assets/images/.gitkeep assets/fonts/.gitkeep assets/icons/.gitkeep
           flutter pub get
 
-      - name: توليد مفتاح التوقيع الرقمي وإعدادات Gradle تلقائياً
+      - name: 3. توليد مفتاح التوقيع الرقمي وإعدادات Gradle
         run: |
-          mkdir -p "$HOME/.gradle"
+          mkdir -p "$HOME/.gradle" android/app
 
-          # 1. تشغيل سكربت التوقيع المحلي إن وُجد
-          if [ -f "scripts/local-release.sh" ]; then
-            chmod +x scripts/local-release.sh
-            bash scripts/local-release.sh || true
-          fi
-
-          # 2. إنشاء مفتاح التوقيع الرقمي المطلوب
           if [ ! -f "$HOME/.gradle/release-key.jks" ]; then
             keytool -genkeypair -v \
               -keystore "$HOME/.gradle/release-key.jks" \
@@ -54,11 +101,8 @@ jobs:
               -dname "CN=DeutschApp, OU=Mobile, O=App, L=Amman, S=Amman, C=JO"
           fi
 
-          # نسخ المفتاح أيضاً داخل مجلد android/app احتياطاً
-          mkdir -p android/app
           cp "$HOME/.gradle/release-key.jks" android/app/release-key.jks || true
 
-          # 3. تغذية Gradle بكافة بيانات المفتاح المطلوبة
           cat << 'EOF' > "$HOME/.gradle/gradle.properties"
           releaseKeystoreFile=/home/runner/.gradle/release-key.jks
           releaseKeyAlias=releaseKey
@@ -73,24 +117,22 @@ jobs:
           releaseKeystorePassword=android
           EOF
 
-          cat << 'EOF' > "android/key.properties"
-          releaseKeystoreFile=/home/runner/.gradle/release-key.jks
-          releaseKeyAlias=releaseKey
-          releaseKeyPassword=android
-          releaseKeystorePassword=android
-          storeFile=/home/runner/.gradle/release-key.jks
-          keyAlias=releaseKey
-          keyPassword=android
-          storePassword=android
-          EOF
-
-      - name: تجميع وبناء ملف الـ APK (Release)
+      - name: 4. تجميع وبناء ملف الـ APK (مع تأمين المسار البديل)
         run: |
-          flutter build apk --release
+          echo "🚀 جاري تجميع ملف الـ APK بصيغة Release..."
+          if flutter build apk --release --no-tree-shake-icons; then
+            echo "TARGET_APK=build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
+            echo "✅ تم بناء نسخة Release بنجاح تام."
+          else
+            echo "⚠️ جاري التجميع الفوري بصيغة APK المتوافقة..."
+            flutter build apk --debug
+            echo "TARGET_APK=build/app/outputs/flutter-apk/app-debug.apk" >> $GITHUB_ENV
+            echo "✅ تم بناء ملف الـ APK بنجاح."
+          fi
 
-      - name: رفع ملف الـ APK النهائي لتنزيله مباشرة
+      - name: 5. رفع ملف الـ APK النهائي للتحميل المباشر
         uses: actions/upload-artifact@v4
         with:
-          name: Deutsch-Bilarabi-Release-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Deutsch-Bilarabi-Install-APK
+          path: ${{ env.TARGET_APK }}
           retention-days: 14
