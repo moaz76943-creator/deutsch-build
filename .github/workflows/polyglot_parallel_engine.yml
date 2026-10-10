@@ -41,7 +41,7 @@ jobs:
             --source tools/polyglot_v2/source_de_train_v2.json \
             --output build/packs
       - name: Upload development pack artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: de-v2-development-fixture
           path: |

@@ -32,7 +32,7 @@ jobs:
         run: flutter build apk --release --split-per-abi
 
       - name: Upload Private Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-apks
           path: build/app/outputs/flutter-apk/*.apk
