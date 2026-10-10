@@ -1,0 +1,24 @@
+import 'package:flutter_tts/flutter_tts.dart';
+
+/// محرك الصوت المحلي (Singleton) محمي ضد تسريب الذاكرة وتداخل الأصوات
+class OfflineAudioPool {
+  static final OfflineAudioPool instance = OfflineAudioPool._init();
+  final FlutterTts _flutterTts = FlutterTts();
+
+  OfflineAudioPool._init() {
+    _flutterTts.setLanguage("de-DE"); // لغة الهدف الافتراضية
+    _flutterTts.setSpeechRate(0.4);   // سرعة نطق مناسبة للمتعلمين
+    _flutterTts.setVolume(1.0);
+  }
+
+  /// نطق الكلمة مع إيقاف أي صوت سابق فوراً لمنع التداخل
+  Future<void> speak(String text) async {
+    await stop(); 
+    await _flutterTts.speak(text);
+  }
+
+  /// إيقاف الصوت النشط (تُستدعى عند الخروج من الشاشة)
+  Future<void> stop() async {
+    await _flutterTts.stop();
+  }
+}
