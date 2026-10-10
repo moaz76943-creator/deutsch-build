@@ -19,6 +19,12 @@ jobs:
           channel: "stable"
           cache: true
 
+      - name: تجهيز حزم المشروع ومسارات الأصول
+        run: |
+          mkdir -p assets/audio assets/images
+          touch assets/audio/.gitkeep assets/images/.gitkeep
+          flutter pub get
+
       - name: 1. تطهير language_pack_manager.dart من رموز lang_01 الوهمية
         run: |
           cat << 'DART' > lib/services/language_pack_manager.dart
@@ -32,7 +38,6 @@ jobs:
 
             static bool isLocaleSupported(String localeCode) {
               if (localeCode.isEmpty) return false;
-              // استبعاد قطعي للعبرية ومطابقة القائمة المعتمدة
               if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
               return supportedBcp47Locales.contains(localeCode);
             }
@@ -44,59 +49,80 @@ jobs:
           }
           DART
 
-      - name: 2. بناء مسار التوجيه المركزي AppRouter وربط الشاشات في main.dart
+      - name: 2. بناء مسار التوجيه المركزي AppRouter واكتشاف الشاشات الحقيقية
         run: |
-          mkdir -p lib/core/routing
+          python3 -c "
+          import os, re
 
-          # إنشاء مسارات التنقل المركزية
-          cat << 'DART' > lib/core/routing/app_router.dart
-          import 'package:flutter/material.dart';
-          import '../../screens/dashboard_screen.dart';
-          import '../../screens/flashcards_screen.dart';
-          import '../../screens/onboarding_screen.dart';
-          import '../../screens/vocabulary_journal_screen.dart';
-          import '../../screens/speed_quiz_screen.dart';
+          # قراءة اسم الكلاس الفعلي من أي شاشة لضمان عدم وجود أخطاء في الاستدعاء
+          def find_widget_class(filepath):
+              if not os.path.exists(filepath):
+                  return None
+              with open(filepath, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              match = re.search(r'class\s+([A-Za-z0-9_]+)\s+extends\s+(?:StatefulWidget|StatelessWidget)', content)
+              return match.group(1) if match else None
 
-          class AppRouter {
-            static const String initialRoute = '/';
-            static const String dashboard = '/dashboard';
-            static const String flashcards = '/flashcards';
-            static const String vocabJournal = '/journal';
-            static const String speedQuiz = '/speed-quiz';
+          dashboard_cls = find_widget_class('lib/screens/dashboard_screen.dart') or 'DashboardScreen'
+          flashcards_cls = find_widget_class('lib/screens/flashcards_screen.dart') or 'FlashcardsScreen'
+          onboarding_cls = find_widget_class('lib/screens/onboarding_screen.dart') or 'OnboardingScreen'
+          journal_cls = find_widget_class('lib/screens/vocabulary_journal_screen.dart') or 'VocabularyJournalScreen'
+          quiz_cls = find_widget_class('lib/screens/speed_quiz_screen.dart') or 'SpeedQuizScreen'
 
-            static Route<dynamic> generateRoute(RouteSettings settings) {
-              switch (settings.name) {
+          router_content = f'''import \\'package:flutter/material.dart\\';
+          import \\'../../screens/dashboard_screen.dart\\';
+          import \\'../../screens/flashcards_screen.dart\\';
+          import \\'../../screens/onboarding_screen.dart\\';
+          import \\'../../screens/vocabulary_journal_screen.dart\\';
+          import \\'../../screens/speed_quiz_screen.dart\\';
+
+          class AppRouter {{
+            static const String initialRoute = \\'/\\';
+            static const String dashboard = \\'/dashboard\\';
+            static const String flashcards = \\'/flashcards\\';
+            static const String vocabJournal = \\'/journal\\';
+            static const String speedQuiz = \\'/speed-quiz\\';
+
+            static Route<dynamic> generateRoute(RouteSettings settings) {{
+              switch (settings.name) {{
                 case initialRoute:
-                  return MaterialPageRoute(builder: (_) => const OnboardingScreen());
+                  return MaterialPageRoute(builder: (_) => {onboarding_cls}());
                 case dashboard:
-                  return MaterialPageRoute(builder: (_) => const DashboardScreen());
+                  return MaterialPageRoute(builder: (_) => {dashboard_cls}());
                 case flashcards:
-                  return MaterialPageRoute(builder: (_) => const FlashcardsScreen());
+                  return MaterialPageRoute(builder: (_) => {flashcards_cls}());
                 case vocabJournal:
-                  return MaterialPageRoute(builder: (_) => const VocabularyJournalScreen());
+                  return MaterialPageRoute(builder: (_) => {journal_cls}());
                 case speedQuiz:
-                  return MaterialPageRoute(builder: (_) => const SpeedQuizScreen());
+                  return MaterialPageRoute(builder: (_) => {quiz_cls}());
                 default:
                   return MaterialPageRoute(
                     builder: (_) => Scaffold(
                       body: Center(
-                        child: Text('المسار غير موجود: ${settings.name}'),
+                        child: Text(\\'المسار غير موجود: ${{settings.name}}\\'),
                       ),
                     ),
                   );
-              }
-            }
-          }
-          DART
+              }}
+            }}
+          }}
+          '''
 
-      - name: 3. التحقق المعماري من خلو الملفات المعدلة من الأخطاء
+          os.makedirs('lib/core/routing', exist_ok=True)
+          with open('lib/core/routing/app_router.dart', 'w', encoding='utf-8') as f:
+              f.write(router_content)
+
+          print('✅ تم توليد lib/core/routing/app_router.dart بنجاح وتوافق تام.')
+          "
+
+      - name: 3. التحقق المعماري بعد تنزيل الحزم
         run: |
-          dart analyze lib/services/language_pack_manager.dart lib/core/routing/app_router.dart
+          flutter analyze lib/services/language_pack_manager.dart lib/core/routing/app_router.dart --no-fatal-infos
 
       - name: 4. حفظ واعتماد التغييرات المعمارية
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add lib/services/language_pack_manager.dart lib/core/routing/app_router.dart
-          git commit -m "fix(arch): eliminate lang_01 stubs and wire core screens via AppRouter" || exit 0
+          git add lib/services/language_pack_manager.dart lib/core/routing/app_router.dart assets/
+          git commit -m "fix(arch): eliminate lang_01 stubs and safely wire core screens via AppRouter" || exit 0
           git push
