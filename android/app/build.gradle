@@ -39,7 +39,8 @@ android {
 
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
-        minSdkVersion flutter.minSdkVersion
+        // تحديث إصدار Android ليوافق محركات النطق وقاعدة البيانات
+        minSdkVersion 21
         targetSdk 36
         versionCode 133
         versionName "3.3.10"
