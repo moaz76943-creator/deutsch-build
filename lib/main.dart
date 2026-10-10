@@ -49,7 +49,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    // تحميل الكلمات الأساسية أو الحزمة اللغوية المحددة
     List<Map<String, dynamic>> items = await _vocabRepo.getVocabularyList();
     if (items.isEmpty && _selectedLang != 'de') {
       items = await LanguagePackManager.loadPack(_selectedLang);
@@ -106,7 +105,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Column(
         children: [
-          // شريط اختيار اللغات السريع (Polyglot Bar)
           Container(
             padding: const EdgeInsets.all(12),
             color: const Color(0xFF1E293B),
@@ -130,8 +128,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          
-          // المحتوى الرئيسي للقائمة والمعرفات
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -176,7 +172,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               trailing: IconButton(
                                 icon: const Icon(Icons.chat_bubble_outline, color: Colors.indigo),
                                 onPressed: () {
-                                  // استدعاء محرك السيناريوهات الحية لهذه الكلمة
                                   final scenario = ContextualScenarioSynthesizer.generateMicroScenario(word, field);
                                   final sDetails = scenario['scenario'] as Map<String, dynamic>;
                                   
