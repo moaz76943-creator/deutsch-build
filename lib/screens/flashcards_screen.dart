@@ -14,6 +14,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   int _currentIndex = 0;
   List<Map<String, dynamic>> _cards = [];
   bool _isLoading = true;
+  bool _isLocked = false;
 
   @override
   void initState() {
@@ -25,7 +26,6 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     setState(() => _isLoading = true);
     try {
       final contentDb = await DatabaseService.instance.contentDb;
-      // جلب 10 كلمات للدراسة مع أمثلتها
       final results = await contentDb.rawQuery('''
         SELECT l.lexeme_id, l.article, l.lemma, l.plural, 
                e.translation_ar, e.sentence
@@ -45,24 +45,31 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   }
 
   Future<void> _handleReview(bool isEasy) async {
-    if (_cards.isEmpty || _currentIndex >= _cards.length) return;
+    if (_isLocked || _cards.isEmpty || _currentIndex >= _cards.length) return;
     
-    final card = _cards[_currentIndex];
-    final progressDb = await DatabaseService.instance.progressDb;
-    
-    // تسجيل قرار المستخدم في قاعدة التقدم المستقلة
-    await progressDb.rawInsert('''
-      INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-      VALUES (?, 'de', 
-        COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-        ?
-      )
-    ''', [card['lexeme_id'], card['lexeme_id'], isEasy ? 'review' : 'learning']);
+    setState(() => _isLocked = true);
 
-    setState(() {
-      _showBack = false;
-      _currentIndex++;
-    });
+    try {
+      final card = _cards[_currentIndex];
+      final progressDb = await DatabaseService.instance.progressDb;
+      
+      await progressDb.rawInsert('''
+        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+        VALUES (?, 'de', 
+          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
+          ?
+        )
+      ''', [card['lexeme_id'], card['lexeme_id'], isEasy ? 'review' : 'learning']);
+
+      setState(() {
+        _showBack = false;
+        _currentIndex++;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLocked = false);
+      }
+    }
   }
 
   @override
@@ -185,7 +192,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                   children: <Widget>[
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => _handleReview(false),
+                        onPressed: _isLocked ? null : () => _handleReview(false),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFFEF4444),
                           side: const BorderSide(color: Color(0xFFEF4444)),
@@ -197,7 +204,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => _handleReview(true),
+                        onPressed: _isLocked ? null : () => _handleReview(true),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981),
                           padding: const EdgeInsets.symmetric(vertical: 14),
