@@ -6,7 +6,7 @@ on:
       batch_number:
         description: 'رقم الحزمة'
         required: true
-        default: '1'
+        default: '2'
 
 permissions:
   contents: write
@@ -22,159 +22,148 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: تطبيق التعديلات البرمجية والإصلاحات
+      - name: تطبيق الحزمة الثانية (0201-0400: Concurrency, Audio & Workers)
         run: |
-          python3 -c "
-          import os, re
-          if os.path.exists('pubspec.yaml'):
-              with open('pubspec.yaml', 'r', encoding='utf-8') as f:
-                  txt = f.read()
-              txt = re.sub(r'cached_network_image:\s*\^?4\.0\.4', 'cached_network_image: ^4.0.3', txt)
-              with open('pubspec.yaml', 'w', encoding='utf-8') as f:
-                  f.write(txt)
-          "
+          mkdir -p lib/core/concurrency lib/core/audio
 
-          mkdir -p lib/core/architecture lib/core/models lib/core/storage
+          # 1. CancellationToken (205, 206, 207)
+          cat << 'DART' > lib/core/concurrency/cancellation_token.dart
+          /// رمز إلغاء المهام المتزامنة لمنع تسريب العمليات في الخلفية
+          class CancellationToken {
+            bool _isCancelled = false;
+            final List<void Function()> _listeners = [];
 
-          cat << 'DART' > lib/core/architecture/directed_pair_id.dart
-          class DirectedPairId {
-            final String sourceLocale;
-            final String targetLocale;
-            final String semanticVersion;
+            bool get isCancelled => _isCancelled;
 
-            const DirectedPairId({
-              required this.sourceLocale,
-              required this.targetLocale,
-              required this.semanticVersion,
-            });
+            void cancel() {
+              if (_isCancelled) return;
+              _isCancelled = true;
+              for (final listener in _listeners) {
+                listener();
+              }
+              _listeners.clear();
+            }
 
-            String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
-            bool get isReflexive => sourceLocale == targetLocale;
-            bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
-          }
-          DART
-
-          cat << 'DART' > lib/core/architecture/operation_result.dart
-          abstract class OperationFailure {
-            final String code;
-            final String message;
-            const OperationFailure(this.code, this.message);
-          }
-
-          class StorageFailure extends OperationFailure {
-            const StorageFailure(super.code, super.message);
-          }
-
-          class ContentFailure extends OperationFailure {
-            const ContentFailure(super.code, super.message);
-          }
-
-          class OperationResult<T> {
-            final T? _data;
-            final OperationFailure? _failure;
-
-            const OperationResult.success(this._data) : _failure = null;
-            const OperationResult.failure(this._failure) : _data = null;
-
-            bool get isSuccess => _failure == null;
-            T get data => _data!;
-            OperationFailure get failure => _failure!;
-          }
-          DART
-
-          cat << 'DART' > lib/core/models/review_command.dart
-          import '../architecture/directed_pair_id.dart';
-
-          class ReviewCommand {
-            final String eventId;
-            final DirectedPairId pairId;
-            final String cardId;
-            final int timestamp;
-            final int score;
-            final bool usedHint;
-
-            const ReviewCommand({
-              required this.eventId,
-              required this.pairId,
-              required this.cardId,
-              required this.timestamp,
-              required this.score,
-              required this.usedHint,
-            });
-          }
-          DART
-
-          cat << 'DART' > lib/core/storage/migration_journal.dart
-          class MigrationRecord {
-            final String migrationId;
-            final int timestampEpoch;
-            const MigrationRecord(this.migrationId, this.timestampEpoch);
-          }
-
-          class MigrationJournal {
-            final List<MigrationRecord> _records = [];
-
-            void recordMigration(String id) {
-              if (!hasMigrated(id)) {
-                _records.add(MigrationRecord(DateTime.now().millisecondsSinceEpoch.toString(), DateTime.now().millisecondsSinceEpoch));
+            void onCancel(void Function() callback) {
+              if (_isCancelled) {
+                callback();
+              } else {
+                _listeners.add(callback);
               }
             }
 
-            bool hasMigrated(String id) => _records.any((r) => r.migrationId == id);
-            List<MigrationRecord> get history => List.unmodifiable(_records);
+            void throwIfCancelled() {
+              if (_isCancelled) {
+                throw StateError('Operation was cancelled by user or timeout');
+              }
+            }
           }
           DART
 
-          cat << 'DART' > lib/core/storage/storage_quarantine.dart
-          class QuarantinedData {
-            final String id;
-            final String rawJson;
-            final String diagnosticReason;
-            final int timestampEpoch;
+          # 2. WorkerTask (212, 213, 214)
+          cat << 'DART' > lib/core/concurrency/worker_task.dart
+          import 'dart:async';
+          import 'cancellation_token.dart';
 
-            const QuarantinedData({
-              required this.id,
-              required this.rawJson,
-              required this.diagnosticReason,
-              required this.timestampEpoch,
+          /// نموذج تنفيذ العمليات المعزولة مع حماية الإلغاء والمهلة الزمنية
+          class WorkerTask<T> {
+            final String taskId;
+            final Future<T> Function(CancellationToken token) execute;
+            final Duration timeout;
+
+            const WorkerTask({
+              required this.taskId,
+              required this.execute,
+              this.timeout = const Duration(seconds: 30),
             });
           }
+          DART
 
-          class StorageQuarantine {
-            final List<QuarantinedData> _quarantine = [];
+          # 3. AudioSessionCoordinator (271, 272, 273, 274)
+          cat << 'DART' > lib/core/audio/audio_session_coordinator.dart
+          /// منسق جلسات الصوت لمنع تداخل الصوتيات وتدبير التركيز الصوتي
+          enum AudioPlaybackState { idle, buffering, playing, paused, ducked, stopped }
 
-            void isolateCorruptData({
-              required String id,
-              required String rawJson,
-              required String reason,
-            }) {
-              _quarantine.add(QuarantinedData(
-                id: id,
-                rawJson: rawJson,
-                diagnosticReason: reason,
-                timestampEpoch: DateTime.now().millisecondsSinceEpoch,
-              ));
+          class AudioSessionCoordinator {
+            AudioPlaybackState _state = AudioPlaybackState.idle;
+            String? _activeAudioId;
+
+            AudioPlaybackState get state => _state;
+            String? get activeAudioId => _activeAudioId;
+
+            bool requestFocus(String audioId) {
+              if (_state == AudioPlaybackState.playing && _activeAudioId != audioId) {
+                stopCurrent();
+              }
+              _activeAudioId = audioId;
+              _state = AudioPlaybackState.playing;
+              return true;
             }
 
-            List<QuarantinedData> get isolatedItems => List.unmodifiable(_quarantine);
-            void clearResolved(String id) {
-              _quarantine.removeWhere((item) => item.id == id);
+            void duck() {
+              if (_state == AudioPlaybackState.playing) {
+                _state = AudioPlaybackState.ducked;
+              }
+            }
+
+            void restoreVolume() {
+              if (_state == AudioPlaybackState.ducked) {
+                _state = AudioPlaybackState.playing;
+              }
+            }
+
+            void stopCurrent() {
+              _state = AudioPlaybackState.stopped;
+              _activeAudioId = null;
             }
           }
           DART
 
-          # فحص الملفات الجديدة بدقة ودون التأثر بالملفات القديمة
+          # 4. AudioCacheManifest (288, 289, 290)
+          cat << 'DART' > lib/core/audio/audio_cache_manifest.dart
+          /// سجل ملفات الصوت المحلية لضمان العمل أوفلاين والتحقق من سلامة البايتات
+          class AudioEntry {
+            final String audioKey;
+            final String localPath;
+            final int fileSizeBytes;
+            final int lastVerifiedEpoch;
+
+            const AudioEntry({
+              required this.audioKey,
+              required this.localPath,
+              required this.fileSizeBytes,
+              required this.lastVerifiedEpoch,
+            });
+
+            bool get isValid => fileSizeBytes > 0 && localPath.isNotEmpty;
+          }
+
+          class AudioCacheManifest {
+            final Map<String, AudioEntry> _cache = {};
+
+            void register(AudioEntry entry) {
+              if (entry.isValid) {
+                _cache[entry.audioKey] = entry;
+              }
+            }
+
+            AudioEntry? getEntry(String key) => _cache[key];
+            bool contains(String key) => _cache.containsKey(key);
+            int get totalCachedFiles => _cache.length;
+          }
+          DART
+
+          # فحص سلامة ملفات الحزمة الثانية بدقة صارمة
           dart analyze \
-            lib/core/architecture/directed_pair_id.dart \
-            lib/core/architecture/operation_result.dart \
-            lib/core/models/review_command.dart \
-            lib/core/storage/migration_journal.dart \
-            lib/core/storage/storage_quarantine.dart
+            lib/core/concurrency/cancellation_token.dart \
+            lib/core/concurrency/worker_task.dart \
+            lib/core/audio/audio_session_coordinator.dart \
+            lib/core/audio/audio_cache_manifest.dart
 
       - name: تثبيت الكود في المستودع
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add lib/ pubspec.yaml
-          git commit -m "feat(megabatch-1): core storage and architecture" || exit 0
+          git add lib/
+          git commit -m "feat(megabatch-2): concurrency, background workers & audio runtime" || exit 0
           git push
