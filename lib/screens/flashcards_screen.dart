@@ -32,14 +32,14 @@ Future<void> handleCardRating(
 class OfflineAudioPoolStub {
   static final OfflineAudioPoolStub instance = OfflineAudioPoolStub();
   void stop() {
-    // سيتم تنفيذ إيقاف الصوت الفعلي هنا لاحقاً
     debugPrint("تم استدعاء إيقاف الصوت.");
   }
 }
 
 // --- واجهة البطاقات المعتمدة (P1) ---
 class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({Key? key}) : super(key: key);
+  // إصلاح التحذير رقم 2: استخدام super parameter
+  const FlashcardsScreen({super.key}); 
 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
@@ -66,8 +66,8 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     // 2. حماية الذاكرة: إغلاق المتحكمات لمنع الـ Memory Leaks
     _flipController.dispose();
     
-    // إيقاف الصوت النشط عند الخروج من الشاشة (معالجة البند رقم 10 في التقرير)
-    OfflineAudioPoolStub.instance.stop(); // سيتم تبديله بالمشغل الفعلي لاحقاً
+    // إيقاف الصوت النشط عند الخروج من الشاشة
+    OfflineAudioPoolStub.instance.stop();
     
     super.dispose();
   }
@@ -94,13 +94,10 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
       body: SafeArea(
         child: Column(
           children: [
-            // شريط التقدم الوهمي
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: LinearProgressIndicator(value: 0.3, backgroundColor: Colors.white24),
             ),
-            
-            // منطقة البطاقة ثلاثية الأبعاد
             Expanded(
               child: GestureDetector(
                 onTap: _toggleFlip,
@@ -110,12 +107,11 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                     builder: (context, child) {
                       final angle = _flipAnimation.value * pi;
                       final isFront = angle < pi / 2;
-                      
                       return Transform(
                         alignment: Alignment.center,
                         transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001) // تأثير العمق 3D
-                          ..rotateX(angle), // تقليب عمودي
+                          ..setEntry(3, 2, 0.001)
+                          ..rotateX(angle),
                         child: isFront ? _buildFrontCard() : _buildBackCard(),
                       );
                     },
@@ -123,9 +119,6 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                 ),
               ),
             ),
-
-            // 3. منطقة الإبهام (One-Handed Thumb Zone)
-            // لا تظهر الأزرار إلا بعد كشف البطاقة
             if (_isFlipped)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
@@ -150,7 +143,6 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  // الوجه الأمامي (الكلمة فقط - كشف تدريجي)
   Widget _buildFrontCard() {
     return Container(
       width: 320,
@@ -162,13 +154,12 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
       ),
       alignment: Alignment.center,
       child: const Text(
-        'das Buch', // بيانات مؤقتة
+        'das Buch', 
         style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
   }
 
-  // الوجه الخلفي (الترجمة - تظهر مقلوبة لتعويض دوران Matrix4)
   Widget _buildBackCard() {
     return Transform(
       alignment: Alignment.center,
@@ -195,19 +186,19 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  // تصميم أزرار التقييم بحد أدنى 48dp للارتفاع
   Widget _buildRatingButton(String label, Color color, ReviewRating rating) {
+    // إصلاح التحذير رقم 3: استخدام withAlpha بدلاً من withOpacity المتقادمة
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.2),
+        backgroundColor: color.withAlpha(51), // 51 يعادل 20% شفافية تقريباً
         foregroundColor: color,
         elevation: 0,
-        minimumSize: const Size(70, 56), // الهدف الأدنى للمس 48+
+        minimumSize: const Size(70, 56), 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       onPressed: () {
         handleCardRating(null, 'test_card_1', rating, false);
-        _toggleFlip(); // قلب البطاقة وعرض الكلمة التالية نظرياً
+        _toggleFlip(); 
       },
       child: Text(label, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
     );
