@@ -1,1 +1,17 @@
-{"version": 1, "items": [{"word": "Hallo", "meaning": "\u0645\u0631\u062d\u0628\u0627", "example": "Hallo Welt"}], "languageCode": "en"}
+{
+  "version": 1,
+  "languageCode": "en",
+  "languageName": "English",
+  "items": [
+    {
+      "word": "Welcome",
+      "meaning": "Greeting",
+      "example": "Welcome to the language learning platform."
+    },
+    {
+      "word": "Learn",
+      "meaning": "Acquire knowledge",
+      "example": "Learn languages seamlessly offline."
+    }
+  ]
+}

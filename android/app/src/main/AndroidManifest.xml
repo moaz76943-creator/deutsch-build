@@ -9,7 +9,7 @@
     </queries>
 
     <application
-        android:label="Deutsch بالعربي"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:allowBackup="false"
