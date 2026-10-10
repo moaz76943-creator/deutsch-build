@@ -1,3 +1,4 @@
+import '../../features/wordbit/ui/wordbit_carousel_screen.dart';
 // ignore_for_file: prefer_const_constructors, prefer_interpolation_to_compose_strings, unused_import
 import 'package:flutter/material.dart';
 import '../../screens/dashboard_screen.dart';
