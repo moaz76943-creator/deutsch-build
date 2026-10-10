@@ -15,3 +15,9 @@
 -dontwarn com.google.android.play.core.**
 -dontwarn io.flutter.app.**
 -keep class io.flutter.app.** { *; }
+
+-dontwarn com.google.android.play.core.**
+-dontwarn io.flutter.**
+-keep class io.flutter.** { *; }
+-dontwarn com.tekartik.sqflite.**
+-keep class com.tekartik.sqflite.** { *; }
