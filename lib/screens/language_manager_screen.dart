@@ -32,6 +32,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 300));
     final item = _languages[index];
+    final willDownload = !(item["downloaded"] as bool);
     if (willDownload) {
       final ttsLocale = LanguagePackManager.getTtsLocale(item['code'] as String);
       await LanguagePackManager.verifyAndMountOfflinePack(ttsLocale);
