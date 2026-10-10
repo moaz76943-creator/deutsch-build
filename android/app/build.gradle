@@ -44,6 +44,10 @@ android {
         targetSdk 36
         versionCode 133
         versionName "3.3.10"
+        
+        // تفعيل خاصية MultiDex لتجنب خطأ الـ 64k
+        multiDexEnabled true
+
         // Flutter's defaults also include dependency JNI libraries for other ABIs.
         // Honor a single ARM64 request without changing universal/split builds.
         def phoneHost = (System.getenv('PREFIX') ?: '') ==~ /\/data\/data\/[^\/]+\/files\/usr/
@@ -86,6 +90,8 @@ configureTermuxPackaging(android)
 
 dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
+    // إضافة مكتبة multidex
+    implementation 'androidx.multidex:multidex:2.0.1'
 }
 
 flutter {
