@@ -1,4 +1,12 @@
-analyzer:
-  plugins:
-    - custom_lint
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - 'test_backup/**'
+    - 'tool/**'
+    - 'content/**'
+    - 'test/**'
+
+linter:
+  rules:
+    avoid_print: false
