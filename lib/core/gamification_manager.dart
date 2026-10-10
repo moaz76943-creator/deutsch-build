@@ -1,64 +1,54 @@
-// ignore_for_file: unused_import
+// مسار الملف: lib/core/gamification_manager.dart
 
-/// نموذج تقدم المستخدم ومستوى الإتقان أوفلاين
-class UserProgressProfile {
+/// حالة المستخدم الحالية (النقاط والأيام المتتالية)
+class GamificationState {
   final int currentStreak;
-  final String lastActiveDate; // YYYY-MM-DD
   final int totalXp;
-  final Map<String, int> domainMasteryCount; // domainId -> mastered cards count
+  final String lastActivityDate;
 
-  const UserProgressProfile({
+  const GamificationState({
     required this.currentStreak,
-    required this.lastActiveDate,
     required this.totalXp,
-    required this.domainMasteryCount,
+    required this.lastActivityDate,
   });
-
-  int get level => (totalXp / 100).floor() + 1;
 }
 
-/// محرك إدارة التحفيز دون أي اتصال سحابي
-class GamificationManager {
-  static UserProgressProfile calculateDailyStreak({
-    required UserProgressProfile currentProfile,
+/// المحرك المرجعي الوحيد (Single Source of Truth) لحساب النقاط والالتزام اليومي.
+/// يُمنع استخدام SharedPreferences لحساب الـ Streak خارج هذا المحرك.
+class GamificationEngine {
+  
+  /// دالة مركزية لمعالجة النقاط بعد كل مراجعة ناجحة ومكتملة من محرك SRS
+  /// لا يتم منح النقاط لمجرد تقليب البطاقة، بل لنجاح التخزين.
+  static GamificationState processReviewReward({
+    required GamificationState currentState,
     required DateTime now,
+    required bool isSuccess,
   }) {
+    // توحيد صيغة التاريخ لضمان عدم تأثر السلسلة باختلاف المناطق الزمنية (Timezones)
     final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
     
-    if (currentProfile.lastActiveDate == todayStr) {
-      return currentProfile;
+    int newStreak = currentState.currentStreak;
+    // 10 نقاط كحد أقصى للإجابة الناجحة، 0 للإجابة الخاطئة (لا مكافآت مجانية)
+    int earnedXp = isSuccess ? 10 : 0; 
+
+    if (currentState.lastActivityDate.isEmpty) {
+      newStreak = 1;
+    } else {
+      final lastDate = DateTime.tryParse(currentState.lastActivityDate) ?? now;
+      final differenceInDays = now.difference(lastDate).inDays;
+
+      if (differenceInDays == 1) {
+        newStreak += 1; // تعزيز السلسلة ليوم جديد
+      } else if (differenceInDays > 1) {
+        newStreak = 1; // كسر السلسلة وإعادة الضبط عند الانقطاع لأكثر من 48 ساعة
+      }
+      // إذا كان differenceInDays == 0، فهذا يعني أننا في نفس اليوم، لا نزيد الـ Streak بل نزيد الـ XP فقط.
     }
 
-    if (currentProfile.lastActiveDate.isEmpty) {
-      return UserProgressProfile(
-        currentStreak: 1,
-        lastActiveDate: todayStr,
-        totalXp: currentProfile.totalXp + 10,
-        domainMasteryCount: currentProfile.domainMasteryCount,
-      );
-    }
-
-    final lastDate = DateTime.tryParse(currentProfile.lastActiveDate) ?? now;
-    final differenceInDays = now.difference(lastDate).inDays;
-
-    int newStreak = currentProfile.currentStreak;
-    if (differenceInDays == 1) {
-      newStreak += 1;
-    } else if (differenceInDays > 1) {
-      newStreak = 1; // إعادة ضبط عند الانقطاع
-    }
-
-    return UserProgressProfile(
+    return GamificationState(
       currentStreak: newStreak,
-      lastActiveDate: todayStr,
-      totalXp: currentProfile.totalXp + 15,
-      domainMasteryCount: currentProfile.domainMasteryCount,
+      totalXp: currentState.totalXp + earnedXp,
+      lastActivityDate: todayStr,
     );
-  }
-
-  static double calculateDomainMasteryPercent(int masteredCards, int totalDomainCards) {
-    if (totalDomainCards <= 0) return 0.0;
-    final percent = (masteredCards / totalDomainCards) * 100.0;
-    return percent > 100.0 ? 100.0 : percent;
   }
 }
