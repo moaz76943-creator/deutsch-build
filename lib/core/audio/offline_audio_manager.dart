@@ -1,5 +1,4 @@
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:flutter/foundation.dart';
 
 /// محرك الصوت المحلي (Singleton) محمي ضد تسريب الذاكرة وتداخل الأصوات
 class OfflineAudioManager {
