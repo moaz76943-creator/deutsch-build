@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../contracts/universal_scenario_contract.dart';
-import '../contracts/contract_evaluator.dart';
+import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import 'package:deutsch_bilarabi/core/contracts/contract_evaluator.dart';
 import 'interaction_mode.dart';
 
 class UniversalAdaptiveShell extends StatefulWidget {

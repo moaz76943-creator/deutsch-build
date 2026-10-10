@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/contracts/universal_scenario_contract.dart';
-import '../../core/shell/interaction_mode.dart';
-import '../../core/shell/universal_adaptive_shell.dart';
+import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import 'package:deutsch_bilarabi/core/shell/interaction_mode.dart';
+import 'package:deutsch_bilarabi/core/shell/universal_adaptive_shell.dart';
 import 'wave_06_scenarios.dart';
 
 class Wave06RunnerScreen extends StatelessWidget {

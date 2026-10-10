@@ -1,6 +1,6 @@
 import 'dart:async';
-import '../../srs_scheduler.dart';
-import '../../progress/review_transaction_envelope.dart';
+import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
+import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
 class SrsCompatBridge {
   static final SrsCompatBridge instance = SrsCompatBridge._internal();

@@ -1,4 +1,4 @@
-import '../core/content_contract.dart';
+import 'package:deutsch_bilarabi/core/content_contract.dart';
 
 class ContentItem implements LearningContent {
   final String id, german, arabic, sentence, sentenceAr, topic, skill;

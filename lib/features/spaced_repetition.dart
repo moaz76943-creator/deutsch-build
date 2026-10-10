@@ -1,4 +1,4 @@
-import '../core/srs/bridge/srs_compat_bridge.dart';
+import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 
 /// واجهة توافق لمنع كسر الشاشات القائمة (مثل Flashcards)
 /// مع توجيه الحفظ كلياً للسلطة المركزية بدلاً من SharedPreferences

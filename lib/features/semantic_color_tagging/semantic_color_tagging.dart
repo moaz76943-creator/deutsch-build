@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/language_intelligence/language_grammar_rule_provider.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 
 class SemanticColorTagging {
   final LanguageGrammarRuleProvider ruleProvider;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/plugins/feature_plug.dart';
-import '../../core/resilience/feature_boundary.dart';
-import '../../core/srs/bridge/srs_compat_bridge.dart';
+import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
+import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
+import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 
 class FlashcardsPlug implements FeaturePlug {
   @override

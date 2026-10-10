@@ -1,5 +1,5 @@
 import 'diagnostic_placement.dart';
-import '../core/srs_facets.dart';
+import 'package:deutsch_bilarabi/core/srs_facets.dart';
 
 class Attempt {
   final String id, itemId, skill, answer;
