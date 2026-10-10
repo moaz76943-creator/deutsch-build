@@ -22,8 +22,21 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: تطبيق التعديلات البرمجية
+      - name: تطبيق التعديلات البرمجية والإصلاحات
         run: |
+          python3 -c "
+          import os, re
+
+          # 1. إصلاح تعارض مكتبة cached_network_image تلقائياً
+          if os.path.exists('pubspec.yaml'):
+              with open('pubspec.yaml', 'r', encoding='utf-8') as f:
+                  txt = f.read()
+              txt = re.sub(r'cached_network_image:\s*\^?4\.0\.4', 'cached_network_image: ^4.0.3', txt)
+              with open('pubspec.yaml', 'w', encoding='utf-8') as f:
+                  f.write(txt)
+              print('✅ تم تعديل cached_network_image تلقائياً إلى ^4.0.3')
+          "
+
           mkdir -p lib/core/architecture lib/core/models lib/core/storage
 
           cat << 'DART' > lib/core/architecture/directed_pair_id.dart
@@ -106,7 +119,7 @@ jobs:
 
             void recordMigration(String id) {
               if (!hasMigrated(id)) {
-                _records.add(MigrationRecord(id, DateTime.now().millisecondsSinceEpoch));
+                _records.add(MigrationRecord(DateTime.now().millisecondsSinceEpoch.toString(), DateTime.now().millisecondsSinceEpoch));
               }
             }
 
@@ -153,12 +166,12 @@ jobs:
           }
           DART
 
-          flutter analyze lib/core/
+          dart analyze lib/core/
 
       - name: تثبيت الكود في المستودع
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add lib/
+          git add lib/ pubspec.yaml
           git commit -m "feat(megabatch-1): core storage and architecture" || exit 0
           git push
