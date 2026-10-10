@@ -3,10 +3,10 @@ import 'features/onboarding/fast_onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // 10/10 Transparent Quality Error Reporter
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
+    debugPrint("[DBA][CORE_EXCEPTION] ${details.exceptionAsString()}");
   };
 
   ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -14,11 +14,17 @@ void main() {
       color: const Color(0xFF0F172A),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: SingleChildScrollView(
-            child: Text(
-              "CRASH REASON:\n\n${details.exceptionAsString()}\n\nSTACK TRACE:\n${details.stack}",
-              style: const TextStyle(color: Color(0xFFF87171), fontSize: 11, fontFamily: "monospace"),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("STARTUP ISSUE DETECTED", style: TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                Text(details.exceptionAsString(), style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: "monospace")),
+                const SizedBox(height: 15),
+                Text(details.stack.toString(), style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontFamily: "monospace")),
+              ],
             ),
           ),
         ),
@@ -26,6 +32,13 @@ void main() {
     );
   };
 
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
+  };
+
+  
   runApp(const DeutschApp());
 }
 

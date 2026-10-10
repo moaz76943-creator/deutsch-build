@@ -1,4 +1,4 @@
-name: Build Production Release APK
+name: Build Optimized Private APK
 
 on:
   push:
@@ -8,31 +8,32 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Setup Java Development Kit
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set up Flutter
+      - name: Setup Flutter Framework
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.x'
-          channel: 'stable'
+          flutter-version: '3.22.3'
           cache: true
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build Release APK
-        run: flutter build apk --debug
+      - name: Build Split APKs (Optimized Size)
+        run: flutter build apk --release --split-per-abi
 
-      - name: Upload APK Artifact
+      - name: Upload Private Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: release-apks
           path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 7
