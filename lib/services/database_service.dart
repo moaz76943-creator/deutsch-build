@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -21,6 +22,16 @@ class LexiconTranslation {
 
   final String text;
   final String? languageCode;
+}
+
+// Pass only bounded, plain SQLite values to a background isolate; never a
+// sqflite Database handle or a StatefulWidget/BuildContext.
+List<Map<String, dynamic>> _decodeLexiconRows(Map<String, Object?> request) {
+  final languageCode = request['languageCode'] as String;
+  final rows = request['rows'] as List;
+  return rows.map((row) => DatabaseService._unpackLexiconRow(
+    Map<String, Object?>.from(row as Map), languageCode,
+  )).toList(growable: false);
 }
 
 class DatabaseService {
@@ -258,25 +269,33 @@ class DatabaseService {
 
   Future<List<Map<String, dynamic>>> searchDictionary(
     String query,
-    String langCode,
-  ) async {
+    String langCode, {
+    int limit = 50,
+  }) async {
     final code = _normalizeLanguageCode(langCode);
     final db = await getContentDb(code);
     final trimmedQuery = query.trim();
+    final safeLimit = limit.clamp(1, 50);
     final rows = trimmedQuery.isEmpty
         ? await db.rawQuery('''
             SELECT id, surface, part_of_speech, fields_json
             FROM lexicon
-            LIMIT 20
-          ''')
+            LIMIT ?
+          ''', <Object?>[safeLimit])
         : await db.rawQuery('''
             SELECT id, surface, part_of_speech, fields_json
             FROM lexicon
             WHERE surface LIKE ? OR fields_json LIKE ?
-            LIMIT 20
-          ''', <Object?>['%$trimmedQuery%', '%$trimmedQuery%']);
+            LIMIT ?
+          ''', <Object?>[
+            '%$trimmedQuery%', '%$trimmedQuery%', safeLimit,
+          ]);
 
-    return rows.map((row) => _unpackLexiconRow(row, code)).toList();
+    return compute(_decodeLexiconRows, <String, Object?>{
+      'languageCode': code,
+      'rows': rows.map((row) => Map<String, Object?>.from(row))
+          .toList(growable: false),
+    });
   }
 
   /// Interpret both legacy flat values and structured v2 translations.
@@ -342,7 +361,7 @@ class DatabaseService {
     return null;
   }
 
-  Map<String, dynamic> _unpackLexiconRow(
+  static Map<String, dynamic> _unpackLexiconRow(
     Map<String, Object?> row,
     String languageCode,
   ) {
