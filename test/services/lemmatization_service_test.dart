@@ -39,6 +39,12 @@ void main() {
       'lemma': 'parler',
       'lexicon_id': 'fr-parler',
     });
+    await database.insert('inflections_lookup', <String, Object?>{
+      'inflected_form': 'съел',
+      'language_code': 'ru',
+      'lemma': 'есть',
+      'lexicon_id': 'ru-eat',
+    });
     service = LemmatizationService(
       openContentDb: (languageCode) async => database,
     );
@@ -53,8 +59,20 @@ void main() {
     expect(await service.resolve('went', languageCode: 'en'), 'go');
     expect(await service.resolve('ging', languageCode: 'de-DE'), 'gehen');
     expect(await service.resolve('parlé', languageCode: 'fr'), 'parler');
+    expect(await service.resolve('съел', languageCode: 'ru'), 'есть');
     final matches = await service.lookup('WENT', languageCode: 'en');
     expect(matches.single.lexiconId, 'en-go');
+  });
+
+  test('schema provides POS and the required composite index', () async {
+    final columns = await database.rawQuery(
+      "PRAGMA table_info('inflections_lookup')",
+    );
+    expect(columns.map((row) => row['name']), contains('pos'));
+    final indexes = await database.rawQuery(
+      "PRAGMA index_list('inflections_lookup')",
+    );
+    expect(indexes.map((row) => row['name']), contains('idx_inflection_lang'));
   });
 
   test('language separation prevents false cross-language matches',
@@ -62,7 +80,7 @@ void main() {
     expect(await service.resolve('went', languageCode: 'de'), isNull);
     expect(await service.resolve('ging', languageCode: 'en'), isNull);
     expect(await service.lookup('', languageCode: 'en'), isEmpty);
-    expect(await service.lookup('x' * 97, languageCode: 'en'), isEmpty);
+    expect(await service.lookup(List<String>.filled(97, 'x').join(), languageCode: 'en'), isEmpty);
   });
 
   test('interceptor retries lemma only after empty normal search',
