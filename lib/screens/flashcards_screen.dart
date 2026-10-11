@@ -45,7 +45,9 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   String _languageCode = 'de';
   int _cardIndex = 0;
   int _loadGeneration = 0;
-  bool _isLoading = true;
+  bool _isLoading = false;
+  bool _hasStarted = false;
+  bool _restoringLanguage = false;
   bool _isFlipped = false;
   bool _isSubmitting = false;
   String? _error;
@@ -61,7 +63,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       duration: const Duration(milliseconds: 200),
     );
     _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_flipController);
-    _loadCards(ref.read(activeLanguageCodeProvider));
   }
 
   @override
@@ -70,6 +71,26 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     _flipController.dispose();
     unawaited(OfflineAudioManager.instance.stop());
     super.dispose();
+  }
+
+  Future<void> _beginReview() async {
+    if (_hasStarted) return;
+    setState(() {
+      _hasStarted = true;
+      _isLoading = true;
+    });
+    _restoringLanguage = true;
+    try {
+      await ref
+          .read(activeLanguageProvider.notifier)
+          .initialize(refreshRemoteCatalog: false);
+    } catch (_) {
+      // The bundled German language remains the safe offline fallback.
+    } finally {
+      _restoringLanguage = false;
+    }
+    if (!mounted) return;
+    await _loadCards(ref.read(activeLanguageCodeProvider));
   }
 
   Future<void> _loadCards(String languageCode) async {
@@ -159,7 +180,8 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   @override
   Widget build(BuildContext context) {
     ref.listen<String>(activeLanguageCodeProvider, (previous, next) {
-      if (next != previous && next != _languageCode) {
+      if (_hasStarted && !_restoringLanguage &&
+          next != previous && next != _languageCode) {
         unawaited(_loadCards(next));
       }
     });
@@ -183,7 +205,15 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
               ),
             ),
             Expanded(
-              child: _isLoading
+              child: !_hasStarted
+                  ? Center(
+                      child: ElevatedButton.icon(
+                        onPressed: _beginReview,
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: const Text('ابدأ المراجعة'),
+                      ),
+                    )
+                  : _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _cards.isEmpty
                       ? Center(

@@ -47,6 +47,8 @@ class DatabaseService {
   }
 
   Future<Database> _openContentDb(String languageCode) async {
+    // The bundled-pack SHA-256 check is also deferred beyond cold boot.
+    await CrashLoopGuard.waitForIntegrityWindow();
     if(languageCode!='de' && CrashLoopGuard.instance.safeModeEnabled) {
       throw StateError('External content packs are disabled in safe mode');
     }

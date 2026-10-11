@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'crash_loop_guard.dart';
 import 'diagnostic_ledger_service.dart';
 
 /// A damaged pack must not be used for queries until it has been rechecked.
@@ -21,6 +22,7 @@ class DatabaseIntegrityService {
   /// Invalid responses and SQLite I/O errors are handled as quarantine.
   Future<bool> checkMountedPack(String code, Database database) async {
     try {
+      await CrashLoopGuard.waitForIntegrityWindow();
       final rows = await database.rawQuery('PRAGMA quick_check(1);');
       if (rows.length == 1 &&
           rows.first.values.length == 1 &&

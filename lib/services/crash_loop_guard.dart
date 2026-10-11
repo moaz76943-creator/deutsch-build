@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -37,6 +38,30 @@ class FileBootLedgerStore implements BootLedgerStore {
 /// Two consecutive rapid, unclean launches trigger safe mode on the third.
 /// Boot-to-boot timing is a conservative proxy for the unavailable crash time.
 class CrashLoopGuard {
+  static Stopwatch? _startupClock;
+  static bool previousBootWasInterrupted = false;
+
+  /// Fast preference-only entry gate. Full recovery-ledger IO runs after the
+  /// first frame through SafeModeRecoveryGate.
+  static Future<void> verifyBootState() async {
+    _startupClock ??= Stopwatch()..start();
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      previousBootWasInterrupted =
+          preferences.getBool('boot.pending.v1') ?? false;
+    } catch (_) {
+      previousBootWasInterrupted = false;
+    }
+  }
+
+  static Future<void> waitForIntegrityWindow() async {
+    final clock = _startupClock;
+    if (clock == null) return;
+    const minimum = Duration(seconds: 3);
+    final remaining = minimum - clock.elapsed;
+    if (remaining > Duration.zero) await Future<void>.delayed(remaining);
+  }
+
   CrashLoopGuard({BootLedgerStore? store,DateTime Function()? clock})
       : _store=store ?? FileBootLedgerStore(), _clock=clock ?? DateTime.now;
   static final CrashLoopGuard instance=CrashLoopGuard();
@@ -94,7 +119,10 @@ class _SafeModeRecoveryGateState extends State<SafeModeRecoveryGate>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(!mounted)return;
+      // A full file-ledger check happens only after the visible first frame.
+      await widget.guard.beginBoot();
       if(!mounted)return;
       if(widget.guard.safeModeEnabled) _dialog();
       Future<void>.delayed(const Duration(seconds:6),(){

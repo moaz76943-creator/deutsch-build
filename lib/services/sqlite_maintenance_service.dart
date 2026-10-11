@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'crash_loop_guard.dart';
 import 'database_service.dart';
 
 class SqliteMaintenanceReport {
@@ -72,7 +73,14 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
   }
 
   /// UI or persistent worker may explicitly call this when genuinely idle.
-  Future<SqliteMaintenanceReport> onIdle() => maintain(isIdle: true);
+  Future<SqliteMaintenanceReport> onIdle() async {
+    // A scheduled frame ensures the requested idle operation is post-frame.
+    final frame = Completer<void>();
+    WidgetsBinding.instance.addPostFrameCallback((_) => frame.complete());
+    WidgetsBinding.instance.scheduleFrame();
+    await frame.future;
+    return maintain(isIdle: true);
+  }
 
   Future<SqliteMaintenanceReport> maintain({bool isIdle = false}) {
     if (_disposed) {
@@ -88,6 +96,8 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
   }
 
   Future<SqliteMaintenanceReport> _maintain({required bool isIdle}) async {
+    // Never open the progress DB or inspect WAL during the cold-start window.
+    await CrashLoopGuard.waitForIntegrityWindow();
     var walBytes = 0;
     var shmBytes = 0;
     try {
