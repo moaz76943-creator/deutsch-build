@@ -6,6 +6,7 @@ CLI:
   --rankings-dir Optional directory of <lang>.csv (word,rank[,cefr]).
   --out-dir      New/deterministically identical .pack.gz and manifest.json outputs.
   --limit        Maximum selected lexical items per language (default 3000).
+  --curated-tsv  Optional curated de→ar TSV (surface, pos, translation_ar).
 
 Supported languages: en, de, es, fr, tr. No network calls, synthetic CEFR
 labels, machine translation, signing, or release/store publication. Input
@@ -114,6 +115,54 @@ def ranks(source: Path | None) -> dict[str, tuple[int, str | None]]:
             if current is None or (rank, level or "") < (current[0], current[1] or ""):
                 result[key] = (rank, level)
     return result
+
+
+def read_curated_tsv(source: Path) -> dict[tuple[str, str], list[str]]:
+    """Read editorial German→Arabic overrides; require unambiguous lemma/POS.
+
+    TSV columns: surface, pos, translation_ar. Repeated key rows add senses
+    in editorial order. No automatic translation or language guessing.
+    """
+    result: dict[tuple[str, str], list[str]] = {}
+    with source.open(encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream, delimiter="\t")
+        required = {"surface", "pos", "translation_ar"}
+        if not reader.fieldnames or not required <= set(reader.fieldnames):
+            raise ValueError(
+                f"{source}: TSV must have surface, pos, translation_ar columns")
+        for line_number, row in enumerate(reader, 2):
+            if line_number > MAX_LINES:
+                raise ValueError(f"{source}: too many curated rows")
+            if None in row:
+                raise ValueError(f"{source}:{line_number}: excess TSV columns")
+            surface = text(row.get("surface"), 160)
+            pos = text(row.get("pos"), 64)
+            arabic = text(row.get("translation_ar"), 1000)
+            if not surface or not pos or not arabic:
+                raise ValueError(
+                    f"{source}:{line_number}: incomplete curated translation")
+            key = (unicodedata.normalize("NFKC", surface).casefold(),
+                   pos.casefold())
+            meanings = result.setdefault(key, [])
+            if arabic not in meanings:
+                meanings.append(arabic)
+    return result
+
+
+def apply_curated_ar(entries: list[dict],
+                     curated: dict[tuple[str, str], list[str]]) -> None:
+    """Replace unreviewed Arabic with curated senses; retain English glosses."""
+    for item in entries:
+        key = (unicodedata.normalize("NFKC", item["surface"]).casefold(),
+               item["pos"].casefold())
+        meanings = curated.get(key)
+        if meanings:
+            item["translations"] = [
+                {"languageCode": "ar", "text": meaning} for meaning in meanings
+            ] + [
+                translation for translation in item["translations"]
+                if translation["languageCode"] != "ar"
+            ]
 
 
 def to_entry(raw: object, lang: str,
@@ -351,11 +400,13 @@ def pack(language: str, selected: list[dict], sqlite_bytes: bytes) -> tuple[byte
 
 
 def compile_pilots(input_dir: Path, rankings_dir: Path | None,
-                   out_dir: Path, limit: int) -> dict:
+                   out_dir: Path, limit: int,
+                   curated_tsv: Path | None = None) -> dict:
     if not input_dir.is_dir() or (rankings_dir and not rankings_dir.is_dir()):
         raise ValueError("Input/rankings directory is missing")
     if limit < 1 or limit > 250000:
         raise ValueError("--limit must be between 1 and 250000")
+    curated = read_curated_tsv(curated_tsv) if curated_tsv else {}
     artifacts: dict[str, bytes] = {}
     descriptors: list[dict] = []
     with tempfile.TemporaryDirectory(prefix="pilot-packs-") as directory:
@@ -365,6 +416,8 @@ def compile_pilots(input_dir: Path, rankings_dir: Path | None,
                 continue
             rankingFile = rankings_dir / (lang + ".csv") if rankings_dir else None
             selected = select_entries(source, lang, ranks(rankingFile), limit)
+            if lang == "de":
+                apply_curated_ar(selected, curated)
             sqlite_bytes = materialize(Path(directory) / (lang + ".sqlite"),
                                        lang, selected)
             bundle, installed_size = pack(lang, selected, sqlite_bytes)
@@ -423,10 +476,12 @@ def main() -> int:
     parser.add_argument("--rankings-dir", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=3000)
+    parser.add_argument("--curated-tsv", type=Path,
+                        help="German→Arabic TSV with surface, pos, translation_ar")
     args = parser.parse_args()
     try:
         result = compile_pilots(args.input_dir, args.rankings_dir,
-                                args.out_dir, args.limit)
+                                args.out_dir, args.limit, args.curated_tsv)
     except (OSError, ValueError, sqlite3.Error) as exc:
         parser.exit(1, f"Pilot compilation failed: {exc}\n")
     for entry in result["packs"]:
