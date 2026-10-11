@@ -53,6 +53,7 @@ class ConceptBridgeService {
     final id = conceptId.trim();
     if (id.isEmpty) return const <String, String>{};
 
+    final clock = Stopwatch()..start();
     final active = _normalizeLanguage(activeLanguageCode).split('-').first;
     // Exclude the active language even if its locale tag differs (de vs de-DE).
     // Snapshot the registry to protect this lookup against pack removals.
@@ -73,9 +74,12 @@ class ConceptBridgeService {
         }),
     ];
 
+    final remaining = lookupBudget - clock.elapsed;
     await Future.any<void>(<Future<void>>[
       Future.wait<void>(requests).then<void>((_) {}),
-      Future<void>.delayed(lookupBudget),
+      Future<void>.delayed(
+        remaining > Duration.zero ? remaining : Duration.zero,
+      ),
     ]);
 
     expired = true;
