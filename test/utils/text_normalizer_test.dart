@@ -13,7 +13,10 @@ void main() {
 
     test('removes combining accents without corrupting letters', () {
       expect(normalizeQuery('Cafe\u0301  sen\u0303or'), 'cafe senor');
-      expect(normalizeQuery('a\u0308'), 'a');
+      expect(normalizeQuery('a\u0308'), 'ae');
+            expect(normalizeQuery('o\u0308 u\u0308'), 'oe ue');
+            expect(fuzzyMatch('Ma\u0308dchen', 'maedchen'), isTrue);
+            expect(fuzzyMatch('Mädchen', 'Ma\u0308dchen'), isTrue);
     });
 
     test('expands German umlauts and sharp s deterministically', () {
