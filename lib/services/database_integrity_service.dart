@@ -36,10 +36,12 @@ class DatabaseIntegrityService {
   }
 
   Future<void> quarantine(String code, Object error) async {
-    _quarantine.value = Map<String, String>.unmodifiable(<String, String>{
-      ..._quarantine.value,
-      code: 'quarantined',
-    });
+    if (!_quarantine.value.containsKey(code)) {
+      _quarantine.value = Map<String, String>.unmodifiable(<String, String>{
+        ..._quarantine.value,
+        code: 'quarantined',
+      });
+    }
     await _ledger.record(
       category: 'sqlite_integrity',
       languageCode: code,

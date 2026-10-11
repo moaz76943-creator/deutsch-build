@@ -357,14 +357,20 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
 
   void _onQuarantine() {
     if (!mounted) return;
-    final codes = DatabaseIntegrityService.instance.quarantined.value.keys.toSet();
+    final codes =
+        DatabaseIntegrityService.instance.quarantined.value.keys.toSet();
+    final changed = codes.length != state.quarantinedCodes.length ||
+        !codes.containsAll(state.quarantinedCodes);
     final selected = codes.contains(state.activeLanguageCode)
         ? 'de'
         : state.activeLanguageCode;
-    state = state.copyWith(quarantinedCodes: codes, activeLanguageCode: selected);
-    if (selected != state.activeLanguageCode || codes.isNotEmpty) {
-      _ref.invalidate(vocabularyListProvider);
-    }
+    final switched = selected != state.activeLanguageCode;
+    if (!changed && !switched) return;
+    state = state.copyWith(
+      quarantinedCodes: codes,
+      activeLanguageCode: selected,
+    );
+    _ref.invalidate(vocabularyListProvider);
   }
 
   @override

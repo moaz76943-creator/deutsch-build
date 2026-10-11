@@ -61,7 +61,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
         _arabicText = widget.languageCode == 'de' ? 'أنا أتعلم الألمانية.' : 'لا توجد جملة متاحة.';
       }
     } catch (e) {
-      _germanText = 'Fehler beim Laden.';
+      _germanText = '';
       _arabicText = 'خطأ في التحميل.';
     } finally {
       if (mounted) setState(() => _isLoading = false);
