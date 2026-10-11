@@ -128,3 +128,38 @@ python -m unittest discover -s tools/ingestion -p 'test_*.py' -v
 ```
 
 No GitHub Actions or paid services are required for harvesting or tests.
+
+---
+
+# SQLite pack schema 2.0.0 (post-materialization)
+
+`inject_schema_v2.py` upgrades an existing SQLite pack **without changing the
+source**, after normal SQLite materialization but **before** computing package
+hashes, signing the archive, or updating the store manifest.
+
+```sh
+python tools/ingestion/inject_schema_v2.py \
+  --source /path/to/content.sqlite \
+  --output /path/to/content-v2.sqlite
+
+python -m unittest discover -s tools/ingestion -p 'test_inject_schema_v2.py' -v
+```
+
+The new SQLite file includes `lexicon.cefr_level` (TEXT),
+`lexicon.frequency_rank` (INTEGER), `lexicon.sort_key` (TEXT),
+`idx_lexicon_cefr_freq`, a standalone `lexicon_fts` (FTS5 trigram) with
+Arabic-only translation indexing, and the `verbs`, `verb_conjugations`,
+`idioms`, `nominals`, `nominal_declensions` tables. Morphology definitions
+mirror the existing language-neutral verb and declension schemas.
+
+Unknown CEFR and frequency information remains NULL; it is never invented.
+Unicode sort keys use NFKC + casefold (not locale-aware ICU collation).
+Trigram substring matches require at least three characters; an ordinary
+NOCASE index exists for supported prefix fallbacks.
+
+The injector rejects missing or conflicting schema, unsupported FTS5, malformed
+metadata, or output overwrite. Run it only on a **new pack destination**;
+repackage and recalculate SHA-256/size afterward. Older entrypoints that call
+`tools/language_pack_sqlite.py` directly still create their historical schema
+until their callers are explicitly routed through this v2 step. Do not label
+those unconverted artifacts schema 2.0.0.
