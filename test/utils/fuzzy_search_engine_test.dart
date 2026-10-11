@@ -71,6 +71,12 @@ void main() {
       );
     });
 
+    test('queries longer than 30 characters are rejected', () {
+      final query = List<String>.filled(31, 'a').join();
+      expect(FuzzySearchEngine.didYouMean(query, <String>['apple']), isEmpty);
+      expect(FuzzySearchEngine.damerauLevenshtein(query, 'apple'), 3);
+    });
+
     test('respects bounded input and candidate scan size', () {
       final candidates = <String>[
         for (var i = 0; i < FuzzySearchEngine.maxCandidateChecks; i++)

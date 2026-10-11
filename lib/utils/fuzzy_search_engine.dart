@@ -7,6 +7,7 @@ class FuzzySearchEngine {
 
   static const int maxEditDistance = 2;
   static const int maxWordRunes = 48;
+  static const int maxQueryRunes = 30;
   static const int maxCandidateChecks = 96;
   static const int maxSuggestions = 3;
 
@@ -26,7 +27,7 @@ class FuzzySearchEngine {
     }
     final a = source.trim().toLowerCase().runes.toList(growable: false);
     final b = target.trim().toLowerCase().runes.toList(growable: false);
-    if (a.length > maxWordRunes || b.length > maxWordRunes) {
+    if (a.length > maxQueryRunes || b.length > maxWordRunes) {
       return threshold + 1;
     }
     final n = a.length;
@@ -146,7 +147,7 @@ class FuzzySearchEngine {
     final term = query.trim();
     if (exactOrPrefixFound ||
         term.isEmpty ||
-        term.runes.length > maxWordRunes) {
+        term.runes.length > maxQueryRunes) {
       return const <String>[];
     }
     final canonicalQuery = term.toLowerCase();
