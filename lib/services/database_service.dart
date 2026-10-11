@@ -15,6 +15,14 @@ import 'storage_migration_service.dart';
 import 'srs_scheduler_service.dart';
 import 'user_vault_security_service.dart';
 
+/// Language-tagged content, including definition fallbacks which may be English.
+class LexiconTranslation {
+  const LexiconTranslation(this.text, this.languageCode);
+
+  final String text;
+  final String? languageCode;
+}
+
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
 
@@ -155,6 +163,18 @@ class DatabaseService {
       );
     }
 
+    // Reject old packs before they can be bound to a read-only consumer.
+    final lexiconColumns = await db.rawQuery('PRAGMA table_info(lexicon)');
+    final columnNames = lexiconColumns
+        .map((column) => column['name'])
+        .whereType<String>()
+        .toSet();
+    if (!columnNames.contains('sort_key')) {
+      throw StateError(
+        'Content database $languageCode is missing required lexicon.sort_key',
+      );
+    }
+
     final metadataRows = await db.rawQuery(
       "SELECT value FROM metadata WHERE key = 'languageCode' LIMIT 1",
     );
@@ -259,6 +279,69 @@ class DatabaseService {
     return rows.map((row) => _unpackLexiconRow(row, code)).toList();
   }
 
+  /// Interpret both legacy flat values and structured v2 translations.
+  /// A definition must retain its source language instead of pretending to be Arabic.
+  static LexiconTranslation? resolveLexiconTranslation(
+    Map<String, dynamic> fields,
+  ) {
+    String? nonEmptyText(Object? value) {
+      if (value is! String || value.trim().isEmpty) return null;
+      return value.trim();
+    }
+
+    String? languageTag(Object? value) {
+      final code = nonEmptyText(value);
+      return code?.toLowerCase().replaceAll('_', '-');
+    }
+
+    LexiconTranslation? taggedItem(Object? value) {
+      if (value is! Map) return null;
+      final text = nonEmptyText(value['text']);
+      if (text == null) return null;
+      return LexiconTranslation(
+        text,
+        languageTag(value['languageCode'] ?? value['language_code']),
+      );
+    }
+
+    final directArabic = nonEmptyText(fields['translation_ar']);
+    if (directArabic != null) {
+      return LexiconTranslation(directArabic, 'ar');
+    }
+
+    final direct = nonEmptyText(fields['translation']);
+    if (direct != null) {
+      return LexiconTranslation(
+        direct,
+        languageTag(
+          fields['translationLanguageCode'] ??
+              fields['translation_language_code'],
+        ),
+      );
+    }
+
+    final translations = fields['translations'];
+    if (translations is List) {
+      LexiconTranslation? firstAvailable;
+      for (final item in translations) {
+        final candidate = taggedItem(item);
+        if (candidate == null) continue;
+        if (candidate.languageCode == 'ar') return candidate;
+        firstAvailable ??= candidate;
+      }
+      if (firstAvailable != null) return firstAvailable;
+    }
+
+    final definitions = fields['definitions'];
+    if (definitions is List) {
+      for (final item in definitions) {
+        final candidate = taggedItem(item);
+        if (candidate != null) return candidate;
+      }
+    }
+    return null;
+  }
+
   Map<String, dynamic> _unpackLexiconRow(
     Map<String, Object?> row,
     String languageCode,
@@ -277,7 +360,7 @@ class DatabaseService {
     final id = row['id']?.toString() ?? '';
     final surface = row['surface']?.toString() ?? '';
     final lemma = fields['lemma']?.toString() ?? surface;
-    final translation = fields['translation_ar'] ?? fields['translation'];
+    final translation = resolveLexiconTranslation(fields);
     final sentence = fields['sentence'] ?? fields['example'];
 
     return <String, dynamic>{
@@ -291,13 +374,13 @@ class DatabaseService {
       'lemma': lemma,
       'article': fields['article'],
       'plural': fields['plural'],
-      'translation_ar': translation,
+      'translation_ar': translation?.text,
+      'translation_language_code': translation?.languageCode,
       'sentence': sentence,
       'fields_json': rawFields,
       'fields': fields,
     };
   }
-
 
   /// Single write authority for active flashcard reviews. Legacy sessions
   /// continue on user_progress_v2.db until the verified vault cutover.
