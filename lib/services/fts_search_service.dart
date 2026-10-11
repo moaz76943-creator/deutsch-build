@@ -233,14 +233,18 @@ class FtsSearchService {
       try {
         final decoded = jsonDecode(raw);
         if (decoded is Map) {
-          fields = Map<String, dynamic>.from(decoded);
+          fields = <String, dynamic>{
+            for (final entry in decoded.entries)
+              if (entry.key is String) entry.key as String: entry.value,
+          };
         }
-      } on FormatException {
-        // Broken optional fields must not hide an otherwise valid lexicon row.
+      } catch (_) {
+        // Malformed optional fields must not hide an otherwise valid lexicon row.
       }
     }
     final id = row['id']?.toString() ?? '';
     final surface = row['surface']?.toString() ?? '';
+    final translation = DatabaseService.resolveLexiconTranslation(fields);
     return <String, dynamic>{
       'id': id,
       'lexeme_id': id,
@@ -252,7 +256,8 @@ class FtsSearchService {
       'lemma': fields['lemma']?.toString() ?? surface,
       'article': fields['article'],
       'plural': fields['plural'],
-      'translation_ar': fields['translation_ar'] ?? fields['translation'],
+      'translation_ar': translation?.text,
+      'translation_language_code': translation?.languageCode,
       'sentence': fields['sentence'] ?? fields['example'],
       'fields_json': raw,
       'fields': fields,
