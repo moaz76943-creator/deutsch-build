@@ -15,11 +15,12 @@ dependencies:
   path_provider: ^2.1.2
   flutter_riverpod: ^2.5.1
   sqflite: ^2.3.3+1
-  path: any
+  path: ^1.9.0
   crypto: ^3.0.7
+  encrypt: ^5.0.3
   http: ^1.6.0
 
-  archive: any
+  archive: ^4.3.0
   flutter_animate: any
   font_awesome_flutter: any
 

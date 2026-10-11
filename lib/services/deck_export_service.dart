@@ -49,13 +49,17 @@ class DeckExportService {
   final Future<Directory> Function() _temporaryDirectory;
 
   static Future<Directory> _defaultDownloads() async {
-    try {
-      final downloads = await getDownloadsDirectory();
-      if (downloads != null) return downloads;
-    } catch (_) {
-      // Downloads is not implemented on every Android/path_provider target.
+    // On Android, never write directly to the public Downloads directory:
+    // scoped storage can deny dart:io writes even when a path is returned.
+    // The caller can share the resulting app-private file via the system UI.
+    if (!Platform.isAndroid) {
+      try {
+        final downloads = await getDownloadsDirectory();
+        if (downloads != null) return downloads;
+      } catch (_) {
+        // A system Downloads directory is not available on every platform.
+      }
     }
-    // Scoped-storage Android devices may not expose shared Downloads.
     final documents = await getApplicationDocumentsDirectory();
     return Directory(p.join(documents.path, 'exports'));
   }
