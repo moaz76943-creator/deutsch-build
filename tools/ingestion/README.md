@@ -163,3 +163,49 @@ repackage and recalculate SHA-256/size afterward. Older entrypoints that call
 `tools/language_pack_sqlite.py` directly still create their historical schema
 until their callers are explicitly routed through this v2 step. Do not label
 those unconverted artifacts schema 2.0.0.
+
+---
+
+# Tier-1 Kaikki pilot fetch → deterministic SQLite pack build
+
+Work from the `tools/ingestion` directory (Python 3.10+, stdlib only):
+
+```sh
+cd tools/ingestion
+python3 fetch_kaikki_pilot.py
+python3 build_pilot_packs.py build --input-dir inputs --out-dir production
+```
+
+The fetcher streams bounded candidate records for `en`, `de`, `es`, `fr`,
+and `tr` from the *English Wiktionary edition* as served by Kaikki.org.
+It stops after at most 100,000 source lines or 6,000 accepted entries per
+language (256 MiB decompressed scan limit); it does **not** download entire
+multi-gigabyte dictionaries. It writes `inputs/<lang>.jsonl` and refuses to
+overwrite differing existing data. The generator writes `.pack.gz` and
+`manifest.json` under `production/` and similarly refuses destructive
+overwrites. Neither script publishes to the offline store or triggers CI.
+
+For **network-free** input harvesting, place Kaikki-derived `en.jsonl[.gz]`,
+`de.jsonl[.gz]`, etc. in a separate local directory, then run:
+
+```sh
+python3 fetch_kaikki_pilot.py --source-dir /path/to/licensed/dumps
+python3 build_pilot_packs.py build --input-dir inputs --out-dir production \
+  --rankings-dir /path/to/verified/frequency-csv
+```
+
+The optional CSVs use `word,rank[,cefr]`; frequency ranks and CEFR labels
+must come from independently reviewed evidence. Source-order truncation is
+**not** a frequency-ranked/core vocabulary. These are unreviewed **pilot
+candidates**, not certified or release-ready packs; the maximum 3,000 built
+entries are not guaranteed to be the most common 3,000 words. The command
+`build` is optional for backwards compatibility with older callers.
+Inspect sources and recording obligations in
+`assets/data/licensing_ledger.json` before redistributing data. Wiktionary
+material may require attribution and CC BY-SA share-alike compliance.
+
+Local focused checks, no CI or APK build:
+
+```sh
+python3 -m unittest test_fetch_kaikki_pilot.py test_build_pilot_packs.py
+```

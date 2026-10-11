@@ -389,6 +389,7 @@ def compile_pilots(input_dir: Path, rankings_dir: Path | None,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", nargs="?", choices=("build",), default="build")
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--rankings-dir", type=Path)
     parser.add_argument("--out-dir", type=Path, required=True)

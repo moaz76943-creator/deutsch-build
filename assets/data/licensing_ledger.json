@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "registryVersion": "1.0.0",
+  "purpose": "Trace origin, attribution, license and approval of lexical assets before redistributing offline packs.",
+  "releaseStatus": "pending_per_dataset_review",
+  "notices": [
+    "Catalog metadata does not certify content availability or permissions.",
+    "Record each downloaded dump URL, retrieval date, exact source edition/revision, license terms, modifications, review decision, pack hash and required attribution before distribution.",
+    "Wiktionary text is generally CC BY-SA 4.0 and GFDL; individual media or imported material may carry separate terms. Review each incorporated item.",
+    "A compiled offline pack can inherit share-alike obligations. Do not treat third-party records as proprietary solely because bundled into an app."
+  ],
+  "sources": [
+    {
+      "id": "wiktionary-en",
+      "name": "English Wiktionary contributors",
+      "kind": "lexical_source",
+      "originUrl": "https://en.wiktionary.org/",
+      "copyrightUrl": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+      "license": "CC BY-SA 4.0 / GFDL (as applicable)",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "credit": "Wiktionary contributors; source entry histories and license must remain attributable",
+      "useStatus": "candidate_only"
+    },
+    {
+      "id": "kaikki",
+      "name": "Kaikki.org / Wiktextract (Tatu Ylonen)",
+      "kind": "extraction_and_distribution",
+      "originUrl": "https://kaikki.org/dictionary/",
+      "copyrightUrl": "https://kaikki.org/dictionary/index.html",
+      "license": "Underlying Wiktionary text licenses; not a separate waiver",
+      "licenseUrl": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+      "credit": "Kaikki.org / Wiktextract by Tatu Ylonen; original Wiktionary contributors",
+      "useStatus": "candidate_only"
+    }
+  ],
+  "datasets": [],
+  "requiredDatasetFields": [
+    "datasetId",
+    "languageCode",
+    "downloadUrl",
+    "sourceRevision",
+    "retrievedAtUtc",
+    "licenseId",
+    "attributionText",
+    "modifications",
+    "reviewStatus",
+    "artifactSha256"
+  ],
+  "distributionGate": "block_until_reviewed"
+}

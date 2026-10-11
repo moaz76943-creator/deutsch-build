@@ -37,6 +37,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/audio/
+    - assets/data/
     - assets/data/packs/
     - assets/data/master_vocabulary.json
     - assets/content/packs/de/sqlite/de-1.0.0.sqlite
