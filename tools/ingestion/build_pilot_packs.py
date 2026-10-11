@@ -290,13 +290,13 @@ def materialize(database: Path, language: str, entries: list[dict]) -> bytes:
               language_code TEXT NOT NULL, sentence TEXT NOT NULL,
               translation_ar TEXT);
           CREATE TABLE IF NOT EXISTS inflections_lookup (
-              surface_form TEXT NOT NULL,
+              inflected_form TEXT NOT NULL,
               lemma TEXT NOT NULL,
-              lexicon_id INTEGER,
+              lexicon_id TEXT,
               language_code TEXT NOT NULL
           );
           CREATE INDEX IF NOT EXISTS idx_inflections_lookup_surface
-              ON inflections_lookup(surface_form COLLATE NOCASE,
+              ON inflections_lookup(inflected_form COLLATE NOCASE,
                                     language_code COLLATE NOCASE);
         """)
         fields = {
