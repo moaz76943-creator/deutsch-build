@@ -33,6 +33,20 @@ class CanonicalIngestionTests(unittest.TestCase):
             self.assertEqual(document["pack"]["textDirection"], "rtl" if language == "ar" else "ltr")
             self.assertEqual(document["grammar"], [])
 
+    def test_unattributed_input_is_not_mislabeled_as_editorial(self):
+        record = subject.starter_records("en")[0]
+        del record["sourceRef"]
+        del record["license"]
+        fields = subject.make_document("en", [record])["lexicon"][0]["fields"]
+        self.assertEqual(fields["provenance"]["cefrStatus"], "unverified")
+        self.assertEqual(fields["provenance"]["sourceRef"], "unspecified-source")
+
+    def test_unicode_format_controls_rejected(self):
+        record = subject.starter_records("ar")[0]
+        record["surface"] += "\\u200f"
+        with self.assertRaisesRegex(ValueError, "control"):
+            subject.make_document("ar", [record])
+
     def test_noncanonical_record_rejected(self):
         row = subject.starter_records("en")[0]
         for field in ("definitions", "translations", "examples", "cefr", "languageCode"):
