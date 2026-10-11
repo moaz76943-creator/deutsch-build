@@ -53,10 +53,11 @@ class ConceptBridgeService {
     final id = conceptId.trim();
     if (id.isEmpty) return const <String, String>{};
 
-    final active = _normalizeLanguage(activeLanguageCode);
+    final active = _normalizeLanguage(activeLanguageCode).split('-').first;
+    // Exclude the active language even if its locale tag differs (de vs de-DE).
     // Snapshot the registry to protect this lookup against pack removals.
     final targets = _connections.entries
-        .where((entry) => entry.key != active)
+        .where((entry) => entry.key.split('-').first != active)
         .toList(growable: false);
     if (targets.isEmpty) return const <String, String>{};
 
@@ -65,23 +66,11 @@ class ConceptBridgeService {
 
     final requests = <Future<void>>[
       for (final target in targets)
-        () async {
-          try {
-            if (!target.value.isOpen) return;
-            // concepts.concept_id is the primary key in the pack schema.
-            final rows = await target.value.rawQuery(
-              'SELECT surface FROM concepts WHERE concept_id = ? LIMIT 1',
-              <Object?>[id],
-            );
-            if (expired || rows.isEmpty) return;
-            final surface = rows.first['surface'];
-            if (surface is String && surface.trim().isNotEmpty) {
-              found[target.key] = surface;
-            }
-          } catch (_) {
-            // A locked, closed or incompatible pack must not block peers.
+        _readSurface(target.value, id).then<void>((surface) {
+          if (!expired && surface != null) {
+            found[target.key] = surface;
           }
-        }(),
+        }),
     ];
 
     await Future.any<void>(<Future<void>>[
@@ -92,6 +81,23 @@ class ConceptBridgeService {
     expired = true;
     // Late SQLite completions cannot modify the snapshot returned to callers.
     return Map<String, String>.unmodifiable(found);
+  }
+
+  static Future<String?> _readSurface(Database db, String conceptId) async {
+    try {
+      if (!db.isOpen) return null;
+      // concepts.concept_id is the primary key in the pack schema.
+      final rows = await db.rawQuery(
+        'SELECT surface FROM concepts WHERE concept_id = ? LIMIT 1',
+        <Object?>[conceptId],
+      );
+      if (rows.isEmpty) return null;
+      final surface = rows.first['surface'];
+      return surface is String && surface.trim().isNotEmpty ? surface : null;
+    } catch (_) {
+      // A locked, closed or incompatible pack must not block peers.
+      return null;
+    }
   }
 
   static String _normalizeLanguage(String value) {
