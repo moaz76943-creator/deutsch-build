@@ -44,6 +44,7 @@ class VocabularyFilterService {
     String languageCode = 'de',
     VocabularyCefrFilter level = VocabularyCefrFilter.all,
     int? maxFrequencyRank,
+    String query = '',
     int limit = 40,
     int offset = 0,
   }) async {
@@ -69,6 +70,7 @@ class VocabularyFilterService {
     final query = buildQuery(
       level: level,
       maxFrequencyRank: maxFrequencyRank,
+      query: query,
       limit: limit,
       offset: offset,
       cefrSource: schema.cefrSource.name,
@@ -84,6 +86,7 @@ class VocabularyFilterService {
   static VocabularyFilterQuery buildQuery({
     VocabularyCefrFilter level = VocabularyCefrFilter.all,
     int? maxFrequencyRank,
+    String query = '',
     int limit = 40,
     int offset = 0,
     String cefrSource = 'indexedColumn',
@@ -112,6 +115,18 @@ class VocabularyFilterService {
       sql.write(' INNER JOIN concepts AS c ON c.concept_id = l.id');
     }
     sql.write(' WHERE 1 = 1');
+
+    // Apply the term inside SQLite before LIMIT so CEFR searches do not
+    // silently miss matches from a small in-memory sample.
+    if (query.trim().isNotEmpty) {
+      final literal = query.trim()
+          .replaceAll('\\', '\\\\')
+          .replaceAll('%', '\\%')
+          .replaceAll('_', '\\_');
+      sql.write(" AND (l.surface LIKE ? ESCAPE '\\' "
+          "OR l.fields_json LIKE ? ESCAPE '\\')");
+      args.addAll(<String>['%$literal%', '%$literal%']);
+    }
 
     if (level != VocabularyCefrFilter.all) {
       final expression = switch (cefrSource) {

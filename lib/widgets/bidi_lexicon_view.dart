@@ -48,6 +48,7 @@ class BidiLexiconView extends StatelessWidget {
     required this.targetExplanation,
     this.sourceStyle,
     this.explanationStyle,
+    this.underHeadword,
   });
 
   final String sourceWord;
@@ -55,6 +56,8 @@ class BidiLexiconView extends StatelessWidget {
   final String targetExplanation;
   final TextStyle? sourceStyle;
   final TextStyle? explanationStyle;
+  /// Optional pronunciation directly beneath the headword.
+  final Widget? underHeadword;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +67,12 @@ class BidiLexiconView extends StatelessWidget {
     final interfaceDirection = Directionality.of(context);
     final textTheme = Theme.of(context).textTheme;
 
+    if (sourceWord.trim().isEmpty &&
+        targetExplanation.trim().isEmpty &&
+        underHeadword == null) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -71,21 +80,29 @@ class BidiLexiconView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text(
-              _isolateBidi(sourceWord),
-              textDirection: sourceDirection,
-              textAlign: TextAlign.start,
-              style: sourceStyle ?? textTheme.titleLarge,
-              semanticsLabel: sourceWord,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isolateBidi(targetExplanation),
-              textDirection: interfaceDirection,
-              textAlign: TextAlign.start,
-              style: explanationStyle ?? textTheme.bodyMedium,
-              semanticsLabel: targetExplanation,
-            ),
+            if (sourceWord.trim().isNotEmpty)
+              Text(
+                _isolateBidi(sourceWord),
+                textDirection: sourceDirection,
+                textAlign: TextAlign.start,
+                style: sourceStyle ?? textTheme.titleLarge,
+                semanticsLabel: sourceWord,
+              ),
+            if (underHeadword != null) ...<Widget>[
+              const SizedBox(height: 8),
+              underHeadword!,
+            ],
+            if (targetExplanation.trim().isNotEmpty) ...<Widget>[
+              if (sourceWord.trim().isNotEmpty || underHeadword != null)
+                const SizedBox(height: 8),
+              Text(
+                _isolateBidi(targetExplanation),
+                textDirection: interfaceDirection,
+                textAlign: TextAlign.start,
+                style: explanationStyle ?? textTheme.bodyMedium,
+                semanticsLabel: targetExplanation,
+              ),
+            ],
           ],
         ),
       ),
