@@ -164,6 +164,62 @@ class UserVaultSecurityService {
     }, conflictAlgorithm: ConflictAlgorithm.abort);
   }
 
+
+  Future<Uint8List?> _readEncryptedFrom(
+      DatabaseExecutor database, String id) async {
+    _validateId(id);
+    final rows = await database.query('vault_entries',
+        columns: <String>['ciphertext'],
+        where: 'record_hash = ?', whereArgs: <Object>[_index(id)], limit: 1);
+    if (rows.isEmpty) return null;
+    final encrypted = rows.single['ciphertext'];
+    if (encrypted is! Uint8List ||
+        encrypted.length < 29 || encrypted[0] != 1) {
+      throw StateError('Vault record is corrupt');
+    }
+    return _cipher.decrypt(id, encrypted);
+  }
+
+  Future<void> _verifyLegacySnapshot(
+      DatabaseExecutor destination, Map<String, int> counts) async {
+      // Verify every saved ciphertext through the real decrypt boundary,
+      // including a per-table digest and precise row count, before renaming.
+      final manifestBytes = await _readEncryptedFrom(destination, _manifestId);
+      if (manifestBytes == null) throw StateError('Vault manifest missing');
+      final manifest = jsonDecode(utf8.decode(manifestBytes));
+      if (manifest is! Map || manifest['format'] != 'legacy-sqlite-snapshot-v1') {
+        throw StateError('Vault manifest is malformed');
+      }
+      final tables = manifest['tables'];
+      if (tables is! List || tables.length != counts.length) {
+        throw StateError('Vault table count mismatch');
+      }
+      var verifiedRows = 0;
+      for (var t = 0; t < tables.length; t++) {
+        final table = Map<String, dynamic>.from(tables[t] as Map);
+        final name = table['name'];
+        final count = table['count'];
+        if (name is! String || count is! int || counts[name] != count) {
+          throw StateError('Vault table row count mismatch');
+        }
+        final digests = StringBuffer();
+        for (var index = 0; index < count; index++) {
+          final record = await _readEncryptedFrom(destination, _rowId(t, index));
+          if (record == null) throw StateError('Missing encrypted legacy row');
+          digests.write(sha256.convert(record).toString());
+          verifiedRows++;
+        }
+        final digest = sha256.convert(utf8.encode(digests.toString())).toString();
+        if (digest != table['digest']) {
+          throw StateError('Encrypted legacy data integrity mismatch');
+        }
+      }
+      if (manifest['total_rows'] != verifiedRows) {
+        throw StateError('Vault total record count mismatch');
+      }
+
+  }
+
   Future<LegacyProgressMigrationResult> _migrateLegacyProgressDatabase() async {
     final oldFile = File(await _legacyDatabasePath());
     if (!await oldFile.exists()) {
@@ -250,43 +306,10 @@ class UserVaultSecurityService {
           await _writeEncrypted(vaultTxn, _manifestId,
               Uint8List.fromList(utf8.encode(jsonEncode(manifest))));
         });
+        // Do not commit a vault snapshot until every record decrypts and its
+        // counts and digests match the original SQLite read transaction.
+        await _verifyLegacySnapshot(vaultTxn, counts);
       });
-
-      // Verify every saved ciphertext through the real decrypt boundary,
-      // including a per-table digest and precise row count, before renaming.
-      final manifestBytes = await readRecord(_manifestId);
-      if (manifestBytes == null) throw StateError('Vault manifest missing');
-      final manifest = jsonDecode(utf8.decode(manifestBytes));
-      if (manifest is! Map || manifest['format'] != 'legacy-sqlite-snapshot-v1') {
-        throw StateError('Vault manifest is malformed');
-      }
-      final tables = manifest['tables'];
-      if (tables is! List || tables.length != counts.length) {
-        throw StateError('Vault table count mismatch');
-      }
-      var verifiedRows = 0;
-      for (var t = 0; t < tables.length; t++) {
-        final table = Map<String, dynamic>.from(tables[t] as Map);
-        final name = table['name'];
-        final count = table['count'];
-        if (name is! String || count is! int || counts[name] != count) {
-          throw StateError('Vault table row count mismatch');
-        }
-        final digests = StringBuffer();
-        for (var index = 0; index < count; index++) {
-          final record = await readRecord(_rowId(t, index));
-          if (record == null) throw StateError('Missing encrypted legacy row');
-          digests.write(sha256.convert(record).toString());
-          verifiedRows++;
-        }
-        final digest = sha256.convert(utf8.encode(digests.toString())).toString();
-        if (digest != table['digest']) {
-          throw StateError('Encrypted legacy data integrity mismatch');
-        }
-      }
-      if (manifest['total_rows'] != verifiedRows) {
-        throw StateError('Vault total record count mismatch');
-      }
 
       // Flush any journaled transactions before moving just the SQLite file.
       // Fail closed if another connection prevents a full checkpoint.
