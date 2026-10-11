@@ -92,6 +92,37 @@ void main() {
         isFalse);
   });
 
+  test('symlinked external pack directory is never a migration target',
+      () async {
+    if (Platform.isWindows) return;
+    final outside = Directory(path.join(temp.path, 'outside'));
+    await outside.create(recursive: true);
+    await Directory(path.dirname(sd.path)).create(recursive: true);
+    await Link(sd.path).create(outside.path);
+
+    final locations = await service.availableLocations();
+    expect(
+      locations.where((item) => item.directory.path == sd.absolute.path),
+      isEmpty,
+    );
+
+    final source = File(path.join(internal.path, 'it.sqlite'));
+    await source.writeAsBytes(<int>[1, 2, 3, 4]);
+    await expectLater(
+      service.migratePack(
+        'it.sqlite',
+        destination: PackStorageLocation(
+          directory: sd,
+          isExternal: true,
+          isRemovable: true,
+        ),
+      ),
+      throwsArgumentError,
+    );
+    expect(await source.readAsBytes(), <int>[1, 2, 3, 4]);
+    expect(await Directory(outside.path).list().toList(), isEmpty);
+  });
+
   test('conflicting target cannot overwrite an existing pack', () async {
     final source = File(path.join(internal.path, 'es.sqlite'));
     await source.writeAsBytes(<int>[1, 2, 3]);

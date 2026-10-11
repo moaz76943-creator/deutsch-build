@@ -79,8 +79,20 @@ class StorageMigrationService {
       final external = await _externalDirectories() ?? <Directory>[];
       final seen = <String>{internal.absolute.path};
       for (var index = 0; index < external.length; index++) {
+        // path_provider returns Android getExternalFilesDirs(null), which are
+        // app-specific locations. Never promote a symlink to a trusted root:
+        // a redirected pack directory could leave that sandbox.
+        final root = external[index].absolute;
+        if (await FileSystemEntity.type(root.path, followLinks: false) ==
+            FileSystemEntityType.link) {
+          continue;
+        }
         final directory =
-            Directory(path.join(external[index].path, 'deutsch_packs')).absolute;
+            Directory(path.join(root.path, 'deutsch_packs')).absolute;
+        if (await FileSystemEntity.type(directory.path, followLinks: false) ==
+            FileSystemEntityType.link) {
+          continue;
+        }
         if (!seen.add(directory.path)) continue;
         roots.add(PackStorageLocation(
           directory: directory,
@@ -128,6 +140,10 @@ class StorageMigrationService {
     if (sourcePath == null) throw StateError('Pack $name is not installed');
     final source = File(sourcePath);
     final targetDir = destination.directory.absolute;
+    if (await FileSystemEntity.type(targetDir.path, followLinks: false) ==
+        FileSystemEntityType.link) {
+      throw StateError('External pack directory cannot be a symbolic link');
+    }
     final target = File(path.join(targetDir.path, name));
     if (source.absolute.path == target.absolute.path) return source;
 
@@ -158,7 +174,8 @@ class StorageMigrationService {
 
     await targetDir.create(recursive: true);
     final staging = File(target.path + '.migrating');
-    if (await staging.exists()) {
+    if (await FileSystemEntity.type(staging.path, followLinks: false) !=
+        FileSystemEntityType.notFound) {
       throw StateError('Another pack migration is staged');
     }
     if (!alreadyExists) {
