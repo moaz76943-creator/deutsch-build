@@ -7,10 +7,12 @@ CREATE TABLE IF NOT EXISTS inflections_lookup (
     CHECK (length(trim(language_code)) > 0),
   lemma TEXT NOT NULL
     CHECK (length(trim(lemma)) > 0),
+  pos TEXT NOT NULL DEFAULT 'unknown'
+    CHECK (length(trim(pos)) > 0),
   lexicon_id TEXT,
   source_kind TEXT NOT NULL DEFAULT 'lexicon',
-  PRIMARY KEY (inflected_form, language_code, lemma)
+  PRIMARY KEY (inflected_form, language_code, lemma, pos)
 ) WITHOUT ROWID;
 
-CREATE INDEX IF NOT EXISTS idx_inflections_lookup_form_language
+CREATE INDEX IF NOT EXISTS idx_inflection_lang
   ON inflections_lookup (inflected_form, language_code);
