@@ -61,13 +61,53 @@ class PilotPackTest(unittest.TestCase):
                     "SELECT surface FROM lexicon_fts "
                     "WHERE lexicon_fts MATCH 'house'").fetchone()[0], "house")
                 for name in ("verbs", "verb_conjugations", "idioms",
-                             "nominals", "nominal_declensions"):
+                             "nominals", "nominal_declensions", "inflections_lookup"):
                     self.assertTrue(db.execute(
                         "SELECT name FROM sqlite_master WHERE name=?", (name,)
                     ).fetchone())
+                columns = {column[1] for column in db.execute(
+                    "PRAGMA table_info(inflections_lookup)")}
+                self.assertEqual(columns, {
+                    "surface_form", "lemma", "lexicon_id", "language_code"})
+                indexes = {index[1] for index in db.execute(
+                    "PRAGMA index_list(inflections_lookup)")}
+                self.assertIn("idx_inflections_lookup_surface", indexes)
+                fields = json.loads(db.execute(
+                    "SELECT fields_json FROM lexicon WHERE surface='book'"
+                ).fetchone()[0])
+                self.assertEqual(fields["translation_ar"], "كتاب")
+                self.assertEqual(fields["translation"], "كتاب")
+                self.assertEqual(fields["translationLanguageCode"], "ar")
+                self.assertEqual(fields["translations"],
+                                 [{"languageCode": "ar", "text": "كتاب"}])
+                self.assertEqual(fields["definitions"],
+                                 [{"languageCode": "en", "text": "printed pages"}])
             self.assertEqual(compile_pilots(incoming, ranks, output, 2),
                              manifest)
             self.assertEqual((output / "en.pack.gz").read_bytes(), bundle)
+
+    def test_english_gloss_does_not_claim_to_be_arabic(self):
+        try:
+            from tools.ingestion.build_pilot_packs import to_entry, materialize
+        except ModuleNotFoundError:
+            from build_pilot_packs import to_entry, materialize
+
+        entry = to_entry({
+            "word": "Hund", "pos": "noun",
+            "senses": [{"glosses": ["dog"]}],
+        }, "de", {})
+        self.assertIsNotNone(entry)
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "de.sqlite"
+            materialize(target, "de", [entry])
+            with sqlite3.connect(target) as db:
+                fields = json.loads(db.execute(
+                    "SELECT fields_json FROM lexicon").fetchone()[0])
+                self.assertIsNone(fields["translation_ar"])
+                self.assertEqual(fields["translation"], "dog")
+                self.assertEqual(fields["translationLanguageCode"], "en")
+                self.assertEqual(fields["definitions"],
+                                 [{"languageCode": "en", "text": "dog"}])
 
     def test_missing_inputs_do_not_publish(self):
         with tempfile.TemporaryDirectory() as directory:

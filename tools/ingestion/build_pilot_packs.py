@@ -240,6 +240,15 @@ def materialize(database: Path, language: str, entries: list[dict]) -> bytes:
           CREATE TABLE examples(example_id TEXT PRIMARY KEY, group_id TEXT NOT NULL,
               language_code TEXT NOT NULL, sentence TEXT NOT NULL,
               translation_ar TEXT);
+          CREATE TABLE IF NOT EXISTS inflections_lookup (
+              surface_form TEXT NOT NULL,
+              lemma TEXT NOT NULL,
+              lexicon_id INTEGER,
+              language_code TEXT NOT NULL
+          );
+          CREATE INDEX IF NOT EXISTS idx_inflections_lookup_surface
+              ON inflections_lookup(surface_form COLLATE NOCASE,
+                                    language_code COLLATE NOCASE);
         """)
         fields = {
             "schemaVersion": SCHEMA_VERSION,
@@ -253,13 +262,33 @@ def materialize(database: Path, language: str, entries: list[dict]) -> bytes:
         }
         db.executemany("INSERT INTO metadata VALUES (?,?)", sorted(fields.items()))
         for item in entries:
+            # Keep the flat legacy contract and the structured v2 contract
+            # synchronized without fabricating Arabic for English-only glosses.
+            arabic_translation = next(
+                (entry["text"] for entry in item["translations"]
+                 if entry["languageCode"] == "ar"), None)
+            first_translation = (item["translations"][0]
+                                 if item["translations"] else None)
+            preferred_translation = (
+                arabic_translation or
+                (first_translation["text"] if first_translation else None) or
+                (item["gloss"] or None))
+            translation_language_code = (
+                "ar" if arabic_translation is not None else
+                (first_translation["languageCode"] if first_translation else
+                 ("en" if item["gloss"] else None)))
             canonicalFields = {
                 "lemma": item["surface"],
                 "canonical": {"cefr": item["cefr"] or "unknown",
                               **({"frequencyRank": item["rank"]}
                                  if item["rank"] is not None else {})},
-                "definitions": ([{"languageCode": language,
+                # Kaikki/Wiktionary senses are English glosses, irrespective
+                # of which source language owns this lexicon entry.
+                "definitions": ([{"languageCode": "en",
                                  "text": item["gloss"]}] if item["gloss"] else []),
+                "translation_ar": arabic_translation,
+                "translation": preferred_translation,
+                "translationLanguageCode": translation_language_code,
                 "translations": item["translations"],
             }
             serialized = canonical(canonicalFields).decode("utf-8").strip()
