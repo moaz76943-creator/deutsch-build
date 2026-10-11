@@ -1,10 +1,28 @@
 import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 
 import 'database_service.dart';
 import 'lemmatization_service.dart';
 import '../utils/fuzzy_search_engine.dart';
+
+// Neither the SQLite connection nor plugin services cross isolate boundaries.
+// Only at most 50 materialized SQL rows and primitive payloads are transferred.
+List<Map<String, dynamic>> _decodeFtsRows(Map<String, Object?> request) {
+  final code = request['languageCode'] as String;
+  final rows = request['rows'] as List;
+  return rows.map((item) => FtsSearchService._unpack(
+    Map<String, Object?>.from(item as Map), code,
+  )).toList(growable: false);
+}
+
+List<String> _suggestOffThread(Map<String, Object?> request) {
+  return FuzzySearchEngine.didYouMean(
+    request['query'] as String,
+    List<String>.from(request['candidates'] as List),
+  );
+}
 
 /// Structured search metadata while retaining the legacy List-returning API.
 class SearchFeedback<T> {
@@ -38,7 +56,7 @@ class FtsSearchService {
   Future<List<Map<String, dynamic>>> searchDictionary(
     String query,
     String languageCode, {
-    int limit = 20,
+    int limit = 50,
   }) async {
     return _databaseService.withContentDb(
       languageCode,
@@ -57,7 +75,7 @@ class FtsSearchService {
   Future<SearchFeedback<Map<String, dynamic>>> searchDictionaryWithFeedback(
     String query,
     String languageCode, {
-    int limit = 20,
+    int limit = 50,
   }) async {
     return _databaseService.withContentDb(
       languageCode,
@@ -74,10 +92,10 @@ class FtsSearchService {
     Database database,
     String query, {
     required String languageCode,
-    int limit = 20,
+    int limit = 50,
   }) async {
-    if (limit < 1 || limit > 100) {
-      throw RangeError.range(limit, 1, 100, 'limit');
+    if (limit < 1 || limit > 50) {
+      throw RangeError.range(limit, 1, 50, 'limit');
     }
     final term = query.trim();
     if (term.isNotEmpty) {
@@ -113,15 +131,17 @@ class FtsSearchService {
       'ORDER BY surface COLLATE NOCASE LIMIT ?',
       <Object?>[
         _escapeLike(firstGlyph) + '%',
-        FuzzySearchEngine.maxCandidateChecks,
+        FuzzySearchEngine.maxCandidateChecks.clamp(1, 50),
       ],
     );
     return SearchFeedback(
       results: results,
-      suggestions: FuzzySearchEngine.didYouMean(
-        term,
-        candidates.map((row) => row['surface']?.toString() ?? ''),
-      ),
+      suggestions: await compute(_suggestOffThread, <String, Object?>{
+        'query': term,
+        'candidates': candidates
+            .map((row) => row['surface']?.toString() ?? '')
+            .toList(growable: false),
+      }),
     );
   }
 
@@ -130,10 +150,10 @@ class FtsSearchService {
     Database database,
     String query, {
     required String languageCode,
-    int limit = 20,
+    int limit = 50,
   }) async {
-    if (limit < 1 || limit > 100) {
-      throw RangeError.range(limit, 1, 100, 'limit');
+    if (limit < 1 || limit > 50) {
+      throw RangeError.range(limit, 1, 50, 'limit');
     }
 
     final term = query.trim();
@@ -161,8 +181,9 @@ class FtsSearchService {
           END, length(l.surface), l.rowid
           LIMIT ?
         ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
-      } on DatabaseException catch (error) {
-        if (!_ftsUnavailable(error)) rethrow;
+      } on DatabaseException catch (_) {
+        // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
+        // expression: parameterized LIKE stays available on vendor SQLite.
         rows = await _fallback(database, term, limit);
       }
     } else {
@@ -170,15 +191,11 @@ class FtsSearchService {
     }
 
     final code = languageCode.trim().toLowerCase().replaceAll('_', '-');
-    return rows.map((row) => _unpack(row, code)).toList(growable: false);
-  }
-
-  static bool _ftsUnavailable(DatabaseException error) {
-    final message = error.toString().toLowerCase();
-    return message.contains('no such module: fts5') ||
-        message.contains('no such table: lexicon_fts') ||
-        message.contains('no such tokenizer: trigram') ||
-        message.contains('unable to use function match');
+    return compute(_decodeFtsRows, <String, Object?>{
+      'languageCode': code,
+      'rows': rows.map((row) => Map<String, Object?>.from(row))
+          .toList(growable: false),
+    });
   }
 
   static String _escapeLike(String text) => text
