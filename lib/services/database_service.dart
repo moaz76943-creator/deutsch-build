@@ -8,6 +8,9 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'database_integrity_service.dart';
+import 'diagnostic_ledger_service.dart';
+
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
 
@@ -57,26 +60,35 @@ class DatabaseService {
   }
 
   Future<Database> _openContentDb(String languageCode) async {
-    final databasePath = languageCode == 'de'
-        ? await _ensureGermanDatabase()
-        : await _installedPackPath(languageCode);
-
-    final db = await openDatabase(
-      databasePath,
-      readOnly: true,
-      singleInstance: false,
-    );
-
+    Database? db;
     try {
+      final databasePath = languageCode == 'de'
+          ? await _ensureGermanDatabase()
+          : await _installedPackPath(languageCode);
+
+      db = await openDatabase(
+        databasePath,
+        readOnly: true,
+        singleInstance: false,
+      );
+      if (!await DatabaseIntegrityService.instance
+          .checkMountedPack(languageCode, db)) {
+        throw StateError('SQLite content pack is quarantined: $languageCode');
+      }
       await _verifyUniversalSchema(db, languageCode);
-    } catch (_) {
-      await db.close();
+
+      _contentDbs[languageCode] = db;
+      await _evictLeastRecentlyUsedContentDb(except: languageCode);
+      return db;
+    } catch (error) {
+      if (db != null && db.isOpen) {
+        try {
+          await db.close();
+        } catch (_) {}
+      }
+      await DatabaseIntegrityService.instance.quarantine(languageCode, error);
       rethrow;
     }
-
-    _contentDbs[languageCode] = db;
-    await _evictLeastRecentlyUsedContentDb(except: languageCode);
-    return db;
   }
 
   Future<String> _ensureGermanDatabase() async {
@@ -297,16 +309,25 @@ class DatabaseService {
     required String status,
     String languageCode = 'de',
   }) async {
-    final db = await progressDb;
-    await db.transaction((txn) async {
-      await txn.rawInsert('''
-        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-        VALUES (?, ?,
-          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-          ?
-        )
-      ''', [lexemeId, languageCode, lexemeId, status]);
-    });
+    try {
+      final db = await progressDb;
+      await db.transaction((txn) async {
+        await txn.rawInsert('''
+          INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+          VALUES (?, ?,
+            COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
+            ?
+          )
+        ''', [lexemeId, languageCode, lexemeId, status]);
+      });
+    } catch (error) {
+      await DiagnosticLedgerService.instance.record(
+        category: 'sqlite_write',
+        languageCode: languageCode,
+        error: error,
+      );
+      rethrow;
+    }
   }
 
   static String _normalizeLanguageCode(String? value) {

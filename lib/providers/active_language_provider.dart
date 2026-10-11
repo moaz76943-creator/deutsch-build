@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'vocabulary_provider.dart';
+import '../services/database_integrity_service.dart';
 
 /// The public catalog supplies metadata, not proof that a pack has been mounted
 /// into the content database. Never use its is_active field as install status.
@@ -120,12 +121,14 @@ class ActiveLanguageState {
     required Set<String> installedCodes,
     required Map<String, double> downloadProgress,
     required Set<String> downloadingCodes,
+    Set<String> quarantinedCodes = const <String>{},
     required this.isLoadingCatalog,
     this.errorMessage,
   })  : remotePacks = List.unmodifiable(remotePacks),
         installedCodes = Set.unmodifiable(installedCodes),
         downloadProgress = Map.unmodifiable(downloadProgress),
-        downloadingCodes = Set.unmodifiable(downloadingCodes);
+        downloadingCodes = Set.unmodifiable(downloadingCodes),
+        quarantinedCodes = Set.unmodifiable(quarantinedCodes);
 
   factory ActiveLanguageState.initial() => ActiveLanguageState(
         activeLanguageCode: 'de',
@@ -141,10 +144,13 @@ class ActiveLanguageState {
   final Set<String> installedCodes;
   final Map<String, double> downloadProgress;
   final Set<String> downloadingCodes;
+  final Set<String> quarantinedCodes;
   final bool isLoadingCatalog;
   final String? errorMessage;
 
-  bool isInstalled(String code) => code == 'de' || installedCodes.contains(code);
+  bool isInstalled(String code) =>
+      !quarantinedCodes.contains(code) &&
+      (code == 'de' || installedCodes.contains(code));
   bool isDownloading(String code) => downloadingCodes.contains(code);
 
   /// Keep installed packs visible even when the network catalog is unavailable.
@@ -193,6 +199,7 @@ class ActiveLanguageState {
     Set<String>? installedCodes,
     Map<String, double>? downloadProgress,
     Set<String>? downloadingCodes,
+    Set<String>? quarantinedCodes,
     bool? isLoadingCatalog,
     String? errorMessage,
     bool clearError = false,
@@ -203,6 +210,7 @@ class ActiveLanguageState {
       installedCodes: installedCodes ?? this.installedCodes,
       downloadProgress: downloadProgress ?? this.downloadProgress,
       downloadingCodes: downloadingCodes ?? this.downloadingCodes,
+      quarantinedCodes: quarantinedCodes ?? this.quarantinedCodes,
       isLoadingCatalog: isLoadingCatalog ?? this.isLoadingCatalog,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
@@ -342,7 +350,28 @@ class LanguagePackStorage {
 
 class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
   ActiveLanguageNotifier(this._ref, this._storage)
-      : super(ActiveLanguageState.initial());
+      : super(ActiveLanguageState.initial()) {
+    DatabaseIntegrityService.instance.quarantined.addListener(_onQuarantine);
+    _onQuarantine();
+  }
+
+  void _onQuarantine() {
+    if (!mounted) return;
+    final codes = DatabaseIntegrityService.instance.quarantined.value.keys.toSet();
+    final selected = codes.contains(state.activeLanguageCode)
+        ? 'de'
+        : state.activeLanguageCode;
+    state = state.copyWith(quarantinedCodes: codes, activeLanguageCode: selected);
+    if (selected != state.activeLanguageCode || codes.isNotEmpty) {
+      _ref.invalidate(vocabularyListProvider);
+    }
+  }
+
+  @override
+  void dispose() {
+    DatabaseIntegrityService.instance.quarantined.removeListener(_onQuarantine);
+    super.dispose();
+  }
 
   final Ref _ref;
   final LanguagePackStorage _storage;
