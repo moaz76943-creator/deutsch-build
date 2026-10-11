@@ -92,7 +92,8 @@ class FuzzySearchEngine {
   static String? soundex(String value) {
     if (!_validTerm(value)) return null;
     final letters = _foldLatin(value.trim().toLowerCase());
-    if (letters.length > maxTermLength || !_asciiLatin.hasMatch(letters)) {
+    if (letters.isEmpty || letters.length > maxTermLength ||
+        !_asciiLatin.hasMatch(letters)) {
       return null;
     }
     final first = letters[0].toUpperCase();
