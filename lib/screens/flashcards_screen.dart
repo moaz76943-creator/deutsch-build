@@ -281,9 +281,9 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                   ? const Center(child: CircularProgressIndicator())
                   : _cards.isEmpty
                       ? Center(
-                          child: Text(_error ?? _completedCount > 0
+                          child: Text(_error ?? (_completedCount > 0
                               ? 'اكتملت مراجعات اليوم.'
-                              : 'لا توجد بطاقات مستحقة للمراجعة اليوم.'),
+                              : 'لا توجد بطاقات مستحقة للمراجعة اليوم.')),
                         )
                       : GestureDetector(
                           onTap: _toggleFlip,

@@ -406,10 +406,9 @@ class DatabaseService {
         if (rows.isEmpty) break;
         offset += rows.length;
 
-        final reviewedOnPage = <String>{};
-        if (vaultActive) {
-          reviewedOnPage.addAll(reviewedIds);
-        } else {
+        final reviewedOnPage =
+            vaultActive ? reviewedIds : <String>{};
+        if (!vaultActive) {
           final ids = rows.map((row) => row['id'].toString()).toList();
           final placeholders = List<String>.filled(ids.length, '?').join(',');
           final tracked = await legacyDb!.rawQuery(
