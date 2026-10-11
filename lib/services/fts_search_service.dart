@@ -3,6 +3,20 @@ import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 
 import 'database_service.dart';
+import 'lemmatization_service.dart';
+import '../utils/fuzzy_search_engine.dart';
+
+/// Structured search metadata while retaining the legacy List-returning API.
+class SearchFeedback<T> {
+  const SearchFeedback({
+    required this.results,
+    this.resolvedLemma,
+    this.suggestions = const <String>[],
+  });
+  final List<T> results;
+  final String? resolvedLemma;
+  final List<String> suggestions;
+}
 
 /// Read-only, per-language lookup against build-time FTS5 trigram indexes.
 ///
@@ -32,6 +46,78 @@ class FtsSearchService {
       query,
       languageCode: languageCode,
       limit: limit,
+    );
+  }
+
+
+  /// Active dictionary pipeline: attested lemma first, then normal search,
+  /// then at most three offline typo suggestions if there were no hits.
+  Future<SearchFeedback<Map<String, dynamic>>> searchDictionaryWithFeedback(
+    String query,
+    String languageCode, {
+    int limit = 20,
+  }) async {
+    final database = await _databaseService.getContentDb(languageCode);
+    return searchDatabaseWithFeedback(
+      database,
+      query,
+      languageCode: languageCode,
+      limit: limit,
+    );
+  }
+
+  Future<SearchFeedback<Map<String, dynamic>>> searchDatabaseWithFeedback(
+    Database database,
+    String query, {
+    required String languageCode,
+    int limit = 20,
+  }) async {
+    if (limit < 1 || limit > 100) {
+      throw RangeError.range(limit, 1, 100, 'limit');
+    }
+    final term = query.trim();
+    if (term.isNotEmpty) {
+      final lemma = await LemmatizationService(
+        openContentDb: (_) async => database,
+      ).resolve(term, languageCode: languageCode);
+      if (lemma != null &&
+          lemma.trim().isNotEmpty &&
+          lemma.trim().toLowerCase() != term.toLowerCase()) {
+        final canonical = lemma.trim();
+        final found = await searchDatabase(
+          database, canonical, languageCode: languageCode, limit: limit,
+        );
+        if (found.isNotEmpty) {
+          return SearchFeedback(
+            results: found, resolvedLemma: canonical,
+          );
+        }
+      }
+    }
+
+    final results = await searchDatabase(
+      database, term, languageCode: languageCode, limit: limit,
+    );
+    if (results.isNotEmpty ||
+        term.isEmpty ||
+        term.runes.length > FuzzySearchEngine.maxQueryRunes) {
+      return SearchFeedback(results: results);
+    }
+    final firstGlyph = String.fromCharCodes(<int>[term.runes.first]);
+    final candidates = await database.rawQuery(
+      r"SELECT surface FROM lexicon WHERE surface LIKE ? ESCAPE '\' "
+      'ORDER BY surface COLLATE NOCASE LIMIT ?',
+      <Object?>[
+        _escapeLike(firstGlyph) + '%',
+        FuzzySearchEngine.maxCandidateChecks,
+      ],
+    );
+    return SearchFeedback(
+      results: results,
+      suggestions: FuzzySearchEngine.didYouMean(
+        term,
+        candidates.map((row) => row['surface']?.toString() ?? ''),
+      ),
     );
   }
 

@@ -33,6 +33,8 @@ class _OfflineDictionaryScreenState
   String _selectedArticle = 'الكل';
   VocabularyCefrFilter _selectedLevel = VocabularyCefrFilter.all;
   List<Map<String, dynamic>> _results = <Map<String, dynamic>>[];
+  String? _resolvedLemma;
+  List<String> _suggestions = const <String>[];
   bool _loading = true;
   String? _error;
   Timer? _debounce;
@@ -114,12 +116,17 @@ class _OfflineDictionaryScreenState
 
     try {
       List<Map<String, dynamic>> found;
+      String? resolvedLemma;
+      List<String> suggestions = const <String>[];
       if (selectedLevel == VocabularyCefrFilter.all) {
         try {
           // Handles FTS5-unavailable packs and short queries internally.
-          found = await _ftsSearch.searchDictionary(
+          final outcome = await _ftsSearch.searchDictionaryWithFeedback(
             searchTerm, lang, limit: 100,
           );
+          found = outcome.results;
+          resolvedLemma = outcome.resolvedLemma;
+          suggestions = outcome.suggestions;
         } catch (_) {
           // Retain the pre-FTS dictionary path for legacy installations.
           found = await DatabaseService.instance.searchDictionary(
@@ -129,17 +136,21 @@ class _OfflineDictionaryScreenState
       } else {
         // CEFR is applied in SQLite before pagination, not to FTS's first
         // page of results (which could conceal matching vocabulary).
-        final rows = await _cefrSearch.search(
+        final outcome = await _cefrSearch.searchWithFeedback(
           languageCode: lang,
           level: selectedLevel,
           searchText: searchTerm,
           limit: 100,
         );
-        found = rows.map(_hydrateRow).toList(growable: false);
+        found = outcome.results.map(_hydrateRow).toList(growable: false);
+        resolvedLemma = outcome.resolvedLemma;
+        suggestions = outcome.suggestions;
       }
 
       if (!mounted || epoch != _requestEpoch) return;
       setState(() {
+        _resolvedLemma = resolvedLemma;
+        _suggestions = suggestions;
         _results = selectedArticle == 'الكل'
             ? found
             : found.where((row) =>
@@ -151,6 +162,8 @@ class _OfflineDictionaryScreenState
       if (!mounted || epoch != _requestEpoch) return;
       setState(() {
         _error = 'تعذّر تحميل نتائج المعجم';
+        _resolvedLemma = null;
+        _suggestions = const <String>[];
         _results = <Map<String, dynamic>>[];
         _loading = false;
       });
@@ -271,6 +284,37 @@ class _OfflineDictionaryScreenState
                     ],
                   ),
                 ),
+                if (!_loading &&
+                    (_resolvedLemma != null || _suggestions.isNotEmpty))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        if (_resolvedLemma != null)
+                          Chip(label: Text('Results for $_resolvedLemma')),
+                        if (_suggestions.isNotEmpty)
+                          const Text(
+                            'Did you mean?',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        for (final spelling in _suggestions)
+                          ActionChip(
+                            label: Text(spelling),
+                            onPressed: () {
+                              _searchController.value = TextEditingValue(
+                                text: spelling,
+                                selection: TextSelection.collapsed(
+                                  offset: spelling.length,
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
                 Expanded(
                   child: _loading
                       ? const Center(
