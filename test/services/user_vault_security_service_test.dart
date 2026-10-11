@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -64,4 +66,96 @@ void main() {
       Uint8List(UserVaultSecurityService.maximumRecordBytes+1)),
       throwsArgumentError);
   });
+
+  test('migrates all legacy tables to an encrypted, verified snapshot', () async {
+    final temporary = await Directory.systemTemp.createTemp('vault-migration-');
+    final oldPath = '${temporary.path}/user_progress_v2.db';
+    try {
+      final legacy = await openDatabase(oldPath, singleInstance: false);
+      await legacy.execute('CREATE TABLE srs_progress (lexeme_id TEXT PRIMARY KEY, repetition_count INTEGER)');
+      await legacy.execute('CREATE TABLE review_history (id INTEGER PRIMARY KEY, note TEXT, evidence BLOB)');
+      await legacy.execute('CREATE TABLE bookmarks (id TEXT PRIMARY KEY, word TEXT)');
+      await legacy.insert('srs_progress', {'lexeme_id': 'Haus', 'repetition_count': 4});
+      await legacy.insert('review_history', {'id': 1, 'note': 'first review', 'evidence': Uint8List.fromList([0, 255, 7])});
+      await legacy.insert('bookmarks', {'id': 'b1', 'word': 'Buch'});
+      await legacy.close();
+
+      final service = UserVaultSecurityService(
+        cipher: FakeCipher(),
+        openVaultDatabase: () async => db,
+        legacyDatabasePath: () async => oldPath,
+      );
+      final result = await service.migrateLegacyProgressDatabase();
+      expect(result.migrated, isTrue);
+      expect(result.tableRowCounts, {
+        'bookmarks': 1, 'review_history': 1, 'srs_progress': 1,
+      });
+      expect(await File(oldPath).exists(), isFalse);
+      expect(await File('$oldPath.migrated').exists(), isTrue);
+
+      final manifest = jsonDecode(utf8.decode(
+        (await service.readRecord('legacy/v1/manifest'))!,
+      )) as Map<String, dynamic>;
+      expect(manifest['format'], 'legacy-sqlite-snapshot-v1');
+      final rows = await db.query('vault_entries');
+      expect(rows, hasLength(4)); // Three rows plus encrypted manifest.
+      expect(rows.toString(), isNot(contains('Haus')));
+      expect(rows.toString(), isNot(contains('Buch')));
+      final srs = jsonDecode(utf8.decode(
+        (await service.readRecord('legacy/v1/t2/r0'))!,
+      )) as Map<String, dynamic>;
+      expect(srs['lexeme_id'], 'Haus');
+      final history = jsonDecode(utf8.decode(
+        (await service.readRecord('legacy/v1/t1/r0'))!,
+      )) as Map<String, dynamic>;
+      expect(history['evidence'], {'sqlite_blob_b64': 'AP8H'});
+      expect((await service.migrateLegacyProgressDatabase()).migrated, isFalse);
+    } finally {
+      await temporary.delete(recursive: true);
+    }
+  });
+
+  test('migration failure retains plaintext DB and rolls back vault writes', () async {
+    final temporary = await Directory.systemTemp.createTemp('vault-failure-');
+    final oldPath = '${temporary.path}/user_progress_v2.db';
+    try {
+      final legacy = await openDatabase(oldPath, singleInstance: false);
+      await legacy.execute('CREATE TABLE bookmarks (id TEXT PRIMARY KEY)');
+      await legacy.insert('bookmarks', {'id': 'keep-this'});
+      await legacy.close();
+      final service = UserVaultSecurityService(
+        cipher: BrokenCipher(),
+        openVaultDatabase: () async => db,
+        legacyDatabasePath: () async => oldPath,
+      );
+      await expectLater(service.migrateLegacyProgressDatabase(), throwsStateError);
+      expect(await File(oldPath).exists(), isTrue);
+      expect(await File('$oldPath.migrated').exists(), isFalse);
+      expect(await db.query('vault_entries'), isEmpty);
+    } finally {
+      await temporary.delete(recursive: true);
+    }
+  });
+
+  test('migration does not overwrite a previous migrated backup', () async {
+    final temporary = await Directory.systemTemp.createTemp('vault-existing-');
+    final oldPath = '${temporary.path}/user_progress_v2.db';
+    try {
+      final legacy = await openDatabase(oldPath, singleInstance: false);
+      await legacy.execute('CREATE TABLE bookmarks (id TEXT PRIMARY KEY)');
+      await legacy.close();
+      await File('$oldPath.migrated').writeAsString('original backup', flush: true);
+      final service = UserVaultSecurityService(
+        cipher: FakeCipher(),
+        openVaultDatabase: () async => db,
+        legacyDatabasePath: () async => oldPath,
+      );
+      await expectLater(service.migrateLegacyProgressDatabase(), throwsStateError);
+      expect(await File(oldPath).exists(), isTrue);
+      expect(await File('$oldPath.migrated').readAsString(), 'original backup');
+    } finally {
+      await temporary.delete(recursive: true);
+    }
+  });
+
 }
