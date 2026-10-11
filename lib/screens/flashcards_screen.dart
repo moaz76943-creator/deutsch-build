@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -10,10 +11,8 @@ import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
 import '../services/fts_search_service.dart';
 import '../widgets/bidi_lexicon_view.dart';
-import '../widgets/example_sentences_view.dart';
-import '../widgets/idioms_view.dart';
+import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
-import '../widgets/noun_classifier_view.dart';
 import '../widgets/phonetic_ipa_view.dart';
 import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
@@ -276,13 +275,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
 
   Widget _buildBackCard() {
     final card = _currentCard!;
-    final fields = <String, dynamic>{..._fields(card), ...card};
-    final meaning = _string(fields, <String>['translation_ar', 'translation', 'meaning']);
-    final pos = _string(fields, <String>['part_of_speech', 'pos']);
-    final classifier = _string(fields, <String>['classifier', 'measure_word', 'noun_class']);
-    final headwordId = _string(fields, <String>['id', 'lexeme_id']);
-    final examplesJson = WordDeepDiveSheet.examplesJsonFor(card);
-
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
@@ -294,40 +286,15 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
           color: const Color(0xFF334155),
           borderRadius: BorderRadius.circular(24),
         ),
+        // All optional sections scroll rather than overflowing a flipped card.
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              if (pos.isNotEmpty || classifier.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: <Widget>[
-                    if (pos.isNotEmpty) Chip(label: Text(pos)),
-                    NounClassifierView(
-                      noun: _headword,
-                      languageCode: _languageCode,
-                      partOfSpeech: pos,
-                      classifier: classifier,
-                      reading: _string(fields, <String>['classifier_reading']),
-                      explanation: _string(fields, <String>['classifier_explanation']),
-                    ),
-                  ],
-                ),
-              BidiLexiconView(
-                sourceWord: _headword,
-                sourceLanguageCode: _languageCode,
-                targetExplanation: meaning,
+              LexiconRichDetails(
+                entry: card,
+                languageCode: _languageCode,
               ),
-              if (examplesJson != null)
-                ExampleSentencesView(
-                  examplesJson: examplesJson,
-                  keyword: _headword,
-                  sourceLanguageCode: _languageCode,
-                ),
-              if (headwordId.isNotEmpty)
-                IdiomsView(headwordId: headwordId, languageCode: _languageCode),
               TextButton.icon(
                 onPressed: () => WordDeepDiveSheet.show(
                   context,

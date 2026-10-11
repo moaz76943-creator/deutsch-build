@@ -67,6 +67,12 @@ class BidiLexiconView extends StatelessWidget {
     final interfaceDirection = Directionality.of(context);
     final textTheme = Theme.of(context).textTheme;
 
+    if (sourceWord.trim().isEmpty &&
+        targetExplanation.trim().isEmpty &&
+        phonetic == null) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -74,25 +80,30 @@ class BidiLexiconView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text(
-              _isolateBidi(sourceWord),
-              textDirection: sourceDirection,
-              textAlign: TextAlign.start,
-              style: sourceStyle ?? textTheme.titleLarge,
-              semanticsLabel: sourceWord,
-            ),
+            if (sourceWord.trim().isNotEmpty)
+              Text(
+                _isolateBidi(sourceWord),
+                textDirection: sourceDirection,
+                textAlign: TextAlign.start,
+                style: sourceStyle ?? textTheme.titleLarge,
+                semanticsLabel: sourceWord,
+              ),
             if (phonetic != null) ...<Widget>[
-              const SizedBox(height: 8),
+              if (sourceWord.trim().isNotEmpty)
+                const SizedBox(height: 8),
               phonetic!,
             ],
-            const SizedBox(height: 8),
-            Text(
-              _isolateBidi(targetExplanation),
-              textDirection: interfaceDirection,
-              textAlign: TextAlign.start,
-              style: explanationStyle ?? textTheme.bodyMedium,
-              semanticsLabel: targetExplanation,
-            ),
+            if (targetExplanation.trim().isNotEmpty) ...<Widget>[
+              if (sourceWord.trim().isNotEmpty || phonetic != null)
+                const SizedBox(height: 8),
+              Text(
+                _isolateBidi(targetExplanation),
+                textDirection: interfaceDirection,
+                textAlign: TextAlign.start,
+                style: explanationStyle ?? textTheme.bodyMedium,
+                semanticsLabel: targetExplanation,
+              ),
+            ],
           ],
         ),
       ),
