@@ -122,7 +122,7 @@ class _OfflineDictionaryScreenState
         try {
           // Handles FTS5-unavailable packs and short queries internally.
           final outcome = await _ftsSearch.searchDictionaryWithFeedback(
-            searchTerm, lang, limit: 100,
+            searchTerm, lang, limit: 50,
           );
           found = outcome.results;
           resolvedLemma = outcome.resolvedLemma;
