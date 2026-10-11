@@ -165,7 +165,7 @@ class FuzzySearchEngine {
       if (normalized.startsWith(canonicalQuery)) return const <String>[];
       final distance = damerauLevenshtein(term, text);
       final phonetic = sound.isNotEmpty && sound == soundex(text);
-      if (distance > maxEditDistance && !phonetic) continue;
+      if (distance > maxEditDistance) continue;
 
       final next = _Suggestion(
         text,
