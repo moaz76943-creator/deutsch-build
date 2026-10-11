@@ -35,6 +35,9 @@ class AndroidKeystoreVaultCipher implements VaultCipher {
 
   @override
   Future<Uint8List> encrypt(String recordId, Uint8List plaintext) async {
+    if (UserVaultSecurityService._keyUnavailable) {
+      throw StateError('Vault key recovery is required before further writes');
+    }
     try {
       final data = await _channel.invokeMethod<Uint8List>(
         'encrypt', <String, Object>{
@@ -59,6 +62,7 @@ class AndroidKeystoreVaultCipher implements VaultCipher {
         },
       );
       if (data == null) throw StateError('Vault decryption failed');
+      UserVaultSecurityService._markKeyRecovered();
       return data;
     } on PlatformException catch (error, trace) {
       _keyFailure(error, trace);
@@ -90,7 +94,15 @@ class UserVaultSecurityService {
   static final ValueNotifier<String?> recoveryMessage =
       ValueNotifier<String?>(null);
 
+  static bool _keyUnavailable = false;
+
+  static void _markKeyRecovered() {
+    _keyUnavailable = false;
+    recoveryMessage.value = null;
+  }
+
   static void reportKeyFailure() {
+    _keyUnavailable = true;
     recoveryMessage.value =
         'تعذّر الوصول إلى مفتاح التشفير في Android Keystore. '
         'بيانات المراجعة المشفّرة محفوظة ولم تُحذف. '
