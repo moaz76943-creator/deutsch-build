@@ -6,7 +6,7 @@ import '../core/audio/offline_audio_manager.dart';
 import '../services/local_database_service.dart';
 
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
-  final db = await LocalDatabaseService.instance.database;
+  final db = await LocalDatabaseService.instance.getContentDb(targetLangCode);
   return await db.rawQuery(
     '''
     SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence 

@@ -35,8 +35,9 @@ CONCEPT_COLUMNS = {
     "legacy_fields_json",
 }
 TEST_NAMES = (
-    ("Morphology tests", "test_build_universal_verbs.py"),
-    ("Ingestion tests", "test_build_canonical_lexicon.py"),
+    ("Morphology tests", "tools/morphology/tests/test_build_universal_verbs.py"),
+    ("Ingestion tests", "tools/ingestion/test_build_canonical_lexicon.py"),
+    ("Kaikki lexicon tests", "tools/ingestion/test_fetch_kaikki_lexicon.py"),
 )
 
 
@@ -217,6 +218,11 @@ def choose_german_db(paths: list[Path], option: str | None, root: Path) -> Path:
 
 
 def check_golden(args: argparse.Namespace, root: Path, paths: list[Path]) -> Check:
+    if not paths and not args.golden_db:
+        return Check(
+            "German SHA-256", False,
+            "No SQLite pack available; specify --db and a reviewed Golden SHA-256.",
+        )
     try:
         expected = expected_golden_digest(args, root)
         path = choose_german_db(paths, args.golden_db, root)
@@ -246,6 +252,8 @@ import unittest
 from pathlib import Path
 
 file = Path(sys.argv[1]).resolve()
+# Mirror direct execution: sibling production modules must be importable.
+sys.path.insert(0, str(file.parent))
 namespace = runpy.run_path(str(file), run_name="_preflight_test_module")
 suite = unittest.TestSuite()
 loader = unittest.defaultTestLoader
@@ -292,6 +300,9 @@ def resolve_test(root: Path, filename: str, override: str | None) -> Path:
     if override:
         candidate = Path(override).expanduser()
         return (root / candidate).resolve() if not candidate.is_absolute() else candidate.resolve()
+    # Canonical test locations are repository-relative, not at tests/ root.
+    if Path(filename).parts[:-1]:
+        return (root / filename).resolve()
     for folder in ("tests", "tools/verification", "tools", "scripts", ""):
         candidate = root / folder / filename
         if candidate.is_file():
@@ -403,6 +414,9 @@ def main(argv: list[str] | None = None) -> int:
         "--test-timeout", type=int, default=120,
         help="Seconds allowed per test script (default: 120).",
     )
+    parser.add_argument(
+        "--kaikki-test", help="Override Kaikki lexicon test path.",
+    )
     args = parser.parse_args(argv)
     if (args.min_db_bytes < 1 or args.min_lexicon_rows < 0
             or args.min_concept_rows < 0 or args.test_timeout < 1):
@@ -411,10 +425,19 @@ def main(argv: list[str] | None = None) -> int:
     if not root.is_dir():
         parser.error(f"Repository root does not exist: {root}")
 
-    paths = [
-        (root / db).resolve() if not db.is_absolute() else db.resolve()
-        for db in args.db
-    ] if args.db else discover_databases(root)
+    # Missing optional DB locations are reported by checks, not raised here.
+    discovery_error = None
+    if args.db:
+        paths = [
+            (root / db).resolve() if not db.is_absolute() else db.resolve()
+            for db in args.db
+        ]
+    else:
+        try:
+            paths = discover_databases(root)
+        except OSError as error:
+            paths = []
+            discovery_error = f"Unable to discover SQLite packs: {error}"
     if args.golden_db:
         candidate = Path(args.golden_db).expanduser()
         candidate = (
@@ -431,7 +454,10 @@ def main(argv: list[str] | None = None) -> int:
         check_golden(args, root, paths),
         run_test(*TEST_NAMES[0], args.morphology_test, root, args.test_timeout),
         run_test(*TEST_NAMES[1], args.ingestion_test, root, args.test_timeout),
+        run_test(*TEST_NAMES[2], args.kaikki_test, root, args.test_timeout),
     ]
+    if discovery_error is not None:
+        checks.insert(0, Check("SQLite discovery", False, discovery_error))
     render(checks)
     return 0 if all(item.passed for item in checks) else 1
 
