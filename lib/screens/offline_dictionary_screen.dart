@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../design_system/design_system.dart';
 import '../providers/active_language_provider.dart';
-import '../services/trie_search_engine.dart';
 import '../services/database_service.dart';
 import '../services/fts_search_service.dart';
 import '../services/vocabulary_filter_service.dart';
@@ -101,8 +100,9 @@ class _OfflineDictionaryScreenState
   Future<void> _loadData() async {
     final epoch = ++_requestEpoch;
     final query = _searchController.text.trim();
-    final normalized = TrieSearchEngine.normalizeUniversal(query);
-    final searchTerm = normalized.isEmpty ? query : normalized;
+    // Preserve actual glyphs (ä/ö/ü/ß) for trigram matching. Expanding
+    // umlauts to ae/oe/ue before SQL hides exact lexicon entries.
+    final searchTerm = query;
     final lang = ref.read(activeLanguageCodeProvider);
     final selectedLevel = _selectedLevel;
     final selectedArticle = _selectedArticle;

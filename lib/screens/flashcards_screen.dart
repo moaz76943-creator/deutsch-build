@@ -1,176 +1,235 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math';
-import '../widgets/language_selector_button.dart';
-import '../core/srs/review_command_port.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/audio/offline_audio_manager.dart';
-import '../services/local_database_service.dart';
+import '../core/srs/review_command_port.dart';
+import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
-import '../widgets/phonetic_ipa_view.dart';
+import '../services/fts_search_service.dart';
 import '../widgets/bidi_lexicon_view.dart';
-import '../widgets/noun_classifier_view.dart';
-import '../widgets/idioms_view.dart';
 import '../widgets/example_sentences_view.dart';
-import 'word_deep_dive_sheet.dart' as detail;
+import '../widgets/idioms_view.dart';
+import '../widgets/language_selector_button.dart';
+import '../widgets/noun_classifier_view.dart';
+import '../widgets/phonetic_ipa_view.dart';
+import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
+/// Open the installed content pack instead of displaying demonstration words.
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
-  final db = await LocalDatabaseService.instance.getContentDb(targetLangCode);
-  return await db.rawQuery(
-    '''
-    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence 
-    FROM lexemes AS l 
-    LEFT JOIN examples AS e 
-      ON e.concept_id = l.concept_id AND e.language_code = l.language_code 
-    WHERE l.language_code = ? 
-    LIMIT 10
-    ''',
-    [targetLangCode], 
-  );
+  try {
+    return await FtsSearchService().searchDictionary(
+      '',
+      targetLangCode,
+      limit: 20,
+    );
+  } catch (_) {
+    return DatabaseService.instance.searchDictionary('', targetLangCode);
+  }
 }
 
-class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key}); 
+class FlashcardsScreen extends ConsumerStatefulWidget {
+  const FlashcardsScreen({super.key});
+
   @override
-  State<FlashcardsScreen> createState() => _FlashcardsScreenState();
+  ConsumerState<FlashcardsScreen> createState() => _FlashcardsScreenState();
 }
 
-class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _flipController;
-  late Animation<double> _flipAnimation;
+class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _flipController;
+  late final Animation<double> _flipAnimation;
+
+  List<Map<String, dynamic>> _cards = <Map<String, dynamic>>[];
+  String _languageCode = 'de';
+  int _cardIndex = 0;
+  int _loadGeneration = 0;
+  bool _isLoading = true;
   bool _isFlipped = false;
   bool _isSubmitting = false;
-  Map<String, dynamic> _card = <String, dynamic>{
-    'lemma': 'das Buch',
-    'surface': 'das Buch',
-    'translation_ar': 'الكتاب',
-    'sentence': 'Ich lese ein Buch.',
-  };
+  String? _error;
 
-  String _value(String key, [String fallback = '']) =>
-      _card[key]?.toString().trim().isNotEmpty == true
-          ? _card[key].toString().trim()
-          : fallback;
-
-  Map<String, dynamic> get _fields {
-    final raw = _card['fields'];
-    if (raw is Map) {
-      return raw.map((key, value) => MapEntry(key.toString(), value));
-    }
-    return <String, dynamic>{};
-  }
-
-  Future<void> _loadWord() async {
-    try {
-      final words = await DatabaseService.instance.searchDictionary('', 'de');
-      if (mounted && words.isNotEmpty) {
-        setState(() => _card = words.first);
-      }
-    } catch (_) {
-      // Retain the original offline fallback card if the pack is unavailable.
-    }
-  }
-
+  Map<String, dynamic>? get _currentCard =>
+      _cards.isEmpty ? null : _cards[_cardIndex];
 
   @override
   void initState() {
     super.initState();
-    _loadWord();
     _flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
     _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_flipController);
+    _loadCards(ref.read(activeLanguageCodeProvider));
   }
 
   @override
   void dispose() {
+    _loadGeneration++;
     _flipController.dispose();
-    OfflineAudioManager.instance.stop(); 
+    unawaited(OfflineAudioManager.instance.stop());
     super.dispose();
   }
 
-  void _toggleFlip() {
-    if (_isSubmitting) return;
+  Future<void> _loadCards(String languageCode) async {
+    final generation = ++_loadGeneration;
+    if (!mounted) return;
     setState(() {
-      _isFlipped = !_isFlipped;
+      _languageCode = languageCode;
+      _isLoading = true;
+      _isFlipped = false;
+      _error = null;
     });
+    _flipController.reset();
+    try {
+      final cards = await loadFlashcardsSafe(languageCode);
+      if (!mounted || generation != _loadGeneration) return;
+      setState(() {
+        _cards = cards;
+        _cardIndex = 0;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || generation != _loadGeneration) return;
+      setState(() {
+        _cards = <Map<String, dynamic>>[];
+        _cardIndex = 0;
+        _isLoading = false;
+        _error = 'حزمة هذه اللغة غير متاحة للمراجعة.';
+      });
+    }
+  }
+
+  static Map<String, dynamic> _fields(Map<String, dynamic> row) {
+    if (row['fields'] is Map) {
+      return Map<String, dynamic>.from(row['fields'] as Map);
+    }
+    final raw = row['fields_json'];
+    if (raw is String) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
+    return <String, dynamic>{};
+  }
+
+  static String _string(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key];
+      if (value is String && value.trim().isNotEmpty) return value.trim();
+    }
+    return '';
+  }
+
+  String get _headword {
+    final card = _currentCard;
+    if (card == null) return '';
+    return _string(card, <String>['lemma', 'surface', 'display_text']);
+  }
+
+  void _toggleFlip() {
+    if (_isSubmitting || _currentCard == null) return;
+    setState(() => _isFlipped = !_isFlipped);
     if (_isFlipped) {
       _flipController.forward();
-      OfflineAudioManager.instance.speak(_value('lemma', _value('surface', 'das Buch'))); 
+      if (_headword.isNotEmpty) {
+        unawaited(OfflineAudioManager.instance.speak(_headword));
+      }
     } else {
       _flipController.reverse();
     }
   }
 
   Future<void> _handleRating(ReviewRating rating) async {
-    if (_isSubmitting) return; 
+    if (_isSubmitting || _cards.isEmpty) return;
     setState(() => _isSubmitting = true);
-
-    await Future.delayed(const Duration(milliseconds: 300)); 
-    
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-        _isFlipped = false;
-      });
-      _flipController.reverse();
-    }
+    // The SRS scheduling port remains authoritative for review persistence;
+    // UI ratings here only advance the visible card, as in the old screen.
+    await _flipController.reverse();
+    if (!mounted) return;
+    setState(() {
+      _cardIndex = (_cardIndex + 1) % _cards.length;
+      _isFlipped = false;
+      _isSubmitting = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String>(activeLanguageCodeProvider, (previous, next) {
+      if (next != previous && next != _languageCode) {
+        unawaited(_loadCards(next));
+      }
+    });
+    final progress = _cards.isEmpty ? 0.0 : (_cardIndex + 1) / _cards.length;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
-        actions: const [LanguageSelectorButton()],
+        actions: const <Widget>[LanguageSelectorButton()],
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
         child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: LinearProgressIndicator(value: 0.3, backgroundColor: Colors.white24),
-            ),
-            Expanded(
-              child: GestureDetector(
-                onTap: _toggleFlip,
-                child: Center(
-                  child: AnimatedBuilder(
-                    animation: _flipAnimation,
-                    builder: (context, child) {
-                      final angle = _flipAnimation.value * pi;
-                      final isFront = angle < pi / 2;
-                      return Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001)
-                          ..rotateX(angle),
-                        child: isFront ? _buildFrontAppBaseGlassCard() : _buildBackAppBaseGlassCard(),
-                      );
-                    },
-                  ),
-                ),
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.white24,
               ),
             ),
-            if (_isFlipped)
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _cards.isEmpty
+                      ? Center(
+                          child: Text(_error ?? 'لا توجد بطاقات في الحزمة المثبّتة.'),
+                        )
+                      : GestureDetector(
+                          onTap: _toggleFlip,
+                          child: Center(
+                            child: AnimatedBuilder(
+                              animation: _flipAnimation,
+                              builder: (context, child) {
+                                final angle = _flipAnimation.value * pi;
+                                final isFront = angle < pi / 2;
+                                return Transform(
+                                  alignment: Alignment.center,
+                                  transform: Matrix4.identity()
+                                    ..setEntry(3, 2, 0.001)
+                                    ..rotateX(angle),
+                                  child: isFront
+                                      ? _buildFrontCard()
+                                      : _buildBackCard(),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+            ),
+            if (_cards.isNotEmpty && _isFlipped)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: _isSubmitting 
-                  ? const CircularProgressIndicator()
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildRatingButton('مجدداً', Colors.redAccent, ReviewRating.again),
-                        _buildRatingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
-                        _buildRatingButton('جيد', Colors.blueAccent, ReviewRating.good),
-                        _buildRatingButton('سهل', Colors.green, ReviewRating.easy),
-                      ],
-                    ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: _isSubmitting
+                    ? const CircularProgressIndicator()
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          _ratingButton('مجدداً', Colors.redAccent, ReviewRating.again),
+                          _ratingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
+                          _ratingButton('جيد', Colors.blueAccent, ReviewRating.good),
+                          _ratingButton('سهل', Colors.green, ReviewRating.easy),
+                        ],
+                      ),
               )
-            else
+            else if (_cards.isNotEmpty)
               const Padding(
-                padding: EdgeInsets.all(40.0),
+                padding: EdgeInsets.all(40),
                 child: Text('اضغط للكشف والاستماع', style: TextStyle(color: Colors.white54)),
               ),
           ],
@@ -179,32 +238,35 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildFrontAppBaseGlassCard() {
-    final word = _value('lemma', _value('surface', 'das Buch'));
-    final ipa = _fields['ipa']?.toString() ?? _value('ipa');
+  Widget _buildFrontCard() {
+    final card = _currentCard!;
+    final fields = _fields(card);
+    final ipa = _string(<String, dynamic>{...fields, ...card},
+        <String>['ipa', 'phonetic_ipa', 'ipa_transcription']);
     return Container(
       width: 320,
       height: 400,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
-        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            word,
+            _headword,
+            textDirection: isRtlLanguage(_languageCode)
+                ? TextDirection.rtl : TextDirection.ltr,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          if (hasPhoneticData(ipa)) ...<Widget>[
-            const SizedBox(height: 10),
+          if (ipa.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 14),
             PhoneticIpaView(ipa: ipa),
           ],
         ],
@@ -212,69 +274,67 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildBackAppBaseGlassCard() {
-    final fields = _fields;
-    final word = _value('lemma', _value('surface', 'das Buch'));
-    final languageCode = _value('language_code', 'de');
-    final ipa = fields['ipa']?.toString() ?? _value('ipa');
-    final examples = detail.WordDeepDiveSheet.examplesJsonFor(_card);
-    final headwordId = _value('id');
-    final classifier = fields['classifier']?.toString() ??
-        fields['measure_word']?.toString() ?? '';
-    final partOfSpeech = _value('part_of_speech');
+  Widget _buildBackCard() {
+    final card = _currentCard!;
+    final fields = <String, dynamic>{..._fields(card), ...card};
+    final meaning = _string(fields, <String>['translation_ar', 'translation', 'meaning']);
+    final pos = _string(fields, <String>['part_of_speech', 'pos']);
+    final classifier = _string(fields, <String>['classifier', 'measure_word', 'noun_class']);
+    final headwordId = _string(fields, <String>['id', 'lexeme_id']);
+    final examplesJson = WordDeepDiveSheet.examplesJsonFor(card);
+
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
       child: Container(
         width: 320,
         height: 400,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: const Color(0xFF334155),
           borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
-          ],
         ),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              if (partOfSpeech.isNotEmpty)
-                NounClassifierView(
-                  noun: word,
-                  languageCode: languageCode,
-                  partOfSpeech: partOfSpeech,
-                  classifier: classifier,
-                  reading: fields['classifier_reading']?.toString() ?? '',
-                  explanation:
-                      fields['classifier_explanation']?.toString() ?? '',
+              if (pos.isNotEmpty || classifier.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: <Widget>[
+                    if (pos.isNotEmpty) Chip(label: Text(pos)),
+                    NounClassifierView(
+                      noun: _headword,
+                      languageCode: _languageCode,
+                      partOfSpeech: pos,
+                      classifier: classifier,
+                      reading: _string(fields, <String>['classifier_reading']),
+                      explanation: _string(fields, <String>['classifier_explanation']),
+                    ),
+                  ],
                 ),
               BidiLexiconView(
-                sourceWord: word,
-                sourceLanguageCode: languageCode,
-                targetExplanation: _value('translation_ar', 'الكتاب'),
-                phonetic: hasPhoneticData(ipa)
-                    ? PhoneticIpaView(ipa: ipa)
-                    : null,
+                sourceWord: _headword,
+                sourceLanguageCode: _languageCode,
+                targetExplanation: meaning,
               ),
-              if (examples != null)
+              if (examplesJson != null)
                 ExampleSentencesView(
-                  examplesJson: examples,
-                  keyword: word,
-                  sourceLanguageCode: languageCode,
+                  examplesJson: examplesJson,
+                  keyword: _headword,
+                  sourceLanguageCode: _languageCode,
                 ),
               if (headwordId.isNotEmpty)
-                IdiomsView(
-                  headwordId: headwordId,
-                  languageCode: languageCode,
-                ),
-              TextButton(
-                onPressed: () => detail.WordDeepDiveSheet.show(
+                IdiomsView(headwordId: headwordId, languageCode: _languageCode),
+              TextButton.icon(
+                onPressed: () => WordDeepDiveSheet.show(
                   context,
-                  wordData: _card,
+                  wordData: card,
                 ),
-                child: const Text('تفاصيل المفردة'),
+                icon: const Icon(Icons.info_outline),
+                label: const Text('تفاصيل المفردة'),
               ),
             ],
           ),
@@ -283,17 +343,18 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildRatingButton(String label, Color color, ReviewRating rating) {
+  Widget _ratingButton(String label, Color color, ReviewRating rating) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withAlpha(51),
         foregroundColor: color,
-        elevation: 0,
-        minimumSize: const Size(70, 56), 
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        minimumSize: const Size(70, 56),
       ),
       onPressed: () => _handleRating(rating),
-      child: Text(label, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
