@@ -1,104 +1,43 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../providers/active_language_provider.dart';
 import '../screens/language_manager_screen.dart';
 
-/// Shared with language-selection UI so the first-run guard has one source of
-/// truth. A default shown in the AppBar is NOT treated as user confirmation.
-const String activeLanguagePreferenceKey = 'active_language_code';
-const String _defaultLanguage = 'ar';
+export '../providers/active_language_provider.dart'
+    show activeLanguageProvider, activeLanguageCodeProvider;
 
-String? _canonicalLanguageTag(String? input) {
-  if (input == null) return null;
-  final raw = input.trim().replaceAll('_', '-');
-  if (!RegExp(r'^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{2,8})*$').hasMatch(raw)) {
-    return null;
-  }
-  final pieces = raw.split('-');
-  final language = pieces.first.toLowerCase();
-  final tail = pieces.skip(1).map((part) {
-    if (part.length == 4 && RegExp(r'^[a-zA-Z]{4}$').hasMatch(part)) {
-      return part[0].toUpperCase() + part.substring(1).toLowerCase();
-    }
-    if (part.length == 2 && RegExp(r'^[a-zA-Z]{2}$').hasMatch(part)) {
-      return part.toUpperCase();
-    }
-    return part.toLowerCase();
-  });
-  return <String>[language, ...tail].join('-');
-}
+/// Must match the canonical Language Manager preference key from Track 3.
+const String activeLanguagePreferenceKey = 'language_manager.active_code.v1';
+const String _languagePickerCompletedKey = 'language_picker.completed.v1';
 
-/// True when no explicit language choice has been persisted. Fail closed to
-/// the picker if local storage is unavailable; never infer completion from a
-/// visual default. Call from the app's startup router (not from build()).
+/// Entry-point routing guard. Only an explicit selection or completion marker
+/// counts as completed onboarding; a built-in default language does not.
 Future<bool> checkShouldShowLanguagePicker() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    return _canonicalLanguageTag(
-          prefs.getString(activeLanguagePreferenceKey),
-        ) ==
-        null;
+    if (prefs.getBool(_languagePickerCompletedKey) == true) return false;
+    final storedCode = prefs.getString(activeLanguagePreferenceKey);
+    return storedCode == null || storedCode.trim().isEmpty;
   } catch (_) {
     return true;
   }
 }
 
-/// Owns the active UI language and persists explicit choices offline.
-/// Other language-selection UIs can change it with:
-/// ref.read(activeLanguageProvider.notifier).selectLanguage('fr');
-class ActiveLanguageController extends StateNotifier<String> {
-  ActiveLanguageController() : super(_defaultLanguage) {
-    unawaited(reloadFromStorage());
-  }
-
-  int _revision = 0;
-
-  Future<void> reloadFromStorage() async {
-    final revision = _revision;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final stored = _canonicalLanguageTag(
-        prefs.getString(activeLanguagePreferenceKey),
-      );
-      if (mounted && revision == _revision && stored != null) {
-        state = stored;
-      }
-    } catch (_) {
-      // Storage failure leaves the safe, in-memory language unchanged.
-    }
-  }
-
-  /// Updates listening widgets immediately, then stores the selection.
-  /// Returns false on an invalid code or failed persistence.
-  Future<bool> selectLanguage(String languageCode) async {
-    final canonical = _canonicalLanguageTag(languageCode);
-    if (canonical == null || !mounted) return false;
-
-    final revision = ++_revision;
-    state = canonical;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      // A newer user selection must not be overwritten by stale work.
-      if (!mounted || revision != _revision) return false;
-      return await prefs.setString(activeLanguagePreferenceKey, canonical);
-    } catch (_) {
-      return false;
-    }
+/// The startup routing layer may call this after a completed first-run choice,
+/// including when the user explicitly selects the bundled German default.
+Future<bool> markLanguagePickerCompleted() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.setBool(_languagePickerCompletedKey, true);
+  } catch (_) {
+    return false;
   }
 }
 
-/// This provider is intentionally defined in the single allowed new file:
-/// the base branch does not yet define activeLanguageProvider elsewhere.
-final activeLanguageProvider =
-    StateNotifierProvider<ActiveLanguageController, String>((ref) {
-  return ActiveLanguageController();
-});
-
-/// An AppBar action that reacts to the current language and opens the manager.
-/// Add with: AppBar(actions: const [LanguageSelectorButton()]).
+/// Reusable AppBar action that observes the one canonical Riverpod language
+/// provider and opens LanguageManagerScreen without network dependencies.
 class LanguageSelectorButton extends ConsumerWidget {
   const LanguageSelectorButton({super.key});
 
@@ -126,11 +65,10 @@ class LanguageSelectorButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeCode = ref.watch(activeLanguageProvider);
-    final language = activeCode.split('-').first.toLowerCase();
-    final codeLabel = language.toUpperCase();
-    final flag = _flags[language] ?? '🌐';
-    final description = 'اللغة الحالية: $activeCode. فتح إدارة اللغات';
+    final currentCode = ref.watch(activeLanguageCodeProvider);
+    final baseCode = currentCode.split('-').first.toLowerCase();
+    final flag = _flags[baseCode] ?? '🌐';
+    final description = 'اللغة الحالية: $currentCode. فتح إدارة اللغات';
 
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: 8),
@@ -150,34 +88,32 @@ class LanguageSelectorButton extends ConsumerWidget {
               foregroundColor: Theme.of(context).appBarTheme.foregroundColor ??
                   Theme.of(context).colorScheme.onSurface,
             ),
-            onPressed: () async {
-              await Navigator.of(context).push<void>(
+            onPressed: () {
+              Navigator.of(context).push<void>(
                 PageRouteBuilder<void>(
-                  pageBuilder: (routeContext, animation, secondaryAnimation) =>
+                  pageBuilder: (_, animation, secondaryAnimation) =>
                       const LanguageManagerScreen(),
                   transitionDuration: const Duration(milliseconds: 280),
                   reverseTransitionDuration: const Duration(milliseconds: 220),
-                  transitionsBuilder:
-                      (routeContext, animation, secondaryAnimation, child) {
-                    final curved = animation.drive(
+                  transitionsBuilder: (_, animation, secondaryAnimation, child) {
+                    final progress = animation.drive(
                       CurveTween(curve: Curves.easeOutCubic),
                     );
-                    final slide = curved.drive(
-                      Tween<Offset>(
-                        begin: const Offset(0.08, 0),
-                        end: Offset.zero,
-                      ),
-                    );
                     return FadeTransition(
-                      opacity: curved,
-                      child: SlideTransition(position: slide, child: child),
+                      opacity: progress,
+                      child: SlideTransition(
+                        position: progress.drive(
+                          Tween<Offset>(
+                            begin: const Offset(0.08, 0),
+                            end: Offset.zero,
+                          ),
+                        ),
+                        child: child,
+                      ),
                     );
                   },
                 ),
               );
-              if (context.mounted) {
-                await ref.read(activeLanguageProvider.notifier).reloadFromStorage();
-              }
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -185,7 +121,7 @@ class LanguageSelectorButton extends ConsumerWidget {
                 Text(flag, style: const TextStyle(fontSize: 21)),
                 const SizedBox(width: 6),
                 Text(
-                  codeLabel,
+                  baseCode.toUpperCase(),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
