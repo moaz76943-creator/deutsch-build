@@ -113,7 +113,7 @@ def _text(value: Any, where: str) -> str:
     if not isinstance(value, str) or not value.strip() or len(value) > 2000:
         raise ValueError(f"{where} must be nonempty text (up to 2000 characters)")
     value = unicodedata.normalize("NFC", value.strip())
-    if any(c in BIDI_CONTROLS or unicodedata.category(c) == "Cc" for c in value):
+    if any(c in BIDI_CONTROLS or unicodedata.category(c) in ("Cc", "Cf") for c in value):
         raise ValueError(f"{where} contains control characters")
     if FALLBACK.search(value):
         raise ValueError(f"{where} contains template/fallback content")
@@ -182,12 +182,16 @@ def _record(entry: Any, language: str) -> dict[str, Any]:
                 _direction(item["translation"], LANGUAGES[target][1], "example translation")
             else:
                 _direction(item["text"], LANGUAGES[target][1], key)
-            checked.append(item)
+            checked.append({k: unicodedata.normalize("NFC", val.strip()) for k, val in item.items()})
         fields[key] = checked
+    source_ref = entry.get("sourceRef", "unspecified-source")
+    license_label = entry.get("license", "unspecified-license")
     fields["provenance"] = {
-        "sourceRef": _text(entry.get("sourceRef", "original-editorial-starter"), "sourceRef"),
-        "license": _text(entry.get("license", "original-editorial"), "license"),
-        "cefrStatus": "editorial-unverified" if entry.get("sourceRef") == "original-editorial-starter" else "source-asserted",
+        "sourceRef": _text(source_ref, "sourceRef"),
+        "license": _text(license_label, "license"),
+        "cefrStatus": ("editorial-unverified" if source_ref == "original-editorial-starter"
+                       else "source-asserted" if "sourceRef" in entry and "license" in entry
+                       else "unverified"),
     }
     return {"id": entry_id, "surface": surface, "partOfSpeech": pos,
             "direction": direction, "fields": fields}
