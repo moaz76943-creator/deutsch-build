@@ -38,4 +38,5 @@ flutter:
     - assets/audio/
     - assets/data/packs/
     - assets/data/master_vocabulary.json
+    - assets/content/packs/de/sqlite/de-1.0.0.sqlite
     - assets/
