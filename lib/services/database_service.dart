@@ -12,6 +12,8 @@ import 'diagnostic_ledger_service.dart';
 import 'crash_loop_guard.dart';
 import 'pooled_database_manager.dart';
 import 'storage_migration_service.dart';
+import 'srs_scheduler_service.dart';
+import 'user_vault_security_service.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -22,6 +24,7 @@ class DatabaseService {
       'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
   static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
   static Database? _progressDb;
+  late final UserVaultSecurityService _progressVault = UserVaultSecurityService();
   late final PooledDatabaseManager _contentPool = PooledDatabaseManager(
     openConnection: _openContentDb,
   );
@@ -295,14 +298,99 @@ class DatabaseService {
     };
   }
 
+
+  /// Single write authority for active flashcard reviews. Legacy sessions
+  /// continue on user_progress_v2.db until the verified vault cutover.
+  Future<SrsReviewSchedule> gradeAndPersistSrs({
+    required String lexemeId,
+    required String languageCode,
+    required int grade,
+    DateTime? reviewedAt,
+  }) async {
+    if (await _progressVault.isOperationalActive) {
+      return _progressVault.gradeOperationalSrs(
+        lexemeId: lexemeId, languageCode: languageCode,
+        grade: grade, reviewedAt: reviewedAt);
+    }
+    return SrsSchedulerService().gradeAndPersist(
+      progressDb: await progressDb, lexemeId: lexemeId,
+      languageCode: languageCode, grade: grade, reviewedAt: reviewedAt);
+  }
+
+  Future<void> saveBookmark({
+    required String bookmarkId,
+    required String languageCode,
+    required Map<String, dynamic> data,
+  }) async {
+    if (await _progressVault.isOperationalActive) {
+      await _progressVault.putOperationalBookmark(
+        bookmarkId: bookmarkId, languageCode: languageCode, data: data);
+      return;
+    }
+    final db = await progressDb;
+    await _ensureLegacyBookmarks(db);
+    await db.insert('vault_bookmarks', {
+      'id': bookmarkId,
+      'target_language_code': languageCode,
+      'payload': jsonEncode(data),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<Map<String, dynamic>?> readBookmark({
+    required String bookmarkId,
+    required String languageCode,
+  }) async {
+    if (await _progressVault.isOperationalActive) {
+      return _progressVault.readOperationalBookmark(
+        bookmarkId: bookmarkId, languageCode: languageCode);
+    }
+    final db = await progressDb;
+    await _ensureLegacyBookmarks(db);
+    final rows = await db.query('vault_bookmarks',
+      where: 'id = ? AND target_language_code = ?',
+      whereArgs: [bookmarkId, languageCode], limit: 1);
+    if (rows.isEmpty) return null;
+    return Map<String, dynamic>.from(jsonDecode(rows.single['payload'] as String) as Map);
+  }
+
+  Future<void> deleteBookmark({
+    required String bookmarkId,
+    required String languageCode,
+  }) async {
+    if (await _progressVault.isOperationalActive) {
+      await _progressVault.deleteOperationalBookmark(
+        bookmarkId: bookmarkId, languageCode: languageCode);
+      return;
+    }
+    final db = await progressDb;
+    await _ensureLegacyBookmarks(db);
+    await db.delete('vault_bookmarks',
+        where: 'id = ? AND target_language_code = ?',
+        whereArgs: [bookmarkId, languageCode]);
+  }
+
+  Future<void> _ensureLegacyBookmarks(Database db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS vault_bookmarks (
+      id TEXT NOT NULL,
+      target_language_code TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      PRIMARY KEY (id, target_language_code)
+    )
+  ''');
+
   Future<void> updateSrsProgressAtomic({
     required String lexemeId,
     required String status,
     String languageCode = 'de',
   }) async {
     try {
-      final db = await progressDb;
       final normalizedCode = _normalizeLanguageCode(languageCode);
+      if (await _progressVault.isOperationalActive) {
+        await _progressVault.incrementOperationalSrs(
+          lexemeId: lexemeId, languageCode: normalizedCode, status: status);
+        return;
+      }
+      final db = await progressDb;
       await db.transaction((txn) async {
         await txn.rawInsert('''
           INSERT INTO srs_progress (

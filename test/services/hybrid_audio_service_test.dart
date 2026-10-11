@@ -43,6 +43,27 @@ void main() {
     expect(banner, contains('Audio not available'));
   });
 
+  test('screen-facing playAudio uses the selected language and exposes IPA fallback', () async {
+    String? message;
+    String? locale;
+    final unavailable = HybridAudioService(
+      voiceProbe: (_) async => false,
+      speechPlayback: (_, _) async => throw StateError('must not speak'),
+    );
+    expect(await unavailable.playAudio(
+      text: 'Merhaba', languageCode: 'tr', ipa: 'mɛɾhaba',
+      onUnavailable: (text) => message = text,
+    ), isFalse);
+    expect(message, contains('/mɛɾhaba/'));
+    final available = HybridAudioService(
+      voiceProbe: (_) async => true,
+      speechPlayback: (_, tag) async { locale = tag; return true; },
+    );
+    expect(await available.playAudio(
+      text: 'Bonjour', languageCode: 'fr'), isTrue);
+    expect(locale, 'fr-FR');
+  });
+
   test('platform probe timeouts do not block the interface', () async {
     final hung = Completer<bool>();
     final service = HybridAudioService(

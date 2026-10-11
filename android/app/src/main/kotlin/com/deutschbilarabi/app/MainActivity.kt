@@ -95,7 +95,7 @@ class MainActivity : FlutterActivity() {
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidUserVaultCipher.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidUserVaultCipher())
+        ).setMethodCallHandler(AndroidUserVaultCipher(this))
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidSecureSessionStorage.CHANNEL_NAME,

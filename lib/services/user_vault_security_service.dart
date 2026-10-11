@@ -6,8 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
+import 'srs_scheduler_service.dart';
+
 /// No key bytes ever cross the Flutter platform channel.
-/// Unsupported/non-hardware-backed keystores fail closed.
+/// Android uses hardware AES when available and a versioned PBKDF2/AES
+/// software envelope on devices without secure hardware.
 abstract class VaultCipher {
   Future<Uint8List> encrypt(String recordId, Uint8List plaintext);
   Future<Uint8List> decrypt(String recordId, Uint8List ciphertext);
@@ -89,7 +92,7 @@ class UserVaultSecurityService {
     }
     // Encryption completes before any SQLite write.
     final ciphertext=await _cipher.encrypt(id,plaintext);
-    if(ciphertext.length < 29 || ciphertext[0]!=1) {
+    if(ciphertext.length < 29 || (ciphertext[0]!=1 && ciphertext[0]!=2)) {
       throw StateError('Invalid encrypted vault envelope');
     }
     final database=await _db;
@@ -106,7 +109,8 @@ class UserVaultSecurityService {
       where:'record_hash = ?',whereArgs:<Object>[_index(id)],limit:1);
     if(rows.isEmpty)return null;
     final encrypted=rows.single['ciphertext'];
-    if(encrypted is! Uint8List || encrypted.length<29 || encrypted[0]!=1) {
+    if(encrypted is! Uint8List || encrypted.length<29 ||
+        (encrypted[0]!=1 && encrypted[0]!=2)) {
       throw StateError('Vault record is corrupt');
     }
     return _cipher.decrypt(id,encrypted);
@@ -116,6 +120,232 @@ class UserVaultSecurityService {
     _validateId(id);
     await (await _db).delete('vault_entries',
       where:'record_hash = ?',whereArgs:<Object>[_index(id)]);
+  }
+
+
+  static const String _operationalReadyId = 'progress/v1/ready';
+
+  static String _progressKey(String kind, String id, String languageCode) {
+    if (id.trim().isEmpty || languageCode.trim().isEmpty) {
+      throw ArgumentError('Progress identity cannot be empty');
+    }
+    final identity = '${languageCode.trim().toLowerCase()}::${id.trim()}';
+    return 'progress/v1/$kind/${_index(identity)}';
+  }
+
+  static Map<String, dynamic> _decodeProgress(Uint8List? bytes) {
+    if (bytes == null) return <String, dynamic>{};
+    final decoded = jsonDecode(utf8.decode(bytes));
+    if (decoded is! Map) throw StateError('Invalid operational vault record');
+    return Map<String, dynamic>.from(decoded);
+  }
+
+  /// Never opens/creates the old SQLite file merely to probe it. If a
+  /// cutover has not happened, consumers must continue using the legacy DB.
+  /// Once a migrated backup exists, its encrypted ready marker is mandatory.
+  Future<bool> get isOperationalActive async {
+    final markerBytes = await readRecord(_operationalReadyId);
+    final marker = _decodeProgress(markerBytes);
+    if (marker['format'] == 'operational-progress-v1' &&
+        marker['origin'] == 'fresh') {
+      // A separate legacy exporter may create an empty progress DB later.
+      // It must not demote an already-active vault.
+      return true;
+    }
+    final legacy = File(await _legacyDatabasePath());
+    final migratedBackup = await File('${legacy.path}.migrated').exists();
+    if (migratedBackup &&
+        marker['format'] == 'operational-progress-v1') {
+      // A legacy exporter can recreate the old filename after cutover.
+      return true;
+    }
+    if (await legacy.exists()) return false;
+    if (migratedBackup) {
+      // A previous release stored only an encrypted legacy snapshot.
+      await _activateArchivedSnapshot();
+      return true;
+    }
+    // First use: durably record the authority before routing any write.
+    await (await _db).transaction(_ensureFreshReady);
+    return true;
+  }
+
+  Future<void> _ensureFreshReady(DatabaseExecutor txn) async {
+    if (await _readEncryptedFrom(txn, _operationalReadyId) != null) return;
+    await _writeEncrypted(txn, _operationalReadyId, Uint8List.fromList(
+        utf8.encode(jsonEncode({
+          'format': 'operational-progress-v1', 'origin': 'fresh',
+        }))));
+  }
+
+  /// Atomic encrypted SRS read/modify/write, keyed by language AND lexeme.
+  /// No plaintext SRS fields are written into SQLite.
+  Future<SrsReviewSchedule> gradeOperationalSrs({
+    required String lexemeId,
+    required String languageCode,
+    required int grade,
+    DateTime? reviewedAt,
+  }) async {
+    final key = _progressKey('srs', lexemeId, languageCode);
+    return (await _db).transaction((txn) async {
+      await _ensureFreshReady(txn);
+      final prior = _decodeProgress(await _readEncryptedFrom(txn, key));
+      final state = prior.isEmpty
+          ? const SrsReviewState()
+          : SrsReviewState(
+              repetitionCount: (prior['repetition_count'] as num).toInt(),
+              intervalDays: (prior['interval_days'] as num).toInt(),
+              easeFactor: (prior['ease_factor'] as num).toDouble(),
+            );
+      final schedule = SrsSchedulerService().calculate(
+        grade: grade, previous: state, reviewedAt: reviewedAt);
+      await _writeEncrypted(txn, key, Uint8List.fromList(utf8.encode(jsonEncode({
+        'lexeme_id': lexemeId,
+        'target_language_code': languageCode,
+        'repetition_count': schedule.repetitionCount,
+        'interval_days': schedule.intervalDays,
+        'ease_factor': schedule.easeFactor,
+        'next_due_at': schedule.nextReviewEpoch,
+        'status': schedule.repetitionCount > 1 ? 'review' : 'learning',
+      }))), replace: true);
+      return schedule;
+    });
+  }
+
+  Future<Map<String, dynamic>?> readOperationalSrs({
+    required String lexemeId, required String languageCode,
+  }) async {
+    final bytes = await readRecord(_progressKey('srs', lexemeId, languageCode));
+    return bytes == null ? null : _decodeProgress(bytes);
+  }
+
+  /// Preserves the older increment-only API for its existing consumers.
+  Future<void> incrementOperationalSrs({
+    required String lexemeId,
+    required String languageCode,
+    required String status,
+  }) async {
+    final key = _progressKey('srs', lexemeId, languageCode);
+    await (await _db).transaction((txn) async {
+      await _ensureFreshReady(txn);
+      final prior = _decodeProgress(await _readEncryptedFrom(txn, key));
+      prior.addAll({
+        'lexeme_id': lexemeId,
+        'target_language_code': languageCode,
+        'repetition_count': ((prior['repetition_count'] as num?) ?? 0).toInt() + 1,
+        'interval_days': (prior['interval_days'] as num?)?.toInt() ?? 1,
+        'ease_factor': (prior['ease_factor'] as num?)?.toDouble() ?? 2.5,
+        'status': status,
+      });
+      await _writeEncrypted(txn, key,
+          Uint8List.fromList(utf8.encode(jsonEncode(prior))), replace: true);
+    });
+  }
+
+  Future<void> putOperationalBookmark({
+    required String bookmarkId,
+    required String languageCode,
+    required Map<String, dynamic> data,
+  }) async {
+    final key = _progressKey('bookmark', bookmarkId, languageCode);
+    await (await _db).transaction((txn) async {
+      await _ensureFreshReady(txn);
+      await _writeEncrypted(txn, key,
+          Uint8List.fromList(utf8.encode(jsonEncode(data))), replace: true);
+    });
+  }
+
+  Future<Map<String, dynamic>?> readOperationalBookmark({
+    required String bookmarkId, required String languageCode,
+  }) async {
+    final bytes = await readRecord(_progressKey('bookmark', bookmarkId, languageCode));
+    return bytes == null ? null : _decodeProgress(bytes);
+  }
+
+  Future<void> deleteOperationalBookmark({
+    required String bookmarkId, required String languageCode,
+  }) async {
+    final key = _progressKey('bookmark', bookmarkId, languageCode);
+    await (await _db).transaction((txn) async {
+      await _ensureFreshReady(txn);
+      await txn.delete('vault_entries',
+          where: 'record_hash = ?', whereArgs: <Object>[_index(key)]);
+    });
+  }
+
+
+  Future<void> _hydrateOperationalRow(
+      DatabaseExecutor destination, String table, Map<String, dynamic> row) async {
+    if (table == 'srs_progress' && row['lexeme_id'] is String) {
+      final id = row['lexeme_id'] as String;
+      final lang = (row['target_language_code'] as String?) ?? 'de';
+      final normalized = <String, Object?>{
+        ...row,
+        'target_language_code': lang,
+        'repetition_count': row['repetition_count'] ?? 0,
+        'interval_days': row['interval_days'] ?? 1,
+        'ease_factor': row['ease_factor'] ?? 2.5,
+        'status': row['status'] ?? 'learning',
+      };
+      await _writeEncrypted(destination, _progressKey('srs', id, lang),
+          Uint8List.fromList(utf8.encode(jsonEncode(normalized))),
+          replace: true);
+    } else if (table == 'bookmarks' || table == 'vault_bookmarks') {
+      final id = row['id'] ?? row['lexeme_id'] ?? row['word'];
+      if (id is! String || id.isEmpty) return;
+      final lang = (row['target_language_code'] as String?) ?? 'de';
+      final payload = row['payload'];
+      final live = payload is String
+          ? _decodeProgress(Uint8List.fromList(utf8.encode(payload)))
+          : Map<String, dynamic>.from(row);
+      await _writeEncrypted(destination, _progressKey('bookmark', id, lang),
+          Uint8List.fromList(utf8.encode(jsonEncode(live))), replace: true);
+    }
+  }
+
+  Future<void> _activateArchivedSnapshot() async {
+    await (await _db).transaction((txn) async {
+      if (await _readEncryptedFrom(txn, _operationalReadyId) != null) return;
+      final manifestBytes = await _readEncryptedFrom(txn, _manifestId);
+      if (manifestBytes == null) throw StateError('Archived vault manifest missing');
+      final manifest = _decodeProgress(manifestBytes);
+      if (manifest['format'] != 'legacy-sqlite-snapshot-v1' ||
+          manifest['tables'] is! List) {
+        throw StateError('Archived vault manifest is not supported');
+      }
+      final tables = manifest['tables'] as List;
+      final counts = <String, int>{};
+      var total = 0;
+      for (final item in tables) {
+        final record = Map<String, dynamic>.from(item as Map);
+        final name = record['name'];
+        final count = record['count'];
+        if (name is! String || count is! int || count < 0) {
+          throw StateError('Archived vault table is malformed');
+        }
+        total += count;
+        if (total > _maximumLegacyRows) {
+          throw StateError('Archived vault exceeds safe migration limit');
+        }
+        counts[name] = count;
+      }
+      await _verifyLegacySnapshot(txn, counts);
+      for (var t = 0; t < tables.length; t++) {
+        final table = Map<String, dynamic>.from(tables[t] as Map);
+        final name = table['name'] as String;
+        if (name != 'srs_progress' &&
+            name != 'bookmarks' && name != 'vault_bookmarks') continue;
+        for (var index = 0; index < (table['count'] as int); index++) {
+          final plain = await _readEncryptedFrom(txn, _rowId(t, index));
+          if (plain == null) throw StateError('Archived vault row missing');
+          await _hydrateOperationalRow(txn, name, _decodeProgress(plain));
+        }
+      }
+      await _writeEncrypted(txn, _operationalReadyId,
+          Uint8List.fromList(utf8.encode(
+              jsonEncode({'format': 'operational-progress-v1',
+                          'origin': 'migrated'}))));
+    });
   }
 
   /// Transfers every user-owned SQLite table (including SRS, history and
@@ -148,20 +378,22 @@ class UserVaultSecurityService {
   Future<void> _writeEncrypted(
     DatabaseExecutor destination,
     String id,
-    Uint8List plaintext,
-  ) async {
+    Uint8List plaintext, {
+    bool replace = false,
+  }) async {
     _validateId(id);
     if (plaintext.length > maximumRecordBytes) {
       throw StateError('Legacy record exceeds vault limit');
     }
     final cipher = await _cipher.encrypt(id, plaintext);
-    if (cipher.length < 29 || cipher[0] != 1) {
-      throw StateError('Hardware vault returned an invalid envelope');
+    if (cipher.length < 29 || (cipher[0] != 1 && cipher[0] != 2)) {
+      throw StateError('Vault cipher returned an invalid envelope');
     }
     await destination.insert('vault_entries', <String, Object>{
       'record_hash': _index(id),
       'ciphertext': cipher,
-    }, conflictAlgorithm: ConflictAlgorithm.abort);
+    }, conflictAlgorithm: replace
+        ? ConflictAlgorithm.replace : ConflictAlgorithm.abort);
   }
 
 
@@ -174,7 +406,7 @@ class UserVaultSecurityService {
     if (rows.isEmpty) return null;
     final encrypted = rows.single['ciphertext'];
     if (encrypted is! Uint8List ||
-        encrypted.length < 29 || encrypted[0] != 1) {
+        encrypted.length < 29 || (encrypted[0] != 1 && encrypted[0] != 2)) {
       throw StateError('Vault record is corrupt');
     }
     return _cipher.decrypt(id, encrypted);
@@ -286,6 +518,8 @@ class UserVaultSecurityService {
                 final bytes = Uint8List.fromList(utf8.encode(jsonEncode(row)));
                 rowDigests.write(sha256.convert(bytes).toString());
                 await _writeEncrypted(vaultTxn, _rowId(t, offset + r), bytes);
+                // The imported active index and snapshot commit together.
+                await _hydrateOperationalRow(vaultTxn, name, row);
               }
             }
             tables.add(<String, Object?>{
@@ -305,6 +539,9 @@ class UserVaultSecurityService {
           };
           await _writeEncrypted(vaultTxn, _manifestId,
               Uint8List.fromList(utf8.encode(jsonEncode(manifest))));
+          await _writeEncrypted(vaultTxn, _operationalReadyId,
+              Uint8List.fromList(utf8.encode(
+                  jsonEncode({'format': 'operational-progress-v1'}))));
         });
         // Do not commit a vault snapshot until every record decrypts and its
         // counts and digests match the original SQLite read transaction.

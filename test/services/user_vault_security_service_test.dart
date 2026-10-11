@@ -16,6 +16,14 @@ class FakeCipher implements VaultCipher {
   Future<Uint8List> decrypt(String id,Uint8List data) async =>
       Uint8List.fromList(data.skip(29).map((value)=>value^0x55));
 }
+class SoftwareEnvelopeCipher extends FakeCipher {
+  @override
+  Future<Uint8List> encrypt(String id, Uint8List data) async {
+    final result = await super.encrypt(id, data);
+    result[0] = 2;
+    return result;
+  }
+}
 class CorruptingCipher extends FakeCipher {
   @override
   Future<Uint8List> decrypt(String id, Uint8List data) async {
@@ -74,6 +82,79 @@ void main() {
       throwsArgumentError);
   });
 
+  test('versioned software AES envelope is accepted without plaintext SQLite', () async {
+    final vault = UserVaultSecurityService(
+      cipher: SoftwareEnvelopeCipher(), openVaultDatabase: () async => db);
+    await vault.putRecord('bookmark:1', Uint8List.fromList([72, 105]));
+    final encrypted = (await db.query('vault_entries')).single['ciphertext']
+        as Uint8List;
+    expect(encrypted.first, 2);
+    expect(await vault.readRecord('bookmark:1'), [72, 105]);
+  });
+
+  test('pending legacy database keeps the original operational route', () async {
+    final temporary = await Directory.systemTemp.createTemp('vault-pending-');
+    final oldPath = '${temporary.path}/user_progress_v2.db';
+    try {
+      final legacy = await openDatabase(oldPath, singleInstance: false);
+      await legacy.execute('CREATE TABLE srs_progress (lexeme_id TEXT PRIMARY KEY)');
+      await legacy.insert('srs_progress', {'lexeme_id': 'keep-learning'});
+      await legacy.close();
+      final service = UserVaultSecurityService(
+        cipher: FakeCipher(),
+        openVaultDatabase: () async => db,
+        legacyDatabasePath: () async => oldPath,
+      );
+      expect(await service.isOperationalActive, isFalse);
+      expect(await File(oldPath).exists(), isTrue);
+      expect(await db.query('vault_entries'), isEmpty);
+    } finally {
+      await temporary.delete(recursive: true);
+    }
+  });
+
+  test('fresh vault authority remains active if a legacy file appears later', () async {
+    final temporary = await Directory.systemTemp.createTemp('vault-fresh-');
+    final oldPath = '${temporary.path}/user_progress_v2.db';
+    try {
+      final service = UserVaultSecurityService(
+        cipher: FakeCipher(),
+        openVaultDatabase: () async => db,
+        legacyDatabasePath: () async => oldPath,
+      );
+      expect(await service.isOperationalActive, isTrue);
+      final legacy = await openDatabase(oldPath, singleInstance: false);
+      await legacy.close();
+      expect(await service.isOperationalActive, isTrue);
+    } finally {
+      await temporary.delete(recursive: true);
+    }
+  });
+
+  test('encrypted operational SRS and bookmarks are live and language scoped', () async {
+    final service = UserVaultSecurityService(
+      cipher: FakeCipher(), openVaultDatabase: () async => db);
+    final first = await service.gradeOperationalSrs(
+      lexemeId: 'Haus', languageCode: 'de', grade: 3);
+    final second = await service.gradeOperationalSrs(
+      lexemeId: 'Haus', languageCode: 'de', grade: 3);
+    expect(first.repetitionCount, 1);
+    expect(second.repetitionCount, 2);
+    expect((await service.readOperationalSrs(
+      lexemeId: 'Haus', languageCode: 'fr')), isNull);
+    await service.putOperationalBookmark(
+      bookmarkId: 'item-1', languageCode: 'tr', data: {'word': 'ev'});
+    expect((await service.readOperationalBookmark(
+      bookmarkId: 'item-1', languageCode: 'tr'))?['word'], 'ev');
+    expect((await service.readOperationalBookmark(
+      bookmarkId: 'item-1', languageCode: 'de')), isNull);
+    await service.deleteOperationalBookmark(
+      bookmarkId: 'item-1', languageCode: 'tr');
+    expect(await service.readOperationalBookmark(
+      bookmarkId: 'item-1', languageCode: 'tr'), isNull);
+    expect((await db.query('vault_entries')).toString(), isNot(contains('Haus')));
+  });
+
   test('migrates all legacy tables to an encrypted, verified snapshot', () async {
     final temporary = await Directory.systemTemp.createTemp('vault-migration-');
     final oldPath = '${temporary.path}/user_progress_v2.db';
@@ -105,7 +186,7 @@ void main() {
       )) as Map<String, dynamic>;
       expect(manifest['format'], 'legacy-sqlite-snapshot-v1');
       final rows = await db.query('vault_entries');
-      expect(rows, hasLength(4)); // Three rows plus encrypted manifest.
+      expect(rows, hasLength(7)); // Snapshot, active records and ready marker.
       expect(rows.toString(), isNot(contains('Haus')));
       expect(rows.toString(), isNot(contains('Buch')));
       final srs = jsonDecode(utf8.decode(
@@ -116,6 +197,18 @@ void main() {
         (await service.readRecord('legacy/v1/t1/r0'))!,
       )) as Map<String, dynamic>;
       expect(history['evidence'], {'sqlite_blob_b64': 'AP8H'});
+      expect(await service.isOperationalActive, isTrue);
+      // Simulate a snapshot produced before operational marker support.
+      await service.deleteRecord('progress/v1/ready');
+      expect(await service.isOperationalActive, isTrue);
+      final operational = await service.readOperationalSrs(
+        lexemeId: 'Haus', languageCode: 'de');
+      expect(operational?['repetition_count'], 4);
+      expect((await service.readOperationalBookmark(
+        bookmarkId: 'b1', languageCode: 'de'))?['word'], 'Buch');
+      final graded = await service.gradeOperationalSrs(
+        lexemeId: 'Haus', languageCode: 'de', grade: 3);
+      expect(graded.repetitionCount, 5);
       expect((await service.migrateLegacyProgressDatabase()).migrated, isFalse);
     } finally {
       await temporary.delete(recursive: true);

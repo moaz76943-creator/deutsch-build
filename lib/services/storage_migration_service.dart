@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-import 'database_service.dart';
+import 'database_lifecycle_contract.dart';
 import 'storage_maintenance_service.dart';
 
 typedef PackStorageDirectoryProvider = Future<Directory> Function();
@@ -33,21 +33,23 @@ class StorageMigrationService {
     PackStorageDirectoryProvider? internalDirectory,
     ExternalPackDirectoryProvider? externalDirectories,
     FreeDiskSpaceProbe? freeSpaceProbe,
-    Future<void> Function(String languageCode)? closeContentDb,
+    DatabaseCloserCallback? closeContentDb,
     bool? androidPlatform,
   })  : _internalDirectory = internalDirectory ?? _defaultInternalDirectory,
         _externalDirectories =
             externalDirectories ?? getExternalStorageDirectories,
         _freeSpaceProbe = freeSpaceProbe,
         _androidPlatform = androidPlatform ?? Platform.isAndroid,
-        _closeContentDb = closeContentDb ??
-            ((languageCode) =>
-                DatabaseService.instance.closeContentDb(languageCode));
+        _closeContentDb = closeContentDb ?? _missingDatabaseCloser;
 
   final PackStorageDirectoryProvider _internalDirectory;
   final ExternalPackDirectoryProvider _externalDirectories;
   final FreeDiskSpaceProbe? _freeSpaceProbe;
-  final Future<void> Function(String) _closeContentDb;
+  final DatabaseCloserCallback _closeContentDb;
+
+  static Future<void> _missingDatabaseCloser(String languageCode) async {
+    throw StateError('A database close callback is required to move an open SQLite pack');
+  }
   final bool _androidPlatform;
 
   static final RegExp _filename = RegExp(

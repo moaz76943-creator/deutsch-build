@@ -5,16 +5,16 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/audio/offline_audio_manager.dart';
+import '../services/hybrid_audio_service.dart';
 import '../core/srs/review_command_port.dart';
 import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
 import '../services/fts_search_service.dart';
-import '../services/srs_scheduler_service.dart';
 import '../widgets/bidi_lexicon_view.dart';
 import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
 import '../widgets/phonetic_ipa_view.dart';
+import '../widgets/resilient_text_container.dart';
 import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
 /// Open the installed content pack instead of displaying demonstration words.
@@ -41,6 +41,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _flipController;
   late final Animation<double> _flipAnimation;
+  final HybridAudioService _audio = HybridAudioService();
 
   List<Map<String, dynamic>> _cards = <Map<String, dynamic>>[];
   String _languageCode = 'de';
@@ -71,7 +72,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   void dispose() {
     _loadGeneration++;
     _flipController.dispose();
-    unawaited(OfflineAudioManager.instance.stop());
+    unawaited(_audio.dispose());
     super.dispose();
   }
 
@@ -96,6 +97,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   }
 
   Future<void> _loadCards(String languageCode) async {
+    unawaited(_audio.stop());
     final generation = ++_loadGeneration;
     if (!mounted) return;
     setState(() {
@@ -159,11 +161,26 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     if (_isFlipped) {
       _flipController.forward();
       if (_headword.isNotEmpty) {
-        unawaited(OfflineAudioManager.instance.speak(_headword));
+        unawaited(_playCardAudio());
       }
     } else {
       _flipController.reverse();
     }
+  }
+
+
+  Future<void> _playCardAudio() async {
+    final card = _currentCard;
+    if (card == null) return;
+    final fields = _fields(card);
+    final ipa = _string(<String, dynamic>{...fields, ...card},
+        <String>['ipa', 'phonetic_ipa', 'ipa_transcription']);
+    await _audio.playAudio(
+      text: _headword,
+      languageCode: _languageCode,
+      ipa: ipa.isEmpty ? null : ipa,
+      context: context,
+    );
   }
 
   Future<void> _handleRating(ReviewRating rating) async {
@@ -190,9 +207,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       if (lexemeId.isEmpty) {
         throw StateError('Cannot persist a review without a lexeme ID');
       }
-      final progressDb = await DatabaseService.instance.progressDb;
-      await SrsSchedulerService().gradeAndPersist(
-        progressDb: progressDb,
+      await DatabaseService.instance.gradeAndPersistSrs(
         lexemeId: lexemeId,
         languageCode: languageCode,
         grade: grade,
@@ -312,8 +327,10 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                               label: const Text('إعادة المحاولة'),
                             ),
                           ],
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          Wrap(
+                             alignment: WrapAlignment.center,
+                             spacing: 6,
+                             runSpacing: 8,
                             children: <Widget>[
                               _ratingButton('مجدداً', Colors.redAccent, ReviewRating.again),
                               _ratingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
@@ -341,44 +358,52 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     final ipa = _string(<String, dynamic>{...fields, ...card},
         <String>['ipa', 'phonetic_ipa', 'ipa_transcription']);
     return Container(
-      width: 320,
+      width: double.infinity,
       height: 400,
+      constraints: const BoxConstraints(maxWidth: 320),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            _headword,
-            textDirection: isRtlLanguage(_languageCode)
-                ? TextDirection.rtl : TextDirection.ltr,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ResilientTextContainer(
+              text: _headword,
+              maxLines: 6,
+              textDirection: isRtlLanguage(_languageCode)
+                  ? TextDirection.rtl : TextDirection.ltr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
-          if (ipa.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 14),
-            PhoneticIpaView(ipa: ipa),
+            if (ipa.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 14),
+              PhoneticIpaView(ipa: ipa),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildBackCard() {
     final card = _currentCard!;
+    final fields = _fields(card);
+    final translation = _string(<String, dynamic>{...fields, ...card},
+        <String>['meaning', 'translation_ar', 'translation', 'definition_ar']);
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
       child: Container(
-        width: 320,
+        width: double.infinity,
         height: 400,
+        constraints: const BoxConstraints(maxWidth: 320),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: const Color(0xFF334155),
@@ -389,9 +414,20 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              if (translation.isNotEmpty) ...<Widget>[
+                ResilientTextContainer(
+                  text: translation,
+                  maxLines: 8,
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 22, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+              ],
               LexiconRichDetails(
                 entry: card,
                 languageCode: _languageCode,
+                showMeaning: translation.isEmpty,
               ),
               TextButton.icon(
                 onPressed: () => WordDeepDiveSheet.show(
