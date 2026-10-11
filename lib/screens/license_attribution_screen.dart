@@ -26,7 +26,19 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
     // Bundled German pack is not tracked by the download registry.
     if (!result.any((e) => e['languageCode'] == 'de')) {
       result.insert(0, {'languageCode': 'de', 'version': '1.0.0',
-        'packId': 'de-bundled', 'bundled': true});
+        'packId': 'de-bundled',
+          'bundled': true,
+          'licenseId': 'CC-BY-SA-4.0',
+          'license': 'CC BY-SA 4.0',
+          'licenseName': 'CC BY-SA 4.0',
+          'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/',
+          'attribution': {
+            'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
+            'licenseId': 'CC-BY-SA-4.0',
+            'license': 'CC BY-SA 4.0',
+            'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/',
+            'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators'
+          }});
     }
     return result;
   }

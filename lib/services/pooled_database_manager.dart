@@ -122,7 +122,7 @@ class PooledDatabaseManager {
     final db = _connections[code];
     if (db == null) return;
     if (db.isOpen) {
-      if (_beforeClose != null) await _beforeClose(db);
+      if (_beforeClose != null) await _beforeClose!(db);
       await db.close();
     }
     _connections.remove(code);
