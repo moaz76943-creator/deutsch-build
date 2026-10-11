@@ -125,6 +125,196 @@ class UserVaultSecurityService {
 
   static const String _operationalReadyId = 'progress/v1/ready';
 
+  // Bounded encrypted catalogs: no plaintext lexeme or bookmark IDs in SQLite.
+  static const int _catalogBuckets = 256;
+
+  static String _catalogKey(String kind, String id, String language) {
+    final key = _progressKey(kind, id, language);
+    return 'progress/v1/catalog/$kind/${_index(key).substring(0, 2)}';
+  }
+
+  Future<void> _catalogMutation(DatabaseExecutor txn,
+      String kind, String id, String language, {required bool add}) async {
+    final key = _catalogKey(kind, id, language);
+    final raw = await _readEncryptedFrom(txn, key);
+    final entries = raw == null
+        ? <Map<String, dynamic>>[]
+        : (jsonDecode(utf8.decode(raw)) as List)
+            .map((entry) => Map<String, dynamic>.from(entry as Map)).toList();
+    final index = entries.indexWhere((entry) =>
+        entry['id'] == id && entry['language_code'] == language);
+    if (add && index < 0) {
+      entries.add({'id': id, 'language_code': language});
+    } else if (!add && index >= 0) {
+      entries.removeAt(index);
+    } else {
+      return;
+    }
+    entries.sort((a, b) {
+      final x = (a['language_code'] as String)
+          .compareTo(b['language_code'] as String);
+      return x != 0 ? x : (a['id'] as String).compareTo(b['id'] as String);
+    });
+    if (entries.isEmpty) {
+      await txn.delete('vault_entries',
+          where: 'record_hash = ?', whereArgs: <Object>[_index(key)]);
+      await _catalogMutation(txn, 'bookmark', bookmarkId, languageCode, add: false);
+    } else {
+      await _writeEncrypted(txn, key,
+          Uint8List.fromList(utf8.encode(jsonEncode(entries))), replace: true);
+    }
+  }
+
+  /// Consistent live snapshot. Archive IDs supplement catalogs created after
+  /// the phase-3 migration, without replacing newer active SRS values.
+  Future<Map<String, List<Map<String, dynamic>>>> exportOperationalSnapshot() async {
+    return (await _db).transaction((txn) async {
+      final records = <String, List<Map<String, dynamic>>>{
+        'srs': <Map<String, dynamic>>[],
+        'bookmarks': <Map<String, dynamic>>[],
+      };
+      final seen = <String>{};
+      Future<void> collect(String kind, String id, String lang,
+          {bool catalog = false}) async {
+        final key = _progressKey(kind, id, lang);
+        if (!seen.add(key)) return;
+        if (seen.length > _maximumLegacyRows) {
+          throw StateError('Operational progress exceeds export limit');
+        }
+        final raw = await _readEncryptedFrom(txn, key);
+        if (raw == null) {
+          if (catalog) throw StateError('Vault catalog references a missing record');
+          return; // Deleted record from an old immutable migration snapshot.
+        }
+        final data = _decodeProgress(raw);
+        if (kind == 'srs') {
+          if (data['lexeme_id'] != id ||
+              data['target_language_code'] != lang) {
+            throw StateError('Vault SRS identity mismatch');
+          }
+          records['srs']!.add(data);
+        } else {
+          records['bookmarks']!.add({
+            'id': id, 'language_code': lang, 'data': data,
+          });
+        }
+      }
+      for (final kind in <String>['srs', 'bookmark']) {
+        for (var bucket = 0; bucket < _catalogBuckets; bucket++) {
+          final key = 'progress/v1/catalog/$kind/${bucket.toRadixString(16).padLeft(2, '0')}';
+          final raw = await _readEncryptedFrom(txn, key);
+          if (raw == null) continue;
+          final entries = jsonDecode(utf8.decode(raw));
+          if (entries is! List) throw StateError('Corrupt vault catalog');
+          for (final item in entries) {
+            final entry = Map<String, dynamic>.from(item as Map);
+            final id = entry['id'];
+            final lang = entry['language_code'];
+            if (id is! String || lang is! String ||
+                _catalogKey(kind, id, lang) != key) {
+              throw StateError('Vault catalog identity mismatch');
+            }
+            await collect(kind, id, lang, catalog: true);
+          }
+        }
+      }
+      final manifestRaw = await _readEncryptedFrom(txn, _manifestId);
+      if (manifestRaw != null) {
+        final manifest = _decodeProgress(manifestRaw);
+        final tables = manifest['tables'];
+        if (tables is! List) throw StateError('Corrupt legacy manifest');
+        for (var t = 0; t < tables.length; t++) {
+          final table = Map<String, dynamic>.from(tables[t] as Map);
+          final name = table['name'];
+          if (name != 'srs_progress' && name != 'bookmarks' &&
+              name != 'vault_bookmarks') continue;
+          final count = table['count'];
+          if (count is! int || count < 0 || count > _maximumLegacyRows) {
+            throw StateError('Invalid legacy row count');
+          }
+          for (var n = 0; n < count; n++) {
+            final raw = await _readEncryptedFrom(txn, _rowId(t, n));
+            if (raw == null) throw StateError('Missing legacy snapshot row');
+            final row = _decodeProgress(raw);
+            final id = name == 'srs_progress' ? row['lexeme_id'] :
+                (row['id'] ?? row['lexeme_id'] ?? row['word']);
+            if (id is String && id.isNotEmpty) {
+              await collect(name == 'srs_progress' ? 'srs' : 'bookmark',
+                  id, (row['target_language_code'] as String?) ?? 'de');
+            }
+          }
+        }
+      }
+      for (final rows in records.values) {
+        rows.sort((a, b) {
+          final langA = (a['target_language_code'] ?? a['language_code']).toString();
+          final langB = (b['target_language_code'] ?? b['language_code']).toString();
+          final cmp = langA.compareTo(langB);
+          return cmp != 0 ? cmp :
+              (a['lexeme_id'] ?? a['id']).toString()
+                  .compareTo((b['lexeme_id'] ?? b['id']).toString());
+        });
+      }
+      return records;
+    });
+  }
+
+  /// Transactional restoration: progress, bookmarks and their encrypted
+  /// catalogs are updated together. Unmentioned local entries remain intact.
+  Future<Map<String, int>> restoreOperationalSnapshot({
+    required List<Map<String, Object?>> srs,
+    required List<Map<String, dynamic>> bookmarks,
+    required bool Function(Map<String, Object?> local,
+        Map<String, Object?> incoming) incomingWins,
+  }) async {
+    return (await _db).transaction((txn) async {
+      await _ensureFreshReady(txn);
+      var inserted = 0, updated = 0, unchanged = 0;
+      var bookmarkInserted = 0, bookmarkUpdated = 0;
+      for (final incoming in srs) {
+        final id = incoming['lexeme_id'] as String;
+        final lang = incoming['target_language_code'] as String;
+        final key = _progressKey('srs', id, lang);
+        final previous = await _readEncryptedFrom(txn, key);
+        if (previous != null &&
+            !incomingWins(Map<String, Object?>.from(_decodeProgress(previous)), incoming)) {
+          unchanged++;
+          continue;
+        }
+        await _writeEncrypted(txn, key, Uint8List.fromList(utf8.encode(jsonEncode(incoming))),
+            replace: true);
+        await _catalogMutation(txn, 'srs', id, lang, add: true);
+        if (previous == null) { inserted++; } else { updated++; }
+      }
+      for (final item in bookmarks) {
+        final id = item['id'] as String;
+        final lang = item['language_code'] as String;
+        final data = Map<String, dynamic>.from(item['data'] as Map);
+        final key = _progressKey('bookmark', id, lang);
+        final previous = await _readEncryptedFrom(txn, key);
+        if (previous != null &&
+            jsonEncode(_decodeProgress(previous)) == jsonEncode(data)) continue;
+        await _writeEncrypted(txn, key,
+            Uint8List.fromList(utf8.encode(jsonEncode(data))), replace: true);
+        await _catalogMutation(txn, 'bookmark', id, lang, add: true);
+        if (previous == null) { bookmarkInserted++; } else { bookmarkUpdated++; }
+      }
+      return {
+        'inserted': inserted, 'updated': updated, 'unchanged': unchanged,
+        'bookmarksInserted': bookmarkInserted, 'bookmarksUpdated': bookmarkUpdated,
+      };
+    });
+  }
+
+  // Archive encryption uses the same hardware/software AES vault key.
+  // Archives are device-bound (not cross-device password backups).
+  Future<Uint8List> sealArchiveChunk(int index, Uint8List data) =>
+      _cipher.encrypt('progress-backup/v2/chunk/$index', data);
+
+  Future<Uint8List> unsealArchiveChunk(int index, Uint8List data) =>
+      _cipher.decrypt('progress-backup/v2/chunk/$index', data);
+
+
   static String _progressKey(String kind, String id, String languageCode) {
     if (id.trim().isEmpty || languageCode.trim().isEmpty) {
       throw ArgumentError('Progress identity cannot be empty');
@@ -197,8 +387,9 @@ class UserVaultSecurityService {
               intervalDays: (prior['interval_days'] as num).toInt(),
               easeFactor: (prior['ease_factor'] as num).toDouble(),
             );
+      final timestamp = (reviewedAt ?? DateTime.now()).toUtc();
       final schedule = SrsSchedulerService().calculate(
-        grade: grade, previous: state, reviewedAt: reviewedAt);
+        grade: grade, previous: state, reviewedAt: timestamp);
       await _writeEncrypted(txn, key, Uint8List.fromList(utf8.encode(jsonEncode({
         'lexeme_id': lexemeId,
         'target_language_code': languageCode,
@@ -206,8 +397,10 @@ class UserVaultSecurityService {
         'interval_days': schedule.intervalDays,
         'ease_factor': schedule.easeFactor,
         'next_due_at': schedule.nextReviewEpoch,
+        'last_reviewed_at': timestamp.millisecondsSinceEpoch ~/ 1000,
         'status': schedule.repetitionCount > 1 ? 'review' : 'learning',
       }))), replace: true);
+      await _catalogMutation(txn, 'srs', lexemeId, languageCode, add: true);
       return schedule;
     });
   }
@@ -239,6 +432,7 @@ class UserVaultSecurityService {
       });
       await _writeEncrypted(txn, key,
           Uint8List.fromList(utf8.encode(jsonEncode(prior))), replace: true);
+      await _catalogMutation(txn, 'srs', lexemeId, languageCode, add: true);
     });
   }
 
@@ -252,6 +446,7 @@ class UserVaultSecurityService {
       await _ensureFreshReady(txn);
       await _writeEncrypted(txn, key,
           Uint8List.fromList(utf8.encode(jsonEncode(data))), replace: true);
+      await _catalogMutation(txn, 'bookmark', bookmarkId, languageCode, add: true);
     });
   }
 
@@ -290,6 +485,7 @@ class UserVaultSecurityService {
       await _writeEncrypted(destination, _progressKey('srs', id, lang),
           Uint8List.fromList(utf8.encode(jsonEncode(normalized))),
           replace: true);
+      await _catalogMutation(destination, 'srs', id, lang, add: true);
     } else if (table == 'bookmarks' || table == 'vault_bookmarks') {
       final id = row['id'] ?? row['lexeme_id'] ?? row['word'];
       if (id is! String || id.isEmpty) return;
@@ -300,6 +496,7 @@ class UserVaultSecurityService {
           : Map<String, dynamic>.from(row);
       await _writeEncrypted(destination, _progressKey('bookmark', id, lang),
           Uint8List.fromList(utf8.encode(jsonEncode(live))), replace: true);
+      await _catalogMutation(destination, 'bookmark', id, lang, add: true);
     }
   }
 

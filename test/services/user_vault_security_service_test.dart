@@ -186,7 +186,7 @@ void main() {
       )) as Map<String, dynamic>;
       expect(manifest['format'], 'legacy-sqlite-snapshot-v1');
       final rows = await db.query('vault_entries');
-      expect(rows, hasLength(7)); // Snapshot, active records and ready marker.
+      expect(rows, hasLength(9)); // Snapshot, active records, catalogs, ready marker.
       expect(rows.toString(), isNot(contains('Haus')));
       expect(rows.toString(), isNot(contains('Buch')));
       final srs = jsonDecode(utf8.decode(
