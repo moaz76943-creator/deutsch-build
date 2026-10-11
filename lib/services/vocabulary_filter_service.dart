@@ -46,6 +46,7 @@ class VocabularyFilterService {
     int? maxFrequencyRank,
     int limit = 40,
     int offset = 0,
+    String searchText = '',
   }) async {
     _validatePagination(limit, offset);
     if (maxFrequencyRank != null && maxFrequencyRank < 1) {
@@ -71,6 +72,7 @@ class VocabularyFilterService {
       maxFrequencyRank: maxFrequencyRank,
       limit: limit,
       offset: offset,
+      searchText: searchText,
       cefrSource: schema.cefrSource.name,
       hasFrequencyRankColumn: schema.hasFrequencyRank,
     );
@@ -86,6 +88,7 @@ class VocabularyFilterService {
     int? maxFrequencyRank,
     int limit = 40,
     int offset = 0,
+    String searchText = '',
     String cefrSource = 'indexedColumn',
     bool hasFrequencyRankColumn = true,
   }) {
@@ -134,6 +137,14 @@ class VocabularyFilterService {
           _ => throw StateError('Unexpected filter level'),
         });
       }
+    }
+
+    // Filter at the database, before LIMIT/OFFSET, rather than filtering a
+    // truncated result list in Dart. This fallback remains usable without FTS.
+    final searchTerm = searchText.trim();
+    if (searchTerm.isNotEmpty) {
+      sql.write(' AND (l.surface LIKE ? OR l.fields_json LIKE ?)');
+      args.addAll(<String>['%$searchTerm%', '%$searchTerm%']);
     }
 
     if (maxFrequencyRank != null) {

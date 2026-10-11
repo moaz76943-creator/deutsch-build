@@ -4,6 +4,13 @@ import '../widgets/language_selector_button.dart';
 import '../core/srs/review_command_port.dart';
 import '../core/audio/offline_audio_manager.dart';
 import '../services/local_database_service.dart';
+import '../services/database_service.dart';
+import '../widgets/phonetic_ipa_view.dart';
+import '../widgets/bidi_lexicon_view.dart';
+import '../widgets/noun_classifier_view.dart';
+import '../widgets/idioms_view.dart';
+import '../widgets/example_sentences_view.dart';
+import 'word_deep_dive_sheet.dart' as detail;
 
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
   final db = await LocalDatabaseService.instance.getContentDb(targetLangCode);
@@ -31,10 +38,42 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   late Animation<double> _flipAnimation;
   bool _isFlipped = false;
   bool _isSubmitting = false;
+  Map<String, dynamic> _card = <String, dynamic>{
+    'lemma': 'das Buch',
+    'surface': 'das Buch',
+    'translation_ar': 'الكتاب',
+    'sentence': 'Ich lese ein Buch.',
+  };
+
+  String _value(String key, [String fallback = '']) =>
+      _card[key]?.toString().trim().isNotEmpty == true
+          ? _card[key].toString().trim()
+          : fallback;
+
+  Map<String, dynamic> get _fields {
+    final raw = _card['fields'];
+    if (raw is Map) {
+      return raw.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return <String, dynamic>{};
+  }
+
+  Future<void> _loadWord() async {
+    try {
+      final words = await DatabaseService.instance.searchDictionary('', 'de');
+      if (mounted && words.isNotEmpty) {
+        setState(() => _card = words.first);
+      }
+    } catch (_) {
+      // Retain the original offline fallback card if the pack is unavailable.
+    }
+  }
+
 
   @override
   void initState() {
     super.initState();
+    _loadWord();
     _flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -56,7 +95,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     });
     if (_isFlipped) {
       _flipController.forward();
-      OfflineAudioManager.instance.speak("das Buch"); 
+      OfflineAudioManager.instance.speak(_value('lemma', _value('surface', 'das Buch'))); 
     } else {
       _flipController.reverse();
     }
@@ -71,8 +110,9 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     if (mounted) {
       setState(() {
         _isSubmitting = false;
-        _toggleFlip(); 
+        _isFlipped = false;
       });
+      _flipController.reverse();
     }
   }
 
@@ -140,43 +180,104 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   }
 
   Widget _buildFrontAppBaseGlassCard() {
+    final word = _value('lemma', _value('surface', 'das Buch'));
+    final ipa = _fields['ipa']?.toString() ?? _value('ipa');
     return Container(
       width: 320,
       height: 400,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
+        ],
       ),
-      alignment: Alignment.center,
-      child: const Text(
-        'das Buch', 
-        style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            word,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white,
+            ),
+          ),
+          if (hasPhoneticData(ipa)) ...<Widget>[
+            const SizedBox(height: 10),
+            PhoneticIpaView(ipa: ipa),
+          ],
+        ],
       ),
     );
   }
 
   Widget _buildBackAppBaseGlassCard() {
+    final fields = _fields;
+    final word = _value('lemma', _value('surface', 'das Buch'));
+    final languageCode = _value('language_code', 'de');
+    final ipa = fields['ipa']?.toString() ?? _value('ipa');
+    final examples = detail.WordDeepDiveSheet.examplesJsonFor(_card);
+    final headwordId = _value('id');
+    final classifier = fields['classifier']?.toString() ??
+        fields['measure_word']?.toString() ?? '';
+    final partOfSpeech = _value('part_of_speech');
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
       child: Container(
         width: 320,
         height: 400,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: const Color(0xFF334155),
           borderRadius: BorderRadius.circular(24),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('الكتاب', style: TextStyle(fontSize: 32, fontFamily: 'Cairo', color: Colors.white)),
-            SizedBox(height: 20),
-            Text('Ich lese ein Buch.', style: TextStyle(fontSize: 18, color: Colors.white70)),
-            Text('أنا أقرأ كتاباً.', style: TextStyle(fontSize: 18, fontFamily: 'Cairo', color: Colors.white70)),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5)),
           ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              if (partOfSpeech.isNotEmpty)
+                NounClassifierView(
+                  noun: word,
+                  languageCode: languageCode,
+                  partOfSpeech: partOfSpeech,
+                  classifier: classifier,
+                  reading: fields['classifier_reading']?.toString() ?? '',
+                  explanation:
+                      fields['classifier_explanation']?.toString() ?? '',
+                ),
+              BidiLexiconView(
+                sourceWord: word,
+                sourceLanguageCode: languageCode,
+                targetExplanation: _value('translation_ar', 'الكتاب'),
+                phonetic: hasPhoneticData(ipa)
+                    ? PhoneticIpaView(ipa: ipa)
+                    : null,
+              ),
+              if (examples != null)
+                ExampleSentencesView(
+                  examplesJson: examples,
+                  keyword: word,
+                  sourceLanguageCode: languageCode,
+                ),
+              if (headwordId.isNotEmpty)
+                IdiomsView(
+                  headwordId: headwordId,
+                  languageCode: languageCode,
+                ),
+              TextButton(
+                onPressed: () => detail.WordDeepDiveSheet.show(
+                  context,
+                  wordData: _card,
+                ),
+                child: const Text('تفاصيل المفردة'),
+              ),
+            ],
+          ),
         ),
       ),
     );
