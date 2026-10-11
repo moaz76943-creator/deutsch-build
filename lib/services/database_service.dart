@@ -39,7 +39,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
 
   static const String germanGoldenSha256 =
-      '359b7e31e06a9c79218e9c8340343529cb3b68d2d4ddac7822880f1c5bfee366';
+      '85a315ec0a5501e52be0620694f3255d29125e223869d606976b5de894a7f860';
   static const String _germanAssetPath =
       'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
   static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
@@ -318,6 +318,120 @@ class DatabaseService {
       'rows': rows.map((row) => Map<String, Object?>.from(row))
           .toList(growable: false),
     });
+  }
+
+
+  /// One language-scoped, bounded daily queue from the active progress ledger.
+  /// Immutable content packs and writable user progress stay in separate DBs.
+  Future<List<Map<String, dynamic>>> loadDueFlashcards(
+    String languageCode, {
+    int limit = 20,
+  }) async {
+    if (limit < 1 || limit > 50) {
+      throw RangeError.range(limit, 1, 50, 'limit');
+    }
+    final code = _normalizeLanguageCode(languageCode);
+    final vaultActive = await _progressVault.isOperationalActive;
+    final dueIds = <String>[];
+    final reviewedIds = <String>{};
+    Database? legacyDb;
+
+    if (vaultActive) {
+      // The operational encrypted vault is the review authority after cutover.
+      // Its read-only snapshot is already bounded by the vault's export limit.
+      final snapshot = await _progressVault.exportOperationalSnapshot();
+      final dueRows = <Map<String, dynamic>>[];
+      final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+      for (final row in snapshot['srs'] ?? <Map<String, dynamic>>[]) {
+        if (row['target_language_code']?.toString() != code) continue;
+        final id = row['lexeme_id']?.toString() ?? '';
+        if (id.isEmpty) continue;
+        reviewedIds.add(id);
+        final dueAt = row['next_due_at'];
+        if (dueAt == null || (dueAt is num && dueAt.toInt() <= now)) {
+          dueRows.add(row);
+        }
+      }
+      int dueTime(Map<String, dynamic> row) =>
+          (row['next_due_at'] as num?)?.toInt() ?? 0;
+      dueRows.sort((a, b) {
+        final byTime = dueTime(a).compareTo(dueTime(b));
+        return byTime != 0
+            ? byTime
+            : a['lexeme_id'].toString().compareTo(b['lexeme_id'].toString());
+      });
+      dueIds.addAll(dueRows.take(limit).map(
+        (row) => row['lexeme_id'].toString(),
+      ));
+    } else {
+      legacyDb = await progressDb;
+      final dueRows = await legacyDb.rawQuery('''
+        SELECT lexeme_id FROM srs_progress
+        WHERE target_language_code = ?
+          AND (next_due_at IS NULL OR
+               next_due_at <= CAST(strftime('%s', 'now') AS INTEGER))
+        ORDER BY next_due_at, lexeme_id
+        LIMIT ?
+      ''', <Object?>[code, limit]);
+      dueIds.addAll(dueRows.map((row) => row['lexeme_id'].toString()));
+    }
+
+    final cards = <Map<String, dynamic>>[];
+    await withContentDb<void>(code, (db) async {
+      if (dueIds.isNotEmpty) {
+        final placeholders = List<String>.filled(dueIds.length, '?').join(',');
+        final rows = await db.rawQuery(
+          'SELECT id, surface, part_of_speech, fields_json '
+          'FROM lexicon WHERE id IN (' + placeholders + ')',
+          dueIds,
+        );
+        final byId = <String, Map<String, Object?>>{
+          for (final row in rows) row['id'].toString(): row,
+        };
+        for (final id in dueIds) {
+          final row = byId[id];
+          if (row != null) cards.add(_unpackLexiconRow(row, code));
+        }
+      }
+
+      // Fill remaining slots only with never-reviewed cards. Paging avoids
+      // materializing the entire dictionary or an unbounded SQL IN clause.
+      const pageSize = 128;
+      var offset = 0;
+      while (cards.length < limit) {
+        final rows = await db.rawQuery('''
+          SELECT id, surface, part_of_speech, fields_json
+          FROM lexicon ORDER BY rowid LIMIT ? OFFSET ?
+        ''', <Object?>[pageSize, offset]);
+        if (rows.isEmpty) break;
+        offset += rows.length;
+
+        final reviewedOnPage = <String>{};
+        if (vaultActive) {
+          reviewedOnPage.addAll(reviewedIds);
+        } else {
+          final ids = rows.map((row) => row['id'].toString()).toList();
+          final placeholders = List<String>.filled(ids.length, '?').join(',');
+          final tracked = await legacyDb!.rawQuery(
+            'SELECT lexeme_id FROM srs_progress '
+            'WHERE target_language_code = ? AND lexeme_id IN (' +
+                placeholders + ')',
+            <Object?>[code, ...ids],
+          );
+          reviewedOnPage.addAll(
+            tracked.map((row) => row['lexeme_id'].toString()),
+          );
+        }
+        for (final row in rows) {
+          final id = row['id']?.toString() ?? '';
+          if (id.isEmpty || reviewedOnPage.contains(id)) continue;
+          cards.add(_unpackLexiconRow(row, code));
+          if (cards.length == limit) break;
+        }
+        if (rows.length < pageSize) break;
+      }
+    });
+    return cards;
   }
 
   /// Interpret both legacy flat values and structured v2 translations.
