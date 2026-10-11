@@ -1,5 +1,6 @@
 import 'package:deutsch_bilarabi/services/clipboard_quick_search_service.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -50,6 +51,37 @@ void main() {
     service.start();
     await service.checkNow();
     expect(matches, isEmpty);
+  });
+
+  test('announces ready only after installing native PROCESS_TEXT handler', () async {
+    const channel = MethodChannel('test/process_text_lifecycle');
+    final methods = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      methods.add(call.method);
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+    final service = ClipboardQuickSearchService(
+      activeLanguageCode: 'de',
+      onMatch: (_, __) {},
+      entryExists: (_, __) async => true,
+      readClipboard: () async => null,
+      processTextChannel: channel,
+      pollInterval: const Duration(hours: 1),
+    );
+    addTearDown(service.dispose);
+
+    service.start();
+    await Future<void>.delayed(Duration.zero);
+    expect(methods, contains('ready'));
+
+    service.stop();
+    await Future<void>.delayed(Duration.zero);
+    expect(methods, contains('notReady'));
   });
 
   test('native PROCESS_TEXT hook handles explicit selections without focus', () async {

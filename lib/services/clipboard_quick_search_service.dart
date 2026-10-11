@@ -81,6 +81,9 @@ class ClipboardQuickSearchService with WidgetsBindingObserver {
       }
       return handleProcessText(call.arguments as String);
     });
+    // Explicit native handshake prevents cold-start selections being sent
+    // before the Dart MethodChannel listener exists.
+    unawaited(_notifyNative('ready'));
     _timer = Timer.periodic(pollInterval, (_) {
       unawaited(checkNow());
     });
@@ -175,6 +178,16 @@ class ClipboardQuickSearchService with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _notifyNative(String method) async {
+    try {
+      await _channel.invokeMethod<void>(method);
+    } on MissingPluginException {
+      // No native bridge on non-Android platforms or legacy installations.
+    } on PlatformException {
+      // Native bridge is optional; clipboard lookups still work offline.
+    }
+  }
+
   void stop() {
     if (!_running) return;
     _running = false;
@@ -183,6 +196,7 @@ class ClipboardQuickSearchService with WidgetsBindingObserver {
     _lastClipboardText = null;
     WidgetsBinding.instance.removeObserver(this);
     FocusManager.instance.removeListener(_onFocusChange);
+    unawaited(_notifyNative('notReady'));
     _channel.setMethodCallHandler(null);
   }
 
