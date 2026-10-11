@@ -3,6 +3,7 @@ import 'package:deutsch_bilarabi/main.dart';
 import 'package:deutsch_bilarabi/providers/lazy_engine_providers.dart';
 import 'package:deutsch_bilarabi/utils/agglutinative_suffix_stripper.dart';
 import 'package:deutsch_bilarabi/providers/active_language_provider.dart';
+import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,4 +91,35 @@ void main() {
     expect(constructed, 1);
     expect(audio.isAudioInitialized, isTrue);
   });
+
+  test('vault, suffix search and Opus streamer are not created by registration',
+      () {
+    var vaultAllocations = 0;
+    var suffixAllocations = 0;
+    final container = ProviderContainer(overrides: [
+      userVaultSecurityProvider.overrideWith((ref) {
+        vaultAllocations++;
+        return UserVaultSecurityService();
+      }),
+      agglutinativeSuffixStripperProvider.overrideWith((ref) {
+        suffixAllocations++;
+        return const AgglutinativeSuffixStripper();
+      }),
+    ]);
+    addTearDown(container.dispose);
+    // Reading callback registrations does not invoke the underlying engines.
+    expect(container.read(lazyDictionaryLookupProvider), isNotNull);
+    expect(container.read(playEmbeddedOpusProvider), isNotNull);
+    expect(container.read(playEmbeddedOpusBytesProvider), isNotNull);
+    expect(vaultAllocations, 0);
+    expect(suffixAllocations, 0);
+    expect(container.read(userVaultSecurityProvider),
+        isA<UserVaultSecurityService>());
+    expect(vaultAllocations, 1);
+    expect(suffixAllocations, 0);
+    expect(container.read(agglutinativeSuffixStripperProvider),
+        isA<AgglutinativeSuffixStripper>());
+    expect(suffixAllocations, 1);
+  });
+
 }
