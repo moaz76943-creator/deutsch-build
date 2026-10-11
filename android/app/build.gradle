@@ -46,17 +46,18 @@ android {
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
+
         // تفعيل Multidex بأبسط شكل ممكن
-        multiDexEnabled true 
+        multiDexEnabled true
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
+            // Local release APK signing only; store distribution requires a release key.
             signingConfig signingConfigs.debug
         }
     }
