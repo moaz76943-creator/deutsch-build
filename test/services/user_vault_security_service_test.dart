@@ -16,6 +16,13 @@ class FakeCipher implements VaultCipher {
   Future<Uint8List> decrypt(String id,Uint8List data) async =>
       Uint8List.fromList(data.skip(29).map((value)=>value^0x55));
 }
+class CorruptingCipher extends FakeCipher {
+  @override
+  Future<Uint8List> decrypt(String id, Uint8List data) async {
+    final plain = await super.decrypt(id, data);
+    return Uint8List.fromList([...plain, 0]);
+  }
+}
 class BrokenCipher implements VaultCipher {
   @override
   Future<Uint8List> encrypt(String id,Uint8List data) async =>
@@ -153,6 +160,29 @@ void main() {
       await expectLater(service.migrateLegacyProgressDatabase(), throwsStateError);
       expect(await File(oldPath).exists(), isTrue);
       expect(await File('$oldPath.migrated').readAsString(), 'original backup');
+    } finally {
+      await temporary.delete(recursive: true);
+    }
+  });
+
+
+  test('failed post-encryption verification rolls back the entire vault', () async {
+    final temporary = await Directory.systemTemp.createTemp('vault-verify-');
+    final oldPath = '${temporary.path}/user_progress_v2.db';
+    try {
+      final legacy = await openDatabase(oldPath, singleInstance: false);
+      await legacy.execute('CREATE TABLE srs_progress (lexeme_id TEXT PRIMARY KEY)');
+      await legacy.insert('srs_progress', {'lexeme_id': 'preserve'});
+      await legacy.close();
+      final service = UserVaultSecurityService(
+        cipher: CorruptingCipher(),
+        openVaultDatabase: () async => db,
+        legacyDatabasePath: () async => oldPath,
+      );
+      await expectLater(service.migrateLegacyProgressDatabase(), throwsA(isA<Exception>()));
+      expect(await db.query('vault_entries'), isEmpty);
+      expect(await File(oldPath).exists(), isTrue);
+      expect(await File('$oldPath.migrated').exists(), isFalse);
     } finally {
       await temporary.delete(recursive: true);
     }
