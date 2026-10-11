@@ -129,7 +129,7 @@ class DeckExportService {
         : '';
     final args = <Object?>[name];
     if (dueOnly) {
-      args.add((now ?? DateTime.now()).millisecondsSinceEpoch);
+      args.add((now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000);
     }
     args.add(limit);
     final progress = await db.rawQuery('''

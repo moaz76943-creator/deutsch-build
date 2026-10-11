@@ -184,19 +184,51 @@ class DatabaseService {
 
     return await openDatabase(
       databasePath,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
-           lexeme_id TEXT PRIMARY KEY,
-           target_language_code TEXT NOT NULL,
-           repetition_count INTEGER NOT NULL DEFAULT 0,
-           interval_days INTEGER NOT NULL DEFAULT 1,
-           ease_factor REAL NOT NULL DEFAULT 2.5,
-           next_due_at INTEGER,
-           status TEXT NOT NULL DEFAULT 'learning'
+            lexeme_id TEXT NOT NULL,
+            target_language_code TEXT NOT NULL,
+            repetition_count INTEGER NOT NULL DEFAULT 0,
+            interval_days INTEGER NOT NULL DEFAULT 1,
+            ease_factor REAL NOT NULL DEFAULT 2.5,
+            next_due_at INTEGER,
+            status TEXT NOT NULL DEFAULT 'learning',
+            PRIMARY KEY (lexeme_id, target_language_code)
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // sqflite runs the upgrade in a transaction. Preserve the existing
+          // scheduling counters/due times while widening the identity key.
+          await db.execute('''
+            CREATE TABLE srs_progress_migration (
+              lexeme_id TEXT NOT NULL,
+              target_language_code TEXT NOT NULL,
+              repetition_count INTEGER NOT NULL DEFAULT 0,
+              interval_days INTEGER NOT NULL DEFAULT 1,
+              ease_factor REAL NOT NULL DEFAULT 2.5,
+              next_due_at INTEGER,
+              status TEXT NOT NULL DEFAULT 'learning',
+              PRIMARY KEY (lexeme_id, target_language_code)
+            )
+          ''');
+          await db.execute('''
+            INSERT INTO srs_progress_migration (
+              lexeme_id, target_language_code, repetition_count,
+              interval_days, ease_factor, next_due_at, status
+            )
+            SELECT lexeme_id, target_language_code, repetition_count,
+                   interval_days, ease_factor, next_due_at, status
+            FROM srs_progress
+          ''');
+          await db.execute('DROP TABLE srs_progress');
+          await db.execute(
+            'ALTER TABLE srs_progress_migration RENAME TO srs_progress',
+          );
+        }
       },
     );
   }
@@ -270,14 +302,17 @@ class DatabaseService {
   }) async {
     try {
       final db = await progressDb;
+      final normalizedCode = _normalizeLanguageCode(languageCode);
       await db.transaction((txn) async {
         await txn.rawInsert('''
-          INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-          VALUES (?, ?,
-            COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-            ?
+          INSERT INTO srs_progress (
+            lexeme_id, target_language_code, repetition_count, status
           )
-        ''', [lexemeId, languageCode, lexemeId, status]);
+          VALUES (?, ?, 1, ?)
+          ON CONFLICT(lexeme_id, target_language_code) DO UPDATE SET
+            repetition_count = srs_progress.repetition_count + 1,
+            status = excluded.status
+        ''', <Object?>[lexemeId, normalizedCode, status]);
       });
     } catch (error) {
       await DiagnosticLedgerService.instance.record(

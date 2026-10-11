@@ -75,13 +75,14 @@ void main() {
     addTearDown(db.close);
     await db.execute('''
       CREATE TABLE srs_progress (
-        lexeme_id TEXT PRIMARY KEY,
+        lexeme_id TEXT NOT NULL,
         target_language_code TEXT NOT NULL,
         repetition_count INTEGER NOT NULL DEFAULT 0,
         interval_days INTEGER NOT NULL DEFAULT 1,
         ease_factor REAL NOT NULL DEFAULT 2.5,
         next_due_at INTEGER,
-        status TEXT NOT NULL DEFAULT 'learning'
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
       )
     ''');
     final scheduler = SrsSchedulerService();
@@ -102,5 +103,57 @@ void main() {
     expect(rows.single['next_due_at'], second.nextReviewEpoch);
     expect(rows.single['interval_days'], 6);
     expect(rows.single['status'], 'review');
+  });
+
+  test('identical lexeme IDs in separate languages never overwrite progress', () async {
+    final db = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(db.close);
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        user_note TEXT,
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    final now = DateTime.utc(2026, 10, 11);
+    await scheduler.gradeAndPersist(
+      progressDb: db, lexemeId: 'shared-id', languageCode: 'de',
+      grade: 3, reviewedAt: now,
+    );
+    await db.update(
+      'srs_progress', <String, Object?>{'user_note': 'retain'},
+      where: 'lexeme_id = ? AND target_language_code = ?',
+      whereArgs: <Object>['shared-id', 'de'],
+    );
+    await scheduler.gradeAndPersist(
+      progressDb: db, lexemeId: 'shared-id', languageCode: 'tr',
+      grade: 4, reviewedAt: now,
+    );
+    await scheduler.gradeAndPersist(
+      progressDb: db, lexemeId: 'shared-id', languageCode: 'de',
+      grade: 3, reviewedAt: now,
+    );
+    final rows = await db.query(
+      'srs_progress', where: 'lexeme_id = ?',
+      whereArgs: <Object>['shared-id'],
+      orderBy: 'target_language_code',
+    );
+    expect(rows, hasLength(2));
+    expect(rows[0]['target_language_code'], 'de');
+    expect(rows[0]['repetition_count'], 2);
+    expect(rows[0]['interval_days'], 6);
+    expect(rows[0]['user_note'], 'retain');
+    expect(rows[1]['target_language_code'], 'tr');
+    expect(rows[1]['repetition_count'], 1);
   });
 }

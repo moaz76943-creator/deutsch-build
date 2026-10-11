@@ -106,11 +106,11 @@ void main() {
     );
     final notDue = await service.loadWords(
       deckName: 'Review', dueOnly: true,
-      now: DateTime.fromMillisecondsSinceEpoch(500),
+      now: DateTime.fromMillisecondsSinceEpoch(500000),
     );
     final due = await service.loadWords(
       deckName: 'Review', dueOnly: true,
-      now: DateTime.fromMillisecondsSinceEpoch(1500),
+      now: DateTime.fromMillisecondsSinceEpoch(1500000),
     );
     expect(notDue, isEmpty);
     expect(due.single.front, 'Haus');

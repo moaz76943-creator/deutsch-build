@@ -103,8 +103,8 @@ class SrsSchedulerService {
       final existing = await txn.query(
         'srs_progress',
         columns: <String>['repetition_count', 'interval_days', 'ease_factor'],
-        where: 'lexeme_id = ?',
-        whereArgs: <Object>[lexemeId],
+        where: 'lexeme_id = ? AND target_language_code = ?',
+        whereArgs: <Object>[lexemeId, languageCode],
         limit: 1,
       );
       final state = existing.isEmpty
@@ -136,8 +136,8 @@ class SrsSchedulerService {
         await txn.update(
           'srs_progress',
           values,
-          where: 'lexeme_id = ?',
-          whereArgs: <Object>[lexemeId],
+          where: 'lexeme_id = ? AND target_language_code = ?',
+          whereArgs: <Object>[lexemeId, languageCode],
         );
       }
       return result;

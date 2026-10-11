@@ -10,6 +10,7 @@ import '../core/srs/review_command_port.dart';
 import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
 import '../services/fts_search_service.dart';
+import '../services/srs_scheduler_service.dart';
 import '../widgets/bidi_lexicon_view.dart';
 import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
@@ -50,6 +51,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   bool _restoringLanguage = false;
   bool _isFlipped = false;
   bool _isSubmitting = false;
+  ReviewRating? _failedRating;
   String? _error;
 
   Map<String, dynamic>? get _currentCard =>
@@ -100,6 +102,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       _languageCode = languageCode;
       _isLoading = true;
       _isFlipped = false;
+      _failedRating = null;
       _error = null;
     });
     _flipController.reset();
@@ -165,14 +168,62 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
 
   Future<void> _handleRating(ReviewRating rating) async {
     if (_isSubmitting || _cards.isEmpty) return;
-    setState(() => _isSubmitting = true);
-    // The SRS scheduling port remains authoritative for review persistence;
-    // UI ratings here only advance the visible card, as in the old screen.
-    await _flipController.reverse();
+    final card = _currentCard;
+    if (card == null) return;
+
+    final generation = _loadGeneration;
+    final languageCode = _languageCode;
+    final lexemeId =
+        (card['lexeme_id'] ?? card['id'])?.toString().trim() ?? '';
+    final grade = switch (rating) {
+      ReviewRating.again => 0,
+      ReviewRating.hard => 2,
+      ReviewRating.good => 3,
+      ReviewRating.easy => 4,
+    };
+
+    setState(() {
+      _isSubmitting = true;
+      _failedRating = null;
+    });
+    try {
+      if (lexemeId.isEmpty) {
+        throw StateError('Cannot persist a review without a lexeme ID');
+      }
+      final progressDb = await DatabaseService.instance.progressDb;
+      await SrsSchedulerService().gradeAndPersist(
+        progressDb: progressDb,
+        lexemeId: lexemeId,
+        languageCode: languageCode,
+        grade: grade,
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          if (generation == _loadGeneration) _failedRating = rating;
+          _isSubmitting = false;
+        });
+      }
+      return; // The current card is retained for an explicit retry.
+    }
+
+    // The card may advance only after the transaction has committed.
+    if (!mounted) return;
+    if (generation != _loadGeneration) {
+      setState(() => _isSubmitting = false);
+      return;
+    }
+    try {
+      await _flipController.reverse();
+    } catch (_) {
+      // The review is already persisted; animation failure must not regrade it.
+    }
     if (!mounted) return;
     setState(() {
-      _cardIndex = (_cardIndex + 1) % _cards.length;
-      _isFlipped = false;
+      if (generation == _loadGeneration) {
+        _cardIndex = (_cardIndex + 1) % _cards.length;
+        _isFlipped = false;
+      }
       _isSubmitting = false;
     });
   }
@@ -246,13 +297,30 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: _isSubmitting
                     ? const CircularProgressIndicator()
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          _ratingButton('مجدداً', Colors.redAccent, ReviewRating.again),
-                          _ratingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
-                          _ratingButton('جيد', Colors.blueAccent, ReviewRating.good),
-                          _ratingButton('سهل', Colors.green, ReviewRating.easy),
+                          if (_failedRating != null) ...<Widget>[
+                            const Text(
+                              'تعذّر حفظ التقييم. لم يتم الانتقال إلى البطاقة التالية.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                            TextButton.icon(
+                              onPressed: () => _handleRating(_failedRating!),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('إعادة المحاولة'),
+                            ),
+                          ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              _ratingButton('مجدداً', Colors.redAccent, ReviewRating.again),
+                              _ratingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
+                              _ratingButton('جيد', Colors.blueAccent, ReviewRating.good),
+                              _ratingButton('سهل', Colors.green, ReviewRating.easy),
+                            ],
+                          ),
                         ],
                       ),
               )

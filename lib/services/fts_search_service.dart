@@ -40,12 +40,14 @@ class FtsSearchService {
     String languageCode, {
     int limit = 20,
   }) async {
-    final database = await _databaseService.getContentDb(languageCode);
-    return searchDatabase(
-      database,
-      query,
-      languageCode: languageCode,
-      limit: limit,
+    return _databaseService.withContentDb(
+      languageCode,
+      (database) => searchDatabase(
+        database,
+        query,
+        languageCode: languageCode,
+        limit: limit,
+      ),
     );
   }
 
@@ -57,12 +59,14 @@ class FtsSearchService {
     String languageCode, {
     int limit = 20,
   }) async {
-    final database = await _databaseService.getContentDb(languageCode);
-    return searchDatabaseWithFeedback(
-      database,
-      query,
-      languageCode: languageCode,
-      limit: limit,
+    return _databaseService.withContentDb(
+      languageCode,
+      (database) => searchDatabaseWithFeedback(
+        database,
+        query,
+        languageCode: languageCode,
+        limit: limit,
+      ),
     );
   }
 
