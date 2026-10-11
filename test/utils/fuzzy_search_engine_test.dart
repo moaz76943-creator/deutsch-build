@@ -45,6 +45,8 @@ void main() {
       expect(FuzzySearchEngine.soundex('Müller'), isNotNull);
       expect(FuzzySearchEngine.soundex('съел'), isNull);
       expect(FuzzySearchEngine.soundex('你好'), isNull);
+      expect(FuzzySearchEngine.soundex(''), isNull);
+      expect(FuzzySearchEngine.soundex('  '), isNull);
     });
   });
 
