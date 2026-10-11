@@ -44,9 +44,9 @@ class VocabularyFilterService {
     String languageCode = 'de',
     VocabularyCefrFilter level = VocabularyCefrFilter.all,
     int? maxFrequencyRank,
-    String query = '',
     int limit = 40,
     int offset = 0,
+    String searchText = '',
   }) async {
     _validatePagination(limit, offset);
     if (maxFrequencyRank != null && maxFrequencyRank < 1) {
@@ -67,16 +67,40 @@ class VocabularyFilterService {
       );
     }
 
+    final term = searchText.trim();
+    final useFts = term.runes.length >= 3;
     final query = buildQuery(
       level: level,
       maxFrequencyRank: maxFrequencyRank,
-      query: query,
       limit: limit,
       offset: offset,
+      searchText: term,
       cefrSource: schema.cefrSource.name,
       hasFrequencyRankColumn: schema.hasFrequencyRank,
+      useFts: useFts,
     );
-    return db.rawQuery(query.sql, query.arguments);
+    if (!useFts) return db.rawQuery(query.sql, query.arguments);
+    try {
+      return await db.rawQuery(query.sql, query.arguments);
+    } on DatabaseException catch (error) {
+      final message = error.toString().toLowerCase();
+      if (!message.contains('no such table: lexicon_fts') &&
+          !message.contains('no such module: fts5') &&
+          !message.contains('no such tokenizer: trigram') &&
+          !message.contains('unable to use function match')) {
+        rethrow;
+      }
+      final fallback = buildQuery(
+        level: level,
+        maxFrequencyRank: maxFrequencyRank,
+        limit: limit,
+        offset: offset,
+        searchText: term,
+        cefrSource: schema.cefrSource.name,
+        hasFrequencyRankColumn: schema.hasFrequencyRank,
+      );
+      return db.rawQuery(fallback.sql, fallback.arguments);
+    }
   }
 
   /// Pure SQL builder, exposed for focused checks without opening a database.
@@ -86,11 +110,12 @@ class VocabularyFilterService {
   static VocabularyFilterQuery buildQuery({
     VocabularyCefrFilter level = VocabularyCefrFilter.all,
     int? maxFrequencyRank,
-    String query = '',
     int limit = 40,
     int offset = 0,
+    String searchText = '',
     String cefrSource = 'indexedColumn',
     bool hasFrequencyRankColumn = true,
+    bool useFts = false,
   }) {
     _validatePagination(limit, offset);
     if (maxFrequencyRank != null && maxFrequencyRank < 1) {
@@ -116,18 +141,6 @@ class VocabularyFilterService {
     }
     sql.write(' WHERE 1 = 1');
 
-    // Apply the term inside SQLite before LIMIT so CEFR searches do not
-    // silently miss matches from a small in-memory sample.
-    if (query.trim().isNotEmpty) {
-      final literal = query.trim()
-          .replaceAll('\\', '\\\\')
-          .replaceAll('%', '\\%')
-          .replaceAll('_', '\\_');
-      sql.write(" AND (l.surface LIKE ? ESCAPE '\\' "
-          "OR l.fields_json LIKE ? ESCAPE '\\')");
-      args.addAll(<String>['%$literal%', '%$literal%']);
-    }
-
     if (level != VocabularyCefrFilter.all) {
       final expression = switch (cefrSource) {
         'indexedColumn' => 'l.cefr_level',
@@ -148,6 +161,25 @@ class VocabularyFilterService {
           VocabularyCefrFilter.b2 => 'B2',
           _ => throw StateError('Unexpected filter level'),
         });
+      }
+    }
+
+    // CEFR and full-text filtering happen before pagination in SQLite.
+    final searchTerm = searchText.trim();
+    if (searchTerm.isNotEmpty) {
+      if (useFts && searchTerm.runes.length >= 3) {
+        sql.write(
+          ' AND l.rowid IN (SELECT rowid FROM lexicon_fts '
+          'WHERE lexicon_fts MATCH ?)',
+        );
+        args.add('"' + searchTerm.replaceAll('"', '""') + '"');
+      } else {
+        sql.write(r" AND (l.surface LIKE ? ESCAPE '\' OR l.fields_json LIKE ? ESCAPE '\')");
+        final slash = String.fromCharCode(92);
+        final literal = searchTerm.replaceAll(slash, slash + slash)
+            .replaceAll('%', slash + '%')
+            .replaceAll('_', slash + '_');
+        args.addAll(<String>['%$literal%', '%$literal%']);
       }
     }
 

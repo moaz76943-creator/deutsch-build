@@ -209,7 +209,7 @@ class LexiconRichDetails extends StatelessWidget {
             sourceWord: word,
             sourceLanguageCode: sourceLanguage,
             targetExplanation: showMeaning ? meaning : '',
-            underHeadword: hasPhoneticData(transcription)
+            phonetic: hasPhoneticData(transcription)
                 ? PhoneticIpaView(ipa: transcription)
                 : null,
           ),

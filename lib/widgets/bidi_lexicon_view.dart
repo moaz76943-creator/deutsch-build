@@ -48,7 +48,7 @@ class BidiLexiconView extends StatelessWidget {
     required this.targetExplanation,
     this.sourceStyle,
     this.explanationStyle,
-    this.underHeadword,
+    this.phonetic,
   });
 
   final String sourceWord;
@@ -56,8 +56,8 @@ class BidiLexiconView extends StatelessWidget {
   final String targetExplanation;
   final TextStyle? sourceStyle;
   final TextStyle? explanationStyle;
-  /// Optional pronunciation directly beneath the headword.
-  final Widget? underHeadword;
+  /// Optional pronunciation placed directly below the headword.
+  final Widget? phonetic;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +69,7 @@ class BidiLexiconView extends StatelessWidget {
 
     if (sourceWord.trim().isEmpty &&
         targetExplanation.trim().isEmpty &&
-        underHeadword == null) {
+        phonetic == null) {
       return const SizedBox.shrink();
     }
 
@@ -88,12 +88,13 @@ class BidiLexiconView extends StatelessWidget {
                 style: sourceStyle ?? textTheme.titleLarge,
                 semanticsLabel: sourceWord,
               ),
-            if (underHeadword != null) ...<Widget>[
-              const SizedBox(height: 8),
-              underHeadword!,
+            if (phonetic != null) ...<Widget>[
+              if (sourceWord.trim().isNotEmpty)
+                const SizedBox(height: 8),
+              phonetic!,
             ],
             if (targetExplanation.trim().isNotEmpty) ...<Widget>[
-              if (sourceWord.trim().isNotEmpty || underHeadword != null)
+              if (sourceWord.trim().isNotEmpty || phonetic != null)
                 const SizedBox(height: 8),
               Text(
                 _isolateBidi(targetExplanation),
