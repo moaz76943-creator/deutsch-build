@@ -25,21 +25,33 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
     final result = data.map((e) => Map<String, dynamic>.from(e)).toList();
     // Bundled German pack is not tracked by the download registry.
     if (!result.any((e) => e['languageCode'] == 'de')) {
-      result.insert(0, {'languageCode': 'de', 'version': '1.0.0',
-        'packId': 'de-bundled',
+        result.insert(0, {
+          'languageCode': 'de',
+          'version': '1.0.0',
+          'packId': 'de-bundled',
           'bundled': true,
+          'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
+          'revisionTimestamp': '2026-10-12T00:00:00Z',
+          'sourceRevision': '2026-10-12',
+          'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators',
           'licenseId': 'CC-BY-SA-4.0',
-          'license': 'CC BY-SA 4.0',
-          'licenseName': 'CC BY-SA 4.0',
+          'license': 'CC BY-SA 4.0 / GFDL-1.3',
+          'licenseName': 'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
           'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/',
           'attribution': {
             'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
+            'revisionTimestamp': '2026-10-12T00:00:00Z',
+            'sourceRevision': '2026-10-12',
             'licenseId': 'CC-BY-SA-4.0',
-            'license': 'CC BY-SA 4.0',
+            'license': 'CC BY-SA 4.0 / GFDL-1.3',
+            'licenseName': 'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
             'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/',
-            'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators'
-          }});
-    }
+            'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators',
+            'modifications': 'Curated, normalized, phonetically transcribed, and translated to Arabic',
+            'copyrightNotice': 'Copyright (c) 2026 Wiktionary contributors, Kaikki.org, Deutsch-Build curators'
+          }
+        });
+      }
     return result;
   }
 

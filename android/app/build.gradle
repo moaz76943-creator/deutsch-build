@@ -51,25 +51,37 @@ android {
         multiDexEnabled true
     }
 
-    signingConfigs {
-        release {
+        signingConfigs {
+        secureRelease {
             def keystorePropertiesFile = rootProject.file('key.properties')
             def keystoreProperties = new Properties()
             if (keystorePropertiesFile.exists()) {
                 keystorePropertiesFile.withInputStream { stream ->
                     keystoreProperties.load(stream)
                 }
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-                storePassword keystoreProperties['storePassword']
+            }
+            def keyFilePath = project.findProperty('releaseStoreFile') ?: keystoreProperties['storeFile']
+            if (keyFilePath) {
+                def keyFile = file(keyFilePath)
+                if (!keyFile.exists() && rootProject.file(keyFilePath).exists()) {
+                    keyFile = rootProject.file(keyFilePath)
+                }
+                storeFile keyFile
+                storePassword (project.findProperty('releaseStorePassword') ?: keystoreProperties['storePassword'])
+                keyAlias (project.findProperty('releaseKeyAlias') ?: keystoreProperties['keyAlias'])
+                keyPassword (project.findProperty('releaseKeyPassword') ?: keystoreProperties['keyPassword'])
             }
         }
+        release {
+            initWith(signingConfigs.secureRelease)
+        }
+    }
+}
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.secureRelease
             minifyEnabled false
             shrinkResources false
         }
