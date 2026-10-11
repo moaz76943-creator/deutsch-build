@@ -39,7 +39,7 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
 
   static const String germanGoldenSha256 =
-      'e335160247ac3f7ffa0d8c9e67868e88f34e737e7f00c65c9987104438e713e0';
+      'eeb1322559343c8936d81910f6d48b6995efb29920a3ae93fa3ccdb0c68392cf';
   static const String _germanAssetPath =
       'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
   static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
