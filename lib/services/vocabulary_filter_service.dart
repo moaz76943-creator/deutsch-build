@@ -72,6 +72,7 @@ class VocabularyFilterService {
       limit: limit,
       offset: offset,
       cefrSource: schema.cefrSource.name,
+      hasFrequencyRankColumn: schema.hasFrequencyRank,
     );
     return db.rawQuery(query.sql, query.arguments);
   }
@@ -86,11 +87,15 @@ class VocabularyFilterService {
     int limit = 40,
     int offset = 0,
     String cefrSource = 'indexedColumn',
+    bool hasFrequencyRankColumn = true,
   }) {
     _validatePagination(limit, offset);
     if (maxFrequencyRank != null && maxFrequencyRank < 1) {
       throw RangeError.value(maxFrequencyRank, 'maxFrequencyRank',
           'Must be a positive integer');
+    }
+    if (maxFrequencyRank != null && !hasFrequencyRankColumn) {
+      throw UnsupportedError('frequency_rank column is unavailable');
     }
     if (cefrSource != 'indexedColumn' &&
         cefrSource != 'concepts' &&
@@ -140,6 +145,7 @@ class VocabularyFilterService {
     // For a single CEFR level, the indexed schema can order by the second
     // component of its (cefr_level, frequency_rank) index.
     if (cefrSource == 'indexedColumn' &&
+        hasFrequencyRankColumn &&
         level != VocabularyCefrFilter.all &&
         level != VocabularyCefrFilter.advanced) {
       sql.write(' ORDER BY l.frequency_rank, l.id');
