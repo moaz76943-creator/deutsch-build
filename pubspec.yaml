@@ -15,6 +15,9 @@ dependencies:
   path_provider: ^2.1.2
   flutter_riverpod: ^2.5.1
   sqflite: ^2.3.3+1
+  # Native SQLite binary for ffi consumers; sqflite itself uses OS SQLite.
+  # Pin to the last native-bundling release (0.6.0+eol bundles nothing).
+  sqlite3_flutter_libs: 0.5.42
   path: ^1.9.0
   crypto: ^3.0.7
   encrypt: ^5.0.3
