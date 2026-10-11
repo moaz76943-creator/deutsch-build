@@ -49,8 +49,12 @@ class DeckExportService {
   final Future<Directory> Function() _temporaryDirectory;
 
   static Future<Directory> _defaultDownloads() async {
-    final downloads = await getDownloadsDirectory();
-    if (downloads != null) return downloads;
+    try {
+      final downloads = await getDownloadsDirectory();
+      if (downloads != null) return downloads;
+    } catch (_) {
+      // Downloads is not implemented on every Android/path_provider target.
+    }
     // Scoped-storage Android devices may not expose shared Downloads.
     final documents = await getApplicationDocumentsDirectory();
     return Directory(p.join(documents.path, 'exports'));

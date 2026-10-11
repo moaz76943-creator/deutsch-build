@@ -9,7 +9,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUpAll(sqfliteFfiInit);
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
   late Database progress;
   late Database content;
   late Directory downloads;
@@ -89,6 +92,10 @@ void main() {
     final contents = ZipDecoder().decodeBytes(await apkg.readAsBytes());
     expect(contents.files.map((f) => f.name),
         containsAll(<String>['collection.anki2', 'media']));
+    final sqlite = contents.files.firstWhere(
+      (file) => file.name == 'collection.anki2',
+    ).content;
+    expect(utf8.decode(sqlite.sublist(0, 16)), 'SQLite format 3\u0000');
     expect(apkg.path, endsWith('.apkg'));
   });
 
