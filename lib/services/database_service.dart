@@ -9,6 +9,7 @@ import 'package:sqflite/sqflite.dart';
 
 import 'database_integrity_service.dart';
 import 'diagnostic_ledger_service.dart';
+import 'crash_loop_guard.dart';
 import 'pooled_database_manager.dart';
 import 'storage_migration_service.dart';
 
@@ -46,6 +47,9 @@ class DatabaseService {
   }
 
   Future<Database> _openContentDb(String languageCode) async {
+    if(languageCode!='de' && CrashLoopGuard.instance.safeModeEnabled) {
+      throw StateError('External content packs are disabled in safe mode');
+    }
     Database? db;
     try {
       final databasePath = languageCode == 'de'
