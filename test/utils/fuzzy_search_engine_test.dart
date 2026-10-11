@@ -13,7 +13,7 @@ void main() {
 
     test('distance over two is capped and oversized strings are rejected', () {
       expect(FuzzySearchEngine.damerauLevenshtein('abc', 'uvwxyz'), 3);
-      expect(FuzzySearchEngine.damerauLevenshtein('a' * 49, 'a'), 3);
+      expect(FuzzySearchEngine.damerauLevenshtein(List<String>.filled(49, 'a').join(), 'a'), 3);
       expect(FuzzySearchEngine.damerauLevenshtein('', ''), 0);
       expect(FuzzySearchEngine.damerauLevenshtein('', 'xy'), 2);
     });
@@ -32,7 +32,7 @@ void main() {
       expect(FuzzySearchEngine.soundex('Smith'),
           FuzzySearchEngine.soundex('Smyth'));
       expect(FuzzySearchEngine.soundex('纸'), isEmpty);
-      expect(FuzzySearchEngine.soundex('a' * 49), isEmpty);
+      expect(FuzzySearchEngine.soundex(List<String>.filled(49, 'a').join()), isEmpty);
     });
 
     test('offers at most top three deterministically', () {
@@ -68,7 +68,7 @@ void main() {
       ];
       expect(FuzzySearchEngine.didYouMean('wrod', candidates), isEmpty);
       expect(
-        FuzzySearchEngine.didYouMean('a' * 49, <String>['a']),
+        FuzzySearchEngine.didYouMean(List<String>.filled(49, 'a').join(), <String>['a']),
         isEmpty,
       );
     });
