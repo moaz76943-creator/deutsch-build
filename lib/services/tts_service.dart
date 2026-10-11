@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show TextDirection;
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -31,12 +32,15 @@ class TtsService {
   TtsService({
     FlutterTts? flutterTts,
     LanguagePackManager? languagePackManager,
+    MethodChannel? installerChannel,
     this.onStatus,
     double speechRate = 0.48,
     double volume = 1.0,
     double pitch = 1.0,
   })  : _tts = flutterTts,
         _languages = languagePackManager ?? LanguagePackManager(),
+        _installerChannel = installerChannel ??
+            const MethodChannel('com.deutsch_bilarabi.app/tts_settings'),
         _speechRate = _bounded(speechRate, 0.0, 1.0, 0.48),
         _volume = _bounded(volume, 0.0, 1.0, 1.0),
         _pitch = _bounded(pitch, 0.5, 2.0, 1.0);
@@ -44,6 +48,7 @@ class TtsService {
   FlutterTts? _tts;
   FlutterTts get _engine => _tts ??= FlutterTts();
   final LanguagePackManager _languages;
+  final MethodChannel _installerChannel;
   TtsStatusCallback? onStatus;
 
   double _speechRate;
@@ -188,6 +193,48 @@ class TtsService {
     } catch (error) {
       _emit(TtsStatus.voiceMissing, locale: locale, message: error.toString());
       return false;
+    }
+  }
+
+  /// Voice-readiness check used by the installer prompt.
+  ///
+  /// Reuses the offline-first BCP-47 check and preserves TtsStatus callbacks.
+  /// An engine failure is not mistaken for missing voice data.
+  Future<bool> isLanguageVoiceInstalled(String languageTag) async {
+    if (_disposed) throw StateError('TTS service has been disposed.');
+    if (languageTag.trim().isEmpty) {
+      throw ArgumentError.value(languageTag, 'languageTag', 'Cannot be empty');
+    }
+    _ensureAndroidInstallerPlatform();
+    final installed = await isVoiceAvailable(languageTag);
+    if (!installed && _status != TtsStatus.voiceMissing) {
+      throw StateError('Unable to verify TTS voice data for $languageTag.');
+    }
+    return installed;
+  }
+
+  /// Requests Android's native TTS installer and its settings fallback.
+  Future<void> openSystemTtsInstallSettings() async {
+    if (_disposed) throw StateError('TTS service has been disposed.');
+    _ensureAndroidInstallerPlatform();
+    try {
+      final opened = await _installerChannel.invokeMethod<bool>('openTtsInstall');
+      if (opened != true) {
+        throw StateError('Android did not open the TTS installer.');
+      }
+    } on MissingPluginException {
+      const message = 'Android TTS installation channel is not registered.';
+      _emit(TtsStatus.error, message: message);
+      throw StateError(message);
+    } on PlatformException catch (error) {
+      _emit(TtsStatus.error, message: error.message ?? error.code);
+      rethrow;
+    }
+  }
+
+  void _ensureAndroidInstallerPlatform() {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      throw UnsupportedError('TTS voice installation is Android-only.');
     }
   }
 
