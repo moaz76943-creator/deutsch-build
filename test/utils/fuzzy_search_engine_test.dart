@@ -45,6 +45,17 @@ void main() {
       expect(results.toSet().length, 3);
     });
 
+    test('phonetic clustering never bypasses the two-edit threshold', () {
+      expect(
+        FuzzySearchEngine.soundex('robert'),
+        FuzzySearchEngine.soundex('rooooobert'),
+      );
+      expect(
+        FuzzySearchEngine.didYouMean('robert', <String>['rooooobert']),
+        isEmpty,
+      );
+    });
+
     test('does not suggest when exact/prefix results exist', () {
       expect(
         FuzzySearchEngine.didYouMean(
