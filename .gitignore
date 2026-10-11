@@ -37,3 +37,5 @@ android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 *.base64
 *.b64
 token.env
+upload-keystore.jks
+key.properties
