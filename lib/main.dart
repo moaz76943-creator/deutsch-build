@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,10 +7,18 @@ import 'features/onboarding/fast_onboarding_screen.dart';
 import 'services/crash_loop_guard.dart';
 import 'services/pack_downloader_service.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await CrashLoopGuard.verifyBootState();
-  runApp(const ProviderScope(child: MyApp()));
+void main() {
+  runZonedGuarded<void>(() {
+    WidgetsFlutterBinding.ensureInitialized();
+    runApp(const ProviderScope(child: DeutschApp()));
+
+    // Keep disk-backed boot checks off the first-frame critical path.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(CrashLoopGuard.verifyBootState());
+    });
+  }, (Object error, StackTrace stackTrace) {
+    debugPrint('Uncaught Zone Error: $error\n$stackTrace');
+  });
 }
 
 class MyApp extends StatelessWidget {
