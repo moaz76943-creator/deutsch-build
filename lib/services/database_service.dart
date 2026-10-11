@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
 import 'database_integrity_service.dart';
 import 'diagnostic_ledger_service.dart';
@@ -80,11 +81,7 @@ class DatabaseService {
           ? await _ensureGermanDatabase()
           : await _installedPackPath(languageCode);
 
-      db = await openDatabase(
-        databasePath,
-        readOnly: true,
-        singleInstance: false,
-      );
+      db = await _openContentReadOnly(databasePath);
       if (!await DatabaseIntegrityService.instance
           .checkMountedPack(languageCode, db)) {
         throw StateError('SQLite content pack is quarantined: $languageCode');
@@ -100,6 +97,31 @@ class DatabaseService {
       }
       await DatabaseIntegrityService.instance.quarantine(languageCode, error);
       rethrow;
+    }
+  }
+
+  // The bundled SQLite library is used only for immutable content packs.
+  // FFI performs SQLite work in its dedicated isolate; device/system sqflite
+  // remains the unchanged backend for operational progress and vault writes.
+  static Future<Database> _openContentReadOnly(String databasePath) async {
+    try {
+      ffi.sqfliteFfiInit();
+      return await ffi.databaseFactoryFfi.openDatabase(
+        databasePath,
+        options: OpenDatabaseOptions(
+          readOnly: true,
+          singleInstance: false,
+        ),
+      );
+    } on Exception catch (error) {
+      // Older Android versions may fail to load the packaged .so. Retain
+      // read-only availability via platform SQLite; MATCH has LIKE fallback.
+      debugPrint('Bundled SQLite unavailable; using platform fallback: $error');
+      return openDatabase(
+        databasePath,
+        readOnly: true,
+        singleInstance: false,
+      );
     }
   }
 
