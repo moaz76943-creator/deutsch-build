@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,6 +9,8 @@ import 'package:sqflite/sqflite.dart';
 
 import 'database_integrity_service.dart';
 import 'diagnostic_ledger_service.dart';
+import 'pooled_database_manager.dart';
+import 'storage_migration_service.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -19,38 +20,23 @@ class DatabaseService {
   static const String _germanAssetPath =
       'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
   static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
-  static const int _maxCachedContentDatabases = 3;
-
   static Database? _progressDb;
-  final LinkedHashMap<String, Database> _contentDbs =
-      LinkedHashMap<String, Database>();
-  final Map<String, Future<Database>> _pendingContentOpens =
-      <String, Future<Database>>{};
+  late final PooledDatabaseManager _contentPool = PooledDatabaseManager(
+    openConnection: _openContentDb,
+  );
 
   DatabaseService._init();
 
   // Backward-compatible default content database getter.
   Future<Database> get contentDb => getContentDb();
 
-  Future<Database> getContentDb([String? languageCode]) {
-    final code = _normalizeLanguageCode(languageCode);
-    final cached = _contentDbs.remove(code);
-    if (cached != null && cached.isOpen) {
-      _contentDbs[code] = cached;
-      return Future<Database>.value(cached);
-    }
+  Future<Database> getContentDb([String? languageCode]) =>
+      _contentPool.open(_normalizeLanguageCode(languageCode));
 
-    final pending = _pendingContentOpens[code];
-    if (pending != null) {
-      return pending;
-    }
-
-    final operation = _openContentDb(code);
-    _pendingContentOpens[code] = operation;
-    return operation.whenComplete(() {
-      _pendingContentOpens.remove(code);
-    });
-  }
+  Future<T> withContentDb<T>(
+    String languageCode,
+    Future<T> Function(Database database) action,
+  ) => _contentPool.withDatabase(_normalizeLanguageCode(languageCode), action);
 
   // User progress remains physically and logically isolated from content packs.
   Future<Database> get progressDb async {
@@ -77,8 +63,6 @@ class DatabaseService {
       }
       await _verifyUniversalSchema(db, languageCode);
 
-      _contentDbs[languageCode] = db;
-      await _evictLeastRecentlyUsedContentDb(except: languageCode);
       return db;
     } catch (error) {
       if (db != null && db.isOpen) {
@@ -127,14 +111,12 @@ class DatabaseService {
   }
 
   Future<String> _installedPackPath(String languageCode) async {
-    final support = await getApplicationSupportDirectory();
-    final file = File(
-      path.join(support.path, 'packs', '$languageCode.sqlite'),
-    );
-    if (!await file.exists()) {
+    final located = await StorageMigrationService()
+        .resolvePackPath('$languageCode.sqlite');
+    if (located == null) {
       throw StateError('Language pack $languageCode is not installed');
     }
-    return file.path;
+    return located;
   }
 
   Future<void> _verifyUniversalSchema(
@@ -178,46 +160,17 @@ class DatabaseService {
     }
   }
 
-  Future<void> _evictLeastRecentlyUsedContentDb({
-    required String except,
-  }) async {
-    while (_contentDbs.length > _maxCachedContentDatabases) {
-      final oldestKey = _contentDbs.keys.first;
-      if (oldestKey == except && _contentDbs.length > 1) {
-        final retained = _contentDbs.remove(oldestKey)!;
-        _contentDbs[oldestKey] = retained;
-        continue;
-      }
-      final database = _contentDbs.remove(oldestKey);
-      if (database != null && database.isOpen) {
-        await database.close();
-      }
-    }
-  }
+  Future<void> closeContentDb([String? languageCode]) =>
+      _contentPool.close(_normalizeLanguageCode(languageCode));
 
-  Future<void> closeContentDb([String? languageCode]) async {
-    final code = _normalizeLanguageCode(languageCode);
-    final pending = _pendingContentOpens[code];
-    if (pending != null) {
-      try {
-        await pending;
-      } catch (_) {}
-    }
-    final database = _contentDbs.remove(code);
-    if (database != null && database.isOpen) {
-      await database.close();
-    }
-  }
+  Future<void> closeAllContentDbs() => _contentPool.closeAll();
 
-  Future<void> closeAllContentDbs() async {
-    final databases = _contentDbs.values.toList(growable: false);
-    _contentDbs.clear();
-    for (final database in databases) {
-      if (database.isOpen) {
-        await database.close();
-      }
-    }
-  }
+  Future<File> migrateContentPack(
+    String filename, {
+    required PackStorageLocation destination,
+  }) => StorageMigrationService(
+        closeContentDb: (languageCode) => closeContentDb(languageCode),
+      ).migratePack(filename, destination: destination);
 
   Future<Database> _initProgressDb(String fileName) async {
     final dbPath = await getDatabasesPath();
