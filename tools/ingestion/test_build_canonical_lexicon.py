@@ -43,7 +43,7 @@ class CanonicalIngestionTests(unittest.TestCase):
 
     def test_unicode_format_controls_rejected(self):
         record = subject.starter_records("ar")[0]
-        record["surface"] += "\\u200f"
+        record["surface"] += "\u200f"
         with self.assertRaisesRegex(ValueError, "control"):
             subject.make_document("ar", [record])
 
