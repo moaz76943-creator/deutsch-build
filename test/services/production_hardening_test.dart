@@ -63,5 +63,19 @@ void main() {
     expect(UserVaultSecurityService.recoveryMessage.value, isNotNull);
     expect(UserVaultSecurityService.recoveryMessage.value,
         contains('لم تُحذف'));
+
+    // Writes must remain blocked after a key failure, even if UI dismisses
+    // the message. Only verified successful decryption clears this state.
+    UserVaultSecurityService.clearRecoveryMessage();
+    await expectLater(
+      cipher.encrypt('progress/v1/ready', Uint8List.fromList([1])),
+      throwsStateError,
+    );
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      return Uint8List.fromList([1]);
+    });
+    await cipher.decrypt('progress/v1/ready',
+        Uint8List.fromList(List.filled(29, 0)));
+    expect(UserVaultSecurityService.recoveryMessage.value, isNull);
   });
 }
