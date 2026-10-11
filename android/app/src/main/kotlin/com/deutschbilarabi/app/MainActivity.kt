@@ -1,5 +1,7 @@
 package com.deutschbilarabi.app
 
+import android.content.Intent
+import android.speech.tts.TextToSpeech
 import android.os.Bundle
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
@@ -32,6 +34,30 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.deutsch_bilarabi.app/tts_settings",
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "openTtsInstall") {
+                try {
+                    val intent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    startActivity(intent)
+                    result.success(true)
+                } catch (e: Exception) {
+                    try {
+                        val fallbackIntent = Intent("com.android.settings.TTS_SETTINGS")
+                        fallbackIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(fallbackIntent)
+                        result.success(true)
+                    } catch (ex: Exception) {
+                        result.error("UNAVAILABLE", "Cannot open TTS settings", null)
+                    }
+                }
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(
