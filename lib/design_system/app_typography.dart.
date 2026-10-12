@@ -32,9 +32,7 @@ class AppTypography {
       child: Text(
         text,
         style: style ?? getSafeStyle(identity),
-        textAlign: identity.writingDirection == WritingDirection.rtl 
-            ? TextAlign.right 
-            : TextAlign.left,
+        textAlign: TextAlign.start,
       ),
     );
   }
