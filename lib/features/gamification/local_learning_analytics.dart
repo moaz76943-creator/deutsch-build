@@ -46,6 +46,7 @@ class LocalLearningAnalytics {
     var due = 0;
     final languages = <String>{};
     final observedReviewDays = <String>{};
+    var missingReviewDateEvidence = false;
 
     for (final row in rows) {
       final repetitions = (row['repetition_count'] as num?)?.toInt() ?? 0;
@@ -66,6 +67,9 @@ class LocalLearningAnalytics {
       }
 
       final reviewedAt = row['last_reviewed_at'];
+      if (reviewedAt is! num && repetitions > 0) {
+        missingReviewDateEvidence = true;
+      }
       if (reviewedAt is num) {
         final epoch = reviewedAt.toInt();
         if (epoch >= windowStart && epoch <= nowEpoch) {
@@ -81,11 +85,12 @@ class LocalLearningAnalytics {
       'mastered_cards': mastered,
       'active_languages': languages.length,
       'due_cards': due,
-      'review_days_30d': observedReviewDays.length,
-      'observed_streak_days': _observedStreakDays(
-        observedReviewDays,
-        clock,
-      ),
+      // Legacy SRS rows can have reviews but no timestamps. Report UNKNOWN
+      // rather than a fabricated zero streak or a false 30-day count.
+      'review_days_30d': missingReviewDateEvidence
+          ? null : observedReviewDays.length,
+      'observed_streak_days': missingReviewDateEvidence
+          ? null : _observedStreakDays(observedReviewDays, clock),
       // A complete event history is not part of the current shared progress
       // contract, so trend and consistency are not inferred from last-state rows.
       'learning_trend': 'unavailable',
