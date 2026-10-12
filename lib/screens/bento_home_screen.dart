@@ -39,7 +39,7 @@ class BentoHomeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
+                    Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
@@ -52,7 +52,7 @@ class BentoHomeScreen extends ConsumerWidget {
                           style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.w600),
                         ),
                       ],
-                    ),
+                    )),
                     Row(
                       children: [
                         IconButton(

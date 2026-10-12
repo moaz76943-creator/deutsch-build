@@ -104,13 +104,15 @@ class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text(
-                                currentMonthTitle,
-                                style: AppTypography.title.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
+                              Expanded(
+                          child: Text(
+                            currentMonthTitle,
+                            style: AppTypography.title.copyWith(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                               const Icon(
                                 Icons.calendar_month_rounded,
                                 color: Color(0xFF38BDF8),

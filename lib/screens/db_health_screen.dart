@@ -78,7 +78,7 @@ class _DbHealthScreenState extends State<DbHealthScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('اللغة: ${entry.key.toUpperCase()}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                                    Expanded(child: Text('اللغة: ${entry.key.toUpperCase()}', style: const TextStyle(color: Colors.white70, fontSize: 13))),
                                     Text('${entry.value} مفردة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 13, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
