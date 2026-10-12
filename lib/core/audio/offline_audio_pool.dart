@@ -11,14 +11,15 @@ class OfflineAudioPool {
 
   factory OfflineAudioPool() => _instance;
 
-  OfflineAudioPool._internal() {
-    _tts = TtsService(onStatus: _handleStatus);
-  }
+  OfflineAudioPool._internal();
 
-  late final TtsService _tts;
+  TtsService? _tts;
   bool _isPlaying = false;
 
   bool get isPlaying => _isPlaying;
+
+  TtsService get _service =>
+      _tts ??= TtsService(onStatus: _handleStatus);
 
   void _handleStatus(
     TtsStatus status, {
@@ -63,15 +64,22 @@ class OfflineAudioPool {
     double speechRate = 0.45,
   }) async {
     if (text.trim().isEmpty) return false;
-    final configured = await _tts.configure(speechRate: speechRate);
+    final service = _service;
+    final configured = await service.configure(speechRate: speechRate);
     if (!configured) return false;
-    return _tts.speak(text, languageCode: locale);
+    return service.speak(text, languageCode: locale);
   }
 
-  Future<void> stop() => _tts.stop();
+  Future<void> stop() async {
+    final service = _tts;
+    if (service == null) return;
+    await service.stop();
+  }
 
   void dispose() {
     _isPlaying = false;
-    unawaited(_tts.dispose());
+    final service = _tts;
+    _tts = null;
+    if (service != null) unawaited(service.dispose());
   }
 }
