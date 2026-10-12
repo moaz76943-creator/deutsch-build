@@ -210,6 +210,10 @@ class _TtsEngineAuthority {
     if (generation != _generation || !ownerIsCurrent()) return false;
     try {
       await _engine.stop().timeout(timeout);
+      if (_activeGeneration != generation) {
+        _isSpeaking = false;
+        _clearActive();
+      }
       if (generation != _generation || !ownerIsCurrent()) return false;
 
       final languageResult = await _engine.setLanguage(locale).timeout(timeout);
