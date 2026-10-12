@@ -12,6 +12,9 @@ jobs:
       - name: 📥 مسحب الكود البرمجي (Checkout)
         uses: actions/checkout@v4
 
+      - name: Verify pinned Gradle wrapper before downloading SDKs
+        run: python3 tool/gradle_wrapper_integrity.py
+
       - name: Fail fast when signing secrets are missing
         shell: bash
         env:
