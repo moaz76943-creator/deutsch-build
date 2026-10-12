@@ -68,10 +68,16 @@ jobs:
           sqlite = version("sqlite3")
           ffi = version("sqflite_common_ffi")
           native = version("sqlite3_flutter_libs")
-          if not re.fullmatch(r"2\.9\.(?:[4-9]|[1-9][0-9]+)(?:\+[0-9]+)?", sqlite):
-              raise SystemExit(f"Expected SQLite 2.9.4+, got {sqlite}")
-          if not re.fullmatch(r"2\.3\.(?:[7-9]|[1-9][0-9]+)(?:\+[0-9]+)?", ffi):
-              raise SystemExit(f"Expected FFI 2.3.7+, got {ffi}")
+          def semver(raw):
+              match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:\+\d+)?", raw)
+              if match is None:
+                  raise SystemExit(f"Unexpected package version: {raw}")
+              return tuple(int(part) for part in match.groups())
+
+          if not ( (2, 9, 4) <= semver(sqlite) < (3, 0, 0) ):
+              raise SystemExit(f"Expected SQLite >=2.9.4 <3.0.0, got {sqlite}")
+          if not ( (2, 3, 7) <= semver(ffi) < (2, 4, 0) ):
+              raise SystemExit(f"Expected FFI >=2.3.7 <2.4.0, got {ffi}")
           if native != "0.5.42":
               raise SystemExit(f"Expected native SQLite 0.5.42, got {native}")
           print(f"Verified SQLite v2: sqlite3={sqlite}, ffi={ffi}, libs={native}")
