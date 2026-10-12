@@ -30,9 +30,9 @@ class DashboardScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      _buildStatItem('سلسلة الأيام', '🔥 5 أيام'),
-                      _buildStatItem('الكلمات المحفوظة', '📚 512 كلمة'),
-                      _buildStatItem('مستوى الإتقان', '⭐ 84%'),
+                      _buildStatItem('سلسلة الأيام', '🔥 نشط'),
+                      _buildStatItem('الكلمات المحفوظة', '📚 المعجم'),
+                      _buildStatItem('مستوى الإتقان', '⭐ تقدمك'),
                     ],
                   ),
                 ),
