@@ -70,9 +70,9 @@ class PackManager {
       JOIN lexicon AS l ON l.id = s.lexeme_id
       WHERE l.language_code = ? AND l.cefr_level = ?
         AND (
-          EXISTS (SELECT 1 FROM json_each(s.payload_json, '$.semantic_tags')
+          EXISTS (SELECT 1 FROM json_each(s.payload_json, '\$.semantic_tags')
                   WHERE value = ?)
-          OR EXISTS (SELECT 1 FROM json_each(s.payload_json, '$.domains')
+          OR EXISTS (SELECT 1 FROM json_each(s.payload_json, '\$.domains')
                      WHERE value = ?)
         )
       ORDER BY l.sort_key, l.id, s.concept_id LIMIT ?
