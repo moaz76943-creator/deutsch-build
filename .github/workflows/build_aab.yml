@@ -101,6 +101,13 @@ jobs:
       - name: Run Flutter tests
         run: flutter test
 
+      - name: Verify the previously failing TTS release metadata task
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd android
+          sh ./gradlew :flutter_tts:checkReleaseAarMetadata --no-daemon
+
       - name: Compile debug APK to verify Android and plugin compatibility
         run: flutter build apk --debug
 
