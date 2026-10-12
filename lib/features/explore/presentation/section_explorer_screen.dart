@@ -48,6 +48,37 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     }
   }
 
+  void showLicenseDialog() async {
+    final meta = await PackManager.getDatasetMetadata();
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('المصادر والتراخيص المفتوحة ⚖️'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('المصدر: ${meta['source'] ?? 'Kaikki / Wiktionary'}'),
+            const SizedBox(height: 6),
+            Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0 / GFDL 1.3'}'),
+            const SizedBox(height: 6),
+            Text('تاريخ البناء: ${meta['pipeline_build'] ?? '2026-10-12'}'),
+            const SizedBox(height: 12),
+            const Text(
+              'المحتوى المعجمي مرخص بموجب رخصة المشاع الإبداعي النسبة-المشاركة بالمثل، مع الالتزام الكامل بشروط النسبة القانونية.',
+              style: TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+        ],
+      ),
+    );
+  }
+
   void openQuizDialog(String conceptId, String word) async {
     final exercises = await PackManager.getExercises(conceptId);
     if (exercises.isEmpty || !mounted) return;
@@ -71,12 +102,16 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                   backgroundColor: Colors.blueGrey.shade50,
                   foregroundColor: Colors.black87,
                 ),
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(ctx);
                   final isCorrect = opt == ex['correct_answer'];
+                  await PackManager.recordQuizResult(conceptId: conceptId, isCorrect: isCorrect);
+                  await loadSectionData();
+
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(isCorrect ? '✅ إجابة صحيحة ممتازة!' : '❌ إجابة خاطئة، الصحيح: ${ex['correct_answer']}'),
+                      content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث جدول المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
                       backgroundColor: isCorrect ? Colors.green : Colors.red,
                     ),
                   );
@@ -96,10 +131,16 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       appBar: AppBar(
         title: const Text('المستودع اللغوي التفاعلي'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'التراخيص والمصادر',
+            onPressed: showLicenseDialog,
+          ),
+        ],
       ),
       body: Column(
         children: [
-          // شريط اختيار القسم
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -119,8 +160,6 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               )).toList(),
             ),
           ),
-
-          // شريط اختيار المستوى CEFR
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
@@ -140,10 +179,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               )).toList(),
             ),
           ),
-
           const Divider(),
-
-          // قائمة الكلمات والأفعال والجمل
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -155,6 +191,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                         itemBuilder: (context, index) {
                           final item = items[index];
                           final pos = item['part_of_speech'] ?? 'noun';
+                          final boxLevel = item['box_level'] as int? ?? 0;
+
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundColor: pos == 'verb' ? Colors.orange.shade100 : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
@@ -167,7 +205,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                               item['word'] ?? '',
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                             ),
-                            subtitle: Text('المعرف: ${item['concept_id']}'),
+                            subtitle: Text('المستوى في الذاكرة: صندوق $boxLevel'),
                             trailing: IconButton(
                               icon: const Icon(Icons.quiz, color: Colors.indigo),
                               onPressed: () => openQuizDialog(item['concept_id'], item['word'] ?? ''),
