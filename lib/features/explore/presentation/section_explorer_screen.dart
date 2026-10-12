@@ -160,41 +160,48 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('المصادر والتراخيص المفتوحة ⚖️'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('المصدر: ${meta['source'] ?? 'Kaikki / Wiktionary'}'),
-            const SizedBox(height: 6),
-            Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0'}'),
-            const SizedBox(height: 12),
-            const Text(
-              'المحتوى المعجمي مرخص بموجب CC BY-SA 4.0. يحق لك تصديره بالكامل:',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('المصدر: ${meta['source'] ?? 'Kaikki / Wiktionary'}'),
+              const SizedBox(height: 6),
+              Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0'}'),
+              const SizedBox(height: 12),
+              const Text(
+                'المحتوى المعجمي مرخص بموجب رخصة المشاع الإبداعي CC BY-SA 4.0. يمكنك تصدير البيانات بالكامل:',
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ],
+          ),
         ),
         actions: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.download, size: 18),
-            label: const Text('تصدير البيانات (JSON)'),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              try {
-                final path = await PackManager.exportDatasetAsJson(currentLanguage);
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('✅ تم التصدير إلى: $path'), backgroundColor: Colors.green),
-                );
-              } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('تعذر التصدير: $e'), backgroundColor: Colors.red),
-                );
-              }
-            },
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('تصدير JSON'),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final path = await PackManager.exportDatasetAsJson(currentLanguage);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('✅ تم التصدير: $path'), backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('تعذر التصدير: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                },
+              ),
+            ],
           ),
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
         ],
       ),
     );
@@ -212,35 +219,36 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ex['prompt'] as String? ?? 'اختر الإجابة الصحيحة'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: options.map((opt) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey.shade50,
-                  foregroundColor: Colors.black87,
-                ),
-                onPressed: () async {
-                  Navigator.pop(ctx);
-                  final isCorrect = opt == ex['correct_answer'];
-                  await PackManager.recordQuizResult(conceptId: conceptId, isCorrect: isCorrect);
-                  await loadSectionData();
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((opt) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final isCorrect = opt == ex['correct_answer'];
+                    await PackManager.recordQuizResult(conceptId: conceptId, isCorrect: isCorrect);
+                    await loadSectionData();
 
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
-                      backgroundColor: isCorrect ? Colors.green : Colors.red,
-                    ),
-                  );
-                },
-                child: Text(opt, style: const TextStyle(fontSize: 16)),
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
+                        backgroundColor: isCorrect ? Colors.green : Colors.red,
+                      ),
+                    );
+                  },
+                  child: Text(opt, textAlign: TextAlign.center, softWrap: true),
+                ),
               ),
-            ),
-          )).toList(),
+            )).toList(),
+          ),
         ),
       ),
     );
@@ -255,6 +263,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
         title: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: currentLanguage,
+            isDense: true,
             icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
             dropdownColor: Colors.indigo.shade800,
             style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
@@ -347,10 +356,10 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                 )).toList(),
               ),
             ),
-            Padding(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: ['A1', 'A2', 'B1', 'B2'].map((lvl) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: FilterChip(
@@ -400,13 +409,14 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                           ),
                           title: Text(
                             word,
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                            softWrap: true,
                           ),
                           subtitle: Text(
                             isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          trailing: Wrap(
+                            spacing: 0,
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
