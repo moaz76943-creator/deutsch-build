@@ -11,6 +11,7 @@ class FakeTtsPlatformAdapter implements TtsPlatformAdapter {
   bool languageInstalled = true;
   bool failLanguageAvailableOnce = false;
   Object voices = const <Object>[];
+  Completer<dynamic>? initializationCompleter;
   Completer<dynamic>? languageAvailableCompleter;
   Completer<dynamic>? speakCompleter;
 
@@ -39,7 +40,11 @@ class FakeTtsPlatformAdapter implements TtsPlatformAdapter {
       errorHandler = handler;
 
   @override
-  Future<dynamic> awaitSpeakCompletion(bool awaitCompletion) async => 1;
+  Future<dynamic> awaitSpeakCompletion(bool awaitCompletion) async {
+    final pending = initializationCompleter;
+    if (pending != null) return pending.future;
+    return 1;
+  }
 
   @override
   Future<dynamic> setSpeechRate(double rate) async => 1;
@@ -235,6 +240,40 @@ void main() {
     expect(await pending, isFalse);
     expect(fake.stopCalls, greaterThan(0));
     await service.dispose();
+  });
+
+  test('initialization timeout is bounded and retryable', () async {
+    final fake = FakeTtsPlatformAdapter()
+      ..initializationCompleter = Completer<dynamic>();
+    final service = TtsService(
+      adapter: fake,
+      initializationTimeout: const Duration(milliseconds: 10),
+    );
+
+    expect(await service.initialize(), isFalse);
+
+    fake.initializationCompleter!.complete(1);
+    fake.initializationCompleter = null;
+    expect(await service.initialize(), isTrue);
+    await service.dispose();
+  });
+
+  test('dispose cancels navigation-stale pending playback', () async {
+    final fake = FakeTtsPlatformAdapter()
+      ..voices = <Object>[localVoice('Spanish local', 'es-ES')]
+      ..speakCompleter = Completer<dynamic>();
+    final service = TtsService(adapter: fake);
+
+    final pending = service.speak('hola', languageCode: 'es');
+    while (fake.spokenText == null) {
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    await service.dispose();
+    fake.speakCompleter!.complete(1);
+
+    expect(await pending, isFalse);
+    expect(fake.stopCalls, greaterThan(0));
   });
 
   test('capability timeout fails closed instead of blocking the UI', () async {
