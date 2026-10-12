@@ -101,6 +101,14 @@ jobs:
           test -s build/app/outputs/flutter-apk/app-debug.apk
           sha256sum build/app/outputs/flutter-apk/app-debug.apk
 
+      - name: Upload tested debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: deutsch-debug-smoke-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 1
+          if-no-files-found: error
+
       - name: Commit verified lockfile after all checks pass
         shell: bash
         run: |
