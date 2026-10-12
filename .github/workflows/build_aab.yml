@@ -11,8 +11,208 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  refresh-lock:
+    name: Resolve and verify SQLite-v2 dependencies
+    if: github.ref == 'refs/heads/fix/flutter-ci-sdk-alignment-20261012'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out exact branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Read locked Flutter version
+        id: toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          source toolchain.lock
+          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install pinned Flutter toolchain
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ steps.toolchain.outputs.flutter }}
+          cache: true
+          pub-cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Assert native SQLite v2 contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          lock = Path("pubspec.lock").read_text(encoding="utf-8")
+          def version(name):
+              match = re.search(
+                  rf"(?ms)^  {re.escape(name)}:\n(.*?)(?=^  [\w]+:\n|^sdks:|\Z)",
+                  lock,
+              )
+              if match is None:
+                  raise SystemExit(f"Missing locked package: {name}")
+              value = re.search(r'^    version: "([^"]+)"    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: 📥 مسحب الكود البرمجي (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Verify pinned Gradle wrapper before downloading SDKs
+        run: python3 tool/gradle_wrapper_integrity.py
+
+      - name: Fail fast when signing secrets are missing
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for required in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            test -n "${!required:-}" || { echo "::error::Missing $required signing secret"; exit 1; }
+          done
+
+      - name: ⚙️ إعداد بيئة جافا (Java 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Read pinned Flutter version
+        id: toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: 🐦 إعداد بيئة فلاتر (Flutter)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: ${{ steps.toolchain.outputs.flutter }}
+          cache: true
+          pub-cache: true
+
+      - name: 📦 جلب الحزم والمكاتب (Pub Get)
+        run: flutter pub get --enforce-lockfile
+
+      - name: Load release keystore
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/upload-keystore.jks
+          chmod 600 android/app/upload-keystore.jks
+          keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+
+      - name: 🛠️ بناء التطبيق للهاتف (Build APK)
+        env:
+          ORG_GRADLE_PROJECT_releaseStoreFile: upload-keystore.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build apk --release
+
+      - name: 🛠️ بناء التطبيق للمتجر (Build AAB)
+        env:
+          ORG_GRADLE_PROJECT_releaseStoreFile: upload-keystore.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build appbundle --release
+
+      - name: Verify signed artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          aab="build/app/outputs/bundle/release/app-release.aab"
+          test -s "$apk" && test -s "$aab"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root" && test -d "$sdk_root/build-tools"
+          signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$signer"
+          "$signer" verify --verbose "$apk"
+          jarsigner -verify -strict "$aab"
+          sha256sum "$apk" "$aab"
+
+      - name: 📤 استخراج وحفظ نسخة الهاتف (Upload APK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Deutsch-BiLarabi-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: 📤 استخراج وحفظ نسخة المتجر (Upload AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Deutsch-BiLarabi-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Clean up signing material
+        if: always()
+        shell: bash
+        run: rm -f android/app/upload-keystore.jks
+, match.group(1), re.M)
+              if value is None:
+                  raise SystemExit(f"Missing locked version: {name}")
+              return value.group(1)
+
+          sqlite = version("sqlite3")
+          ffi = version("sqflite_common_ffi")
+          native = version("sqlite3_flutter_libs")
+          if not re.fullmatch(r"2\.9\.(?:[4-9]|[1-9][0-9]+)(?:\+[0-9]+)?", sqlite):
+              raise SystemExit(f"Expected SQLite 2.9.4+, got {sqlite}")
+          if not re.fullmatch(r"2\.3\.(?:[7-9]|[1-9][0-9]+)(?:\+[0-9]+)?", ffi):
+              raise SystemExit(f"Expected FFI 2.3.7+, got {ffi}")
+          if native != "0.5.42":
+              raise SystemExit(f"Expected native SQLite 0.5.42, got {native}")
+          print(f"Verified SQLite v2: sqlite3={sqlite}, ffi={ffi}, libs={native}")
+          PY
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.yaml toolchain.lock
+
+      - name: Commit only the resolved lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- pubspec.lock
+          if git diff --cached --quiet; then
+            echo "Dependency lockfile is already current"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "fix(deps): regenerate verified SQLite v2 lockfile [skip ci]"
+            git push origin "HEAD:${GITHUB_REF}"
+          fi
+
+      - name: Check Dart blocking diagnostics
+        run: bash scripts/check-dart-errors.sh
+
+      - name: Run Flutter tests
+        run: flutter test
+
   build:
     name: Build & Release Android
+    if: github.ref != 'refs/heads/fix/flutter-ci-sdk-alignment-20261012'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
