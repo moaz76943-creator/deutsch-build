@@ -2,7 +2,7 @@ name: Auto Rebase PRs
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging/v2-full-platform]
     paths-ignore:
       - 'docs/project-record/**'
   workflow_dispatch:
