@@ -14,7 +14,7 @@ class FlashcardsPlug implements FeaturePlug {
   Widget buildEntry(BuildContext context) {
     return FeatureBoundary(
       featureName: displayName,
-      child: _FlashcardsContainer(),
+      child: const _FlashcardsContainer(),
     );
   }
 
@@ -35,13 +35,14 @@ class FlashcardsPlug implements FeaturePlug {
 }
 
 class _FlashcardsContainer extends StatelessWidget {
+  const _FlashcardsContainer();
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      child: const Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Text(
             'جاهز للتعلم التكيفي',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
