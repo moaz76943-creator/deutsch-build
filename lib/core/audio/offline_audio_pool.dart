@@ -1,51 +1,64 @@
-import 'package:flutter_tts/flutter_tts.dart';
+import 'dart:async';
 
+import '../../services/tts_service.dart';
+
+/// Legacy singleton facade kept for caller compatibility.
+///
+/// It no longer owns a second FlutterTts engine. All speech is arbitrated by
+/// TtsService's process-wide local engine authority.
 class OfflineAudioPool {
   static final OfflineAudioPool _instance = OfflineAudioPool._internal();
-  factory OfflineAudioPool() => _instance;
-  OfflineAudioPool._internal();
 
-  final FlutterTts _tts = FlutterTts();
+  factory OfflineAudioPool() => _instance;
+
+  OfflineAudioPool._internal() {
+    _tts = TtsService(onStatus: _handleStatus);
+  }
+
+  late final TtsService _tts;
   bool _isPlaying = false;
+
   bool get isPlaying => _isPlaying;
 
-  String _activeLocale = '';
-  double _activeSpeechRate = -1.0;
+  void _handleStatus(
+    TtsStatus status, {
+    String? locale,
+    String? message,
+  }) {
+    switch (status) {
+      case TtsStatus.speaking:
+        _isPlaying = true;
+        break;
+      case TtsStatus.completed:
+      case TtsStatus.stopped:
+      case TtsStatus.voiceMissing:
+      case TtsStatus.unsupportedLanguage:
+      case TtsStatus.unavailable:
+      case TtsStatus.error:
+        _isPlaying = false;
+        break;
+      case TtsStatus.idle:
+      case TtsStatus.initializing:
+      case TtsStatus.ready:
+        break;
+    }
+  }
 
   Future<void> playWord(
     String text, {
     String locale = 'de-DE',
     double speechRate = 0.45,
   }) async {
-    try {
-      await _tts.stop();
-      _isPlaying = true;
-
-      // Zero-latency optimization: only update channel state if parameters changed
-      if (_activeLocale != locale) {
-        await _tts.setLanguage(locale);
-        _activeLocale = locale;
-      }
-      if (_activeSpeechRate != speechRate) {
-        await _tts.setSpeechRate(speechRate);
-        _activeSpeechRate = speechRate;
-      }
-
-      await _tts.speak(text);
-    } catch (_) {
-    } finally {
-      _isPlaying = false;
-    }
+    if (text.trim().isEmpty) return;
+    final configured = await _tts.configure(speechRate: speechRate);
+    if (!configured) return;
+    await _tts.speak(text, languageCode: locale);
   }
 
-  Future<void> stop() async {
-    try {
-      await _tts.stop();
-    } catch (_) {}
-    _isPlaying = false;
-  }
+  Future<void> stop() => _tts.stop();
 
   void dispose() {
-    // Release cached audio resources
+    _isPlaying = false;
+    unawaited(_tts.dispose());
   }
 }
