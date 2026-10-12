@@ -49,10 +49,23 @@ class OfflineAudioPool {
     String locale = 'de-DE',
     double speechRate = 0.45,
   }) async {
-    if (text.trim().isEmpty) return;
+    await tryPlayWord(
+      text,
+      locale: locale,
+      speechRate: speechRate,
+    );
+  }
+
+  /// Result-bearing companion for callers that need a real playback outcome.
+  Future<bool> tryPlayWord(
+    String text, {
+    String locale = 'de-DE',
+    double speechRate = 0.45,
+  }) async {
+    if (text.trim().isEmpty) return false;
     final configured = await _tts.configure(speechRate: speechRate);
-    if (!configured) return;
-    await _tts.speak(text, languageCode: locale);
+    if (!configured) return false;
+    return _tts.speak(text, languageCode: locale);
   }
 
   Future<void> stop() => _tts.stop();
