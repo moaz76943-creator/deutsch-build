@@ -85,20 +85,6 @@ jobs:
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.yaml toolchain.lock
 
-      - name: Commit only the resolved lockfile
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add -- pubspec.lock
-          if git diff --cached --quiet; then
-            echo "Dependency lockfile is already current"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "fix(deps): regenerate verified SQLite v2 lockfile [skip ci]"
-            git push origin "HEAD:${GITHUB_REF}"
-          fi
-
       - name: Check Dart blocking diagnostics
         run: bash scripts/check-dart-errors.sh
 
@@ -115,6 +101,22 @@ jobs:
           test -s build/app/outputs/flutter-apk/app-debug.apk
           sha256sum build/app/outputs/flutter-apk/app-debug.apk
 
+      - name: Commit verified lockfile after all checks pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Only pubspec.lock may be published by this repair operation.
+          unexpected="$(git diff --name-only -- . ':!pubspec.lock')"
+          test -z "$unexpected" || { printf 'Unexpected tracked changes:\n%s\n' "$unexpected" >&2; exit 1; }
+          git add -- pubspec.lock
+          if git diff --cached --quiet; then
+            echo "Dependency lockfile is already current"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "fix(deps): regenerate verified SQLite v2 lockfile [skip ci]"
+            git push origin "HEAD:${GITHUB_REF}"
+          fi
 
   build:
     name: Build & Release Android
