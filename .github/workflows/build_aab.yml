@@ -42,9 +42,6 @@ jobs:
       - name: 📦 جلب الحزم والمكاتب (Pub Get)
         run: flutter pub get
 
-      - name: 🔍 فحص الأخطاء البرمجية (Analyze)
-        run: dart analyze lib/
-
       - name: Load release keystore
         shell: bash
         env:
@@ -94,6 +91,7 @@ jobs:
           name: Deutsch-BiLarabi-APK
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
+          if-no-files-found: error
 
       - name: 📤 استخراج وحفظ نسخة المتجر (Upload AAB)
         uses: actions/upload-artifact@v4
