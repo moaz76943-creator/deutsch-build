@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:archive/archive.dart';
+import 'package:http/http.dart' as http;
+import 'package:crypto/crypto.dart';
 
 Uint8List _decompressGzip(Uint8List compressedBytes) {
   return Uint8List.fromList(GZipDecoder().decodeBytes(compressedBytes));
@@ -13,7 +16,10 @@ Uint8List _decompressGzip(Uint8List compressedBytes) {
 class PackManager {
   static Database? _database;
   static String? _currentLanguage;
+  static const String releaseBaseUrl = 
+      'https://github.com/moaz76943-creator/deutsch-build/releases/download/v3.0.0';
 
+  /// تهيئة الحزمة: بحث محلي -> أصول التطبيق -> التنزيل السحابي التلقائي
   static Future<Database> initLanguagePack(String langCode) async {
     if (_database != null && _currentLanguage == langCode) {
       return _database!;
@@ -21,16 +27,37 @@ class PackManager {
 
     final docsDir = await getApplicationDocumentsDirectory();
     final dbPath = join(docsDir.path, '$langCode-1.0.0.sqlite');
-    final tempPath = join(docsDir.path, '$langCode-1.0.0.sqlite.tmp');
+    final gzTempPath = join(docsDir.path, '$langCode-temp.pack.gz');
 
     if (!await File(dbPath).exists()) {
-      final assetPath = 'assets/content/packs/$langCode/$langCode-1.0.0.pack.gz';
-      final byteData = await rootBundle.load(assetPath);
-      final compressedBytes = byteData.buffer.asUint8List();
+      Uint8List? compressedBytes;
 
+      // 1. محاولة قراءة الحزمة من أصول التطبيق المدمجة
+      try {
+        final assetPath = 'assets/content/packs/$langCode/$langCode-1.0.0.pack.gz';
+        final byteData = await rootBundle.load(assetPath);
+        compressedBytes = byteData.buffer.asUint8List();
+      } catch (_) {
+        compressedBytes = null;
+      }
+
+      // 2. إذا لم تكن مدمجة، تنزيل الحزمة عبر الشبكة
+      if (compressedBytes == null) {
+        final downloadUrl = '$releaseBaseUrl/$langCode-1.0.0.pack.gz';
+        final response = await http.get(Uri.parse(downloadUrl));
+
+        if (response.statusCode != 200) {
+          throw Exception('تعذر تحميل حزمة اللغة [$langCode] من الخادم.');
+        }
+
+        compressedBytes = response.bodyBytes;
+      }
+
+      // 3. فك الضغط في Isolate مستقل وكتابة ذرية مؤمنة
       final decompressedBytes = await compute(_decompressGzip, compressedBytes);
-
-      final tempFile = File(tempPath);
+      final tempDbPath = join(docsDir.path, '$langCode-temp.sqlite');
+      
+      final tempFile = File(tempDbPath);
       await tempFile.writeAsBytes(decompressedBytes, flush: true);
       await tempFile.rename(dbPath);
     }
@@ -40,6 +67,7 @@ class PackManager {
     return _database!;
   }
 
+  /// استعلام سريع حسب القسم والمستوى
   static Future<List<Map<String, dynamic>>> getConceptsBySection({
     required String sectionId,
     required String cefr,
@@ -61,6 +89,7 @@ class PackManager {
     ''', [sectionId, cefr]);
   }
 
+  /// بحث فوري عبر FTS5
   static Future<List<Map<String, dynamic>>> searchInstant(String query) async {
     if (_database == null) throw Exception('Database not initialized');
 
@@ -76,6 +105,7 @@ class PackManager {
     ''', ['$query*']);
   }
 
+  /// جلب التمارين لمفهوم محدد
   static Future<List<Map<String, dynamic>>> getExercises(String conceptId) async {
     if (_database == null) throw Exception('Database not initialized');
 
@@ -86,7 +116,7 @@ class PackManager {
     );
   }
 
-  /// تطبيق خوارزمية التكرار المتباعد (SM-2) وتحديث جدول التقدم
+  /// خوارزمية التكرار المتباعد (SM-2)
   static Future<void> recordQuizResult({
     required String conceptId,
     required bool isCorrect,
@@ -148,7 +178,7 @@ class PackManager {
     );
   }
 
-  /// جلب البيانات الوصفية وحقوق الترخيص للعرض في التطبيق
+  /// استخراج بيانات التراخيص والمصدر
   static Future<Map<String, String>> getDatasetMetadata() async {
     if (_database == null) return {};
     final rows = await _database!.query('dataset_metadata');
