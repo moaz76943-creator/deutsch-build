@@ -5,6 +5,7 @@ import 'package:deutsch_bilarabi/features/flashcards/learning_review_coordinator
 import 'package:deutsch_bilarabi/features/flashcards/verified_exercise.dart';
 import 'package:deutsch_bilarabi/features/gamification/local_learning_analytics.dart';
 import 'package:deutsch_bilarabi/features/wordbit/models/wordbit_card.dart';
+import 'package:deutsch_bilarabi/features/wordbit/ui/wordbit_carousel_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -143,6 +144,65 @@ void main() {
       expect(writes, contains('de::lex.de.1::4'));
       expect(writes, contains('fr::lex.fr.1::4'));
     });
+  });
+
+  group('WordBit directed translations', () {
+    test('en to de uses sourced English instead of preferred Arabic', () {
+      final selected = WordBitCarouselScreen.selectTranslationForSource(
+        <String, dynamic>{
+          'id': 'lex.de.1',
+          'surface': 'Haus',
+          'language_code': 'de',
+          'translation_ar': 'منزل',
+          'translation_language_code': 'ar',
+          'fields': <String, dynamic>{
+            'translation_ar': 'منزل',
+            'translations': <Map<String, String>>[
+              <String, String>{'text': 'house', 'languageCode': 'en'},
+            ],
+          },
+        },
+        'en',
+      );
+      final card = WordBitCard.fromLexiconRow(
+        selected, sourceLanguageCode: 'en',
+      );
+      expect(card.translation, 'house');
+      expect(card.translationLanguageCode, 'en');
+    });
+
+    test('missing requested source never shows a different translation', () {
+      final selected = WordBitCarouselScreen.selectTranslationForSource(
+        <String, dynamic>{
+          'id': 'lex.de.1',
+          'surface': 'Haus',
+          'language_code': 'de',
+          'translation_ar': 'منزل',
+          'translation_language_code': 'ar',
+          'fields': <String, dynamic>{'translation_ar': 'منزل'},
+        },
+        'es',
+      );
+      final card = WordBitCard.fromLexiconRow(
+        selected, sourceLanguageCode: 'es',
+      );
+      expect(card.translation, isEmpty);
+      expect(card.translationLanguageCode, isEmpty);
+    });
+  });
+
+  test('legacy progress without review timestamps has unknown history', () {
+    final report = LocalLearningAnalytics.computeReportFromRows(
+      <Map<String, dynamic>>[
+        <String, dynamic>{
+          'target_language_code': 'de',
+          'repetition_count': 3,
+          'interval_days': 24,
+        },
+      ],
+    );
+    expect(report['review_days_30d'], isNull);
+    expect(report['observed_streak_days'], isNull);
   });
 
   group('verified content mapping', () {
