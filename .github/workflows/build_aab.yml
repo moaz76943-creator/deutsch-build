@@ -12,6 +12,19 @@ jobs:
       - name: 📥 مسحب الكود البرمجي (Checkout)
         uses: actions/checkout@v4
 
+      - name: Fail fast when signing secrets are missing
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for required in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            test -n "${!required:-}" || { echo "::error::Missing $required signing secret"; exit 1; }
+          done
+
       - name: ⚙️ إعداد بيئة جافا (Java 17)
         uses: actions/setup-java@v4
         with:
