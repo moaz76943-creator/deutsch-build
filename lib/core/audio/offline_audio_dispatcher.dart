@@ -34,6 +34,6 @@ class OfflineAudioDispatcher {
   static void stopCurrentAudio() {
     _currentGenerationToken++;
     _isPlaying = false;
-    OfflineAudioPool().stop();
+    unawaited(OfflineAudioPool().stop());
   }
 }
