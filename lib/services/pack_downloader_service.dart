@@ -215,114 +215,165 @@ class PackDownloaderService {
     _activeClients.remove(code)?.close();
   }
 
+  static bool _approvedUri(Uri uri) {
+    if (uri.scheme != 'https' || uri.userInfo.isNotEmpty ||
+        uri.hasQuery || uri.hasFragment ||
+        (uri.hasPort && uri.port != 443) ||
+        uri.pathSegments.any((part) =>
+            part.isEmpty || part == '..' || part == '.')) {
+      return false;
+    }
+    final raw = RegExp(
+      r'^/moaz76943-creator/-offline-packs-store/'
+      r'(main|[0-9a-f]{40})/(manifest\.json|packs/[a-zA-Z0-9._/-]+)$',
+    );
+    final cdn = RegExp(
+      r'^/gh/moaz76943-creator/-offline-packs-store@'
+      r'(main|[0-9a-f]{40})/packs/[a-zA-Z0-9._/-]+$',
+    );
+    return (uri.host == 'raw.githubusercontent.com' &&
+            raw.hasMatch(uri.path)) ||
+        (uri.host == 'cdn.jsdelivr.net' && cdn.hasMatch(uri.path));
+  }
+
+  static Future<http.StreamedResponse> _approvedGet(
+    http.Client client, Uri uri, {
+    Map<String, String> headers = const <String, String>{},
+  }) async {
+    var current = uri;
+    for (var redirect = 0; redirect <= 3; redirect++) {
+      if (!_approvedUri(current)) {
+        throw const FormatException('Unapproved HTTPS pack origin or redirect');
+      }
+      final request = http.Request('GET', current)..followRedirects = false;
+      request.headers.addAll(headers);
+      final response = await client.send(request)
+          .timeout(const Duration(seconds: 25));
+      if (<int>{301, 302, 303, 307, 308}.contains(response.statusCode)) {
+        final location = response.headers[HttpHeaders.locationHeader];
+        await response.stream.listen(null).cancel();
+        if (location == null || redirect == 3) {
+          throw const FormatException('Unsafe or excessive pack redirect');
+        }
+        current = current.resolve(location);
+        continue;
+      }
+      return response;
+    }
+    throw const FormatException('Too many redirects');
+  }
+
   static Future<Map<String, dynamic>> _fetchManifest(
-    http.Client client,
-    Uri manifestUri,
+    http.Client client, Uri manifestUri,
   ) async {
-    if (manifestUri.scheme != 'https') {
-      throw const FormatException('Pack manifest must use HTTPS');
-    }
-    final response = await client.get(manifestUri);
+    final response = await _approvedGet(client, manifestUri);
     if (response.statusCode != HttpStatus.ok) {
-      throw HttpException(
-        'Manifest request failed with HTTP ${response.statusCode}',
-        uri: manifestUri,
-      );
+      throw HttpException('Manifest HTTP ' + response.statusCode.toString(),
+          uri: manifestUri);
     }
-    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    const maxManifestBytes = 2 * 1024 * 1024;
+    final bytes = BytesBuilder(copy: false);
+    var received = 0;
+    await for (final chunk in response.stream) {
+      if (chunk.length > maxManifestBytes - received) {
+        throw StateError('Manifest size exceeds bounded limit');
+      }
+      bytes.add(chunk);
+      received += chunk.length;
+    }
+    final decoded = jsonDecode(utf8.decode(bytes.takeBytes()));
     if (decoded is! Map) {
       throw const FormatException('Pack manifest root must be an object');
     }
-    return Map<String, dynamic>.from(decoded);
+    final result = Map<String, dynamic>.from(decoded);
+    if (result['schemaVersion'] != '2.0.0') {
+      throw const FormatException('Unsupported manifest schema');
+    }
+    return result;
   }
 
   static Future<void> _downloadArchive({
     required http.Client client,
     required Uri uri,
     required File destination,
-    required int? expectedSizeBytes,
+    required int expectedSizeBytes,
     required String expectedSha256,
     PackDownloadProgress? onProgress,
   }) async {
-    if (uri.scheme != 'https') {
-      throw const FormatException('Pack archive must use HTTPS');
+    if (expectedSizeBytes < 1 || expectedSizeBytes > maxCompressedPackBytes) {
+      throw const FormatException('Archive exceeds storage budget');
     }
     await destination.parent.create(recursive: true);
-
     if (await destination.exists()) {
-      final existingLength = await destination.length();
-      if (expectedSizeBytes != null && existingLength > expectedSizeBytes) {
+      final size = await destination.length();
+      if (size > expectedSizeBytes) {
         await destination.delete();
-      } else if (expectedSizeBytes != null &&
-          existingLength == expectedSizeBytes) {
-        final digest = await _sha256File(destination);
-        if (_constantTimeHexEquals(digest, expectedSha256)) {
-          onProgress?.call(1.0);
-          return;
-        }
+      } else if (size == expectedSizeBytes) {
+        if (_constantTimeHexEquals(
+            await _sha256File(destination), expectedSha256)) return;
         await destination.delete();
       }
     }
 
     for (var attempt = 0; attempt < 2; attempt++) {
-      final existingBytes =
-          await destination.exists() ? await destination.length() : 0;
-      final request = http.Request('GET', uri);
-      if (existingBytes > 0) {
-        request.headers[HttpHeaders.rangeHeader] = 'bytes=$existingBytes-';
-      }
-
-      final response = await client.send(request);
+      final existing = await destination.exists()
+          ? await destination.length() : 0;
+      final response = await _approvedGet(client, uri, headers:
+          existing > 0
+              ? <String, String>{HttpHeaders.rangeHeader: 'bytes=$existing-'}
+              : const <String, String>{});
       if (response.statusCode == HttpStatus.requestedRangeNotSatisfiable &&
-          existingBytes > 0 &&
-          attempt == 0) {
+          existing > 0 && attempt == 0) {
         await destination.delete();
         continue;
       }
       if (response.statusCode != HttpStatus.ok &&
           response.statusCode != HttpStatus.partialContent) {
-        throw HttpException(
-          'Pack download failed with HTTP ${response.statusCode}',
-          uri: uri,
-        );
+        throw HttpException('Archive HTTP ' + response.statusCode.toString(),
+            uri: uri);
       }
-
-      final append = existingBytes > 0 &&
+      if (response.statusCode == HttpStatus.partialContent) {
+        final range = response.headers[HttpHeaders.contentRangeHeader];
+        if (existing == 0 || range == null ||
+            !range.startsWith('bytes $existing-')) {
+          throw const FormatException('Mismatched resume content range');
+        }
+      }
+      final append = existing > 0 &&
           response.statusCode == HttpStatus.partialContent;
-      final startingBytes = append ? existingBytes : 0;
-      final totalBytes = _resolveTotalBytes(
-        response.headers,
-        startingBytes,
-        response.contentLength,
-        expectedSizeBytes,
-      );
+      final offset = append ? existing : 0;
+      final total = _resolveTotalBytes(response.headers, offset,
+          response.contentLength, expectedSizeBytes);
+      if (total != expectedSizeBytes) {
+        throw const FormatException('Inconsistent manifest download size');
+      }
       final sink = destination.openWrite(
-        mode: append ? FileMode.append : FileMode.write,
-      );
-      var receivedBytes = startingBytes;
+          mode: append ? FileMode.append : FileMode.write);
+      var received = offset;
       try {
         await for (final chunk in response.stream) {
-          sink.add(chunk);
-          receivedBytes += chunk.length;
-          if (totalBytes != null && totalBytes > 0) {
-            onProgress?.call(
-              (receivedBytes / totalBytes).clamp(0.0, 1.0).toDouble(),
-            );
+          if (chunk.length > expectedSizeBytes - received ||
+              chunk.length > maxCompressedPackBytes - received) {
+            throw StateError('Compressed archive exceeded size limit');
           }
+          sink.add(chunk);
+          received += chunk.length;
+          onProgress?.call(
+              (received / expectedSizeBytes).clamp(0.0, 0.95).toDouble());
         }
         await sink.flush();
       } finally {
         await sink.close();
       }
-
-      final finalSize = await destination.length();
-      if (expectedSizeBytes != null && finalSize != expectedSizeBytes) {
-        throw StateError(
-          'Pack archive size mismatch: expected $expectedSizeBytes, got $finalSize',
-        );
+      if (await destination.length() != expectedSizeBytes ||
+          !_constantTimeHexEquals(
+              await _sha256File(destination), expectedSha256)) {
+        await destination.delete();
+        throw StateError('Downloaded archive SHA-256 or size mismatch');
       }
       return;
     }
+    throw StateError('Download retry exhausted');
   }
 
   static int? _resolveTotalBytes(
