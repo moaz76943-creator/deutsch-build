@@ -25,6 +25,68 @@ class WordBitCarouselScreen extends StatefulWidget {
   final WordBitCardLoader? cardLoader;
   final LearningReviewCoordinator? reviewCoordinator;
 
+  /// Select a genuine translation in the requested source language only.
+  /// The legacy translation_ar row key sometimes carries non-Arabic text,
+  /// so its explicit language tag must take precedence over the key name.
+  static Map<String, dynamic> selectTranslationForSource(
+    Map<String, dynamic> row,
+    String sourceLanguageCode,
+  ) {
+    final requested =
+        sourceLanguageCode.trim().toLowerCase().replaceAll('_', '-');
+    final rawFields = row['fields'];
+    final fields = rawFields is Map
+        ? Map<String, dynamic>.from(rawFields)
+        : <String, dynamic>{};
+
+    String? text(Object? value) =>
+        value is String && value.trim().isNotEmpty ? value.trim() : null;
+    String tag(Object? value) =>
+        (text(value) ?? '').toLowerCase().replaceAll('_', '-');
+
+    String? translation;
+    final rowTag = tag(row['translation_language_code']);
+    if (rowTag == requested) {
+      translation = text(row['translation_ar']);
+    }
+    if (translation == null && requested == 'ar' &&
+        (rowTag.isEmpty || rowTag == 'ar')) {
+      translation = text(row['translation_ar']) ??
+          text(fields['translation_ar']);
+    }
+    final flatTag = tag(fields['translationLanguageCode'] ??
+        fields['translation_language_code']);
+    if (translation == null && flatTag == requested) {
+      translation = text(fields['translation']);
+    }
+    if (translation == null) {
+      for (final key in <String>['translations', 'definitions']) {
+        final entries = fields[key];
+        if (entries is! List) continue;
+        for (final item in entries) {
+          if (item is! Map) continue;
+          if (tag(item['languageCode'] ?? item['language_code']) ==
+              requested) {
+            translation = text(item['text']);
+            if (translation != null) break;
+          }
+        }
+        if (translation != null) break;
+      }
+    }
+    // Fail closed: a missing English, Spanish etc. translation must never
+    // display an unrelated Arabic or English value as the requested language.
+    final safeFields = Map<String, dynamic>.from(fields)
+      ..remove('translation_ar')
+      ..remove('translation');
+    final safeRow = Map<String, dynamic>.from(row);
+    safeRow['translation_ar'] = translation ?? '';
+    safeRow['translation_language_code'] =
+        translation == null ? '' : requested;
+    safeRow['fields'] = safeFields;
+    return safeRow;
+  }
+
   @override
   State<WordBitCarouselScreen> createState() => _WordBitCarouselScreenState();
 }
@@ -39,6 +101,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   bool _isFlipped = false;
   bool _isLoading = true;
   bool _reviewInFlight = false;
+  bool _sessionComplete = false;
   int _currentIndex = 0;
   int _loadGeneration = 0;
   String? _loadError;
@@ -78,7 +141,9 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
         try {
           mapped.add(
             WordBitCard.fromLexiconRow(
-              row,
+              WordBitCarouselScreen.selectTranslationForSource(
+                row, widget.sourceLanguageCode,
+              ),
               sourceLanguageCode: widget.sourceLanguageCode,
             ),
           );
@@ -93,6 +158,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
         _currentIndex = 0;
         _isFlipped = false;
         _isLoading = false;
+        _sessionComplete = false;
         if (rows.isNotEmpty && mapped.isEmpty) {
           _loadError = 'تعذر قراءة البطاقات الموثّقة من الحزمة المحلية.';
         }
@@ -128,7 +194,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   }
 
   Future<void> _submitReview(int grade) async {
-    if (_reviewInFlight || _cards.isEmpty) {
+    if (_reviewInFlight || _cards.isEmpty || _sessionComplete) {
       return;
     }
     final card = _cards[_currentIndex];
@@ -151,6 +217,10 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
       }
       if (status == ReviewSubmissionStatus.accepted) {
         await _advance();
+      } else if (status == ReviewSubmissionStatus.duplicate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('هذه المراجعة مسجلة مسبقاً.')),
+        );
       }
     } catch (_) {
       if (!mounted) {
@@ -179,6 +249,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
       return;
     }
     if (mounted) {
+      setState(() { _sessionComplete = true; });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('اكتملت البطاقات المتاحة لهذه الجلسة.')),
       );
@@ -214,6 +285,13 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
       return _buildFallback(
         _loadError!,
         actionLabel: 'إعادة المحاولة',
+        onPressed: _loadCards,
+      );
+    }
+    if (_sessionComplete) {
+      return _buildFallback(
+        'اكتملت البطاقات المتاحة لهذه الجلسة.',
+        actionLabel: 'تحديث البطاقات',
         onPressed: _loadCards,
       );
     }
