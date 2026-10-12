@@ -126,6 +126,14 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+      - name: Preserve verified dependency lock for recovery
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-sqlite2-lock-${{ github.sha }}
+          path: pubspec.lock
+          retention-days: 2
+          if-no-files-found: error
+
       - name: Commit verified lockfile after all checks pass
         shell: bash
         run: |
