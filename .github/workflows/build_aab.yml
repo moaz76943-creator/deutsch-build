@@ -25,6 +25,9 @@ jobs:
         with:
           persist-credentials: true
 
+      - name: Verify Gradle wrapper integrity
+        run: python3 tool/gradle_wrapper_integrity.py
+
       - name: Read locked Flutter version
         id: toolchain
         shell: bash
