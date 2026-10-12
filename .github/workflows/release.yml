@@ -64,7 +64,7 @@ jobs:
           pub-cache: true
 
       - name: Install Dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Materialize release keystore
         env:
