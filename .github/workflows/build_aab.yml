@@ -15,7 +15,7 @@ jobs:
     name: Resolve and verify SQLite-v2 dependencies
     if: github.ref == 'refs/heads/fix/flutter-ci-sdk-alignment-20261012'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     permissions:
       contents: write
 
