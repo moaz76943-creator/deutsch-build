@@ -42,7 +42,7 @@ class FlutterTtsPlatformAdapter implements TtsPlatformAdapter {
 
   @override
   void setErrorHandler(void Function(Object? message) handler) =>
-      _tts.setErrorHandler(handler);
+      _tts.setErrorHandler((message) => handler(message));
 
   @override
   Future<dynamic> awaitSpeakCompletion(bool awaitCompletion) =>
