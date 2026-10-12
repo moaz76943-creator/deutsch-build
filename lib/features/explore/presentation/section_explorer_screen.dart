@@ -411,10 +411,23 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                               IconButton(
                                 icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
                                 tooltip: 'استماع للنطق',
-                                onPressed: () => AudioTtsService.speak(
-                                  text: word,
-                                  languageCode: currentLanguage,
-                                ),
+                                onPressed: () async {
+                                  try {
+                                    await AudioTtsService.speak(
+                                      text: word,
+                                      languageCode: currentLanguage,
+                                    );
+                                  } catch (err) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('⚠️ تعذر النطق: $err'),
+                                          backgroundColor: Colors.orange.shade800,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
                               ),
                               IconButton(
                                 icon: const Icon(Icons.quiz, color: Colors.indigo),

@@ -4,7 +4,6 @@ class AudioTtsService {
   static final FlutterTts _tts = FlutterTts();
   static bool _isInitialized = false;
 
-  /// خريطة كاملة لمحددات اللهجات لـ 100 لغة وفق معايير BCP 47
   static final Map<String, String> languageLocales = {
     'af': 'af-ZA', 'am': 'am-ET', 'ar': 'ar-SA', 'az': 'az-AZ', 'be': 'be-BY',
     'bg': 'bg-BG', 'bn': 'bn-BD', 'bs': 'bs-BA', 'ca': 'ca-ES', 'cs': 'cs-CZ',
@@ -37,22 +36,37 @@ class AudioTtsService {
     _isInitialized = true;
   }
 
+  /// نطق النص باللغة الحقيقية المطلوبة دون تحويل صامت للإنجليزية
   static Future<void> speak({
     required String text,
     required String languageCode,
   }) async {
-    await init();
-    final locale = languageLocales[languageCode] ?? 'en-US';
-    final isAvailable = await _tts.isLanguageAvailable(locale);
+    final normalizedText = text.trim();
+    if (normalizedText.isEmpty) return;
 
-    if (isAvailable == 1 || isAvailable == true) {
-      await _tts.setLanguage(locale);
-    } else {
-      await _tts.setLanguage('en-US');
+    await init();
+
+    final normalizedCode = languageCode.trim().toLowerCase();
+    final locale = languageLocales[normalizedCode];
+
+    if (locale == null) {
+      throw StateError('رمز اللغة غير مدعوم في خريطة النطق: $languageCode');
+    }
+
+    final availability = await _tts.isLanguageAvailable(locale);
+    final isSupported = (availability == 1 || availability == true);
+
+    if (!isSupported) {
+      throw StateError('حزمة الصوت للغة ($locale) غير مثبتة على محرك الهاتف.');
     }
 
     await _tts.stop();
-    await _tts.speak(text);
+    final setResult = await _tts.setLanguage(locale);
+    if (setResult == 0 || setResult == false) {
+      throw StateError('تعذر تفعيل لغة النطق ($locale) في النظام.');
+    }
+
+    await _tts.speak(normalizedText);
   }
 
   static Future<void> stop() async {

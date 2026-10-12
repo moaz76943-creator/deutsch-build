@@ -7,13 +7,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
+import 'progress_database_service.dart';
 
-/// استخراج بايتات SQLite الحقيقية سواء كانت مباشرة أو مغلفة داخل JSON Envelope
 Uint8List _decompressAndExtractSqlite(Uint8List compressedBytes) {
   final decompressed = GZipDecoder().decodeBytes(compressedBytes);
-  
-  // فحص ترويسة SQLite القياسية (Header: SQLite format 3\000)
   const sqliteHeader = [83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0];
+  
   bool isRawSqlite = true;
   if (decompressed.length >= 16) {
     for (int i = 0; i < 16; i++) {
@@ -30,7 +29,6 @@ Uint8List _decompressAndExtractSqlite(Uint8List compressedBytes) {
     return Uint8List.fromList(decompressed);
   }
 
-  // إذا لم تكن خام، محاولة فك غلاف JSON المستخرج من أدوات الـ ingestion
   try {
     final jsonStr = utf8.decode(decompressed);
     final decoded = jsonDecode(jsonStr);
@@ -38,14 +36,11 @@ Uint8List _decompressAndExtractSqlite(Uint8List compressedBytes) {
       final files = decoded['files'] as List;
       for (final item in files) {
         if (item is Map && item['path'] == 'content/content.sqlite') {
-          final base64Content = item['contentBase64'] as String;
-          return base64Decode(base64Content);
+          return base64Decode(item['contentBase64'] as String);
         }
       }
     }
-  } catch (_) {
-    // في حال تعذر قراءة JSON، رمي خطأ صريح
-  }
+  } catch (_) {}
 
   throw const FormatException('صيغة الحزمة غير صالحة ولا تحتوي على ترويسة SQLite صالحة.');
 }
@@ -110,7 +105,6 @@ class PackManager {
         compressedBytes = Uint8List.fromList(downloadedChunks);
       }
 
-      // استخراج البايتات في Isolate مستقل والتحقق من الترويسة
       final sqliteBytes = await compute(_decompressAndExtractSqlite, compressedBytes);
       final tempDbPath = join(docsDir.path, '$langCode-temp.sqlite');
       
@@ -119,9 +113,10 @@ class PackManager {
       await tempFile.rename(dbPath);
     }
 
+    // فتح قاعدة المحتوى في وضع القراءة فقط للحماية المطلقة
     _database = await openDatabase(
       dbPath,
-      readOnly: false,
+      readOnly: true,
       onConfigure: (db) async {
         await db.execute('PRAGMA busy_timeout = 5000;');
       },
@@ -136,20 +131,27 @@ class PackManager {
   }) async {
     if (_database == null) throw Exception('قاعدة البيانات غير مهيأة');
 
-    // استعلام مرن يتوافق مع كلا المخططين (v1 و v2)
-    return await _database!.rawQuery('''
+    final conceptsData = await _database!.rawQuery('''
       SELECT 
         c.concept_id,
         COALESCE(l.display_text, l.lemma, 'بدون عنوان') AS word,
         COALESCE(l.part_of_speech, 'noun') AS part_of_speech,
         l.gender,
-        l.plural,
-        COALESCE(up.box_level, 0) AS box_level
+        l.plural
       FROM concepts c
       LEFT JOIN lexicon l ON l.concept_id = c.concept_id
-      LEFT JOIN user_progress up ON up.concept_id = c.concept_id
       WHERE c.section_id = ? AND c.cefr = ?;
     ''', [sectionId, cefr]);
+
+    // دمج تقدم الحفظ من قاعدة البيانات المستقلة
+    final boxLevels = await ProgressDatabaseService.getAllBoxLevels();
+
+    return conceptsData.map((row) {
+      final cid = row['concept_id'] as String;
+      final mutable = Map<String, dynamic>.from(row);
+      mutable['box_level'] = boxLevels[cid] ?? 0;
+      return mutable;
+    }).toList();
   }
 
   static Future<List<Map<String, dynamic>>> searchInstant(String query) async {
@@ -181,54 +183,9 @@ class PackManager {
     required String conceptId,
     required bool isCorrect,
   }) async {
-    if (_database == null) return;
-
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final records = await _database!.query(
-      'user_progress',
-      where: 'concept_id = ?',
-      whereArgs: [conceptId],
-    );
-
-    int repetitions = 0;
-    int boxLevel = 0;
-    double easeFactor = 2.5;
-    int intervalDays = 1;
-
-    if (records.isNotEmpty) {
-      final row = records.first;
-      repetitions = (row['repetitions'] as int? ?? 0);
-      boxLevel = (row['box_level'] as int? ?? 0);
-      easeFactor = (row['ease_factor'] as num? ?? 2.5).toDouble();
-      intervalDays = (row['interval_days'] as int? ?? 1);
-    }
-
-    if (isCorrect) {
-      repetitions += 1;
-      boxLevel += 1;
-      intervalDays = (repetitions == 1) ? 1 : ((repetitions == 2) ? 6 : (intervalDays * easeFactor).round());
-      easeFactor = (easeFactor + 0.1).clamp(1.3, 3.0);
-    } else {
-      repetitions = 0;
-      boxLevel = 0;
-      intervalDays = 1;
-      easeFactor = (easeFactor - 0.2).clamp(1.3, 3.0);
-    }
-
-    final nextReview = now + (intervalDays * 24 * 60 * 60 * 1000);
-
-    await _database!.insert(
-      'user_progress',
-      {
-        'concept_id': conceptId,
-        'box_level': boxLevel,
-        'ease_factor': easeFactor,
-        'interval_days': intervalDays,
-        'repetitions': repetitions,
-        'last_reviewed_at': now,
-        'next_review_at': nextReview,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
+    await ProgressDatabaseService.recordProgress(
+      conceptId: conceptId,
+      isCorrect: isCorrect,
     );
   }
 

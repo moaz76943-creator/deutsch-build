@@ -28,7 +28,7 @@ jobs:
         run: flutter pub get
 
       - name: 🔍 فحص الأخطاء البرمجية (Analyze)
-        run: flutter analyze lib/ || true
+        run: flutter analyze lib/
 
       - name: 🛠️ بناء التطبيق للهاتف (Build APK)
         run: flutter build apk --release
