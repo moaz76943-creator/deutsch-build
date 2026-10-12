@@ -4,19 +4,36 @@ import '../../../core/services/pack_manager.dart';
 import '../../../core/services/audio_tts_service.dart';
 
 class SectionExplorerScreen extends StatefulWidget {
-  final String currentLanguage;
+  final String initialLanguage;
 
-  const SectionExplorerScreen({Key? key, this.currentLanguage = 'ar'}) : super(key: key);
+  const SectionExplorerScreen({Key? key, this.initialLanguage = 'de'}) : super(key: key);
 
   @override
   State<SectionExplorerScreen> createState() => _SectionExplorerScreenState();
 }
 
 class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
+  late String currentLanguage;
   String selectedSection = 'HOME_KITCHEN';
   String selectedCefr = 'A1';
   bool isLoading = true;
+  bool isSearching = false;
   List<Map<String, dynamic>> items = [];
+  List<Map<String, dynamic>> searchResults = [];
+  final TextEditingController searchController = TextEditingController();
+
+  final List<Map<String, String>> availableLanguages = [
+    {'code': 'de', 'name': 'الألمانية (Deutsch)'},
+    {'code': 'ar', 'name': 'العربية (Arabic)'},
+    {'code': 'en', 'name': 'الإنجليزية (English)'},
+    {'code': 'fr', 'name': 'الفرنسية (Français)'},
+    {'code': 'es', 'name': 'الإسبانية (Español)'},
+    {'code': 'it', 'name': 'الإيطالية (Italiano)'},
+    {'code': 'tr', 'name': 'التركية (Türkçe)'},
+    {'code': 'pt', 'name': 'البرتغالية (Português)'},
+    {'code': 'ru', 'name': 'الروسية (Русский)'},
+    {'code': 'nl', 'name': 'الهولندية (Nederlands)'},
+  ];
 
   final List<Map<String, String>> sections = [
     {'id': 'HOME_KITCHEN', 'title': 'المطبخ والأواني 🍳'},
@@ -29,13 +46,14 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   @override
   void initState() {
     super.initState();
+    currentLanguage = widget.initialLanguage;
     loadSectionData();
   }
 
   Future<void> loadSectionData() async {
     setState(() => isLoading = true);
     try {
-      await PackManager.initLanguagePack(widget.currentLanguage);
+      await PackManager.initLanguagePack(currentLanguage);
       final data = await PackManager.getConceptsBySection(
         sectionId: selectedSection,
         cefr: selectedCefr,
@@ -47,6 +65,22 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     } catch (e) {
       setState(() => isLoading = false);
     }
+  }
+
+  Future<void> performInstantSearch(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        isSearching = false;
+        searchResults = [];
+      });
+      return;
+    }
+
+    setState(() => isSearching = true);
+    final results = await PackManager.searchInstant(query.trim());
+    setState(() {
+      searchResults = results;
+    });
   }
 
   void showLicenseDialog() async {
@@ -128,10 +162,37 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final displayList = isSearching ? searchResults : items;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المستودع اللغوي التفاعلي'),
-        centerTitle: true,
+        title: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: currentLanguage,
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+            dropdownColor: Colors.indigo.shade800,
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            onChanged: (newLang) {
+              if (newLang != null && newLang != currentLanguage) {
+                setState(() {
+                  currentLanguage = newLang;
+                  searchController.clear();
+                  isSearching = false;
+                });
+                loadSectionData();
+              }
+            },
+            items: availableLanguages.map((lang) {
+              return DropdownMenuItem<String>(
+                value: lang['code'],
+                child: Text(lang['name']!),
+              );
+            }).toList(),
+          ),
+        ),
+        centerTitle: false,
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -142,57 +203,95 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       ),
       body: Column(
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            child: Row(
-              children: sections.map((sec) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(sec['title']!),
-                  selected: selectedSection == sec['id'],
-                  onSelected: (val) {
-                    if (val) {
-                      setState(() => selectedSection = sec['id']!);
-                      loadSectionData();
-                    }
-                  },
-                ),
-              )).toList(),
-            ),
-          ),
+          // شريط البحث اللحظي FTS5
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: ['A1', 'A2', 'B1', 'B2'].map((lvl) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: FilterChip(
-                  label: Text(lvl),
-                  selected: selectedCefr == lvl,
-                  onSelected: (val) {
-                    if (val) {
-                      setState(() => selectedCefr = lvl);
-                      loadSectionData();
-                    }
-                  },
-                ),
-              )).toList(),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+            child: TextField(
+              controller: searchController,
+              onChanged: performInstantSearch,
+              decoration: InputDecoration(
+                hintText: 'بحث فوري في المعجم (FTS5)...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          searchController.clear();
+                          performInstantSearch('');
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+              ),
             ),
           ),
+
+          if (!isSearching) ...[
+            // شريط الأقسام
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Row(
+                children: sections.map((sec) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(sec['title']!),
+                    selected: selectedSection == sec['id'],
+                    onSelected: (val) {
+                      if (val) {
+                        setState(() => selectedSection = sec['id']!);
+                        loadSectionData();
+                      }
+                    },
+                  ),
+                )).toList(),
+              ),
+            ),
+
+            // شريط المستويات CEFR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: ['A1', 'A2', 'B1', 'B2'].map((lvl) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: FilterChip(
+                    label: Text(lvl),
+                    selected: selectedCefr == lvl,
+                    onSelected: (val) {
+                      if (val) {
+                        setState(() => selectedCefr = lvl);
+                        loadSectionData();
+                      }
+                    },
+                  ),
+                )).toList(),
+              ),
+            ),
+          ],
+
           const Divider(),
+
+          // عرض النتائج والبطاقات
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : items.isEmpty
-                    ? const Center(child: Text('لا توجد مفردات مسجلة لهذا المستوى حالياً.'))
+                : displayList.isEmpty
+                    ? Center(
+                        child: Text(
+                          isSearching
+                              ? 'لم يتم العثور على نتائج مطابقة لـ "${searchController.text}"'
+                              : 'لا توجد مفردات مسجلة لهذا المستوى حالياً.',
+                        ),
+                      )
                     : ListView.separated(
-                        itemCount: items.length,
+                        itemCount: displayList.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, index) {
-                          final item = items[index];
+                          final item = displayList[index];
                           final pos = item['part_of_speech'] ?? 'noun';
-                          final word = item['word'] ?? '';
+                          final word = item['word'] ?? item['display_text'] ?? '';
                           final boxLevel = item['box_level'] as int? ?? 0;
 
                           return ListTile(
@@ -209,7 +308,9 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                               word,
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                             ),
-                            subtitle: Text('المستوى في الذاكرة: صندوق $boxLevel'),
+                            subtitle: Text(
+                              isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -218,7 +319,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                   tooltip: 'استماع للنطق',
                                   onPressed: () => AudioTtsService.speak(
                                     text: word,
-                                    languageCode: widget.currentLanguage,
+                                    languageCode: currentLanguage,
                                   ),
                                 ),
                                 IconButton(
