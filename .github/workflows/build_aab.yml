@@ -60,7 +60,7 @@ jobs:
               )
               if match is None:
                   raise SystemExit(f"Missing locked package: {name}")
-              value = re.search(r'^    version: "([^"]+)", match.group(1), re.M)
+              value = re.search(r'^    version: "([^"]+)"$', match.group(1), re.M)
               if value is None:
                   raise SystemExit(f"Missing locked version: {name}")
               return value.group(1)
