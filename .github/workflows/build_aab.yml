@@ -73,6 +73,21 @@ jobs:
           ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build appbundle --release
 
+      - name: Verify signed artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          aab="build/app/outputs/bundle/release/app-release.aab"
+          test -s "$apk" && test -s "$aab"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root" && test -d "$sdk_root/build-tools"
+          signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$signer"
+          "$signer" verify --verbose "$apk"
+          jarsigner -verify -strict "$aab"
+          sha256sum "$apk" "$aab"
+
       - name: 📤 استخراج وحفظ نسخة الهاتف (Upload APK)
         uses: actions/upload-artifact@v4
         with:
@@ -86,3 +101,8 @@ jobs:
           name: Deutsch-BiLarabi-AAB
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 7
+
+      - name: Clean up signing material
+        if: always()
+        shell: bash
+        run: rm -f android/app/upload-keystore.jks
