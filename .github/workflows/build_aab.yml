@@ -232,6 +232,9 @@ jobs:
 
       - name: Verify signed artifacts
         shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           set -euo pipefail
           apk="build/app/outputs/flutter-apk/app-release.apk"
@@ -242,12 +245,13 @@ jobs:
           signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$signer"
           "$signer" verify --verbose "$apk"
-          verification="$(jarsigner -verify -certs "$aab" 2>&1)"
-          printf '%s\n' "$verification"
-          if ! grep -Fq 'jar verified.' <<< "$verification"; then
-            echo "::error::AAB is unsigned or failed JAR signature validation"
-            exit 1
-          fi
+          # Trust only the configured Play upload keystore and alias.
+          # Strict verification accepts a self-signed key trusted in this
+          # keystore, but fails on a different signer (even if also valid).
+          jarsigner -verify -strict \
+            -keystore android/app/upload-keystore.jks \
+            -storepass "$KEYSTORE_PASSWORD" \
+            "$aab" "$KEY_ALIAS"
           sha256sum "$apk" "$aab"
 
       - name: 📤 استخراج وحفظ نسخة الهاتف (Upload APK)
