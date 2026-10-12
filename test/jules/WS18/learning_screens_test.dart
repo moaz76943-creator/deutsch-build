@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:deutsch_bilarabi/features/flashcards/learning_review_coordinator.dart';
 import 'package:deutsch_bilarabi/screens/focus_quiz_screen.dart';
+import 'package:deutsch_bilarabi/features/wordbit/ui/wordbit_carousel_screen.dart';
 import 'package:deutsch_bilarabi/screens/quiz_exercise_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +17,48 @@ void main() {
       }) async {},
     );
   }
+
+  testWidgets('WordBit final review ends session without active grade buttons',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    var writes = 0;
+    final coordinator = LearningReviewCoordinator(
+      writer: ({
+        required learnerContentId,
+        required targetLanguageCode,
+        required grade,
+      }) async {
+        writes++;
+      },
+    );
+    await tester.pumpWidget(MaterialApp(
+      home: WordBitCarouselScreen(
+        sourceLanguageCode: 'ar',
+        targetLanguageCode: 'de',
+        reviewCoordinator: coordinator,
+        cardLoader: (_) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'lex.de.1',
+            'surface': 'Haus',
+            'language_code': 'de',
+            'translation_ar': 'منزل',
+            'translation_language_code': 'ar',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('سهل'), findsOneWidget);
+    await tester.tap(find.text('سهل'));
+    await tester.pumpAndSettle();
+    expect(writes, 1);
+    expect(find.text('سهل'), findsNothing);
+    expect(find.textContaining('اكتملت البطاقات'), findsOneWidget);
+  });
 
   testWidgets('quiz shows a non-blank verified-content fallback', (tester) async {
     await tester.pumpWidget(
