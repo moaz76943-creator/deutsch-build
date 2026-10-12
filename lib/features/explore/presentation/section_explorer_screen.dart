@@ -22,9 +22,12 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   List<Map<String, dynamic>> searchResults = [];
   final TextEditingController searchController = TextEditingController();
 
+  static const Set<String> rtlLanguages = {'ar', 'fa', 'he', 'ur', 'ps', 'yi', 'ug'};
+
+  // قائمة اللغات الـ 100 الكاملة
   final List<Map<String, String>> availableLanguages = [
     {'code': 'de', 'name': 'الألمانية (Deutsch)'},
-    {'code': 'ar', 'name': 'العربية (Arabic)'},
+    {'code': 'ar', 'name': 'العربية (العربية)'},
     {'code': 'en', 'name': 'الإنجليزية (English)'},
     {'code': 'fr', 'name': 'الفرنسية (Français)'},
     {'code': 'es', 'name': 'الإسبانية (Español)'},
@@ -33,6 +36,96 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     {'code': 'pt', 'name': 'البرتغالية (Português)'},
     {'code': 'ru', 'name': 'الروسية (Русский)'},
     {'code': 'nl', 'name': 'الهولندية (Nederlands)'},
+    {'code': 'ja', 'name': 'اليابانية (日本語)'},
+    {'code': 'zh', 'name': 'الصينية (中文)'},
+    {'code': 'ko', 'name': 'الكورية (한국어)'},
+    {'code': 'hi', 'name': 'الهندية (हिन्दी)'},
+    {'code': 'fa', 'name': 'الفارسية (فارسی)'},
+    {'code': 'ur', 'name': 'الأردية (اردو)'},
+    {'code': 'he', 'name': 'العبرية (עברית)'},
+    {'code': 'sv', 'name': 'السويدية (Svenska)'},
+    {'code': 'pl', 'name': 'البولندية (Polski)'},
+    {'code': 'el', 'name': 'اليونانية (Ελληνικά)'},
+    {'code': 'th', 'name': 'التايلاندية (ไทย)'},
+    {'code': 'vi', 'name': 'الفيتنامية (Tiếng Việt)'},
+    {'code': 'id', 'name': 'الإندونيسية (Bahasa Indonesia)'},
+    {'code': 'uk', 'name': 'الأوكرانية (Українська)'},
+    {'code': 'ro', 'name': 'الرومانية (Română)'},
+    {'code': 'cs', 'name': 'التشيكية (Čeština)'},
+    {'code': 'hu', 'name': 'المجرية (Magyar)'},
+    {'code': 'da', 'name': 'الدنماركية (Dansk)'},
+    {'code': 'fi', 'name': 'الفنلندية (Suomi)'},
+    {'code': 'no', 'name': 'النرويجية (Norsk)'},
+    {'code': 'sw', 'name': 'السواحلية (Kiswahili)'},
+    {'code': 'am', 'name': 'الأمهرية (አማርኛ)'},
+    {'code': 'bn', 'name': 'البنغالية (বাংলা)'},
+    {'code': 'ms', 'name': 'الماليزية (Bahasa Melayu)'},
+    {'code': 'sk', 'name': 'السلوفاكية (Slovenčina)'},
+    {'code': 'bg', 'name': 'البلغارية (Български)'},
+    {'code': 'hr', 'name': 'الكرواتية (Hrvatski)'},
+    {'code': 'sr', 'name': 'الصربية (Српски)'},
+    {'code': 'sl', 'name': 'السلوفينية (Slovenščina)'},
+    {'code': 'lt', 'name': 'الليتوانية (Lietuvių)'},
+    {'code': 'lv', 'name': 'اللاتفية (Latviešu)'},
+    {'code': 'et', 'name': 'الإستونية (Eesti)'},
+    {'code': 'ka', 'name': 'الجورجية (ქართული)'},
+    {'code': 'hy', 'name': 'الأرمنية (Հայերեն)'},
+    {'code': 'az', 'name': 'الأذربيجانية (Azərbaycan)'},
+    {'code': 'kk', 'name': 'الكازاخية (Қазақша)'},
+    {'code': 'uz', 'name': 'الأوزبكية (Oʻzbek)'},
+    {'code': 'ta', 'name': 'التاميلية (தமிழ்)'},
+    {'code': 'te', 'name': 'التيلجو (తెలుగు)'},
+    {'code': 'ml', 'name': 'الماليالامية (മലയാളം)'},
+    {'code': 'mr', 'name': 'الماراثية (मराठी)'},
+    {'code': 'gu', 'name': 'الغوجاراتية (ગુજરાતી)'},
+    {'code': 'kn', 'name': 'الكانادا (ಕನ್ನಡ)'},
+    {'code': 'pa', 'name': 'البنجابية (ਪੰਜਾਬੀ)'},
+    {'code': 'ne', 'name': 'النيبالية (नेपाली)'},
+    {'code': 'si', 'name': 'السنهالية (සිංහල)'},
+    {'code': 'my', 'name': 'البورمية (မြန်မာ)'},
+    {'code': 'km', 'name': 'الخميرية (ខ្មែរ)'},
+    {'code': 'lo', 'name': 'اللاوية (ລາວ)'},
+    {'code': 'is', 'name': 'الآيسلندية (Íslenska)'},
+    {'code': 'ga', 'name': 'الأيرلندية (Gaeilge)'},
+    {'code': 'cy', 'name': 'الويلزية (Cymraeg)'},
+    {'code': 'eu', 'name': 'الباسكية (Euskara)'},
+    {'code': 'gl', 'name': 'الجاليكية (Galego)'},
+    {'code': 'ca', 'name': 'الكتالونية (Català)'},
+    {'code': 'af', 'name': 'الأفريكانية (Afrikaans)'},
+    {'code': 'sq', 'name': 'الألبانية (Shqip)'},
+    {'code': 'mk', 'name': 'المقدونية (Македонски)'},
+    {'code': 'bs', 'name': 'البوسنية (Bosanski)'},
+    {'code': 'be', 'name': 'البيلاروسية (Беларуская)'},
+    {'code': 'tg', 'name': 'الطاجيكية (Тоҷикӣ)'},
+    {'code': 'ky', 'name': 'القيرغيزية (Кыргызча)'},
+    {'code': 'tk', 'name': 'التركمانية (Türkmen)'},
+    {'code': 'tt', 'name': 'التترية (Татар)'},
+    {'code': 'ug', 'name': 'الأويغورية (ئۇيغۇرچە)'},
+    {'code': 'ps', 'name': 'البشتو (پښتو)'},
+    {'code': 'so', 'name': 'الصومالية (Soomaali)'},
+    {'code': 'yo', 'name': 'اليوروبا (Yorùbá)'},
+    {'code': 'ig', 'name': 'الإيجبو (Igbo)'},
+    {'code': 'ha', 'name': 'الهوسا (Hausa)'},
+    {'code': 'zu', 'name': 'الزولو (isiZulu)'},
+    {'code': 'xh', 'name': 'الخوسا (isiXhosa)'},
+    {'code': 'st', 'name': 'السوتو (Sesotho)'},
+    {'code': 'sn', 'name': 'الشونا (chiShona)'},
+    {'code': 'rw', 'name': 'الكينيارواندا (Kinyarwanda)'},
+    {'code': 'mg', 'name': 'الملغاشية (Malagasy)'},
+    {'code': 'ny', 'name': 'الشيشيوا (Chichewa)'},
+    {'code': 'ti', 'name': 'التغرينية (ትግርኛ)'},
+    {'code': 'or', 'name': 'الأوديا (ଓଡ଼ିଆ)'},
+    {'code': 'as', 'name': 'الآسامية (অসমীয়া)'},
+    {'code': 'tl', 'name': 'التاغالوغ (Tagalog)'},
+    {'code': 'jv', 'name': 'الجاوية (Basa Jawa)'},
+    {'code': 'su', 'name': 'السوندية (Basa Sunda)'},
+    {'code': 'eo', 'name': 'الإسبرانتو (Esperanto)'},
+    {'code': 'la', 'name': 'اللاتينية (Latina)'},
+    {'code': 'mt', 'name': 'المالطية (Malti)'},
+    {'code': 'lb', 'name': 'اللوكسمبورغية (Lëtzebuergesch)'},
+    {'code': 'sm', 'name': 'الساموية (Gagana Samoa)'},
+    {'code': 'mi', 'name': 'الماورية (Māori)'},
+    {'code': 'ht', 'name': 'الكريولية (Kreyòl Ayisyen)'}
   ];
 
   final List<Map<String, String>> sections = [
@@ -49,6 +142,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     currentLanguage = widget.initialLanguage;
     loadSectionData();
   }
+
+  bool get isCurrentRtl => rtlLanguages.contains(currentLanguage);
 
   Future<void> loadSectionData() async {
     setState(() => isLoading = true);
@@ -203,7 +298,6 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       ),
       body: Column(
         children: [
-          // شريط البحث اللحظي FTS5
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
             child: TextField(
@@ -226,9 +320,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               ),
             ),
           ),
-
           if (!isSearching) ...[
-            // شريط الأقسام
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -248,8 +340,6 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                 )).toList(),
               ),
             ),
-
-            // شريط المستويات CEFR
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
               child: Row(
@@ -270,10 +360,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               ),
             ),
           ],
-
           const Divider(),
-
-          // عرض النتائج والبطاقات
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -294,40 +381,43 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                           final word = item['word'] ?? item['display_text'] ?? '';
                           final boxLevel = item['box_level'] as int? ?? 0;
 
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: pos == 'verb'
-                                  ? Colors.orange.shade100
-                                  : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
-                              child: Text(
-                                pos == 'verb' ? 'فعل' : (pos == 'phrase' ? 'جملة' : 'اسم'),
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          return Directionality(
+                            textDirection: isCurrentRtl ? TextDirection.rtl : TextDirection.ltr,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: pos == 'verb'
+                                    ? Colors.orange.shade100
+                                    : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
+                                child: Text(
+                                  pos == 'verb' ? 'فعل' : (pos == 'phrase' ? 'جملة' : 'اسم'),
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
                               ),
-                            ),
-                            title: Text(
-                              word,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                            ),
-                            subtitle: Text(
-                              isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
-                                  tooltip: 'استماع للنطق',
-                                  onPressed: () => AudioTtsService.speak(
-                                    text: word,
-                                    languageCode: currentLanguage,
+                              title: Text(
+                                word,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
+                                    tooltip: 'استماع للنطق',
+                                    onPressed: () => AudioTtsService.speak(
+                                      text: word,
+                                      languageCode: currentLanguage,
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.quiz, color: Colors.indigo),
-                                  tooltip: 'بدء تمرين',
-                                  onPressed: () => openQuizDialog(item['concept_id'], word),
-                                ),
-                              ],
+                                  IconButton(
+                                    icon: const Icon(Icons.quiz, color: Colors.indigo),
+                                    tooltip: 'بدء تمرين',
+                                    onPressed: () => openQuizDialog(item['concept_id'], word),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
