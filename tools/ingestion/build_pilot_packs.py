@@ -58,7 +58,7 @@ def read_input(source: Path):
         if kind == ".json":
             data = json.load(handle)
             if isinstance(data, dict):
-                data = data.get("lexicon", data.get("entries"))
+                data = data.get("lexicon") or data.get("entries") or data.get("cards")
             if not isinstance(data, list):
                 raise ValueError(f"{source.name}: expected JSON entries array")
             if len(data) > MAX_LINES:
