@@ -209,6 +209,26 @@ void main() {
     await service.dispose();
   });
 
+  test('network-only exact locale is not replaced by another local region',
+      () async {
+    final fake = FakeTtsPlatformAdapter()
+      ..voices = <Object>[
+        <String, Object>{
+          'name': 'network-au',
+          'locale': 'en-AU',
+          'network_required': true,
+        },
+        localVoice('local-us', 'en-US'),
+      ];
+    final service = TtsService(adapter: fake);
+
+    final capability = await service.probeVoiceCapability('en-AU');
+
+    expect(capability.state, TtsVoiceCapabilityState.onlineOnly);
+    expect(capability.canSpeakOffline, isFalse);
+    await service.dispose();
+  });
+
   test('local playback preserves exact locale and selects exact local voice',
       () async {
     final fake = FakeTtsPlatformAdapter()
