@@ -1,29 +1,40 @@
 name: Flutter Build & Analyze Gate
 
+# Manual-only to avoid spending hosted runner minutes for each branch update.
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-quality-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.19.x'
-        channel: 'stable'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: stable
+          cache: true
+          pub-cache: true
 
-    - name: Install Dependencies
-      run: flutter pub get
+      - name: Show toolchain versions
+        run: flutter --version
 
-    - name: Run Static Analysis
-      run: dart analyze lib/
+      - name: Install Dependencies
+        run: flutter pub get
 
-    - name: Run Unit Tests
-      run: flutter test
+      - name: Run Static Analysis
+        run: dart analyze lib/
+
+      - name: Run Unit Tests
+        run: flutter test
