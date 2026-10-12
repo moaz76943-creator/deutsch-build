@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'core/bootstrap/startup_boundary.dart';
 import 'features/explore/presentation/section_explorer_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // The first frame is independent of content databases and optional services.
   runApp(const DeutschApp());
 }
 
@@ -25,8 +27,9 @@ class DeutschApp extends StatelessWidget {
         colorSchemeSeed: Colors.indigo,
         brightness: Brightness.dark,
       ),
-      // التصحيح الهندسي: استخدام initialLanguage بدلاً من currentLanguage
-      home: const SectionExplorerScreen(initialLanguage: 'de'),
+      home: const StartupBoundary(
+        child: SectionExplorerScreen(initialLanguage: 'de'),
+      ),
     );
   }
 }
