@@ -3,10 +3,18 @@ name: Android Production Build (APK & AAB)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: android-packages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build & Release Android
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: 📥 مسحب الكود البرمجي (Checkout)
