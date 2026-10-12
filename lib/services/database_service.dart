@@ -295,10 +295,12 @@ class DatabaseService {
     int limit = 50,
   }) async {
     final code = _normalizeLanguageCode(langCode);
-    final db = await getContentDb(code);
     final trimmedQuery = query.trim();
     final safeLimit = limit.clamp(1, 50);
-    final rows = trimmedQuery.isEmpty
+    final rows = await withContentDb(
+      code,
+      (db) async {
+        return trimmedQuery.isEmpty
         ? await db.rawQuery('''
             SELECT id, surface, part_of_speech, fields_json
             FROM lexicon
@@ -333,6 +335,8 @@ class DatabaseService {
     final code = _normalizeLanguageCode(languageCode);
     final vaultActive = await _progressVault.isOperationalActive;
     final dueIds = <String>[];
+      },
+    );
     final reviewedIds = <String>{};
     Database? legacyDb;
 
