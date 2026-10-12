@@ -1,4 +1,4 @@
-import 'lessons_screen.dart';
+import 'srs_flashcard_deck_screen.dart';
 import 'license_attribution_screen.dart';
 import 'package:deutsch_bilarabi/design_system/app_base_cards.dart' hide AppBaseGlassCard;
 import 'package:flutter/material.dart';
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: 'شروحات A1',
                     icon: Icons.menu_book_rounded,
                     gradient: AppGradients.blueCard,
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LessonsScreen())),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SrsFlashcardDeckScreen())),
                   ),
                 ),
               ],
