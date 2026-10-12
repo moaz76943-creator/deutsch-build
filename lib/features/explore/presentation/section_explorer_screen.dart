@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
+import '../../../core/services/audio_tts_service.dart';
 
 class SectionExplorerScreen extends StatefulWidget {
   final String currentLanguage;
@@ -191,24 +192,41 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                         itemBuilder: (context, index) {
                           final item = items[index];
                           final pos = item['part_of_speech'] ?? 'noun';
+                          final word = item['word'] ?? '';
                           final boxLevel = item['box_level'] as int? ?? 0;
 
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: pos == 'verb' ? Colors.orange.shade100 : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
+                              backgroundColor: pos == 'verb'
+                                  ? Colors.orange.shade100
+                                  : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
                               child: Text(
                                 pos == 'verb' ? 'فعل' : (pos == 'phrase' ? 'جملة' : 'اسم'),
                                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ),
                             title: Text(
-                              item['word'] ?? '',
+                              word,
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                             ),
                             subtitle: Text('المستوى في الذاكرة: صندوق $boxLevel'),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.quiz, color: Colors.indigo),
-                              onPressed: () => openQuizDialog(item['concept_id'], item['word'] ?? ''),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
+                                  tooltip: 'استماع للنطق',
+                                  onPressed: () => AudioTtsService.speak(
+                                    text: word,
+                                    languageCode: widget.currentLanguage,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.quiz, color: Colors.indigo),
+                                  tooltip: 'بدء تمرين',
+                                  onPressed: () => openQuizDialog(item['concept_id'], word),
+                                ),
+                              ],
                             ),
                           );
                         },
