@@ -212,6 +212,10 @@ void main() {
     expect(ready.packVerified, isTrue);
     expect(ready.installed, isTrue);
     expect(ready.productionReady, isTrue);
+    expect(LanguageReadinessMatrix.getTier('fr', lifecycle: ready),
+        LanguageReadinessTier.productionReady);
+    expect(LanguageReadinessMatrix.getTier('es', lifecycle: ready),
+        LanguageReadinessTier.nominal);
     expect(catalog.readinessFor('es', evidence: verified).productionReady,
         isFalse);
     expect(catalog.readinessFor('zh-Hant', evidence: verified).packVerified,
