@@ -17,6 +17,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   String selectedSection = 'HOME_KITCHEN';
   String selectedCefr = 'A1';
   bool isLoading = true;
+  double downloadProgress = 0.0;
+  String loadingMessage = 'جاري التحميل...';
   bool isSearching = false;
   List<Map<String, dynamic>> items = [];
   List<Map<String, dynamic>> searchResults = [];
@@ -24,7 +26,6 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
   static const Set<String> rtlLanguages = {'ar', 'fa', 'he', 'ur', 'ps', 'yi', 'ug'};
 
-  // قائمة اللغات الـ 100 الكاملة
   final List<Map<String, String>> availableLanguages = [
     {'code': 'de', 'name': 'الألمانية (Deutsch)'},
     {'code': 'ar', 'name': 'العربية (العربية)'},
@@ -58,74 +59,6 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     {'code': 'no', 'name': 'النرويجية (Norsk)'},
     {'code': 'sw', 'name': 'السواحلية (Kiswahili)'},
     {'code': 'am', 'name': 'الأمهرية (አማርኛ)'},
-    {'code': 'bn', 'name': 'البنغالية (বাংলা)'},
-    {'code': 'ms', 'name': 'الماليزية (Bahasa Melayu)'},
-    {'code': 'sk', 'name': 'السلوفاكية (Slovenčina)'},
-    {'code': 'bg', 'name': 'البلغارية (Български)'},
-    {'code': 'hr', 'name': 'الكرواتية (Hrvatski)'},
-    {'code': 'sr', 'name': 'الصربية (Српски)'},
-    {'code': 'sl', 'name': 'السلوفينية (Slovenščina)'},
-    {'code': 'lt', 'name': 'الليتوانية (Lietuvių)'},
-    {'code': 'lv', 'name': 'اللاتفية (Latviešu)'},
-    {'code': 'et', 'name': 'الإستونية (Eesti)'},
-    {'code': 'ka', 'name': 'الجورجية (ქართული)'},
-    {'code': 'hy', 'name': 'الأرمنية (Հայերեն)'},
-    {'code': 'az', 'name': 'الأذربيجانية (Azərbaycan)'},
-    {'code': 'kk', 'name': 'الكازاخية (Қазақша)'},
-    {'code': 'uz', 'name': 'الأوزبكية (Oʻzbek)'},
-    {'code': 'ta', 'name': 'التاميلية (தமிழ்)'},
-    {'code': 'te', 'name': 'التيلجو (తెలుగు)'},
-    {'code': 'ml', 'name': 'الماليالامية (മലയാളം)'},
-    {'code': 'mr', 'name': 'الماراثية (मराठी)'},
-    {'code': 'gu', 'name': 'الغوجاراتية (ગુજરાતી)'},
-    {'code': 'kn', 'name': 'الكانادا (ಕನ್ನಡ)'},
-    {'code': 'pa', 'name': 'البنجابية (ਪੰਜਾਬੀ)'},
-    {'code': 'ne', 'name': 'النيبالية (नेपाली)'},
-    {'code': 'si', 'name': 'السنهالية (සිංහල)'},
-    {'code': 'my', 'name': 'البورمية (မြန်မာ)'},
-    {'code': 'km', 'name': 'الخميرية (ខ្មែរ)'},
-    {'code': 'lo', 'name': 'اللاوية (ລາວ)'},
-    {'code': 'is', 'name': 'الآيسلندية (Íslenska)'},
-    {'code': 'ga', 'name': 'الأيرلندية (Gaeilge)'},
-    {'code': 'cy', 'name': 'الويلزية (Cymraeg)'},
-    {'code': 'eu', 'name': 'الباسكية (Euskara)'},
-    {'code': 'gl', 'name': 'الجاليكية (Galego)'},
-    {'code': 'ca', 'name': 'الكتالونية (Català)'},
-    {'code': 'af', 'name': 'الأفريكانية (Afrikaans)'},
-    {'code': 'sq', 'name': 'الألبانية (Shqip)'},
-    {'code': 'mk', 'name': 'المقدونية (Македонски)'},
-    {'code': 'bs', 'name': 'البوسنية (Bosanski)'},
-    {'code': 'be', 'name': 'البيلاروسية (Беларуская)'},
-    {'code': 'tg', 'name': 'الطاجيكية (Тоҷикӣ)'},
-    {'code': 'ky', 'name': 'القيرغيزية (Кыргызча)'},
-    {'code': 'tk', 'name': 'التركمانية (Türkmen)'},
-    {'code': 'tt', 'name': 'التترية (Татар)'},
-    {'code': 'ug', 'name': 'الأويغورية (ئۇيغۇرچە)'},
-    {'code': 'ps', 'name': 'البشتو (پښتو)'},
-    {'code': 'so', 'name': 'الصومالية (Soomaali)'},
-    {'code': 'yo', 'name': 'اليوروبا (Yorùbá)'},
-    {'code': 'ig', 'name': 'الإيجبو (Igbo)'},
-    {'code': 'ha', 'name': 'الهوسا (Hausa)'},
-    {'code': 'zu', 'name': 'الزولو (isiZulu)'},
-    {'code': 'xh', 'name': 'الخوسا (isiXhosa)'},
-    {'code': 'st', 'name': 'السوتو (Sesotho)'},
-    {'code': 'sn', 'name': 'الشونا (chiShona)'},
-    {'code': 'rw', 'name': 'الكينيارواندا (Kinyarwanda)'},
-    {'code': 'mg', 'name': 'الملغاشية (Malagasy)'},
-    {'code': 'ny', 'name': 'الشيشيوا (Chichewa)'},
-    {'code': 'ti', 'name': 'التغرينية (ትግርኛ)'},
-    {'code': 'or', 'name': 'الأوديا (ଓଡ଼ିଆ)'},
-    {'code': 'as', 'name': 'الآسامية (অসমীয়া)'},
-    {'code': 'tl', 'name': 'التاغالوغ (Tagalog)'},
-    {'code': 'jv', 'name': 'الجاوية (Basa Jawa)'},
-    {'code': 'su', 'name': 'السوندية (Basa Sunda)'},
-    {'code': 'eo', 'name': 'الإسبرانتو (Esperanto)'},
-    {'code': 'la', 'name': 'اللاتينية (Latina)'},
-    {'code': 'mt', 'name': 'المالطية (Malti)'},
-    {'code': 'lb', 'name': 'اللوكسمبورغية (Lëtzebuergesch)'},
-    {'code': 'sm', 'name': 'الساموية (Gagana Samoa)'},
-    {'code': 'mi', 'name': 'الماورية (Māori)'},
-    {'code': 'ht', 'name': 'الكريولية (Kreyòl Ayisyen)'}
   ];
 
   final List<Map<String, String>> sections = [
@@ -146,9 +79,21 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   bool get isCurrentRtl => rtlLanguages.contains(currentLanguage);
 
   Future<void> loadSectionData() async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+      downloadProgress = 0.0;
+      loadingMessage = 'جاري إعداد حزمة اللغة...';
+    });
     try {
-      await PackManager.initLanguagePack(currentLanguage);
+      await PackManager.initLanguagePack(
+        currentLanguage,
+        onDownloadProgress: (progress) {
+          setState(() {
+            downloadProgress = progress;
+            loadingMessage = 'تنزيل الحزمة: ${(progress * 100).toInt()}%';
+          });
+        },
+      );
       final data = await PackManager.getConceptsBySection(
         sectionId: selectedSection,
         cefr: selectedCefr,
@@ -158,7 +103,10 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
         isLoading = false;
       });
     } catch (e) {
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        loadingMessage = 'خطأ في التحميل: $e';
+      });
     }
   }
 
@@ -194,15 +142,37 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
             const SizedBox(height: 6),
             Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0 / GFDL 1.3'}'),
             const SizedBox(height: 6),
-            Text('تاريخ البناء: ${meta['pipeline_build'] ?? '2026-10-12'}'),
+            Text('سلسلة البناء: ${meta['pipeline_build'] ?? '2026-10-12'}'),
             const SizedBox(height: 12),
             const Text(
-              'المحتوى المعجمي مرخص بموجب رخصة المشاع الإبداعي النسبة-المشاركة بالمثل، مع الالتزام الكامل بشروط النسبة القانونية.',
+              'وفقاً لترخيص CC BY-SA 4.0، يحق لك تصدير وإعادة استخدام البيانات المعجمية بحرية:',
               style: TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ],
         ),
         actions: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.download_rounded, size: 18),
+            label: const Text('تصدير البيانات (ShareAlike JSON)'),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                final path = await PackManager.exportDatasetAsJson(currentLanguage);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('✅ تم حفظ ملف البيانات: $path'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('تعذر التصدير: $e'), backgroundColor: Colors.red),
+                );
+              }
+            },
+          ),
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
         ],
       ),
@@ -241,7 +211,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث جدول المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
+                      content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث موعد المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
                       backgroundColor: isCorrect ? Colors.green : Colors.red,
                     ),
                   );
@@ -285,21 +255,32 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
             }).toList(),
           ),
         ),
-        centerTitle: false,
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            tooltip: 'التراخيص والمصادر',
+            tooltip: 'التراخيص والتصدير',
             onPressed: showLicenseDialog,
           ),
         ],
       ),
       body: Column(
         children: [
+          if (isLoading)
+            Container(
+              padding: const EdgeInsets.all(12),
+              color: Colors.indigo.shade50,
+              child: Column(
+                children: [
+                  Text(loadingMessage, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  LinearProgressIndicator(value: downloadProgress > 0 ? downloadProgress : null),
+                ],
+              ),
+            ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
             child: TextField(
               controller: searchController,
               onChanged: performInstantSearch,
@@ -323,7 +304,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
           if (!isSearching) ...[
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 children: sections.map((sec) => Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -362,66 +343,64 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
           ],
           const Divider(),
           Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : displayList.isEmpty
-                    ? Center(
-                        child: Text(
-                          isSearching
-                              ? 'لم يتم العثور على نتائج مطابقة لـ "${searchController.text}"'
-                              : 'لا توجد مفردات مسجلة لهذا المستوى حالياً.',
-                        ),
-                      )
-                    : ListView.separated(
-                        itemCount: displayList.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final item = displayList[index];
-                          final pos = item['part_of_speech'] ?? 'noun';
-                          final word = item['word'] ?? item['display_text'] ?? '';
-                          final boxLevel = item['box_level'] as int? ?? 0;
+            child: displayList.isEmpty && !isLoading
+                ? Center(
+                    child: Text(
+                      isSearching
+                          ? 'لم يتم العثور على نتائج لـ "${searchController.text}"'
+                          : 'لا توجد مفردات مسجلة لهذا المستوى حالياً.',
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: displayList.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final item = displayList[index];
+                      final pos = item['part_of_speech'] ?? 'noun';
+                      final word = item['word'] ?? item['display_text'] ?? '';
+                      final boxLevel = item['box_level'] as int? ?? 0;
 
-                          return Directionality(
-                            textDirection: isCurrentRtl ? TextDirection.rtl : TextDirection.ltr,
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: pos == 'verb'
-                                    ? Colors.orange.shade100
-                                    : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
-                                child: Text(
-                                  pos == 'verb' ? 'فعل' : (pos == 'phrase' ? 'جملة' : 'اسم'),
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      return Directionality(
+                        textDirection: isCurrentRtl ? TextDirection.rtl : TextDirection.ltr,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: pos == 'verb'
+                                ? Colors.orange.shade100
+                                : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
+                            child: Text(
+                              pos == 'verb' ? 'فعل' : (pos == 'phrase' ? 'جملة' : 'اسم'),
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          title: Text(
+                            word,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
+                                tooltip: 'استماع للنطق',
+                                onPressed: () => AudioTtsService.speak(
+                                  text: word,
+                                  languageCode: currentLanguage,
                                 ),
                               ),
-                              title: Text(
-                                word,
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              IconButton(
+                                icon: const Icon(Icons.quiz, color: Colors.indigo),
+                                tooltip: 'بدء تمرين',
+                                onPressed: () => openQuizDialog(item['concept_id'], word),
                               ),
-                              subtitle: Text(
-                                isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
-                                    tooltip: 'استماع للنطق',
-                                    onPressed: () => AudioTtsService.speak(
-                                      text: word,
-                                      languageCode: currentLanguage,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.quiz, color: Colors.indigo),
-                                    tooltip: 'بدء تمرين',
-                                    onPressed: () => openQuizDialog(item['concept_id'], word),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

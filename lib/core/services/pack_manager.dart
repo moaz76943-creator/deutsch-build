@@ -7,7 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
-import 'package:crypto/crypto.dart';
 
 Uint8List _decompressGzip(Uint8List compressedBytes) {
   return Uint8List.fromList(GZipDecoder().decodeBytes(compressedBytes));
@@ -19,41 +18,65 @@ class PackManager {
   static const String releaseBaseUrl = 
       'https://github.com/moaz76943-creator/deutsch-build/releases/download/v3.0.0';
 
-  /// تهيئة الحزمة: بحث محلي -> أصول التطبيق -> التنزيل السحابي التلقائي
-  static Future<Database> initLanguagePack(String langCode) async {
+  /// تهيئة الحزمة مع تتبع نسبة التنزيل المئوية وإغلاق الاتصال السابق بأمان
+  static Future<Database> initLanguagePack(
+    String langCode, {
+    void Function(double progress)? onDownloadProgress,
+  }) async {
     if (_database != null && _currentLanguage == langCode) {
       return _database!;
     }
 
+    // إغلاق قاعدة البيانات السابقة لتحرير الموارد ومنع تسريب الذاكرة
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+      _currentLanguage = null;
+    }
+
     final docsDir = await getApplicationDocumentsDirectory();
     final dbPath = join(docsDir.path, '$langCode-1.0.0.sqlite');
-    final gzTempPath = join(docsDir.path, '$langCode-temp.pack.gz');
 
     if (!await File(dbPath).exists()) {
       Uint8List? compressedBytes;
 
-      // 1. محاولة قراءة الحزمة من أصول التطبيق المدمجة
+      // 1. محاولة القراءة من الأصول المدمجة
       try {
         final assetPath = 'assets/content/packs/$langCode/$langCode-1.0.0.pack.gz';
         final byteData = await rootBundle.load(assetPath);
         compressedBytes = byteData.buffer.asUint8List();
+        onDownloadProgress?.call(1.0);
       } catch (_) {
         compressedBytes = null;
       }
 
-      // 2. إذا لم تكن مدمجة، تنزيل الحزمة عبر الشبكة
+      // 2. التنزيل الحي مع حساب النسبة المئوية
       if (compressedBytes == null) {
-        final downloadUrl = '$releaseBaseUrl/$langCode-1.0.0.pack.gz';
-        final response = await http.get(Uri.parse(downloadUrl));
+        final client = http.Client();
+        final request = http.Request('GET', Uri.parse('$releaseBaseUrl/$langCode-1.0.0.pack.gz'));
+        final response = await client.send(request);
 
         if (response.statusCode != 200) {
-          throw Exception('تعذر تحميل حزمة اللغة [$langCode] من الخادم.');
+          client.close();
+          throw Exception('تعذر تحميل حزمة [$langCode] (رمز الخطأ: ${response.statusCode})');
         }
 
-        compressedBytes = response.bodyBytes;
+        final totalBytes = response.contentLength ?? 0;
+        final List<int> downloadedChunks = [];
+        int receivedBytes = 0;
+
+        await for (final chunk in response.stream) {
+          downloadedChunks.addAll(chunk);
+          receivedBytes += chunk.length;
+          if (totalBytes > 0 && onDownloadProgress != null) {
+            onDownloadProgress(receivedBytes / totalBytes);
+          }
+        }
+        client.close();
+        compressedBytes = Uint8List.fromList(downloadedChunks);
       }
 
-      // 3. فك الضغط في Isolate مستقل وكتابة ذرية مؤمنة
+      // 3. فك الضغط في خيط مستقل وكتابة ذرية
       final decompressedBytes = await compute(_decompressGzip, compressedBytes);
       final tempDbPath = join(docsDir.path, '$langCode-temp.sqlite');
       
@@ -67,7 +90,6 @@ class PackManager {
     return _database!;
   }
 
-  /// استعلام سريع حسب القسم والمستوى
   static Future<List<Map<String, dynamic>>> getConceptsBySection({
     required String sectionId,
     required String cefr,
@@ -89,7 +111,6 @@ class PackManager {
     ''', [sectionId, cefr]);
   }
 
-  /// بحث فوري عبر FTS5
   static Future<List<Map<String, dynamic>>> searchInstant(String query) async {
     if (_database == null) throw Exception('Database not initialized');
 
@@ -105,7 +126,6 @@ class PackManager {
     ''', ['$query*']);
   }
 
-  /// جلب التمارين لمفهوم محدد
   static Future<List<Map<String, dynamic>>> getExercises(String conceptId) async {
     if (_database == null) throw Exception('Database not initialized');
 
@@ -116,7 +136,6 @@ class PackManager {
     );
   }
 
-  /// خوارزمية التكرار المتباعد (SM-2)
   static Future<void> recordQuizResult({
     required String conceptId,
     required bool isCorrect,
@@ -178,10 +197,32 @@ class PackManager {
     );
   }
 
-  /// استخراج بيانات التراخيص والمصدر
   static Future<Map<String, String>> getDatasetMetadata() async {
     if (_database == null) return {};
     final rows = await _database!.query('dataset_metadata');
     return {for (var r in rows) r['key'] as String: r['value'] as String};
+  }
+
+  /// تصدير بيانات المعجم كاملة كملف JSON للامتثال لترخيص CC BY-SA ShareAlike
+  static Future<String> exportDatasetAsJson(String langCode) async {
+    if (_database == null) throw Exception('Database not initialized');
+
+    final concepts = await _database!.query('concepts');
+    final lexicon = await _database!.query('lexicon');
+    final metadata = await getDatasetMetadata();
+
+    final exportBundle = {
+      'metadata': metadata,
+      'exported_at': DateTime.now().toIso8601String(),
+      'concepts_count': concepts.length,
+      'concepts': concepts,
+      'lexicon': lexicon,
+    };
+
+    final docsDir = await getApplicationDocumentsDirectory();
+    final exportFile = File(join(docsDir.path, 'export_${langCode}_dataset.json'));
+    await exportFile.writeAsString(jsonEncode(exportBundle), flush: true);
+
+    return exportFile.path;
   }
 }
