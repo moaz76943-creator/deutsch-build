@@ -244,7 +244,14 @@ jobs:
           test -n "$sdk_root" && test -d "$sdk_root/build-tools"
           signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$signer"
-          "$signer" verify --verbose "$apk"
+          "$signer" verify --verbose --print-certs "$apk"
+          expected_cert_sha="$(keytool -exportcert -alias "$KEY_ALIAS" -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" | openssl dgst -sha256 -r | awk '{print $1}')"
+          actual_cert_sha="$("$signer" verify --print-certs "$apk" | awk -F': ' '/^Signer #1 certificate SHA-256 digest:/ {print $2; exit}')"
+          test "${#expected_cert_sha}" -eq 64 && test "${#actual_cert_sha}" -eq 64
+          if [[ "$actual_cert_sha" != "$expected_cert_sha" ]]; then
+            echo "::error::APK signing certificate does not match the configured Play upload key"
+            exit 1
+          fi
           # Trust only the configured Play upload keystore and alias.
           # Strict verification accepts a self-signed key trusted in this
           # keystore, but fails on a different signer (even if also valid).
