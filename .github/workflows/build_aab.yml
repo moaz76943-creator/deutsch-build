@@ -105,6 +105,17 @@ jobs:
       - name: Run Flutter tests
         run: flutter test
 
+      - name: Compile debug APK to verify Android and plugin compatibility
+        run: flutter build apk --debug
+
+      - name: Verify compiled debug APK exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s build/app/outputs/flutter-apk/app-debug.apk
+          sha256sum build/app/outputs/flutter-apk/app-debug.apk
+
+
   build:
     name: Build & Release Android
     if: github.ref != 'refs/heads/fix/flutter-ci-sdk-alignment-20261012'
