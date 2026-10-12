@@ -145,6 +145,26 @@ void main() {
     }
   });
 
+  test('BCP-47 script and region identities are preserved', () async {
+    const cases = <String, String>{
+      'zh-Hant': 'zh-TW',
+      'fr-CA': 'fr-CA',
+      'sr-Latn-RS': 'sr-Latn-RS',
+    };
+
+    for (final item in cases.entries) {
+      final fake = FakeTtsPlatformAdapter()
+        ..voices = <Object>[localVoice('local', item.value)];
+      final service = TtsService(adapter: fake);
+
+      final capability = await service.probeVoiceCapability(item.key);
+
+      expect(capability.canSpeakOffline, isTrue, reason: item.key);
+      expect(capability.locale, item.value, reason: item.key);
+      await service.dispose();
+    }
+  });
+
   test('registered language is not treated as an installed voice', () async {
     final fake = FakeTtsPlatformAdapter()
       ..languageInstalled = false
