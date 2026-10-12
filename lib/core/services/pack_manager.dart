@@ -1,15 +1,21 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:archive/archive.dart';
 
+/// دالة تعمل في Isolate مستقل لفك الضغط بالخلفية دون تجميد واجهة المستخدم
+Uint8List _decompressGzip(Uint8List compressedBytes) {
+  return Uint8List.fromList(GZipDecoder().decodeBytes(compressedBytes));
+}
+
 class PackManager {
   static Database? _database;
   static String? _currentLanguage;
 
-  /// تهيئة حزمة اللغة وفك ضغطها محلياً إذا لم تكن موجودة
+  /// تهيئة حزمة اللغة وفك ضغطها في الخلفية بشكل آمن (Atomic Write)
   static Future<Database> initLanguagePack(String langCode) async {
     if (_database != null && _currentLanguage == langCode) {
       return _database!;
@@ -17,14 +23,20 @@ class PackManager {
 
     final docsDir = await getApplicationDocumentsDirectory();
     final dbPath = join(docsDir.path, '$langCode-1.0.0.sqlite');
+    final tempPath = join(docsDir.path, '$langCode-1.0.0.sqlite.tmp');
 
     if (!await File(dbPath).exists()) {
       final assetPath = 'assets/content/packs/$langCode/$langCode-1.0.0.pack.gz';
       final byteData = await rootBundle.load(assetPath);
       final compressedBytes = byteData.buffer.asUint8List();
 
-      final decompressedBytes = GZipDecoder().decodeBytes(compressedBytes);
-      await File(dbPath).writeAsBytes(decompressedBytes, flush: true);
+      // تشغيل فك الضغط في Isolate مستقل تماماً عن خيط الرسم
+      final decompressedBytes = await compute(_decompressGzip, compressedBytes);
+
+      // الكتابة في ملف مؤقت ثم إعادة التسمية لضمان عدم حدوث ملفات تالفة
+      final tempFile = File(tempPath);
+      await tempFile.writeAsBytes(decompressedBytes, flush: true);
+      await tempFile.rename(dbPath);
     }
 
     _database = await openDatabase(dbPath, readOnly: false);
@@ -32,7 +44,7 @@ class PackManager {
     return _database!;
   }
 
-  /// جلب المفاهيم حسب القسم والمستوى التعليمي (أقل من 3 مللي ثانية)
+  /// استعلام سريع حسب القسم والمستوى التعليمي (أقل من 3 مللي ثانية)
   static Future<List<Map<String, dynamic>>> getConceptsBySection({
     required String sectionId,
     required String cefr,
@@ -52,7 +64,7 @@ class PackManager {
     ''', [sectionId, cefr]);
   }
 
-  /// بحث لحظي فائق السرعة عبر محرك FTS5
+  /// بحث فوري فائق السرعة عبر محرك FTS5
   static Future<List<Map<String, dynamic>>> searchInstant(String query) async {
     if (_database == null) throw Exception('Database not initialized');
 
