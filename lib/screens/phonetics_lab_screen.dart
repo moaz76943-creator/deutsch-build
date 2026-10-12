@@ -11,8 +11,7 @@ class PhoneticsLabScreen extends StatefulWidget {
   State<PhoneticsLabScreen> createState() => _PhoneticsLabScreenState();
 }
 
-class _PhoneticsLabScreenState extends State<PhoneticsLabScreen>
-    with WidgetsBindingObserver {
+class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
   static final List<Map<String, String>> _sounds = <Map<String, String>>[
     <String, String>{
       'symbol': 'ä / ö / ü',
@@ -41,12 +40,6 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen>
   String? _activeKey;
   String? _pendingKey;
   bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
 
   void _onTtsStatus(
     TtsStatus status, {
@@ -111,19 +104,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    unawaited(_tts.handleLifecycleState(state));
-    if (state != AppLifecycleState.resumed && mounted) {
-      setState(() {
-        _activeKey = null;
-        _busy = false;
-      });
-    }
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     unawaited(_tts.dispose());
     super.dispose();
   }
