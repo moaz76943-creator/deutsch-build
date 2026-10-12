@@ -183,4 +183,44 @@ void main() {
       throwsUnsupportedError,
     );
   });
+
+  test('shared concept cannot silently grade a different lexeme', () async {
+    await db.insert('lexicon', <String, Object?>{
+      'id': 'lex.de.synonym',
+      'surface': 'Wohnhaus',
+      'sort_key': 'wohnhaus',
+      'language_code': 'de',
+      'cefr_level': 'A1',
+      'part_of_speech': 'noun',
+      'fields_json': '{}',
+    });
+    await db.insert('senses', <String, Object?>{
+      'sense_id': 'sense.de.synonym',
+      'concept_id': 'concept.home',
+      'lexeme_id': 'lex.de.synonym',
+      'payload_json': '{}',
+    });
+    await expectLater(
+      PackManager.resolveLexemeIdForConcept(
+        db, conceptId: 'concept.home', languageCode: 'de',
+      ),
+      throwsStateError,
+    );
+    expect(
+      await PackManager.resolveLexemeIdForConcept(
+        db, conceptId: 'lex.de.1', languageCode: 'de',
+      ),
+      'lex.de.1',
+    );
+  });
+
+  test('invalid language code fails before accessing content', () async {
+    await expectLater(
+      PackManager.queryConceptsBySectionFromDb(
+        db, sectionId: 'HOME_KITCHEN', cefr: 'A1',
+        languageCode: 'invalid/language',
+      ),
+      throwsArgumentError,
+    );
+  });
 }
