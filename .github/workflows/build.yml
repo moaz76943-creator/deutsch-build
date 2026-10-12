@@ -19,10 +19,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read locked Flutter toolchain
+        id: toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.0'
+          flutter-version: ${{ steps.toolchain.outputs.flutter }}
           channel: stable
           cache: true
           pub-cache: true
