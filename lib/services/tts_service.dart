@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleState, TextDirection;
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../core/audio/audio_session_coordinator.dart';
 import '../core/audio/tts_platform_adapter.dart';
 import 'language_pack_manager.dart';
 
@@ -76,6 +77,8 @@ class _TtsEngineAuthority {
   String? _activeLocale;
   TtsStatusCallback? _activeStatus;
   bool _isSpeaking = false;
+  String? _activeSessionId;
+  final AudioSessionCoordinator _session = AudioSessionCoordinator.shared;
 
   bool get isInitialized => _ready;
   TtsPlatformAdapter get _engine => _adapter ??= _createAdapter();
@@ -132,6 +135,9 @@ class _TtsEngineAuthority {
       _activeGeneration == _generation;
 
   void _clearActive() {
+    final sessionId = _activeSessionId;
+    if (sessionId != null) _session.releaseFocus(sessionId);
+    _activeSessionId = null;
     _activeOwner = null;
     _activeGeneration = null;
     _activeLocale = null;
@@ -232,6 +238,9 @@ class _TtsEngineAuthority {
       await _engine.setPitch(pitch).timeout(timeout);
       if (generation != _generation || !ownerIsCurrent()) return false;
 
+      final sessionId = 'tts:$owner:$generation';
+      if (!_session.requestFocus(sessionId)) return false;
+      _activeSessionId = sessionId;
       _activeOwner = owner;
       _activeGeneration = generation;
       _activeLocale = locale;
@@ -303,10 +312,10 @@ class TtsService {
         _volume = _bounded(volume, 0.0, 1.0, 1.0),
         _pitch = _bounded(pitch, 0.5, 2.0, 1.0),
         _authority = adapter != null
-            ? _TtsEngineAuthority(() => adapter)
+            ? _TtsEngineAuthority(() => adapter!)
             : flutterTts != null
                 ? _TtsEngineAuthority(
-                    () => FlutterTtsPlatformAdapter(flutterTts),
+                    () => FlutterTtsPlatformAdapter(flutterTts!),
                   )
                 : _sharedAuthority,
         _ownerId = _nextOwnerId++;
@@ -534,9 +543,26 @@ class TtsService {
         );
       }
 
-      final exactVoices = sameLanguage.where(
-        (voice) => _normalizeTag(voice.locale) == _normalizeTag(locale),
-      );
+      final exactVoices = sameLanguage
+          .where(
+            (voice) => _normalizeTag(voice.locale) == _normalizeTag(locale),
+          )
+          .toList(growable: false);
+      if (exactVoices.isNotEmpty &&
+          exactVoices.every((voice) => voice.networkRequired == true)) {
+        _emit(
+          TtsStatus.voiceMissing,
+          locale: locale,
+          message: 'The exact requested locale has only network voices.',
+        );
+        return TtsVoiceCapability(
+          state: TtsVoiceCapabilityState.onlineOnly,
+          requestedLanguage: languageCode,
+          locale: locale,
+          voice: null,
+          message: 'The exact requested locale is online-only.',
+        );
+      }
       final selected = _firstLocalVoice(exactVoices);
 
       _emit(TtsStatus.ready, locale: locale);
