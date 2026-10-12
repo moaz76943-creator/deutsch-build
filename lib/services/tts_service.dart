@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' show AppLifecycleState, TextDirection;
+import 'package:flutter/widgets.dart'
+    show AppLifecycleState, TextDirection, WidgetsBinding, WidgetsBindingObserver;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../core/audio/audio_session_coordinator.dart';
@@ -57,6 +58,15 @@ typedef TtsStatusCallback = void Function(
   String? locale,
   String? message,
 });
+
+class _TtsLifecycleObserver with WidgetsBindingObserver {
+  _TtsLifecycleObserver(this.onState);
+
+  final void Function(AppLifecycleState state) onState;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) => onState(state);
+}
 
 /// One process-wide platform authority prevents competing system TTS sessions.
 ///
@@ -341,6 +351,7 @@ class TtsService {
   bool _disposed = false;
   int _requestEpoch = 0;
   Future<bool>? _initialization;
+  _TtsLifecycleObserver? _lifecycleObserver;
 
   double get speechRate => _speechRate;
   double get volume => _volume;
@@ -378,11 +389,34 @@ class TtsService {
 
   Future<bool> initialize() {
     if (_disposed) return Future<bool>.value(false);
+    _attachLifecycleObserver();
     if (_authority.isInitialized) return Future<bool>.value(true);
     return _initialization ??= _initialize().then((result) {
       if (!result) _initialization = null;
       return result;
     });
+  }
+
+  void _attachLifecycleObserver() {
+    if (_lifecycleObserver != null) return;
+    try {
+      final observer = _TtsLifecycleObserver(
+        (state) => unawaited(handleLifecycleState(state)),
+      );
+      WidgetsBinding.instance.addObserver(observer);
+      _lifecycleObserver = observer;
+    } catch (_) {
+      // Headless callers may not own a WidgetsBinding; speech still works.
+    }
+  }
+
+  void _detachLifecycleObserver() {
+    final observer = _lifecycleObserver;
+    if (observer == null) return;
+    try {
+      WidgetsBinding.instance.removeObserver(observer);
+    } catch (_) {}
+    _lifecycleObserver = null;
   }
 
   Future<bool> _initialize() async {
@@ -761,6 +795,7 @@ class TtsService {
   Future<void> dispose() async {
     if (_disposed) return;
     ++_requestEpoch;
+    _detachLifecycleObserver();
     await _authority.stopOwner(_ownerId, operationTimeout);
     _disposed = true;
     onStatus = null;
