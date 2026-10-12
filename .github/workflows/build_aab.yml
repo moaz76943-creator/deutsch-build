@@ -242,7 +242,12 @@ jobs:
           signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$signer"
           "$signer" verify --verbose "$apk"
-          jarsigner -verify -strict "$aab"
+          verification="$(jarsigner -verify -certs "$aab" 2>&1)"
+          printf '%s\n' "$verification"
+          if ! grep -Fq 'jar verified.' <<< "$verification"; then
+            echo "::error::AAB is unsigned or failed JAR signature validation"
+            exit 1
+          fi
           sha256sum "$apk" "$aab"
 
       - name: 📤 استخراج وحفظ نسخة الهاتف (Upload APK)
