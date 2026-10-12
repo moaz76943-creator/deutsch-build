@@ -10,20 +10,6 @@ class VocabularyRepository {
 
   Future<Database> _getDb() async {
     final db = await DatabaseService.instance.progressDb;
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS vocabulary_items (
-        word TEXT PRIMARY KEY,
-        language_code TEXT NOT NULL DEFAULT 'de',
-        article TEXT,
-        meaning TEXT,
-        interval INTEGER NOT NULL DEFAULT 0,
-        repetitions INTEGER NOT NULL DEFAULT 0,
-        ease_factor REAL NOT NULL DEFAULT 2.5,
-        json_data TEXT NOT NULL
-      )
-    ''');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
     return db;
   }
 
