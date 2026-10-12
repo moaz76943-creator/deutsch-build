@@ -58,9 +58,19 @@ jobs:
           keytool -list -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
 
       - name: 🛠️ بناء التطبيق للهاتف (Build APK)
+        env:
+          ORG_GRADLE_PROJECT_releaseStoreFile: upload-keystore.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
 
       - name: 🛠️ بناء التطبيق للمتجر (Build AAB)
+        env:
+          ORG_GRADLE_PROJECT_releaseStoreFile: upload-keystore.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build appbundle --release
 
       - name: 📤 استخراج وحفظ نسخة الهاتف (Upload APK)
