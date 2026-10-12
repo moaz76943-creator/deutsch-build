@@ -3,23 +3,30 @@ import 'features/explore/presentation/section_explorer_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const LanguageMatrixApp());
+  runApp(const DeutschApp());
 }
 
-class LanguageMatrixApp extends StatelessWidget {
-  const LanguageMatrixApp({Key? key}) : super(key: key);
+class DeutschApp extends StatelessWidget {
+  const DeutschApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'محرك اللغات والتمارين',
+      title: 'DEUTSCH بالعربي',
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
-        fontFamily: 'Roboto',
+        brightness: Brightness.light,
       ),
-      home: const SectionExplorerScreen(currentLanguage: 'ar'),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.dark,
+      ),
+      // التصحيح الهندسي: استخدام initialLanguage بدلاً من currentLanguage
+      home: const SectionExplorerScreen(initialLanguage: 'de'),
     );
   }
 }

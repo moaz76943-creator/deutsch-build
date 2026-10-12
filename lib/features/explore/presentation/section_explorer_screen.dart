@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
@@ -18,11 +19,16 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   String selectedCefr = 'A1';
   bool isLoading = true;
   double downloadProgress = 0.0;
-  String loadingMessage = 'جاري التحميل...';
+  String loadingMessage = 'جاري إعداد الحزمة...';
+  String? loadError;
   bool isSearching = false;
   List<Map<String, dynamic>> items = [];
   List<Map<String, dynamic>> searchResults = [];
   final TextEditingController searchController = TextEditingController();
+
+  int _loadGeneration = 0;
+  int _searchGeneration = 0;
+  Timer? _searchDebounce;
 
   static const Set<String> rtlLanguages = {'ar', 'fa', 'he', 'ur', 'ps', 'yi', 'ug'};
 
@@ -37,28 +43,6 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     {'code': 'pt', 'name': 'البرتغالية (Português)'},
     {'code': 'ru', 'name': 'الروسية (Русский)'},
     {'code': 'nl', 'name': 'الهولندية (Nederlands)'},
-    {'code': 'ja', 'name': 'اليابانية (日本語)'},
-    {'code': 'zh', 'name': 'الصينية (中文)'},
-    {'code': 'ko', 'name': 'الكورية (한국어)'},
-    {'code': 'hi', 'name': 'الهندية (हिन्दी)'},
-    {'code': 'fa', 'name': 'الفارسية (فارسی)'},
-    {'code': 'ur', 'name': 'الأردية (اردو)'},
-    {'code': 'he', 'name': 'العبرية (עברית)'},
-    {'code': 'sv', 'name': 'السويدية (Svenska)'},
-    {'code': 'pl', 'name': 'البولندية (Polski)'},
-    {'code': 'el', 'name': 'اليونانية (Ελληνικά)'},
-    {'code': 'th', 'name': 'التايلاندية (ไทย)'},
-    {'code': 'vi', 'name': 'الفيتنامية (Tiếng Việt)'},
-    {'code': 'id', 'name': 'الإندونيسية (Bahasa Indonesia)'},
-    {'code': 'uk', 'name': 'الأوكرانية (Українська)'},
-    {'code': 'ro', 'name': 'الرومانية (Română)'},
-    {'code': 'cs', 'name': 'التشيكية (Čeština)'},
-    {'code': 'hu', 'name': 'المجرية (Magyar)'},
-    {'code': 'da', 'name': 'الدنماركية (Dansk)'},
-    {'code': 'fi', 'name': 'الفنلندية (Suomi)'},
-    {'code': 'no', 'name': 'النرويجية (Norsk)'},
-    {'code': 'sw', 'name': 'السواحلية (Kiswahili)'},
-    {'code': 'am', 'name': 'الأمهرية (አማርኛ)'},
   ];
 
   final List<Map<String, String>> sections = [
@@ -76,42 +60,72 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     loadSectionData();
   }
 
+  @override
+  void dispose() {
+    _loadGeneration++;
+    _searchGeneration++;
+    _searchDebounce?.cancel();
+    searchController.dispose();
+    super.dispose();
+  }
+
   bool get isCurrentRtl => rtlLanguages.contains(currentLanguage);
 
   Future<void> loadSectionData() async {
+    final gen = ++_loadGeneration;
+    _searchGeneration++;
+    _searchDebounce?.cancel();
+
+    if (!mounted) return;
+
     setState(() {
       isLoading = true;
+      loadError = null;
       downloadProgress = 0.0;
       loadingMessage = 'جاري إعداد حزمة اللغة...';
     });
+
     try {
       await PackManager.initLanguagePack(
         currentLanguage,
         onDownloadProgress: (progress) {
+          if (!mounted || gen != _loadGeneration) return;
           setState(() {
             downloadProgress = progress;
             loadingMessage = 'تنزيل الحزمة: ${(progress * 100).toInt()}%';
           });
         },
       );
+
       final data = await PackManager.getConceptsBySection(
         sectionId: selectedSection,
         cefr: selectedCefr,
       );
+
+      if (!mounted || gen != _loadGeneration) return;
       setState(() {
         items = data;
         isLoading = false;
+        loadError = null;
       });
     } catch (e) {
+      if (!mounted || gen != _loadGeneration) return;
       setState(() {
         isLoading = false;
-        loadingMessage = 'خطأ في التحميل: $e';
+        loadError = e.toString();
+        loadingMessage = 'تعذر تحميل المحتوى';
       });
     }
   }
 
-  Future<void> performInstantSearch(String query) async {
-    if (query.trim().isEmpty) {
+  void performInstantSearch(String query) {
+    final gen = ++_searchGeneration;
+    _searchDebounce?.cancel();
+    final normalized = query.trim();
+
+    if (!mounted) return;
+
+    if (normalized.isEmpty) {
       setState(() {
         isSearching = false;
         searchResults = [];
@@ -120,9 +134,21 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     }
 
     setState(() => isSearching = true);
-    final results = await PackManager.searchInstant(query.trim());
-    setState(() {
-      searchResults = results;
+
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () async {
+      try {
+        final results = await PackManager.searchInstant(normalized);
+        if (!mounted || gen != _searchGeneration) return;
+        setState(() {
+          searchResults = results;
+        });
+      } catch (e) {
+        if (!mounted || gen != _searchGeneration) return;
+        setState(() {
+          searchResults = [];
+          loadError = 'فشل البحث: $e';
+        });
+      }
     });
   }
 
@@ -140,30 +166,25 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
           children: [
             Text('المصدر: ${meta['source'] ?? 'Kaikki / Wiktionary'}'),
             const SizedBox(height: 6),
-            Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0 / GFDL 1.3'}'),
-            const SizedBox(height: 6),
-            Text('سلسلة البناء: ${meta['pipeline_build'] ?? '2026-10-12'}'),
+            Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0'}'),
             const SizedBox(height: 12),
             const Text(
-              'وفقاً لترخيص CC BY-SA 4.0، يحق لك تصدير وإعادة استخدام البيانات المعجمية بحرية:',
+              'المحتوى المعجمي مرخص بموجب CC BY-SA 4.0. يحق لك تصديره بالكامل:',
               style: TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ],
         ),
         actions: [
           ElevatedButton.icon(
-            icon: const Icon(Icons.download_rounded, size: 18),
-            label: const Text('تصدير البيانات (ShareAlike JSON)'),
+            icon: const Icon(Icons.download, size: 18),
+            label: const Text('تصدير البيانات (JSON)'),
             onPressed: () async {
               Navigator.pop(ctx);
               try {
                 final path = await PackManager.exportDatasetAsJson(currentLanguage);
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('✅ تم حفظ ملف البيانات: $path'),
-                    backgroundColor: Colors.green,
-                  ),
+                  SnackBar(content: Text('✅ تم التصدير إلى: $path'), backgroundColor: Colors.green),
                 );
               } catch (e) {
                 if (!mounted) return;
@@ -211,7 +232,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث موعد المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
+                      content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
                       backgroundColor: isCorrect ? Colors.green : Colors.red,
                     ),
                   );
@@ -278,6 +299,11 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                   LinearProgressIndicator(value: downloadProgress > 0 ? downloadProgress : null),
                 ],
               ),
+            ),
+          if (loadError != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(loadError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),

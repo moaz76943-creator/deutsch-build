@@ -8,8 +8,46 @@ import 'package:sqflite/sqflite.dart';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
 
-Uint8List _decompressGzip(Uint8List compressedBytes) {
-  return Uint8List.fromList(GZipDecoder().decodeBytes(compressedBytes));
+/// استخراج بايتات SQLite الحقيقية سواء كانت مباشرة أو مغلفة داخل JSON Envelope
+Uint8List _decompressAndExtractSqlite(Uint8List compressedBytes) {
+  final decompressed = GZipDecoder().decodeBytes(compressedBytes);
+  
+  // فحص ترويسة SQLite القياسية (Header: SQLite format 3\000)
+  const sqliteHeader = [83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0];
+  bool isRawSqlite = true;
+  if (decompressed.length >= 16) {
+    for (int i = 0; i < 16; i++) {
+      if (decompressed[i] != sqliteHeader[i]) {
+        isRawSqlite = false;
+        break;
+      }
+    }
+  } else {
+    isRawSqlite = false;
+  }
+
+  if (isRawSqlite) {
+    return Uint8List.fromList(decompressed);
+  }
+
+  // إذا لم تكن خام، محاولة فك غلاف JSON المستخرج من أدوات الـ ingestion
+  try {
+    final jsonStr = utf8.decode(decompressed);
+    final decoded = jsonDecode(jsonStr);
+    if (decoded is Map && decoded.containsKey('files')) {
+      final files = decoded['files'] as List;
+      for (final item in files) {
+        if (item is Map && item['path'] == 'content/content.sqlite') {
+          final base64Content = item['contentBase64'] as String;
+          return base64Decode(base64Content);
+        }
+      }
+    }
+  } catch (_) {
+    // في حال تعذر قراءة JSON، رمي خطأ صريح
+  }
+
+  throw const FormatException('صيغة الحزمة غير صالحة ولا تحتوي على ترويسة SQLite صالحة.');
 }
 
 class PackManager {
@@ -18,7 +56,6 @@ class PackManager {
   static const String releaseBaseUrl = 
       'https://github.com/moaz76943-creator/deutsch-build/releases/download/v3.0.0';
 
-  /// تهيئة الحزمة مع تتبع نسبة التنزيل المئوية وإغلاق الاتصال السابق بأمان
   static Future<Database> initLanguagePack(
     String langCode, {
     void Function(double progress)? onDownloadProgress,
@@ -27,7 +64,6 @@ class PackManager {
       return _database!;
     }
 
-    // إغلاق قاعدة البيانات السابقة لتحرير الموارد ومنع تسريب الذاكرة
     if (_database != null) {
       await _database!.close();
       _database = null;
@@ -40,7 +76,6 @@ class PackManager {
     if (!await File(dbPath).exists()) {
       Uint8List? compressedBytes;
 
-      // 1. محاولة القراءة من الأصول المدمجة
       try {
         final assetPath = 'assets/content/packs/$langCode/$langCode-1.0.0.pack.gz';
         final byteData = await rootBundle.load(assetPath);
@@ -50,7 +85,6 @@ class PackManager {
         compressedBytes = null;
       }
 
-      // 2. التنزيل الحي مع حساب النسبة المئوية
       if (compressedBytes == null) {
         final client = http.Client();
         final request = http.Request('GET', Uri.parse('$releaseBaseUrl/$langCode-1.0.0.pack.gz'));
@@ -58,7 +92,7 @@ class PackManager {
 
         if (response.statusCode != 200) {
           client.close();
-          throw Exception('تعذر تحميل حزمة [$langCode] (رمز الخطأ: ${response.statusCode})');
+          throw Exception('تعذر تحميل الحزمة من الخادم (كود الخطأ: ${response.statusCode})');
         }
 
         final totalBytes = response.contentLength ?? 0;
@@ -76,16 +110,22 @@ class PackManager {
         compressedBytes = Uint8List.fromList(downloadedChunks);
       }
 
-      // 3. فك الضغط في خيط مستقل وكتابة ذرية
-      final decompressedBytes = await compute(_decompressGzip, compressedBytes);
+      // استخراج البايتات في Isolate مستقل والتحقق من الترويسة
+      final sqliteBytes = await compute(_decompressAndExtractSqlite, compressedBytes);
       final tempDbPath = join(docsDir.path, '$langCode-temp.sqlite');
       
       final tempFile = File(tempDbPath);
-      await tempFile.writeAsBytes(decompressedBytes, flush: true);
+      await tempFile.writeAsBytes(sqliteBytes, flush: true);
       await tempFile.rename(dbPath);
     }
 
-    _database = await openDatabase(dbPath, readOnly: false);
+    _database = await openDatabase(
+      dbPath,
+      readOnly: false,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA busy_timeout = 5000;');
+      },
+    );
     _currentLanguage = langCode;
     return _database!;
   }
@@ -94,31 +134,32 @@ class PackManager {
     required String sectionId,
     required String cefr,
   }) async {
-    if (_database == null) throw Exception('Database not initialized');
+    if (_database == null) throw Exception('قاعدة البيانات غير مهيأة');
 
+    // استعلام مرن يتوافق مع كلا المخططين (v1 و v2)
     return await _database!.rawQuery('''
       SELECT 
         c.concept_id,
-        COALESCE(l.display_text, l.lemma) AS word,
-        l.part_of_speech,
+        COALESCE(l.display_text, l.lemma, 'بدون عنوان') AS word,
+        COALESCE(l.part_of_speech, 'noun') AS part_of_speech,
         l.gender,
         l.plural,
         COALESCE(up.box_level, 0) AS box_level
       FROM concepts c
-      JOIN lexicon l ON l.concept_id = c.concept_id
+      LEFT JOIN lexicon l ON l.concept_id = c.concept_id
       LEFT JOIN user_progress up ON up.concept_id = c.concept_id
       WHERE c.section_id = ? AND c.cefr = ?;
     ''', [sectionId, cefr]);
   }
 
   static Future<List<Map<String, dynamic>>> searchInstant(String query) async {
-    if (_database == null) throw Exception('Database not initialized');
+    if (_database == null) throw Exception('قاعدة البيانات غير مهيأة');
 
     return await _database!.rawQuery('''
       SELECT 
         l.concept_id,
-        l.display_text,
-        l.part_of_speech
+        COALESCE(l.display_text, l.lemma) AS display_text,
+        COALESCE(l.part_of_speech, 'noun') AS part_of_speech
       FROM lexicon_fts fts
       JOIN lexicon l ON l.concept_id = fts.concept_id
       WHERE lexicon_fts MATCH ?
@@ -127,7 +168,7 @@ class PackManager {
   }
 
   static Future<List<Map<String, dynamic>>> getExercises(String conceptId) async {
-    if (_database == null) throw Exception('Database not initialized');
+    if (_database == null) throw Exception('قاعدة البيانات غير مهيأة');
 
     return await _database!.query(
       'exercises',
@@ -165,13 +206,7 @@ class PackManager {
     if (isCorrect) {
       repetitions += 1;
       boxLevel += 1;
-      if (repetitions == 1) {
-        intervalDays = 1;
-      } else if (repetitions == 2) {
-        intervalDays = 6;
-      } else {
-        intervalDays = (intervalDays * easeFactor).round();
-      }
+      intervalDays = (repetitions == 1) ? 1 : ((repetitions == 2) ? 6 : (intervalDays * easeFactor).round());
       easeFactor = (easeFactor + 0.1).clamp(1.3, 3.0);
     } else {
       repetitions = 0;
@@ -199,13 +234,16 @@ class PackManager {
 
   static Future<Map<String, String>> getDatasetMetadata() async {
     if (_database == null) return {};
-    final rows = await _database!.query('dataset_metadata');
-    return {for (var r in rows) r['key'] as String: r['value'] as String};
+    try {
+      final rows = await _database!.query('dataset_metadata');
+      return {for (var r in rows) r['key'] as String: r['value'] as String};
+    } catch (_) {
+      return {'source': 'Local Fallback', 'license': 'CC BY-SA 4.0'};
+    }
   }
 
-  /// تصدير بيانات المعجم كاملة كملف JSON للامتثال لترخيص CC BY-SA ShareAlike
   static Future<String> exportDatasetAsJson(String langCode) async {
-    if (_database == null) throw Exception('Database not initialized');
+    if (_database == null) throw Exception('قاعدة البيانات غير مهيأة');
 
     final concepts = await _database!.query('concepts');
     final lexicon = await _database!.query('lexicon');
