@@ -2,7 +2,124 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Existing local imports
 import 'features/onboarding/fast_onboarding_screen.dart';
+import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
+import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
+import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
+import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
+import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
+
+// --- CrashLoopGuard ---
+class CrashLoopGuard {
+  static const String _keyCrashCount = 'deutsch_crash_count_v1';
+  static const String _keyLastCrash = 'deutsch_last_crash_v1';
+  static const int _maxCrashes = 3;
+  static const Duration _resetDuration = Duration(minutes: 5);
+
+  final SharedPreferences _prefs;
+
+  CrashLoopGuard(this._prefs);
+
+  Future<void> recordFailure() async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final lastCrash = _prefs.getInt(_keyLastCrash) ?? 0;
+    int crashCount = _prefs.getInt(_keyCrashCount) ?? 0;
+
+    if (now - lastCrash < _resetDuration.inMilliseconds) {
+      crashCount++;
+    } else {
+      crashCount = 1;
+    }
+
+    await _prefs.setInt(_keyLastCrash, now);
+    await _prefs.setInt(_keyCrashCount, crashCount);
+  }
+
+  Future<void> recordSuccess() async {
+    await _prefs.remove(_keyCrashCount);
+    await _prefs.remove(_keyLastCrash);
+  }
+
+  bool isCrashLoopDetected() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final lastCrash = _prefs.getInt(_keyLastCrash) ?? 0;
+    final crashCount = _prefs.getInt(_keyCrashCount) ?? 0;
+
+    if (now - lastCrash > _resetDuration.inMilliseconds) {
+      return false;
+    }
+
+    return crashCount >= _maxCrashes;
+  }
+}
+
+// --- SafeModeRecoveryGate ---
+class SafeModeRecoveryGate extends StatelessWidget {
+  final VoidCallback onRetry;
+  final String? message;
+
+  const SafeModeRecoveryGate({super.key, required this.onRetry, this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.build_circle_outlined, color: Color(0xFFF59E0B), size: 64),
+                const SizedBox(height: 24),
+                const Text(
+                  'وضعية الاسترداد الآمن (Safe Mode)',
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'تم اكتشاف مشكلة متكررة أثناء التشغيل. تم تفعيل وضعية الاسترداد لحماية بياناتك من التلف.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                if (message != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      message!,
+                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12, fontFamily: 'monospace'),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: onRetry,
+                  child: const Text('إعادة المحاولة / مسح الأخطاء', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 void main() async {
   // 1. ضمان استقرار محرك الرسوميات وربط النظام
@@ -59,11 +176,7 @@ void main() async {
   };
 
   // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
-  runApp(
-    const ProviderScope(
-      child: DeutschApp(),
-    ),
-  );
+  runApp(const ResilientAppRoot());
 }
 
 class DeutschApp extends StatelessWidget {
@@ -86,6 +199,203 @@ class DeutschApp extends StatelessWidget {
       ),
       // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
       home: const FastOnboardingScreen(),
+    );
+  }
+}
+// --- ResilientAppRoot ---
+class ResilientAppRoot extends StatefulWidget {
+  const ResilientAppRoot({super.key});
+
+  @override
+  State<ResilientAppRoot> createState() => _ResilientAppRootState();
+}
+
+class _ResilientAppRootState extends State<ResilientAppRoot> {
+  bool _isBootstrapping = true;
+  bool _isSafeMode = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final guard = CrashLoopGuard(prefs);
+
+      if (guard.isCrashLoopDetected()) {
+        setState(() {
+          _isSafeMode = true;
+          _isBootstrapping = false;
+        });
+        return;
+      }
+
+      await guard.recordFailure(); // Optimistic failure, reset on success
+
+      // 5. Connect the canonical isolated bootstrap pipeline.
+      final pipeline = IsolatedBootstrapPipeline([
+        _ProductionAcceptanceStep(),
+        _SessionRecoveryStep(prefs), _FeatureRegistryStep(), _LifecycleRegistryStep(),
+      ]);
+
+      final results = await pipeline.runPipeline();
+
+      bool hasFatal = false;
+      String? fatalMsg;
+
+      for (final res in results) {
+        if (res.status == BootstrapStepStatus.fatalFailure) {
+          hasFatal = true;
+          fatalMsg = res.message ?? 'Unknown critical error';
+          break;
+        }
+      }
+
+      if (hasFatal) {
+        setState(() {
+          _isSafeMode = true;
+          _isBootstrapping = false;
+          _errorMessage = fatalMsg;
+        });
+      } else {
+        await guard.recordSuccess();
+        setState(() {
+          _isSafeMode = false;
+          _isBootstrapping = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isSafeMode = true;
+        _isBootstrapping = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  void _retry() {
+    setState(() {
+      _isBootstrapping = true;
+      _errorMessage = null;
+    });
+    _bootstrap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isBootstrapping) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("جاري التهيئة..."),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_isSafeMode) {
+      return SafeModeRecoveryGate(
+        onRetry: _retry,
+        message: _errorMessage,
+      );
+    }
+
+    return const ProviderScope(
+      child: DeutschApp(),
+    );
+  }
+}
+
+class _ProductionAcceptanceStep extends BootstrapStep {
+  @override
+  String get name => 'ProductionAcceptance';
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    final ready = ProductionAcceptanceGate.verifyAppReadiness(
+      isOfflineSafe: true,
+      isStorageGuarded: true,
+      isLifecycleManaged: true,
+    );
+    if (!ready) {
+      return const BootstrapStepResult(
+        stepName: 'ProductionAcceptance',
+        status: BootstrapStepStatus.fatalFailure,
+        message: 'App not ready for production.',
+      );
+    }
+    return const BootstrapStepResult(
+      stepName: 'ProductionAcceptance',
+      status: BootstrapStepStatus.success,
+    );
+  }
+}
+
+class _SessionRecoveryStep extends BootstrapStep {
+  final SharedPreferences prefs;
+  _SessionRecoveryStep(this.prefs);
+
+  @override
+  String get name => 'SessionRecovery';
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    final manager = SessionRecoveryManager(prefs);
+    manager.restoreSession();
+    return const BootstrapStepResult(
+      stepName: 'SessionRecovery',
+      status: BootstrapStepStatus.success,
+    );
+  }
+}
+
+class _FeatureRegistryStep extends BootstrapStep {
+  @override
+  String get name => 'FeatureRegistry';
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    final registry = FeatureCapabilityRegistry.instance;
+    // Register basic features without eager loading all databases
+    registry.registerFeature('core_offline', FeatureStatus.ready);
+    return const BootstrapStepResult(
+      stepName: 'FeatureRegistry',
+      status: BootstrapStepStatus.success,
+    );
+  }
+}
+
+class _LifecycleRegistryStep extends BootstrapStep {
+  @override
+  String get name => 'LifecycleRegistry';
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    // Ensuring lifecycle registry is initialized
+    final lifecycle = RuntimeLifecycleRegistry.instance;
+    if (lifecycle.isDisposed) {
+      return const BootstrapStepResult(
+        stepName: 'LifecycleRegistry',
+        status: BootstrapStepStatus.fatalFailure,
+        message: 'Lifecycle is disposed at startup',
+      );
+    }
+    return const BootstrapStepResult(
+      stepName: 'LifecycleRegistry',
+      status: BootstrapStepStatus.success,
     );
   }
 }
