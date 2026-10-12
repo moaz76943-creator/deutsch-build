@@ -363,7 +363,7 @@
       "languageCode": "es",
       "displayName": "Spanish",
       "displayNameAr": "الإسبانية",
-      "nativeName": "español",
+      "nativeName": "Español",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -398,7 +398,7 @@
       "languageCode": "fr",
       "displayName": "French",
       "displayNameAr": "الفرنسية",
-      "nativeName": "français",
+      "nativeName": "Français",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -433,7 +433,7 @@
       "languageCode": "it",
       "displayName": "Italian",
       "displayNameAr": "الإيطالية",
-      "nativeName": "italiano",
+      "nativeName": "Italiano",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -507,7 +507,7 @@
       "languageCode": "ru",
       "displayName": "Russian",
       "displayNameAr": "الروسية",
-      "nativeName": "русский",
+      "nativeName": "Русский",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -673,7 +673,7 @@
       "languageCode": "pt",
       "displayName": "Portuguese",
       "displayNameAr": "البرتغالية",
-      "nativeName": "português",
+      "nativeName": "Português",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -745,7 +745,7 @@
       "languageCode": "pl",
       "displayName": "Polish",
       "displayNameAr": "البولندية",
-      "nativeName": "polski",
+      "nativeName": "Polski",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -780,7 +780,7 @@
       "languageCode": "sv",
       "displayName": "Swedish",
       "displayNameAr": "السويدية",
-      "nativeName": "svenska",
+      "nativeName": "Svenska",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -828,7 +828,7 @@
       "languageCode": "no",
       "displayName": "Norwegian",
       "displayNameAr": "النرويجية",
-      "nativeName": "norsk",
+      "nativeName": "Norsk",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -863,7 +863,7 @@
       "languageCode": "da",
       "displayName": "Danish",
       "displayNameAr": "الدنماركية",
-      "nativeName": "dansk",
+      "nativeName": "Dansk",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -899,7 +899,7 @@
       "languageCode": "fi",
       "displayName": "Finnish",
       "displayNameAr": "الفنلندية",
-      "nativeName": "suomi",
+      "nativeName": "Suomi",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1083,7 +1083,7 @@
       "languageCode": "id",
       "displayName": "Indonesian",
       "displayNameAr": "الإندونيسية",
-      "nativeName": "Indonesia",
+      "nativeName": "Bahasa Indonesia",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1118,7 +1118,7 @@
       "languageCode": "ms",
       "displayName": "Malay",
       "displayNameAr": "الملايوية",
-      "nativeName": "Melayu",
+      "nativeName": "Bahasa Melayu",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1437,7 +1437,7 @@
       "languageCode": "uk",
       "displayName": "Ukrainian",
       "displayNameAr": "الأوكرانية",
-      "nativeName": "українська",
+      "nativeName": "Українська",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1474,7 +1474,7 @@
       "languageCode": "cs",
       "displayName": "Czech",
       "displayNameAr": "التشيكية",
-      "nativeName": "čeština",
+      "nativeName": "Čeština",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1509,7 +1509,7 @@
       "languageCode": "ro",
       "displayName": "Romanian",
       "displayNameAr": "الرومانية",
-      "nativeName": "română",
+      "nativeName": "Română",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1545,7 +1545,7 @@
       "languageCode": "hu",
       "displayName": "Hungarian",
       "displayNameAr": "المجرية",
-      "nativeName": "magyar",
+      "nativeName": "Magyar",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1582,7 +1582,7 @@
       "languageCode": "bg",
       "displayName": "Bulgarian",
       "displayNameAr": "البلغارية",
-      "nativeName": "български",
+      "nativeName": "Български",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1619,7 +1619,7 @@
       "languageCode": "sk",
       "displayName": "Slovak",
       "displayNameAr": "السلوفاكية",
-      "nativeName": "slovenčina",
+      "nativeName": "Slovenčina",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1656,7 +1656,7 @@
       "languageCode": "hr",
       "displayName": "Croatian",
       "displayNameAr": "الكرواتية",
-      "nativeName": "hrvatski",
+      "nativeName": "Hrvatski",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1696,7 +1696,7 @@
       "languageCode": "sr",
       "displayName": "Serbian",
       "displayNameAr": "الصربية",
-      "nativeName": "српски",
+      "nativeName": "Српски",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1734,7 +1734,7 @@
       "languageCode": "bs",
       "displayName": "Bosnian",
       "displayNameAr": "البوسنية",
-      "nativeName": "bosanski",
+      "nativeName": "Bosanski",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1769,7 +1769,7 @@
       "languageCode": "sq",
       "displayName": "Albanian",
       "displayNameAr": "الألبانية",
-      "nativeName": "Albanian",
+      "nativeName": "Shqip",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1804,7 +1804,7 @@
       "languageCode": "hy",
       "displayName": "Armenian",
       "displayNameAr": "الأرمنية",
-      "nativeName": "Armenian",
+      "nativeName": "Հայերեն",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1840,7 +1840,7 @@
       "languageCode": "ka",
       "displayName": "Georgian",
       "displayNameAr": "الجورجية",
-      "nativeName": "Georgian",
+      "nativeName": "ქართული",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1880,7 +1880,7 @@
       "languageCode": "az",
       "displayName": "Azerbaijani",
       "displayNameAr": "الأذربيجانية",
-      "nativeName": "azərbaycan",
+      "nativeName": "Azərbaycan",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1919,7 +1919,7 @@
       "languageCode": "kk",
       "displayName": "Kazakh",
       "displayNameAr": "الكازاخية",
-      "nativeName": "Kazakh",
+      "nativeName": "Қазақша",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -1956,7 +1956,7 @@
       "languageCode": "uz",
       "displayName": "Uzbek",
       "displayNameAr": "الأوزبكية",
-      "nativeName": "o‘zbek",
+      "nativeName": "Oʻzbekcha",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2035,7 +2035,7 @@
       "languageCode": "tl",
       "displayName": "Tagalog",
       "displayNameAr": "التاغالوغية",
-      "nativeName": "Filipino",
+      "nativeName": "Tagalog",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2106,7 +2106,7 @@
       "languageCode": "et",
       "displayName": "Estonian",
       "displayNameAr": "الإستونية",
-      "nativeName": "eesti",
+      "nativeName": "Eesti",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2142,7 +2142,7 @@
       "languageCode": "lv",
       "displayName": "Latvian",
       "displayNameAr": "اللاتفية",
-      "nativeName": "latviešu",
+      "nativeName": "Latviešu",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2178,7 +2178,7 @@
       "languageCode": "lt",
       "displayName": "Lithuanian",
       "displayNameAr": "الليتوانية",
-      "nativeName": "lietuvių",
+      "nativeName": "Lietuvių",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2215,7 +2215,7 @@
       "languageCode": "sl",
       "displayName": "Slovenian",
       "displayNameAr": "السلوفينية",
-      "nativeName": "slovenščina",
+      "nativeName": "Slovenščina",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2252,7 +2252,7 @@
       "languageCode": "mk",
       "displayName": "Macedonian",
       "displayNameAr": "المقدونية",
-      "nativeName": "Macedonian",
+      "nativeName": "Македонски",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2288,7 +2288,7 @@
       "languageCode": "is",
       "displayName": "Icelandic",
       "displayNameAr": "الآيسلندية",
-      "nativeName": "Icelandic",
+      "nativeName": "Íslenska",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2323,7 +2323,7 @@
       "languageCode": "ga",
       "displayName": "Irish",
       "displayNameAr": "الأيرلندية",
-      "nativeName": "Irish",
+      "nativeName": "Gaeilge",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2358,7 +2358,7 @@
       "languageCode": "cy",
       "displayName": "Welsh",
       "displayNameAr": "الويلزية",
-      "nativeName": "Welsh",
+      "nativeName": "Cymraeg",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2393,7 +2393,7 @@
       "languageCode": "eu",
       "displayName": "Basque",
       "displayNameAr": "الباسكية",
-      "nativeName": "Basque",
+      "nativeName": "Euskara",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2428,7 +2428,7 @@
       "languageCode": "ca",
       "displayName": "Catalan",
       "displayNameAr": "الكتالونية",
-      "nativeName": "català",
+      "nativeName": "Català",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2463,7 +2463,7 @@
       "languageCode": "gl",
       "displayName": "Galician",
       "displayNameAr": "الجاليكية",
-      "nativeName": "Galician",
+      "nativeName": "Galego",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2500,7 +2500,7 @@
       "languageCode": "be",
       "displayName": "Belarusian",
       "displayNameAr": "البيلاروسية",
-      "nativeName": "Belarusian",
+      "nativeName": "Беларуская",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2538,7 +2538,7 @@
       "languageCode": "mn",
       "displayName": "Mongolian",
       "displayNameAr": "المنغولية",
-      "nativeName": "Mongolian",
+      "nativeName": "Монгол",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2575,7 +2575,7 @@
       "languageCode": "ne",
       "displayName": "Nepali",
       "displayNameAr": "النيبالية",
-      "nativeName": "Nepali",
+      "nativeName": "नेपाली",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2608,7 +2608,7 @@
       "languageCode": "si",
       "displayName": "Sinhala",
       "displayNameAr": "السنهالية",
-      "nativeName": "Sinhala",
+      "nativeName": "සිංහල",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2642,7 +2642,7 @@
       "languageCode": "my",
       "displayName": "Burmese",
       "displayNameAr": "البورمية",
-      "nativeName": "Burmese",
+      "nativeName": "မြန်မာဘာသာ",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2675,7 +2675,7 @@
       "languageCode": "km",
       "displayName": "Khmer",
       "displayNameAr": "الخميرية",
-      "nativeName": "Khmer",
+      "nativeName": "ភាសាខ្មែរ",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2709,7 +2709,7 @@
       "languageCode": "lo",
       "displayName": "Lao",
       "displayNameAr": "اللاوية",
-      "nativeName": "Lao",
+      "nativeName": "ພາສາລາວ",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2780,7 +2780,7 @@
       "languageCode": "so",
       "displayName": "Somali",
       "displayNameAr": "الصومالية",
-      "nativeName": "Somali",
+      "nativeName": "Soomaali",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2849,7 +2849,7 @@
       "languageCode": "yo",
       "displayName": "Yoruba",
       "displayNameAr": "اليوروبا",
-      "nativeName": "Yoruba",
+      "nativeName": "Yorùbá",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2882,7 +2882,7 @@
       "languageCode": "ig",
       "displayName": "Igbo",
       "displayNameAr": "الإيغبو",
-      "nativeName": "Igbo",
+      "nativeName": "Asụsụ Igbo",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2917,7 +2917,7 @@
       "languageCode": "zu",
       "displayName": "Zulu",
       "displayNameAr": "الزولو",
-      "nativeName": "Zulu",
+      "nativeName": "isiZulu",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2952,7 +2952,7 @@
       "languageCode": "xh",
       "displayName": "Xhosa",
       "displayNameAr": "الخوسا",
-      "nativeName": "Xhosa",
+      "nativeName": "isiXhosa",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -2987,7 +2987,7 @@
       "languageCode": "sn",
       "displayName": "Shona",
       "displayNameAr": "الشونا",
-      "nativeName": "Shona",
+      "nativeName": "chiShona",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3022,7 +3022,7 @@
       "languageCode": "rw",
       "displayName": "Kinyarwanda",
       "displayNameAr": "الكينيارواندية",
-      "nativeName": "Kinyarwanda",
+      "nativeName": "Ikinyarwanda",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3120,7 +3120,7 @@
       "languageCode": "la",
       "displayName": "Latin",
       "displayNameAr": "اللاتينية",
-      "nativeName": "Latin",
+      "nativeName": "Latina",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3327,7 +3327,7 @@
       "languageCode": "ps",
       "displayName": "Pashto",
       "displayNameAr": "البشتوية",
-      "nativeName": "Pashto",
+      "nativeName": "پښتو",
       "textDirection": "rtl",
       "contentStatus": "not_verified"
     },
@@ -3377,7 +3377,7 @@
       "languageCode": "ku",
       "displayName": "Kurdish",
       "displayNameAr": "الكردية",
-      "nativeName": "Kurdish",
+      "nativeName": "Kurdî",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3411,7 +3411,7 @@
       "languageCode": "tg",
       "displayName": "Tajik",
       "displayNameAr": "الطاجيكية",
-      "nativeName": "Tajik",
+      "nativeName": "Тоҷикӣ",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3446,7 +3446,7 @@
       "languageCode": "tk",
       "displayName": "Turkmen",
       "displayNameAr": "التركمانية",
-      "nativeName": "Turkmen",
+      "nativeName": "Türkmençe",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3481,7 +3481,7 @@
       "languageCode": "ky",
       "displayName": "Kyrgyz",
       "displayNameAr": "القيرغيزية",
-      "nativeName": "Kyrgyz",
+      "nativeName": "Кыргызча",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3516,7 +3516,7 @@
       "languageCode": "tt",
       "displayName": "Tatar",
       "displayNameAr": "التترية",
-      "nativeName": "Tatar",
+      "nativeName": "Татарча",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3586,7 +3586,7 @@
       "languageCode": "ug",
       "displayName": "Uyghur",
       "displayNameAr": "الأويغورية",
-      "nativeName": "Uyghur",
+      "nativeName": "ئۇيغۇرچە",
       "textDirection": "rtl",
       "contentStatus": "not_verified"
     },
@@ -3654,7 +3654,7 @@
       "languageCode": "mt",
       "displayName": "Maltese",
       "displayNameAr": "المالطية",
-      "nativeName": "Maltese",
+      "nativeName": "Malti",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
@@ -3688,7 +3688,7 @@
       "languageCode": "lb",
       "displayName": "Luxembourgish",
       "displayNameAr": "اللوكسمبورغية",
-      "nativeName": "Luxembourgish",
+      "nativeName": "Lëtzebuergesch",
       "textDirection": "ltr",
       "contentStatus": "not_verified"
     },
