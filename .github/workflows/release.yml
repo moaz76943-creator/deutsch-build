@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify pinned Gradle wrapper before downloading SDKs
+        run: python3 tool/gradle_wrapper_integrity.py
+
       - name: Validate release-signing secrets before downloads
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
