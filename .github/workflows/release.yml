@@ -88,6 +88,9 @@ jobs:
 
       - name: Verify release APK signature and checksum
         shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           set -euo pipefail
           apk="build/app/outputs/flutter-apk/app-release.apk"
@@ -96,7 +99,14 @@ jobs:
           test -n "$sdk_root" && test -d "$sdk_root/build-tools"
           signer="$(find "$sdk_root/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$signer" || { echo "::error::Android apksigner is unavailable"; exit 1; }
-          "$signer" verify --verbose "$apk"
+          "$signer" verify --verbose --print-certs "$apk"
+          expected_cert_sha="$(keytool -exportcert -alias "$KEY_ALIAS" -keystore android/app/upload-keystore.jks -storepass "$KEYSTORE_PASSWORD" | openssl dgst -sha256 -r | awk '{print $1}')"
+          actual_cert_sha="$("$signer" verify --print-certs "$apk" | awk -F': ' '/^Signer #1 certificate SHA-256 digest:/ {print $2; exit}')"
+          test "${#expected_cert_sha}" -eq 64 && test "${#actual_cert_sha}" -eq 64
+          if [[ "$actual_cert_sha" != "$expected_cert_sha" ]]; then
+            echo "::error::Release APK is not signed with the expected Play upload certificate"
+            exit 1
+          fi
           sha256sum "$apk"
 
       - name: Release APK
