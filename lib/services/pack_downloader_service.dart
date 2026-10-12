@@ -563,6 +563,8 @@ class PackDownloaderService {
       }
       final target = File(path.join(packsDir.path, '$code.sqlite'));
       final backup = File(target.path + '.bak');
+      // Close readers before touching a previously mounted content pack.
+      await DatabaseService.instance.closeContentDb(code);
       // On restart after an interrupted update, prefer the prior pack.
       if (await backup.exists()) {
         final registry = await _readRegistry(packsDir);
@@ -581,7 +583,6 @@ class PackDownloaderService {
           await backup.rename(target.path);
         }
       }
-      await DatabaseService.instance.closeContentDb(code);
       final hadPrevious = await target.exists();
       if (hadPrevious) await target.rename(backup.path);
       try {
