@@ -15,13 +15,13 @@ class OfflineAudioDispatcher {
     _isPlaying = true;
     try {
       if (thisToken != _currentGenerationToken) return false;
-      await OfflineAudioPool().playWord(
+      final played = await OfflineAudioPool().tryPlayWord(
         text,
         locale: bcp47Locale,
         speechRate: speechRate * 0.5,
       );
       if (thisToken != _currentGenerationToken) return false;
-      return true;
+      return played;
     } catch (_) {
       return false;
     } finally {
