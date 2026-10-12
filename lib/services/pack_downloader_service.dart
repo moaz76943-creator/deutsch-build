@@ -398,134 +398,221 @@ class PackDownloaderService {
     return null;
   }
 
-  static Future<List<int>> _extractSqliteBytes(
-    File archive,
-    _PackDescriptor descriptor,
-  ) async {
-    // Never materialize the compressed file in RAM. Stop expansion at 64 MiB
-    // before JSON or Base64 decoding can amplify memory consumption further.
-    final decompressed = await decodeGzipEnvelope(archive.openRead());
-    final decoded = jsonDecode(utf8.decode(decompressed));
-    if (decoded is! Map) {
-      throw const FormatException('Pack envelope must be an object');
-    }
-    final envelope = Map<String, dynamic>.from(decoded);
-
-    if (envelope['packId'] != descriptor.id) {
-      throw const FormatException('Pack envelope id does not match manifest');
-    }
-    final envelopeContract = envelope['contractVersion'];
-    if (envelopeContract is String &&
-        descriptor.contractVersion.isNotEmpty &&
-        envelopeContract != descriptor.contractVersion) {
-      throw const FormatException('Pack contract version mismatch');
-    }
-
-    final rawFiles = envelope['files'];
-    if (rawFiles is! List) {
-      throw const FormatException('Pack envelope files must be an array');
-    }
-
-    final encodedFiles = <String, String>{};
-    for (final rawFile in rawFiles) {
-      if (rawFile is! Map) {
-        throw const FormatException('Pack file entry must be an object');
+  static Future<Uint8List> _extractSqliteBytes(
+    File archive, _PackDescriptor descriptor,
+  ) {
+    // Expansion, JSON parsing and Base64 decoding do not block UI frames.
+    // The isolate returns at most 32 MiB of SQLite bytes.
+    final sourcePath = archive.path;
+    return Isolate.run(() async {
+      final expanded = await decodeGzipEnvelope(File(sourcePath).openRead());
+      final decoded = jsonDecode(utf8.decode(expanded));
+      if (decoded is! Map) {
+        throw const FormatException('Envelope must be a JSON object');
       }
-      final item = Map<String, dynamic>.from(rawFile);
-      final filePath = item['path'];
-      final contentBase64 = item['contentBase64'];
-      if (filePath is! String || contentBase64 is! String) {
-        throw const FormatException('Pack file entry is malformed');
+      final envelope = Map<String, dynamic>.from(decoded);
+      if (envelope['packId'] != descriptor.id ||
+          envelope['languageCode'] != descriptor.languageCode ||
+          envelope['version'] != descriptor.version ||
+          envelope['contractVersion'] != descriptor.contractVersion) {
+        throw const FormatException('Envelope identity or version mismatch');
       }
-      _validateEnvelopePath(filePath);
-      if (encodedFiles.containsKey(filePath)) {
-        throw const FormatException('Pack contains duplicate file paths');
+      final rawFiles = envelope['files'];
+      if (rawFiles is! List || rawFiles.length != 3) {
+        throw const FormatException('Exactly three envelope files required');
       }
-      encodedFiles[filePath] = contentBase64;
-    }
+      final files = <String, String>{};
+      for (final raw in rawFiles) {
+        if (raw is! Map) {
+          throw const FormatException('Malformed pack file entry');
+        }
+        final item = Map<String, dynamic>.from(raw);
+        final name = item['path'];
+        final encoded = item['contentBase64'];
+        if (name is! String || encoded is! String ||
+            files.containsKey(name)) {
+          throw const FormatException('Duplicate or malformed pack file');
+        }
+        _validateEnvelopePath(name);
+        files[name] = encoded;
+      }
+      const expected = <String>{
+        'content/content.json', 'content/content.sqlite',
+        'metadata/pack.json',
+      };
+      if (!files.keys.toSet().containsAll(expected) ||
+          files.keys.toSet().difference(expected).isNotEmpty) {
+        throw const FormatException('Mandatory envelope files missing');
+      }
 
-    const requiredPaths = <String>{
-      'content/content.json',
-      'content/content.sqlite',
-      'metadata/pack.json',
-    };
-    if (!encodedFiles.keys.toSet().containsAll(requiredPaths)) {
-      throw const FormatException('Pack envelope is missing required files');
-    }
-
-    final sqliteEncoded = encodedFiles['content/content.sqlite']!;
-    try {
-      return base64Decode(sqliteEncoded);
-    } on FormatException {
-      throw const FormatException('SQLite payload is not valid Base64');
-    }
+      Map<String, dynamic> metadata(String name) {
+        final encoded = files[name]!;
+        if (encoded.length > 1024 * 1024) {
+          throw const FormatException('Envelope metadata too large');
+        }
+        final decoded = jsonDecode(utf8.decode(base64Decode(encoded)));
+        if (decoded is! Map) {
+          throw const FormatException('Invalid envelope metadata JSON');
+        }
+        return Map<String, dynamic>.from(decoded);
+      }
+      final contents = metadata('content/content.json');
+      final pack = metadata('metadata/pack.json');
+      if (contents['languageCode'] != descriptor.languageCode ||
+          contents['version'] != descriptor.version ||
+          pack['languageCode'] != descriptor.languageCode ||
+          pack['version'] != descriptor.version ||
+          pack['contractVersion'] != descriptor.contractVersion) {
+        throw const FormatException('Pack metadata mismatch');
+      }
+      final encodedSqlite = files['content/content.sqlite']!;
+      if (encodedSqlite.length > ((maxSqliteBytes + 2) ~/ 3) * 4) {
+        throw const FormatException('SQLite Base64 exceeds size budget');
+      }
+      final sqlite = base64Decode(encodedSqlite);
+      if (sqlite.isEmpty || sqlite.length > maxSqliteBytes) {
+        throw const FormatException('SQLite payload exceeds size budget');
+      }
+      return sqlite;
+    });
   }
 
   static void _validateEnvelopePath(String value) {
-    if (value.isEmpty ||
-        value.startsWith('/') ||
-        value.startsWith('\\') ||
-        value.contains('..') ||
-        value.contains('\\')) {
-      throw const FormatException('Unsafe pack envelope path');
+    if (value.startsWith('/') || value.contains('\\') ||
+        value.split('/').any((part) =>
+            part.isEmpty || part == '.' || part == '..')) {
+      throw const FormatException('Unsafe envelope path');
     }
   }
 
-  static Future<void> _verifySqlitePackage(File file, String languageCode) async {
+  static Future<void> _verifySqlitePackage(
+    File file, String languageCode,
+  ) async {
+    if (await file.length() > maxSqliteBytes) {
+      throw const FormatException('SQLite exceeds maximum size');
+    }
     final raf = await file.open(mode: FileMode.read);
     try {
       final header = await raf.read(16);
       if (header.length < 16 ||
           !String.fromCharCodes(header).startsWith('SQLite format 3')) {
-        throw const FormatException('Extracted content is not a SQLite database');
+        throw const FormatException('Missing SQLite header');
       }
     } finally {
       await raf.close();
     }
 
     final db = await openDatabase(
-      file.path,
-      readOnly: true,
-      singleInstance: false,
-    );
+        file.path, readOnly: true, singleInstance: false);
     try {
-      final integrityRows = await db.rawQuery('PRAGMA integrity_check');
-      if (integrityRows.isEmpty ||
-          integrityRows.first.values.isEmpty ||
-          integrityRows.first.values.first.toString().toLowerCase() != 'ok') {
-        throw StateError('SQLite integrity_check failed');
+      final integrity = await db.rawQuery('PRAGMA integrity_check');
+      if (integrity.length != 1 ||
+          integrity.first.values.first.toString().toLowerCase() != 'ok') {
+        throw StateError('SQLite integrity check failed');
       }
-
-      final schemaRows = await db.rawQuery('''
-        SELECT name, type
-        FROM sqlite_master
-        WHERE name IN ('metadata', 'lexicon', 'concepts', 'grammar', 'lexemes', 'examples')
-      ''');
-      final names = schemaRows
-          .map((row) => row['name'])
-          .whereType<String>()
-          .toSet();
-      const requiredNames = <String>{
-        'metadata',
-        'lexicon',
-        'concepts',
-        'grammar',
-        'lexemes',
-        'examples',
-      };
-      if (!names.containsAll(requiredNames)) {
-        throw StateError('SQLite pack does not satisfy the universal schema contract');
-      }
-
-      final languageRows = await db.rawQuery(
-        "SELECT value FROM metadata WHERE key = 'languageCode' LIMIT 1",
+      // Route 15 is the single schema admission authority.
+      await DatabaseService.instance.verifyUniversalSchema(db, languageCode);
+      final fts = await db.rawQuery(
+        "SELECT sql FROM sqlite_master WHERE name='lexicon_fts' "
+        "AND type='table' LIMIT 1",
       );
-      if (languageRows.isEmpty ||
-          languageRows.first['value']?.toString().toLowerCase() != languageCode) {
-        throw StateError('SQLite language metadata does not match requested language');
+      if (fts.isEmpty ||
+          !fts.first['sql'].toString().toLowerCase().contains('using fts5')) {
+        throw StateError('FTS5 virtual table unavailable');
       }
+      await db.rawQuery(
+        'SELECT rowid FROM lexicon_fts WHERE lexicon_fts MATCH ? LIMIT 1',
+        <Object?>['ws14nevermatches'],
+      );
     } finally {
       await db.close();
+    }
+  }
+
+  static Future<void> _installVerifiedArchive(
+    String code, _PackDescriptor descriptor,
+    File archive, Directory packsDir,
+  ) async {
+    if (await archive.length() != descriptor.archiveSizeBytes ||
+        !_constantTimeHexEquals(
+            await _sha256File(archive), descriptor.sha256)) {
+      throw StateError('Staged archive fails size or SHA-256 check');
+    }
+    final sqlite = await _extractSqliteBytes(archive, descriptor);
+    if (!_constantTimeHexEquals(
+        sha256.convert(sqlite).toString(), descriptor.contentSha256)) {
+      throw StateError('SQLite content SHA-256 mismatch');
+    }
+    final staged = File(path.join(packsDir.path, '.$code.sqlite.installing'));
+    if (await staged.exists()) await staged.delete();
+    try {
+      await staged.writeAsBytes(sqlite, flush: true);
+      await _verifySqlitePackage(staged, code);
+      if (_cancelledDownloads.contains(code)) {
+        throw StateError('Pack install cancelled before commit');
+      }
+      final target = File(path.join(packsDir.path, '$code.sqlite'));
+      final backup = File(target.path + '.bak');
+      // On restart after an interrupted update, prefer the prior pack.
+      if (await backup.exists()) {
+        if (await target.exists()) await target.delete();
+        await backup.rename(target.path);
+      }
+      await DatabaseService.instance.closeContentDb(code);
+      final hadPrevious = await target.exists();
+      if (hadPrevious) await target.rename(backup.path);
+      try {
+        await staged.rename(target.path);
+        if (_cancelledDownloads.contains(code)) {
+          throw StateError('Pack install cancelled during commit');
+        }
+        await _upsertRegistryRecord(code, <String, dynamic>{
+          'languageCode': code,
+          'packId': descriptor.id,
+          'version': descriptor.version,
+          'contractVersion': descriptor.contractVersion,
+          'bundleFormat': descriptor.bundleFormat,
+          'archiveSha256': descriptor.sha256,
+          'contentSha256': descriptor.contentSha256,
+          'installedSizeBytes': await target.length(),
+          'installedPath': target.path,
+          'installedAt': DateTime.now().toUtc().toIso8601String(),
+        }, packsDir);
+      } catch (_) {
+        if (await target.exists()) await target.delete();
+        if (hadPrevious && await backup.exists()) {
+          await backup.rename(target.path);
+        }
+        rethrow;
+      }
+      if (await backup.exists()) {
+        try {
+          await backup.delete();
+        } catch (_) {
+          // Keeping a backup is safer than failing an already committed pack.
+        }
+      }
+    } finally {
+      if (await staged.exists()) await staged.delete();
+    }
+  }
+
+  @visibleForTesting
+  static Future<bool> installArchiveFixtureForTesting({
+    required String languageCode,
+    required Map<String, dynamic> manifest,
+    required File archive,
+    required Directory packsDirectory,
+  }) async {
+    final code = _normalizeLanguageCode(languageCode);
+    try {
+      final descriptor = _PackDescriptor.fromManifest(
+        manifest, code, Uri.parse(defaultManifestUrl),
+      );
+      await _installVerifiedArchive(code, descriptor, archive, packsDirectory);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -562,13 +649,13 @@ class PackDownloaderService {
     return directory;
   }
 
-  static Future<File> _registryFile() async {
-    final directory = await _packsDirectory();
+  static Future<File> _registryFile([Directory? root]) async {
+    final directory = root ?? await _packsDirectory();
     return File(path.join(directory.path, 'registry.json'));
   }
 
-  static Future<Map<String, dynamic>> _readRegistry() async {
-    final file = await _registryFile();
+  static Future<Map<String, dynamic>> _readRegistry([Directory? root]) async {
+    final file = await _registryFile(root);
     if (!await file.exists()) {
       return <String, dynamic>{'schemaVersion': 1, 'packs': <String, dynamic>{}};
     }
@@ -586,16 +673,16 @@ class PackDownloaderService {
 
   static Future<void> _upsertRegistryRecord(
     String languageCode,
-    Map<String, dynamic> record,
+    Map<String, dynamic> record, [Directory? root]
   ) async {
-    final registry = await _readRegistry();
+    final registry = await _readRegistry(root);
     final packs = Map<String, dynamic>.from(
       registry['packs'] as Map? ?? <String, dynamic>{},
     );
     packs[languageCode] = record;
     registry['schemaVersion'] = 1;
     registry['packs'] = packs;
-    await _writeRegistry(registry);
+    await _writeRegistry(registry, root);
   }
 
   static Future<void> _removeRegistryRecord(String languageCode) async {
@@ -609,8 +696,8 @@ class PackDownloaderService {
     await _writeRegistry(registry);
   }
 
-  static Future<void> _writeRegistry(Map<String, dynamic> registry) async {
-    final file = await _registryFile();
+  static Future<void> _writeRegistry(Map<String, dynamic> registry, [Directory? root]) async {
+    final file = await _registryFile(root);
     final staged = File('${file.path}.tmp');
     await staged.writeAsString(jsonEncode(registry), flush: true);
     await _replaceAtomically(staged, file);
