@@ -738,8 +738,8 @@ class _PackDescriptor {
   final String bundleFormat;
   final Uri archiveUri;
   final String sha256;
-  final String? contentSha256;
-  final int? archiveSizeBytes;
+  final String contentSha256;
+  final int archiveSizeBytes;
 
   const _PackDescriptor({
     required this.id,
@@ -758,104 +758,73 @@ class _PackDescriptor {
     String languageCode,
     Uri manifestUri,
   ) {
+    if (manifest['schemaVersion'] != '2.0.0') {
+      throw const FormatException('Unsupported manifest schema');
+    }
+    final entries = manifest['packs'];
+    if (entries is! List) {
+      throw const FormatException('Missing production pack list');
+    }
     Map<String, dynamic>? entry;
-
-    final packs = manifest['packs'];
-    if (packs is List) {
-      for (final raw in packs) {
-        if (raw is! Map) {
-          continue;
+    for (final raw in entries) {
+      if (raw is! Map) continue;
+      final current = Map<String, dynamic>.from(raw);
+      if (current['languageCode'] == languageCode) {
+        if (entry != null) {
+          throw const FormatException('Duplicate published language');
         }
-        final candidate = Map<String, dynamic>.from(raw);
-        final code = candidate['languageCode']?.toString().toLowerCase();
-        final id = candidate['id']?.toString().toLowerCase();
-        if (code == languageCode || id == languageCode) {
-          entry = candidate;
-          break;
-        }
+        entry = current;
       }
     }
-
-    final languages = manifest['languages'];
-    if (entry == null && languages is List) {
-      for (final raw in languages) {
-        if (raw is! Map) {
-          continue;
-        }
-        final candidate = Map<String, dynamic>.from(raw);
-        final code = candidate['code']?.toString().toLowerCase();
-        if (code == languageCode) {
-          entry = candidate;
-          break;
-        }
-      }
-    }
-
     if (entry == null) {
-      throw StateError('No pack is published for language $languageCode');
+      throw StateError('BLOCKED_SOURCE: no production pack for language');
     }
-
-    final id = (entry['id'] ?? entry['pack_id'] ?? languageCode).toString();
-    final code = (entry['languageCode'] ?? entry['code'] ?? languageCode)
-        .toString()
-        .toLowerCase();
-    final bundleFormat = (entry['bundleFormat'] ?? PackDownloaderService._bundleFormat).toString();
-    final version = (entry['version'] ??
-            manifest['store_version'] ??
-            manifest['version'] ??
-            'unknown')
-        .toString();
-    final contractVersion = (entry['contractVersion'] ?? '1.0.0').toString();
-
-    final archiveValue = entry['archiveUrl'] ??
-        entry['pack_url'] ??
-        entry['file_url'];
-    Uri archiveUri;
-    if (archiveValue != null) {
-      archiveUri = Uri.parse(archiveValue.toString());
-    } else {
-      final fileName = entry['pack_file'];
-      if (fileName is! String || fileName.isEmpty) {
-        throw const FormatException('Manifest pack URL is missing');
-      }
-      archiveUri = manifestUri.resolve('packs/$fileName');
+    // Registration, archive existence, source approval and production
+    // acceptance are separate gates. Never use legacy languages[] entries.
+    if (entry['production_ready'] != true ||
+        entry['pack_verified'] != true ||
+        entry['content_available'] != true) {
+      throw StateError('BLOCKED_SOURCE: source approval incomplete');
     }
-    if (archiveUri.scheme != 'https') {
-      throw const FormatException('Manifest pack URL must use HTTPS');
+    final id = entry['id'];
+    final code = entry['languageCode'];
+    final version = entry['version'];
+    final contract = entry['contractVersion'];
+    final format = entry['bundleFormat'];
+    if (id is! String || id.isEmpty || code != languageCode ||
+        version is! String ||
+        !RegExp(r'^[0-9]+\.[0-9]+\.[0-9]+$').hasMatch(version) ||
+        contract != '1.0.0' ||
+        format != PackDownloaderService._bundleFormat) {
+      throw const FormatException('Invalid SQLite v2 manifest identity');
     }
-
-    final archiveSha = entry['sha256']?.toString().toLowerCase();
-    if (archiveSha == null ||
-        !RegExp(r'^[0-9a-f]{64}$').hasMatch(archiveSha)) {
-      throw const FormatException('Manifest pack SHA-256 is missing or invalid');
+    final source = entry['archiveUrl'];
+    if (source is! String) {
+      throw const FormatException('Missing archive URL');
     }
-
-    final rawContentSha = entry['contentSha256']?.toString().toLowerCase();
-    final contentSha = rawContentSha != null && rawContentSha.isNotEmpty
-        ? rawContentSha
-        : null;
-    if (contentSha != null &&
-        !RegExp(r'^[0-9a-f]{64}$').hasMatch(contentSha)) {
-      throw const FormatException('Manifest content SHA-256 is invalid');
+    final uri = Uri.parse(source);
+    if (!PackDownloaderService._approvedUri(uri)) {
+      throw const FormatException('Pack URL origin is not approved');
     }
-
-    final rawSize = entry['archiveSizeBytes'] ?? entry['size_bytes'];
-    final archiveSize = rawSize is num
-        ? rawSize.toInt()
-        : rawSize == null
-            ? null
-            : int.tryParse(rawSize.toString());
-
+    final archiveSha = entry['sha256'];
+    final contentSha = entry['contentSha256'];
+    if (archiveSha is! String ||
+        !RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(archiveSha) ||
+        contentSha is! String ||
+        !RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(contentSha)) {
+      throw const FormatException('Manifest is missing SHA-256 values');
+    }
+    final size = entry['archiveSizeBytes'];
+    if (size is! int || size < 1 ||
+        size > PackDownloaderService.maxCompressedPackBytes) {
+      throw const FormatException('Invalid bounded archive size');
+    }
     return _PackDescriptor(
-      id: id,
-      languageCode: code,
-      version: version,
-      contractVersion: contractVersion,
-      bundleFormat: bundleFormat,
-      archiveUri: archiveUri,
-      sha256: archiveSha,
-      contentSha256: contentSha,
-      archiveSizeBytes: archiveSize,
+      id: id, languageCode: code as String, version: version,
+      contractVersion: contract as String, bundleFormat: format as String,
+      archiveUri: uri, sha256: archiveSha.toLowerCase(),
+      contentSha256: contentSha.toLowerCase(),
+      archiveSizeBytes: size,
     );
   }
 }
