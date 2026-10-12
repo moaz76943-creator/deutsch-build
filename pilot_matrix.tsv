@@ -1101,3 +1101,23 @@ c_city_03	DAILY	A2	noun	das Zentrum	c_city_03	das Zentrum	Das ist das Zentrum.	�
 c_city_04	DAILY	A2	noun	die Post	c_city_04	die Post	Das ist die Post.	هذا c_city_04.
 c_city_05	DAILY	B1	noun	die Gegend	c_city_05	die Gegend	Das ist die Gegend.	هذا c_city_05.
 c_city_06	DAILY	B1	noun	die Behörde	c_city_06	die Behörde	Das ist die Behörde.	هذا c_city_06.
+c_kit_n01	HOME_KITCHEN	A1	noun	der Kühlschrank	الثلاجة	the refrigerator	Die Milch steht im Kühlschrank.	الحليب موجود في الثلاجة.
+c_kit_n02	HOME_KITCHEN	A1	noun	die Pfanne	المقلاة	the frying pan	Ich brauche eine Pfanne zum Braten.	أحتاج مقلاة للقلي.
+c_kit_v01	HOME_KITCHEN	A1	verb	kochen	يطبخ	to cook	Wir kochen heute eine Suppe.	نحن نطبخ حساءً اليوم.
+c_kit_v02	HOME_KITCHEN	A2	verb	schneiden	يقطّع	to cut	Schneiden Sie das Gemüse klein.	قطّع الخضار إلى قطع صغيرة.
+c_kit_p01	HOME_KITCHEN	A1	phrase	Guten Appetit!	شهية طيبة! / بالهناء والشفاء!	Bon appétit! / Enjoy your meal!	Guten Appetit allerseits!	شهية طيبة للجميع!
+c_bth_n01	HOME_BATHROOM	A1	noun	die Seife	الصابون	the soap	Waschen Sie die Hände mit Seife.	اغسل يديك بالصابون.
+c_bth_n02	HOME_BATHROOM	A1	noun	das Handtuch	المنشفة	the towel	Das Handtuch hängt neben der Dusche.	المنشفة معلقة بجانب الدش.
+c_bth_v01	HOME_BATHROOM	A1	verb	duschen	يستحم	to shower	Ich dusche jeden Morgen warm.	أستحم بماء دافئ كل صباح.
+c_bth_p01	HOME_BATHROOM	A1	phrase	Das Wasser ist zu heiß.	الماء ساخن جداً.	The water is too hot.	Vorsicht, das Wasser ist zu heiß!	انتبه، الماء ساخن جداً!
+c_liv_n01	HOME_LIVING	A1	noun	das Sofa	الأريكة	the sofa	Das Sofa im Wohnzimmer ist bequem.	الأريكة في غرفة المعيشة مريحة.
+c_liv_v01	HOME_LIVING	A2	verb	sich ausruhen	يستريح / يسترخي	to rest / relax	Nach der Arbeit ruhe ich mich aus.	أستريح بعد العمل.
+c_liv_p01	HOME_LIVING	A1	phrase	Mach es dir bequem!	تفضّل واسترح / خذ راحتك!	Make yourself comfortable!	Komm rein und mach es dir bequem!	ادخل وخذ راحتك!
+c_pha_n01	PHARMA	A1	noun	die Tablette	حبة الدواء / القرص	the tablet / pill	Nehmen Sie eine Tablette mit Wasser.	تناول حبة واحدة مع الماء.
+c_pha_n02	PHARMA	A2	noun	das Rezept	الوصفة الطبية (الروشتة)	the prescription	Dieses Medikament erfordert ein Rezept.	هذا الدواء يتطلب وصفة طبية.
+c_pha_v01	PHARMA	A2	verb	einnehmen	يتناول (دواء)	to take (medication)	Sie müssen das Medikament täglich einnehmen.	يجب أن تتناول الدواء يومياً.
+c_pha_v02	PHARMA	B1	verb	lindern	يسكّن / يهدّئ الألم	to relieve / soothe	Der Sirup lindert den Hustenreiz.	الشراب يسكّن نوبة السعال.
+c_pha_p01	PHARMA	A2	phrase	Vor dem Essen einnehmen.	يُؤخذ قبل الأكل.	Take before meals.	Bitte 30 Minuten vor dem Essen einnehmen.	يرجى تناوله قبل الأكل بـ 30 دقيقة.
+c_emg_n01	EMERGENCY	A1	noun	der Krankenwagen	سيارة الإسعاف	the ambulance	Der Krankenwagen kommt sofort.	سيارة الإسعاف قادمة فوراً.
+c_emg_v01	EMERGENCY	A1	verb	helfen	يساعد	to help	Können Sie mir bitte helfen?	هل يمكنك مساعدتي من فضلك؟
+c_emg_p01	EMERGENCY	A1	phrase	Rufen Sie sofort den Notarzt!	اتصل بطبيب الطوارئ فوراً!	Call an emergency doctor immediately!	Schnell, rufen Sie den Notarzt!	بسرعة، اتصل بطبيب الطوارئ!

@@ -1,0 +1,605 @@
+{
+  "version": "1.0.0",
+  "packs": {
+    "ar": {
+      "size_bytes": 174354,
+      "sha256": "67e4e36345d5709b22170706ca4f17bd1468e70f5ba56786e4cd5e44aec87f11",
+      "total_concepts": 1206,
+      "db_version": "1.0.0"
+    },
+    "de": {
+      "size_bytes": 526958,
+      "sha256": "4dda9886b86ee5f2467b39ff540fa5610b32da9a9aef06fdd98dcd232e499695",
+      "total_concepts": 1122,
+      "db_version": "1.0.0"
+    },
+    "en": {
+      "size_bytes": 167062,
+      "sha256": "a8147dd83602fecc74e1d5cbbe9201a827e57f831b2183d235f72b998f877655",
+      "total_concepts": 1206,
+      "db_version": "1.0.0"
+    },
+    "es": {
+      "size_bytes": 167054,
+      "sha256": "b9ece042d1c4f9bc58328dee09e663c9191de400f986167edeb2af29bca9bc16",
+      "total_concepts": 1206,
+      "db_version": "1.0.0"
+    },
+    "fr": {
+      "size_bytes": 167016,
+      "sha256": "3976a2af3e6be62c686604b0743b42120dfdc2a001f35cbb00e6a16f3f69e06c",
+      "total_concepts": 1206,
+      "db_version": "1.0.0"
+    },
+    "it": {
+      "size_bytes": 80631,
+      "sha256": "029b91b837aa12bc7327c719b0bef1892601ade7d2caef7bfd9c615d05ac907a",
+      "total_concepts": 1122,
+      "db_version": "1.0.0"
+    },
+    "pt": {
+      "size_bytes": 80639,
+      "sha256": "5ab2afa4252982ce30572cc79c3e6ae4351a3901c8d94f64a5a00adb4c10d2c5",
+      "total_concepts": 1122,
+      "db_version": "1.0.0"
+    },
+    "tr": {
+      "size_bytes": 80737,
+      "sha256": "4541fa4164232ecb9d1024fbd24b6a88b91ffe8e939b259e3c5f393d13e6a81a",
+      "total_concepts": 1122,
+      "db_version": "1.0.0"
+    },
+    "ru": {
+      "size_bytes": 80690,
+      "sha256": "0d600a14ce539d258c9a43a51c71fe620cb8d2d895fc858c0684c09159e42b73",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "nl": {
+      "size_bytes": 80688,
+      "sha256": "3eaf1689631b699505226d49716fb9aa5817e276a74438e18ee2ef7bfa340b15",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "pl": {
+      "size_bytes": 73699,
+      "sha256": "1a0757582dbd9339fdc615c484ed65610cd63155b94a19c7d81801fc962a7a46",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "uk": {
+      "size_bytes": 73700,
+      "sha256": "72dbd2ba614641b1709edb76c2734abf8c4bff9dcc5037c104ea9237fb6ba61b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ro": {
+      "size_bytes": 73699,
+      "sha256": "8d5b1eb426148ea444e375cb2e9070491fd2adefa78f77d8a0e2a2ff98d8e4f1",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "el": {
+      "size_bytes": 73696,
+      "sha256": "97a40a2cf164aff2b72f256c2a3af9f5a0df8a9ee0c56c3174c6b6043c13bff9",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "cs": {
+      "size_bytes": 73700,
+      "sha256": "0b7efed722dda0bd4c7bc658af5929a4486b88d0dada139e047cd07e4661c45d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sv": {
+      "size_bytes": 73700,
+      "sha256": "91b3d259b96d463e7474f1ce71e6c30cccc7284a1ac071f6f4df4dcd07d20f72",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "hu": {
+      "size_bytes": 73699,
+      "sha256": "b6ccb8cb107b35760437e30966b2888fa89a4e7c2541ea7eea3d95723114d77b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "bg": {
+      "size_bytes": 73700,
+      "sha256": "303da9dacd07f46447056575d8119613a6c05a317ad954c1262f882eb09bb3de",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "da": {
+      "size_bytes": 73694,
+      "sha256": "be1ad686ad01f09bf1711ba9b8f06c4235a988a1ea2b425cb076c7264d1a4f92",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "fi": {
+      "size_bytes": 73700,
+      "sha256": "5d0de0a8ffc67b6e3cb8cfb9a0ab4a599965249f744fcd80077b3a9d8e9328e2",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sk": {
+      "size_bytes": 73700,
+      "sha256": "db4e0b1033259cc79e4ab6f9570a254ef13890305a7b1a7e4d120997df441e3f",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "no": {
+      "size_bytes": 73698,
+      "sha256": "6d529e96f5dc41f56e2f49b01d6846d41aaeb209ec317d4701a80ed91a7374f6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "hr": {
+      "size_bytes": 73700,
+      "sha256": "319262f2b8cb022fb0ed65c668e9346cdca401d6ffe55485378c972567dcfb76",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "lt": {
+      "size_bytes": 73700,
+      "sha256": "c3e1b7ef8f7f5ed6983272328ebe92c45b01f9d786257af31928b490385d4b78",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sl": {
+      "size_bytes": 73699,
+      "sha256": "2551ee08dc9fbf15d860b2c445e173811bc1eda506d8c8e070f21370e9dcc505",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "lv": {
+      "size_bytes": 73700,
+      "sha256": "8603b16e1a26b80be8fca07660fda42580bdf971c22f266979d60a9ef474bacf",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "et": {
+      "size_bytes": 73700,
+      "sha256": "69080f534f7aef7356635406bf3419a8ac3c7c924ae9e0be41d009174313dbf5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ga": {
+      "size_bytes": 73697,
+      "sha256": "f97a00fe0d534ae5727177514d18f63f816ca9bf2ba9f778713537d330d67cd6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "mt": {
+      "size_bytes": 73700,
+      "sha256": "a10706fe2134b6ed2c58fbf71816afcae88bfdf7f6f42b83c5eb4297a7876221",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "is": {
+      "size_bytes": 73697,
+      "sha256": "f82d2751abd93e2e59a80533c253b2636cb271db84da39648e412e0a6eb4638a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sq": {
+      "size_bytes": 73700,
+      "sha256": "c469ddc97abfcaebec953cc2d7431b077d0fe6c64011264878c180ecba2d87c3",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "bs": {
+      "size_bytes": 73700,
+      "sha256": "b611b7c353476934f53d7450ed2f9e9bc55b88c783c396c6ac23dc33560b2b56",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "mk": {
+      "size_bytes": 73700,
+      "sha256": "f85e8740cc582bd5420b4f432c18358efceeace58895920814fbff078bb2ac3f",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sr": {
+      "size_bytes": 73700,
+      "sha256": "5900581e25bb2dfa7fd30115eba0d4033a76269e0d8a09fdc12baa329357bd90",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "cy": {
+      "size_bytes": 73700,
+      "sha256": "cde75fbb3e1ae2415e61fc6774ce1973ef94a1b26e99644d690be322deaa5c00",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "lb": {
+      "size_bytes": 73700,
+      "sha256": "042edfdfe138e6d53e372b48fb62633802ca23203be0e280b7016afa31a69817",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ca": {
+      "size_bytes": 73695,
+      "sha256": "8e7a31aa5a17e9650b6119da6e219e8d1dbd8b57d40f6c4bfa7d94ed3ab2df36",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "eu": {
+      "size_bytes": 73699,
+      "sha256": "836caf9374b984259e669ee9bc44cae4ff8c44bea2355e169a1884de7af7d5e1",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "gl": {
+      "size_bytes": 73699,
+      "sha256": "a25c3e0943c8d7f926c8fda1ad43a27f6480b87cebdd2463cf9d15724ee2ca83",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "fa": {
+      "size_bytes": 73693,
+      "sha256": "d01cbe0d7c3e16ecc602dfa86accf0809821df8fd53963ff6c77cf375aeb836a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ur": {
+      "size_bytes": 73699,
+      "sha256": "9ef7010582444cf76d04956fa0956ccce886bf50df93e3dae379a935984c9f8f",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "he": {
+      "size_bytes": 73692,
+      "sha256": "86d074970239b2f3662979deb1881f79d23b5d28cd7fc1d302ffebb898c6c339",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ku": {
+      "size_bytes": 73697,
+      "sha256": "0dbd91093bb29964f90d9811343b878cd2a297ca6b37f11af326113b26ab6bff",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ps": {
+      "size_bytes": 73699,
+      "sha256": "ea3b5388d2a94200ec2d5f0394b974e9d3f97bced1a6c620305bea9ffe11b641",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sd": {
+      "size_bytes": 73699,
+      "sha256": "ced91fb815fa7a4df5088e9357f299d8dd26f5a9713304e301d0f35a121e254a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sw": {
+      "size_bytes": 73700,
+      "sha256": "38a3905439987b9715d54c3a9afdfbfa959906ff7ba52cee0e2a800b60b922d2",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "am": {
+      "size_bytes": 73700,
+      "sha256": "9a29d786758fcf4b9d23d88bac263a7ade8261fbcbfbf278777443e5d8948853",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ha": {
+      "size_bytes": 73691,
+      "sha256": "2d468a9a80e7f548f1e78410b0d40b03f383c015a00583b4b65b38733104cb3b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "yo": {
+      "size_bytes": 73700,
+      "sha256": "58b022f7f7f95eac34b7113ad11bb19d92238c8551e543747133b58cc27e38d3",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ig": {
+      "size_bytes": 73700,
+      "sha256": "04dc2b955683410d6411f3b5fe08736874bb05752bde4006e481b2dede3a3b56",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "om": {
+      "size_bytes": 73700,
+      "sha256": "dbc148b26e326ab740a7f8b7bf0dafc225aa5ed401de5aa52d0f76558a8d2872",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "so": {
+      "size_bytes": 73699,
+      "sha256": "e908aaa3de989db401b517d48a1e5f56e818c8636b98627a54e643c525b1417a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "zu": {
+      "size_bytes": 73698,
+      "sha256": "d861caf860734f2672ad0780271cf7a2ef55c7c0bf0a27f39e188643d102cc6d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "xh": {
+      "size_bytes": 73700,
+      "sha256": "668abdeeeccb6c14d4915f668fe0347b2c4774ca5bd90d33632856d0462ceb7d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "af": {
+      "size_bytes": 73700,
+      "sha256": "ee193eb1996a45b5c287a44684de0a96a0911328e6948af11fc5cf2d489f54a3",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "rw": {
+      "size_bytes": 73700,
+      "sha256": "df8706cf3e8dfba20160be95ac86eb0dcc1f30bd7a15859e561b2dfe68aca4f4",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "mg": {
+      "size_bytes": 73700,
+      "sha256": "a44dd2b3cc5ebbe7a8cea846da94f3b0a04ea60c549ff510e2f341f5ddbc6369",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ny": {
+      "size_bytes": 73700,
+      "sha256": "be090e1a00538839104d655a3d2fd25d55c3c1398ee72422c51da906445b48e4",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sn": {
+      "size_bytes": 73698,
+      "sha256": "180357f0718f421c47af72113f8ee9847c5444d88bd810e609c30f2893ad1d83",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "st": {
+      "size_bytes": 73700,
+      "sha256": "1f8a6851b2bcb96bf0ae781ef5ebce41aec824c99ec37b896383d264a3bcfc51",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ti": {
+      "size_bytes": 73700,
+      "sha256": "96f43cd2a6e462458441ff3e23502da86310c688d29a25f16e18a190648f31fd",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "hi": {
+      "size_bytes": 73696,
+      "sha256": "bf11f280ad5f23055d8ec63c229e02acd79b004d046b8684d2ef0f6b9c8427b4",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "bn": {
+      "size_bytes": 73698,
+      "sha256": "4686af71a81b30394a17957bd4b2b12a40a3c75d9029bb0304f8b44d45597fb5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "pa": {
+      "size_bytes": 73697,
+      "sha256": "d88ff00a80eea1985f888bb42fdb169d544f451fcb6411d1885112acee3f9405",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "te": {
+      "size_bytes": 73694,
+      "sha256": "b78d38118f2f5e122520e70415ed07868d7d8f462d7ee1343484ea9d61c19060",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "mr": {
+      "size_bytes": 73700,
+      "sha256": "97071d3755734fc509945e0487fcf506935ef58cc98d8eab7b4fa68c03383071",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ta": {
+      "size_bytes": 73696,
+      "sha256": "04843a18075e1adf7f98c20a4f9ee9a0e6d07928a7d7438fd2d5fa0a4047a472",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "gu": {
+      "size_bytes": 73699,
+      "sha256": "be3d1a9c87d30efdcf913b894868c2d5638de89b96f0c38815e9f40c8a536850",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "kn": {
+      "size_bytes": 73698,
+      "sha256": "b3f8e49327288eacb195be7eac142ab1a5750901e382fba4c2014e916b139fe6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ml": {
+      "size_bytes": 73699,
+      "sha256": "20023a756ecdbcff40f4dc4dd25a04f094803c2717da8c6bb964ac652f8af458",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "or": {
+      "size_bytes": 73700,
+      "sha256": "63129a587715c94a8f672fff45c9bbd2402b15ee843faa356b9963638fc54cf0",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ne": {
+      "size_bytes": 73697,
+      "sha256": "7fb81f4393dfffa3ee13ca4d473e37038fb194d03ac6b021689fd763aaf275e6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "si": {
+      "size_bytes": 73700,
+      "sha256": "7382fde98c2c5ecdbd6e2b1943cd880ae8b50ce5a87a4be3e90fb26d7c66e32d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "zh": {
+      "size_bytes": 73700,
+      "sha256": "17f575462cecd09c8ac8a7a0f0b996ec7e069272aef8e8520ec5bdca3d4a83d3",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ja": {
+      "size_bytes": 73697,
+      "sha256": "c76298e845c2dffd5a6360d3dc25e65cd7bab0eeb847d0482eedc17e1017256f",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ko": {
+      "size_bytes": 73700,
+      "sha256": "8e252a732e9732c36a326c369a3c2e85ba0e3601b9422de76e34216e5a9bb10d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "vi": {
+      "size_bytes": 73700,
+      "sha256": "7791b0181c2e459651bd8291f64800434bf633771e8c5dd7b50ec29cd8ca46af",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "id": {
+      "size_bytes": 73700,
+      "sha256": "a1b28d3e3b200d60500d2d4e6258fa9855c32d9af7be663e44018a82224781b8",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ms": {
+      "size_bytes": 73700,
+      "sha256": "34a7e9d55876977bf2062f425bbb298af1f02a9752b55fcc9f17d8d5cb0b730d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "th": {
+      "size_bytes": 73700,
+      "sha256": "c3af0ad0a959582f2a3747be85664ae1d6b3f467a988236a1fecf90b88ba76ca",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "my": {
+      "size_bytes": 73700,
+      "sha256": "3ae48a3350c40a2ce5f2fb97d8829ec150e267df7d2f916986fa26687f9c88f6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "km": {
+      "size_bytes": 73700,
+      "sha256": "55d3f32881a40f3012d00eb1cce9e64f27534dc98463774282e405db41b7ecae",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "lo": {
+      "size_bytes": 73700,
+      "sha256": "139a67209cea3cab07e7794a145b79793a9b85993aa79a9dbd91519d6d47a4d2",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "tl": {
+      "size_bytes": 73699,
+      "sha256": "79462d9e9261233747197d953e5ca2c857241b8208b165b620c67f5f6e2d25e6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ceb": {
+      "size_bytes": 73973,
+      "sha256": "723d92a17acf5389ea1aa5f6d55fe9eb18432ec5f8076510eef4991c68c29c4a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "jv": {
+      "size_bytes": 73700,
+      "sha256": "57c96dd3919dbbc8ed5477748347ddec33dea1930308220d24e2d24f68895734",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "su": {
+      "size_bytes": 73699,
+      "sha256": "ec3bc01b91caabf37f022d451722c6c451b12071e9dfcac6107e9e88b3dbb02a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "mn": {
+      "size_bytes": 73698,
+      "sha256": "6eb43f91f525e00bcce7764c70057b8e719f65e78c841b94ffcd4b01025268b8",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "uz": {
+      "size_bytes": 73700,
+      "sha256": "ff8645be1f4c993f43ae919e8f25f28e0e8996175780d3ff81dfe0103b9893af",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "kk": {
+      "size_bytes": 73700,
+      "sha256": "31dc5d0707a073599ab495d746eca6b42889f4e21adf8c1c597a918139b90f8d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "az": {
+      "size_bytes": 73700,
+      "sha256": "f9617b9184b81e85b9cf765384bda22b12452932a86e26f9a82f7db4adf0e16e",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "hy": {
+      "size_bytes": 73700,
+      "sha256": "6b5a11d0b910a16d7b2748dd1079351ad56b3eea9e65e30e056933c1012c770f",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ka": {
+      "size_bytes": 73697,
+      "sha256": "fbf92153dd1c6960b1a3ee925bf7262c530d20aa420f1e614b819fbdeeda63f0",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "tg": {
+      "size_bytes": 73700,
+      "sha256": "6da2891ecbc40b540a5a51f09234af9f0b26f885fe4474ad11341644571d9b20",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "tk": {
+      "size_bytes": 73700,
+      "sha256": "c8a72a4038430e883dba375c6dab2faa829e6b6177ec30d4e3be1a8986626ca5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "ky": {
+      "size_bytes": 73700,
+      "sha256": "c65f097acdb92b0e8b8ee7d6433e2e98dae8a107a5d0fb4c40c5949d1e12ae66",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "tt": {
+      "size_bytes": 73700,
+      "sha256": "d6a461d3240f97aa8d395860e34abe7dfbb92af1b5a87c405b35e8e4935a82c0",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "eo": {
+      "size_bytes": 73700,
+      "sha256": "434746b1166f163c440a9afaeb1ad5266f72d7cb804bc3f35c7597ac58323a58",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "la": {
+      "size_bytes": 73697,
+      "sha256": "69ecccd7970ee174371b871ba9cbf1bcc78f11e6cc1c29bdb6d6227b5c460f2b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    },
+    "sm": {
+      "size_bytes": 73700,
+      "sha256": "ab8782c402c4c6100715294cc68516491a4dfaf966990772c9a8b20b2329f365",
+      "total_concepts": 1102,
+      "db_version": "1.0.0"
+    }
+  }
+}
