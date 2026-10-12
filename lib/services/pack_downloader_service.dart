@@ -35,7 +35,9 @@ class PackDownloaderService {
     Map<String, dynamic> manifest, String code,
   ) {
     try {
-      _PackDescriptor.fromManifest(manifest, _normalizeLanguageCode(code));
+      _PackDescriptor.fromManifest(
+        manifest, _normalizeLanguageCode(code), Uri.parse(defaultManifestUrl),
+      );
       return true;
     } catch (_) {
       return false;
@@ -118,7 +120,10 @@ class PackDownloaderService {
         destination: archive, expectedSizeBytes: descriptor.archiveSizeBytes,
         expectedSha256: descriptor.sha256, onProgress: onProgress,
       );
-      if (_cancelledDownloads.contains(code)) return false;
+      if (_cancelledDownloads.contains(code)) {
+        _statuses[code] = 'CANCELLED';
+        return false;
+      }
       await _installVerifiedArchive(code, descriptor, archive, packsDir);
       _statuses[code] = 'INSTALLED';
       try {
@@ -126,8 +131,10 @@ class PackDownloaderService {
       } catch (_) {}
       onProgress?.call(1.0);
       return true;
-    } catch (_) {
-      _statuses[code] = _cancelledDownloads.contains(code)
+    } catch (error) {
+      _statuses[code] = error.toString().contains('BLOCKED_SOURCE')
+          ? blockedSourceStatus
+          : _cancelledDownloads.contains(code)
           ? 'CANCELLED'
           : (_statuses[code] == blockedSourceStatus
               ? blockedSourceStatus : 'FAILED');
@@ -191,6 +198,8 @@ class PackDownloaderService {
     }
 
     await cancelDownload(code);
+    // Do not delete a file while a concurrent transaction may commit it.
+    if (_activeClients.containsKey(code)) return false;
     await DatabaseService.instance.closeContentDb(code);
 
     final packsDir = await _packsDirectory();
@@ -212,7 +221,8 @@ class PackDownloaderService {
   static Future<void> cancelDownload(String languageCode) async {
     final code = _normalizeLanguageCode(languageCode);
     _cancelledDownloads.add(code);
-    _activeClients.remove(code)?.close();
+    // Keep ownership until the active request finishes its finally block.
+    _activeClients[code]?.close();
   }
 
   static bool _approvedUri(Uri uri) {
@@ -555,8 +565,21 @@ class PackDownloaderService {
       final backup = File(target.path + '.bak');
       // On restart after an interrupted update, prefer the prior pack.
       if (await backup.exists()) {
-        if (await target.exists()) await target.delete();
-        await backup.rename(target.path);
+        final registry = await _readRegistry(packsDir);
+        final packs = registry['packs'];
+        final installed = packs is Map ? packs[code] : null;
+        final activeSha = installed is Map ? installed['contentSha256'] : null;
+        final isCommitted = await target.exists() &&
+            activeSha is String &&
+            _constantTimeHexEquals(await _sha256File(target), activeSha);
+        if (isCommitted) {
+          // Registry and new target agree; an obsolete backup may be removed.
+          await backup.delete();
+        } else {
+          // Incomplete replacement: return to the last known good file.
+          if (await target.exists()) await target.delete();
+          await backup.rename(target.path);
+        }
       }
       await DatabaseService.instance.closeContentDb(code);
       final hadPrevious = await target.exists();
@@ -629,7 +652,11 @@ class PackDownloaderService {
     try {
       await staged.rename(target.path);
       if (await backup.exists()) {
-        await backup.delete();
+        try {
+          await backup.delete();
+        } catch (_) {
+          // A committed registry should not be rolled back by cleanup failure.
+        }
       }
     } catch (_) {
       if (await staged.exists()) {
