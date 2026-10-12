@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -17,6 +19,28 @@ class PackDownloaderService {
       'https://raw.githubusercontent.com/moaz76943-creator/-offline-packs-store/main/manifest.json';
   static const String _bundleFormat = 'json-gzip-v1';
   static const int maxUncompressedPackBytes = 64 * 1024 * 1024;
+  static const int maxCompressedPackBytes = 48 * 1024 * 1024;
+  static const int maxSqliteBytes = 32 * 1024 * 1024;
+  static const String blockedSourceStatus = 'BLOCKED_SOURCE';
+  static final Map<String, String> _statuses = <String, String>{};
+
+  static String? downloadStatus(String code) =>
+      _statuses[_normalizeLanguageCode(code)];
+
+  @visibleForTesting
+  static bool isApprovedPackUriForTesting(Uri uri) => _approvedUri(uri);
+
+  @visibleForTesting
+  static bool hasPublishedPackForTesting(
+    Map<String, dynamic> manifest, String code,
+  ) {
+    try {
+      _PackDescriptor.fromManifest(manifest, _normalizeLanguageCode(code));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Decode gzip incrementally; reject oversized payloads before retaining
   /// the chunk. The limit applies to the expanded JSON envelope (including
@@ -59,99 +83,54 @@ class PackDownloaderService {
     String? manifestUrl,
   }) async {
     final code = _normalizeLanguageCode(languageCode);
+    if (_activeClients.containsKey(code)) return false;
     if (code == 'de') {
-      onProgress?.call(1.0);
-      return true;
+      try {
+        await DatabaseService.instance.getContentDb(code);
+        _statuses[code] = 'INSTALLED_BUNDLED';
+        onProgress?.call(1.0);
+        return true;
+      } catch (_) {
+        _statuses[code] = blockedSourceStatus;
+        return false;
+      }
     }
-    if (_activeClients.containsKey(code)) {
-      return false;
-    }
-
     final client = http.Client();
     _activeClients[code] = client;
     _cancelledDownloads.remove(code);
-
     try {
       final manifestUri = Uri.parse(manifestUrl ?? defaultManifestUrl);
       final manifest = await _fetchManifest(client, manifestUri);
-      final descriptor = _PackDescriptor.fromManifest(
-        manifest,
-        code,
-        manifestUri,
-      );
-      if (descriptor.bundleFormat != _bundleFormat) {
-        throw const FormatException('Unsupported pack bundle format');
-      }
-
-      final packsDir = await _packsDirectory();
-      final downloadsDir = Directory(path.join(packsDir.path, '.downloads'));
-      await downloadsDir.create(recursive: true);
-      final archive = File(path.join(downloadsDir.path, '$code.pack.gz.part'));
-
-      await _downloadArchive(
-        client: client,
-        uri: descriptor.archiveUri,
-        destination: archive,
-        expectedSizeBytes: descriptor.archiveSizeBytes,
-        expectedSha256: descriptor.sha256,
-        onProgress: onProgress,
-      );
-      if (_cancelledDownloads.contains(code)) {
+      if (manifest['packs'] is! List ||
+          (manifest['packs'] as List).isEmpty) {
+        _statuses[code] = blockedSourceStatus;
         return false;
       }
-
-      final archiveDigest = await _sha256File(archive);
-      if (!_constantTimeHexEquals(archiveDigest, descriptor.sha256)) {
-        throw StateError('Archive SHA-256 verification failed for $code');
-      }
-
-      final sqliteBytes = await _extractSqliteBytes(archive, descriptor);
-      if (descriptor.contentSha256 != null) {
-        final contentDigest = sha256.convert(sqliteBytes).toString();
-        if (!_constantTimeHexEquals(contentDigest, descriptor.contentSha256!)) {
-          throw StateError('SQLite SHA-256 verification failed for $code');
-        }
-      }
-
-      final staged = File(path.join(packsDir.path, '.$code.sqlite.installing'));
-      if (await staged.exists()) {
-        await staged.delete();
-      }
-      await staged.writeAsBytes(sqliteBytes, flush: true);
-      await _verifySqlitePackage(staged, code);
-
-      await DatabaseService.instance.closeContentDb(code);
-      final target = File(path.join(packsDir.path, '$code.sqlite'));
-      await _replaceAtomically(staged, target);
-
-      final installedDigest = await _sha256File(target);
-      if (descriptor.contentSha256 != null &&
-          !_constantTimeHexEquals(installedDigest, descriptor.contentSha256!)) {
-        throw StateError('Installed SQLite checksum changed for $code');
-      }
-
-      await _upsertRegistryRecord(
-        code,
-        <String, dynamic>{
-          'languageCode': code,
-          'packId': descriptor.id,
-          'version': descriptor.version,
-          'contractVersion': descriptor.contractVersion,
-          'bundleFormat': descriptor.bundleFormat,
-          'archiveSha256': descriptor.sha256,
-          'contentSha256': descriptor.contentSha256 ?? installedDigest,
-          'installedSizeBytes': await target.length(),
-          'installedPath': target.path,
-          'installedAt': DateTime.now().toUtc().toIso8601String(),
-        },
+      final descriptor = _PackDescriptor.fromManifest(
+        manifest, code, manifestUri,
       );
-
-      if (await archive.exists()) {
-        await archive.delete();
-      }
+      final packsDir = await _packsDirectory();
+      final downloads = Directory(path.join(packsDir.path, '.downloads'));
+      await downloads.create(recursive: true);
+      final archive = File(path.join(downloads.path, '$code.pack.gz.part'));
+      await _downloadArchive(
+        client: client, uri: descriptor.archiveUri,
+        destination: archive, expectedSizeBytes: descriptor.archiveSizeBytes,
+        expectedSha256: descriptor.sha256, onProgress: onProgress,
+      );
+      if (_cancelledDownloads.contains(code)) return false;
+      await _installVerifiedArchive(code, descriptor, archive, packsDir);
+      _statuses[code] = 'INSTALLED';
+      try {
+        if (await archive.exists()) await archive.delete();
+      } catch (_) {}
       onProgress?.call(1.0);
       return true;
     } catch (_) {
+      _statuses[code] = _cancelledDownloads.contains(code)
+          ? 'CANCELLED'
+          : (_statuses[code] == blockedSourceStatus
+              ? blockedSourceStatus : 'FAILED');
       return false;
     } finally {
       if (identical(_activeClients[code], client)) {
@@ -165,10 +144,19 @@ class PackDownloaderService {
   static Future<bool> isPackDownloaded(String languageCode) async {
     final code = _normalizeLanguageCode(languageCode);
     if (code == 'de') {
-      return true;
+      try {
+        await DatabaseService.instance.getContentDb(code);
+        return true;
+      } catch (_) {
+        return false;
+      }
     }
     final packsDir = await _packsDirectory();
-    return File(path.join(packsDir.path, '$code.sqlite')).exists();
+    final file = File(path.join(packsDir.path, '$code.sqlite'));
+    if (!await file.exists()) return false;
+    final installed = await getInstalledPacks();
+    return installed.any((record) =>
+        record['languageCode'] == code && record['installedPath'] == file.path);
   }
 
   static Future<List<Map<String, dynamic>>> getInstalledPacks() async {
