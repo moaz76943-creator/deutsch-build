@@ -51,7 +51,7 @@ android {
         multiDexEnabled true
     }
 
-        signingConfigs {
+            signingConfigs {
         secureRelease {
             def keystorePropertiesFile = rootProject.file('key.properties')
             def keystoreProperties = new Properties()
@@ -76,8 +76,6 @@ android {
             initWith(signingConfigs.secureRelease)
         }
     }
-}
-    }
 
     buildTypes {
         release {
@@ -87,7 +85,6 @@ android {
         }
     }
 }
-
 flutter {
     source '../..'
 }
