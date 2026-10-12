@@ -42,7 +42,7 @@ jobs:
         run: flutter --version
 
       - name: Install Dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Check Dart compile-blocking errors
         run: bash scripts/check-dart-errors.sh
