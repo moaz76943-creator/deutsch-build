@@ -59,7 +59,7 @@ jobs:
           pub-cache: true
 
       - name: 📦 جلب الحزم والمكاتب (Pub Get)
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Load release keystore
         shell: bash
