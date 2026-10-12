@@ -41,8 +41,8 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Run Static Analysis
-        run: dart analyze lib/
+      - name: Check Dart compile-blocking errors
+        run: bash scripts/check-dart-errors.sh
 
       - name: Run Unit Tests
         run: flutter test
