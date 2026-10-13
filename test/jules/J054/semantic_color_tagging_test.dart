@@ -16,6 +16,12 @@ class FakeRules extends LanguageGrammarRuleProvider {
   bool isValidArticle(String word, String article) => article == 'der';
 }
 
+class BrokenRules extends FakeRules {
+  @override
+  GrammaticalGender determineGender(String word, {String? article}) =>
+      throw StateError('local pack unavailable');
+}
+
 void main() {
   test('unverified guesses are not presented as linguistic facts', () {
     final engine = SemanticPresentationEngine(
@@ -67,4 +73,21 @@ void main() {
       throwsArgumentError,
     );
   });
+  test('offline reader exceptions and oversized cache inputs fail closed', () {
+    final engine = SemanticPresentationEngine(
+      ruleProvider: BrokenRules(),
+      packVersion: 'v1',
+      isAdmittedEvidence: (word, article) => true,
+    );
+    final status = engine.getPresentationForWord('broken');
+    expect(status.isAttested, isFalse);
+    expect(status.label, 'Grammar not verified');
+    expect(
+      engine.getPresentationForWord(List<String>.filled(600, 'x').join())
+          .isAttested,
+      isFalse,
+    );
+    expect(engine.cacheSize, 1);
+  });
+
 }
