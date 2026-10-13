@@ -28,7 +28,7 @@ void main() {
     SharedPreferences.setMockInitialValues({'learner.progress': 42});
     prefs = await SharedPreferences.getInstance();
     manager = SessionRecoveryManager(
-      prefs, clock: () => 10000, maxRecoveryAttempts: 2,
+      prefs, clock: () => 10000, maxRecoveryAttempts: 2, maxCheckpointAgeMs: 2000,
     );
   });
 
@@ -106,7 +106,7 @@ void main() {
       expectedSourceLocale: 'de', expectedTargetLocale: 'ar',
       isValidRoute: (_) => true,
     ), isNull);
-    await prefs.setString(key, 'x' * 100000);
+    await prefs.setString(key, List.filled(100000, 'x').join());
     expect(manager.restoreSession(
       expectedSourceLocale: 'de', expectedTargetLocale: 'ar',
       isValidRoute: (_) => true,
