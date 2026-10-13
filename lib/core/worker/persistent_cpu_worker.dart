@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:flutter/widgets.dart';
+
 class WorkerQueueExhaustedException implements Exception {
   const WorkerQueueExhaustedException();
   @override
@@ -15,7 +17,7 @@ class WorkerCancelledException implements Exception {
 
 /// Reuses one CPU isolate instead of spawning a new isolate for each review.
 /// Job IDs and generation tokens reject late replies after cancellation.
-class PersistentCpuWorker {
+class PersistentCpuWorker with WidgetsBindingObserver {
   PersistentCpuWorker._init();
   static final PersistentCpuWorker instance = PersistentCpuWorker._init();
 
@@ -29,6 +31,7 @@ class PersistentCpuWorker {
   int _generation = 0;
   int _workerStarts = 0;
   bool _disposed = false;
+  bool _observingLifecycle = false;
   Isolate? _isolate;
   SendPort? _commands;
   ReceivePort? _replies;
@@ -39,6 +42,7 @@ class PersistentCpuWorker {
 
   Future<double> calculateNewEaseFactor(double currentEase, int rating) {
     if (_disposed) return Future<double>.error(StateError('Worker disposed'));
+    _observeLifecycle();
     if (!currentEase.isFinite || currentEase < 0 || rating < 0 || rating > 5) {
       return Future<double>.error(ArgumentError('Invalid SRS calculation'));
     }
@@ -177,6 +181,24 @@ class PersistentCpuWorker {
     _isolate = null;
   }
 
+  void _observeLifecycle() {
+    if (_observingLifecycle) return;
+    try {
+      WidgetsBinding.instance.addObserver(this);
+      _observingLifecycle = true;
+    } catch (_) {
+      // Pure Dart consumers may not have a Flutter binding.
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      cancelCurrentGeneration();
+    }
+  }
+
   /// Used when a learner switches directed pair, leaves the screen, or the
   /// application backgrounds. The next job starts a clean isolate generation.
   void cancelCurrentGeneration() {
@@ -196,6 +218,10 @@ class PersistentCpuWorker {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    if (_observingLifecycle) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observingLifecycle = false;
+    }
     cancelCurrentGeneration();
   }
 
