@@ -9,7 +9,10 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      recoveryManager = SessionRecoveryManager(prefs);
+      recoveryManager = SessionRecoveryManager(
+        prefs,
+        clock: () => 1728468000, // mock clock matching timestamp to bypass age check
+      );
     });
 
     test('Persists and restores valid session accurately', () async {
