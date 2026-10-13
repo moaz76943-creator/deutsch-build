@@ -119,4 +119,20 @@ void main() {
     expect(prefs.getString(key), isNull);
     expect(prefs.getInt('learner.progress'), 42);
   });
+  test('concurrent recovery callbacks reserve one durable attempt only', () async {
+    await manager.persistSession(valid());
+    final first = manager.restoreAndMarkAttempt(
+      expectedSourceLocale: 'de', expectedTargetLocale: 'ar',
+      isValidRoute: (_) => true,
+    );
+    final duplicate = manager.restoreAndMarkAttempt(
+      expectedSourceLocale: 'de', expectedTargetLocale: 'ar',
+      isValidRoute: (_) => true,
+    );
+    final results = await Future.wait([first, duplicate]);
+    expect(results.whereType<SessionState>().length, 1);
+    final checkpoint = jsonDecode(prefs.getString(key)!) as Map<String, dynamic>;
+    expect(checkpoint['recovery_attempts'], 1);
+  });
+
 }
