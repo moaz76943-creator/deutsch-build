@@ -125,7 +125,8 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
       ],
       where: 'language_pair_key = ?',
       whereArgs: <Object>[key],
-      orderBy: 'occurred_at_utc ASC, review_id ASC',
+      // Newest records first so bounded history cannot hide recent learning.
+      orderBy: 'occurred_at_utc DESC, review_id DESC',
       limit: limit,
     );
     return List<ReviewTransactionEnvelope>.unmodifiable(
