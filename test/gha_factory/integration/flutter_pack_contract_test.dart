@@ -1,7 +1,6 @@
 // Independent, non-production Flutter/SQLite contract coverage.
 // Route 14 installer end-to-end tests remain gated on PR #55 and GHA-06.
 // This test intentionally never downloads or mutates a real learner vault.
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,6 +9,7 @@ import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
 import 'package:deutsch_bilarabi/services/pack_downloader_service.dart';
 import 'package:flutter/widgets.dart' show TextDirection;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart' show Database, OpenDatabaseOptions;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Future<Database> openSyntheticV2Fixture(
@@ -129,6 +129,62 @@ void main() {
         DatabaseService.instance.verifyUniversalSchema(db, 'ar'),
         throwsA(isA<StateError>()),
       );
+    } finally {
+      await db.close();
+    }
+  });
+
+  test('Route 15 rejects missing FTS5 virtual table', () async {
+    final db = await openSyntheticV2Fixture(temp, 'fr', 'élève');
+    try {
+      await db.execute('DROP TABLE lexicon_fts');
+      await expectLater(
+        DatabaseService.instance.verifyUniversalSchema(db, 'fr'),
+        throwsA(isA<StateError>()),
+      );
+    } finally {
+      await db.close();
+    }
+  });
+
+  test('Route 15 rejects empty foreign-language lexicon', () async {
+    final db = await openSyntheticV2Fixture(temp, 'es', 'niño');
+    try {
+      await db.delete('lexicon');
+      await expectLater(
+        DatabaseService.instance.verifyUniversalSchema(db, 'es'),
+        throwsA(isA<StateError>()),
+      );
+    } finally {
+      await db.close();
+    }
+  });
+
+  test('Route 15 rejects incompatible mapping version', () async {
+    final db = await openSyntheticV2Fixture(temp, 'de', 'Äpfel');
+    try {
+      await db.update(
+        'metadata', <String, Object?>{'value': '1.0.0'},
+        where: 'key = ?', whereArgs: <Object?>['mapping_version'],
+      );
+      await expectLater(
+        DatabaseService.instance.verifyUniversalSchema(db, 'de'),
+        throwsA(isA<StateError>()),
+      );
+    } finally {
+      await db.close();
+    }
+  });
+
+  test('CJK Unicode remains unchanged in isolated SQLite fixture', () async {
+    final db = await openSyntheticV2Fixture(temp, 'zh', '中文検索');
+    try {
+      await DatabaseService.instance.verifyUniversalSchema(db, 'zh');
+      final rows = await db.rawQuery(
+        'SELECT surface FROM lexicon WHERE language_code = ? LIMIT ?',
+        <Object?>['zh', 1],
+      );
+      expect(rows.single['surface'], '中文検索');
     } finally {
       await db.close();
     }
