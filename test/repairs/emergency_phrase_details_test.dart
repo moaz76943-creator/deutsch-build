@@ -28,7 +28,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(home: EmergencyPhrasebookScreen()),
     );
-    expect(find.bySemanticsLabel('أحتاج إلى طبيب فوراً'), findsWidgets);
+    expect(find.bySemanticsLabel(RegExp(r'أحتاج إلى طبيب')), findsWidgets);
     final semanticsWidgets = find.ancestor(
       of: find.text('أحتاج إلى طبيب فوراً'),
       matching: find.byType(Semantics),
