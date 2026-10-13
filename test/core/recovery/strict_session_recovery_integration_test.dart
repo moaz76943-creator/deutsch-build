@@ -58,6 +58,36 @@ void main() {
     ), isNotNull);
   });
 
+  test('attempt ceiling survives manager recreation', () async {
+    await manager.persistSession(checkpoint());
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final reopened = SessionRecoveryManager(preferences, clock: () => 2000000);
+      expect(await reopened.restoreForPair(
+        expectedSourceLocale: 'de',
+        expectedTargetLocale: 'ar',
+        expectedSemanticVersion: '2',
+        isValidRoute: (route) => route == '/lesson',
+      ), isNotNull);
+    }
+    final exceeded = SessionRecoveryManager(preferences, clock: () => 2000000);
+    expect(await exceeded.restoreForPair(
+      expectedSourceLocale: 'de',
+      expectedTargetLocale: 'ar',
+      expectedSemanticVersion: '2',
+      isValidRoute: (route) => route == '/lesson',
+    ), isNull);
+  });
+
+  test('stable handoff resets attempts only for the matching session', () async {
+    await manager.persistSession(checkpoint());
+    expect(await activate(), isNotNull);
+    expect(await manager.markRestoreStable('stable-1'), isTrue);
+    final raw = jsonDecode(preferences.getString(
+        'deutsch_active_session_recovery_v1')!) as Map<String, dynamic>;
+    expect(raw['recovery_attempts'], 0);
+    expect(await activate(), isNull);
+  });
+
   test('racing restore calls admit only one navigation', () async {
     await manager.persistSession(checkpoint());
     final answers = await Future.wait(<Future<SessionState?>>[
