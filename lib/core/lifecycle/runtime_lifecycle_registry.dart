@@ -7,6 +7,13 @@ class _LifecycleEntry {
   const _LifecycleEntry(this.dispose, this.owner);
 }
 
+
+/// Prefer one token per screen/session. Disposal stays on the token itself,
+/// so the singleton need not retain a reference to each retired owner.
+class LifecycleOwnerToken {
+  bool _disposed = false;
+  bool get isDisposed => _disposed;
+}
 /// Scoped, idempotent cleanup. Disposed owner tombstones are explicitly bounded,
 /// unlike the unbounded singleton set in the proposed J079 implementation.
 class RuntimeLifecycleRegistry {
@@ -29,7 +36,10 @@ class RuntimeLifecycleRegistry {
   }
 
   void registerResource(FutureOr<void> Function() onDispose, {Object? owner}) {
-    if (_isDisposed || (owner != null && _disposedOwners.contains(owner))) {
+    final ownerDisposed = owner is LifecycleOwnerToken
+        ? owner.isDisposed
+        : owner != null && _disposedOwners.contains(owner);
+    if (_isDisposed || ownerDisposed) {
       // Execute synchronously when possible, while safely observing async errors.
       try {
         final result = onDispose();
@@ -57,10 +67,16 @@ class RuntimeLifecycleRegistry {
 
   Future<void> disposeByOwner(Object owner) async {
     if (_isDisposed) return;
-    _disposedOwners.remove(owner);
-    _disposedOwners.add(owner);
-    while (_disposedOwners.length > maxRememberedOwners) {
-      _disposedOwners.remove(_disposedOwners.first);
+    if (owner is LifecycleOwnerToken) {
+      // This is a lifetime property on the token, not a global strong ref.
+      owner._disposed = true;
+    } else {
+      // Compatibility fallback for pre-existing string/object owners.
+      _disposedOwners.remove(owner);
+      _disposedOwners.add(owner);
+      while (_disposedOwners.length > maxRememberedOwners) {
+        _disposedOwners.remove(_disposedOwners.first);
+      }
     }
 
     final owned = _entries.where((entry) => entry.owner == owner).toList();
