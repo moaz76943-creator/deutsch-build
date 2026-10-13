@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/worker/persistent_cpu_worker.dart';
 
@@ -43,6 +44,17 @@ void main() {
     worker.cancelCurrentGeneration();
     await rejected;
     expect(worker.pendingJobs, 0);
+    expect(await worker.calculateNewEaseFactor(2.5, 4),
+        greaterThanOrEqualTo(1.3));
+  });
+
+  test('background pause invalidates work; resume admits new jobs', () async {
+    final pending = worker.calculateNewEaseFactor(2.5, 4);
+    final rejected = expectLater(
+        pending, throwsA(isA<WorkerCancelledException>()));
+    worker.didChangeAppLifecycleState(AppLifecycleState.paused);
+    await rejected;
+    worker.didChangeAppLifecycleState(AppLifecycleState.resumed);
     expect(await worker.calculateNewEaseFactor(2.5, 4),
         greaterThanOrEqualTo(1.3));
   });
