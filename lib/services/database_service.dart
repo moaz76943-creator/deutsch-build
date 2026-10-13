@@ -348,6 +348,53 @@ class DatabaseService {
 
   /// One language-scoped, bounded daily queue from the active progress ledger.
   /// Immutable content packs and writable user progress stay in separate DBs.
+  /// Fetch only requested-language due cards, even for mixed-language packs.
+  /// No content mutation and at most 50 requested IDs per query.
+  @visibleForTesting
+  static Future<List<Map<String, Object?>>> queryDueFlashcardRows(
+    Database db,
+    String languageCode,
+    List<String> dueIds,
+  ) async {
+    if (dueIds.length > 50) {
+      throw RangeError.range(dueIds.length, 0, 50, 'dueIds.length');
+    }
+    if (dueIds.isEmpty) return <Map<String, Object?>>[];
+    final code = _normalizeLanguageCode(languageCode);
+    final placeholders = List<String>.filled(dueIds.length, '?').join(',');
+    return db.rawQuery(
+      'SELECT id, surface, part_of_speech, fields_json '
+      'FROM lexicon WHERE language_code = ? AND id IN (' +
+          placeholders + ')',
+      <Object?>[code, ...dueIds],
+    );
+  }
+
+  /// Language filtering must precede paging; a global OFFSET can leak or
+  /// skip items when a content DB carries lexemes for multiple languages.
+  @visibleForTesting
+  static Future<List<Map<String, Object?>>> queryFlashcardPage(
+    Database db,
+    String languageCode, {
+    required int limit,
+    required int offset,
+  }) async {
+    if (limit < 1 || limit > 128) {
+      throw RangeError.range(limit, 1, 128, 'limit');
+    }
+    if (offset < 0) {
+      throw RangeError.range(offset, 0, null, 'offset');
+    }
+    final code = _normalizeLanguageCode(languageCode);
+    return db.rawQuery('''
+      SELECT id, surface, part_of_speech, fields_json
+      FROM lexicon WHERE language_code = ?
+      ORDER BY rowid LIMIT ? OFFSET ?
+    ''', <Object?>[code, limit, offset]);
+  }
+
+  /// One language-scoped, bounded daily queue from the active progress ledger.
+  /// Immutable content packs and writable user progress stay in separate DBs.
   Future<List<Map<String, dynamic>>> loadDueFlashcards(
     String languageCode, {
     int limit = 20,
@@ -404,12 +451,7 @@ class DatabaseService {
     final cards = <Map<String, dynamic>>[];
     await withContentDb<void>(code, (db) async {
       if (dueIds.isNotEmpty) {
-        final placeholders = List<String>.filled(dueIds.length, '?').join(',');
-        final rows = await db.rawQuery(
-          'SELECT id, surface, part_of_speech, fields_json '
-          'FROM lexicon WHERE id IN (' + placeholders + ')',
-          dueIds,
-        );
+        final rows = await queryDueFlashcardRows(db, code, dueIds);
         final byId = <String, Map<String, Object?>>{
           for (final row in rows) row['id'].toString(): row,
         };
@@ -419,20 +461,17 @@ class DatabaseService {
         }
       }
 
-      // Fill remaining slots only with never-reviewed cards. Paging avoids
-      // materializing the entire dictionary or an unbounded SQL IN clause.
+      // Page within this language; never materialize an entire dictionary.
       const pageSize = 128;
       var offset = 0;
       while (cards.length < limit) {
-        final rows = await db.rawQuery('''
-          SELECT id, surface, part_of_speech, fields_json
-          FROM lexicon ORDER BY rowid LIMIT ? OFFSET ?
-        ''', <Object?>[pageSize, offset]);
+        final rows = await queryFlashcardPage(
+          db, code, limit: pageSize, offset: offset,
+        );
         if (rows.isEmpty) break;
         offset += rows.length;
 
-        final reviewedOnPage =
-            vaultActive ? reviewedIds : <String>{};
+        final reviewedOnPage = vaultActive ? reviewedIds : <String>{};
         if (!vaultActive) {
           final ids = rows.map((row) => row['id'].toString()).toList();
           final placeholders = List<String>.filled(ids.length, '?').join(',');
