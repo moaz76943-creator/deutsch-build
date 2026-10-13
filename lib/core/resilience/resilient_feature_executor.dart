@@ -48,7 +48,7 @@ class ResilientFeatureExecutor {
         await Future<void>.delayed(backoff * attempt);
       }
     }
-    return const RecoveryOutcome.failed(StateError('Retries exhausted'));
+    return RecoveryOutcome.failed(StateError('Retries exhausted'));
   }
 
   void resetSession() => ++_generation;
