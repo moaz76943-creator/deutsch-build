@@ -64,4 +64,11 @@ void main() {
       ),
     ]), CefrLevel.unknown);
   });
+  test('oversized or lazy CEFR evidence is rejected without unbounded memory', () {
+    final records = List<CefrEvidence>.generate(
+      65, (_) => record(CefrLevel.a1),
+    );
+    expect(CefrClassifier.classifyWord(records), CefrLevel.unknown);
+  });
+
 }
