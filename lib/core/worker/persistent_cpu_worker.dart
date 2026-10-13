@@ -18,6 +18,7 @@ class PersistentCpuWorker {
   PersistentCpuWorker._init();
   static final PersistentCpuWorker instance = PersistentCpuWorker._init();
 
+  static const Duration jobTimeout = Duration(seconds: 8);
   int _maxQueueSize = 50;
   int _activeJobs = 0;
   int _generation = 0;
@@ -41,6 +42,12 @@ class PersistentCpuWorker {
     _receive = receive;
     final ready = Completer<SendPort>();
     _ready = ready;
+    // A concurrent dispose or isolate exit may fail the handshake before
+    // Isolate.spawn resolves. Observe the handshake error immediately.
+    unawaited(ready.future.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace __) {},
+    ));
     receive.listen(_handleMessage);
     try {
       _isolate = await Isolate.spawn(
@@ -50,7 +57,7 @@ class PersistentCpuWorker {
         onExit: receive.sendPort,
       );
       final port = await ready.future.timeout(const Duration(seconds: 5));
-      if (_disposed) throw StateError('Worker disposed during startup');
+      if (_disposed) throw const WorkerCancelledException();
       _send = port;
       return port;
     } catch (_) {
@@ -129,7 +136,18 @@ class PersistentCpuWorker {
         _pending.remove(id);
         rethrow;
       }
-      final value = await completed.future;
+      // Never leave a stalled CPU isolate holding queue capacity forever.
+      // One timed-out worker invalidates other in-flight results and restarts
+      // lazily on the next request; it never retries an SRS transaction.
+      final double value;
+      try {
+        value = await completed.future.timeout(jobTimeout);
+      } on TimeoutException {
+        _pending.remove(id);
+        _rejectPending(TimeoutException('CPU worker became unresponsive'));
+        _terminate();
+        rethrow;
+      }
       if (_disposed || generation != _generation) {
         throw const WorkerCancelledException();
       }
