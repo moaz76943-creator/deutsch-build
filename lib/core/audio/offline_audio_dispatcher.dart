@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
+import 'package:deutsch_bilarabi/core/audio/audio_catalog.dart';
 
 class OfflineAudioDispatcher {
   static int _currentGenerationToken = 0;
@@ -15,9 +16,33 @@ class OfflineAudioDispatcher {
     _isPlaying = true;
     try {
       if (thisToken != _currentGenerationToken) return false;
-      await OfflineAudioPool().playWord(
+
+      final pool = OfflineAudioPool();
+
+      // Attempt exact locale first
+      bool capable = await pool.verifyOfflineCapability(bcp47Locale);
+      String localeToUse = bcp47Locale;
+
+      // If exact fails, try explicitly approved fallbacks for this language
+      if (!capable) {
+        final langId = bcp47Locale.split('-')[0];
+        final fallbacks = AudioCatalog.getFallbacks(langId);
+
+        for (final fallback in fallbacks) {
+          if (thisToken != _currentGenerationToken) return false;
+          capable = await pool.verifyOfflineCapability(fallback);
+          if (capable) {
+            localeToUse = fallback;
+            break;
+          }
+        }
+      }
+
+      if (!capable) return false;
+
+      await pool.playWord(
         text,
-        locale: bcp47Locale,
+        locale: localeToUse,
         speechRate: speechRate * 0.5,
       );
       if (thisToken != _currentGenerationToken) return false;
