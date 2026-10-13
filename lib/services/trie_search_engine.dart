@@ -9,6 +9,8 @@ class TrieNode {
 /// A bounded, language-specific *search-key* index. It does not mutate or
 /// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
+  static const int maxInputCodeUnits = 2048;
+  static const int maxIdCodeUnits = 128;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
 
@@ -69,7 +71,10 @@ class TrieSearchEngine {
 
   /// Returns false on capacity limits. A failed insert makes NO partial path.
   bool tryInsert(String word, String id, {String? pairKey}) {
-    if (!_matchesScope(pairKey) || id.isEmpty) return false;
+    if (!_matchesScope(pairKey) || id.isEmpty ||
+        word.length > maxInputCodeUnits || id.length > maxIdCodeUnits) {
+      return false;
+    }
     final normalized = normalizeForLanguage(word, languageCode);
     if (normalized.isEmpty) return false;
     final units = normalized.characters.toList(growable: false);
@@ -117,7 +122,9 @@ class TrieSearchEngine {
   }
 
   List<String> searchPrefix(String prefix, {String? pairKey}) {
-    if (!_matchesScope(pairKey)) return <String>[];
+    if (!_matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
+      return <String>[];
+    }
     final normalized = normalizeForLanguage(prefix, languageCode);
     if (normalized.isEmpty) return <String>[];
     final units = normalized.characters.toList(growable: false);
