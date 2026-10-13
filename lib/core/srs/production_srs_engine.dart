@@ -14,7 +14,9 @@ class SrsCardReviewResult {
     required this.easeFactor,
     required this.repetitionCount,
     required this.nextReviewDate,
-  });
+  })  : assert(nextIntervalDays >= 0, 'nextIntervalDays cannot be negative'),
+        assert(easeFactor >= 0, 'easeFactor cannot be negative or NaN'),
+        assert(repetitionCount >= 0, 'repetitionCount cannot be negative');
 }
 
 class ProductionSrsEngine {
@@ -25,7 +27,21 @@ class ProductionSrsEngine {
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
+    DateTime? currentTime,
   }) {
+    if (currentIntervalDays < 0) {
+      throw ArgumentError('currentIntervalDays cannot be negative');
+    }
+    if (currentEaseFactor.isNaN) {
+      throw ArgumentError('currentEaseFactor cannot be NaN');
+    }
+    if (currentRepetitions < 0) {
+      throw ArgumentError('currentRepetitions cannot be negative');
+    }
+    if (morphologicalMultiplier.isNaN || morphologicalMultiplier < 0) {
+      throw ArgumentError('morphologicalMultiplier must be a valid positive number');
+    }
+
     int newRepetitions = currentRepetitions;
     int newInterval = currentIntervalDays;
     double newEase = currentEaseFactor;
@@ -59,7 +75,10 @@ class ProductionSrsEngine {
         break;
     }
 
-    final now = DateTime.now();
+    // Correct Ease-Factor Minimum boundary
+    newEase = math.max(1.3, newEase);
+
+    final now = currentTime ?? DateTime.now();
     final nextDate = now.add(Duration(days: math.max(1, newInterval)));
 
     return SrsCardReviewResult(
