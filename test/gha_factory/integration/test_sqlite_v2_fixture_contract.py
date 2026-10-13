@@ -111,7 +111,8 @@ def make_fixture_envelope(db_bytes: bytes, language: str, version="0.0.1"):
                                             "version": version}).encode(),
         "content/content.sqlite": db_bytes,
         "metadata/pack.json": json.dumps({"languageCode": language,
-                                          "version": version}).encode(),
+                                          "version": version,
+                                          "contractVersion": "1.0.0"}).encode(),
     }
     envelope = {"packId": "fixture-" + language, "languageCode": language,
                 "version": version, "contractVersion": "1.0.0",
@@ -125,33 +126,61 @@ def make_fixture_envelope(db_bytes: bytes, language: str, version="0.0.1"):
     return stream.getvalue()
 
 
-def inspect_fixture_envelope(archive, language, expected_sha, *, max_size=64 * 1024 * 1024):
-    """Test-only envelope oracle for integrity / identity negative cases."""
+def _reject_duplicate_json_keys(pairs):
+    """Reject ambiguous metadata rather than relying on last-key-wins JSON."""
+    obj = {}
+    for key, value in pairs:
+        if key in obj:
+            raise ValueError("duplicate JSON key: " + key)
+        obj[key] = value
+    return obj
+
+
+def inspect_fixture_envelope(archive, language, expected_sha, *,
+                             max_size=64 * 1024 * 1024,
+                             expected_version=None, expected_sqlite_sha=None):
+    """Test-only envelope oracle for integrity / identity negative cases.
+
+    This oracle does NOT replace testing the private Dart installer. Actual
+    per-file pack admission and signature policy remain separate gates.
+    """
     import base64
+    if max_size < 1 or max_size > 64 * 1024 * 1024:
+        raise ValueError("invalid expansion limit")
     if hashlib.sha256(archive).hexdigest() != expected_sha:
         raise ValueError("sha256 mismatch")
     with gzip.GzipFile(fileobj=io.BytesIO(archive)) as stream:
         raw = stream.read(max_size + 1)
     if len(raw) > max_size:
         raise ValueError("expanded size limit")
-    payload = json.loads(raw)
+    payload = json.loads(raw, object_pairs_hook=_reject_duplicate_json_keys)
+    if not isinstance(payload, dict):
+        raise ValueError("invalid envelope")
     if payload.get("languageCode") != language or payload.get("contractVersion") != "1.0.0":
         raise ValueError("envelope identity")
     if not isinstance(payload.get("version"), str) or not payload["version"]:
         raise ValueError("missing version")
+    if expected_version is not None and expected_version != payload["version"]:
+        raise ValueError("version mismatch")
     files = payload.get("files")
     if not isinstance(files, list):
         raise ValueError("missing files")
+    if any(not isinstance(f, dict) for f in files):
+        raise ValueError("invalid file entry")
     if len(files) != len(MANDATORY_PATHS) or set(f.get("path") for f in files) != MANDATORY_PATHS:
         raise ValueError("mandatory files or duplicates")
     decoded = {f["path"]: base64.b64decode(f["contentBase64"], validate=True)
                for f in files}
     for key in ("content/content.json", "metadata/pack.json"):
-        obj = json.loads(decoded[key])
-        if obj.get("languageCode") != language or obj.get("version") != payload["version"]:
+        obj = json.loads(decoded[key], object_pairs_hook=_reject_duplicate_json_keys)
+        if not isinstance(obj, dict) or obj.get("languageCode") != language or obj.get("version") != payload["version"]:
             raise ValueError("file identity")
-    return decoded["content/content.sqlite"]
-
+        if key == "metadata/pack.json" and obj.get("contractVersion") != "1.0.0":
+            raise ValueError("pack contract mismatch")
+    sqlite = decoded["content/content.sqlite"]
+    if expected_sqlite_sha is not None and hashlib.sha256(sqlite).hexdigest() != expected_sqlite_sha:
+        raise ValueError("content sha256 mismatch")
+    return sqlite
 
 class SqliteV2FixtureContractTests(unittest.TestCase):
     def setUp(self):
