@@ -13,9 +13,7 @@ JSON_CONTENT="${DEUTSCH_JSON_CONTENT:-false}"
 case "$JSON_CONTENT" in true|false) ;; *) fatal "$ERR_ENV" "DEUTSCH_JSON_CONTENT must be true or false";; esac
 DART_DEFINE=("--dart-define=DEUTSCH_JSON_CONTENT=$JSON_CONTENT")
 cd "$ROOT"
-LOG_DIR="${HOME}/.deutsch_bilarabi_logs"
-mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/build_${MODE}_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="$(bash "$ROOT/scripts/create_private_build_log.sh" "$MODE")" || fatal "$ERR_ENV" "Cannot create a private build log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 log CHECK "1/10 Environment"
