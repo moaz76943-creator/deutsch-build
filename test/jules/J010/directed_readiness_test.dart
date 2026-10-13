@@ -57,11 +57,18 @@ void main() {
       maxCachedPairs: 3, maxCachedPacks: 2,
     );
     for (var i = 0; i < 200; i++) {
-      engine.updatePackStatus('test$i', const LanguagePackGateResult(PackGateStatus.approved));
+      final locale = 'a${String.fromCharCode(97 + i ~/ 26)}'
+          '${String.fromCharCode(97 + i % 26)}';
+      engine.updatePackStatus(
+        locale, const LanguagePackGateResult(PackGateStatus.approved),
+      );
       engine.resolvePair(DirectedPairId(
-        sourceLocale: 'ar', targetLocale: 'test$i', semanticVersion: '1.0.0',
+        sourceLocale: 'ar', targetLocale: locale, semanticVersion: '1.0.0',
       ));
     }
+    expect(() => engine.updatePackStatus(
+      '../invalid', const LanguagePackGateResult(PackGateStatus.approved),
+    ), throwsArgumentError);
     expect(engine.currentPackCacheSize, lessThanOrEqualTo(2));
     expect(engine.currentPairCacheSize, lessThanOrEqualTo(3));
     engine.clear();
