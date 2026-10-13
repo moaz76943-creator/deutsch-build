@@ -46,6 +46,19 @@ class LockTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 11)
             self.assertIn('DEPENDENCY_LOCK_ERROR', proc.stdout)
 
+    def test_dev_dependency_kind(self):
+        self.assertEqual(
+            verify(pub('example: ^2.3.0', 'devtool: any'),
+                   lock() .replace('sdks:', '  devtool:\n    dependency: "direct dev"\n    source: hosted\n    version: "1.2.3"\nsdks:')), [])
+
+    def test_unknown_constraint_fails_closed(self):
+        self.assertIn('unsupported', verify(pub('example: ~2.0'), lock())[0])
+
+    def test_duplicate_declared_dependency_fails_closed(self):
+        from verify_locked_dependencies import declared_dependencies
+        with self.assertRaises(ValueError):
+            declared_dependencies(pub('example: ^2.3.0', 'example: ^2.3.0'))
+
     def test_relevant_known_mismatch(self):
         self.assertTrue(verify(pub('sqflite_common_ffi: ">=2.3.0 <2.4.0"'), lock(name='sqflite_common_ffi', version='2.4.3', kind='direct dev')))
 
