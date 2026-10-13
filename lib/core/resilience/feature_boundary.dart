@@ -87,8 +87,18 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
         _loading = false;
         if (outcome.isFailed) _error = outcome.error;
       });
-    } catch (error) {
+    } catch (error, stack) {
       if (!mounted || !identical(_token, token)) return;
+      if (FailureCategorization.isCritical(error)) {
+        // Surface integrity failures to the framework's error channel.
+        // Optional-feature fallback must not silently classify them as safe.
+        FlutterError.reportError(FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'runtime feature boundary',
+          context: ErrorDescription('critical initialization failure'),
+        ));
+      }
       setState(() {
         _loading = false;
         _error = error;
