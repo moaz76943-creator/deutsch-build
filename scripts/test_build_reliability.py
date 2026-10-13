@@ -55,6 +55,17 @@ class BuildReliabilityTests(unittest.TestCase):
             self.assertEqual(counter.read_text().count('x'), 3)
             self.assertNotIn('secret-key', result.stdout + result.stderr)
 
+    def test_interrupted_resolution_cleans_private_temp_log(self):
+        with tempfile.TemporaryDirectory() as directory:
+            exe = Path(directory) / 'flutter'
+            exe.write_text('#!/bin/sh\necho "storePassword=hidden" >&2\nkill -TERM "$PPID"\nexit 0\n')
+            exe.chmod(0o700)
+            env = {**os.environ, 'TMPDIR': directory,
+                   'PATH': f'{directory}:{os.environ["PATH"]}'}
+            result = self.shell('run_pub_get_with_retry', env=env)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ['flutter'])
+
     def test_transient_then_success(self):
         with tempfile.TemporaryDirectory() as directory:
             counter = Path(directory) / 'counter'
