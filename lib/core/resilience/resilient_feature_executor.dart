@@ -42,7 +42,9 @@ class ResilientFeatureExecutor {
           return RecoveryOutcome<T>.cancelled();
         }
         if (generation != _generation) return RecoveryOutcome<T>.stale();
-        if (attempt == maxAttempts) {
+        // Dart Future.timeout cannot terminate an underlying async task.
+        // Retrying it may replay writes after the caller has moved on.
+        if (error is TimeoutException || attempt == maxAttempts) {
           return RecoveryOutcome<T>.failed(error, stack);
         }
         await Future<void>.delayed(backoff * attempt);
