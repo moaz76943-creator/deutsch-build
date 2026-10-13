@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'cache/lru_memory_cache.dart';
 
 class CacheIdentity {
