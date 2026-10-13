@@ -1,18 +1,18 @@
-// مسار الملف: lib/core/gamification/domain_mastery_projection.dart
+enum DomainMasteryState { locked, available, inProgress, mastered }
 
-/// نموذج عرض إتقان المجال (Projection) كما حدده تقرير هندسة التحفيز.
-/// لا يعتمد على التصفح، بل على نجاح الاسترجاع المتباعد (SRS).
+/// Display projection only. These counters MUST originate from an authoritative,
+/// pair-isolated persisted SRS snapshot; event rating alone is not mastery proof.
 class DomainMasteryProjection {
   final String domainId;
   final String sourceLanguageId;
   final String targetLanguageId;
-  final int eligibleCardCount;   // إجمالي البطاقات المتاحة في المجال
-  final int introducedCardCount; // البطاقات التي بدأ المستخدم بتعلمها
-  final int recalledCardCount;   // البطاقات التي تذكرها بنجاح مؤخراً
-  final int masteredCardCount;   // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
-  final int dueCardCount;        // البطاقات المستحقة للمراجعة الآن
-  final DateTime lastEvidenceUtc;// آخر نشاط حقيقي في هذا المجال
-  final int masteryRevision;     // رقم المراجعة لضمان التزامن
+  final int eligibleCardCount;
+  final int introducedCardCount;
+  final int recalledCardCount;
+  final int masteredCardCount;
+  final int dueCardCount;
+  final DateTime lastEvidenceUtc;
+  final int masteryRevision;
 
   const DomainMasteryProjection({
     required this.domainId,
@@ -27,26 +27,39 @@ class DomainMasteryProjection {
     required this.masteryRevision,
   });
 
-  /// حساب نسبة الإتقان الحقيقية للمجال (0.0 إلى 1.0)
+  /// Preserve legacy snapshots without mutating or deleting their data.
+  /// Never show a success state when counters are malformed.
+  bool get hasConsistentCounters =>
+      domainId.trim().isNotEmpty &&
+      sourceLanguageId.trim().isNotEmpty &&
+      targetLanguageId.trim().isNotEmpty &&
+      sourceLanguageId != targetLanguageId &&
+      eligibleCardCount >= 0 &&
+      introducedCardCount >= 0 &&
+      recalledCardCount >= 0 &&
+      masteredCardCount >= 0 &&
+      dueCardCount >= 0 &&
+      introducedCardCount <= eligibleCardCount &&
+      recalledCardCount <= introducedCardCount &&
+      masteredCardCount <= recalledCardCount &&
+      dueCardCount <= introducedCardCount &&
+      masteryRevision >= 0;
+
   double get masteryPercentage {
-    if (eligibleCardCount == 0) return 0.0;
-    // الإتقان يعتمد على البطاقات المتقنة فعلياً مقارنة بإجمالي البطاقات
-    return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0);
+    if (!hasConsistentCounters || eligibleCardCount == 0) return 0.0;
+    return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0).toDouble();
   }
-  
-  /// تقييم حالة شجرة الإتقان للمجال (مغلق، متاح، قيد التقدم، متقن)
+
   DomainMasteryState get masteryState {
+    if (!hasConsistentCounters) {
+      return introducedCardCount > 0
+          ? DomainMasteryState.inProgress
+          : DomainMasteryState.available;
+    }
     if (introducedCardCount == 0) return DomainMasteryState.available;
-    if (masteredCardCount == eligibleCardCount && eligibleCardCount > 0) {
+    if (eligibleCardCount > 0 && masteredCardCount == eligibleCardCount) {
       return DomainMasteryState.mastered;
     }
     return DomainMasteryState.inProgress;
   }
-}
-
-enum DomainMasteryState {
-  locked,      // يتطلب إنجاز مجالات سابقة
-  available,   // متاح للبدء
-  inProgress,  // قيد التعلم
-  mastered     // تم إتقان جميع بطاقاته
 }
