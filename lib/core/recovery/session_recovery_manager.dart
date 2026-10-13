@@ -78,6 +78,9 @@ class SessionRecoveryManager {
   static const int checkpointVersion = 2;
   static const int maxReviewIds = 256;
   static const int maxCheckpointBytes = 64 * 1024;
+  // Process-local reservation gate. SharedPreferences is not transactional;
+  // duplicate simultaneous callbacks must not both consume the same attempt.
+  static bool _recoveryReservationInFlight = false;
   final SharedPreferences _prefs;
   final int Function() _clock;
   final int maxRecoveryAttempts;
@@ -183,21 +186,30 @@ class SessionRecoveryManager {
     required String expectedTargetLocale,
     required bool Function(String) isValidRoute,
   }) async {
-    final envelope = _validatedCheckpoint(
-      expectedSourceLocale: expectedSourceLocale,
-      expectedTargetLocale: expectedTargetLocale,
-      isValidRoute: isValidRoute,
-    );
-    if (envelope == null) return null;
+    // Reserve synchronously before the first await so two UI callbacks
+    // cannot independently read the same recovery counter.
+    if (_recoveryReservationInFlight) return null;
+    _recoveryReservationInFlight = true;
     try {
-      await persistSession(
-        envelope.state,
-        attempts: envelope.recoveryAttempts + 1,
+      final envelope = _validatedCheckpoint(
+        expectedSourceLocale: expectedSourceLocale,
+        expectedTargetLocale: expectedTargetLocale,
+        isValidRoute: isValidRoute,
       );
-    } catch (_) {
-      return null;
+      if (envelope == null) return null;
+      try {
+        await persistSession(
+          envelope.state,
+          attempts: envelope.recoveryAttempts + 1,
+        );
+      } catch (_) {
+        // Never expose a checkpoint when its reservation was not persisted.
+        return null;
+      }
+      return envelope.state;
+    } finally {
+      _recoveryReservationInFlight = false;
     }
-    return envelope.state;
   }
 
   Future<void> clearSession() async {
