@@ -163,7 +163,31 @@ class _ResilientOperationBuilderState<T>
       if (!mounted || token.isCancelled) return;
       setState(() {
         if (result.isSuccess) {
-          _state = UIState<T>.data(result.data);
+          // The result contract permits a null payload even when marked
+          // successful. Never let its force-unwrapping getter escape as an
+          // uncaught exception from a Future completion callback.
+          try {
+            final value = result.data;
+            if (value == null) {
+              _state = UIState<T>.failed(
+                const ContentFailure(
+                  'ui_invalid_success',
+                  'The operation returned no data',
+                ),
+                'Unable to load content.',
+              );
+            } else {
+              _state = UIState<T>.data(value);
+            }
+          } catch (_) {
+            _state = UIState<T>.failed(
+              const ContentFailure(
+                'ui_invalid_success',
+                'The operation returned no usable data',
+              ),
+              'Unable to load content.',
+            );
+          }
           return;
         }
         final failure = result.failure;
