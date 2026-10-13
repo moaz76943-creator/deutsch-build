@@ -42,8 +42,14 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
   @override
   void didUpdateWidget(covariant FeatureBoundary oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initializationDependency != oldWidget.initializationDependency ||
-        widget.onInitialize != oldWidget.onInitialize) {
+    // Callback closures may be recreated during ordinary parent rebuilds.
+    // Reinitialize only when a feature is enabled/disabled or its explicit
+    // dependency identity changes; otherwise retries could form a loop.
+    final enabledChanged = (widget.onInitialize == null) !=
+        (oldWidget.onInitialize == null);
+    final dependencyChanged = widget.initializationDependency != null &&
+        widget.initializationDependency != oldWidget.initializationDependency;
+    if (enabledChanged || dependencyChanged) {
       _token?.cancel();
       _executor.resetSession();
       if (widget.onInitialize != null) {
