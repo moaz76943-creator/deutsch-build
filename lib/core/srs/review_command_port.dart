@@ -1,5 +1,5 @@
-/// هوية المراجعة والتقييم لضمان عدم ازدواجية احتساب النقاط (XP)
-/// ولضمان ارتباطها بالزوج اللغوي الموجه الصحيح.
+/// An immutable, directed-pair-specific review command.
+/// reviewId is a globally unique event key; a colliding payload is an error.
 enum ReviewRating { again, hard, good, easy }
 
 class ReviewCommand {
@@ -22,10 +22,19 @@ class ReviewCommand {
     required this.rating,
     required this.hinted,
   });
+
+  bool samePayloadAs(ReviewCommand other) =>
+      reviewId == other.reviewId &&
+      sourceLanguageId == other.sourceLanguageId &&
+      targetLanguageId == other.targetLanguageId &&
+      cardId == other.cardId &&
+      facetKey == other.facetKey &&
+      pairEpoch == other.pairEpoch &&
+      rating == other.rating &&
+      hinted == other.hinted;
 }
 
 abstract interface class ReviewCommandPort {
-  /// ترسل أمر التقييم إلى UnifiedSrsScheduler
-  /// ليتم تنفيذه عبر Persistent CPU Worker وتخزينه كـ Atomic Transaction.
+  /// Implementation must use the one persistent, worker-backed SRS authority.
   Future<void> submit(ReviewCommand command);
 }
