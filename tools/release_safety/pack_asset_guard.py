@@ -33,7 +33,7 @@ def distinct_keys(pairs):
     return result
 
 
-def changes(raw):
+def changes(raw, expected_files=None):
     if not isinstance(raw, bytes) or len(raw) > MAX_INPUT_BYTES:
         raise UnsafePullRequest('invalid or oversized review payload')
     try:
@@ -43,6 +43,8 @@ def changes(raw):
         raise UnsafePullRequest('invalid UTF-8 or JSON') from exc
     if not isinstance(payload, list) or len(payload) > MAX_FILES:
         raise UnsafePullRequest('expected complete bounded pull-request file list')
+    if expected_files is not None and (type(expected_files) is not int or expected_files != len(payload)):
+        raise UnsafePullRequest('incomplete PR file list: count does not match GitHub PR changed_files')
     seen = set()
     violations = []
     for item in payload:
@@ -73,11 +75,13 @@ def changes(raw):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pr_files_json', type=Path)
+    parser.add_argument('--expected-files', type=int, required=True,
+                        help='Exact changed_files count from GitHub PR metadata')
     args = parser.parse_args(argv)
     try:
         if not args.pr_files_json.is_file() or args.pr_files_json.stat().st_size > MAX_INPUT_BYTES:
             raise UnsafePullRequest('missing or oversized PR file inventory')
-        outcome = changes(args.pr_files_json.read_bytes())
+        outcome = changes(args.pr_files_json.read_bytes(), expected_files=args.expected_files)
         print(json.dumps(outcome, sort_keys=True))
         return 2 if outcome['violations'] else 0
     except (UnsafePullRequest, OSError) as exc:
