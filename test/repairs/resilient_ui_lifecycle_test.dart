@@ -114,6 +114,21 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('malformed successful operation cannot crash the widget tree',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ResilientOperationBuilder<String?>(
+          operation: (_) async => const OperationResult<String?>.success(null),
+          dataBuilder: (context, data) => Text(data ?? ''),
+        ),
+      ),
+    ));
+    await tester.pump();
+    expect(find.text('Unable to load content.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('missing media exposes semantic fallback', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(MaterialApp(
