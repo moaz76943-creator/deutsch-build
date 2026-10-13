@@ -13,7 +13,7 @@ class ReviewTransactionManager implements ReviewCommandPort {
     DateTime Function()? clock,
   }) : clock = clock ?? DateTime.now;
 
-  Future<TransactionCommitOutcome> processTransaction(ReviewCommand command) {
+  Future<TransactionCommitOutcome> processTransaction(ReviewCommand command) async {
     if (command.reviewId.trim().isEmpty ||
         command.cardId.trim().isEmpty ||
         command.facetKey.trim().isEmpty ||
@@ -34,7 +34,7 @@ class ReviewTransactionManager implements ReviewCommandPort {
       languagePairKey:
           command.sourceLanguageId + '_' + command.targetLanguageId,
     );
-    return persistencePort.commitReviewAtomically(
+    return await persistencePort.commitReviewAtomically(
       command: command,
       envelope: envelope,
     );
