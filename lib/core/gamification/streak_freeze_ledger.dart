@@ -5,7 +5,7 @@ class FreezeUsageRecord {
   const FreezeUsageRecord({required this.usedAt, required this.reason});
 }
 
-/// سجل محلي شفاف لحساب استهلاك دروع التجميد اليومية
+/// Immutable-usage-style ledger. A freeze is consumed at most once per local day.
 class StreakFreezeLedger {
   final int totalShields;
   final List<FreezeUsageRecord> usageHistory;
@@ -15,16 +15,28 @@ class StreakFreezeLedger {
     this.usageHistory = const [],
   });
 
-  int get remainingShields => totalShields - usageHistory.length;
+  int get remainingShields =>
+      (totalShields - usageHistory.length).clamp(0, totalShields < 0 ? 0 : totalShields).toInt();
+
   bool get canConsume => remainingShields > 0;
 
-  StreakFreezeLedger recordUsage(String reason) {
-    if (!canConsume) return this;
+  StreakFreezeLedger recordUsage(String reason, {DateTime? timestamp}) {
+    if (!canConsume || reason.trim().isEmpty) return this;
+    final at = timestamp ?? DateTime.now();
+    final local = at.toLocal();
+    for (final previous in usageHistory) {
+      final day = previous.usedAt.toLocal();
+      if (day.year == local.year &&
+          day.month == local.month &&
+          day.day == local.day) {
+        return this;
+      }
+    }
     return StreakFreezeLedger(
       totalShields: totalShields,
       usageHistory: [
         ...usageHistory,
-        FreezeUsageRecord(usedAt: DateTime.now(), reason: reason),
+        FreezeUsageRecord(usedAt: at, reason: reason),
       ],
     );
   }

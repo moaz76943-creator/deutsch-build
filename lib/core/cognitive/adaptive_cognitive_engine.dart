@@ -1,51 +1,94 @@
 import 'cognitive_metric_record.dart';
 
 enum AdaptationAction {
-  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
-  reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
-  deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
+  maintainFlow,
+  reduceExtraneousLoad,
+  deepenLinguisticChallenge,
+}
+
+/// A local heuristic decision, not a proficiency or CEFR assessment.
+class AdaptationDecision {
+  final AdaptationAction action;
+  final String reason;
+  const AdaptationDecision(this.action, this.reason);
 }
 
 class AdaptiveCognitiveEngine {
-  static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
+  static final AdaptiveCognitiveEngine instance =
+      AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
-  final List<CognitiveMetricRecord> _recentMetrics = [];
-  static const int _windowSize = 5; // مراقبة آخر 5 تفاعلات
+  static const int _windowSize = 5;
+  static const int _maxPairWindows = 128;
+  final Map<String, List<CognitiveMetricRecord>> _metricsByPair = {};
+  final Map<String, AdaptationAction> _lastActionByPair = {};
 
+  /// Malformed observations provide no adaptation evidence.
   void observe(CognitiveMetricRecord record) {
-    _recentMetrics.add(record);
-    if (_recentMetrics.length > _windowSize) {
-      _recentMetrics.removeAt(0);
+    if (!record.isUsable) return;
+    final pair = record.languagePair;
+    if (!_metricsByPair.containsKey(pair)) {
+      if (_metricsByPair.length >= _maxPairWindows) {
+        final evicted = _metricsByPair.keys.first;
+        _metricsByPair.remove(evicted);
+        _lastActionByPair.remove(evicted);
+      }
+      _metricsByPair[pair] = <CognitiveMetricRecord>[];
     }
+    final window = _metricsByPair[pair]!;
+    for (final prior in window) {
+      if (prior.sessionEventId == record.sessionEventId) {
+        if (prior.contentKey != record.contentKey ||
+            prior.isCorrect != record.isCorrect ||
+            prior.responseLatency != record.responseLatency ||
+            prior.hesitationTaps != record.hesitationTaps ||
+            prior.reviewDifficulty != record.reviewDifficulty) {
+          throw StateError('Conflicting cognitive event replay');
+        }
+        return;
+      }
+    }
+    window.add(record);
+    if (window.length > _windowSize) window.removeAt(0);
   }
 
-  /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
-  AdaptationAction evaluateState() {
-    if (_recentMetrics.isEmpty) return AdaptationAction.maintainFlow;
+  AdaptationAction evaluateState() => evaluateStateDetailed().action;
 
-    final avgStrain = _recentMetrics
-            .map((m) => m.cognitiveStrainIndex)
-            .reduce((a, b) => a + b) /
-        _recentMetrics.length;
-
-    // حالة إرهاق ذهني أو صعوبة مستمرة
-    if (avgStrain >= 0.6) {
-      return AdaptationAction.reduceExtraneousLoad;
+  AdaptationDecision evaluateStateDetailed({String languagePair = 'default'}) {
+    final window = _metricsByPair[languagePair];
+    if (window == null || window.length < 3) {
+      return const AdaptationDecision(
+          AdaptationAction.maintainFlow, 'Insufficient distinct local observations');
     }
 
-    // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
-    final allCorrect = _recentMetrics.every((m) => m.isCorrect);
-    final isFast = _recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
+    final strain = window.fold<double>(
+            0.0, (sum, record) => sum + record.cognitiveStrainIndex) /
+        window.length;
+    final previous = _lastActionByPair[languagePair];
 
-    if (allCorrect && isFast && _recentMetrics.length >= 3) {
-      return AdaptationAction.deepenLinguisticChallenge;
+    if (strain >= 0.6 ||
+        (previous == AdaptationAction.reduceExtraneousLoad && strain > 0.3)) {
+      _lastActionByPair[languagePair] = AdaptationAction.reduceExtraneousLoad;
+      return const AdaptationDecision(
+          AdaptationAction.reduceExtraneousLoad, 'Sustained elevated task load');
     }
 
-    return AdaptationAction.maintainFlow;
+    final allCorrect = window.every((r) => r.isCorrect);
+    final fast = window.every((r) => r.responseLatency.inMilliseconds < 2000);
+    if (allCorrect && fast) {
+      _lastActionByPair[languagePair] = AdaptationAction.deepenLinguisticChallenge;
+      return const AdaptationDecision(
+          AdaptationAction.deepenLinguisticChallenge,
+          'Repeated quick, correct local answers; no CEFR inference');
+    }
+
+    _lastActionByPair[languagePair] = AdaptationAction.maintainFlow;
+    return const AdaptationDecision(
+        AdaptationAction.maintainFlow, 'Maintain current challenge');
   }
 
   void clearSession() {
-    _recentMetrics.clear();
+    _metricsByPair.clear();
+    _lastActionByPair.clear();
   }
 }
