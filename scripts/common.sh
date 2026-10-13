@@ -25,25 +25,26 @@ log() { printf '[%s] %s\n' "$1" "$2"; }
 
 # Retry only lockfile-constrained dependency resolution and only for transient
 # connectivity errors. Never echo captured tool output: it may contain secrets.
-run_pub_get_with_retry() {
+run_pub_get_with_retry() (
   local attempt=1 result=1 max_attempts=3 output_file
   output_file="$(mktemp)" || fatal "$ERR_ENV" 'Unable to create private dependency log'
+  trap 'rm -f -- "$output_file"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
   while (( attempt <= max_attempts )); do
     if flutter pub get --enforce-lockfile >"$output_file" 2>&1; then
-      rm -f -- "$output_file"
       return 0
     else
       result=$?
     fi
     if (( attempt == max_attempts )) || ! grep -Eiq '(timed? out|timeout|connection reset|temporary failure|network error|connection refused|socketexception)' "$output_file"; then
-      rm -f -- "$output_file"
       return "$result"
     fi
     log WARN "Transient dependency resolution failure (attempt $attempt/$max_attempts)"
     attempt=$((attempt + 1))
     sleep 1
   done
-}
+)
 
 
 load_toolchain() {
