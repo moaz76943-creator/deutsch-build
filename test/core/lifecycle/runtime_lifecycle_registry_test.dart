@@ -48,4 +48,17 @@ void main() {
     expect(timer.isActive, isFalse);
     expect(invoked, isFalse);
   });
+  test('owner tokens reject stale late resources even after 10000 disposals', () async {
+    final old = LifecycleOwnerToken();
+    await registry.disposeByOwner(old);
+    for (var i = 0; i < 10000; i++) {
+      await registry.disposeByOwner(LifecycleOwnerToken());
+    }
+    var releasedImmediately = 0;
+    registry.registerResource(() { releasedImmediately++; }, owner: old);
+    expect(releasedImmediately, 1);
+    expect(old.isDisposed, isTrue);
+    expect(registry.rememberedDisposedOwnerCount, 0);
+  });
+
 }
