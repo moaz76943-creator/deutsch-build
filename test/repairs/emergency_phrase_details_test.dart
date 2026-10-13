@@ -21,6 +21,21 @@ void main() {
     expect(find.text('أين أقرب صيدلية؟'), findsOneWidget);
   });
 
+  testWidgets('phrase options announce accessible button intent',
+      (tester) async {
+    final handle = tester.ensureSemantics();
+    addTearDown(handle.dispose);
+    await tester.pumpWidget(
+      const MaterialApp(home: EmergencyPhrasebookScreen()),
+    );
+    expect(find.bySemanticsLabel('أحتاج إلى طبيب فوراً'), findsWidgets);
+    final semanticsWidgets = find.ancestor(
+      of: find.text('أحتاج إلى طبيب فوراً'),
+      matching: find.byType(Semantics),
+    );
+    expect(semanticsWidgets, findsWidgets);
+  });
+
   testWidgets('detail remains overflow-safe on a narrow RTL scaled screen',
       (tester) async {
     tester.view.physicalSize = const Size(320, 520);
