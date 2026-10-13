@@ -73,43 +73,56 @@ class AndroidOfflineVoiceCapabilityProbe(
     }
 
     private fun queryLocalVoices(request: Pending) {
-        val locales = try {
-            val voices = request.engine?.voices
-                ?: return complete(request, unavailable("voices_unavailable"))
-            AndroidOfflineVoicePolicy.installedLocalCandidates(
-                voices.mapNotNull { voice ->
-                    val tag = try {
-                        voice.locale.toLanguageTag()
-                    } catch (_: Exception) {
-                        return@mapNotNull null
+        val engine = request.engine
+            ?: return complete(request, unavailable("engine_unavailable"))
+        // Binder-backed voice enumeration must not stall the Android UI thread.
+        // At most one worker exists because concurrent probes fail closed as busy.
+        try {
+            Thread({
+                val payload: Map<String, Any> = try {
+                    val voices = engine.voices
+                    if (voices == null) {
+                        unavailable("voices_unavailable")
+                    } else {
+                        val locales = AndroidOfflineVoicePolicy.installedLocalCandidates(
+                            voices.mapNotNull { voice ->
+                                val tag = try {
+                                    voice.locale.toLanguageTag()
+                                } catch (_: Exception) {
+                                    return@mapNotNull null
+                                }
+                                OfflineVoiceCandidate(
+                                    localeTag = tag,
+                                    networkRequired = voice.isNetworkConnectionRequired,
+                                    networkSynthesisFeature = voice.features?.contains(
+                                        TextToSpeech.Engine.KEY_FEATURE_NETWORK_SYNTHESIS,
+                                    ) == true,
+                                    notInstalledFeature = voice.features?.contains(
+                                        TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED,
+                                    ) == true,
+                                )
+                            },
+                        )
+                        if (locales.isEmpty()) {
+                            unavailable("no_installed_local_voice")
+                        } else {
+                            // Metadata is not proof of successful actual synthesis.
+                            mapOf(
+                                "status" to "success",
+                                "capability" to "installed_local_voice_candidates",
+                                "locales" to locales,
+                            )
+                        }
                     }
-                    OfflineVoiceCandidate(
-                        localeTag = tag,
-                        networkRequired = voice.isNetworkConnectionRequired,
-                        networkSynthesisFeature = voice.features?.contains(
-                            TextToSpeech.Engine.KEY_FEATURE_NETWORK_SYNTHESIS,
-                        ) == true,
-                        notInstalledFeature = voice.features?.contains(
-                            TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED,
-                        ) == true,
-                    )
-                },
-            )
-        } catch (_: SecurityException) {
-            return complete(request, unavailable("security_exception"))
+                } catch (_: SecurityException) {
+                    unavailable("security_exception")
+                } catch (_: Exception) {
+                    unavailable("voice_query_failed")
+                }
+                main.post { complete(request, payload) }
+            }, "OfflineVoiceCapabilityQuery").start()
         } catch (_: Exception) {
-            return complete(request, unavailable("voice_query_failed"))
-        }
-
-        if (locales.isEmpty()) {
-            complete(request, unavailable("no_installed_local_voice"))
-        } else {
-            // A candidate is not a promise that synthesis will succeed.
-            complete(request, mapOf(
-                "status" to "success",
-                "capability" to "installed_local_voice_candidates",
-                "locales" to locales,
-            ))
+            complete(request, unavailable("worker_unavailable"))
         }
     }
 
