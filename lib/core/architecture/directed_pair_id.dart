@@ -18,6 +18,10 @@ class DirectedPairId {
 
   /// Syntax alone does not establish canonical registration or content readiness.
   bool isValidForLearning() =>
+      sourceLocale.length <= 64 &&
+      targetLocale.length <= 64 &&
+      semanticVersion.isNotEmpty &&
+      semanticVersion.length <= 64 &&
       _localeSyntax.hasMatch(sourceLocale) &&
       _localeSyntax.hasMatch(targetLocale) &&
       semanticVersion.trim().isNotEmpty &&
