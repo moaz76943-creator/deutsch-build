@@ -23,32 +23,32 @@ class ResilientFeatureExecutor {
     final generation = ++_generation;
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       if (cancellationToken?.isCancelled ?? false) {
-        return const RecoveryOutcome.cancelled();
+        return RecoveryOutcome<T>.cancelled();
       }
-      if (generation != _generation) return const RecoveryOutcome.stale();
+      if (generation != _generation) return RecoveryOutcome<T>.stale();
       try {
         final result = await task().timeout(taskTimeout);
         if (cancellationToken?.isCancelled ?? false) {
-          return const RecoveryOutcome.cancelled();
+          return RecoveryOutcome<T>.cancelled();
         }
-        if (generation != _generation) return const RecoveryOutcome.stale();
-        return RecoveryOutcome.success(result);
+        if (generation != _generation) return RecoveryOutcome<T>.stale();
+        return RecoveryOutcome<T>.success(result);
       } catch (error, stack) {
         // Critical storage/integrity failure cannot be silently retried.
         if (FailureCategorization.isCritical(error)) {
           Error.throwWithStackTrace(error, stack);
         }
         if (cancellationToken?.isCancelled ?? false) {
-          return const RecoveryOutcome.cancelled();
+          return RecoveryOutcome<T>.cancelled();
         }
-        if (generation != _generation) return const RecoveryOutcome.stale();
+        if (generation != _generation) return RecoveryOutcome<T>.stale();
         if (attempt == maxAttempts) {
-          return RecoveryOutcome.failed(error, stack);
+          return RecoveryOutcome<T>.failed(error, stack);
         }
         await Future<void>.delayed(backoff * attempt);
       }
     }
-    return RecoveryOutcome.failed(StateError('Retries exhausted'));
+    return RecoveryOutcome<T>.failed(StateError('Retries exhausted'));
   }
 
   void resetSession() => ++_generation;
