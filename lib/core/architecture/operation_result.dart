@@ -2,7 +2,7 @@ abstract class OperationFailure {
   final String code;
   final String message;
 
-  /// Throwable details are deliberately private to avoid accidental log leaks.
+  /// Raw cause is not exposed through a public property or toString.
   final Object? _cause;
   const OperationFailure(this.code, this.message, [this._cause]);
 
@@ -11,27 +11,33 @@ abstract class OperationFailure {
 }
 
 class StorageFailure extends OperationFailure {
-  const StorageFailure(super.code, super.message, [super.cause]);
+  const StorageFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class ContentFailure extends OperationFailure {
-  const ContentFailure(super.code, super.message, [super.cause]);
+  const ContentFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class UnavailableFailure extends OperationFailure {
-  const UnavailableFailure(super.code, super.message, [super.cause]);
+  const UnavailableFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class InvalidInputFailure extends OperationFailure {
-  const InvalidInputFailure(super.code, super.message, [super.cause]);
+  const InvalidInputFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class CancelledFailure extends OperationFailure {
-  const CancelledFailure(super.code, super.message, [super.cause]);
+  const CancelledFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class IncompatibleVersionFailure extends OperationFailure {
-  const IncompatibleVersionFailure(super.code, super.message, [super.cause]);
+  const IncompatibleVersionFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class OperationResult<T> {
