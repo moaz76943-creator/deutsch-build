@@ -182,6 +182,7 @@ def inspect_fixture_envelope(archive, language, expected_sha, *,
         raise ValueError("content sha256 mismatch")
     return sqlite
 
+
 class SqliteV2FixtureContractTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="gha-integration-fixture-")
