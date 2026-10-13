@@ -38,6 +38,16 @@ class SemanticPresentationEngine {
   SemanticPresentationMetadata getPresentationForWord(
     String word, {String? article},
   ) {
+    const unknown = SemanticPresentationMetadata(
+      color: AppColors.articleOther,
+      label: 'Grammar not verified',
+      isAttested: false,
+    );
+    // Long user-generated strings never become persistent cache keys.
+    if (word.length > 512 || (article?.length ?? 0) > 128) {
+      return unknown;
+    }
+
     final key = (word, article, ruleProvider.languageCode, packVersion);
     final cached = _cache.remove(key);
     if (cached != null) {
@@ -45,13 +55,19 @@ class SemanticPresentationEngine {
       return cached;
     }
 
-    final attested = isAdmittedEvidence?.call(word, article) == true;
-    final gender = attested
-        ? ruleProvider.determineGender(word, article: article)
-        : GrammaticalGender.none;
-    final category = attested
-        ? ruleProvider.determineCategory(word, article: article)
-        : GrammaticalCategory.unknown;
+    var attested = false;
+    GrammaticalGender gender = GrammaticalGender.none;
+    GrammaticalCategory category = GrammaticalCategory.unknown;
+    try {
+      attested = isAdmittedEvidence?.call(word, article) == true;
+      if (attested) {
+        gender = ruleProvider.determineGender(word, article: article);
+        category = ruleProvider.determineCategory(word, article: article);
+      }
+    } catch (_) {
+      // An incomplete/corrupt local pack must not crash rendering.
+      attested = false;
+    }
 
     Color color = AppColors.articleOther;
     String label = 'Grammar not verified';
