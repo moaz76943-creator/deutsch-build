@@ -43,4 +43,15 @@ void main() {
     await expectLater(worker.calculateNewEaseFactor(2.5, 4),
         throwsA(isA<StateError>()));
   });
+  test('disposing during worker startup drains active jobs', () async {
+    final pending = worker.calculateNewEaseFactor(2.5, 3);
+    worker.dispose();
+    await expectLater(pending, throwsA(anyOf(
+      isA<WorkerCancelledException>(), isA<StateError>(),
+    )));
+    expect(worker.activeJobs, 0);
+    worker.reset();
+    expect(await worker.calculateNewEaseFactor(2.5, 3), greaterThan(1.3));
+  });
+
 }
