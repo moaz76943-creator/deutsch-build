@@ -42,15 +42,15 @@ void main() {
 
   testWidgets('failed bootstrap exposes recovery instead of infinite splash',
       (tester) async {
-    final ops = _FakeStartup(Future<StartupOutcome>.error(
-      StateError('simulated local init failure'),
-    ));
+    final failed = Completer<StartupOutcome>();
+    final ops = _FakeStartup(failed.future);
     await tester.pumpWidget(MaterialApp(
       home: StartupBoundary(
         operations: ops,
         child: const Text('content ready'),
       ),
     ));
+    failed.completeError(StateError('simulated local init failure'));
     await tester.pump();
     await tester.pump();
     expect(find.text('تعذر بدء الخدمات الأساسية'), findsOneWidget);
@@ -83,8 +83,9 @@ void main() {
         child: const Text('optional content'),
       ),
     ));
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump(const Duration(seconds: 1));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
     expect(find.text('تعذر تشغيل optional'), findsOneWidget);
     expect(find.text('optional content'), findsNothing);
   });
