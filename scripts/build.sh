@@ -22,6 +22,7 @@ log CHECK "1/10 Environment"
 "$ROOT/scripts/build_guard.sh" || fatal "$ERR_ENV" "Environment guard failed"
 
 log CHECK "2/10 Dependencies"
+python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
 run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
 assert_lockfile_unchanged
