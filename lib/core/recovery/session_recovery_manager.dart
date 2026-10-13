@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Serializable navigation-only checkpoint; this is not the SRS transaction
-/// authority and never replays a review as a side effect of restoration.
+/// Navigation metadata only. SRS transactions are never replayed by recovery.
 class SessionState {
   SessionState({
     required this.sessionId,
@@ -86,11 +86,6 @@ class CheckpointEnvelope {
 }
 
 class SessionRecoveryManager {
-  static const String _storageKey = 'deutsch_active_session_recovery_v1';
-  static const int checkpointVersion = 2;
-  static const int maxCommittedReviewIds = 256;
-  static const int maxCheckpointBytes = 128 * 1024;
-
   SessionRecoveryManager(
     this._preferences, {
     int Function()? clock,
@@ -100,16 +95,40 @@ class SessionRecoveryManager {
         assert(maxCheckpointAgeMs > 0),
         _clock = clock ?? (() => DateTime.now().millisecondsSinceEpoch);
 
+  static const String _storageKey = 'deutsch_active_session_recovery_v1';
+  static const int checkpointVersion = 2;
+  static const int maxCommittedReviewIds = 256;
+  static const int maxCheckpointBytes = 128 * 1024;
+
+  // All managers within this isolate serialize checkpoint read-modify-write.
+  // A single resolved tail is retained, rather than an unbounded history.
+  static Future<void> _storageTail = Future<void>.value();
+  static Future<T> _exclusively<T>(Future<T> Function() operation) async {
+    final previous = _storageTail;
+    final completion = Completer<void>();
+    _storageTail = completion.future;
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      completion.complete();
+    }
+  }
+
   final SharedPreferences _preferences;
   final int Function() _clock;
   final int maxRecoveryAttempts;
   final int maxCheckpointAgeMs;
+  SessionState? _activatedState;
 
-  Future<void> persistSession(SessionState state, {int attempts = 0}) async {
+  Future<void> persistSession(SessionState state, {int attempts = 0}) =>
+      _exclusively(() => _persistUnlocked(state, attempts: attempts));
+
+  Future<void> _persistUnlocked(SessionState state, {int attempts = 0}) async {
     if (!_hasValidCoreFields(state) ||
         state.committedReviewIds.length > maxCommittedReviewIds ||
         attempts < 0) {
-      throw ArgumentError('Invalid or oversized session checkpoint');
+      throw ArgumentError('Invalid session checkpoint');
     }
     final seen = <String>{};
     for (final id in state.committedReviewIds) {
@@ -122,8 +141,8 @@ class SessionRecoveryManager {
       state: state,
       recoveryAttempts: attempts,
     ).toMap());
-    if (raw.length > maxCheckpointBytes) {
-      throw ArgumentError('Session checkpoint exceeds size limit');
+    if (utf8.encode(raw).length > maxCheckpointBytes) {
+      throw ArgumentError('Session checkpoint exceeds byte limit');
     }
     if (!await _preferences.setString(_storageKey, raw)) {
       throw StateError('Checkpoint persistence was not acknowledged');
@@ -132,7 +151,10 @@ class SessionRecoveryManager {
 
   CheckpointEnvelope? _readEnvelope() {
     final raw = _preferences.getString(_storageKey);
-    if (raw == null || raw.isEmpty || raw.length > maxCheckpointBytes) {
+    if (raw == null ||
+        raw.isEmpty ||
+        raw.length > maxCheckpointBytes ||
+        utf8.encode(raw).length > maxCheckpointBytes) {
       return null;
     }
     try {
@@ -140,10 +162,13 @@ class SessionRecoveryManager {
       if (parsed is! Map) return null;
       final envelope =
           CheckpointEnvelope.fromMap(Map<String, dynamic>.from(parsed));
+      final ids = envelope.state.committedReviewIds;
       if ((envelope.version != 1 && envelope.version != checkpointVersion) ||
           envelope.recoveryAttempts < 0 ||
           !_hasValidCoreFields(envelope.state) ||
-          envelope.state.committedReviewIds.length > maxCommittedReviewIds ||\n          envelope.state.committedReviewIds.any((id) =>\n              id.isEmpty || id.length > 128) ||\n          envelope.state.committedReviewIds.toSet().length !=\n              envelope.state.committedReviewIds.length) {
+          ids.length > maxCommittedReviewIds ||
+          ids.any((id) => id.isEmpty || id.length > 128) ||
+          ids.toSet().length != ids.length) {
         return null;
       }
       return envelope;
@@ -152,77 +177,89 @@ class SessionRecoveryManager {
     }
   }
 
-  bool _hasValidCoreFields(SessionState state) {
-    return state.sessionId.isNotEmpty &&
-        state.sessionId.length <= 128 &&
-        state.currentRoute.startsWith('/') &&
-        state.currentRoute.length <= 256 &&
-        state.lastItemIndex >= 0 &&
-        state.timestamp > 0;
-  }
+  bool _hasValidCoreFields(SessionState state) =>
+      state.sessionId.isNotEmpty &&
+      state.sessionId.length <= 128 &&
+      state.currentRoute.startsWith('/') &&
+      state.currentRoute.length <= 256 &&
+      state.lastItemIndex >= 0 &&
+      state.timestamp > 0;
 
-  /// Compatibility read only. Startup probes may inspect legacy metadata, but
-  /// must NEVER navigate to it or replay SRS using this untrusted read.
+  /// Compatibility-only inspection. Does not navigate or advance SRS.
   SessionState? restoreSession() => _readEnvelope()?.state;
 
-  /// The sole activation API. Requires a complete directed language identity
-  /// and a caller-owned route validator. The recovery attempt is durably
-  /// recorded BEFORE returning any session for navigation.
+  /// Activation is strictly pair-scoped and one-shot per manager lifetime.
+  /// Durable recovery-attempt accounting completes before the caller receives
+  /// any restorable state; simultaneous callers cannot double-navigate.
   Future<SessionState?> restoreForPair({
     required String expectedSourceLocale,
     required String expectedTargetLocale,
     required bool Function(String) isValidRoute,
     String? expectedSemanticVersion,
-  }) async {
-    if (expectedSourceLocale.isEmpty || expectedTargetLocale.isEmpty) {
-      return null;
-    }
-    final envelope = _readEnvelope();
-    if (envelope == null ||
-        envelope.version != checkpointVersion ||
-        envelope.recoveryAttempts >= maxRecoveryAttempts) {
-      return null;
-    }
-    final state = envelope.state;
-    if (state.sourceLocale.isEmpty ||
-        state.targetLocale.isEmpty ||
-        state.sourceLocale != expectedSourceLocale ||
-        state.targetLocale != expectedTargetLocale ||
-        (expectedSemanticVersion != null &&
-            (state.semanticVersion.isEmpty ||
-                state.semanticVersion != expectedSemanticVersion)) ||
-        !isValidRoute(state.currentRoute)) {
-      return null;
-    }
-    final age = _clock() - state.timestamp;
-    if (age < 0 || age > maxCheckpointAgeMs) return null;
+  }) => _exclusively(() async {
+        if (_activatedState != null ||
+            expectedSourceLocale.isEmpty ||
+            expectedTargetLocale.isEmpty) {
+          return null;
+        }
+        final envelope = _readEnvelope();
+        if (envelope == null ||
+            envelope.version != checkpointVersion ||
+            envelope.recoveryAttempts >= maxRecoveryAttempts) {
+          return null;
+        }
+        final state = envelope.state;
+        if (state.sourceLocale.isEmpty ||
+            state.targetLocale.isEmpty ||
+            state.sourceLocale != expectedSourceLocale ||
+            state.targetLocale != expectedTargetLocale ||
+            (expectedSemanticVersion != null &&
+                (state.semanticVersion.isEmpty ||
+                    state.semanticVersion != expectedSemanticVersion)) ||
+            !isValidRoute(state.currentRoute)) {
+          return null;
+        }
+        final age = _clock() - state.timestamp;
+        if (age < 0 || age > maxCheckpointAgeMs) return null;
+        try {
+          await _persistUnlocked(
+            state,
+            attempts: envelope.recoveryAttempts + 1,
+          );
+          _activatedState = state;
+          return state;
+        } catch (_) {
+          // Failed persistence must never lead to navigation.
+          return null;
+        }
+      });
 
-    try {
-      await persistSession(state, attempts: envelope.recoveryAttempts + 1);
-      return state;
-    } catch (_) {
-      // No checkpoint durability => no navigation/resume side effect.
-      return null;
-    }
-  }
+  /// Only the exact, previously activated directed session can acknowledge
+  /// a stable restore; a newer checkpoint is never overwritten.
+  Future<bool> markRestoreStable(String sessionId) => _exclusively(() async {
+        final activated = _activatedState;
+        final current = _readEnvelope();
+        if (activated == null ||
+            current == null ||
+            current.version != checkpointVersion ||
+            activated.sessionId != sessionId ||
+            current.state.sessionId != activated.sessionId ||
+            current.state.sourceLocale != activated.sourceLocale ||
+            current.state.targetLocale != activated.targetLocale ||
+            current.state.semanticVersion != activated.semanticVersion ||
+            current.state.timestamp != activated.timestamp) {
+          return false;
+        }
+        try {
+          await _persistUnlocked(current.state);
+          return true;
+        } catch (_) {
+          return false;
+        }
+      });
 
-  /// A successful UI handoff may reset the attempt ledger, but only if the
-  /// same session is still current; stale completions cannot rewrite newer
-  /// language-pair checkpoints.
-  Future<bool> markRestoreStable(String sessionId) async {
-    final current = _readEnvelope();
-    if (current == null ||
-        current.version != checkpointVersion ||
-        current.state.sessionId != sessionId) return false;
-    try {
-      await persistSession(current.state);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> clearSession() async {
-    await _preferences.remove(_storageKey);
-  }
+  Future<void> clearSession() => _exclusively(() async {
+        await _preferences.remove(_storageKey);
+        _activatedState = null;
+      });
 }
