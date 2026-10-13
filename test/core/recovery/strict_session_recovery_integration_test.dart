@@ -46,9 +46,28 @@ void main() {
     final raw = jsonDecode(preferences.getString(
         'deutsch_active_session_recovery_v1')!) as Map<String, dynamic>;
     expect(raw['recovery_attempts'], 1);
-    expect(await activate(), isNotNull);
-    expect(await activate(), isNotNull);
+    // A second restore in the same runtime must not trigger a second handoff.
     expect(await activate(), isNull);
+    // Each new process has its own manager, but the persisted ledger is finite.
+    final rebooted = SessionRecoveryManager(preferences, clock: () => 2000000);
+    expect(await rebooted.restoreForPair(
+      expectedSourceLocale: 'de',
+      expectedTargetLocale: 'ar',
+      expectedSemanticVersion: '2',
+      isValidRoute: (route) => route == '/lesson',
+    ), isNotNull);
+  });
+
+  test('racing restore calls admit only one navigation', () async {
+    await manager.persistSession(checkpoint());
+    final answers = await Future.wait(<Future<SessionState?>>[
+      activate(),
+      activate(),
+    ]);
+    expect(answers.where((session) => session != null).length, 1);
+    final raw = jsonDecode(preferences.getString(
+        'deutsch_active_session_recovery_v1')!) as Map<String, dynamic>;
+    expect(raw['recovery_attempts'], 1);
   });
 
   test('incomplete or different directed pair fails closed', () async {
@@ -99,6 +118,15 @@ void main() {
     ), isNull);
   });
 
+  test('stable acknowledgement verifies directed identity even with reused id',
+      () async {
+    await manager.persistSession(checkpoint());
+    expect(await activate(), isNotNull);
+    await manager.persistSession(checkpoint(target: 'fr'));
+    expect(await manager.markRestoreStable('stable-1'), isFalse);
+    expect(manager.restoreSession()?.targetLocale, 'fr');
+  });
+
   test('stable acknowledgment cannot overwrite a newer session', () async {
     await manager.persistSession(checkpoint());
     expect(await activate(), isNotNull);
@@ -126,6 +154,18 @@ void main() {
           timestamp: 1999000,
           committedReviewIds: const <String>['tx', 'tx'],
         )), throwsArgumentError);
+  });
+
+  test('stale payload cannot corrupt the checkpoint ledger', () async {
+    final duplicate = checkpoint().toMap();
+    duplicate['committed_review_ids'] = <String>['repeat', 'repeat'];
+    await preferences.setString('deutsch_active_session_recovery_v1',
+        jsonEncode(<String, dynamic>{
+          'version': SessionRecoveryManager.checkpointVersion,
+          'state': duplicate,
+          'recovery_attempts': 0,
+        }));
+    expect(await activate(), isNull);
   });
 
   test('checkpoint is bounded and immutable', () {
