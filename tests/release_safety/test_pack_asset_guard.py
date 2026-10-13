@@ -64,6 +64,15 @@ class AssetPreservationTests(unittest.TestCase):
                 with self.assertRaises(UnsafePullRequest):
                     changes(payload)
 
+    def test_incomplete_pr_file_page_is_rejected(self):
+        raw = json.dumps([file('lib/a.dart')]).encode()
+        with self.assertRaisesRegex(UnsafePullRequest, 'incomplete'):
+            changes(raw, expected_files=25)
+
+    def test_exact_expected_file_count_allows_complete_inventory(self):
+        raw = json.dumps([file('lib/a.dart')]).encode()
+        self.assertEqual(changes(raw, expected_files=1)['files_checked'], 1)
+
     def test_real_pr59_pattern_is_blocked(self):
         records = [file('assets/content/packs/ar/bundles/ar-1.0.0.pack.gz', 'removed'),
                    file('assets/content/packs/de/bundles/de-1.0.0.pack.gz', 'modified'),
