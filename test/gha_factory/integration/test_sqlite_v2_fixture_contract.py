@@ -310,6 +310,42 @@ class SqliteV2FixtureContractTests(unittest.TestCase):
                     validate_v2_file(file, "ar")
                 file.unlink()
 
+    def test_pack_metadata_includes_route14_contract_version(self):
+        import base64
+        file = self.create("en")
+        archive = make_fixture_envelope(file.read_bytes(), "en", "1.0.0")
+        envelope = json.loads(gzip.decompress(archive))
+        encoded = next(item["contentBase64"] for item in envelope["files"]
+                       if item["path"] == "metadata/pack.json")
+        pack_metadata = json.loads(base64.b64decode(encoded))
+        self.assertEqual(pack_metadata["contractVersion"], "1.0.0")
+
+    def test_json_duplicate_metadata_keys_fail_closed(self):
+        file = self.create("fr")
+        archive = make_fixture_envelope(file.read_bytes(), "fr")
+        decoded = gzip.decompress(archive).decode("utf-8")
+        self.assertIn('"languageCode":"fr"', decoded)
+        # Duplicate keys must never depend on JSON parsers' last-wins policy.
+        duplicate = decoded.replace('"languageCode":"fr"',
+                                    '"languageCode":"de","languageCode":"fr"', 1)
+        tampered = gzip.compress(duplicate.encode("utf-8"), mtime=0)
+        with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
+            inspect_fixture_envelope(tampered, "fr", hashlib.sha256(tampered).hexdigest())
+
+    def test_manifest_and_envelope_version_must_match(self):
+        file = self.create("de")
+        archive = make_fixture_envelope(file.read_bytes(), "de", version="1.0.0")
+        with self.assertRaisesRegex(ValueError, "version mismatch"):
+            inspect_fixture_envelope(archive, "de", hashlib.sha256(archive).hexdigest(),
+                                     expected_version="2.0.0")
+
+    def test_sqlite_content_hash_must_match_manifest(self):
+        file = self.create("ar")
+        archive = make_fixture_envelope(file.read_bytes(), "ar")
+        with self.assertRaisesRegex(ValueError, "content sha256 mismatch"):
+            inspect_fixture_envelope(archive, "ar", hashlib.sha256(archive).hexdigest(),
+                                     expected_sqlite_sha="0" * 64)
+
     def test_expansion_bomb_rejected(self):
         file = self.create("de")
         archive = make_fixture_envelope(file.read_bytes(), "de")
