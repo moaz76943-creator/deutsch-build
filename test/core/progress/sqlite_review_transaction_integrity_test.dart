@@ -124,6 +124,21 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     expect(await count('de_en_v2'), 0);
   });
 
+  test('analytics source reads only committed matching directed pair', () async {
+    final port = SqliteReviewTransactionPort(database: db, applyReview: applyReview);
+    expect(await port.readCommittedReviews(
+      sourceLanguageId: 'de', targetLanguageId: 'ar', semanticVersion: 'v2',
+    ), isEmpty);
+    await manager(db).processTransaction(command('persist-a'));
+    await manager(db).processTransaction(command('persist-b', source: 'ar', target: 'de'));
+    final persisted = await port.readCommittedReviews(
+      sourceLanguageId: 'de', targetLanguageId: 'ar', semanticVersion: 'v2',
+    );
+    expect(persisted.length, 1);
+    expect(persisted.single.languagePairKey, 'de_ar_v2');
+    expect(persisted.single.rating, ReviewRating.good.index);
+  });
+
   test('invalid semantic version cannot reach storage', () async {
     await expectLater(manager(db).processTransaction(command('x', version: '')),
         throwsArgumentError);

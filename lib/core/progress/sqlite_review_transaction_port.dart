@@ -98,4 +98,44 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
       return ReviewCommitResult.committed;
     });
   }
+
+  /// Read only durable, committed events for a versioned directed pair.
+  /// Consumers such as local analytics must never use the in-memory journal.
+  Future<List<ReviewTransactionEnvelope>> readCommittedReviews({
+    required String sourceLanguageId,
+    required String targetLanguageId,
+    required String semanticVersion,
+    int limit = 50000,
+  }) async {
+    if (sourceLanguageId.trim().isEmpty ||
+        targetLanguageId.trim().isEmpty ||
+        semanticVersion.trim().isEmpty ||
+        sourceLanguageId == targetLanguageId ||
+        limit < 1 ||
+        limit > 50000) {
+      throw ArgumentError('Invalid directed pair or bounded read limit');
+    }
+    final key = '${sourceLanguageId}_${targetLanguageId}_${semanticVersion}';
+    await database.execute(_createTable);
+    final rows = await database.query(
+      tableName,
+      columns: <String>[
+        'review_id', 'card_id', 'rating', 'occurred_at_utc',
+        'language_pair_key',
+      ],
+      where: 'language_pair_key = ?',
+      whereArgs: <Object>[key],
+      orderBy: 'occurred_at_utc ASC, review_id ASC',
+      limit: limit,
+    );
+    return List<ReviewTransactionEnvelope>.unmodifiable(
+      rows.map((row) => ReviewTransactionEnvelope(
+        reviewEventId: row['review_id'] as String,
+        learnerContentKey: row['card_id'] as String,
+        rating: row['rating'] as int,
+        timestamp: DateTime.parse(row['occurred_at_utc'] as String).toUtc(),
+        languagePairKey: row['language_pair_key'] as String,
+      )),
+    );
+  }
 }
