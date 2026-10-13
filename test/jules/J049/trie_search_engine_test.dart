@@ -71,4 +71,14 @@ void main() {
     expect(index.currentNodeCount, 1);
     expect(index.searchPrefix(''), isEmpty);
   });
+  test('rejects huge grapheme payloads and huge IDs before indexing', () {
+    final index = TrieSearchEngine();
+    final massiveCluster = 'e' + List<String>.filled(2300, '\u0301').join();
+    final enormousId = List<String>.filled(200, 'x').join();
+    expect(index.tryInsert(massiveCluster, '1'), isFalse);
+    expect(index.tryInsert('abc', enormousId), isFalse);
+    expect(index.searchPrefix(massiveCluster), isEmpty);
+    expect(index.currentNodeCount, 1);
+  });
+
 }
