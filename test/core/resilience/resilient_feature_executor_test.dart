@@ -64,4 +64,21 @@ void main() {
     ), throwsA(isA<StorageFailure>()));
     expect(attempts, 1);
   });
+  test('timed out tasks never run again while prior work may be alive', () async {
+    final executor = ResilientFeatureExecutor();
+    var invoked = 0;
+    final result = await executor.execute<void>(
+      task: () {
+        invoked++;
+        return Completer<void>().future;
+      },
+      maxAttempts: 3,
+      backoff: const Duration(milliseconds: 1),
+      taskTimeout: const Duration(milliseconds: 5),
+    );
+    expect(result.isFailed, isTrue);
+    expect(result.error, isA<TimeoutException>());
+    expect(invoked, 1, reason: 'No duplicate un-cancellable side effects');
+  });
+
 }
