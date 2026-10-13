@@ -68,11 +68,19 @@ class CefrClassifier {
     String? languageCode,
     String? contentId,
   }) {
-    final eligible = evidence.where((e) => e.isSufficient).toList();
+    // Bound even caller-supplied lazy/infinite evidence iterables. The caller
+    // must provide compact, admitted per-sense evidence, not an entire corpus.
+    const maxEvidenceRecords = 64;
+    final eligible = <CefrEvidence>[];
+    var visited = 0;
+    for (final candidate in evidence) {
+      visited++;
+      if (visited > maxEvidenceRecords) return CefrLevel.unknown;
+      if (candidate.isSufficient) eligible.add(candidate);
+    }
     if (eligible.isEmpty) return CefrLevel.unknown;
     final language = languageCode ?? eligible.first.languageCode!;
     final content = contentId ?? eligible.first.contentId!;
-    // Reject cross-language or cross-sense mixing, never choose a convenient row.
     if (eligible.any((e) =>
         e.languageCode != language || e.contentId != content)) {
       return CefrLevel.unknown;
