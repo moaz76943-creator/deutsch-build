@@ -143,7 +143,7 @@ class SessionRecoveryManager {
       if ((envelope.version != 1 && envelope.version != checkpointVersion) ||
           envelope.recoveryAttempts < 0 ||
           !_hasValidCoreFields(envelope.state) ||
-          envelope.state.committedReviewIds.length > maxCommittedReviewIds) {
+          envelope.state.committedReviewIds.length > maxCommittedReviewIds ||\n          envelope.state.committedReviewIds.any((id) =>\n              id.isEmpty || id.length > 128) ||\n          envelope.state.committedReviewIds.toSet().length !=\n              envelope.state.committedReviewIds.length) {
         return null;
       }
       return envelope;
@@ -222,5 +222,7 @@ class SessionRecoveryManager {
     }
   }
 
-  Future<void> clearSession() => _preferences.remove(_storageKey).then((_) {});
+  Future<void> clearSession() async {
+    await _preferences.remove(_storageKey);
+  }
 }
