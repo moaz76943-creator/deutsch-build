@@ -66,12 +66,12 @@ void main() {
         child: const Text('Learning'),
       ),
     ));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('تعذر بدء الخدمات الأساسية'), findsOneWidget);
     await tester.tap(find.text('إعادة المحاولة مرة واحدة'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(operations.starts, 2);
-    expect(find.text('لا توجد محاولات استعادة إضافية لهذه الجلسة'),
+    expect(find.text('لا توجد محاولات استعادة إضافية لهذه الجلسة.'),
         findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -86,10 +86,10 @@ void main() {
         child: const Text('Learning'),
       ),
     ));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('الوضع الآمن'), findsOneWidget);
     await tester.tap(find.text('متابعة آمنة بالمحتوى المحلي'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('المحتوى غير متاح حاليًا'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
   });
