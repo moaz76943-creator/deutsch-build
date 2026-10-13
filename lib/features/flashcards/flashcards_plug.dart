@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
+import 'package:deutsch_bilarabi/core/lexical_repository.dart';
+import 'package:deutsch_bilarabi/features/flashcards/flashcard_session.dart';
 
 class FlashcardsPlug implements FeaturePlug {
+  final List<LexicalEntry>? entries;
+
+  FlashcardsPlug({this.entries});
+
   @override
   String get id => 'flashcards_core';
 
@@ -14,7 +20,9 @@ class FlashcardsPlug implements FeaturePlug {
   Widget buildEntry(BuildContext context) {
     return FeatureBoundary(
       featureName: displayName,
-      child: _FlashcardsContainer(),
+      child: entries != null && entries!.isNotEmpty
+          ? FlashcardSessionWidget(initialEntries: entries!)
+          : _FlashcardsContainer(),
     );
   }
 
