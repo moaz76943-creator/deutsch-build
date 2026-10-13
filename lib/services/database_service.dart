@@ -129,8 +129,7 @@ class DatabaseService {
     final dbRoot = await getDatabasesPath();
     final target = File(path.join(dbRoot, _germanDatabaseFileName));
 
-    // A process can terminate between target -> .bak and staged -> target.
-    // Restore only a digest-verified last-known-good file before reinstalling.
+    // Recover a verified last-known-good file after interrupted promotion.
     if (await recoverVerifiedBundledBackup(target, germanGoldenSha256)) {
       return target.path;
     }
@@ -151,7 +150,7 @@ class DatabaseService {
     if (!_constantTimeHexEquals(assetHash, germanGoldenSha256)) {
       throw StateError(
         'Bundled German database does not match the Golden baseline. '
-        'Expected $' + 'germanGoldenSha256, got $' + 'assetHash.',
+        'Expected $germanGoldenSha256, got $assetHash.',
       );
     }
 
@@ -165,7 +164,6 @@ class DatabaseService {
     await _replaceAtomically(staged, target);
     return target.path;
   }
-
   Future<String> _installedPackPath(String languageCode) async {
     final located = await StorageMigrationService()
         .resolvePackPath('$languageCode.sqlite');
