@@ -237,8 +237,7 @@ class LanguagePackManager {
   /// a different language pack (e.g. zh-Hant must not open zh).
   static String? resolveContentLanguageCode(String bcp47Locale) {
     final normalized = bcp47Locale.trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*}
-)
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$')
         .hasMatch(normalized)) {
       return null;
     }
@@ -246,15 +245,12 @@ class LanguagePackManager {
     final base = _aliases[rawBase] ?? rawBase;
     final defaultTtsLocale = ttsLocales[base]?.toLowerCase();
     if (defaultTtsLocale == null) return null;
-    final contentTag = '}
- + '{base}' + '}
- + '{normalized.substring(rawBase.length)}';
+    final contentTag = '$base${normalized.substring(rawBase.length)}';
     if (contentTag == base || contentTag == defaultTtsLocale) {
       return base;
     }
     return contentTag;
   }
-
   /// An offline pack is mounted only after SQLite opens read-only and passes
   /// DatabaseService's schema and integrity gates. No network fallback.
   static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
