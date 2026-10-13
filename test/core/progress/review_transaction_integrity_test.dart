@@ -36,6 +36,7 @@ ReviewCommand review(String id, {String source = 'de', String target = 'ar'}) =>
       reviewId: id,
       sourceLanguageId: source,
       targetLanguageId: target,
+      semanticVersion: 'v2',
       cardId: 'card',
       facetKey: 'lexeme',
       pairEpoch: 7,
@@ -52,7 +53,7 @@ void main() {
     final restarted = ReviewTransactionManager(port, clock: () => stamp);
     expect(await restarted.processTransaction(review('r1')),
         ReviewCommitResult.alreadyCommitted);
-    expect(port.pairAdvances['de_ar'], 1);
+    expect(port.pairAdvances['de_ar_v2'], 1);
   });
 
   test('rollback before commit is recoverable without advancing', () async {
@@ -62,7 +63,7 @@ void main() {
     expect(port.pairAdvances, isEmpty);
     port.failBeforeCommit = false;
     expect(await manager.processTransaction(review('r1')), ReviewCommitResult.committed);
-    expect(port.pairAdvances['de_ar'], 1);
+    expect(port.pairAdvances['de_ar_v2'], 1);
   });
 
   test('same event ID with a different pair is not silently replayed', () async {
@@ -73,7 +74,7 @@ void main() {
       manager.processTransaction(review('r1', source: 'ar', target: 'de')),
       throwsStateError,
     );
-    expect(port.pairAdvances['ar_de'], isNull);
+    expect(port.pairAdvances['ar_de_v2'], isNull);
   });
 
   test('distinct direction is isolated even for identical card', () async {
@@ -81,8 +82,8 @@ void main() {
     final manager = ReviewTransactionManager(port, clock: () => stamp);
     await manager.processTransaction(review('r1'));
     await manager.processTransaction(review('r2', source: 'ar', target: 'de'));
-    expect(port.pairAdvances['de_ar'], 1);
-    expect(port.pairAdvances['ar_de'], 1);
+    expect(port.pairAdvances['de_ar_v2'], 1);
+    expect(port.pairAdvances['ar_de_v2'], 1);
   });
 
   test('malformed review and reflexive pair fail before storage', () async {

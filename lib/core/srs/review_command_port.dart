@@ -1,11 +1,11 @@
-/// An immutable, directed-pair-specific review command.
-/// reviewId is a globally unique event key; a colliding payload is an error.
+/// Immutable, versioned, directed-pair review identity.
 enum ReviewRating { again, hard, good, easy }
 
 class ReviewCommand {
   final String reviewId;
   final String sourceLanguageId;
   final String targetLanguageId;
+  final String semanticVersion;
   final String cardId;
   final String facetKey;
   final int pairEpoch;
@@ -16,6 +16,7 @@ class ReviewCommand {
     required this.reviewId,
     required this.sourceLanguageId,
     required this.targetLanguageId,
+    required this.semanticVersion,
     required this.cardId,
     required this.facetKey,
     required this.pairEpoch,
@@ -27,6 +28,7 @@ class ReviewCommand {
       reviewId == other.reviewId &&
       sourceLanguageId == other.sourceLanguageId &&
       targetLanguageId == other.targetLanguageId &&
+      semanticVersion == other.semanticVersion &&
       cardId == other.cardId &&
       facetKey == other.facetKey &&
       pairEpoch == other.pairEpoch &&
@@ -35,6 +37,6 @@ class ReviewCommand {
 }
 
 abstract interface class ReviewCommandPort {
-  /// Implementation must use the one persistent, worker-backed SRS authority.
+  /// Only a durable transaction-backed implementation may acknowledge success.
   Future<void> submit(ReviewCommand command);
 }
