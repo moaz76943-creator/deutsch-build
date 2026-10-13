@@ -255,6 +255,61 @@ class SqliteV2FixtureContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "identity"):
             inspect_fixture_envelope(archive, "de", digest)
 
+    def test_missing_and_duplicate_envelope_members_fail_closed(self):
+        file = self.create("en")
+        archive = make_fixture_envelope(file.read_bytes(), "en")
+        template = json.loads(gzip.decompress(archive))
+        for change in ("missing", "duplicate", "unexpected"):
+            with self.subTest(change=change):
+                candidate = json.loads(json.dumps(template))
+                if change == "missing":
+                    candidate["files"].pop()
+                elif change == "duplicate":
+                    candidate["files"][1] = candidate["files"][0].copy()
+                else:
+                    candidate["files"][0]["path"] = "../unsafe.sqlite"
+                data = gzip.compress(json.dumps(candidate).encode(), mtime=0)
+                with self.assertRaisesRegex(ValueError, "mandatory files"):
+                    inspect_fixture_envelope(data, "en", hashlib.sha256(data).hexdigest())
+
+    def test_truncated_gzip_fails(self):
+        file = self.create("fr")
+        original = make_fixture_envelope(file.read_bytes(), "fr")
+        damaged = original[:-12]
+        with self.assertRaises((EOFError, OSError)):
+            inspect_fixture_envelope(damaged, "fr", hashlib.sha256(damaged).hexdigest())
+
+    def test_pack_version_and_contract_metadata_tamper_fail_closed(self):
+        import base64
+        file = self.create("de")
+        archive = make_fixture_envelope(file.read_bytes(), "de")
+        template = json.loads(gzip.decompress(archive))
+        for field, replacement, error in (("version", "99.0.0", "file identity"),
+                                          ("contractVersion", "9.9.9", "pack contract mismatch"),
+                                          ("languageCode", "en", "file identity")):
+            with self.subTest(field=field):
+                candidate = json.loads(json.dumps(template))
+                pack = next(item for item in candidate["files"]
+                            if item["path"] == "metadata/pack.json")
+                metadata = json.loads(base64.b64decode(pack["contentBase64"]))
+                metadata[field] = replacement
+                pack["contentBase64"] = base64.b64encode(json.dumps(metadata).encode()).decode()
+                data = gzip.compress(json.dumps(candidate).encode(), mtime=0)
+                with self.assertRaisesRegex(ValueError, error):
+                    inspect_fixture_envelope(data, "de", hashlib.sha256(data).hexdigest())
+
+    def test_required_fts_and_view_rejected_when_missing(self):
+        for relation in ("lexicon_fts", "lexemes", "lexicon_language_sort"):
+            with self.subTest(relation=relation):
+                file = self.create("ar")
+                with sqlite3.connect(file) as db:
+                    db.execute("DROP " + ("VIEW " if relation == "lexemes" else
+                                         "INDEX " if relation == "lexicon_language_sort" else
+                                         "TABLE ") + relation)
+                with self.assertRaisesRegex(ValueError, "(table|view|index)"):
+                    validate_v2_file(file, "ar")
+                file.unlink()
+
     def test_expansion_bomb_rejected(self):
         file = self.create("de")
         archive = make_fixture_envelope(file.read_bytes(), "de")
