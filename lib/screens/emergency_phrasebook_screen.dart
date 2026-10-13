@@ -34,7 +34,9 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
               final item = phrases[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: AppBaseGlassCard(
+                child: Semantics(
+                  button: true,
+                  child: AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
                   onTap: () {
                     Navigator.of(context).push(
@@ -88,6 +90,7 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
                   ),
                 ),
               );
