@@ -53,8 +53,9 @@ class DirectedPairId {
   /// An absent historical version must be supplied by a trusted migration.
   /// Underscored locale IDs are ambiguous; never guess their meaning.
   factory DirectedPairId.fromLegacyString(
-    String value, {String? missingVersion},
-  ) {
+    String value, {
+    String? missingVersion,
+  }) {
     final parts = value.split('_');
     if (parts.length != 3 && parts.length != 2) {
       throw const FormatException('Ambiguous legacy pair identifier');
