@@ -21,6 +21,8 @@ The standalone Python sqlite3 test models orphaned foreign keys invisible to int
 
 Flutter SDK and Dart SDK were absent in the current execution environment. Do NOT claim Flutter tests passed. The new suite deliberately contains RED regression cases on the existing staging base:
 
+- New sqlite_v2_reader_acceptance_test.dart uses real SQLite FFI to reject a normal table masquerading as FTS5 and orphaned example rows before pack activation; also tests an intact v2 schema control.
+- PR #142 currently owns lib/services/database_service.dart and has been notified. Current staging schema reader does not probe FTS5 MATCH or foreign_key_check.
 - PR #139 owns the delta patch foreign_key_check fix.
 - PR #131 owns false-ready database bootstrap after silent seeding.
 - PR #134 owns rejection of fractional persisted SRS counters.
