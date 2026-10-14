@@ -23,7 +23,7 @@ log CHECK "1/10 Environment"
 
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+with_retry flutter pub get --enforce-lockfile
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"

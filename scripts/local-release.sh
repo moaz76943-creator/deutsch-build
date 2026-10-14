@@ -85,7 +85,7 @@ bash "$ROOT/scripts/build_guard.sh"
 (cd "$ROOT/android" && ./gradlew --version)
 
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+with_retry flutter pub get --enforce-lockfile
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then

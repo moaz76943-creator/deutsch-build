@@ -71,3 +71,42 @@ git_commit() {
     printf 'unknown\n'
   fi
 }
+
+# Bounded retry only for transient failures (e.g. network/socket timeouts)
+with_retry() {
+  local max_attempts=3
+  local attempt=1
+  local interval=2
+  while (( attempt <= max_attempts )); do
+    # Run the command and capture output to check for transient errors
+    local output
+    local status=0
+    # Store stderr and stdout in a temporary file to parse
+    local tmp_out
+    tmp_out="$(mktemp)"
+    if "$@" > "$tmp_out" 2>&1; then
+      cat "$tmp_out"
+      rm -f "$tmp_out"
+      return 0
+    else
+      status=$?
+      cat "$tmp_out"
+    fi
+
+    # Check if the failure is transient (e.g., SocketException, Timeout)
+    if grep -q -iE "(SocketException|timeout|connection reset|network is unreachable|Connection refused)" "$tmp_out"; then
+      rm -f "$tmp_out"
+      if (( attempt == max_attempts )); then
+        return "$status"
+      fi
+      log WARN "Transient failure detected. retrying ($attempt/$max_attempts) in $interval seconds..."
+      sleep "$interval"
+      attempt=$((attempt + 1))
+      interval=$((interval * 2))
+    else
+      # Not a transient error, fail immediately
+      rm -f "$tmp_out"
+      return "$status"
+    fi
+  done
+}

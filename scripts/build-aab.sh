@@ -12,7 +12,7 @@ log CHECK "Production App Bundle preflight"
 "$ROOT/scripts/signing_guard.sh"
 
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+with_retry flutter pub get --enforce-lockfile
 assert_lockfile_unchanged
 
 flutter analyze
