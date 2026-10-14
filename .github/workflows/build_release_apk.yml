@@ -1,25 +1,37 @@
-name: Manual Release APK
+name: Android Continuous APK (staging)
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - staging/v2-full-platform
+    branches: [staging/v2-full-platform]
     paths:
-      - .github/workflows/build_release_apk.yml
+      - 'lib/**'
+      - 'android/**'
+      - 'assets/**'
+      - 'test/**'
+      - 'scripts/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'deutsch_release_preflight.py'
+      - '.github/workflows/build_release_apk.yml'
 
 permissions:
   contents: read
 
-jobs:
-  release-apk:
-    name: Build release APK
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+concurrency:
+  group: android-continuous-apk-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  android-apk:
+    name: Verify and package installable Android app
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - name: Checkout staging source
+      - name: Checkout exact staging commit
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -31,23 +43,131 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
-      - name: Resolve dependencies
+      - name: Restore bundled SQLite assets and verify databases
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import gzip
+          import hashlib
+          import shutil
+          import sqlite3
+          from pathlib import Path
+
+          for language in ("de", "ar"):
+              root = Path("assets/content/packs") / language
+              archive = root / "bundles" / f"{language}-1.0.0.pack.gz"
+              destination = root / "sqlite" / f"{language}-1.0.0.sqlite"
+              if not archive.is_file():
+                  raise SystemExit(f"BLOCKED_ASSET: missing bundled archive {archive}")
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              with gzip.open(archive, "rb") as source, destination.open("wb") as target:
+                  shutil.copyfileobj(source, target)
+              if destination.stat().st_size < 1024:
+                  raise SystemExit(f"BLOCKED_ASSET: unexpectedly short SQLite {destination}")
+              with destination.open("rb") as source:
+                  if source.read(16) != b"SQLite format 3\x00":
+                      raise SystemExit(f"BLOCKED_ASSET: invalid SQLite header {destination}")
+              with sqlite3.connect(f"file:{destination}?mode=ro", uri=True) as db:
+                  integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+                  keys = db.execute("PRAGMA foreign_key_check").fetchall()
+                  if integrity != "ok" or keys:
+                      raise SystemExit(f"BLOCKED_ASSET: corrupted SQLite {destination}")
+              print(f"Bundled {language} SQLite: {destination.stat().st_size} bytes, SHA256={hashlib.sha256(destination.read_bytes()).hexdigest()}")
+          PY
+
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze Dart sources
-        run: flutter analyze lib/
+      - name: Analyze blocking Dart errors
+        run: dart analyze --no-fatal-warnings lib/
 
-      - name: Run Flutter tests
-        run: flutter test
+      - name: Run offline release preflight
+        run: python3 deutsch_release_preflight.py
 
-      - name: Build release APK
-        run: flutter build apk --release
+      - name: Test offline bootstrap, identity, and SRS
+        run: >-
+          flutter test
+          test/core/database/bootstrap/database_bootstrapper_test.dart
+          test/services/delta_patch_service_test.dart
+          test/services/srs_scheduler_persisted_counter_integrity_test.dart
+          test/services/lemmatization_service_test.dart
+          test/jules/J049/trie_search_engine_test.dart
+          test/jules/J010/directed_readiness_test.dart
+          test/jules/J028/directed_pair_id_test.dart
+          test/jules/J028/operation_result_test.dart
+          test/jules/J054/semantic_color_tagging_test.dart
+          test/offline_recovery/bootstrap_missing_pack_recovery_test.dart
+          test/jules/WS16/
+          test/offline_gate_test.dart
 
-      - name: Upload APK artifact
+      - name: Configure optional stable release signing
+        id: signing
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.APK_RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.APK_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.APK_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.APK_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          count=0
+          for value in "$KEYSTORE_B64" "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD"; do
+            if [[ -n "$value" ]]; then count=$((count + 1)); fi
+          done
+          if (( count != 0 && count != 4 )); then
+            echo "::error::BLOCKED_SIGNING: incomplete release signing secrets"
+            exit 1
+          fi
+          if (( count == 4 )); then
+            signing_dir="${RUNNER_TEMP}/deutsch-android-signing"
+            mkdir -p "$signing_dir"
+            umask 077
+            printf '%s' "$KEYSTORE_B64" | base64 --decode > "$signing_dir/release.jks"
+            test -s "$signing_dir/release.jks"
+            printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "$signing_dir/release.jks" "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > android/key.properties
+            chmod 600 android/key.properties
+            echo "variant=release" >> "$GITHUB_OUTPUT"
+            echo "signed_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Release signing is not configured; producing internal debug-signed APK only. Its signature may change between hosted runners; do not distribute it as an update-safe production release."
+            echo "variant=debug" >> "$GITHUB_OUTPUT"
+            echo "signed_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Android APK
+        run: flutter build apk --${{ steps.signing.outputs.variant }}
+
+      - name: Verify APK structure and record commit SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-${{ steps.signing.outputs.variant }}.apk"
+          test -s "$apk"
+          unzip -tq "$apk" >/dev/null
+          (cd build/app/outputs/flutter-apk && sha256sum "app-${{ steps.signing.outputs.variant }}.apk" > SHA256SUMS.txt)
+          {
+            echo "## Continuous Android APK"
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo "Mode: \`${{ steps.signing.outputs.variant }}\`"
+            echo "Stable release signing configured: \`${{ steps.signing.outputs.signed_release }}\`"
+            echo "Artifact integrity: PASS (ZIP contents + SHA256)"
+            echo "Device installation/offline runtime: NOT_RUN (hosted Linux build)"
+            echo "Content redistribution rights: NOT_VERIFIED (bundled developer content)"
+            echo "```"
+            cat build/app/outputs/flutter-apk/SHA256SUMS.txt
+            echo "```"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload installable APK with SHA256
         uses: actions/upload-artifact@v4
         with:
-          name: deutsch-bilarabi-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: deutsch-android-${{ steps.signing.outputs.variant }}-${{ github.sha }}
+          path: |
+            build/app/outputs/flutter-apk/app-${{ steps.signing.outputs.variant }}.apk
+            build/app/outputs/flutter-apk/SHA256SUMS.txt
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
