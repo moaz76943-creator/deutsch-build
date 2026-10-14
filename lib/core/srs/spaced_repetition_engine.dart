@@ -6,8 +6,21 @@ class SpacedRepetitionEngine {
   static LeitnerCardState calculateNextInterval({
     required LeitnerCardState previousState,
     required int rating,
+    int? currentTimeMs,
   }) {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    if (rating < 0 || rating > 3) {
+      throw ArgumentError('Invalid rating: must be between 0 and 3');
+    }
+    if (previousState.easeFactor.isNaN) {
+      throw ArgumentError('previousState.easeFactor cannot be NaN');
+    }
+
+    final now = currentTimeMs ?? DateTime.now().millisecondsSinceEpoch;
+
+    // Prevent duplicate review processing (debounce within 1 minute)
+    if (now - previousState.lastReviewedEpoch < 60000) {
+      return previousState;
+    }
 
     if (rating <= 1) {
       return LeitnerCardState(
