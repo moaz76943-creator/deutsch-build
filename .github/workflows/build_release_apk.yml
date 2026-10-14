@@ -157,9 +157,9 @@ jobs:
             echo "Artifact integrity: PASS (ZIP contents + SHA256)"
             echo "Device installation/offline runtime: NOT_RUN (hosted Linux build)"
             echo "Content redistribution rights: NOT_VERIFIED (bundled developer content)"
-            echo "```"
+            printf '%s\n' '```'
             cat build/app/outputs/flutter-apk/SHA256SUMS.txt
-            echo "```"
+            printf '%s\n' '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload installable APK with SHA256
