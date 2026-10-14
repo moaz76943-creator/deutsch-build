@@ -36,8 +36,9 @@ class SemanticPresentationEngine {
   }
 
   SemanticPresentationMetadata getPresentationForWord(
-    String word, {String? article},
-  ) {
+    String word, {
+    String? article,
+  }) {
     const unknown = SemanticPresentationMetadata(
       color: AppColors.articleOther,
       label: 'Grammar not verified',
