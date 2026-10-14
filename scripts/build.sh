@@ -13,15 +13,14 @@ JSON_CONTENT="${DEUTSCH_JSON_CONTENT:-false}"
 case "$JSON_CONTENT" in true|false) ;; *) fatal "$ERR_ENV" "DEUTSCH_JSON_CONTENT must be true or false";; esac
 DART_DEFINE=("--dart-define=DEUTSCH_JSON_CONTENT=$JSON_CONTENT")
 cd "$ROOT"
-LOG_DIR="${HOME}/.deutsch_bilarabi_logs"
-mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/build_${MODE}_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="$(bash "$ROOT/scripts/create_private_build_log.sh" "$MODE")" || fatal "$ERR_ENV" "Cannot create a private build log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 log CHECK "1/10 Environment"
 "$ROOT/scripts/build_guard.sh" || fatal "$ERR_ENV" "Environment guard failed"
 
 log CHECK "2/10 Dependencies"
+python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
 run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
 assert_lockfile_unchanged
