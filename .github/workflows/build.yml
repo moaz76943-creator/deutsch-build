@@ -26,6 +26,13 @@ jobs:
         channel: 'stable'
         cache: true
 
+    - name: Prepare Bundled Content Assets
+      run: |
+        mkdir -p assets/content/packs/de/sqlite assets/content/packs/ar/sqlite
+        python3 -c "import gzip, shutil; shutil.copyfileobj(gzip.open('assets/content/packs/de/bundles/de-1.0.0.pack.gz', 'rb'), open('assets/content/packs/de/sqlite/de-1.0.0.sqlite', 'wb'))"
+        python3 -c "import gzip, shutil; shutil.copyfileobj(gzip.open('assets/content/packs/ar/bundles/ar-1.0.0.pack.gz', 'rb'), open('assets/content/packs/ar/sqlite/ar-1.0.0.sqlite', 'wb'))"
+        python3 scripts/ensure_bundled_offline_assets.py
+
     - name: Install Dependencies
       run: flutter pub get
 
