@@ -87,6 +87,20 @@ class SrsSchedulerService {
     );
   }
 
+  // SQLite INTEGER affinity still allows fractional REAL values. Validate the
+  // saved value before conversion so corrupt progress is never rounded and
+  // overwritten by a review.
+  static int _readPersistedCounter(Object? value, String column) {
+    if (value is! num || !value.isFinite || value < 0) {
+      throw ArgumentError.value(value, column, 'Invalid persisted SRS counter');
+    }
+    final counter = value.toInt();
+    if (value != counter) {
+      throw ArgumentError.value(value, column, 'Invalid persisted SRS counter');
+    }
+    return counter;
+  }
+
   /// Atomic read-modify-write using the existing srs_progress schema.
   /// nextReviewEpoch is persisted as next_due_at, in Unix seconds.
   Future<SrsReviewSchedule> gradeAndPersist({
@@ -110,8 +124,12 @@ class SrsSchedulerService {
       final state = existing.isEmpty
           ? const SrsReviewState()
           : SrsReviewState(
-              repetitionCount: (existing.first['repetition_count'] as num).toInt(),
-              intervalDays: (existing.first['interval_days'] as num).toInt(),
+              repetitionCount: _readPersistedCounter(
+                existing.first['repetition_count'], 'repetition_count',
+              ),
+              intervalDays: _readPersistedCounter(
+                existing.first['interval_days'], 'interval_days',
+              ),
               easeFactor: (existing.first['ease_factor'] as num).toDouble(),
             );
       final result = calculate(
