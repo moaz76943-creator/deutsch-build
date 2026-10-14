@@ -59,6 +59,8 @@ void main() {
     expect(find.text('المحتوى غير متاح حاليًا'), findsOneWidget);
     expect(find.text('LESSON_READY'), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsNothing);
+    // Disposing cancels the long stability timer before test tearDown.
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   testWidgets('stalled boot reaches visible error within configured deadline',
