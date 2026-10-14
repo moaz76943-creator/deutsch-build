@@ -16,7 +16,7 @@ Deliver a verifiably working Android offline German→Arabic learning slice: ins
 
 ## Current approved execution plan (supersedes the older operations-first plan)
 
-1. Reuse the existing GitHub CI, task ledger and merge coordinator; do not build replacements.
+1. Reuse the existing GitHub CI, canonical task ledger and staging merge path; do not build replacements.
 2. Resume from the verified HEAD and current active PRs, not stale chat or old branch snapshots.
 3. Select the smallest **user-visible functionality blocker**; reuse or repair existing work rather than creating more backlog.
 4. Establish one reproducible Android APK artifact on canonical staging, with exact SHA and no automatic release publication.

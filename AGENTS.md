@@ -15,9 +15,8 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 ## Fast execution lane (owner direction 2026-10-15)
 
 - Canonical private repository: `moaz76943-creator/deutsch-build`; development integration branch: `staging/v2-full-platform`. The private `main` branch is not the automatic development merge target. Public content repository: `moaz76943-creator/-offline-packs-store`, canonical branch `main`.
-- READ-ONLY investigation needs no new task, claim, dashboard, or mandatory full-history review.
-- For a non-overlapping, narrowly scoped change, inspect the current target HEAD, relevant changed paths, existing PR/Issue, and applicable CI; reuse the existing TASK_ID and existing task record. Do not open a duplicate PR or create an extra coordination system.
-- Ownership claims are needed for **overlapping mutable scopes**, not for unrelated read-only work. Non-overlapping independent work may proceed concurrently.
+- Staging merge procedure: sequential squash merge via authorized `gh pr merge --squash --delete-branch` once required checks pass and reviews are resolved; guarded automation workflows (`auto-merge.yml`, `auto-rebase.yml`) cover both `main` and `staging/v2-full-platform`.
+- Ownership coordination: task ledger (`docs/control-plane/claims.json` / `tool/claim_ledger.py`) is rebound to `moaz76943-creator/deutsch-build` and canonical staging baseline. Ownership claims are needed for **overlapping mutable scopes**, not for unrelated read-only work. Non-overlapping independent work may proceed concurrently.
 - Use proportional tests: docs-only → relevant policy/format checks; targeted code → affected tests and blocking analyzer; Android/offline/release paths → appropriate build and integration gates. Existing GitHub required checks/reviews still apply.
 - Do not repeat PASS evidence on an unchanged SHA and unaffected dependencies; re-verify when the relevant code or dependency changes. Do not label older, skipped, or absent evidence PASS.
 - Stop writes only for a demonstrable collision, irreversible action, security/privacy risk, uncertain redistribution rights, or protection failure. Record the specific blocker; continue other independent safe work.
