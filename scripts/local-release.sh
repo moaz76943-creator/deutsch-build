@@ -84,8 +84,9 @@ eval "$build_exports"
 bash "$ROOT/scripts/build_guard.sh"
 (cd "$ROOT/android" && ./gradlew --version)
 
+python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
@@ -93,10 +94,10 @@ if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROO
 fi
 if [[ "$MODE" == "release" || "$VERIFY" == true ]]; then
   log CHECK "Mandatory local quality gate before release"
-  bash "$ROOT/scripts/local_quality_gate.sh"
+  bash "$ROOT/scripts/local_quality_gate.sh" || fatal "$ERR_COMP" "Local quality gate failed"
 fi
-bash "$ROOT/scripts/check-dart-errors.sh"
-if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
+bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Blocking Dart errors or analyzer failure"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh" || fatal "$ERR_SIGN" "Signing guard failed"; fi
 
 mkdir -p "$ROOT/build/symbols"
 log BUILD "ARM64 $MODE (incremental build and Gradle/pub caches preserved)"
@@ -109,11 +110,11 @@ fi
 flutter build apk "--$MODE" --no-pub \
   --target-platform android-arm64 \
   --dart-define="DEUTSCH_JSON_CONTENT=${DEUTSCH_JSON_CONTENT:-false}" \
-  "${build_options[@]}"
+  "${build_options[@]}" || fatal "$ERR_COMP" "Local APK build failed"
 assert_lockfile_unchanged
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"
-bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE"
+bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE" || fatal "$ERR_ARTIFACT" "Local APK verification failed"
 {
   printf 'Git Commit: %s\n' "$(git_commit)"
   printf 'Version: %s+%s\n' "$(app_version)" "$(app_build_number)"
