@@ -59,7 +59,7 @@ void main() {
     final result = await DatabaseBootstrapper.verifyAndPrepare(
       dbPath: seededPath,
       onSeedRequired: () async {
-        await File(seededPath).writeAsBytes('SQLite format 3\\x00'.codeUnits);
+        await File(seededPath).writeAsBytes('SQLite format 3\x00'.codeUnits);
       },
     );
 
