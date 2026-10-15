@@ -13,6 +13,7 @@ import 'package:deutsch_bilarabi/core/security/aead_backup_crypto.dart';
 import 'package:deutsch_bilarabi/core/security/security_log_redactor.dart';
 import 'package:deutsch_bilarabi/core/database/crash_safe_snapshot_manager.dart';
 import 'package:deutsch_bilarabi/core/security/app_cert_verifier.dart';
+import 'package:deutsch_bilarabi/core/storage/pack_admission_service.dart';
 
 void main() {
   group('SecureArchiveExtractor Tests (Study 42 - Zip Slip & Bomb Protection)', () {
@@ -101,6 +102,48 @@ void main() {
   });
 
   group('Ed25519SignatureVerifier & PackTrustRegistry Tests (Study 06)', () {
+    setUp(() {
+      PackTrustRegistry.clearRegistryForTesting();
+    });
+
+    test('RFC 8032 Test Vector 1 positive verification (empty message)', () {
+      final pubKey = PackTrustRegistry.hexToBytes(
+        'd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a',
+      )!;
+      final msg = Uint8List(0); // empty message
+      final sig = PackTrustRegistry.hexToBytes(
+        'e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b',
+      )!;
+
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: pubKey,
+          messageBytes: msg,
+          signatureBytes: sig,
+        ),
+        isTrue,
+      );
+    });
+
+    test('RFC 8032 Test Vector 2 positive verification (1-byte message 0x72)', () {
+      final pubKey = PackTrustRegistry.hexToBytes(
+        '3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c',
+      )!;
+      final msg = Uint8List.fromList([0x72]);
+      final sig = PackTrustRegistry.hexToBytes(
+        '92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00',
+      )!;
+
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: pubKey,
+          messageBytes: msg,
+          signatureBytes: sig,
+        ),
+        isTrue,
+      );
+    });
+
     test('Rejects corrupted signature length or mismatched digest', () {
       final dummyPub = Uint8List(32);
       final dummyMsg = Uint8List.fromList(utf8.encode('Test message'));
@@ -116,7 +159,7 @@ void main() {
         isFalse,
       );
 
-      // Invalid signature length
+      // Invalid signature length (32 bytes instead of 64)
       expect(
         Ed25519SignatureVerifier.verify(
           publicKeyBytes: dummyPub,
@@ -125,20 +168,85 @@ void main() {
         ),
         isFalse,
       );
+
+      // Invalid public key length (31 bytes instead of 32)
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: Uint8List(31),
+          messageBytes: dummyMsg,
+          signatureBytes: dummySig,
+        ),
+        isFalse,
+      );
     });
 
-    test('PackTrustRegistry trusts registered keys and honors revocation', () {
+    test('Negative test: bit flips in signature, message, or public key invalidate verification', () {
+      final pubKey = PackTrustRegistry.hexToBytes(
+        'd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a',
+      )!;
+      final msg = Uint8List(0);
+      final sig = PackTrustRegistry.hexToBytes(
+        'e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b',
+      )!;
+
+      // 1. Bit flip in signature
+      final tamperedSig = Uint8List.fromList(sig);
+      tamperedSig[0] ^= 0x01;
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: pubKey,
+          messageBytes: msg,
+          signatureBytes: tamperedSig,
+        ),
+        isFalse,
+      );
+
+      // 2. Tampered message
+      final tamperedMsg = Uint8List.fromList([0xFF]);
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: pubKey,
+          messageBytes: tamperedMsg,
+          signatureBytes: sig,
+        ),
+        isFalse,
+      );
+
+      // 3. Bit flip in public key
+      final tamperedPub = Uint8List.fromList(pubKey);
+      tamperedPub[0] ^= 0x01;
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: tamperedPub,
+          messageBytes: msg,
+          signatureBytes: sig,
+        ),
+        isFalse,
+      );
+    });
+
+    test('PackTrustRegistry rejects known RFC 8032 test keys and prevents their registration', () {
       const devKey = '3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c';
-      expect(PackTrustRegistry.isKeyTrusted(devKey), isTrue);
+      // Known RFC test key must NEVER be trusted in production registry
+      expect(PackTrustRegistry.isKeyTrusted(devKey), isFalse);
 
-      const untrustedKey = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899';
-      expect(PackTrustRegistry.isKeyTrusted(untrustedKey), isFalse);
+      // Attempting to register known RFC 8032 test key throws ArgumentError
+      expect(
+        () => PackTrustRegistry.registerTrustedKey('dev-publisher', devKey),
+        throwsArgumentError,
+      );
 
-      PackTrustRegistry.registerTrustedKey('partner-dev', untrustedKey);
-      expect(PackTrustRegistry.isKeyTrusted(untrustedKey), isTrue);
+      // Unregistered key is not trusted
+      const partnerKey = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899';
+      expect(PackTrustRegistry.isKeyTrusted(partnerKey), isFalse);
 
-      PackTrustRegistry.revokeKey(untrustedKey);
-      expect(PackTrustRegistry.isKeyTrusted(untrustedKey), isFalse);
+      // Registering legitimate key succeeds
+      PackTrustRegistry.registerTrustedKey('partner-official', partnerKey);
+      expect(PackTrustRegistry.isKeyTrusted(partnerKey), isTrue);
+
+      // Revocation works
+      PackTrustRegistry.revokeKey(partnerKey);
+      expect(PackTrustRegistry.isKeyTrusted(partnerKey), isFalse);
     });
   });
 
@@ -342,6 +450,10 @@ void main() {
   });
 
   group('AppCertVerifier Tests (Study 30 - APK Signature Validation)', () {
+    setUp(() {
+      AppCertVerifier.clearAuthorizedCertificatesForTesting();
+    });
+
     test('Development bypass in non-release mode', () {
       expect(
         AppCertVerifier.verifySignature(
@@ -352,11 +464,30 @@ void main() {
       );
     });
 
-    test('Enforces authorized signature in release mode', () {
-      const authorized = '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff';
+    test('Rejects placeholder certificates in release mode', () {
+      const placeholder = '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff';
       expect(
         AppCertVerifier.verifySignature(
-          currentApkCertSha256: authorized,
+          currentApkCertSha256: placeholder,
+          isReleaseMode: true,
+        ),
+        AppSignatureStatus.untrustedSignature,
+      );
+
+      // Attempting to register placeholder cert throws ArgumentError
+      expect(
+        () => AppCertVerifier.registerAuthorizedCertificate(placeholder),
+        throwsArgumentError,
+      );
+    });
+
+    test('Enforces authorized signature in release mode', () {
+      const genuineCertSha256 = 'c0ffee112233445566778899aabbccddeeff00112233445566778899aabbccdd';
+      AppCertVerifier.registerAuthorizedCertificate(genuineCertSha256);
+
+      expect(
+        AppCertVerifier.verifySignature(
+          currentApkCertSha256: genuineCertSha256,
           isReleaseMode: true,
         ),
         AppSignatureStatus.verifiedRelease,
@@ -369,6 +500,56 @@ void main() {
         ),
         AppSignatureStatus.untrustedSignature,
       );
+    });
+  });
+
+  group('PackAdmissionService Signature Verification (Production Path)', () {
+    late Directory tempDir;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('pack_admission_sig_test_');
+      PackTrustRegistry.clearRegistryForTesting();
+    });
+
+    tearDown(() async {
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+    });
+
+    test('verifyPackSignature rejects untrusted or known RFC test keys', () async {
+      final dummyFile = File('${tempDir.path}/test.pack');
+      await dummyFile.writeAsBytes([0x72]);
+
+      const rfcTestKey = '3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c';
+      const rfcSig = '92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00';
+
+      // Known RFC test key must be rejected by PackAdmissionService
+      final result = await PackAdmissionService.verifyPackSignature(
+        packFile: dummyFile,
+        signatureHex: rfcSig,
+        publicKeyHex: rfcTestKey,
+      );
+      expect(result, isFalse);
+    });
+
+    test('verifyPackSignature verifies authentic pack signed by registered trusted publisher', () async {
+      final packFile = File('${tempDir.path}/arabic_a1.pack');
+      // Content matching 0-byte message or 0x72
+      await packFile.writeAsBytes([0x72]);
+
+      const publisherKey = '79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664';
+      const validSig = '5b907d912cbb0218bfaddf03f37a5c22ead245bc0fb919b7c2611670e780a7f04385df80ced9d1eca74886dfb16545c8bca04220e6c53453055abe886c1d4a0e';
+
+      // Register legitimate partner key
+      PackTrustRegistry.registerTrustedKey('official-test-publisher', publisherKey);
+
+      final result = await PackAdmissionService.verifyPackSignature(
+        packFile: packFile,
+        signatureHex: validSig,
+        publicKeyHex: publisherKey,
+      );
+      expect(result, isTrue);
     });
   });
 }
