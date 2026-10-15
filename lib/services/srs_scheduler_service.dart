@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:sqflite/sqflite.dart';
+import '../core/security/monotonic_clock_guard.dart';
 
 /// The existing user_progress_v2.db ledger uses next_due_at (epoch seconds).
 /// No content pack is ever modified by this service.
@@ -48,6 +49,11 @@ class SrsSchedulerService {
   static const double initialEaseFactor = 2.5;
   static const double minimumEaseFactor = 1.3;
   static const int secondsPerDay = 86400;
+
+  final MonotonicClockGuard _clockGuard;
+
+  SrsSchedulerService({MonotonicClockGuard? clockGuard})
+      : _clockGuard = clockGuard ?? MonotonicClockGuard();
 
   SrsReviewSchedule calculate({
     required int grade,
@@ -102,7 +108,8 @@ class SrsSchedulerService {
         previous.repetitionCount > 0 &&
         previous.easeFactor <= (minimumEaseFactor + 0.15);
 
-    final reviewed = (reviewedAt ?? DateTime.now()).toUtc();
+    final candidateTime = reviewedAt ?? DateTime.now();
+    final reviewed = _clockGuard.getEffectiveUtcTime(candidateTime);
     final DateTime targetDate;
     if (alignToCircadianDay) {
       final shifted = reviewed.add(Duration(days: interval));
@@ -226,7 +233,8 @@ class SrsSchedulerService {
               easeFactor: (existing.first['ease_factor'] as num).toDouble(),
             );
 
-      final reviewed = (reviewedAt ?? DateTime.now()).toUtc();
+      final candidateTime = reviewedAt ?? DateTime.now();
+      final reviewed = _clockGuard.getEffectiveUtcTime(candidateTime);
       int? elapsedDays;
       if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
         final lastDueEpoch = (existing.first['next_due_at'] as num).toInt();

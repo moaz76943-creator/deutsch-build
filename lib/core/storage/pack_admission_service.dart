@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'atomic_database_installer.dart';
 import 'storage_quarantine.dart';
+import '../database/crash_safe_snapshot_manager.dart';
+import '../security/ed25519_signature_verifier.dart';
 
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
@@ -31,8 +33,53 @@ class PackAdmissionService {
     }
   }
 
+  /// التحقق من توقيع Ed25519 الرقمي للحزمة ومطابقته لسجل المفاتيح الموثوقة (Study 06)
+  static Future<bool> verifyPackSignature({
+    required File packFile,
+    required String signatureHex,
+    required String publicKeyHex,
+  }) async {
+    try {
+      if (!PackTrustRegistry.isKeyTrusted(publicKeyHex)) {
+        debugPrint('Pack signature validation failed: Public key is untrusted or insecure test vector.');
+        return false;
+      }
+
+      final pubBytes = PackTrustRegistry.hexToBytes(publicKeyHex);
+      final sigBytes = PackTrustRegistry.hexToBytes(signatureHex);
+      if (pubBytes == null || sigBytes == null) {
+        debugPrint('Pack signature validation failed: Malformed hex in key or signature.');
+        return false;
+      }
+
+      final messageBytes = await packFile.readAsBytes();
+      final isValid = Ed25519SignatureVerifier.verify(
+        publicKeyBytes: pubBytes,
+        messageBytes: messageBytes,
+        signatureBytes: sigBytes,
+      );
+
+      if (!isValid) {
+        debugPrint('Pack signature validation failed: Invalid cryptographic signature.');
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('Pack signature validation exception: $e');
+      return false;
+    }
+  }
+
   Future<bool> verifyPackIntegrity(File file, String expectedHash) async {
     try {
+      // 0. فحص ترويسة SQLite الرسمية لمنع الملفات التالفة أو غير المتوافقة
+      final isValidHeader = await CrashSafeSnapshotManager.verifySqliteHeader(file);
+      if (!isValidHeader) {
+        debugPrint('Pack validation failed: Invalid SQLite header signature.');
+        return false;
+      }
+
       final bytes = await file.readAsBytes();
       final digest = sha256.convert(bytes);
 
