@@ -93,8 +93,10 @@ void main() {
       );
 
       // Staging directory should be cleaned up
-      final list = await outDir.list().toList();
-      expect(list.where((f) => f.path.contains('.staging_')), isEmpty);
+      if (await outDir.exists()) {
+        final list = await outDir.list().toList();
+        expect(list.where((f) => f.path.contains('.staging_')), isEmpty);
+      }
     });
   });
 
