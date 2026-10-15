@@ -32,6 +32,10 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidOfflineVoiceCapabilityProbe(this))
     }
 
     override fun onRequestPermissionsResult(
