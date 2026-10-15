@@ -248,6 +248,10 @@ class DatabaseService {
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
 
+  /// Closes unleased background SQLite connections under memory pressure.
+  Future<int> trimUnleasedContentConnections() =>
+      _contentPool.closeUnleased();
+
   Future<File> migrateContentPack(
     String filename, {
     required PackStorageLocation destination,
