@@ -1,4 +1,5 @@
 // ignore_for_file: unused_import
+import 'pack_downloader_service.dart';
 
 class LanguagePackManager {
   static const List<String> supportedBcp47Locales = [
@@ -32,5 +33,9 @@ class LanguagePackManager {
   static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
     if (!isLocaleSupported(bcp47Locale)) return false;
     return true;
+  }
+
+  static PackDownloadState? getPackDownloadState(String languageCode) {
+    return PackDownloaderService.getDownloadState(languageCode);
   }
 }
