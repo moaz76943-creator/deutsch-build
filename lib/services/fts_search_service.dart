@@ -183,7 +183,7 @@ class FtsSearchService {
             WHEN l.surface = ? COLLATE NOCASE THEN 0
             WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
             ELSE 2
-          END, length(l.surface), l.rowid
+          END, bm25(lexicon_fts), length(l.surface), l.rowid
           LIMIT ?
         ''', <Object?>[code, phrase, term, '${_escapeLike(term)}%', limit]);
         if (rows.isEmpty) {
