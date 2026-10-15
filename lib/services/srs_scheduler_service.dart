@@ -108,8 +108,9 @@ class SrsSchedulerService {
         previous.repetitionCount > 0 &&
         previous.easeFactor <= (minimumEaseFactor + 0.15);
 
-    final candidateTime = reviewedAt ?? DateTime.now();
-    final reviewed = _clockGuard.getEffectiveUtcTime(candidateTime);
+    final reviewed = (reviewedAt != null)
+        ? reviewedAt.toUtc()
+        : _clockGuard.getEffectiveUtcTime();
     final DateTime targetDate;
     if (alignToCircadianDay) {
       final shifted = reviewed.add(Duration(days: interval));
@@ -233,8 +234,9 @@ class SrsSchedulerService {
               easeFactor: (existing.first['ease_factor'] as num).toDouble(),
             );
 
-      final candidateTime = reviewedAt ?? DateTime.now();
-      final reviewed = _clockGuard.getEffectiveUtcTime(candidateTime);
+      final reviewed = (reviewedAt != null)
+          ? reviewedAt.toUtc()
+          : _clockGuard.getEffectiveUtcTime();
       int? elapsedDays;
       if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
         final lastDueEpoch = (existing.first['next_due_at'] as num).toInt();

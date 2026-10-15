@@ -112,7 +112,7 @@ void main() {
       )!;
       final msg = Uint8List(0); // empty message
       final sig = PackTrustRegistry.hexToBytes(
-        'e55643833ac5b10172fdf626da27ffbf45a7c2934ffda651666f24d7768a417435f3b60e6a111a4cf1afedb08d251433b5c87a55225d3fa942f7d6a50654ea01',
+        'e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b',
       )!;
 
       expect(
@@ -186,7 +186,7 @@ void main() {
       )!;
       final msg = Uint8List(0);
       final sig = PackTrustRegistry.hexToBytes(
-        'e55643833ac5b10172fdf626da27ffbf45a7c2934ffda651666f24d7768a417435f3b60e6a111a4cf1afedb08d251433b5c87a55225d3fa942f7d6a50654ea01',
+        'e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b',
       )!;
 
       // 1. Bit flip in signature
@@ -538,11 +538,11 @@ void main() {
       // Content matching 0-byte message or 0x72
       await packFile.writeAsBytes([0x72]);
 
-      const publisherKey = '3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c';
-      const validSig = '92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00';
+      const publisherKey = '79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664';
+      const validSig = '5b907d912cbb0218bfaddf03f37a5c22ead245bc0fb919b7c2611670e780a7f04385df80ced9d1eca74886dfb16545c8bca04220e6c53453055abe886c1d4a0e';
 
-      // Register explicitly in isolated test mode
-      PackTrustRegistry.registerTestKeyForTesting('official-test-publisher', publisherKey);
+      // Register legitimate partner key
+      PackTrustRegistry.registerTrustedKey('official-test-publisher', publisherKey);
 
       final result = await PackAdmissionService.verifyPackSignature(
         packFile: packFile,
