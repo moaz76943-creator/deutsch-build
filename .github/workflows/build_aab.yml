@@ -1,8 +1,7 @@
 name: Android Production Build (APK & AAB)
 
 on:
-  push:
-    branches: [ "staging/v2-full-platform", "main" ]
+  workflow_dispatch:
 
 jobs:
   build:

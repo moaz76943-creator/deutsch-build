@@ -33,6 +33,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Free runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android/sdk/ndk*
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo docker image prune --all --force 2>/dev/null || true
+          df -h
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -100,6 +110,7 @@ jobs:
           test/jules/J028/operation_result_test.dart
           test/jules/J054/semantic_color_tagging_test.dart
           test/offline_recovery/bootstrap_missing_pack_recovery_test.dart
+          test/jules/J003/pack_admission_test.dart
           test/jules/WS16/
           test/offline_gate_test.dart
 
