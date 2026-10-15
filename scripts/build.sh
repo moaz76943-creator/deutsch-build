@@ -23,7 +23,7 @@ log CHECK "1/10 Environment"
 
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
@@ -45,10 +45,10 @@ fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
-  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "Flutter build apk (release) failed" "$EXIT_COMP"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
-  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "Flutter build apk (debug) failed" "$EXIT_COMP"
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 
