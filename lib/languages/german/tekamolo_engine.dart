@@ -65,7 +65,9 @@ class TeKaMoLoEngine {
     'um ', 'im sommer', 'im winter', 'im herbst', 'im frühling',
     'im januar', 'im februar', 'im märz', 'im april', 'im mai', 'im juni',
     'im juli', 'im august', 'im september', 'im oktober', 'im november', 'im dezember',
-    'seit ', 'vor ', 'nach ', 'während ', 'binnen ', 'zwischen ',
+    'seit ', 'während ', 'binnen ',
+    'nach dem ', 'nach der ', 'nach einem ', 'nach einer ',
+    'vor dem ', 'vor der ', 'vor einem ', 'vor einer ',
   ];
 
   static const Set<String> _kausalKeywords = {
@@ -102,12 +104,25 @@ class TeKaMoLoEngine {
     'in die schule', 'in die türkei', 'in die schweiz', 'in den usa',
     'nach ', 'in ', 'im ', 'ins ', 'zu ', 'zum ', 'zur ',
     'an ', 'am ', 'ans ', 'auf ', 'aufs ', 'aus ', 'von ',
-    'bei ', 'hinter ', 'neben ', 'unter ', 'über ', 'vor ',
+    'bei ', 'hinter ', 'neben ', 'unter ', 'über ',
   ];
 
   /// تصنيف العبارة الظرفية إلى إحدى فئات TeKaMoLo
   static ClassifiedAdverbial classifyAdverbial(String phrase) {
     final normalized = phrase.trim().toLowerCase();
+
+    // 0. التحقق أولاً من الوجهات المكانية المعروفة بحرف nach (مثل nach Berlin, nach Hause)
+    if (_lokalKeywords.contains(normalized) ||
+        normalized.startsWith('nach berlin') ||
+        normalized.startsWith('nach deutschland') ||
+        normalized.startsWith('nach hause') ||
+        normalized.startsWith('in die stadt')) {
+      return ClassifiedAdverbial(
+        phrase: phrase,
+        category: AdverbialCategory.lokal,
+        reason: 'تدل على موقع أو اتجاه أو وجهة (Wo? / Wohin? / Woher?)',
+      );
+    }
 
     // 1. فحص الزمان (Temporal)
     if (_temporalKeywords.contains(normalized) ||
