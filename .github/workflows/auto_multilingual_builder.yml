@@ -1,8 +1,6 @@
 name: Multilingual Pack Builder Engine
 
 on:
-  schedule:
-    # - cron: '0 * * * *' (disabled)
   workflow_dispatch:
 
 jobs:

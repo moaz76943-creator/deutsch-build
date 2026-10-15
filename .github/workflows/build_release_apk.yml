@@ -37,7 +37,6 @@ jobs:
         shell: bash
         run: |
           sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android/sdk/ndk*
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo docker image prune --all --force 2>/dev/null || true

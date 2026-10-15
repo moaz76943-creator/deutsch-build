@@ -12,14 +12,23 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android {
-                if (namespace == null) {
-                    namespace project.group
+subprojects { subproject ->
+    if (subproject.name != "app") {
+        def setCompileSdk = {
+            if (subproject.hasProperty('android')) {
+                subproject.android {
+                    if (namespace == null) {
+                        namespace subproject.group
+                    }
+                    compileSdkVersion 36
                 }
-                compileSdkVersion 36
+            }
+        }
+        if (subproject.state.executed) {
+            setCompileSdk()
+        } else {
+            subproject.afterEvaluate {
+                setCompileSdk()
             }
         }
     }
