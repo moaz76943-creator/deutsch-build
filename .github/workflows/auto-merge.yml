@@ -16,7 +16,7 @@ jobs:
   enable-auto-merge:
     if: >-
       vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
-      github.event.pull_request.base.ref == 'main' &&
+      (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'staging/v2-full-platform') &&
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       contains(github.event.pull_request.labels.*.name, 'automerge') &&
@@ -46,7 +46,7 @@ jobs:
           if [[ "$pr_state" != "OPEN" ||
                 "$is_draft" != "false" ||
                 "$is_cross" != "false" ||
-                "$base_ref" != "main" ]]; then
+                ( "$base_ref" != "main" && "$base_ref" != "staging/v2-full-platform" ) ]]; then
             echo "::notice::PR state changed; auto-merge was not enabled."
             exit 0
           fi
