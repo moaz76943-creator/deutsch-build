@@ -7,10 +7,12 @@ class RuntimeLifecycleRegistry {
 
   static const String _defaultOwnerKey = 'global';
   static const Duration _cleanupTimeout = Duration(seconds: 5);
+  static const int _maxDisposedOwnersRetention = 512;
 
   final Map<String, List<StreamSubscription<dynamic>>> _subscriptions = {};
   final Map<String, List<Timer>> _timers = {};
   final Map<String, List<FutureOr<void> Function()>> _callbacks = {};
+  final List<void Function()> _memoryPressureListeners = [];
 
   final Set<String> _disposedOwners = {};
   bool _isGlobalDisposed = false;
@@ -46,8 +48,29 @@ class RuntimeLifecycleRegistry {
     _callbacks.putIfAbsent(key, () => []).add(callback);
   }
 
+  void registerMemoryPressureListener(void Function() listener) {
+    if (_isGlobalDisposed) return;
+    _memoryPressureListeners.add(listener);
+  }
+
+  void unregisterMemoryPressureListener(void Function() listener) {
+    _memoryPressureListeners.remove(listener);
+  }
+
+  void notifyMemoryPressure() {
+    if (_isGlobalDisposed) return;
+    for (final listener in List<void Function()>.from(_memoryPressureListeners)) {
+      try {
+        listener();
+      } catch (_) {}
+    }
+  }
+
   Future<void> disposeOwner(String ownerKey) async {
     if (_isGlobalDisposed || _disposedOwners.contains(ownerKey)) return;
+    if (_disposedOwners.length >= _maxDisposedOwnersRetention) {
+      _disposedOwners.remove(_disposedOwners.first);
+    }
     _disposedOwners.add(ownerKey);
 
     await _disposeResourcesForOwner(ownerKey);
@@ -122,5 +145,6 @@ class RuntimeLifecycleRegistry {
     _subscriptions.clear();
     _callbacks.clear();
     _disposedOwners.clear();
+    _memoryPressureListeners.clear();
   }
 }
