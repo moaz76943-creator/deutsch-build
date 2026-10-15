@@ -227,8 +227,8 @@ class GermanVerbConjugator {
       }
     }
 
-    final isMovement = _isMovementVerb(baseVerb);
-    final aux = isMovement ? 'sein' : 'haben';
+    final isSeinAuxiliary = _isSeinAuxiliary(lower, baseVerb);
+    final aux = isSeinAuxiliary ? 'sein' : 'haben';
     final participle = _buildParticiple(baseVerb, foundPrefix);
 
     final sepText = foundPrefix != null
@@ -336,11 +336,14 @@ class GermanVerbConjugator {
     return 'ge${stem}t';
   }
 
-  static bool _isMovementVerb(String verb) {
-    const movementVerbs = {
+  static bool _isSeinAuxiliary(String fullVerb, String baseVerb) {
+    const movementOrStateChange = {
       'gehen', 'fahren', 'kommen', 'laufen', 'reisen', 'fliegen',
       'schwimmen', 'springen', 'fallen', 'steigen', 'bleiben', 'sein',
+      'aufstehen', 'aufwachen', 'einschlafen', 'sterben', 'wachsen',
+      'passieren', 'geschehen', 'verschwinden', 'erscheinen',
     };
-    return movementVerbs.contains(verb);
+    return movementOrStateChange.contains(fullVerb) ||
+        movementOrStateChange.contains(baseVerb);
   }
 }

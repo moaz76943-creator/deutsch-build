@@ -170,20 +170,7 @@ class GermanGenderEngine {
       }
     }
 
-    // 4. فحص لواحق التذكير (der)
-    for (final suffix in _masculineSuffixes) {
-      if (lower.endsWith(suffix) && lower.length > suffix.length + 1) {
-        return GermanGenderResult(
-          word: trimmed,
-          gender: GermanGender.masculine,
-          definiteArticle: 'der',
-          ruleSource: GenderRuleSource.suffixRule,
-          explanation: 'الاسم ينتهي باللاحقة القياسية للمذكر "-$suffix": der $trimmed.',
-        );
-      }
-    }
-
-    // 5. فحص لواحق المحايد (das)
+    // 4. فحص لواحق المحايد (das) أولاً لتجنب التداخل مع -ent في -ment
     for (final suffix in _neuterSuffixes) {
       if (lower.endsWith(suffix) && lower.length > suffix.length + 1) {
         return GermanGenderResult(
@@ -192,6 +179,19 @@ class GermanGenderEngine {
           definiteArticle: 'das',
           ruleSource: GenderRuleSource.suffixRule,
           explanation: 'الاسم ينتهي باللاحقة القياسية للمحايد "-$suffix": das $trimmed.',
+        );
+      }
+    }
+
+    // 5. فحص لواحق التذكير (der)
+    for (final suffix in _masculineSuffixes) {
+      if (lower.endsWith(suffix) && lower.length > suffix.length + 1) {
+        return GermanGenderResult(
+          word: trimmed,
+          gender: GermanGender.masculine,
+          definiteArticle: 'der',
+          ruleSource: GenderRuleSource.suffixRule,
+          explanation: 'الاسم ينتهي باللاحقة القياسية للمذكر "-$suffix": der $trimmed.',
         );
       }
     }
