@@ -111,6 +111,7 @@ jobs:
           test/jules/J054/semantic_color_tagging_test.dart
           test/offline_recovery/bootstrap_missing_pack_recovery_test.dart
           test/jules/J003/pack_admission_test.dart
+          test/jules/J079/runtime_lifecycle_registry_test.dart
           test/jules/WS16/
           test/offline_gate_test.dart
 
