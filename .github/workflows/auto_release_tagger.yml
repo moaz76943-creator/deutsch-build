@@ -2,7 +2,7 @@ name: Auto Release Tagger
 
 on:
   pull_request_target:
-    branches: [main]
+    branches: [main, staging/v2-full-platform]
     types: [closed]
 
 permissions:
