@@ -267,7 +267,7 @@ jobs:
 
           gh pr create \
             --repo "$GITHUB_REPOSITORY" \
-            --base main \
+            --base staging/v2-full-platform \
             --head "$BRANCH" \
             --title "content: review automated expansion ${RUN_KEY}" \
             --body-file "$SUMMARY"
