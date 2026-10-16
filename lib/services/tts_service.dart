@@ -322,10 +322,10 @@ class TtsService {
         _volume = _bounded(volume, 0.0, 1.0, 1.0),
         _pitch = _bounded(pitch, 0.5, 2.0, 1.0),
         _authority = adapter != null
-            ? _TtsEngineAuthority(() => adapter!)
+            ? _TtsEngineAuthority(() => adapter)
             : flutterTts != null
                 ? _TtsEngineAuthority(
-                    () => FlutterTtsPlatformAdapter(flutterTts!),
+                    () => FlutterTtsPlatformAdapter(flutterTts),
                   )
                 : _sharedAuthority,
         _ownerId = _nextOwnerId++;
