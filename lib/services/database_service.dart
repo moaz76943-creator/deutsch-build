@@ -26,56 +26,67 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        // جداول المحتوى (لـ 100 لغة)
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS language_profiles (
-           language_code TEXT PRIMARY KEY,
-           name_native TEXT NOT NULL,
-           name_ar TEXT NOT NULL,
-           direction TEXT NOT NULL
-          )
-        ''');
-        
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS concepts (
-           concept_id TEXT PRIMARY KEY,
-           category TEXT NOT NULL,
-           cefr_level TEXT NOT NULL
-          )
-        ''');
+    // Check if database exists. If it doesn't, we create and seed it first.
+    final exists = await databaseExists(path);
+    if (!exists) {
+      // Open first to allow schema creation and data seeding
+      final initDb = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (db, version) async {
+          // جداول المحتوى (لـ 100 لغة)
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS language_profiles (
+             language_code TEXT PRIMARY KEY,
+             name_native TEXT NOT NULL,
+             name_ar TEXT NOT NULL,
+             direction TEXT NOT NULL
+            )
+          ''');
 
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS lexemes (
-           lexeme_id TEXT PRIMARY KEY,
-           concept_id TEXT NOT NULL,
-           language_code TEXT NOT NULL,
-           lemma TEXT NOT NULL,
-           display_text TEXT NOT NULL,
-           article TEXT,
-           plural TEXT,
-           gender TEXT,
-           grammar_json TEXT DEFAULT '{}'
-          )
-        ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS concepts (
+             concept_id TEXT PRIMARY KEY,
+             category TEXT NOT NULL,
+             cefr_level TEXT NOT NULL
+            )
+          ''');
 
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS examples (
-           example_id TEXT PRIMARY KEY,
-           concept_id TEXT NOT NULL,
-           language_code TEXT NOT NULL,
-           sentence TEXT NOT NULL,
-           translation_ar TEXT
-          )
-        ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS lexemes (
+             lexeme_id TEXT PRIMARY KEY,
+             concept_id TEXT NOT NULL,
+             language_code TEXT NOT NULL,
+             lemma TEXT NOT NULL,
+             display_text TEXT NOT NULL,
+             article TEXT,
+             plural TEXT,
+             gender TEXT,
+             grammar_json TEXT DEFAULT '{}'
+            )
+          ''');
 
-        // زرع بيانات مبدئية لكي يعمل المعجم فوراً
-        await _seedInitialData(db);
-      },
-    );
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS examples (
+             example_id TEXT PRIMARY KEY,
+             concept_id TEXT NOT NULL,
+             language_code TEXT NOT NULL,
+             sentence TEXT NOT NULL,
+             translation_ar TEXT
+            )
+          ''');
+
+          // زرع بيانات مبدئية لكي يعمل المعجم فوراً
+          await _seedInitialData(db);
+        },
+      );
+
+      // Close the read-write connection to enforce read-only boundary
+      await initDb.close();
+    }
+
+    // Open as strictly read-only for immutable language packs
+    return await openReadOnlyDatabase(path);
   }
 
   Future<Database> _initProgressDb(String fileName) async {
@@ -85,6 +96,12 @@ class DatabaseService {
     return await openDatabase(
       path,
       version: 1,
+      onConfigure: (db) async {
+        // Enable WAL mode only for the writable learner databases
+        await db.execute('PRAGMA journal_mode=WAL');
+        // Handle SQLite busy, interrupted transactions
+        await db.execute('PRAGMA busy_timeout=5000');
+      },
       onCreate: (db, version) async {
         // جدول التكرار المتباعد (SuperMemo-2)
         await db.execute('''
@@ -100,6 +117,17 @@ class DatabaseService {
         ''');
       },
     );
+  }
+
+  Future<void> close() async {
+    if (_contentDb != null) {
+      await _contentDb!.close();
+      _contentDb = null;
+    }
+    if (_progressDb != null) {
+      await _progressDb!.close();
+      _progressDb = null;
+    }
   }
 
   // دالة البحث في المعجم الفوري
