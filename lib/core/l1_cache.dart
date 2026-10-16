@@ -36,7 +36,7 @@ class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
 
-  static const int maximumIdentities = 50;
+  static const int maximumIdentities = 3;
   static const int maximumEstimatedBytes = 5 * 1024 * 1024;
   static const int _maxNodes = 20000;
   final LruMemoryCache<CacheIdentity, List<Map<String, dynamic>>> _memoryCache;

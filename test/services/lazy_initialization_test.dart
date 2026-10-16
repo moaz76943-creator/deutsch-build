@@ -4,6 +4,7 @@ import 'package:deutsch_bilarabi/providers/lazy_engine_providers.dart';
 import 'package:deutsch_bilarabi/utils/agglutinative_suffix_stripper.dart';
 import 'package:deutsch_bilarabi/providers/active_language_provider.dart';
 import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -48,10 +49,10 @@ void main() {
           return AgglutinativeSuffixStripper();
         }),
       ],
-      child: const MyApp(),
+      child: const DeutschApp(),
     ));
 
-    expect(find.byType(MyApp), findsOneWidget);
+    expect(find.byType(DeutschApp), findsOneWidget);
     expect(storage.manifestReads, 0);
     expect(storage.integrityScans, 0);
     expect(linguisticAllocations, 0);
@@ -62,7 +63,7 @@ void main() {
     expect(storage.manifestReads, 0);
     expect(storage.integrityScans, 0);
 
-    final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
+    final container = ProviderScope.containerOf(tester.element(find.byType(DeutschApp)));
     final suffix = container.read(agglutinativeSuffixStripperProvider);
     expect(suffix, isA<AgglutinativeSuffixStripper>());
     expect(linguisticAllocations, 1);
@@ -71,6 +72,12 @@ void main() {
     expect(storage.manifestReads, 1);
     expect(storage.integrityScans, 1);
     expect(OfflineAudioManager.instance.isAudioInitialized, isFalse);
+
+    await tester.pumpWidget(const Directionality(
+      textDirection: TextDirection.ltr,
+      child: SizedBox.shrink(),
+    ));
+    await tester.pump(const Duration(seconds: 25));
   });
 
   test('audio engine is allocated only when a word is played', () async {

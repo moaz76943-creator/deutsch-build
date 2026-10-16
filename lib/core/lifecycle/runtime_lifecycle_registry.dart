@@ -9,9 +9,10 @@ class LifecycleOwner {
 }
 
 class _LifecycleEntry {
-  _LifecycleEntry(this.dispose, this.owner);
+  _LifecycleEntry(this.dispose, this.owner, {this.isCleanupCallback = false});
   final FutureOr<void> Function() dispose;
   final Object? owner;
+  final bool isCleanupCallback;
 }
 
 /// Tracks temporary UI resources; never owns persistent learner data.
@@ -53,13 +54,18 @@ class RuntimeLifecycleRegistry {
     Object? owner,
     String? ownerKey,
   }) {
-    registerResource(callback, owner: owner ?? ownerKey);
+    registerResource(
+      callback,
+      owner: owner ?? ownerKey,
+      isCleanupCallback: true,
+    );
   }
 
   void registerResource(
     FutureOr<void> Function() onDispose, {
     Object? owner,
     String? ownerKey,
+    bool isCleanupCallback = false,
   }) {
     final effectiveOwner = owner ?? ownerKey;
     if (_isDisposed ||
@@ -72,7 +78,13 @@ class RuntimeLifecycleRegistry {
       _disposeLate(onDispose);
       throw StateError('Lifecycle resource capacity exceeded');
     }
-    _entries.add(_LifecycleEntry(onDispose, effectiveOwner));
+    _entries.add(
+      _LifecycleEntry(
+        onDispose,
+        effectiveOwner,
+        isCleanupCallback: isCleanupCallback,
+      ),
+    );
   }
 
   void registerMemoryPressureListener(void Function() listener) {
@@ -116,7 +128,10 @@ class RuntimeLifecycleRegistry {
       }
       return false;
     });
-    for (final entry in disposing.reversed) {
+    for (final entry in disposing.where((e) => !e.isCleanupCallback).toList().reversed) {
+      await _safeDispose(entry.dispose);
+    }
+    for (final entry in disposing.where((e) => e.isCleanupCallback).toList().reversed) {
       await _safeDispose(entry.dispose);
     }
   }
@@ -127,7 +142,13 @@ class RuntimeLifecycleRegistry {
     final disposing = _entries.reversed.toList(growable: false);
     _entries.clear();
     _legacyDisposedOwners.clear();
-    for (final entry in disposing) {
+    for (final entry in disposing.where((e) => !e.isCleanupCallback)) {
+      if (entry.owner is LifecycleOwner) {
+        (entry.owner! as LifecycleOwner)._disposed = true;
+      }
+      await _safeDispose(entry.dispose);
+    }
+    for (final entry in disposing.where((e) => e.isCleanupCallback)) {
       if (entry.owner is LifecycleOwner) {
         (entry.owner! as LifecycleOwner)._disposed = true;
       }

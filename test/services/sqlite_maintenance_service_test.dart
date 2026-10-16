@@ -18,8 +18,9 @@ class _FakeDatabase extends Fake implements Database {
   ];
   @override
   Future<List<Map<String, Object?>>> rawQuery(
-    String query, [List<Object?>? arguments],
-  ) async {
+    String query, [
+    List<Object?>? arguments,
+  ]) async {
     sql.add(query);
     if (query.startsWith('PRAGMA wal_checkpoint')) return checkpoint;
     if (query == 'PRAGMA auto_vacuum') {

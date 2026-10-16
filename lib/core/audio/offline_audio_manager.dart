@@ -9,16 +9,17 @@ import '../../services/tts_service.dart';
 class OfflineAudioManager {
   static final OfflineAudioManager instance = OfflineAudioManager._init();
 
-  OfflineAudioManager._init() : _service = TtsService();
+  OfflineAudioManager._init() : _createService = TtsService.new;
 
   /// Retains the existing test factory without creating another audio manager.
   OfflineAudioManager.forTesting({
     required FlutterTts Function() createTts,
-  }) : _service = TtsService(flutterTts: createTts());
+  }) : _createService = (() => TtsService(flutterTts: createTts()));
 
-  final TtsService _service;
+  final TtsService Function() _createService;
+  TtsService? _service;
 
-  bool get isAudioInitialized => _service.isInitialized;
+  bool get isAudioInitialized => _service != null;
 
   Future<void> speak(
     String text, {
@@ -26,10 +27,15 @@ class OfflineAudioManager {
     double rate = 0.4,
   }) async {
     if (text.trim().isEmpty) return;
-    final configured = await _service.configure(speechRate: rate);
+    final service = _service ??= _createService();
+    final configured = await service.configure(speechRate: rate);
     if (!configured) return;
-    await _service.speak(text, languageCode: locale);
+    await service.speak(text, languageCode: locale);
   }
 
-  Future<void> stop() => _service.stop();
+  Future<void> stop() async {
+    final service = _service;
+    if (service == null) return;
+    await service.stop();
+  }
 }
