@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk015 = <ContentItem>[
 ContentItem(id:'w7125',german:'Tastaturtaste',arabic:'زر لوحة المفاتيح',sentence:'Die Tastaturtaste ist wichtig.',sentenceAr:'زر لوحة المفاتيح مهمة.',topic:'التقنية',skill:'recall',article:'die',plural:'Tastaturtasten',accepted:['die Tastaturtaste']),

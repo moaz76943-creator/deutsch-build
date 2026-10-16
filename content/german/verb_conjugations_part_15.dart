@@ -1,4 +1,4 @@
-import '../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const verbConjugationsPart15 = <VerbConjugation>[
   VerbConjugation(

@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk003 = <ContentItem>[
 ContentItem(id:'w1201',german:'Teilnehmer',arabic:'مشارك',sentence:'Alle Teilnehmer sind da.',sentenceAr:'جميع المشاركين هنا.',topic:'الدراسة',skill:'recall',article:'der',plural:'Teilnehmer',accepted:[]),

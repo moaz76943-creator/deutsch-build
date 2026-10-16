@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../lib/core/orchestration/language_pack_repository.dart';
-import '../lib/core/orchestration/polyglot_language_pack.dart';
-import '../lib/core/storage/validation_hash_cache.dart';
+import 'package:deutsch_bilarabi/core/orchestration/language_pack_repository.dart';
+import 'package:deutsch_bilarabi/core/orchestration/polyglot_language_pack.dart';
+import 'package:deutsch_bilarabi/core/storage/validation_hash_cache.dart';
 
 Future<void> main() async {
   final seedCatalog = PolyglotLanguagePackCatalog.parse(

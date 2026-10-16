@@ -1,9 +1,15 @@
-# Authoring-only compatibility shims under lib/data still point to the
-# canonical content/german source tree. Runtime Flutter code consumes the
-# compiler-materialized package-local generated mirror instead.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+
 analyzer:
   exclude:
-    - lib/data/content_a1_part_*.dart
-    - lib/data/content_expansion_*.dart
-    - lib/data/verb_conjugations_part_*.dart
-    - lib/data/verb_conjugations_v180.dart
+    - "content/**"

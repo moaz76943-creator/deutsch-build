@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 import 'content_items_chunk_000.dart';
 import 'content_items_chunk_001.dart';
 import 'content_items_chunk_002.dart';

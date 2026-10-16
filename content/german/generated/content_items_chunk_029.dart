@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk029 = <ContentItem>[
 ContentItem(id:'w11729',german:'Arbeitsbeginn',arabic:'بداية العمل',sentence:'Das ist Arbeitsbeginn.',sentenceAr:'هذا هو بداية العمل.',topic:'Arbeit • تراكيب اسمية',skill:'production',article:'der',plural:'Arbeitsbeginne',accepted:[]),

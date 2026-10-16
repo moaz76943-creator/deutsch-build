@@ -1,0 +1,41 @@
+// مسار الملف: lib/design_system/app_typography.dart
+import 'package:flutter/material.dart';
+import '../core/text/language_identity.dart';
+
+class AppTypography {
+  /// يُرجع إعدادات الخط الآمنة بناءً على الملف التعريفي للغة
+  static TextStyle getSafeStyle(LanguageIdentity identity, {double fontSize = 16.0, Color? color}) {
+    if (identity.typographyProfile == 'cairo') {
+      // الارتفاع 1.4 إلى 1.5 ضروري جداً لخط Cairo لمنع قص التشكيل (الفتحة والكسرة)
+      return TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: fontSize,
+        height: 1.45,
+        color: color ?? Colors.white,
+      );
+    }
+
+    // الإعداد الافتراضي للغات اللاتينية والآسيوية (مثل الألمانية)
+    return TextStyle(
+      fontSize: fontSize,
+      height: 1.2,
+      color: color ?? Colors.white,
+    );
+  }
+
+  /// يغلف النص بحدود اتجاه صارمة لمنع انقلاب علامات الترقيم في النصوص المختلطة
+  static Widget buildBiDiText(String text, LanguageIdentity identity, {TextStyle? style}) {
+    return Directionality(
+      textDirection: identity.writingDirection == WritingDirection.rtl
+          ? TextDirection.rtl
+          : TextDirection.ltr,
+      child: Text(
+        text,
+        style: style ?? getSafeStyle(identity),
+        textAlign: identity.writingDirection == WritingDirection.rtl
+            ? TextAlign.right
+            : TextAlign.left,
+      ),
+    );
+  }
+}

@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk000 = <VerbConjugation>[
 VerbConjugation(infinitive:'sein',arabic:'يكون',group:'1. الأفعال الأساسية',person:'ich',personAr:'أنا',form:'bin',past:'bin gewesen',pastArabic:'كنتُ',example:'Ich bin müde.',exampleAr:'أنا متعب.',pastExample:'Ich bin müde gewesen.',pastExampleAr:'كنتُ متعب.'),

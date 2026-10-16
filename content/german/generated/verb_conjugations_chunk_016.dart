@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk016 = <VerbConjugation>[
 VerbConjugation(infinitive:'erwidern',arabic:'يرد / يجيب',group:'6. التواصل والمحادثة',person:'du',personAr:'أنتَ / أنتِ',form:'erwiderst',past:'hast erwidert',pastArabic:'أنتَ/أنتِ رددتَ/رددِتِ',example:'Du erwiderst die Frage.',exampleAr:'تجيب عن السؤال.',pastExample:'Du hast die Frage erwidert.',pastExampleAr:'لقد أجبتَ/أجبتِ عن السؤال.'),

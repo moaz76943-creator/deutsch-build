@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk002 = <ContentItem>[
 ContentItem(id:'w0801',german:'die Rezeption',arabic:'الاستقبال',sentence:'Die Rezeption ist offen.',sentenceAr:'الاستقبال مفتوح.',topic:'السفر',skill:'recall',article:'die',plural:'Rezeptionen',accepted:[]),

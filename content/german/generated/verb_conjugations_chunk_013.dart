@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk013 = <VerbConjugation>[
 VerbConjugation(infinitive:'zurückziehen',arabic:'يسحب / يتراجع',group:'11. أفعال إضافية مهمة',person:'sie',personAr:'هم',form:'ziehen zurück',past:'haben zurückgezieht',pastArabic:'هم سحبوا',example:'Sie ziehen zurück heute.',exampleAr:'هم يسحب / يتراجع اليوم.',pastExample:'Sie haben zurück heute zurückgezieht.',pastExampleAr:'هم سحبوا يسحب / يتراجع اليوم.'),

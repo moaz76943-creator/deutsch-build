@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk012 = <ContentItem>[
 ContentItem(id:'w4801',german:'Autowert',arabic:'السيارة القيمة',sentence:'Dieser AutoWert ist wichtig.',sentenceAr:'السيارة القيمة مهم.',topic:'مفردات مركبة - السيارة',skill:'production',article:'der',plural:'Werte',accepted:['Autowert']),

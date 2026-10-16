@@ -4,89 +4,83 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-apply from: rootProject.file('release-signing.gradle')
-def releaseSigning = resolveReleaseSigning()
-def hasReleaseSigning = releaseSigning.values().every { it != null && it.toString().trim() }
-def androidToolchain = new Properties()
-rootProject.file('../toolchain.lock').withInputStream { androidToolchain.load(it) }
+apply from: '../release-signing.gradle'
 
-def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
-    taskName.toLowerCase(java.util.Locale.ROOT).contains('release')
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
 }
-if (releaseTaskRequested && !hasReleaseSigning) {
-    throw new GradleException(
-        'Release signing is mandatory. Configure releaseStoreFile, ' +
-        'releaseStorePassword, releaseKeyAlias, and releaseKeyPassword, ' +
-        'or run bash scripts/local-release.sh to prepare ~/.gradle/release-key.jks.'
-    )
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
 }
 
 android {
+    signingConfigs {
+        secureRelease {
+            def releaseSigning = project.ext.resolveReleaseSigning()
+            if (releaseSigning.releaseStoreFile) {
+                storeFile file(releaseSigning.releaseStoreFile)
+                storePassword releaseSigning.releaseStorePassword
+                keyAlias releaseSigning.releaseKeyAlias
+                keyPassword releaseSigning.releaseKeyPassword
+            }
+        }
+    }
+
     namespace "com.deutschbilarabi.app"
-    compileSdk 36
-    buildToolsVersion androidToolchain.getProperty('ANDROID_BUILD_TOOLS_VERSION')
-    ndkVersion androidToolchain.getProperty('ANDROID_NDK_VERSION')
+    compileSdk 34 // استخدام إصدار مستقر
 
     compileOptions {
-        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
     }
 
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
+        // نرفع الإصدار لـ 21 فقط لدعم SQLite و TTS
         minSdkVersion flutter.minSdkVersion
-        targetSdk 36
-        versionCode 133
-        versionName "3.3.10"
-        // Flutter's defaults also include dependency JNI libraries for other ABIs.
-        // Honor a single ARM64 request without changing universal/split builds.
-        def phoneHost = (System.getenv('PREFIX') ?: '') ==~ /\/data\/data\/[^\/]+\/files\/usr/
-        if ((project.findProperty('target-platform') == 'android-arm64' || phoneHost) &&
-                project.findProperty('split-per-abi')?.toString() != 'true') {
-            ndk {
-                abiFilters.clear()
-                abiFilters.add('arm64-v8a')
-            }
-        }
-    }
+        targetSdk 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
 
-    signingConfigs {
-        secureRelease {
-            if (hasReleaseSigning) {
-                storeFile = file(releaseSigning.releaseStoreFile)
-                storePassword = releaseSigning.releaseStorePassword
-                keyAlias = releaseSigning.releaseKeyAlias
-                keyPassword = releaseSigning.releaseKeyPassword
-            }
-        }
+        // تفعيل Multidex بأبسط شكل ممكن
+        multiDexEnabled true
     }
 
     buildTypes {
-        debug {
+        release {
             minifyEnabled false
             shrinkResources false
-        }
-        release {
-            minifyEnabled true
-            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
             signingConfig signingConfigs.secureRelease
         }
     }
 }
 
-apply from: rootProject.file('termux-packaging.gradle')
-configureTermuxPackaging(android)
-
-dependencies {
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
+flutter {
+    source '../..'
 }
 
-flutter {
-    source "../.."
+dependencies {
+    // نعتمد فقط على multidex الأساسي بدون مكتبات Desugaring المعقدة
+    implementation 'androidx.multidex:multidex:2.0.1'
 }

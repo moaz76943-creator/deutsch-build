@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "languageCode": "en",
+  "languageName": "English",
+  "items": [
+    {
+      "word": "Welcome",
+      "meaning": "Greeting",
+      "example": "Welcome to the language learning platform."
+    },
+    {
+      "word": "Learn",
+      "meaning": "Acquire knowledge",
+      "example": "Learn languages seamlessly offline."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import '../../../lib/models/verb_conjugation.dart';
+import 'package:deutsch_bilarabi/models/verb_conjugation.dart';
 
 const generatedVerbConjugationsChunk007 = <VerbConjugation>[
 VerbConjugation(infinitive:'turnen',arabic:'يمارس الجمباز',group:'V58 — الصحة والحياة',person:'du',personAr:'أنتَ / أنتِ',form:'turnest',past:'hast geturnt',pastArabic:'أنتَ/أنتِ مارس الجمبازت',example:'Du turnest heute.',exampleAr:'أنتَ/أنتِ تمارس الجمباز اليوم.',pastExample:'Du hast heute geturnt.',pastExampleAr:'أنتَ/أنتِ مارس الجمبازت الجمباز اليوم.'),
