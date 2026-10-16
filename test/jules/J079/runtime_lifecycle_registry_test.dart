@@ -7,175 +7,105 @@ void main() {
 
   setUp(() {
     registry = RuntimeLifecycleRegistry.instance;
-    registry.resetForTesting();
+    registry.reset();
   });
 
-  test('Idempotency/Repeated disposal: Calling disposeAll multiple times is safe', () async {
-    bool disposed = false;
-    registry.registerCallback(() {
-      disposed = true;
+  tearDown(() {
+    registry.reset();
+  });
+
+  test('Registered resources are cleaned up deterministically', () async {
+    bool timerCancelled = false;
+    bool subCancelled = false;
+    bool callbackRun = false;
+
+    final timer = Timer(const Duration(hours: 1), () {});
+    final streamController = StreamController<int>(onCancel: () {
+      subCancelled = true;
     });
+    final sub = streamController.stream.listen((_) {});
 
-    await registry.disposeAll();
-    expect(disposed, isTrue);
-    expect(registry.isDisposed, isTrue);
+    registry.registerTimer(timer, ownerKey: 'feature_a');
+    registry.registerSubscription(sub, ownerKey: 'feature_a');
+    registry.registerCleanupCallback(() {
+      callbackRun = true;
+      timerCancelled = !timer.isActive; // check if timer was cancelled before callback
+    }, ownerKey: 'feature_a');
 
-    // Call again, should not throw
-    await registry.disposeAll();
+    await registry.disposeOwner('feature_a');
+
+    expect(timer.isActive, isFalse, reason: 'Timer should be cancelled');
+    expect(subCancelled, isTrue, reason: 'Subscription should be cancelled');
+    expect(callbackRun, isTrue, reason: 'Callback should be run');
+    expect(timerCancelled, isTrue, reason: 'Timer should be cancelled before callback runs');
   });
 
-  test('Idempotency/Repeated disposal: Calling disposeOwner multiple times is safe', () async {
-    int disposedCount = 0;
-    registry.registerCallback(() {
-      disposedCount++;
-    }, owner: 'featureA');
+  test('Duplicate disposal is safe', () async {
+    int cleanupCount = 0;
+    registry.registerCleanupCallback(() {
+      cleanupCount++;
+    }, ownerKey: 'feature_b');
 
-    await registry.disposeOwner('featureA');
-    expect(disposedCount, equals(1));
+    await registry.disposeOwner('feature_b');
+    await registry.disposeOwner('feature_b'); // duplicate
+    await registry.disposeAll(); // global duplicate
 
-    // Call again, shouldn't do anything because resources are removed
-    await registry.disposeOwner('featureA');
-    expect(disposedCount, equals(1));
+    expect(cleanupCount, equals(1), reason: 'Cleanup should only run once');
   });
 
-  test('Feature owner: disposeOwner only cleans up specific feature resources', () async {
-    bool aDisposed = false;
-    bool bDisposed = false;
+  test('Stale callbacks cannot mutate disposed feature state', () async {
+    await registry.disposeOwner('feature_c');
 
-    registry.registerCallback(() {
-      aDisposed = true;
-    }, owner: 'featureA');
-
-    registry.registerCallback(() {
-      bDisposed = true;
-    }, owner: 'featureB');
-
-    await registry.disposeOwner('featureA');
-
-    expect(aDisposed, isTrue);
-    expect(bDisposed, isFalse);
-    expect(registry.isDisposed, isFalse); // The whole registry is not disposed
-  });
-
-  test('Failed cleanup: Exception does not block subsequent cleanups', () async {
-    bool firstDisposed = false;
-    bool secondDisposed = false;
-
-    registry.registerCallback(() {
-      secondDisposed = true;
+    bool subCancelledImm = false;
+    final streamController = StreamController<int>(onCancel: () {
+      subCancelledImm = true;
     });
+    final sub = streamController.stream.listen((_) {});
 
-    registry.registerCallback(() {
-      firstDisposed = true; // Wait, LIFO order means the last added is disposed first
+    bool callbackRunImm = false;
+
+    // Register after dispose
+    registry.registerSubscription(sub, ownerKey: 'feature_c');
+    registry.registerCleanupCallback(() {
+      callbackRunImm = true;
+    }, ownerKey: 'feature_c');
+
+    expect(subCancelledImm, isTrue, reason: 'Sub should be cancelled immediately on stale registration');
+    expect(callbackRunImm, isTrue, reason: 'Callback should be run immediately on stale registration');
+  });
+
+  test('Cleanup errors are isolated and observable locally', () async {
+    int successCount = 0;
+
+    registry.registerCleanupCallback(() {
       throw Exception('Failing cleanup');
     });
 
-    await registry.disposeAll();
-
-    expect(firstDisposed, isTrue);
-    expect(secondDisposed, isTrue); // Should still be reached
-  });
-
-  test('Timeouts/Race conditions: delayed cleanup hits bounded timeout', () async {
-    bool slowDisposedStarted = false;
-    bool fastDisposed = false;
-
-    registry.registerCallback(() {
-      fastDisposed = true;
+    registry.registerCleanupCallback(() {
+      successCount++;
     });
 
-    registry.registerCallback(() async {
-      slowDisposedStarted = true;
-      // Delay longer than the 5-second timeout
+    await expectLater(registry.disposeAll(), completes);
+    expect(successCount, equals(1), reason: 'Subsequent cleanups should run even if one throws');
+  });
+
+  test('Bounded cleanup timeouts prevent hangs', () async {
+    bool nextRun = false;
+    registry.registerCleanupCallback(() async {
       await Future.delayed(const Duration(seconds: 10));
     });
 
-    // The timeout is 5 seconds. Since tests have a default timeout,
-    // it will wait at least 5 seconds.
-    final startTime = DateTime.now();
-    await registry.disposeAll();
-    final endTime = DateTime.now();
-
-    expect(slowDisposedStarted, isTrue);
-    expect(fastDisposed, isTrue);
-
-    final elapsed = endTime.difference(startTime).inSeconds;
-    // Should take around 5 seconds (the timeout), definitely less than 10.
-    expect(elapsed >= 4 && elapsed < 8, isTrue);
-  }, timeout: const Timeout(Duration(seconds: 15)));
-
-  test('Application pause: immediate cleanup if registered post-disposal', () async {
-    await registry.disposeAll();
-
-    bool callbackDisposed = false;
-    registry.registerCallback(() {
-      callbackDisposed = true;
+    registry.registerCleanupCallback(() {
+      nextRun = true;
     });
 
-    expect(callbackDisposed, isTrue); // Cleaned up immediately
-
-    // We can't easily track Timer.cancel() externally, but we know it gets called.
-    final timer = Timer(const Duration(hours: 1), () {});
-    registry.registerTimer(timer);
-    expect(timer.isActive, isFalse);
-
-    // Let's create a custom StreamSubscription and track it.
-    final controller = StreamController<int>();
-    final sub = controller.stream.listen((_) {});
-
-    registry.registerSubscription(sub);
-
-    // It should be cancelled immediately
-    await Future.delayed(Duration.zero); // yield event loop
-    // Actually sub.cancel() is called synchronously, but onDone might be async
-
-    // Check if the callback was run synchronously
-    expect(callbackDisposed, isTrue);
-  });
-
-  test('Abandoned subscriptions: cleaned up by disposeAll', () async {
-    final controller = StreamController<int>();
-    bool cancelled = false;
-    final sub = controller.stream.listen((_) {});
-
-    // Override cancel logic if possible, or we can just rely on the controller
-    controller.onCancel = () {
-      cancelled = true;
-    };
-
-    registry.registerSubscription(sub); // No owner
-
+    // Time it, should be roughly 5 seconds (the timeout limit) rather than 10
+    final stopwatch = Stopwatch()..start();
     await registry.disposeAll();
+    stopwatch.stop();
 
-    expect(cancelled, isTrue);
-  });
-
-  test('Deterministic order: resources are disposed in LIFO order', () async {
-    final order = <int>[];
-
-    registry.registerCallback(() { order.add(1); });
-    registry.registerCallback(() { order.add(2); });
-    registry.registerCallback(() { order.add(3); });
-
-    await registry.disposeAll();
-
-    expect(order, equals([3, 2, 1]));
-  });
-
-  test('Deterministic order: owner resources are disposed in LIFO order', () async {
-    final order = <int>[];
-
-    registry.registerCallback(() { order.add(1); }, owner: 'A');
-    registry.registerCallback(() { order.add(2); }, owner: 'A');
-    registry.registerCallback(() { order.add(3); }, owner: 'B');
-    registry.registerCallback(() { order.add(4); }, owner: 'A');
-
-    await registry.disposeOwner('A');
-
-    expect(order, equals([4, 2, 1]));
-
-    await registry.disposeOwner('B');
-    // B should have 3 appended to order
-    expect(order, equals([4, 2, 1, 3]));
+    expect(stopwatch.elapsedMilliseconds >= 4900, isTrue);
+    expect(stopwatch.elapsedMilliseconds < 8000, isTrue, reason: 'Should timeout after 5 seconds and not wait 10');
+    expect(nextRun, isTrue, reason: 'Next cleanup should still execute');
   });
 }

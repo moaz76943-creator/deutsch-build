@@ -26,6 +26,7 @@ __pycache__/
 
 # Local release archives are generated artifacts
 *.zip
+repomix-output.*
 .verification_cache/
 
 # Private local Android configuration
@@ -37,3 +38,13 @@ android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 *.base64
 *.b64
 token.env
+upload-keystore.jks
+key.properties
+
+# حزم اللغات وقواعد البيانات الثنائية (تُرفع كـ Releases ولا تُحفظ في الكود المصدري)
+assets/content/packs/*/*.sqlite
+assets/content/packs/*/*.pack.gz
+assets/content/packs/*/sqlite/
+*.sqlite
+*.pack.gz
+export_*_dataset.json
