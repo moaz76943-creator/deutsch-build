@@ -30,7 +30,7 @@ jobs:
         run: flutter pub get
 
       - name: الفحص البرمجي للتحقق من الأخطاء (Dart Analyze)
-        run: dart analyze --no-fatal-infos --no-fatal-warnings lib/
+        run: dart analyze --no-fatal-warnings lib/
 
       - name: تشغيل الفحص المسبق لقواعد البيانات والأصول
         run: python3 deutsch_release_preflight.py

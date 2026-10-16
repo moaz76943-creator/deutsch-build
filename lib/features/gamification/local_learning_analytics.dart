@@ -1,8 +1,40 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
+import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
+import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
+
+/// A factual summary of committed review events for ONE versioned directed pair.
+/// Mastery and task completion cannot be inferred from raw review ratings.
+class AnalyticsReport {
+  final int totalReviews;
+  final int dailyReviewsAverage;
+  final int? masteredCards;
+  final double? completionRate;
+  final double recallAccuracy;
+  final String learningTrend;
+  final double consistencyScore;
+  final Map<String, int> dailyReviews;
+
+  const AnalyticsReport({
+    required this.totalReviews,
+    required this.dailyReviewsAverage,
+    required this.masteredCards,
+    required this.completionRate,
+    required this.recallAccuracy,
+    required this.learningTrend,
+    required this.consistencyScore,
+    required this.dailyReviews,
+  });
+}
+
+class AnalyticsUnavailableFailure extends OperationFailure {
+  const AnalyticsUnavailableFailure(super.code, super.message);
+}
 
 /// Local-only learning analytics derived from persisted SRS state.
 ///
@@ -11,8 +43,9 @@ import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
 class LocalLearningAnalytics {
   static const int masteryRepetitions = 3;
   static const int masteryIntervalDays = 21;
-  static const String _masteryBadgeReceipt =
-      'learning/badges/mastery100/v1';
+  static const String _masteryBadgeReceipt = 'learning/badges/mastery100/v1';
+  static const int maxHistoryBatch = 50000;
+  static const int maxWindowDays = 366;
 
   static Future<Map<String, dynamic>> generate30DayReport() async {
     try {
@@ -85,14 +118,12 @@ class LocalLearningAnalytics {
       'mastered_cards': mastered,
       'active_languages': languages.length,
       'due_cards': due,
-      // Legacy SRS rows can have reviews but no timestamps. Report UNKNOWN
-      // rather than a fabricated zero streak or a false 30-day count.
       'review_days_30d': missingReviewDateEvidence
-          ? null : observedReviewDays.length,
+          ? null
+          : observedReviewDays.length,
       'observed_streak_days': missingReviewDateEvidence
-          ? null : _observedStreakDays(observedReviewDays, clock),
-      // A complete event history is not part of the current shared progress
-      // contract, so trend and consistency are not inferred from last-state rows.
+          ? null
+          : _observedStreakDays(observedReviewDays, clock),
       'learning_trend': 'unavailable',
       'consistency_score': null,
     };
@@ -123,7 +154,6 @@ class LocalLearningAnalytics {
       await vault.putRecord(_masteryBadgeReceipt, receipt);
       return 'وسام المائة بطاقة المتقنة';
     } catch (_) {
-      // Never claim a new reward if its durable receipt could not be stored.
       return null;
     }
   }
@@ -173,4 +203,90 @@ class LocalLearningAnalytics {
         '-' +
         utc.day.toString().padLeft(2, '0');
   }
+
+  /// The caller MUST supply only already-committed records from the canonical
+  /// durable progress writer. Unversioned pairs never silently match.
+  static Future<OperationResult<AnalyticsReport>> generateReport({
+    required List<ReviewTransactionEnvelope> history,
+    required DirectedPairId pairId,
+    required int daysWindow,
+    required DateTime referenceDateUtc,
+  }) async {
+    if (!pairId.isValidForLearning() ||
+        daysWindow < 1 ||
+        daysWindow > maxWindowDays ||
+        history.length > maxHistoryBatch) {
+      return const OperationResult<AnalyticsReport>.failure(
+        AnalyticsUnavailableFailure('INVALID_INPUT', 'Invalid pair/window/batch'),
+      );
+    }
+    try {
+      final values = await compute(_aggregateCommittedReviews, <String, Object>{
+        'events': history,
+        'pair': pairId.uniqueKey,
+        'days': daysWindow,
+        'now': referenceDateUtc.toUtc(),
+      });
+      return OperationResult<AnalyticsReport>.success(
+        AnalyticsReport(
+          totalReviews: values['totalReviews'] as int,
+          dailyReviewsAverage: values['dailyReviewsAverage'] as int,
+          masteredCards: null,
+          completionRate: null,
+          recallAccuracy: values['recallAccuracy'] as double,
+          learningTrend: values['learningTrend'] as String,
+          consistencyScore: values['consistencyScore'] as double,
+          dailyReviews: Map<String, int>.from(values['dailyReviews'] as Map),
+        ),
+      );
+    } catch (e) {
+      return OperationResult<AnalyticsReport>.failure(
+        AnalyticsUnavailableFailure('COMPUTE_FAILED', e.toString()),
+      );
+    }
+  }
+}
+
+Map<String, Object> _aggregateCommittedReviews(Map<String, Object> params) {
+  final events = (params['events'] as List).cast<ReviewTransactionEnvelope>();
+  final pairKey = params['pair'] as String;
+  final days = params['days'] as int;
+  final now = params['now'] as DateTime;
+  final start = now.subtract(Duration(days: days));
+
+  final scoped = events.where((e) => e.languagePairKey == pairKey).toList();
+  final unique = <String, ReviewTransactionEnvelope>{};
+  for (final review in scoped) {
+    unique[review.reviewEventId] = review;
+  }
+
+  final inWindow = unique.values.where((e) =>
+      e.timestamp.isAfter(start) && !e.timestamp.isAfter(now)).toList();
+  inWindow.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+  final daily = <String, int>{};
+  var successful = 0;
+  var early = 0;
+  var late = 0;
+  final midpoint = start.add(Duration(seconds: days * 86400 ~/ 2));
+  for (final review in inWindow) {
+    if (review.rating >= 2) successful++;
+    if (review.timestamp.isBefore(midpoint)) {
+      early++;
+    } else {
+      late++;
+    }
+    final day = review.timestamp.toLocal();
+    final dateKey = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+    daily[dateKey] = (daily[dateKey] ?? 0) + 1;
+  }
+  final count = inWindow.length;
+  return <String, Object>{
+    'totalReviews': count,
+    'dailyReviewsAverage': count ~/ days,
+    'recallAccuracy': count == 0 ? 0.0 : successful / count,
+    'learningTrend': early == late ? 'stable' : (late > early ? 'upward' : 'downward'),
+    'consistencyScore': ((daily.length / days) * 100.0).clamp(0.0, 100.0).toDouble(),
+    'dailyReviews': daily,
+  };
 }

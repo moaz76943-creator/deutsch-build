@@ -26,6 +26,7 @@ __pycache__/
 
 # Local release archives are generated artifacts
 *.zip
+repomix-output.*
 .verification_cache/
 
 # Private local Android configuration
