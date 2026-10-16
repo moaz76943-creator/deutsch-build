@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <!-- Secure restricted FileProvider paths (Study 72) -->
-    <!-- App-private cache directory subfolder only; root and broad external paths are forbidden -->
-    <cache-path name="shared_exports" path="shared_exports/" />
-</paths>

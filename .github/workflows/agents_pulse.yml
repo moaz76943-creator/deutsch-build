@@ -5,14 +5,12 @@ on:
   push:
     branches:
       - main
-      - staging/v2-full-platform
     paths:
       - 'lib/core/agents/**'
       - 'lib/core/orchestration/**'
   pull_request:
     branches:
       - main
-      - staging/v2-full-platform
     paths:
       - 'lib/core/agents/**'
       - 'lib/core/orchestration/**'
