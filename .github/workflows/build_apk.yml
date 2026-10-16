@@ -1,12 +1,12 @@
-name: Build and Release Direct APK
+name: Legacy Split APK (manual only; no automatic publish)
 
+# Superseded by Android Continuous APK (staging).
+# Keep manual path for legacy comparisons without duplicate push builds or publishing.
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -37,11 +37,10 @@ jobs:
         run: |
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ./deutsch-app.apk
 
-      - name: Publish Direct APK Release
-        uses: ncipollo/release-action@v1
+      - name: Upload legacy APK artifact (not a release)
+        uses: actions/upload-artifact@v4
         with:
-          artifacts: "deutsch-app.apk"
-          tag: "latest"
-          allowUpdates: true
-          makeLatest: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: legacy-arm64-apk
+          path: deutsch-app.apk
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,17 @@
+name: Data Repo Guard
+
+on:
+  push:
+    branches:
+      - main
+      - staging/v2-full-platform
+      - master
+      - staging*
+  workflow_dispatch:
+
+jobs:
+  guard:
+    if: "github.actor != 'jules-bot'"
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Data repository protected from Jules minute consumption."
