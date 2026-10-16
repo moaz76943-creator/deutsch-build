@@ -35,6 +35,21 @@ class LocalLearningAnalytics {
   static const int maxHistoryBatch = 50000;
   static const int maxWindowDays = 366;
 
+  /// Backwards-compatible mock-free report. Never synthesize progress.
+  static Future<Map<String, dynamic>> generate30DayReport() async {
+    return {
+      'mastered_cards': 0,
+      'active_domains': 0,
+      'learning_trend': 'insufficient_evidence',
+      'consistency_score': 0,
+    };
+  }
+
+  /// Backwards-compatible badge check.
+  static Future<String?> checkNewBadge() async {
+    return null;
+  }
+
   /// The caller MUST supply only already-committed records from the canonical
   /// durable progress writer. Unversioned pairs never silently match.
   static Future<OperationResult<AnalyticsReport>> generateReport({
@@ -58,64 +73,37 @@ class LocalLearningAnalytics {
         'days': daysWindow,
         'now': referenceDateUtc.toUtc(),
       });
-      return OperationResult<AnalyticsReport>.success(AnalyticsReport(
-        totalReviews: values['totalReviews'] as int,
-        dailyReviewsAverage: values['dailyReviewsAverage'] as int,
-        masteredCards: null, // Not evidence-backed by review envelopes.
-        completionRate: null, // Requires assigned and finished task counts.
-        recallAccuracy: values['recallAccuracy'] as double,
-        learningTrend: values['learningTrend'] as String,
-        consistencyScore: values['consistencyScore'] as double,
-        dailyReviews: Map<String, int>.unmodifiable(
-          values['dailyReviews'] as Map<String, int>),
-      ));
-    } catch (error) {
+      return OperationResult<AnalyticsReport>.success(
+        AnalyticsReport(
+          totalReviews: values['totalReviews'] as int,
+          dailyReviewsAverage: values['dailyReviewsAverage'] as int,
+          masteredCards: null,
+          completionRate: null,
+          recallAccuracy: values['recallAccuracy'] as double,
+          learningTrend: values['learningTrend'] as String,
+          consistencyScore: values['consistencyScore'] as double,
+          dailyReviews: Map<String, int>.from(values['dailyReviews'] as Map),
+        ),
+      );
+    } catch (e) {
       return OperationResult<AnalyticsReport>.failure(
-        AnalyticsUnavailableFailure('INVALID_HISTORY', '$error'),
+        AnalyticsUnavailableFailure('COMPUTE_FAILED', e.toString()),
       );
     }
   }
-
-  /// Legacy API: no verified input is available, so return explicit unknowns
-  /// rather than the old fabricated "120 mastered cards" report.
-  static Future<Map<String, dynamic>> generate30DayReport() async => {
-    'mastered_cards': null,
-    'active_domains': null,
-    'learning_trend': 'insufficient_evidence',
-    'consistency_score': null,
-    'is_verified': false,
-  };
-
-  /// Badge grants require a separately verified SRS mastery projection.
-  static Future<String?> checkNewBadge() async => null;
 }
 
-Map<String, Object> _aggregateCommittedReviews(Map<String, Object> input) {
-  final events = input['events'] as List<ReviewTransactionEnvelope>;
-  final pairKey = input['pair'] as String;
-  final days = input['days'] as int;
-  final now = (input['now'] as DateTime).toUtc();
+Map<String, Object> _aggregateCommittedReviews(Map<String, Object> params) {
+  final events = (params['events'] as List).cast<ReviewTransactionEnvelope>();
+  final pairKey = params['pair'] as String;
+  final days = params['days'] as int;
+  final now = params['now'] as DateTime;
   final start = now.subtract(Duration(days: days));
-  final unique = <String, ReviewTransactionEnvelope>{};
 
-  for (final event in events) {
-    if (event.languagePairKey != pairKey) continue;
-    if (event.reviewEventId.trim().isEmpty ||
-        event.learnerContentKey.trim().isEmpty ||
-        event.rating < 0 ||
-        event.rating > 3) {
-      throw const FormatException('Malformed committed review event');
-    }
-    final existing = unique[event.reviewEventId];
-    if (existing != null) {
-      if (existing.learnerContentKey != event.learnerContentKey ||
-          existing.rating != event.rating ||
-          !existing.timestamp.isAtSameMomentAs(event.timestamp)) {
-        throw const FormatException('Conflicting reviewId payload');
-      }
-      continue;
-    }
-    unique[event.reviewEventId] = event;
+  final scoped = events.where((e) => e.pairId.uniqueKey == pairKey).toList();
+  final unique = <String, ReviewTransactionEnvelope>{};
+  for (final review in scoped) {
+    unique[review.eventId] = review;
   }
 
   final inWindow = unique.values.where((e) =>
@@ -128,7 +116,6 @@ Map<String, Object> _aggregateCommittedReviews(Map<String, Object> input) {
   var late = 0;
   final midpoint = start.add(Duration(seconds: days * 86400 ~/ 2));
   for (final review in inWindow) {
-    // 0=again, 1=hard, 2=good, 3=easy (ReviewRating).
     if (review.rating >= 2) successful++;
     if (review.timestamp.isBefore(midpoint)) {
       early++;

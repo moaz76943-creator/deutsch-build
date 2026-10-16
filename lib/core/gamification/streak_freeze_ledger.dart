@@ -15,7 +15,7 @@ class StreakFreezeLedger {
     this.usageHistory = const [],
   });
 
-  int get _capacity => totalShields.clamp(0, maxShields).toInt();
+  int get _capacity => totalShields <= 0 ? 0 : totalShields.clamp(0, maxShields).toInt();
 
   String _calendarKey(DateTime time) {
     final day = time.toLocal();
@@ -23,6 +23,7 @@ class StreakFreezeLedger {
   }
 
   int get remainingShields {
+    if (_capacity <= 0) return 0;
     final used = <String>{};
     for (final record in usageHistory) {
       used.add(_calendarKey(record.usedAt));
@@ -35,13 +36,12 @@ class StreakFreezeLedger {
   bool get canConsume => remainingShields > 0;
 
   StreakFreezeLedger recordUsage(String reason, {DateTime? timestamp}) {
-    if (!canConsume) return this;
+    if (!canConsume || reason.trim().isEmpty) return this;
     final usedAt = timestamp ?? DateTime.now();
     final day = _calendarKey(usedAt);
     if (usageHistory.any((record) => _calendarKey(record.usedAt) == day)) {
       return this;
     }
-    // Bounded even if a legacy model supplies an excessive shield balance.
     if (usageHistory.length >= maxShields) return this;
     return StreakFreezeLedger(
       totalShields: totalShields,
