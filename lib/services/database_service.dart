@@ -170,7 +170,6 @@ class DatabaseService {
 
   /// Canonical public SQLite v2 admission for immutable content packs.
   /// Reject unknown schemas rather than attempting destructive migration.
-  @visibleForTesting
   Future<void> verifyUniversalSchema(
     Database db,
     String languageCode,
