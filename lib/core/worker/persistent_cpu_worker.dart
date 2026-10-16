@@ -6,10 +6,51 @@ class PersistentCpuWorker {
 
   PersistentCpuWorker._init();
 
+  static const int _maxTasks = 50;
+  int _activeTasks = 0;
+  int _generation = 0;
+
+  int get activeTasks => _activeTasks;
+  int get generation => _generation;
+
   /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
   Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
-    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
-    return await compute(_heavySrsMath, {'ease': currentEase, 'rating': rating});
+    if (_activeTasks >= _maxTasks) {
+      throw StateError('Worker queue exhausted');
+    }
+
+    final int currentGeneration = _generation;
+    _activeTasks++;
+
+    // Yield control to the event loop before heavy isolate setup
+    await Future.delayed(Duration.zero);
+
+    try {
+      // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
+      final result = await compute(_heavySrsMath, {'ease': currentEase, 'rating': rating});
+
+      if (_generation != currentGeneration) {
+        throw StateError('Task cancelled');
+      }
+
+      return result;
+    } finally {
+      _activeTasks--;
+    }
+  }
+
+  void cancelAll() {
+    _generation++;
+  }
+
+  void dispose() {
+    _generation++;
+  }
+
+  @visibleForTesting
+  void resetForTesting() {
+    _generation = 0;
+    _activeTasks = 0; // Forcefully clear only for test setup boundaries
   }
 
   // دالة رياضية معزولة تماماً (SM-2 Logic)
