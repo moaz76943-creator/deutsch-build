@@ -19,18 +19,15 @@ class AdaptiveCognitiveEngine {
   AdaptiveCognitiveEngine._internal();
 
   static const int _windowSize = 5;
-  static const int _maxResidentPairs = 4;
+  static const int _maxResidentPairs = 128;
   final Map<String, List<CognitiveMetricRecord>> _metricsByPair = {};
   final Map<String, AdaptationAction> _lastActionByPair = {};
 
+  /// Malformed observations provide no adaptation evidence.
   void observe(CognitiveMetricRecord record) {
+    if (!record.isUsable) return;
     final pair = record.languagePair.trim();
-    if (pair.isEmpty ||
-        record.sessionEventId.trim().isEmpty ||
-        record.contentKey.trim().isEmpty ||
-        record.responseLatency.isNegative) {
-      return;
-    }
+    if (pair.isEmpty) return;
     if (!_metricsByPair.containsKey(pair)) {
       if (_metricsByPair.length >= _maxResidentPairs) {
         final oldestPair = _metricsByPair.keys.first;
@@ -40,8 +37,17 @@ class AdaptiveCognitiveEngine {
       _metricsByPair[pair] = <CognitiveMetricRecord>[];
     }
     final metrics = _metricsByPair[pair]!;
-    if (metrics.any((m) => m.sessionEventId == record.sessionEventId)) {
-      return; // Rapid repeat in this bounded session must not skew difficulty.
+    for (final prior in metrics) {
+      if (prior.sessionEventId == record.sessionEventId) {
+        if (prior.contentKey != record.contentKey ||
+            prior.isCorrect != record.isCorrect ||
+            prior.responseLatency != record.responseLatency ||
+            prior.hesitationTaps != record.hesitationTaps ||
+            prior.reviewDifficulty != record.reviewDifficulty) {
+          throw StateError('Conflicting cognitive event replay');
+        }
+        return; // Exact replay: do not duplicate
+      }
     }
     metrics.add(record);
     if (metrics.length > _windowSize) metrics.removeAt(0);
@@ -51,7 +57,7 @@ class AdaptiveCognitiveEngine {
 
   AdaptationDecision evaluateStateDetailed({String languagePair = 'default'}) {
     final metrics = _metricsByPair[languagePair];
-    if (metrics == null || metrics.isEmpty) {
+    if (metrics == null || metrics.length < 3) {
       return const AdaptationDecision(
         AdaptationAction.maintainFlow, 'Insufficient local evidence');
     }
@@ -66,8 +72,7 @@ class AdaptiveCognitiveEngine {
       return const AdaptationDecision(
         AdaptationAction.reduceExtraneousLoad, 'Sustained session difficulty');
     }
-    final accurate = metrics.length >= 3 &&
-        metrics.every((m) => m.isCorrect) &&
+    final accurate = metrics.every((m) => m.isCorrect) &&
         metrics.every((m) => m.responseLatency.inMilliseconds < 2000);
     final action = accurate
         ? AdaptationAction.deepenLinguisticChallenge
