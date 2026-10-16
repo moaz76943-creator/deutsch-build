@@ -12,25 +12,49 @@ The permanent unit is:
 
 No session is allowed to rely on “I remember what I was doing” as the only continuity mechanism.
 
-## Minimal boot — risk-proportionate execution (owner update 2026-10-15)
+## Mandatory boot — before any project mutation
+Every chat/agent/worker that will change code, documentation, Notion state, CI, PRs/issues, automation, or another durable project surface MUST:
 
-Read-only inspection requires no CLAIM, task creation, or coordination writes.
+1. Read the current durable state:
+   - GitHub live branch/PR/issue relevant to the task.
+   - actual CI/test/checkpoint evidence.
+   - CURRENT PROJECT RECORD.
+   - ENGINEERING_STATE when engineering is involved.
+   - CONTINUITY_PROTOCOL.
+   - CENTRAL ORCHESTRATION LEDGER when ownership/parallel work matters.
+2. Reconcile existing ownership before writing.
+3. Determine or reuse a stable TASK_ID.
+4. Record/confirm:
+   - OWNER
+   - BRANCH/PR
+   - MUTABLE_SCOPE
+   - current STATE
+   - NEXT_ACTION
+5. If ownership, branch, or state is ambiguous: **READ-ONLY / RECONCILE**.
 
-Before a mutation, verify only the *relevant* current GitHub HEAD, task/PR, changed files, applicable CI, and ownership of overlapping paths. Reuse an existing TASK_ID and existing PR/Issue when available. Record OWNER, BASE_SHA, MUTABLE_SCOPE and acceptance criteria in that existing surface.
+## Mandatory movement capture
+Meaningful project movement MUST become durable outside the current conversation.
 
-Consult CURRENT PROJECT RECORD, ENGINEERING_STATE, CONTINUITY_PROTOCOL or CENTRAL ORCHESTRATION LEDGER **when the task actually depends on their decisions, shared ownership or recovery state**, not as compulsory repeated reads for unrelated small changes. Never create another ledger, coordinator, or task solely to satisfy a process ritual.
+Approved movement states:
 
-Non-overlapping agents can work concurrently. A demonstrated mutable-file conflict means READ-ONLY / RECONCILE for *that scope only*; continue independent safe work. Missing critical security, rights, loss-prevention, or branch-protection evidence remains blocking.
+**CLAIM → DELTA → BLOCKER / HANDOFF → COMPLETE / FAILED / SUPERSEDE**
 
-Tests follow risk: documentation-only gets applicable docs/policy gates; small code change gets affected tests and blocking analyzer; Android/offline/release gets its build, integrity and integration checks. Required GitHub checks/reviews remain mandatory; NOT_RUN/SKIPPED are never PASS.
+Record a movement when any of these changes:
+- task ownership;
+- mutable scope;
+- branch/PR/issue target;
+- implementation state;
+- verified evidence;
+- blocker/root cause;
+- next action;
+- completion/failure/supersession;
+- an approved decision changes an existing contract.
 
-## Movement capture without duplicate bureaucracy
+Do NOT log every chat message or speculative thought. Log every meaningful state transition.
 
-Keep durable evidence of meaningful transitions: **CLAIM → DELTA → BLOCKER / HANDOFF → COMPLETE / FAILED / SUPERSEDE**.
+Minimum record:
 
-A GitHub commit, PR, required check or Issue comment is already durable evidence: do not manually copy it into extra ledgers. Add a checkpoint only when ownership, recovery, acceptance, an unrecoverable blocker, or a decision cannot be reconstructed from existing evidence. Update the existing authoritative project record where a cross-project decision truly changes.
-
-Minimum *when a separate checkpoint is needed*: **TASK_ID | OWNER | BRANCH/PR | SCOPE | STATE | EVIDENCE | NEXT_ACTION**. Add BLOCKER and LAST_SEEN only when relevant. Do not record every command, chat turn, or speculative thought.
+**TASK_ID | SOURCE | OWNER | BRANCH/PR | MUTABLE_SCOPE | STATE | EVIDENCE | NEXT_ACTION | BLOCKER | LAST_SEEN**
 
 ## Write-before-exit law
 A session that made a meaningful mutation may not finish with its only evidence inside the chat.
@@ -62,17 +86,17 @@ Instead:
 - invisible/unrecorded claims are treated as **UNVERIFIED**.
 
 ## Problem-learning rule
-Only a confirmed *recurring* root cause that is not already documented should update the existing Troubleshooting Registry:
+A confirmed reusable problem is added/updated in the Troubleshooting Registry:
 
 **Symptom → Root Cause → Solution/Workaround → Verification → Reuse Rule → Status → Evidence → Last verified**
 
 Do not create duplicate entries for the same root cause.
 
 ## Locator rule
-Use the existing locator only when a repeatedly costly discovery justifies it. A one-off lookup does not require another record.
+If finding the correct file, command, page, workflow, issue, PR, or contract takes meaningful time, add/update one entry in the Central Source / Agreement / Activity Locator.
 
 ## Collision prevention
-- one *overlapping* mutable scope = one owner; unrelated scopes may advance concurrently;
+- one mutable scope = one owner;
 - another owner’s branch/PR/path = READ-ONLY until handoff;
 - shared file mutations are serialized;
 - no reset/clean/revert/delete/force-push against unknown work;

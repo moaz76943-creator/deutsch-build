@@ -5,28 +5,12 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 - `docs/project-record/SESSION_OPERATING_CONTRACT.md`
 - `docs/project-record/PROJECT_INTENT.md`
 
-## Commit and CI policy (effective 2026-10-15)
-
-- Never add CI-skip tokens (including `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`) or `skip-checks: true` to **new** commit messages, whether created by Jules, Gemini, Antigravity, or an automated workflow.
-- Do not skip mandatory GitHub Actions or treat `SKIPPED` / `NOT_RUN` as a passing test. Optimize costs with focused tests, caching, and bounded concurrency, not commit-level suppression.
-- Keep historical commits unchanged. For older PRs with skip directives, use a reviewed, non-skipping integration tip and validate the exact head before merge; never force-push Jules branches to rewrite their history.
-- Follow the repository's actual branch and task CI contracts; this notice does not activate disabled workflows or authorize paid services.
-
-## Fast execution lane (owner direction 2026-10-15)
-
-- Canonical private repository: `moaz76943-creator/deutsch-build`; development integration branch: `staging/v2-full-platform`. The private `main` branch is not the automatic development merge target. Public content repository: `moaz76943-creator/-offline-packs-store`, canonical branch `main`.
-- Staging merge procedure: sequential squash merge via authorized `gh pr merge --squash --delete-branch` once required checks pass and reviews are resolved; guarded automation workflows (`auto-merge.yml`, `auto-rebase.yml`) cover both `main` and `staging/v2-full-platform`.
-- Ownership coordination: task ledger (`docs/control-plane/claims.json` / `tool/claim_ledger.py`) is rebound to `moaz76943-creator/deutsch-build` and canonical staging baseline. Ownership claims are needed for **overlapping mutable scopes**, not for unrelated read-only work. Non-overlapping independent work may proceed concurrently.
-- Use proportional tests: docs-only → relevant policy/format checks; targeted code → affected tests and blocking analyzer; Android/offline/release paths → appropriate build and integration gates. Existing GitHub required checks/reviews still apply.
-- Do not repeat PASS evidence on an unchanged SHA and unaffected dependencies; re-verify when the relevant code or dependency changes. Do not label older, skipped, or absent evidence PASS.
-- Stop writes only for a demonstrable collision, irreversible action, security/privacy risk, uncertain redistribution rights, or protection failure. Record the specific blocker; continue other independent safe work.
-- Prefer one measurable shipped-function milestone (Android startup, offline search, SRS persistence, verified content) over increasing the number of PRs, registries or agents.
-
-Before mutation:
-1. verify the live canonical repository, target branch and HEAD;
-2. check relevant PRs, shared file ownership and applicable CI;
-3. reuse or assign TASK_ID, owner, exclusive changed-file scope and acceptance criteria in the existing PR/Issue;
-4. write only within that scope; respect required checks, independent review and approvals.
+Before any mutation:
+1. verify this is the canonical repository `sali97m-cpu/deutsch-bilarabi`;
+2. inspect live branch/PR/CI state;
+3. reconcile task ownership and mutable scope;
+4. reuse the existing TASK_ID when work is already active;
+5. treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
 
 After meaningful movement:
 - leave durable evidence;
