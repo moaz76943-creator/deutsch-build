@@ -1,5 +1,7 @@
-// SRS-derived view only. The persistence layer supplies the verified
-// counters; this class must not infer "mastered" from arbitrary raw ratings.
+enum DomainMasteryState { locked, available, inProgress, mastered }
+
+/// Display projection only. These counters MUST originate from an authoritative,
+/// pair-isolated persisted SRS snapshot; event rating alone is not mastery proof.
 class DomainMasteryProjection {
   final String domainId;
   final String sourceLanguageId;
@@ -39,23 +41,7 @@ class DomainMasteryProjection {
     required DateTime lastEvidenceUtc,
     required int masteryRevision,
   }) {
-    if (domainId.trim().isEmpty ||
-        sourceLanguageId.trim().isEmpty ||
-        targetLanguageId.trim().isEmpty ||
-        sourceLanguageId == targetLanguageId ||
-        masteryRevision < 0 ||
-        eligibleCardCount < 0 ||
-        introducedCardCount < 0 ||
-        introducedCardCount > eligibleCardCount ||
-        recalledCardCount < 0 ||
-        recalledCardCount > introducedCardCount ||
-        masteredCardCount < 0 ||
-        masteredCardCount > recalledCardCount ||
-        dueCardCount < 0 ||
-        dueCardCount > introducedCardCount) {
-      throw ArgumentError('Invalid verified, pair-isolated SRS counters');
-    }
-    return DomainMasteryProjection(
+    final projection = DomainMasteryProjection(
       domainId: domainId,
       sourceLanguageId: sourceLanguageId,
       targetLanguageId: targetLanguageId,
@@ -67,20 +53,45 @@ class DomainMasteryProjection {
       lastEvidenceUtc: lastEvidenceUtc.toUtc(),
       masteryRevision: masteryRevision,
     );
+    if (!projection.hasConsistentCounters) {
+      throw ArgumentError('Invalid verified, pair-isolated SRS counters');
+    }
+    return projection;
   }
 
+  /// Preserve legacy snapshots without mutating or deleting their data.
+  /// Never show a success state when counters are malformed.
+  bool get hasConsistentCounters =>
+      domainId.trim().isNotEmpty &&
+      sourceLanguageId.trim().isNotEmpty &&
+      targetLanguageId.trim().isNotEmpty &&
+      sourceLanguageId != targetLanguageId &&
+      eligibleCardCount >= 0 &&
+      introducedCardCount >= 0 &&
+      recalledCardCount >= 0 &&
+      masteredCardCount >= 0 &&
+      dueCardCount >= 0 &&
+      introducedCardCount <= eligibleCardCount &&
+      recalledCardCount <= introducedCardCount &&
+      masteredCardCount <= recalledCardCount &&
+      dueCardCount <= introducedCardCount &&
+      masteryRevision >= 0;
+
   double get masteryPercentage {
-    if (eligibleCardCount <= 0) return 0.0;
+    if (!hasConsistentCounters || eligibleCardCount <= 0) return 0.0;
     return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0).toDouble();
   }
 
   DomainMasteryState get masteryState {
+    if (!hasConsistentCounters) {
+      return introducedCardCount > 0
+          ? DomainMasteryState.inProgress
+          : DomainMasteryState.available;
+    }
     if (introducedCardCount <= 0) return DomainMasteryState.available;
-    if (masteredCardCount == eligibleCardCount && eligibleCardCount > 0) {
+    if (eligibleCardCount > 0 && masteredCardCount == eligibleCardCount) {
       return DomainMasteryState.mastered;
     }
     return DomainMasteryState.inProgress;
   }
 }
-
-enum DomainMasteryState { locked, available, inProgress, mastered }
