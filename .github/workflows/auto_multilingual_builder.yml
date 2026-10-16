@@ -1,8 +1,6 @@
 name: Multilingual Pack Builder Engine
 
 on:
-  schedule:
-    # - cron: '0 * * * *' (disabled)
   workflow_dispatch:
 
 jobs:
@@ -42,6 +40,6 @@ jobs:
             exit 0
           fi
           
-          git commit -m "feat(content): automated multilingual pack expansion [skip ci]"
+          git commit -m "feat(content): automated multilingual pack expansion"
           git pull --rebase origin staging/v2-full-platform
           git push origin staging/v2-full-platform
