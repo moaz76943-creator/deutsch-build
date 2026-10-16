@@ -33,10 +33,14 @@ jobs:
         run: |
           set -Eeuo pipefail
 
+          target_base="${GITHUB_REF_NAME:-staging/v2-full-platform}"
+          if [[ "$target_base" != "main" && "$target_base" != "staging/v2-full-platform" ]]; then
+            target_base="staging/v2-full-platform"
+          fi
           mapfile -t prs < <(
             gh pr list \
               --repo "$GITHUB_REPOSITORY" \
-              --base main \
+              --base "$target_base" \
               --state open \
               --limit 100 \
               --json number,isDraft,isCrossRepository,mergeStateStatus,mergeable,labels \

@@ -1,3 +1,4 @@
+/// Session-local cognitive signals, not evidence of certified CEFR proficiency.
 class CognitiveMetricRecord {
   final String sessionEventId;
   final String contentKey;
@@ -5,10 +6,9 @@ class CognitiveMetricRecord {
   final int hesitationTaps;
   final bool isCorrect;
   final DateTime recordedAt;
-
-  // Pass the exact directed-pair identity for newly generated records.
-  // 'default' exists only for compatibility with older call sites.
   final String languagePair;
+  final String? cefrLevel;
+  final bool isCefrVerified;
   final double reviewDifficulty;
 
   const CognitiveMetricRecord({
@@ -19,6 +19,8 @@ class CognitiveMetricRecord {
     required this.isCorrect,
     required this.recordedAt,
     this.languagePair = 'default',
+    this.cefrLevel,
+    this.isCefrVerified = false,
     this.reviewDifficulty = 0.0,
   });
 
@@ -32,19 +34,16 @@ class CognitiveMetricRecord {
       reviewDifficulty >= 0.0 &&
       reviewDifficulty <= 1.0;
 
-  /// Informal, local task-load estimate; NOT a CEFR score or certification.
   double get cognitiveStrainIndex {
+    if (responseLatency.isNegative) return 1.0;
     if (!isUsable) return 0.0;
-    var strain = 0.0;
     final latency = responseLatency.inMilliseconds;
-    if (latency > 5000) {
-      strain += 0.4;
-    } else if (latency > 3000) {
-      strain += 0.2;
-    }
+    var strain = latency > 5000 ? 0.4 : (latency > 3000 ? 0.2 : 0.0);
     if (hesitationTaps > 1) strain += 0.3;
     if (!isCorrect) strain += 0.3;
-    strain += reviewDifficulty * 0.2;
-    return strain.clamp(0.0, 1.0).toDouble();
+    final difficulty = reviewDifficulty.isFinite
+        ? reviewDifficulty.clamp(0.0, 1.0).toDouble()
+        : 0.0;
+    return (strain + difficulty * 0.2).clamp(0.0, 1.0).toDouble();
   }
 }

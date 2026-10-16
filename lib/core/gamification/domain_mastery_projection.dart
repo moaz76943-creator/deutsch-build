@@ -27,6 +27,38 @@ class DomainMasteryProjection {
     required this.masteryRevision,
   });
 
+  /// Use only counters obtained from one committed directed-pair SRS snapshot.
+  /// This does not establish CEFR proficiency or manufacture review history.
+  factory DomainMasteryProjection.fromVerifiedCounters({
+    required String domainId,
+    required String sourceLanguageId,
+    required String targetLanguageId,
+    required int eligibleCardCount,
+    required int introducedCardCount,
+    required int recalledCardCount,
+    required int masteredCardCount,
+    required int dueCardCount,
+    required DateTime lastEvidenceUtc,
+    required int masteryRevision,
+  }) {
+    final projection = DomainMasteryProjection(
+      domainId: domainId,
+      sourceLanguageId: sourceLanguageId,
+      targetLanguageId: targetLanguageId,
+      eligibleCardCount: eligibleCardCount,
+      introducedCardCount: introducedCardCount,
+      recalledCardCount: recalledCardCount,
+      masteredCardCount: masteredCardCount,
+      dueCardCount: dueCardCount,
+      lastEvidenceUtc: lastEvidenceUtc.toUtc(),
+      masteryRevision: masteryRevision,
+    );
+    if (!projection.hasConsistentCounters) {
+      throw ArgumentError('Invalid verified, pair-isolated SRS counters');
+    }
+    return projection;
+  }
+
   /// Preserve legacy snapshots without mutating or deleting their data.
   /// Never show a success state when counters are malformed.
   bool get hasConsistentCounters =>
@@ -46,7 +78,7 @@ class DomainMasteryProjection {
       masteryRevision >= 0;
 
   double get masteryPercentage {
-    if (!hasConsistentCounters || eligibleCardCount == 0) return 0.0;
+    if (!hasConsistentCounters || eligibleCardCount <= 0) return 0.0;
     return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0).toDouble();
   }
 
@@ -56,7 +88,7 @@ class DomainMasteryProjection {
           ? DomainMasteryState.inProgress
           : DomainMasteryState.available;
     }
-    if (introducedCardCount == 0) return DomainMasteryState.available;
+    if (introducedCardCount <= 0) return DomainMasteryState.available;
     if (eligibleCardCount > 0 && masteredCardCount == eligibleCardCount) {
       return DomainMasteryState.mastered;
     }
