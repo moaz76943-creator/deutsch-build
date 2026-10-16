@@ -49,13 +49,15 @@ class NormalizationEngine:
         # Do NOT NFC-normalize the original. A decomposed spelling is original data.
         key = unicodedata.normalize("NFC", text)
         rules = ["NFC_SEARCH"] if key != text else []
+        lang = language_code.split("-", 1)[0]
         if fold_case:
-            folded = key.casefold()
+            # Turkish/Azeri case pairs differ from Unicode's default folding.
+            fold_input = key.replace("I", "ı").replace("İ", "i") if lang in ("tr", "az") else key
+            folded = fold_input.casefold()
             if folded != key:
                 rules.append("CASE_FOLD")
             key = folded
 
-        lang = language_code.split("-", 1)[0]
         if lang == "de":
             # Only German keys get conventional umlaut expansion.
             next_key = key.translate(str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue"}))
