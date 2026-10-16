@@ -15,11 +15,18 @@ dependencies:
   path_provider: ^2.1.2
   flutter_riverpod: ^2.5.1
   sqflite: ^2.3.3+1
-  path: any
+  # Native SQLite binary for ffi consumers; sqflite itself uses OS SQLite.
+  # Pin to the last native-bundling release (0.6.0+eol bundles nothing).
+  sqlite3_flutter_libs: 0.5.42
+  # Run content-only SQLite on a dedicated FFI worker where supported.
+  sqflite_common_ffi: '>=2.3.0 <2.4.0'
+  sqlite3: '>=2.3.0 <3.0.0'
+  path: ^1.9.0
   crypto: ^3.0.7
+  encrypt: ^5.0.3
   http: ^1.6.0
 
-  archive: any
+  archive: ^4.3.0
   flutter_animate: any
   font_awesome_flutter: any
 
@@ -30,12 +37,13 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
 
-  sqflite_common_ffi: any
 
 flutter:
   uses-material-design: true
   assets:
     - assets/audio/
+    - assets/data/
     - assets/data/packs/
     - assets/data/master_vocabulary.json
+    - assets/content/packs/de/sqlite/de-1.0.0.sqlite
     - assets/
