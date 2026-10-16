@@ -31,10 +31,10 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout main
+      - name: Checkout staging/v2-full-platform
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: main
+          ref: staging/v2-full-platform
           fetch-depth: 0
           persist-credentials: false
 
@@ -50,8 +50,22 @@ jobs:
             --jq '.[] | select(.headRefName | startswith("automation/content-bot-")) | .headRefName' \
             | head -n 1)"
           if [[ -n "$existing" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Existing content-bot PR branch: $existing"
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              echo "Manual workflow dispatch: continuing expansion without stalling."
+            else
+              pr_meta="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$existing" --json number,mergeable,isDraft --jq '.[0]')"
+              pr_num="$(echo "$pr_meta" | jq -r '.number')"
+              mergeable="$(echo "$pr_meta" | jq -r '.mergeable')"
+              if [[ "$mergeable" == "CONFLICTING" ]]; then
+                echo "skip=false" >> "$GITHUB_OUTPUT"
+                echo "Existing bot PR #$pr_num is conflicting; generating clean expansion branch."
+              else
+                echo "skip=true" >> "$GITHUB_OUTPUT"
+                echo "Active bot PR #$pr_num is currently open and healthy. Awaiting review."
+              fi
+            fi
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
@@ -253,7 +267,7 @@ jobs:
           - Phase-17/18 pipeline: PASS; all generated cards remained quarantined pending human review
           - Candidate merge/compiler parity on temporary copies: PASS
           - Dart analyzer: 0 blocking `error •` entries in `lib/`
-          - Base main SHA: `${GITHUB_SHA}`
+          - Base staging SHA: `${GITHUB_SHA}`
           EOF
 
           git config user.name "deutsch-content-bot"
@@ -261,13 +275,13 @@ jobs:
           git switch -c "$BRANCH"
           git add "$BATCH"
           git diff --cached --quiet && exit 0
-          git commit -m "[skip ci] content: add automated review batch ${RUN_KEY}"
+          git commit -m "content: add automated review batch ${RUN_KEY}"
           gh auth setup-git
           git push --set-upstream origin "$BRANCH"
 
           gh pr create \
             --repo "$GITHUB_REPOSITORY" \
-            --base main \
+            --base staging/v2-full-platform \
             --head "$BRANCH" \
             --title "content: review automated expansion ${RUN_KEY}" \
             --body-file "$SUMMARY"

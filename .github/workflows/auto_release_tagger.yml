@@ -2,7 +2,7 @@ name: Auto Release Tagger
 
 on:
   pull_request_target:
-    branches: [main]
+    branches: [main, staging/v2-full-platform]
     types: [closed]
 
 permissions:
@@ -172,7 +172,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add CHANGELOG.md
-          git commit -m "[skip ci] chore(release): update CHANGELOG for ${{ steps.release.outputs.tag }}"
+          git commit -m "chore(release): update CHANGELOG for ${{ steps.release.outputs.tag }}"
           git push origin HEAD:main
 
           printf 'release_sha=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
