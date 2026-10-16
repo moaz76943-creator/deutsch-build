@@ -31,10 +31,10 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout main
+      - name: Checkout staging/v2-full-platform
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: main
+          ref: staging/v2-full-platform
           fetch-depth: 0
           persist-credentials: false
 
@@ -253,7 +253,7 @@ jobs:
           - Phase-17/18 pipeline: PASS; all generated cards remained quarantined pending human review
           - Candidate merge/compiler parity on temporary copies: PASS
           - Dart analyzer: 0 blocking `error •` entries in `lib/`
-          - Base main SHA: `${GITHUB_SHA}`
+          - Base staging SHA: `${GITHUB_SHA}`
           EOF
 
           git config user.name "deutsch-content-bot"
@@ -261,7 +261,7 @@ jobs:
           git switch -c "$BRANCH"
           git add "$BATCH"
           git diff --cached --quiet && exit 0
-          git commit -m "[skip ci] content: add automated review batch ${RUN_KEY}"
+          git commit -m "content: add automated review batch ${RUN_KEY}"
           gh auth setup-git
           git push --set-upstream origin "$BRANCH"
 
