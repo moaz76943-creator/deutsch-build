@@ -1,38 +1,47 @@
-name: Build Production Release APK
+name: Build and Release Direct APK
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Setup Java Development Kit
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Set up Flutter
+      - name: Setup Flutter Framework
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.x'
-          channel: 'stable'
+          flutter-version: '3.22.3'
           cache: true
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build Release APK
-        run: flutter build apk --release
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Prepare Single APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ./deutsch-app.apk
+
+      - name: Publish Direct APK Release
+        uses: ncipollo/release-action@v1
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          artifacts: "deutsch-app.apk"
+          tag: "latest"
+          allowUpdates: true
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
