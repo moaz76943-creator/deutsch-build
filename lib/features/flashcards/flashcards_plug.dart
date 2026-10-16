@@ -81,9 +81,9 @@ class _FlashcardsContainer extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      child: const Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Text(
             'جاهز للتعلم التكيفي',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
