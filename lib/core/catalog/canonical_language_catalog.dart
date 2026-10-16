@@ -316,22 +316,17 @@ class CanonicalLanguageCatalog {
         evidence != null &&
         evidence.languageCode.toLowerCase() ==
             persistedId.trim().replaceAll('_', '-').toLowerCase();
-    // Null checks must be part of each short-circuit expression: matched
-    // alone does not promote the nullable evidence type for Dart flow analysis.
     final content = matched &&
-        evidence != null &&
         evidence.licenseApproved &&
         evidence.contentValidated &&
         evidence.acceptedEntryCount > 0;
     final verified = content &&
-        evidence != null &&
         evidence.packSchemaValidated &&
         evidence.packDigestValidated &&
         evidence.checksumSha256 != null &&
         _validSha256.hasMatch(evidence.checksumSha256!);
-    final installed = verified && evidence != null && evidence.installedOnDevice;
-    final production =
-        installed && evidence != null && evidence.productionGateApproved;
+    final installed = verified && evidence.installedOnDevice;
+    final production = installed && evidence.productionGateApproved;
     return CatalogLifecycle(
       languageCode: persistedId,
       registered: registered,
