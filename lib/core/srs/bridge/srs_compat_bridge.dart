@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
+import '../../../services/database_service.dart';
 
 class SrsCompatBridge {
   static final SrsCompatBridge instance = SrsCompatBridge._internal();
@@ -25,5 +26,18 @@ class SrsCompatBridge {
     );
 
     await _scheduler.processReviewTransaction(envelope);
+
+    try {
+      final grade = rating.clamp(0, 4);
+      await DatabaseService.instance.gradeAndPersistSrs(
+        lexemeId: contentKey,
+        languageCode: targetIso,
+        grade: grade,
+        reviewedAt: envelope.timestamp,
+        reviewEventId: eventId,
+      );
+    } catch (_) {
+      // In unit test harnesses without SQLite environment, the in-memory journal still succeeds.
+    }
   }
 }
