@@ -11,7 +11,7 @@ on:
 
 jobs:
   guard:
-    if: "github.actor != 'jules-bot' && !contains(github.event.head_commit.message, '[skip ci]')"
+    if: "github.actor != 'jules-bot'"
     runs-on: ubuntu-latest
     steps:
       - run: echo "Data repository protected from Jules minute consumption."
