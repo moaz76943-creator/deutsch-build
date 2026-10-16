@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 DEFAULT_REPORT = Path("reports/local_gate_summary.json")
-SKIP_CI = "[skip ci]"
 
 
 @dataclass(frozen=True)
@@ -35,11 +34,11 @@ class SchemaValidationError(ValueError):
     pass
 
 
-def enforce_skip_ci(proposal: str) -> str:
+def validate_commit_proposal(proposal: str) -> str:
+    from tools.verification.anti_skip_guard import assert_no_skip_directives
     proposal = proposal.strip()
-    if SKIP_CI.lower() in proposal.lower():
-        return proposal
-    return f"{proposal} {SKIP_CI}".strip()
+    assert_no_skip_directives(proposal, "commit proposal")
+    return proposal
 
 
 def parse_pytest_failures(stdout: str, stderr: str, returncode: int) -> list[str]:
@@ -198,9 +197,8 @@ def build_summary(mode: str, suites: Iterable[SuiteResult], *, commit_proposal: 
         "failure_reasons": reasons,
         "suites": [s.to_dict() for s in suites],
         "commit_policy": {
-            "local_only": True,
-            "required_marker": SKIP_CI,
-            "proposal": enforce_skip_ci(commit_proposal) if commit_proposal is not None else None,
+            "anti_skip_enforced": True,
+            "proposal": validate_commit_proposal(commit_proposal) if commit_proposal is not None else None,
         },
     }
 
@@ -241,7 +239,7 @@ def build_parser() -> argparse.ArgumentParser:
     group.add_argument("--full", action="store_true")
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
-    parser.add_argument("--commit-proposal", help="[skip ci] is appended automatically")
+    parser.add_argument("--commit-proposal", help="Commit proposal to validate against anti-skip policy")
     return parser
 
 

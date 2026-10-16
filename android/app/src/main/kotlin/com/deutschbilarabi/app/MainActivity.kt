@@ -15,6 +15,8 @@ class MainActivity : FlutterActivity() {
     }
 
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
+    private var offlineVoiceCapabilityProbe: AndroidOfflineVoiceCapabilityProbe? = null
+    private var offlineVoiceCapabilityChannel: MethodChannel? = null
     private var processTextChannel: MethodChannel? = null
     private var processTextListenerReady = false
     private var processTextInFlight = false
@@ -117,6 +119,13 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
+        offlineVoiceCapabilityChannel?.setMethodCallHandler(null)
+        offlineVoiceCapabilityProbe?.dispose()
+        offlineVoiceCapabilityProbe = AndroidOfflineVoiceCapabilityProbe(this)
+        offlineVoiceCapabilityChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
+        ).also { it.setMethodCallHandler(offlineVoiceCapabilityProbe) }
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "com.deutsch_bilarabi.app/tts_settings",
@@ -180,6 +189,10 @@ class MainActivity : FlutterActivity() {
         processTextListenerReady = false
         processTextChannel?.setMethodCallHandler(null)
         processTextChannel = null
+        offlineVoiceCapabilityChannel?.setMethodCallHandler(null)
+        offlineVoiceCapabilityChannel = null
+        offlineVoiceCapabilityProbe?.dispose()
+        offlineVoiceCapabilityProbe = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 }
