@@ -125,6 +125,7 @@ class L1VocabularyCache {
     }
   }
 
+  int get length => _memoryCache.length;
   int get estimatedMemoryUsageBytes => _memoryCache.currentMemory;
   int get retainedIdentities => _memoryCache.length;
   void onMemoryPressure() => _memoryCache.onMemoryPressure();

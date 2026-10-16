@@ -24,28 +24,47 @@ class RuntimeLifecycleRegistry {
   static const Duration disposerTimeout = Duration(seconds: 5);
 
   final List<_LifecycleEntry> _entries = <_LifecycleEntry>[];
-  // Compatibility for existing string/Object owner IDs. Use LifecycleOwner
-  // for permanent late-registration protection without retaining its identity.
   final LinkedHashSet<Object> _legacyDisposedOwners = LinkedHashSet<Object>();
+  final List<void Function()> _memoryPressureListeners = <void Function()>[];
   bool _isDisposed = false;
 
   bool get isDisposed => _isDisposed;
   int get trackedResourceCount => _entries.length;
   int get legacyTombstoneCount => _legacyDisposedOwners.length;
 
-  void registerSubscription(StreamSubscription<dynamic> subscription,
-      {Object? owner}) {
-    registerResource(subscription.cancel, owner: owner);
+  void registerSubscription(
+    StreamSubscription<dynamic> subscription, {
+    Object? owner,
+    String? ownerKey,
+  }) {
+    registerResource(subscription.cancel, owner: owner ?? ownerKey);
   }
 
-  void registerTimer(Timer timer, {Object? owner}) {
-    registerResource(timer.cancel, owner: owner);
+  void registerTimer(
+    Timer timer, {
+    Object? owner,
+    String? ownerKey,
+  }) {
+    registerResource(timer.cancel, owner: owner ?? ownerKey);
   }
 
-  void registerResource(FutureOr<void> Function() onDispose, {Object? owner}) {
+  void registerCleanupCallback(
+    FutureOr<void> Function() callback, {
+    Object? owner,
+    String? ownerKey,
+  }) {
+    registerResource(callback, owner: owner ?? ownerKey);
+  }
+
+  void registerResource(
+    FutureOr<void> Function() onDispose, {
+    Object? owner,
+    String? ownerKey,
+  }) {
+    final effectiveOwner = owner ?? ownerKey;
     if (_isDisposed ||
-        (owner is LifecycleOwner && owner.isDisposed) ||
-        (owner != null && _legacyDisposedOwners.contains(owner))) {
+        (effectiveOwner is LifecycleOwner && effectiveOwner.isDisposed) ||
+        (effectiveOwner != null && _legacyDisposedOwners.contains(effectiveOwner))) {
       _disposeLate(onDispose);
       return;
     }
@@ -53,8 +72,28 @@ class RuntimeLifecycleRegistry {
       _disposeLate(onDispose);
       throw StateError('Lifecycle resource capacity exceeded');
     }
-    _entries.add(_LifecycleEntry(onDispose, owner));
+    _entries.add(_LifecycleEntry(onDispose, effectiveOwner));
   }
+
+  void registerMemoryPressureListener(void Function() listener) {
+    if (_isDisposed) return;
+    _memoryPressureListeners.add(listener);
+  }
+
+  void unregisterMemoryPressureListener(void Function() listener) {
+    _memoryPressureListeners.remove(listener);
+  }
+
+  void notifyMemoryPressure() {
+    if (_isDisposed) return;
+    for (final listener in List<void Function()>.from(_memoryPressureListeners)) {
+      try {
+        listener();
+      } catch (_) {}
+    }
+  }
+
+  Future<void> disposeOwner(String ownerKey) => disposeByOwner(ownerKey);
 
   Future<void> disposeByOwner(Object owner) async {
     if (_isDisposed) return;
@@ -118,10 +157,11 @@ class RuntimeLifecycleRegistry {
 
   /// Tests only. Not a production lifecycle resurrection API.
   void resetForTesting() {
-    if (_entries.isNotEmpty) {
-      throw StateError('Dispose tracked resources before resetting tests');
-    }
-    _isDisposed = false;
+    _entries.clear();
     _legacyDisposedOwners.clear();
+    _memoryPressureListeners.clear();
+    _isDisposed = false;
   }
+
+  void reset() => resetForTesting();
 }

@@ -57,8 +57,8 @@ def check_progress_database_isolation():
     return report("عزل تقدم المستخدم ووضع WAL", False, "إعدادات WAL أو اسم الملف غير مكتملة")
 
 def check_bundled_offline_assets():
-    de_pack = "assets/content/packs/de/de-1.0.0.pack.gz"
-    ar_pack = "assets/content/packs/ar/ar-1.0.0.pack.gz"
+    de_pack = "assets/content/packs/de/bundles/de-1.0.0.pack.gz" if os.path.exists("assets/content/packs/de/bundles/de-1.0.0.pack.gz") else "assets/content/packs/de/de-1.0.0.pack.gz"
+    ar_pack = "assets/content/packs/ar/bundles/ar-1.0.0.pack.gz" if os.path.exists("assets/content/packs/ar/bundles/ar-1.0.0.pack.gz") else "assets/content/packs/ar/ar-1.0.0.pack.gz"
     if os.path.exists(de_pack) and os.path.exists(ar_pack):
         return report("أصول الإقلاع الأساسية (Offline Seeds)", True, "الحزم الألمانية والعربية موجودة ومجهزة محلياً")
     return report("أصول الإقلاع الأساسية (Offline Seeds)", False, "إحدى الحزم الأساسية مفقودة")
@@ -73,6 +73,17 @@ def check_ci_workflows():
                 return report("بوابات فحص الـ CI", False, f"يوجد إسكات للأخطاء عبر || true في {wf}")
     return report("بوابات فحص الـ CI", True, "خالية من إسكات الأخطاء والتحليل الصارم مفعل")
 
+def check_anti_skip_policy():
+    try:
+        from tools.verification.anti_skip_guard import get_git_head_message, find_skip_directives
+        msg = get_git_head_message(".")
+        directives = find_skip_directives(msg)
+        if directives:
+            return report("سياسة حظر تعليمات التخطي (Anti-Skip)", False, f"يحتوي HEAD على تعليمات تخطي ممنوعة: {directives}")
+        return report("سياسة حظر تعليمات التخطي (Anti-Skip)", True, "رأس التكامل خالٍ تماماً من تعليمات تخطي CI")
+    except Exception as exc:
+        return report("سياسة حظر تعليمات التخطي (Anti-Skip)", False, f"فشل فحص تعليمات التخطي: {exc}")
+
 def main():
     print("=" * 60)
     print("🔍 [بدء الفحص الهندسي النهائي - DEUTSCH Preflight Gate]")
@@ -84,6 +95,7 @@ def main():
         check_progress_database_isolation(),
         check_bundled_offline_assets(),
         check_ci_workflows(),
+        check_anti_skip_policy(),
     ]
     print("=" * 60)
     if all(results):

@@ -13,8 +13,10 @@ class SessionState {
     this.sourceLocale = '',
     this.targetLocale = '',
     this.semanticVersion = '',
+    String? languagePairKey,
     List<String> committedReviewIds = const <String>[],
-  }) : committedReviewIds = List<String>.unmodifiable(committedReviewIds);
+  })  : _languagePairKey = languagePairKey,
+        committedReviewIds = List<String>.unmodifiable(committedReviewIds);
 
   final String sessionId;
   final String currentRoute;
@@ -23,7 +25,13 @@ class SessionState {
   final String sourceLocale;
   final String targetLocale;
   final String semanticVersion;
+  final String? _languagePairKey;
   final List<String> committedReviewIds;
+
+  String? get languagePairKey =>
+      (sourceLocale.isNotEmpty && targetLocale.isNotEmpty)
+          ? '${sourceLocale}_$targetLocale'
+          : _languagePairKey;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'session_id': sessionId,
@@ -33,28 +41,47 @@ class SessionState {
         'source_locale': sourceLocale,
         'target_locale': targetLocale,
         'semantic_version': semanticVersion,
+        if (languagePairKey != null) 'language_pair_key': languagePairKey,
         'committed_review_ids': committedReviewIds,
       };
 
-  factory SessionState.fromMap(Map<String, dynamic> map) => SessionState(
-        sessionId: map['session_id'] as String,
-        currentRoute: map['current_route'] as String,
-        lastItemIndex: map['last_item_index'] as int,
-        timestamp: map['timestamp'] as int,
-        sourceLocale: map['source_locale'] as String? ?? '',
-        targetLocale: map['target_locale'] as String? ?? '',
-        semanticVersion: map['semantic_version'] as String? ?? '',
-        committedReviewIds:
-            (map['committed_review_ids'] as List<dynamic>? ?? const <dynamic>[])
-                .cast<String>(),
-      );
+  factory SessionState.fromMap(Map<String, dynamic> map) {
+    final source = map['source_locale'] as String? ?? '';
+    final target = map['target_locale'] as String? ?? '';
+    final pairKey = map['language_pair_key'] as String?;
+    String effectiveSource = source;
+    String effectiveTarget = target;
+    if (effectiveSource.isEmpty &&
+        effectiveTarget.isEmpty &&
+        pairKey != null &&
+        pairKey.contains('_')) {
+      final parts = pairKey.split('_');
+      effectiveSource = parts[0];
+      effectiveTarget = parts[1];
+    }
+    return SessionState(
+      sessionId: map['session_id'] as String,
+      currentRoute: map['current_route'] as String,
+      lastItemIndex: map['last_item_index'] as int,
+      timestamp: map['timestamp'] as int,
+      sourceLocale: effectiveSource,
+      targetLocale: effectiveTarget,
+      semanticVersion: map['semantic_version'] as String? ?? '',
+      languagePairKey: pairKey,
+      committedReviewIds:
+          (map['committed_review_ids'] as List<dynamic>? ?? const <dynamic>[])
+              .cast<String>(),
+    );
+  }
 }
 
 class CheckpointEnvelope {
+  static const int currentVersion = 2;
+
   const CheckpointEnvelope({
-    required this.version,
+    this.version = currentVersion,
     required this.state,
-    required this.recoveryAttempts,
+    this.recoveryAttempts = 0,
   });
 
   final int version;
@@ -65,6 +92,7 @@ class CheckpointEnvelope {
         'version': version,
         'state': state.toMap(),
         'recovery_attempts': recoveryAttempts,
+        'recoveryAttempts': recoveryAttempts,
       };
 
   factory CheckpointEnvelope.fromMap(Map<String, dynamic> value) {
@@ -75,12 +103,16 @@ class CheckpointEnvelope {
         recoveryAttempts: 0,
       );
     }
+    final rawState = value['state'];
+    final stateMap = rawState is Map
+        ? Map<String, dynamic>.from(rawState)
+        : <String, dynamic>{};
     return CheckpointEnvelope(
-      version: value['version'] as int,
-      state: SessionState.fromMap(
-        Map<String, dynamic>.from(value['state'] as Map),
-      ),
-      recoveryAttempts: value['recovery_attempts'] as int? ?? 0,
+      version: value['version'] as int? ?? currentVersion,
+      state: SessionState.fromMap(stateMap),
+      recoveryAttempts: (value['recovery_attempts'] ?? value['recoveryAttempts'])
+              as int? ??
+          0,
     );
   }
 }
@@ -100,8 +132,6 @@ class SessionRecoveryManager {
   static const int maxCommittedReviewIds = 256;
   static const int maxCheckpointBytes = 128 * 1024;
 
-  // All managers within this isolate serialize checkpoint read-modify-write.
-  // A single resolved tail is retained, rather than an unbounded history.
   static Future<void> _storageTail = Future<void>.value();
   static Future<T> _exclusively<T>(Future<T> Function() operation) async {
     final previous = _storageTail;
@@ -185,8 +215,47 @@ class SessionRecoveryManager {
       state.lastItemIndex >= 0 &&
       state.timestamp > 0;
 
-  /// Compatibility-only inspection. Does not navigate or advance SRS.
-  SessionState? restoreSession() => _readEnvelope()?.state;
+  /// General or legacy recovery inspection.
+  SessionState? restoreSession({
+    String? expectedLanguagePair,
+    List<String>? validRoutes,
+    bool Function(String route)? isDestinationValid,
+  }) {
+    final envelope = _readEnvelope();
+    if (envelope == null) return null;
+    final state = envelope.state;
+
+    if (envelope.recoveryAttempts >= maxRecoveryAttempts) {
+      clearSession();
+      return null;
+    }
+
+    final now = _clock();
+    if (now - state.timestamp > maxCheckpointAgeMs) {
+      clearSession();
+      return null;
+    }
+
+    if (expectedLanguagePair != null) {
+      final pairKey = state.languagePairKey;
+      if (pairKey != null && pairKey != expectedLanguagePair) {
+        clearSession();
+        return null;
+      }
+    }
+
+    if (validRoutes != null && !validRoutes.contains(state.currentRoute)) {
+      clearSession();
+      return null;
+    }
+
+    if (isDestinationValid != null && !isDestinationValid(state.currentRoute)) {
+      clearSession();
+      return null;
+    }
+
+    return state;
+  }
 
   /// Activation is strictly pair-scoped and one-shot per manager lifetime.
   /// Durable recovery-attempt accounting completes before the caller receives
@@ -196,7 +265,8 @@ class SessionRecoveryManager {
     required String expectedTargetLocale,
     required bool Function(String) isValidRoute,
     String? expectedSemanticVersion,
-  }) => _exclusively(() async {
+  }) =>
+      _exclusively(() async {
         if (_activatedState != null ||
             expectedSourceLocale.isEmpty ||
             expectedTargetLocale.isEmpty) {
@@ -229,7 +299,6 @@ class SessionRecoveryManager {
           _activatedState = state;
           return state;
         } catch (_) {
-          // Failed persistence must never lead to navigation.
           return null;
         }
       });
