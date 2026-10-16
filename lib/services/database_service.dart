@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
@@ -248,6 +247,10 @@ class DatabaseService {
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
 
+  /// Closes unleased background SQLite connections under memory pressure.
+  Future<int> trimUnleasedContentConnections() =>
+      _contentPool.closeUnleased();
+
   Future<File> migrateContentPack(
     String filename, {
     required PackStorageLocation destination,
@@ -262,6 +265,11 @@ class DatabaseService {
     return await openDatabase(
       databasePath,
       version: 2,
+      onConfigure: (db) async {
+        await db.rawQuery('PRAGMA journal_mode = WAL;');
+        await db.execute('PRAGMA busy_timeout = 5000;');
+        await db.execute('PRAGMA foreign_keys = ON;');
+      },
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
@@ -273,6 +281,19 @@ class DatabaseService {
             next_due_at INTEGER,
             status TEXT NOT NULL DEFAULT 'learning',
             PRIMARY KEY (lexeme_id, target_language_code)
+          )
+        ''');
+        await db.execute('''
+          CREATE INDEX IF NOT EXISTS idx_srs_due_covering
+          ON srs_progress(target_language_code, next_due_at, lexeme_id)
+        ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS srs_review_events (
+            review_event_id TEXT PRIMARY KEY,
+            lexeme_id TEXT NOT NULL,
+            target_language_code TEXT NOT NULL,
+            grade INTEGER NOT NULL,
+            created_at INTEGER NOT NULL
           )
         ''');
       },
@@ -306,6 +327,21 @@ class DatabaseService {
             'ALTER TABLE srs_progress_migration RENAME TO srs_progress',
           );
         }
+      },
+      onOpen: (db) async {
+        await db.execute('''
+          CREATE INDEX IF NOT EXISTS idx_srs_due_covering
+          ON srs_progress(target_language_code, next_due_at, lexeme_id)
+        ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS srs_review_events (
+            review_event_id TEXT PRIMARY KEY,
+            lexeme_id TEXT NOT NULL,
+            target_language_code TEXT NOT NULL,
+            grade INTEGER NOT NULL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
       },
     );
   }
@@ -568,6 +604,8 @@ class DatabaseService {
     required String languageCode,
     required int grade,
     DateTime? reviewedAt,
+    String? reviewEventId,
+    bool alignToCircadianDay = false,
   }) async {
     if (await _progressVault.isOperationalActive) {
       return _progressVault.gradeOperationalSrs(
@@ -575,8 +613,14 @@ class DatabaseService {
         grade: grade, reviewedAt: reviewedAt);
     }
     return SrsSchedulerService().gradeAndPersist(
-      progressDb: await progressDb, lexemeId: lexemeId,
-      languageCode: languageCode, grade: grade, reviewedAt: reviewedAt);
+      progressDb: await progressDb,
+      lexemeId: lexemeId,
+      languageCode: languageCode,
+      grade: grade,
+      reviewedAt: reviewedAt,
+      reviewEventId: reviewEventId,
+      alignToCircadianDay: alignToCircadianDay,
+    );
   }
 
   Future<void> saveBookmark({
