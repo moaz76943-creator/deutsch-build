@@ -1,8 +1,6 @@
 // Multi-Script Goldens & Linguistic Rendering Framework
 // Conforms to DEUTSCH Master Constitution v9 Multi-Script Standards
 
-import 'dart:collection';
-
 class MultiScriptGoldensFramework {
   /// 1. RTL & Bidi Isolation (Arabic, Hebrew, Persian, Urdu, Pashto)
   /// Isolates bidirectional text segments to prevent inversion of numbers and LTR words.
