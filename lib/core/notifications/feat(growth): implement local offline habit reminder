@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 /// مجدول الإشعارات المحلية (يعمل بدون إنترنت ولا خوادم)
 class HabitReminderScheduler {
-  
+
   /// جدولة تذكير يومي دراسي مرن (Inexact Scheduling)
   static Future<void> scheduleDailyReminder() async {
     try {
