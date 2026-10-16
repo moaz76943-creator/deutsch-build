@@ -10,23 +10,22 @@ Automation MUST NOT invent or rewrite the goal or plan from commit activity. It 
 
 Build DEUTSCH بالعربي as a robust, quality-first, multilingual language-learning platform with durable state, reliable verification, safe recovery, and progressively higher automation of engineering operations.
 
-## Current goal
+## Current goal (owner update 2026-10-15)
 
-Establish a reliable project-operating system in which a new chat/session can determine the current project position from durable evidence, preserve the approved goal/plan, detect gaps or changes, and continue from the next safe task without repeating completed work.
+Deliver a verifiably working Android offline German→Arabic learning slice: installable APK from canonical staging, bounded offline startup, usable search/translation, and persistent isolated SRS. Then admit the first rights-verified SQLite v2 pack. The project operating system is a supporting tool, **not** the product milestone. Minimize owner intervention, coordination duplication and unnecessary PR creation.
 
-## Current approved execution plan
+## Current approved execution plan (supersedes the older operations-first plan)
 
-1. Previous-Work Reconciliation FIRST.
-2. Inspect live GitHub/code truth before claims about implementation.
-3. Preserve the verified OpenCode native hook + project-record bridge evidence; do not repeat that proof unless regression evidence appears.
-4. Finish the active Flutter analyzer root-cause repair and restore a trustworthy Engineering CI baseline.
-5. Reconcile and verify the stacked Universal Failure Control / release-workflow integration without weakening tests or security contracts.
-6. Implement and verify stable task-level STARTED / COMPLETED / FAILED semantics with a durable task_id.
-7. Run the prepared Mission Mode end-to-end interruption/recovery canary.
-8. Verify automatic continuation/recovery from durable task state and checkpoints.
-9. Maintain one central human decision surface for decisions that genuinely require the owner.
-10. Verify scheduler/automation telemetry without creating a fourth worker or duplicate architecture.
-11. Update this intent file whenever an approved goal or plan changes; mark older execution positions as superseded rather than silently reusing them.
+1. Reuse the existing GitHub CI, canonical task ledger and staging merge path; do not build replacements.
+2. Resume from the verified HEAD and current active PRs, not stale chat or old branch snapshots.
+3. Select the smallest **user-visible functionality blocker**; reuse or repair existing work rather than creating more backlog.
+4. Establish one reproducible Android APK artifact on canonical staging, with exact SHA and no automatic release publication.
+5. Verify offline startup, directed de→ar search, SRS persistence and restart on Android; report what is and is not exercised.
+6. Reconcile the existing 1,000-row de→ar TSV and compiler without claiming legal source approval; publish only after source rights, integrity and provenance are verified.
+7. Let separate independent file scopes advance concurrently; serialize only real collisions and all merges.
+8. Use risk-proportional tests, preserve required CI/reviews, protect learner data and keep additional billing at zero.
+9. A blocked owner decision must specify one actionable decision; other independent safe work continues.
+10. Measure weekly progress by working capabilities and blockers removed, not agents, checklists or PR counts.
 
 ## Universal session contract
 
@@ -50,7 +49,15 @@ The session is never the source of truth. Meaningful movement must become durabl
 
 ## Current execution position
 
-**Current phase:** Cross-Chat / Project Record Reliability — integration and verification.
+**Current phase:** Android offline learning vertical slice — evidence pending for APK/device usability.
+
+**Immediate engineering action:** Reconcile existing Android build workflows and owner scopes, reuse the existing safe artifact builder, prove APK on canonical staging, then run the offline/SRS acceptance path.
+
+**Source and production gate:** Public source ledger has no approved entries at the last observed snapshot; never imply production pack readiness from demo fixtures or an existing release title.
+
+## Historical execution position (superseded; retained for provenance)
+
+**Historical phase:** Cross-Chat / Project Record Reliability — integration and verification.
 
 **Current task:** Finish Issue #10 / draft PR #13 Flutter root-cause repair, then verify the stacked CI/release/failure-control integration before Mission Mode.
 
