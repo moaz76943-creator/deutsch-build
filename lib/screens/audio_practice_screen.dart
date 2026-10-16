@@ -44,12 +44,14 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
     try {
       final db = await DatabaseService.instance.contentDb;
       // سحب جملة عشوائية من قاعدة البيانات للتدرب عليها
-      final result = await db.rawQuery('''
-        SELECT sentence, translation_ar 
-        FROM examples 
-        WHERE language_code = ?
-      ORDER BY RANDOM() LIMIT 1
-    ''', [widget.languageCode]);
+      final result = await db.query(
+        'examples',
+        columns: ['sentence', 'translation_ar'],
+        where: 'language_code = ?',
+        whereArgs: [widget.languageCode],
+        orderBy: 'RANDOM()',
+        limit: 1,
+      );
       
       if (result.isNotEmpty) {
         _germanText = result.first['sentence'] as String;
