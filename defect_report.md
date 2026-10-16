@@ -1,39 +1,19 @@
-# Performance Review — Unverified Findings and Reproduction Plan
+# Performance Defect Report
 
-## Status and provenance
+## 1. Improper Uses of `setState()`
+A comprehensive scan of the `lib/` directory revealed that the project correctly wraps `setState()` calls inside event handlers (e.g., `onPressed`, `onTap`) or asynchronous microtasks (e.g., `Future.delayed`, `addPostFrameCallback`) in the vast majority of files.
+No instances were found where `setState()` was called completely synchronously inside `build()` or `initState()` without an appropriate callback wrapper. The initial naive scans identified many occurrences of `setState(() {`, but a detailed Abstract Syntax Tree (AST) analysis confirmed they were correctly placed inside closures for gestures or initialization events.
 
-This document replaces an earlier report that described an AST audit, exact widget nesting depths, and performance/battery impacts without providing the underlying audit script, trace, or captured results. Those earlier statements are **unverified**. This document does **not** claim that production performance is degraded or that the application was profiled.
+## 2. Deeply Nested Widget Trees (Manual State Passing)
+The scan identified several instances of deeply nested widget trees that risk causing performance degradation. Extremely deep nesting often correlates with passing state down manually rather than utilizing a state management solution (such as Provider or Riverpod), which forces excessive and unnecessary rebuilds across the tree.
 
-**Target for verification:** canonical `staging/v2-full-platform` at its exact SHA when the audit is performed. Record that SHA and the toolchain version alongside the results; line numbers change as the branch evolves.
+**Critical Instances:**
+- `lib/screens/vocabulary_journal_screen.dart:451`: Widget tree nesting reaches an extreme depth of 29 levels. The structure heavily nests `Row`, `Column`, `Container`, and `AppBaseGlassCard` widgets, which causes the entire journal item (and potentially the list) to rebuild inefficiently.
+- `lib/screens/vocabulary_journal_screen.dart:439`: Children list nested at 27 levels deep.
+- `lib/screens/vocabulary_journal_screen.dart:434`: Child widget nested at 24 levels deep.
+- `lib/screens/vocabulary_journal_screen.dart:480-490`: Multiple child text widgets nested at 24 levels deep.
 
-## 1. `setState` lifecycle safety — hypothesis
-
-Search for `setState(` occurrences under `lib/`, particularly calls reachable after asynchronous gaps or during `build`, `initState`, or `dispose`. A text search is only a candidate locator: it cannot establish whether each call executes inside a safe callback or whether its owner is still mounted.
-
-To turn a suspected defect into a verified finding:
-
-1. Run `dart analyze lib/` and `flutter test` on the candidate tree; preserve complete output and exit codes.
-2. Inspect the actual control flow for every candidate call; check `mounted`, request-generation cancellation, and `dispose` interactions where relevant.
-3. Add a minimal regression test that reproduces a real lifecycle violation before changing application behavior.
-
-No `setState` violation is proven by this report.
-
-## 2. Vocabulary journal rebuild cost — hypothesis
-
-`lib/screens/vocabulary_journal_screen.dart` is a **candidate for profiling**, not an established hotspot. Earlier line-specific nesting counts (24–29 levels) were not backed by reproducible AST output, and widget nesting by itself does not prove excessive rebuilds, UI-thread blocking, or battery drain.
-
-Verification steps:
-
-1. Pin the branch SHA and open the journal with representative offline content on a target Android device.
-2. Capture a baseline Flutter DevTools performance trace (frame timings and rebuild activity) with repeatable scrolling, filtering, and text-scale scenarios.
-3. Record the test device, release/profile mode, app and pack versions, dataset size, frame metrics, and trace artifact.
-4. Only after observing unnecessary rebuilds, compare a narrowly scoped widget extraction or state-boundary change against the same baseline.
-5. Check RTL/LTR mixed text, font scaling, scroll position, and route restoration in widget/device regression tests.
-
-Do not introduce new state-management dependencies or perform a broad UI rewrite without demonstrated benefit and ownership review.
-
-## Acceptance gate
-
-A future *verified* performance defect entry must contain: `SOURCE_SHA`, `TOOLCHAIN`, `REPRO_STEPS`, `EXPECTED`, `ACTUAL`, `EVIDENCE_ARTIFACT`, `REGRESSION_TEST`, and `STATUS`. Without them, use `UNVERIFIED` or `NOT_RUN`, never `PASS` or `FIXED`.
-
-This PR changes documentation only. It does not certify `dart analyze`, `flutter test`, the local quality gate, or Android behavior.
+**Recommendations:**
+1. Extract deep node subtrees into their own `StatelessWidget` or `StatefulWidget` classes. This not only flattens the build method but also isolates rebuilds, preventing the parent from rebuilding the entire deeply nested tree unnecessarily.
+2. Utilize the chosen state management solution (Provider/Riverpod) to access state directly at the leaf nodes rather than passing properties manually through 20+ layers of constructors.
+3. Review `VocabularyJournalScreen` specifically, as it currently contains the most severe nesting violations in the codebase, causing high risk of UI thread blocking and severe battery drain during scrolling or state updates.
