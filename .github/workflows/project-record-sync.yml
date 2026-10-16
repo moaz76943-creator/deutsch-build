@@ -2,7 +2,7 @@ name: Project Record Sync
 
 on:
   push:
-    branches: [main, staging/v2-full-platform]
+    branches: [main]
     paths-ignore:
       - docs/project-record/runtime.json
       - docs/project-record/events.ndjson

@@ -2,7 +2,7 @@ name: Trigger Signed Codemagic Build
 
 on:
   pull_request_target:
-    branches: [main, staging/v2-full-platform]
+    branches: [main]
     types: [closed]
 
 permissions:

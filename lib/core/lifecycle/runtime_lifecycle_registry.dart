@@ -1,188 +1,114 @@
 import 'dart:async';
-import 'dart:collection';
 
-/// An ownership token. Its disposed state is kept on the token itself instead
-/// of in the global registry, so releasing thousands of screens stays O(active).
-class LifecycleOwner {
-  bool _disposed = false;
-  bool get isDisposed => _disposed;
+abstract class _Resource {
+  final String? owner;
+  _Resource(this.owner);
+  FutureOr<void> dispose();
 }
 
-class _LifecycleEntry {
-  _LifecycleEntry(this.dispose, this.owner, {this.isCleanupCallback = false});
-  final FutureOr<void> Function() dispose;
-  final Object? owner;
-  final bool isCleanupCallback;
+class _SubscriptionResource extends _Resource {
+  final StreamSubscription<dynamic> subscription;
+  _SubscriptionResource(this.subscription, String? owner) : super(owner);
+
+  @override
+  FutureOr<void> dispose() => subscription.cancel();
 }
 
-/// Tracks temporary UI resources; never owns persistent learner data.
+class _TimerResource extends _Resource {
+  final Timer timer;
+  _TimerResource(this.timer, String? owner) : super(owner);
+
+  @override
+  void dispose() => timer.cancel();
+}
+
+class _CallbackResource extends _Resource {
+  final FutureOr<void> Function() onDispose;
+  _CallbackResource(this.onDispose, String? owner) : super(owner);
+
+  @override
+  FutureOr<void> dispose() => onDispose();
+}
+
+/// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
-  static const int maxTrackedResources = 4096;
-  static const int maxLegacyOwnerTombstones = 256;
-  static const Duration disposerTimeout = Duration(seconds: 5);
-
-  final List<_LifecycleEntry> _entries = <_LifecycleEntry>[];
-  final LinkedHashSet<Object> _legacyDisposedOwners = LinkedHashSet<Object>();
-  final List<void Function()> _memoryPressureListeners = <void Function()>[];
+  final List<_Resource> _resources = [];
   bool _isDisposed = false;
 
-  bool get isDisposed => _isDisposed;
-  int get trackedResourceCount => _entries.length;
-  int get legacyTombstoneCount => _legacyDisposedOwners.length;
-
-  void registerSubscription(
-    StreamSubscription<dynamic> subscription, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(subscription.cancel, owner: owner ?? ownerKey);
-  }
-
-  void registerTimer(
-    Timer timer, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(timer.cancel, owner: owner ?? ownerKey);
-  }
-
-  void registerCleanupCallback(
-    FutureOr<void> Function() callback, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(
-      callback,
-      owner: owner ?? ownerKey,
-      isCleanupCallback: true,
-    );
-  }
-
-  void registerResource(
-    FutureOr<void> Function() onDispose, {
-    Object? owner,
-    String? ownerKey,
-    bool isCleanupCallback = false,
-  }) {
-    final effectiveOwner = owner ?? ownerKey;
-    if (_isDisposed ||
-        (effectiveOwner is LifecycleOwner && effectiveOwner.isDisposed) ||
-        (effectiveOwner != null && _legacyDisposedOwners.contains(effectiveOwner))) {
-      _disposeLate(onDispose);
+  void registerSubscription(StreamSubscription<dynamic> sub, {String? owner}) {
+    if (_isDisposed) {
+      sub.cancel();
       return;
     }
-    if (_entries.length >= maxTrackedResources) {
-      _disposeLate(onDispose);
-      throw StateError('Lifecycle resource capacity exceeded');
+    _resources.add(_SubscriptionResource(sub, owner));
+  }
+
+  void registerTimer(Timer timer, {String? owner}) {
+    if (_isDisposed) {
+      timer.cancel();
+      return;
     }
-    _entries.add(
-      _LifecycleEntry(
-        onDispose,
-        effectiveOwner,
-        isCleanupCallback: isCleanupCallback,
-      ),
-    );
+    _resources.add(_TimerResource(timer, owner));
   }
 
-  void registerMemoryPressureListener(void Function() listener) {
-    if (_isDisposed) return;
-    _memoryPressureListeners.add(listener);
-  }
-
-  void unregisterMemoryPressureListener(void Function() listener) {
-    _memoryPressureListeners.remove(listener);
-  }
-
-  void notifyMemoryPressure() {
-    if (_isDisposed) return;
-    for (final listener in List<void Function()>.from(_memoryPressureListeners)) {
+  void registerCallback(FutureOr<void> Function() onDispose, {String? owner}) {
+    if (_isDisposed) {
       try {
-        listener();
-      } catch (_) {}
+        final result = onDispose();
+        if (result is Future) {
+          result.timeout(const Duration(seconds: 5)).catchError((e, st) {
+            print('Cleanup timeout or error on disposed registry: $e\n$st');
+          });
+        }
+      } catch (e, st) {
+        print('Cleanup error on disposed registry: $e\n$st');
+      }
+      return;
     }
+    _resources.add(_CallbackResource(onDispose, owner));
   }
 
-  Future<void> disposeOwner(String ownerKey) => disposeByOwner(ownerKey);
+  Future<void> disposeOwner(String owner) async {
+    // Execute cleanup in deterministic reverse-insertion (LIFO) order.
+    final resourcesToDispose = _resources.where((r) => r.owner == owner).toList().reversed;
+    _resources.removeWhere((r) => r.owner == owner);
 
-  Future<void> disposeByOwner(Object owner) async {
-    if (_isDisposed) return;
-    if (owner is LifecycleOwner) {
-      owner._disposed = true;
-    } else {
-      // Bounded fallback for old primitive owner IDs.
-      _legacyDisposedOwners.remove(owner);
-      _legacyDisposedOwners.add(owner);
-      if (_legacyDisposedOwners.length > maxLegacyOwnerTombstones) {
-        _legacyDisposedOwners.remove(_legacyDisposedOwners.first);
-      }
-    }
-
-    final disposing = <_LifecycleEntry>[];
-    _entries.removeWhere((entry) {
-      if (identical(entry.owner, owner) || entry.owner == owner) {
-        disposing.add(entry);
-        return true;
-      }
-      return false;
-    });
-    for (final entry in disposing.where((e) => !e.isCleanupCallback).toList().reversed) {
-      await _safeDispose(entry.dispose);
-    }
-    for (final entry in disposing.where((e) => e.isCleanupCallback).toList().reversed) {
-      await _safeDispose(entry.dispose);
+    for (final resource in resourcesToDispose) {
+      await _disposeSafely(resource);
     }
   }
 
   Future<void> disposeAll() async {
-    if (_isDisposed) return;
     _isDisposed = true;
-    final disposing = _entries.reversed.toList(growable: false);
-    _entries.clear();
-    _legacyDisposedOwners.clear();
-    for (final entry in disposing.where((e) => !e.isCleanupCallback)) {
-      if (entry.owner is LifecycleOwner) {
-        (entry.owner! as LifecycleOwner)._disposed = true;
-      }
-      await _safeDispose(entry.dispose);
-    }
-    for (final entry in disposing.where((e) => e.isCleanupCallback)) {
-      if (entry.owner is LifecycleOwner) {
-        (entry.owner! as LifecycleOwner)._disposed = true;
-      }
-      await _safeDispose(entry.dispose);
+
+    // Copy and reverse for LIFO
+    final resourcesToDispose = _resources.toList().reversed;
+    _resources.clear();
+
+    for (final resource in resourcesToDispose) {
+      await _disposeSafely(resource);
     }
   }
 
-  Future<void> _safeDispose(FutureOr<void> Function() disposer) async {
+  Future<void> _disposeSafely(_Resource resource) async {
     try {
-      await Future<void>.sync(disposer).timeout(disposerTimeout);
-    } catch (_) {
-      // One invalid resource must not prevent independent resource cleanup.
-    }
-  }
-
-  void _disposeLate(FutureOr<void> Function() disposer) {
-    try {
-      final result = disposer();
+      final result = resource.dispose();
       if (result is Future) {
-        result.timeout(disposerTimeout).then<void>((_) {},
-            onError: (Object _, StackTrace __) {});
+        await result.timeout(const Duration(seconds: 5));
       }
-    } catch (_) {
-      // A synchronous late disposer is also best-effort.
+    } catch (e, st) {
+      // Ensure one failing disposer does not skip all remaining independent cleanup operations.
+      print('Error disposing resource owned by ${resource.owner}: $e\n$st');
     }
   }
 
-  /// Tests only. Not a production lifecycle resurrection API.
+  bool get isDisposed => _isDisposed;
+
   void resetForTesting() {
-    _entries.clear();
-    _legacyDisposedOwners.clear();
-    _memoryPressureListeners.clear();
+    _resources.clear();
     _isDisposed = false;
   }
-
-  void reset() => resetForTesting();
 }

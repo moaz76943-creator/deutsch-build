@@ -5,20 +5,18 @@ import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
 
 void main() {
   test('100 Polyglot Matrix Data & Architecture Verification', () {
-    final langs = LanguagePackManager.supportedLanguageCodes;
+    final langs = LanguagePackManager.supportedLanguages;
     expect(langs.length, 100, reason: 'يجب أن تحتوي المنظومة على 100 لغة بالضبط');
 
     for (final code in langs) {
       final name = LanguagePackManager.getLanguageName(code);
-      final tts = LanguagePackManager.resolveTtsLocale(code);
+      final tts = LanguagePackManager.getTtsLocale(code);
       
       expect(name.isNotEmpty, true, reason: 'اسم اللغة غير معرّف للرمز: $code');
       expect(tts.isNotEmpty, true, reason: 'نظام النطق غير معرّف للرمز: $code');
 
       final file = File('assets/data/packs/${code}_pack.json');
-      if (!file.existsSync()) {
-        continue;
-      }
+      expect(file.existsSync(), true, reason: 'ملف الحزمة غير موجود: $code');
 
       final content = file.readAsStringSync();
       final data = jsonDecode(content) as Map<String, dynamic>;
@@ -32,7 +30,5 @@ void main() {
       expect(item['meaning'] != null && item['meaning'].toString().isNotEmpty, true);
       expect(item['example'] != null && item['example'].toString().isNotEmpty, true);
     }
-    expect(File('assets/data/packs/de_pack.json').existsSync(), isTrue);
-    expect(File('assets/data/packs/ar_pack.json').existsSync(), isTrue);
   });
 }
