@@ -22,6 +22,7 @@ dependencies:
   archive: any
   flutter_animate: any
   font_awesome_flutter: any
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   custom_lint: ^0.6.0

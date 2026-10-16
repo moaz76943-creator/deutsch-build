@@ -190,10 +190,12 @@ class ReviewCard {
     var due = DateTime.tryParse((j['dueAt'] ?? '').toString()) ?? now;
     var last = DateTime.tryParse((j['lastReviewedAt'] ?? '').toString());
     if (due.isBefore(DateTime(2000))) due = now;
-    if (due.isAfter(now.add(const Duration(days: 3650))))
+    if (due.isAfter(now.add(const Duration(days: 3650)))) {
       due = now.add(const Duration(days: 3650));
-    if (last != null && last.isAfter(now.add(const Duration(days: 1))))
+    }
+    if (last != null && last.isAfter(now.add(const Duration(days: 1)))) {
       last = now;
+    }
     if (last != null && last.isBefore(DateTime(2000))) last = now;
     return ReviewCard(
       itemId: id,

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 /// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
 class PersistentCpuWorker {
   static final PersistentCpuWorker instance = PersistentCpuWorker._init();
-  
+
   PersistentCpuWorker._init();
 
   static const int _maxTasks = 50;
@@ -57,11 +57,11 @@ class PersistentCpuWorker {
   static double _heavySrsMath(Map<String, dynamic> data) {
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
-    
+
     // معادلة الحفظ والمراجعة المتباعدة
     double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
-    
+
     return newEase;
   }
 }
