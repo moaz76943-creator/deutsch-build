@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.deutschbilarabi.app"
-    compileSdk 34 // استخدام إصدار مستقر
+    compileSdk = 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -43,25 +43,48 @@ android {
         applicationId "com.deutschbilarabi.app"
         // نرفع الإصدار لـ 21 فقط لدعم SQLite و TTS
         minSdkVersion flutter.minSdkVersion
-        targetSdk 34
+        targetSdk = 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
+
         // تفعيل Multidex بأبسط شكل ممكن
-        multiDexEnabled true 
+        multiDexEnabled true
+    }
+
+            signingConfigs {
+        secureRelease {
+            def keystorePropertiesFile = rootProject.file('key.properties')
+            def keystoreProperties = new Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystorePropertiesFile.withInputStream { stream ->
+                    keystoreProperties.load(stream)
+                }
+            }
+            def keyFilePath = project.findProperty('releaseStoreFile') ?: keystoreProperties['storeFile']
+            if (keyFilePath) {
+                def keyFile = file(keyFilePath)
+                if (!keyFile.exists() && rootProject.file(keyFilePath).exists()) {
+                    keyFile = rootProject.file(keyFilePath)
+                }
+                storeFile keyFile
+                storePassword (project.findProperty('releaseStorePassword') ?: keystoreProperties['storePassword'])
+                keyAlias (project.findProperty('releaseKeyAlias') ?: keystoreProperties['keyAlias'])
+                keyPassword (project.findProperty('releaseKeyPassword') ?: keystoreProperties['keyPassword'])
+            }
+        }
+        release {
+            initWith(signingConfigs.secureRelease)
+        }
     }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.secureRelease
             minifyEnabled false
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
-            signingConfig signingConfigs.debug
         }
     }
 }
-
 flutter {
     source '../..'
 }

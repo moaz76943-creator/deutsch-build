@@ -1,10 +1,15 @@
+/// Session-local cognitive signals, not evidence of certified CEFR proficiency.
 class CognitiveMetricRecord {
   final String sessionEventId;
   final String contentKey;
-  final Duration responseLatency; // زمن الإجابة بدقة
-  final int hesitationTaps;        // عدد مرات التردد أو تغيير الخيار
+  final Duration responseLatency;
+  final int hesitationTaps;
   final bool isCorrect;
   final DateTime recordedAt;
+  final String languagePair;
+  final String? cefrLevel;
+  final bool isCefrVerified;
+  final double reviewDifficulty;
 
   const CognitiveMetricRecord({
     required this.sessionEventId,
@@ -13,28 +18,32 @@ class CognitiveMetricRecord {
     this.hesitationTaps = 0,
     required this.isCorrect,
     required this.recordedAt,
+    this.languagePair = 'default',
+    this.cefrLevel,
+    this.isCefrVerified = false,
+    this.reviewDifficulty = 0.0,
   });
 
-  /// حساب مؤشر الجهد الإدراكي (من 0.0 إلى 1.0)
+  bool get isUsable =>
+      sessionEventId.trim().isNotEmpty &&
+      contentKey.trim().isNotEmpty &&
+      languagePair.trim().isNotEmpty &&
+      !responseLatency.isNegative &&
+      hesitationTaps >= 0 &&
+      reviewDifficulty.isFinite &&
+      reviewDifficulty >= 0.0 &&
+      reviewDifficulty <= 1.0;
+
   double get cognitiveStrainIndex {
-    double strain = 0.0;
-    // استجابة بطيئة تزيد عن 5 ثوانٍ تشير إلى إجهاد أو صعوبة
-    if (responseLatency.inMilliseconds > 5000) {
-      strain += 0.4;
-    } else if (responseLatency.inMilliseconds > 3000) {
-      strain += 0.2;
-    }
-
-    // التردد أثناء الإجابة
-    if (hesitationTaps > 1) {
-      strain += 0.3;
-    }
-
-    // الخطأ في الإجابة
-    if (!isCorrect) {
-      strain += 0.3;
-    }
-
-    return strain.clamp(0.0, 1.0);
+    if (responseLatency.isNegative) return 1.0;
+    if (!isUsable) return 0.0;
+    final latency = responseLatency.inMilliseconds;
+    var strain = latency > 5000 ? 0.4 : (latency > 3000 ? 0.2 : 0.0);
+    if (hesitationTaps > 1) strain += 0.3;
+    if (!isCorrect) strain += 0.3;
+    final difficulty = reviewDifficulty.isFinite
+        ? reviewDifficulty.clamp(0.0, 1.0).toDouble()
+        : 0.0;
+    return (strain + difficulty * 0.2).clamp(0.0, 1.0).toDouble();
   }
 }

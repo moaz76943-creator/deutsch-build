@@ -1,108 +1,86 @@
-"""
-J002: Universal Unicode Normalization Engine
+"""Language-scoped search keys; not a schema, rights, or ownership validator.
 
-Deterministic, language-aware Unicode normalization subsystem that improves
-lexical matching across 100 languages without destroying valid spelling,
-diacritics, lexical distinctions or original source data.
+Original orthography is returned byte-for-byte (as a Python Unicode string).
+Search keys are lossy and MUST NEVER be stored as lexical/sense identities.
 """
-
-import unicodedata
-import re
 from dataclasses import dataclass
-from typing import List
+import re
+import unicodedata
 
-class ScopeGuard:
-    """Ensures exclusive file ownership for the J002 compiler contract."""
-    def __init__(self, caller_file: str):
-        self.caller_file = caller_file
-
-# Enforce ScopeGuard at module level
-ScopeGuard(__file__)
 
 @dataclass(frozen=True)
 class NormalizationResult:
-    original_text: str
+    original: str
     search_key: str
     language_code: str
-    applied_rules: List[str]
+    applied_rules: tuple[str, ...]
 
-class J002CompilerContract:
-    """
-    Contract interface for the ingestion normalization engine.
-    """
-    @staticmethod
-    def normalize(text: str, language_code: str, fold_case: bool = True, strip_punctuation: bool = True) -> NormalizationResult:
+
+class NormalizationEngine:
+    MAX_INPUT_LENGTH = 10000
+    # Unicode bidi overrides/isolate controls can spoof corpus and log boundaries.
+    _UNSAFE_BIDI = frozenset(chr(n) for n in (
+        *range(0x202A, 0x202F), *range(0x2066, 0x206A)
+    ))
+    _ARABIC_MARKS = re.compile(
+        r"[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]"
+    )
+    _HEBREW_MARKS = re.compile(r"[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]")
+
+    def normalize(
+        self,
+        text: str,
+        language_code: str,
+        fold_case: bool = True,
+        strip_punctuation: bool = True,
+    ) -> NormalizationResult:
         if not isinstance(text, str):
-            raise TypeError("Input text must be a string.")
+            raise TypeError("Input must be a string")
+        if not isinstance(language_code, str) or not re.fullmatch(
+            r"[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*", language_code
+        ):
+            raise ValueError("Invalid language tag")
+        if len(text) > self.MAX_INPUT_LENGTH:
+            raise ValueError("Input exceeds maximum length")
+        if any(unicodedata.category(c) == "Cs" or c in self._UNSAFE_BIDI for c in text):
+            raise ValueError("Invalid Unicode or unsafe directional control")
+        text.encode("utf-8", errors="strict")
 
-        if len(text) > 32768:
-            raise ValueError("Input text exceeds maximum allowed size.")
-
-        if any(0xD800 <= ord(c) <= 0xDFFF for c in text):
-            raise ValueError("Input contains invalid Unicode surrogates.")
-
-        # Preserve NFC-normalized display text separately
-        original_text = unicodedata.normalize('NFC', text)
-
-        search_key = text
-        applied_rules = []
-
-        lang = language_code.lower()
-
-        # Optional case folding
+        # Do NOT NFC-normalize the original. A decomposed spelling is original data.
+        key = unicodedata.normalize("NFC", text)
+        rules = ["NFC_SEARCH"] if key != text else []
+        lang = language_code.split("-", 1)[0]
         if fold_case:
-            # Special handling for Turkish/Azerbaijani dotless i
-            if lang in ('tr', 'az'):
-                search_key = search_key.replace('I', 'ı').replace('İ', 'i')
-            search_key = search_key.casefold()
-            applied_rules.append("case_fold")
+            # Turkish/Azeri case pairs differ from Unicode's default folding.
+            fold_input = key.replace("I", "ı").replace("İ", "i") if lang in ("tr", "az") else key
+            folded = fold_input.casefold()
+            if folded != key:
+                rules.append("CASE_FOLD")
+            key = folded
 
-        # Language-specific pre-decomposition transformations
-        if lang == 'de':
-            search_key = search_key.replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue').replace('ß', 'ss')
-            search_key = search_key.replace('Ä', 'Ae').replace('Ö', 'Oe').replace('Ü', 'Ue')
-            applied_rules.append("de_umlaut_expansion")
-        elif lang == 'ar':
-            search_key = re.sub(r'[أإآ]', 'ا', search_key)
-            search_key = search_key.replace('ة', 'ه')
-            search_key = search_key.replace('ـ', '')  # Remove tatweel
-            applied_rules.append("ar_orthography_normalization")
+        if lang == "de":
+            # Only German keys get conventional umlaut expansion.
+            next_key = key.translate(str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue"}))
+            if next_key != key:
+                rules.append("GERMAN_UMLAUT_SEARCH_ALIAS")
+            key = next_key
+        elif lang == "ar":
+            next_key = self._ARABIC_MARKS.sub("", key)
+            if next_key != key:
+                rules.append("ARABIC_DIACRITIC_SEARCH_ALIAS")
+            key = next_key
+        elif lang == "he":
+            next_key = self._HEBREW_MARKS.sub("", key)
+            if next_key != key:
+                rules.append("HEBREW_NIQQUD_SEARCH_ALIAS")
+            key = next_key
 
-        # Decompose
-        search_key = unicodedata.normalize('NFKD', search_key)
-        applied_rules.append("nfkd_decomposition")
-
-        # Diacritic treatment
-        preserve_diacritics_langs = {
-            'vi', 'hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'or', 'th', 'tr', 'az'
-        }
-
-        if lang not in preserve_diacritics_langs:
-            # Strip Mn (Nonspacing_Mark)
-            filtered = [c for c in search_key if not unicodedata.category(c).startswith('Mn')]
-            search_key = ''.join(filtered)
-            applied_rules.append("strip_diacritics")
-        else:
-            applied_rules.append("preserve_diacritics")
-
-        # Recompose to NFC (crucial for CJK/Hangul and preserved diacritics)
-        search_key = unicodedata.normalize('NFC', search_key)
-        applied_rules.append("nfc_recomposition")
-
-        # Punctuation treatment
         if strip_punctuation:
-            # Strip all punctuation categories (P*)
-            filtered = [c for c in search_key if not unicodedata.category(c).startswith('P')]
-            search_key = ''.join(filtered)
-            # Also collapse whitespaces
-            search_key = re.sub(r'\s+', ' ', search_key).strip()
-            applied_rules.append("strip_punctuation")
-
+            next_key = "".join(c for c in key if not unicodedata.category(c).startswith("P"))
+            if next_key != key:
+                rules.append("PUNCTUATION_SEARCH_ALIAS")
+            key = next_key
         return NormalizationResult(
-            original_text=original_text,
-            search_key=search_key,
-            language_code=lang,
-            applied_rules=applied_rules
+            original=text, search_key=key, language_code=language_code,
+            applied_rules=tuple(rules)
         )
-
-normalize_text = J002CompilerContract.normalize
