@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: auto-rebase-main
+  group: auto-rebase-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --base main \
               --state open \
-              --limit 100 \
+              --limit 500 \
               --json number,isDraft,isCrossRepository,mergeStateStatus,mergeable,labels \
               --jq '.[] |
                 select(
@@ -81,11 +81,10 @@ jobs:
               continue
             fi
 
-            echo "Rebasing PR #$pr onto main"
+            echo "Updating PR #$pr onto $target_base without rewriting history"
             set +e
             timeout 45s gh pr update-branch "$pr" \
-              --repo "$GITHUB_REPOSITORY" \
-              --rebase
+              --repo "$GITHUB_REPOSITORY"
             status=$?
             set -e
 
