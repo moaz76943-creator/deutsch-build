@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk036 = <ContentItem>[
 ContentItem(id:'w15657',german:'habe geholfen',arabic:'أنا ساعدت الرجل.',sentence:'Ich habe dem Mann geholfen.',sentenceAr:'أنا ساعدت الرجل.',topic:'6. أفعال التفكير والإدراك — الماضي',skill:'production',article:'',plural:'',accepted:['habe geholfen']),

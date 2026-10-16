@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk011 = <ContentItem>[
 ContentItem(id:'w4401',german:'Arbeitentscheidung',arabic:'العمل القرار',sentence:'Diese ArbeitEntscheidung ist wichtig.',sentenceAr:'العمل القرار مهم.',topic:'مفردات مركبة - العمل',skill:'production',article:'die',plural:'Entscheidungen',accepted:['Arbeitentscheidung']),

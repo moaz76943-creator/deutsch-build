@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk019 = <ContentItem>[
 ContentItem(id:'w8726',german:'erbringen',arabic:'يقدّم / يحقق',sentence:'Ich erbringe die Aufgabe.',sentenceAr:'أنا أقدّم / يحقق المهمة.',topic:' أفعال إضافية مهمة',skill:'production',article:'',plural:'',accepted:['erbringen']),

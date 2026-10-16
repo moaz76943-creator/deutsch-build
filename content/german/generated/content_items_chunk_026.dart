@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk026 = <ContentItem>[
 ContentItem(id:'w11529',german:'absagen einen Termin morgen',arabic:'يلغي موعدًا غدًا',sentence:'Ich möchte absagen einen Termin morgen.',sentenceAr:'أريد أن ألغي موعدًا غدًا.',topic:'التراكيب — العمل والإدارة',skill:'transfer',article:'',plural:'',accepted:['absagen einen Termin morgen']),

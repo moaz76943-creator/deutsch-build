@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk007 = <ContentItem>[
 ContentItem(id:'w2801',german:'die Klippe',arabic:'الجرف',sentence:'Das ist die Klippe.',sentenceAr:'هذه هي الجرف.',topic:'الطبيعة والبيئة',skill:'production',article:'die',plural:'Klippen',accepted:[]),

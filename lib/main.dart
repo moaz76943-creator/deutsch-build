@@ -1,59 +1,91 @@
-import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'bootstrap/production_bootstrap.dart';
-import 'screens/languages_screen.dart';
-
-Future<void> _ensureDatabaseReady() async {
-  try {
-    final dbDir = await getDatabasesPath();
-    final targetPath = p.join(dbDir, 'de-1.0.0.sqlite');
-    final file = File(targetPath);
-
-    if (!await file.exists() || (await file.length()) < 1000000) {
-      await Directory(dbDir).create(recursive: true);
-      final byteData = await rootBundle.load('assets/content/packs/de/sqlite/de-1.0.0.sqlite');
-      final bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
-      await file.writeAsBytes(bytes, flush: true);
-    }
-  } catch (e) {
-    // تجاوز الخطأ لضمان عمل الواجهة
-  }
-}
-
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'features/onboarding/fast_onboarding_screen.dart';
 
 void main() async {
+  // 1. ضمان استقرار محرك الرسوميات وربط النظام
   WidgetsFlutterBinding.ensureInitialized();
-  await _ensureDatabaseReady();
-  await bootstrapDeutschApp();
+
+  // 2. تثبيت اتجاه الشاشة وتحسين مظهر شريط الحالة
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // 3. مصيدة الأخطاء الشفافة لحماية التطبيق من الانهيار المفاجئ
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: const Color(0xFF0F172A),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
+                    SizedBox(width: 8),
+                    Text(
+                      "STARTUP ISSUE DETECTED",
+                      style: TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.exceptionAsString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: "monospace"),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.stack.toString(),
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontFamily: "monospace"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
+  // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
+  runApp(
+    const ProviderScope(
+      child: DeutschApp(),
+    ),
+  );
 }
 
-class DeutschBiArabiApp extends StatelessWidget {
-  const DeutschBiArabiApp({super.key});
+class DeutschApp extends StatelessWidget {
+  const DeutschApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Deutsch بالعربي',
       debugShowCheckedModeBanner: false,
+      title: 'Deutsch بالعربي',
       theme: ThemeData(
         useMaterial3: true,
+        primarySwatch: Colors.blue,
+        fontFamily: 'Cairo',
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueAccent,
+          seedColor: const Color(0xFF3B82F6),
           brightness: Brightness.light,
         ),
       ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueAccent,
-          brightness: Brightness.dark,
-        ),
-      ),
-      themeMode: ThemeMode.system,
-      home: const LanguagesScreen(),
+      // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
+      home: const FastOnboardingScreen(),
     );
   }
 }

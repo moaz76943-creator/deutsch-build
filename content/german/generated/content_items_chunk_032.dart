@@ -1,4 +1,4 @@
-import '../../../lib/models/content.dart';
+import 'package:deutsch_bilarabi/models/content.dart';
 
 const generatedContentItemsChunk032 = <ContentItem>[
 ContentItem(id:'w13932',german:'ein Musikvideo streamen',arabic:'البث / المشاهدة عبر البث فيديو موسيقي',sentence:'Ich streame ein Musikvideo.',sentenceAr:'أبثّ / أشاهد عبر البث فيديو موسيقي.',topic:'3. الإعلام والتقنية',skill:'production',article:'',plural:'',accepted:[]),
