@@ -1,3 +1,4 @@
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/phonetics_lab_screen.dart';
@@ -22,14 +23,14 @@ void main() {
     );
 
     expect(find.text('ä / ö / ü'), findsOneWidget);
-    expect(find.text('[ɛ / ø / y]'), findsOneWidget);
+    expect(find.text('[ɛː] / [øː] / [yː]'), findsOneWidget);
     expect(find.text('الألمانية'), findsOneWidget);
 
     expect(find.text('ñ'), findsOneWidget);
     expect(find.text('[ɲ]'), findsOneWidget);
 
     expect(find.text('ğ'), findsOneWidget);
-    expect(find.text('[ː]'), findsOneWidget);
+    expect(find.text('[ɰ]'), findsOneWidget);
   });
 
   testWidgets('Rapid taps on AppAudioButton handles disabled state correctly', (WidgetTester tester) async {
@@ -59,7 +60,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('التركية'), findsOneWidget);
-    expect(find.text('[ː]'), findsOneWidget);
+    expect(find.text('[ɰ]'), findsOneWidget);
   });
 
   testWidgets('Speed options cycle correctly', (WidgetTester tester) async {
@@ -90,7 +91,7 @@ void main() {
 
     expect(find.text('unverified'), findsOneWidget);
     expect(find.text('غير متوفر'), findsOneWidget);
-    expect(find.byIcon(Icons.volume_off), findsOneWidget);
+    expect(find.byType(FaIcon).last, findsWidgets);
   });
 
   testWidgets('Disposal stops audio', (WidgetTester tester) async {
