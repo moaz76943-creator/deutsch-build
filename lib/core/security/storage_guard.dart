@@ -31,4 +31,8 @@ class StorageGuard {
     }
     return safe;
   }
+
+  static bool isLocalReadPermitted() => true;
+
+  static bool isLocalWritePermitted() => true;
 }

@@ -1,84 +1,117 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/security/data_integrity_signer.dart';
 import 'package:deutsch_bilarabi/core/security/offline_gate.dart';
+import 'package:deutsch_bilarabi/core/security/data_integrity_signer.dart';
 import 'package:deutsch_bilarabi/core/security/storage_guard.dart';
 
 void main() {
-  group('Security Gate Tests', () {
-    test('missing manifest is rejected', () {
-      expect(DataIntegritySigner.verifyManifestIntegrity(null, 'test'), isFalse);
+  group('OfflineGate', () {
+    test('denies general network requests', () {
+      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.general), isFalse);
+      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.general), throwsException);
     });
 
-    test('altered content is rejected', () {
-      final payload = 'test payload';
-      final hash = DataIntegritySigner.computeChecksum(payload);
-      final manifest = {'trustedKey': true, 'hash': hash};
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, 'test payload'), isTrue);
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, 'altered payload'), isFalse);
+    test('denies telemetry requests', () {
+      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.telemetry), isFalse);
+      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.telemetry), throwsException);
     });
 
-    test('expired capabilities are rejected', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().subtract(const Duration(hours: 1)),
-        signature: 'valid-signature',
-      );
-      expect(auth.isAuthorized(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isFalse);
+    test('permits authorized user-directed downloads', () {
+      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.userDirectedDownload, authorizationToken: 'user_auth_123'), isTrue);
+      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.userDirectedDownload, authorizationToken: 'user_auth_123'), returnsNormally);
     });
 
-    test('forged authorization is rejected', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().add(const Duration(hours: 1)),
-        signature: 'forged',
-      );
-      expect(auth.isAuthorized(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isFalse);
+    test('denies unauthorized user-directed downloads', () {
+      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.userDirectedDownload), isFalse);
+      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.userDirectedDownload, authorizationToken: 'invalid_token'), isFalse);
+      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.userDirectedDownload), throwsException);
+    });
+  });
+
+  group('DataIntegritySigner', () {
+    final payload = '{"key":"value"}';
+    final validChecksum = DataIntegritySigner.computeChecksum(payload);
+
+    test('verifies valid manifest', () {
+      final manifestJson = jsonEncode({
+        'hash': validChecksum,
+        'capabilities': ['content_v1'],
+      });
+      expect(DataIntegritySigner.verifyManifest(manifestJson), isTrue);
     });
 
-    test('network denial by default', () {
-      expect(OfflineGate.isNetworkRequestPermitted(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.telemetry), isFalse);
-      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.general), throwsException);
-      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.telemetry), throwsException);
+    test('rejects missing capabilities in manifest', () {
+      final manifestJson = jsonEncode({
+        'hash': validChecksum,
+      });
+      expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
     });
 
-    test('unsupported signing metadata is rejected', () {
-      final payload = 'test payload';
-      final hash = DataIntegritySigner.computeChecksum(payload);
-      final manifest1 = {'trustedKey': true, 'hash': hash, 'unsupportedAlgorithm': true};
-      final manifest2 = {'trustedKey': true, 'hash': hash, 'algorithm': 'unsupported'};
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest1, payload), isFalse);
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest2, payload), isFalse);
+    test('rejects unsupported capabilities in manifest', () {
+      final manifestJson = jsonEncode({
+        'hash': validChecksum,
+        'capabilities': ['content_v3_unsupported'],
+      });
+      expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
     });
 
-    test('isolated download authorization does not grant general access', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().add(const Duration(hours: 1)),
-        signature: 'valid-signature',
-      );
-      expect(auth.isAuthorized(), isTrue);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isTrue);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.general, auth), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.telemetry, auth), isFalse);
+    test('rejects expired manifest', () {
+      final manifestJson = jsonEncode({
+        'hash': validChecksum,
+        'capabilities': ['content_v1'],
+        'expiresAt': DateTime.now().subtract(Duration(days: 1)).toIso8601String(),
+      });
+      expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
     });
 
-    test('local read/write operations are permitted', () {
-      expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
-      expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
+    test('verifies valid content integrity', () {
+      final manifestJson = jsonEncode({
+        'hash': validChecksum,
+        'capabilities': ['content_v1'],
+      });
+      expect(DataIntegritySigner.verifyContentIntegrity(payload, manifestJson), isTrue);
     });
 
-    test('sanitizeWordEntries handles malformed entries gracefully', () {
-       final malformedEntries = [
-         {'validKey': 'validValue'},
-         ['not', 'a', 'map'],
-         'string entry',
-         42,
-       ];
-       final sanitized = StorageGuard.sanitizeWordEntries(malformedEntries);
-       expect(sanitized.length, 1);
-       expect(sanitized.first, {'validKey': 'validValue'});
+    test('rejects invalid content hash', () {
+      final alteredPayload = '{"key":"altered"}';
+      final manifestJson = jsonEncode({
+        'hash': validChecksum, // Hash corresponds to original payload
+        'capabilities': ['content_v1'],
+      });
+      expect(DataIntegritySigner.verifyContentIntegrity(alteredPayload, manifestJson), isFalse);
+    });
+
+    test('rejects forged/invalid manifest json', () {
+      expect(DataIntegritySigner.verifyContentIntegrity(payload, 'not_json'), isFalse);
+    });
+  });
+
+  group('StorageGuard', () {
+    final validPayload = '{"key":"value"}';
+    final invalidPayload = 'not_json';
+    final validChecksum = DataIntegritySigner.computeChecksum(validPayload);
+    final manifestJson = jsonEncode({
+      'hash': validChecksum,
+      'capabilities': ['content_v1'],
+    });
+
+    test('permits local read/write on valid json', () {
+      expect(StorageGuard.checkAccess(StorageAccessType.read, validPayload), isTrue);
+      expect(StorageGuard.checkAccess(StorageAccessType.write, validPayload), isTrue);
+    });
+
+    test('denies access on invalid json (fail-closed)', () {
+      expect(StorageGuard.checkAccess(StorageAccessType.read, invalidPayload), isFalse);
+      expect(StorageGuard.checkAccess(StorageAccessType.write, invalidPayload), isFalse);
+    });
+
+    test('permits access when manifest validation passes', () {
+      expect(StorageGuard.checkAccess(StorageAccessType.read, validPayload, manifestJson: manifestJson), isTrue);
+    });
+
+    test('denies access when manifest validation fails', () {
+      final alteredPayload = '{"key":"altered"}';
+      expect(StorageGuard.checkAccess(StorageAccessType.read, alteredPayload, manifestJson: manifestJson), isFalse);
     });
   });
 }

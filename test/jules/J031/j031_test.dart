@@ -16,12 +16,20 @@ void main() {
     final dbPath = await databaseFactory.getDatabasesPath();
     final contentDbPath = p.join(dbPath, 'polyglot_content_v2.db');
     final progressDbPath = p.join(dbPath, 'user_progress_v2.db');
-    if (await File(contentDbPath).exists()) {
-      await File(contentDbPath).delete();
-    }
-    if (await File(progressDbPath).exists()) {
-      await File(progressDbPath).delete();
-    }
+
+    // ignore: avoid_catching_errors
+    try {
+      if (await File(contentDbPath).exists()) {
+        await File(contentDbPath).delete();
+      }
+    } catch (_) {}
+
+    // ignore: avoid_catching_errors
+    try {
+      if (await File(progressDbPath).exists()) {
+        await File(progressDbPath).delete();
+      }
+    } catch (_) {}
   });
 
   tearDown(() async {

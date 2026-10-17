@@ -1,4 +1,2 @@
-# Agent ScopeGuard
-
-This directory contains the ScopeGuard subsystem, responsible for enforcing
-exclusive file ownership and detecting unauthorized changes.
+# Agent Contract
+Governance subsystem that enforces exclusive file ownership and detects unauthorized changes.

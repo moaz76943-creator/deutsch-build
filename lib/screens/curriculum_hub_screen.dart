@@ -22,7 +22,8 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
 
   Future<void> _loadMissions() async {
     try {
-      final jsonStr = await rootBundle.loadString('assets/data/missions_50.json');
+      final jsonStr =
+          await rootBundle.loadString('assets/data/missions_50.json');
       setState(() {
         _missions = jsonDecode(jsonStr);
         _isLoading = false;
@@ -48,15 +49,15 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
               itemBuilder: (context, index) {
                 final item = _missions[index];
                 return AppBaseGlassCard(
-                  
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+                      backgroundColor:
+                          const Color(0xFF4F46E5).withValues(alpha: 0.1),
                       child: Text(
                         item['level'] ?? 'A1',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     title: Text(item['titleAr'] ?? '',
