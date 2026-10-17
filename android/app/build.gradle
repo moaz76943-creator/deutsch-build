@@ -38,7 +38,8 @@ android {
     }
 
     namespace "com.deutschbilarabi.app"
-    compileSdk 34 // استخدام إصدار مستقر
+    compileSdk 36 // استخدام إصدار مستقر
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -65,13 +66,37 @@ android {
         multiDexEnabled true
     }
 
+    // Read signing config via external gradle script
+    apply from: rootProject.file('release-signing.gradle')
+    def releaseSigningConfig = resolveReleaseSigning()
+
+    if (releaseSigningConfig.releaseStoreFile) {
+        signingConfigs {
+            release {
+                storeFile file(releaseSigningConfig.releaseStoreFile)
+                storePassword releaseSigningConfig.releaseStorePassword
+                keyAlias releaseSigningConfig.releaseKeyAlias
+                keyPassword releaseSigningConfig.releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
+<<<<<<< HEAD
             signingConfig signingConfigs.secureRelease
+=======
+            if (releaseSigningConfig.releaseStoreFile) {
+                signingConfig signingConfigs.release
+            } else {
+                // Task Definition of Done: No release debug-signing fallback.
+                signingConfig null
+            }
+>>>>>>> pr-45
         }
     }
 }
