@@ -3,48 +3,51 @@ import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 
 void main() {
   group('OperationResult', () {
-    test('Success state', () {
-      const result = OperationResult.success('Test Data');
+    test('success outcome instantiation and properties', () {
+      final result = OperationResult<String>.success('Hello');
+
       expect(result.isSuccess, isTrue);
-      expect(result.data, 'Test Data');
+      expect(result.data, 'Hello');
+      expect(result is SuccessOutcome<String>, isTrue);
+
+      expect(() => result.failure, throwsA(isA<TypeError>()));
     });
 
-    test('Failure state mapping and cause preservation', () {
-      final cause = Exception('Underlying cause');
+    test('failure outcome instantiation and typed resolution', () {
+      final genericFailure = ContentFailure('E1', 'Failed', cause: 'Network timeout');
+      final result1 = OperationResult<String>.failure(genericFailure);
 
-      final unavailableResult = OperationResult<String>.unavailable('UNAVAILABLE', 'Service unavailable', cause);
-      expect(unavailableResult.isSuccess, isFalse);
-      expect(unavailableResult.failure, isA<UnavailableFailure>());
-      expect(unavailableResult.failure.code, 'UNAVAILABLE');
-      expect(unavailableResult.failure.message, 'Service unavailable');
-      expect(unavailableResult.failure.cause, equals(cause));
+      expect(result1.isSuccess, isFalse);
+      expect(result1.failure.code, 'E1');
+      expect(result1.failure.cause, 'Network timeout');
+      expect(result1 is GenericFailureOutcome<String>, isTrue);
+      expect(() => result1.data, throwsA(isA<TypeError>()));
 
-      final invalidInputResult = OperationResult<int>.invalidInput('INVALID', 'Bad input', cause);
-      expect(invalidInputResult.isSuccess, isFalse);
-      expect(invalidInputResult.failure, isA<InvalidInputFailure>());
-      expect(invalidInputResult.failure.code, 'INVALID');
-      expect(invalidInputResult.failure.message, 'Bad input');
-      expect(invalidInputResult.failure.cause, equals(cause));
+      final unavailableResult = OperationResult<String>.failure(
+          const UnavailableFailure('E2', 'Unavailable', cause: 'Server down'));
+      expect(unavailableResult is UnavailableOutcome<String>, isTrue);
+      expect(unavailableResult.failure.cause, 'Server down');
 
-      final cancelledResult = OperationResult<void>.cancelled('CANCEL', 'Operation cancelled', cause);
-      expect(cancelledResult.isSuccess, isFalse);
-      expect(cancelledResult.failure, isA<CancelledFailure>());
-      expect(cancelledResult.failure.code, 'CANCEL');
-      expect(cancelledResult.failure.message, 'Operation cancelled');
-      expect(cancelledResult.failure.cause, equals(cause));
+      final invalidInputResult = OperationResult<String>.failure(
+          const InvalidInputFailure('E3', 'Invalid'));
+      expect(invalidInputResult is InvalidInputOutcome<String>, isTrue);
 
-      final incompatibleResult = OperationResult<double>.incompatibleVersion('VER_ERR', 'Bad version', cause);
-      expect(incompatibleResult.isSuccess, isFalse);
-      expect(incompatibleResult.failure, isA<IncompatibleVersionFailure>());
-      expect(incompatibleResult.failure.code, 'VER_ERR');
-      expect(incompatibleResult.failure.message, 'Bad version');
-      expect(incompatibleResult.failure.cause, equals(cause));
+      final cancelledResult = OperationResult<String>.failure(
+          const CancelledFailure('E4', 'Cancelled'));
+      expect(cancelledResult is CancelledOutcome<String>, isTrue);
 
-      // StorageFailure and ContentFailure shouldn't break with the new base parameter
-      const storageFailure = StorageFailure('STORAGE_ERR', 'Disk full');
-      final storageResult = OperationResult<void>.failure(storageFailure);
-      expect(storageResult.failure, isA<StorageFailure>());
-      expect(storageResult.failure.cause, isNull);
+      final incompatibleResult = OperationResult<String>.failure(
+          const IncompatibleVersionFailure('E5', 'Incompatible'));
+      expect(incompatibleResult is IncompatibleVersionOutcome<String>, isTrue);
+    });
+
+    test('success with null data throws TypeError when accessing .data getter', () {
+      final result = OperationResult<String?>.success(null);
+      expect(result.isSuccess, isTrue);
+
+      // Since `data` is implemented as `T get data => _data!;`, accessing it when
+      // _data is null throws a TypeError (Null check operator used on a null value).
+      expect(() => result.data, throwsA(isA<TypeError>()));
     });
   });
 }

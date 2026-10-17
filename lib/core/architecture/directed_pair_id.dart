@@ -7,61 +7,63 @@ class DirectedPairId {
     required this.sourceLocale,
     required this.targetLocale,
     required this.semanticVersion,
-  });
+  }) : assert(sourceLocale != '', 'sourceLocale must not be empty'),
+       assert(targetLocale != '', 'targetLocale must not be empty'),
+       assert(semanticVersion != '', 'semanticVersion must not be empty');
 
-  /// Provides a controlled migration path for legacy string-based pair IDs.
-  factory DirectedPairId.fromString(String legacyId, {String defaultVersion = '1.0.0'}) {
-    final parts = legacyId.split('_');
-    if (parts.length == 3) {
-      return DirectedPairId(
-        sourceLocale: parts[0],
-        targetLocale: parts[1],
-        semanticVersion: parts[2],
-      );
-    } else if (parts.length == 2) {
-      return DirectedPairId(
-        sourceLocale: parts[0],
-        targetLocale: parts[1],
-        semanticVersion: defaultVersion,
-      );
+  factory DirectedPairId.forLearning({
+    required String sourceLocale,
+    required String targetLocale,
+    required String semanticVersion,
+  }) {
+    if (sourceLocale == targetLocale) {
+      throw ArgumentError('sourceLocale and targetLocale must be distinct for learning pairs');
     }
     return DirectedPairId(
-      sourceLocale: 'unknown',
-      targetLocale: 'unknown',
-      semanticVersion: defaultVersion,
+      sourceLocale: sourceLocale,
+      targetLocale: targetLocale,
+      semanticVersion: semanticVersion,
     );
   }
 
-  factory DirectedPairId.fromJson(Map<String, dynamic> json) {
+  factory DirectedPairId.parse(String legacyId) {
+    final parts = legacyId.split('_');
+    if (parts.length < 3) {
+      throw FormatException('Invalid legacy DirectedPairId string: $legacyId');
+    }
+    // E.g. en_de_1.0.0
+    // If semantic version has underscores, they would be split.
+    // Usually it's locale_locale_version, so the first two are locales, the rest is version.
+    final sourceLocale = parts[0];
+    final targetLocale = parts[1];
+    final semanticVersion = parts.skip(2).join('_');
+
     return DirectedPairId(
-      sourceLocale: json['sourceLocale'] as String? ?? 'unknown',
-      targetLocale: json['targetLocale'] as String? ?? 'unknown',
-      semanticVersion: json['semanticVersion'] as String? ?? '1.0.0',
+      sourceLocale: sourceLocale,
+      targetLocale: targetLocale,
+      semanticVersion: semanticVersion,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'sourceLocale': sourceLocale,
-        'targetLocale': targetLocale,
-        'semanticVersion': semanticVersion,
-      };
+  factory DirectedPairId.fromMap(Map<String, dynamic> map) {
+    return DirectedPairId(
+      sourceLocale: map['sourceLocale'] as String,
+      targetLocale: map['targetLocale'] as String,
+      semanticVersion: map['semanticVersion'] as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'sourceLocale': sourceLocale,
+      'targetLocale': targetLocale,
+      'semanticVersion': semanticVersion,
+    };
+  }
 
   String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
-
   bool get isReflexive => sourceLocale == targetLocale;
-
-  bool isValidForLearning() =>
-      !isReflexive && hasValidLocales;
-
-  bool get hasValidLocales {
-    final localeRegex = RegExp(r'^[a-z]{2,3}(_[A-Z]{2,3})?$');
-    return localeRegex.hasMatch(sourceLocale) && localeRegex.hasMatch(targetLocale);
-  }
-
-  bool get hasValidVersion {
-    final versionRegex = RegExp(r'^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$');
-    return versionRegex.hasMatch(semanticVersion);
-  }
+  bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
 
   @override
   bool operator ==(Object other) {
