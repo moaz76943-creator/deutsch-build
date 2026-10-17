@@ -55,8 +55,9 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    if (!await File(path).exists()) {
-      final tempDb = await openDatabase(
+      await db.execute('PRAGMA journal_mode = WAL;');
+      await db.execute('PRAGMA synchronous = NORMAL;');
+      await db.execute('PRAGMA busy_timeout = 5000;');
         path,
         version: 1,
         onCreate: (db, version) async {
@@ -106,14 +107,9 @@ class DatabaseService {
           await _seedInitialData(db);
         },
       );
-      await tempDb.close();
-    }
-
-    return await openDatabase(
-      path,
-      version: 1,
-      readOnly: true,
-    );
+      await db.execute('PRAGMA journal_mode = WAL;');
+      await db.execute('PRAGMA synchronous = NORMAL;');
+      await db.execute('PRAGMA busy_timeout = 5000;');
   }
 
   Future<Database> _initProgressDb(String fileName) async {
@@ -124,10 +120,9 @@ class DatabaseService {
       path,
       version: 1,
       onConfigure: (db) async {
-        await db.execute('PRAGMA journal_mode = WAL');
-        await db.execute('PRAGMA synchronous = NORMAL');
-        await db.execute('PRAGMA journal_mode = WAL;');
-        await db.execute('PRAGMA busy_timeout = 5000;');
+      await db.execute('PRAGMA journal_mode = WAL;');
+      await db.execute('PRAGMA synchronous = NORMAL;');
+      await db.execute('PRAGMA busy_timeout = 5000;');
       },
       onCreate: (db, version) async {
         // جدول التكرار المتباعد (SuperMemo-2)
@@ -144,6 +139,17 @@ class DatabaseService {
         ''');
       },
     );
+  }
+
+  Future<void> close() async {
+    if (_contentDb != null) {
+      await _contentDb!.close();
+      _contentDb = null;
+    }
+    if (_progressDb != null) {
+      await _progressDb!.close();
+      _progressDb = null;
+    }
   }
 
   // دالة البحث في المعجم الفوري
