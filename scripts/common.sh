@@ -5,11 +5,42 @@ IFS=$'\n\t'
 ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 TOOLCHAIN_FILE="$ROOT/toolchain.lock"
 
-fatal() { printf '[ERROR] %s\n' "$*" >&2; exit 1; }
+ERR_ENV=10
+ERR_COMPILE=11
+ERR_SIGNING=12
+ERR_DEPENDENCY=13
+ERR_ARTIFACT=14
+
+fatal() {
+  local exit_code=1
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    exit_code="$1"
+    shift
+  fi
+  printf '[ERROR] %s\n' "$*" >&2
+  exit "$exit_code"
+}
 log() { printf '[%s] %s\n' "$1" "$2"; }
 
+with_retry() {
+  local max_attempts=3
+  local attempt=1
+  local delay=2
+  while true; do
+    if "$@"; then
+      return 0
+    elif (( attempt >= max_attempts )); then
+      fatal $ERR_DEPENDENCY "Command failed after $max_attempts attempts: $*"
+    fi
+    log WARN "Command failed: $* (attempt $attempt/$max_attempts). Retrying in ${delay}s..."
+    sleep "$delay"
+    ((attempt++))
+    ((delay *= 2))
+  done
+}
+
 load_toolchain() {
-  [[ -f "$TOOLCHAIN_FILE" ]] || fatal "toolchain.lock is missing: $TOOLCHAIN_FILE"
+  [[ -f "$TOOLCHAIN_FILE" ]] || fatal $ERR_ENV "toolchain.lock is missing: $TOOLCHAIN_FILE"
   # shellcheck disable=SC1090
   source "$TOOLCHAIN_FILE"
 }
@@ -30,10 +61,10 @@ configure_android_build_path() {
 
 check_disk_space() {
   local path="${1:-$ROOT}" available
-  available="$(df -Pk "$path" | awk 'NR==2 {print $4}')" || fatal "Cannot inspect disk space at $path"
-  [[ "$available" =~ ^[0-9]+$ ]] || fatal "Cannot determine available disk space at $path"
+  available="$(df -Pk "$path" | awk 'NR==2 {print $4}')" || fatal $ERR_ENV "Cannot inspect disk space at $path"
+  [[ "$available" =~ ^[0-9]+$ ]] || fatal $ERR_ENV "Cannot determine available disk space at $path"
   if (( available < MIN_FREE_KB )); then
-    fatal "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
+    fatal $ERR_ENV "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
   elif (( available < RECOMMENDED_FREE_KB )); then
     log WARN "Free space at $path: $available KiB; recommended $RECOMMENDED_FREE_KB KiB (3 GiB). Continuing with preserved caches."
   else
@@ -42,17 +73,17 @@ check_disk_space() {
 }
 
 snapshot_lockfile() {
-  [[ -f "$ROOT/pubspec.lock" ]] || fatal "pubspec.lock is missing; reproducible dependency resolution cannot start."
+  [[ -f "$ROOT/pubspec.lock" ]] || fatal $ERR_DEPENDENCY "pubspec.lock is missing; reproducible dependency resolution cannot start."
   LOCK_BEFORE="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
   export LOCK_BEFORE
 }
 
 assert_lockfile_unchanged() {
-  [[ -f "$ROOT/pubspec.lock" ]] || fatal "pubspec.lock disappeared during dependency resolution."
+  [[ -f "$ROOT/pubspec.lock" ]] || fatal $ERR_DEPENDENCY "pubspec.lock disappeared during dependency resolution."
   LOCK_AFTER="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
   export LOCK_AFTER
   if [[ "$LOCK_BEFORE" != "$LOCK_AFTER" ]]; then
-    fatal "pubspec.lock changed during this build. Dependency updates must be deliberate and committed before building. Before=$LOCK_BEFORE After=$LOCK_AFTER"
+    fatal $ERR_DEPENDENCY "pubspec.lock changed during this build. Dependency updates must be deliberate and committed before building. Before=$LOCK_BEFORE After=$LOCK_AFTER"
   fi
 }
 
