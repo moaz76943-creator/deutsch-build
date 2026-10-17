@@ -14,7 +14,7 @@ class DatabaseService {
 
   // 1. قاعدة المحتوى (اللغات، الكلمات، الأمثلة)
   Future<Database> get contentDb async {
-    if (_contentDb != null) return _contentDb!;
+    if (_contentDb != null && _contentDb!.isOpen) return _contentDb!;
     if (_contentDbInitFuture != null) return await _contentDbInitFuture!;
     _contentDbInitFuture = _initContentDb('polyglot_content_v2.db');
     try {
@@ -27,7 +27,7 @@ class DatabaseService {
 
   // 2. قاعدة تقدم المستخدم (SRS Progress) - مفصولة لحماية البيانات
   Future<Database> get progressDb async {
-    if (_progressDb != null) return _progressDb!;
+    if (_progressDb != null && _progressDb!.isOpen) return _progressDb!;
     if (_progressDbInitFuture != null) return await _progressDbInitFuture!;
     _progressDbInitFuture = _initProgressDb('user_progress_v2.db');
     try {
@@ -39,14 +39,18 @@ class DatabaseService {
   }
 
   Future<void> close() async {
-    if (_contentDb != null) {
-      await _contentDb!.close();
-      _contentDb = null;
-    }
-    if (_progressDb != null) {
-      await _progressDb!.close();
-      _progressDb = null;
-    }
+    try {
+      if (_contentDb != null && _contentDb!.isOpen) {
+        await _contentDb!.close();
+      }
+    } catch (_) {}
+    try {
+      if (_progressDb != null && _progressDb!.isOpen) {
+        await _progressDb!.close();
+      }
+    } catch (_) {}
+    _contentDb = null;
+    _progressDb = null;
     _contentDbInitFuture = null;
     _progressDbInitFuture = null;
   }
@@ -55,12 +59,18 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-<<<<<<< HEAD
-      await db.execute('PRAGMA journal_mode = WAL;');
-      await db.execute('PRAGMA synchronous = NORMAL;');
-      await db.execute('PRAGMA busy_timeout = 5000;');
+    // If file doesn't exist, create it as writable first to run onCreate
+    if (!await File(path).exists()) {
+      // make sure dir exists
+      final file = File(path);
+      if (!await file.parent.exists()) {
+        await file.parent.create(recursive: true);
+      }
+
+      final db = await openDatabase(
         path,
         version: 1,
+        singleInstance: false, // Ensure we don't pollute single instance pool for writable init
         onCreate: (db, version) async {
           // جداول المحتوى (لـ 100 لغة)
           await db.execute('''
@@ -71,29 +81,6 @@ class DatabaseService {
              direction TEXT NOT NULL
             )
           ''');
-=======
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        // جداول المحتوى (لـ 100 لغة)
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS language_profiles (
-           language_code TEXT PRIMARY KEY,
-           name_native TEXT NOT NULL,
-           name_ar TEXT NOT NULL,
-           direction TEXT NOT NULL
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS concepts (
-           concept_id TEXT PRIMARY KEY,
-           category TEXT NOT NULL,
-           cefr_level TEXT NOT NULL
-          )
-        ''');
->>>>>>> origin/main
 
           await db.execute('''
             CREATE TABLE IF NOT EXISTS concepts (
@@ -131,22 +118,31 @@ class DatabaseService {
           await _seedInitialData(db);
         },
       );
-      await db.execute('PRAGMA journal_mode = WAL;');
-      await db.execute('PRAGMA synchronous = NORMAL;');
-      await db.execute('PRAGMA busy_timeout = 5000;');
+      await db.close(); // Close the writable connection
+    }
+
+    // Now open as read-only
+    return await openDatabase(path, readOnly: true, singleInstance: false);
   }
 
   Future<Database> _initProgressDb(String fileName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
+    // make sure dir exists
+    final file = File(path);
+    if (!await file.parent.exists()) {
+      await file.parent.create(recursive: true);
+    }
+
     return await openDatabase(
       path,
       version: 1,
+      singleInstance: false,
       onConfigure: (db) async {
-      await db.execute('PRAGMA journal_mode = WAL;');
-      await db.execute('PRAGMA synchronous = NORMAL;');
-      await db.execute('PRAGMA busy_timeout = 5000;');
+        await db.execute('PRAGMA journal_mode = WAL;');
+        await db.execute('PRAGMA synchronous = NORMAL;');
+        await db.execute('PRAGMA busy_timeout = 5000;');
       },
       onCreate: (db, version) async {
         // جدول التكرار المتباعد (SuperMemo-2)
@@ -163,17 +159,6 @@ class DatabaseService {
         ''');
       },
     );
-  }
-
-  Future<void> close() async {
-    if (_contentDb != null) {
-      await _contentDb!.close();
-      _contentDb = null;
-    }
-    if (_progressDb != null) {
-      await _progressDb!.close();
-      _progressDb = null;
-    }
   }
 
   // دالة البحث في المعجم الفوري
@@ -224,21 +209,6 @@ class DatabaseService {
     await batch.commit(noResult: true);
   }
 
-  Future<void> close() async {
-    try {
-      if (_contentDb != null && _contentDb!.isOpen) {
-        await _contentDb!.close();
-      }
-    } catch (_) {}
-    try {
-      if (_progressDb != null && _progressDb!.isOpen) {
-        await _progressDb!.close();
-      }
-    } catch (_) {}
-    _contentDb = null;
-    _progressDb = null;
-  }
-
   Future<void> updateSrsProgressAtomic({
     required String lexemeId,
     required String status,
@@ -263,7 +233,7 @@ class DatabaseService {
           rethrow;
         }
         _progressDb = null; // nullify to force reopen if closed
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
       }
     }
   }
