@@ -37,9 +37,15 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                       const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('التخزين المؤقت للبيانات الصوتية', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('التخزين المؤقت للبيانات الصوتية',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('حفظ الملفات للعمل بدون إنترنت', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          Text('حفظ الملفات للعمل بدون إنترنت',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12)),
                         ],
                       ),
                       Switch(
@@ -63,9 +69,15 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                       const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('ضغط حزم البيانات والملفات', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('ضغط حزم البيانات والملفات',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('تقليل استهلاك مساحة التخزين والإنترنت', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          Text('تقليل استهلاك مساحة التخزين والإنترنت',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12)),
                         ],
                       ),
                       Switch(
@@ -86,14 +98,20 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                     backgroundColor: Colors.white.withValues(alpha: 0.1),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تم مسح الذاكرة المؤقتة وتوفير 140 ميجابايت بنجاح!'), backgroundColor: Color(0xFF34D399)),
+                      const SnackBar(
+                          content: Text(
+                              'تم مسح الذاكرة المؤقتة وتوفير 140 ميجابايت بنجاح!'),
+                          backgroundColor: Color(0xFF34D399)),
                     );
                   },
-                  child: const Text('مسح الذاكرة المؤقتة (Cache Clean)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text('مسح الذاكرة المؤقتة (Cache Clean)',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

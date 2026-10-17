@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
-import 'dart:ui' show RootIsolateToken;
 
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
@@ -89,11 +88,13 @@ class _SqliteIsolateWorker {
 
   static Future<_SqliteIsolateWorker> start(String path) async {
     if (path.trim().isEmpty) {
-      throw ArgumentError.value(path, 'path', 'Required writable database path');
+      throw ArgumentError.value(
+          path, 'path', 'Required writable database path');
     }
     final token = RootIsolateToken.instance;
     if (token == null) {
-      throw StateError('SQLite background isolate requires the Flutter root isolate');
+      throw StateError(
+          'SQLite background isolate requires the Flutter root isolate');
     }
     final ready = ReceivePort();
     Isolate? isolate;
@@ -105,7 +106,7 @@ class _SqliteIsolateWorker {
       );
       final result = await ready.first.timeout(const Duration(seconds: 30));
       if (result is! SendPort) {
-        throw StateError('Background SQLite worker failed: ' + result.toString());
+        throw StateError('Background SQLite worker failed: $result');
       }
       return _SqliteIsolateWorker(isolate, result);
     } catch (_) {
@@ -121,7 +122,8 @@ class _SqliteIsolateWorker {
     final replyPort = ReceivePort();
     try {
       _port.send(<Object?>[command, data, replyPort.sendPort]);
-      final response = await replyPort.first.timeout(const Duration(seconds: 30));
+      final response =
+          await replyPort.first.timeout(const Duration(seconds: 30));
       if (response is! Map) {
         throw StateError('Invalid background worker response');
       }
@@ -181,14 +183,22 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
             final row = Map<String, Object?>.from(raw);
             final id = row['id'];
             final surface = row['surface'];
-            if (id is! String || id.isEmpty ||
-                surface is! String || surface.isEmpty) {
-              throw FormatException('Lexicon rows require nonempty id and surface');
+            if (id is! String ||
+                id.isEmpty ||
+                surface is! String ||
+                surface.isEmpty) {
+              throw const FormatException(
+                  'Lexicon rows require nonempty id and surface');
             }
             await txn.rawInsert(
               'INSERT OR REPLACE INTO lexicon '
               '(id, surface, part_of_speech, fields_json) VALUES (?, ?, ?, ?)',
-              <Object?>[id, surface, row['part_of_speech'], row['fields_json'] ?? '{}'],
+              <Object?>[
+                id,
+                surface,
+                row['part_of_speech'],
+                row['fields_json'] ?? '{}'
+              ],
             );
           }
         });

@@ -20,8 +20,7 @@ class OfflineAudioManager {
 
   bool get isAudioInitialized => _flutterTts != null;
 
-  Future<void> _ensureInitialized() =>
-      _initialization ??= _setupTts();
+  Future<void> _ensureInitialized() => _initialization ??= _setupTts();
 
   Future<void> _setupTts() async {
     final tts = _flutterTts ??= _createTts();

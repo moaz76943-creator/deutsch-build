@@ -18,7 +18,8 @@ enum PackDownloadState {
 /// خدمة إدارة وتثبيت الحزم محلياً أوفلاين بدون استدعاءات شبكة خارجية
 class PackDownloaderService {
   static final Map<String, PackDownloadState> _downloadStates = {};
-  static final Map<String, StreamSubscription<List<int>>?> _activeSubscriptions = {};
+  static final Map<String, StreamSubscription<List<int>>?>
+      _activeSubscriptions = {};
   static final Map<String, File> _activeFiles = {};
   static final Map<String, IOSink> _activeSinks = {};
   static final Map<String, String> _eTags = {};
@@ -52,7 +53,7 @@ class PackDownloaderService {
 
     final completer = _activeCompleters[languageCode];
     if (completer != null && !completer.isCompleted) {
-        completer.complete(false);
+      completer.complete(false);
     }
     _activeCompleters.remove(languageCode);
 
@@ -70,11 +71,8 @@ class PackDownloaderService {
   }
 
   static Future<bool> requestDownload(
-    String languageCode,
-    String url,
-    String expectedHash,
-    {http.Client? client}
-  ) async {
+      String languageCode, String url, String expectedHash,
+      {http.Client? client}) async {
     if (_downloadStates[languageCode] == PackDownloadState.requested ||
         _downloadStates[languageCode] == PackDownloadState.downloading ||
         _downloadStates[languageCode] == PackDownloadState.validating) {
@@ -85,7 +83,7 @@ class PackDownloaderService {
 
     final httpClient = client ?? http.Client();
     final dir = await getApplicationSupportDirectory();
-    final file = File('${dir.path}/pack_${languageCode}.tmp');
+    final file = File('${dir.path}/pack_$languageCode.tmp');
     _activeFiles[languageCode] = file;
 
     int retries = 0;
@@ -103,9 +101,9 @@ class PackDownloaderService {
         int downloadedBytes = 0;
         bool fileExists = await file.exists();
         if (await FileSystemEntity.isDirectory(file.path)) {
-            _downloadStates[languageCode] = PackDownloadState.paused;
-            if (client == null) httpClient.close();
-            return false;
+          _downloadStates[languageCode] = PackDownloadState.paused;
+          if (client == null) httpClient.close();
+          return false;
         }
 
         if (fileExists) {
@@ -121,7 +119,7 @@ class PackDownloaderService {
             if (await file.exists()) await file.delete();
             downloadedBytes = 0;
           } else {
-            headers['Range'] = 'bytes=${downloadedBytes}-';
+            headers['Range'] = 'bytes=$downloadedBytes-';
             headers['If-Range'] = previousETag;
           }
         }
@@ -144,40 +142,44 @@ class PackDownloaderService {
         }
 
         if (response.statusCode == 416) {
-             await response.stream.drain();
-             if (await file.exists()) await file.delete();
-             downloadedBytes = 0;
-             retries = 0;
-             continue;
+          await response.stream.drain();
+          if (await file.exists()) await file.delete();
+          downloadedBytes = 0;
+          retries = 0;
+          continue;
         }
 
         if (response.statusCode >= 400) {
-           await response.stream.drain();
-           retries++;
-           if (retries > maxRetries) {
-             _downloadStates[languageCode] = PackDownloadState.rejected;
-             if (client == null) httpClient.close();
-             return false;
-           }
-           await Future.delayed(Duration(seconds: retries));
-           continue;
+          await response.stream.drain();
+          retries++;
+          if (retries > maxRetries) {
+            _downloadStates[languageCode] = PackDownloadState.rejected;
+            if (client == null) httpClient.close();
+            return false;
+          }
+          await Future.delayed(Duration(seconds: retries));
+          continue;
         }
 
         String? currentETag = response.headers['etag'];
 
-        if (response.statusCode == 200 || (response.statusCode == 206 && previousETag != null && currentETag != previousETag)) {
-            // ETag changed or server doesn't support partial content (returned 200 instead of 206)
-            if (await file.exists()) await file.delete();
-            downloadedBytes = 0;
-            _eTags[languageCode] = currentETag ?? '';
+        if (response.statusCode == 200 ||
+            (response.statusCode == 206 &&
+                previousETag != null &&
+                currentETag != previousETag)) {
+          // ETag changed or server doesn't support partial content (returned 200 instead of 206)
+          if (await file.exists()) await file.delete();
+          downloadedBytes = 0;
+          _eTags[languageCode] = currentETag ?? '';
         } else if (response.statusCode == 206) {
-           // Resuming, ETag matches
-           _eTags[languageCode] = currentETag ?? '';
+          // Resuming, ETag matches
+          _eTags[languageCode] = currentETag ?? '';
         }
 
         late IOSink fileSink;
         try {
-          fileSink = file.openWrite(mode: downloadedBytes > 0 ? FileMode.append : FileMode.write);
+          fileSink = file.openWrite(
+              mode: downloadedBytes > 0 ? FileMode.append : FileMode.write);
         } catch (e) {
           await response.stream.drain();
           _downloadStates[languageCode] = PackDownloadState.paused;
@@ -195,56 +197,52 @@ class PackDownloaderService {
           if (!completer.isCompleted) completer.complete(false);
         });
 
-        _activeSubscriptions[languageCode] = response.stream.listen(
-          (chunk) {
-             fileSink.add(chunk);
-          },
-          onDone: () async {
-            await fileSink.flush();
-            await fileSink.close();
-            _activeSinks.remove(languageCode);
-            if (!completer.isCompleted) completer.complete(true);
-          },
-          onError: (e) async {
-             await fileSink.flush();
-             await fileSink.close();
-             _activeSinks.remove(languageCode);
-             if (!completer.isCompleted) completer.complete(false);
-          },
-          cancelOnError: true
-        );
+        _activeSubscriptions[languageCode] = response.stream.listen((chunk) {
+          fileSink.add(chunk);
+        }, onDone: () async {
+          await fileSink.flush();
+          await fileSink.close();
+          _activeSinks.remove(languageCode);
+          if (!completer.isCompleted) completer.complete(true);
+        }, onError: (e) async {
+          await fileSink.flush();
+          await fileSink.close();
+          _activeSinks.remove(languageCode);
+          if (!completer.isCompleted) completer.complete(false);
+        }, cancelOnError: true);
 
         final success = await completer.future;
         _activeSubscriptions.remove(languageCode);
         _activeCompleters.remove(languageCode);
 
         if (_downloadStates[languageCode] == PackDownloadState.cancelled) {
-            if (client == null) httpClient.close();
-            return false;
+          if (client == null) httpClient.close();
+          return false;
         }
 
         if (success) {
-           break; // Download finished successfully
+          break; // Download finished successfully
         } else {
-           retries++;
-           if (retries > maxRetries) {
-              _downloadStates[languageCode] = PackDownloadState.paused;
-              if (client == null) httpClient.close();
-              return false;
-           }
-           await Future.delayed(Duration(seconds: retries));
-           continue; // Retry
+          retries++;
+          if (retries > maxRetries) {
+            _downloadStates[languageCode] = PackDownloadState.paused;
+            if (client == null) httpClient.close();
+            return false;
+          }
+          await Future.delayed(Duration(seconds: retries));
+          continue; // Retry
         }
       }
 
       if (_downloadStates[languageCode] == PackDownloadState.cancelled) {
-          if (client == null) httpClient.close();
-          return false;
+        if (client == null) httpClient.close();
+        return false;
       }
 
       _downloadStates[languageCode] = PackDownloadState.validating;
 
-      final isValid = await PackAdmissionService.verifyAndAdmitPack(file, expectedHash);
+      final isValid =
+          await PackAdmissionService.verifyAndAdmitPack(file, expectedHash);
 
       if (isValid) {
         _downloadStates[languageCode] = PackDownloadState.installed;
@@ -256,7 +254,6 @@ class PackDownloaderService {
         if (client == null) httpClient.close();
         return false;
       }
-
     } catch (e) {
       print("requestDownload caught error at end: $e");
       _downloadStates[languageCode] = PackDownloadState.paused;

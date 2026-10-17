@@ -51,7 +51,8 @@ class OfflineAudioPool with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       stop();
     }
   }
@@ -113,9 +114,9 @@ class OfflineAudioPool with WidgetsBindingObserver {
         if (_activeLocale != req.locale) {
           final isLangAvailable = await _tts.setLanguage(req.locale);
           if (isLangAvailable == 0 || isLangAvailable == false) {
-             _isPlaying = false;
-             if (!req.completer.isCompleted) req.completer.complete(false);
-             continue; // Skip this word, it doesn't have a local speech engine
+            _isPlaying = false;
+            if (!req.completer.isCompleted) req.completer.complete(false);
+            continue; // Skip this word, it doesn't have a local speech engine
           }
           _activeLocale = req.locale;
         }
@@ -126,17 +127,17 @@ class OfflineAudioPool with WidgetsBindingObserver {
         }
 
         if (currentGeneration != _pairGenerationToken) {
-           _isPlaying = false;
-           if (!req.completer.isCompleted) req.completer.complete(false);
-           continue;
+          _isPlaying = false;
+          if (!req.completer.isCompleted) req.completer.complete(false);
+          continue;
         }
 
         await _tts.speak(req.text);
 
         if (currentGeneration == _pairGenerationToken) {
-           if (!req.completer.isCompleted) req.completer.complete(true);
+          if (!req.completer.isCompleted) req.completer.complete(true);
         } else {
-           if (!req.completer.isCompleted) req.completer.complete(false);
+          if (!req.completer.isCompleted) req.completer.complete(false);
         }
       } catch (_) {
         if (!req.completer.isCompleted) req.completer.complete(false);

@@ -46,13 +46,13 @@ class PersistentCpuWorker with WidgetsBindingObserver {
         maxQueueSize = 50 {
     _registerObserver();
   }
-  
+
   void _registerObserver() {
-     try {
-       WidgetsBinding.instance.addObserver(this);
-     } catch (_) {
-       // Ignore if not initialized
-     }
+    try {
+      WidgetsBinding.instance.addObserver(this);
+    } catch (_) {
+      // Ignore if not initialized
+    }
   }
 
   @visibleForTesting
@@ -115,15 +115,14 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   void _unpackAndExecute(dynamic task) {
     if (task is _QueuedTask) {
-       _executeQueuedTask(task);
+      _executeQueuedTask(task);
     }
   }
 
   void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
-
     if (queuedTask.generation != _generation) {
       if (!queuedTask.completer.isCompleted) {
-         queuedTask.completer.completeError(WorkerCancelledException());
+        queuedTask.completer.completeError(WorkerCancelledException());
       }
       _pump();
       return;
@@ -162,7 +161,8 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
   Future<double> calculateNewEaseFactor(double currentEase, int rating) {
-    return executeTask<Map<String, dynamic>, double>(_heavySrsMath, {'ease': currentEase, 'rating': rating});
+    return executeTask<Map<String, dynamic>, double>(
+        _heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
 
   // دالة رياضية معزولة تماماً (SM-2 Logic)
@@ -170,11 +170,11 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     final data = rawData as Map<String, dynamic>;
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
-    
+
     // معادلة الحفظ والمراجعة المتباعدة
     double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
-    
+
     return newEase;
   }
 }

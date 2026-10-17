@@ -95,7 +95,8 @@ class FeatureConfiguration {
 
 class ProductionAcceptanceGate {
   static FeatureConfiguration? _lastApprovedConfiguration;
-  static FeatureConfiguration? get lastApprovedConfiguration => _lastApprovedConfiguration;
+  static FeatureConfiguration? get lastApprovedConfiguration =>
+      _lastApprovedConfiguration;
 
   static bool verifyAppReadiness({
     required bool isOfflineSafe,
@@ -111,7 +112,8 @@ class ProductionAcceptanceGate {
     return result.outcome == GateOutcome.passed;
   }
 
-  static J095VerificationResult evaluateReadiness(J025StartupContract contract) {
+  static J095VerificationResult evaluateReadiness(
+      J025StartupContract contract) {
     if (!contract.hasExecutedTests) {
       return const J095VerificationResult(
         outcome: GateOutcome.notRun,
@@ -152,7 +154,9 @@ class ProductionAcceptanceGate {
       );
     }
 
-    if (!contract.isOfflineSafe || !contract.isStorageGuarded || !contract.isLifecycleManaged) {
+    if (!contract.isOfflineSafe ||
+        !contract.isStorageGuarded ||
+        !contract.isLifecycleManaged) {
       return const J095VerificationResult(
         outcome: GateOutcome.failed,
         eligibility: PromotionEligibility.blocked,
@@ -201,7 +205,8 @@ class ProductionAcceptanceGate {
       return PromotionEligibility.notVerified;
     }
 
-    if (verificationResult.hasMissingMandatoryEvidence || verificationResult.isEvidenceStale) {
+    if (verificationResult.hasMissingMandatoryEvidence ||
+        verificationResult.isEvidenceStale) {
       return PromotionEligibility.notVerified;
     }
 
@@ -233,13 +238,16 @@ class ProductionAcceptanceGate {
     }
 
     final verifiedLangs = langs.map((e) => e.languageCode).toList();
-    final availableFeatures = opts.where((e) => e.isAvailable).map((e) => e.featureName).toList();
+    final availableFeatures =
+        opts.where((e) => e.isAvailable).map((e) => e.featureName).toList();
 
     _lastApprovedConfiguration = FeatureConfiguration(
       verifiedLanguages: verifiedLangs,
       availableOptionalFeatures: availableFeatures,
     );
 
-    return isDegraded ? PromotionEligibility.degraded : PromotionEligibility.approved;
+    return isDegraded
+        ? PromotionEligibility.degraded
+        : PromotionEligibility.approved;
   }
 }

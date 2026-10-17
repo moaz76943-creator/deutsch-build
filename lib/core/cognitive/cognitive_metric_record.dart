@@ -2,7 +2,7 @@ class CognitiveMetricRecord {
   final String sessionEventId;
   final String contentKey;
   final Duration responseLatency; // زمن الإجابة بدقة
-  final int hesitationTaps;        // عدد مرات التردد أو تغيير الخيار
+  final int hesitationTaps; // عدد مرات التردد أو تغيير الخيار
   final bool isCorrect;
   final DateTime recordedAt;
   final String? targetLanguageCode;
@@ -22,7 +22,8 @@ class CognitiveMetricRecord {
     double strain = 0.0;
 
     // Normalize negative values safely
-    final latencyMs = responseLatency.inMilliseconds < 0 ? 0 : responseLatency.inMilliseconds;
+    final latencyMs =
+        responseLatency.inMilliseconds < 0 ? 0 : responseLatency.inMilliseconds;
     final taps = hesitationTaps < 0 ? 0 : hesitationTaps;
 
     // استجابة بطيئة تزيد عن 5 ثوانٍ تشير إلى إجهاد أو صعوبة

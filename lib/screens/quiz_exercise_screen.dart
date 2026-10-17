@@ -41,7 +41,10 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
     _currentEntry = _entries.first;
     _entries.removeAt(0);
 
-    final allTerms = LexicalRepository.getEntriesByDomain('general').map((e) => e.targetTerm).toSet().toList();
+    final allTerms = LexicalRepository.getEntriesByDomain('general')
+        .map((e) => e.targetTerm)
+        .toSet()
+        .toList();
     allTerms.remove(_currentEntry!.targetTerm);
     allTerms.shuffle();
 
@@ -56,7 +59,9 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
   }
 
   Future<void> _checkAnswer() async {
-    if (_selectedOption == null || _isSubmitting || _currentEntry == null) return;
+    if (_selectedOption == null || _isSubmitting || _currentEntry == null) {
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -112,7 +117,8 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
       );
     }
 
-    final textDir = LanguageBiDiHelper.getDirection(_currentEntry!.targetLocale);
+    final textDir =
+        LanguageBiDiHelper.getDirection(_currentEntry!.targetLocale);
 
     return Scaffold(
       appBar: AppBar(
@@ -131,7 +137,8 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
               children: <Widget>[
                 Text(
                   'اختر الترجمة أو المصطلح الصحيح:',
-                  style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
+                  style: AppTypography.title
+                      .copyWith(color: Colors.white, fontSize: 18),
                 ),
                 const SizedBox(height: 16),
                 AppBaseGlassCard(
@@ -139,10 +146,12 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 28),
                   child: Center(
                     child: Directionality(
-                      textDirection: LanguageBiDiHelper.getDirection(_currentEntry!.sourceLocale),
+                      textDirection: LanguageBiDiHelper.getDirection(
+                          _currentEntry!.sourceLocale),
                       child: Text(
                         _currentEntry!.sourceMeaning,
-                        style: AppTypography.display.copyWith(color: Colors.white, fontSize: 26),
+                        style: AppTypography.display
+                            .copyWith(color: Colors.white, fontSize: 26),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -152,28 +161,37 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                 ...List.generate(_options.length, (index) {
                   final isSelected = _selectedOption == index;
                   final isCorrect = _isAnswered && index == _correctOption;
-                  final isWrong = _isAnswered && isSelected && index != _correctOption;
+                  final isWrong =
+                      _isAnswered && isSelected && index != _correctOption;
 
                   Gradient? customGrad;
                   if (isCorrect) {
-                    customGrad = const LinearGradient(colors: [Color(0xFF065F46), Color(0xFF047857)]);
+                    customGrad = const LinearGradient(
+                        colors: [Color(0xFF065F46), Color(0xFF047857)]);
                   } else if (isWrong) {
-                    customGrad = const LinearGradient(colors: [Color(0xFF991B1B), Color(0xFFB91C1C)]);
+                    customGrad = const LinearGradient(
+                        colors: [Color(0xFF991B1B), Color(0xFFB91C1C)]);
                   } else if (isSelected) {
-                    customGrad = const LinearGradient(colors: [Color(0xFF38BDF8), Color(0xFF0284C7)]);
+                    customGrad = const LinearGradient(
+                        colors: [Color(0xFF38BDF8), Color(0xFF0284C7)]);
                   }
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: AppBaseGlassCard(
-                      onTap: _isAnswered ? null : () => setState(() => _selectedOption = index),
+                      onTap: _isAnswered
+                          ? null
+                          : () => setState(() => _selectedOption = index),
                       gradient: customGrad,
                       child: Row(
                         children: <Widget>[
                           CircleAvatar(
                             radius: 14,
-                            backgroundColor: Colors.white.withValues(alpha: 0.2),
-                            child: Text('${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.2),
+                            child: Text('${index + 1}',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12)),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -181,7 +199,8 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                               textDirection: textDir,
                               child: Text(
                                 _options[index],
-                                style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
+                                style: AppTypography.title.copyWith(
+                                    color: Colors.white, fontSize: 16),
                               ),
                             ),
                           ),
@@ -192,10 +211,17 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                 }),
                 const Spacer(),
                 ElevatedButton(
-                  onPressed: (_selectedOption == null || _isSubmitting || _isAnswered) ? null : _checkAnswer,
+                  onPressed:
+                      (_selectedOption == null || _isSubmitting || _isAnswered)
+                          ? null
+                          : _checkAnswer,
                   child: _isSubmitting
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('تحقق من الإجابة'),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : const Text('تحقق من الإجابة'),
                 ),
               ],
             ),

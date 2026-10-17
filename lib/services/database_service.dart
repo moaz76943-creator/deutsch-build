@@ -30,9 +30,12 @@ class LexiconTranslation {
 List<Map<String, dynamic>> _decodeLexiconRows(Map<String, Object?> request) {
   final languageCode = request['languageCode'] as String;
   final rows = request['rows'] as List;
-  return rows.map((row) => DatabaseService._unpackLexiconRow(
-    Map<String, Object?>.from(row as Map), languageCode,
-  )).toList(growable: false);
+  return rows
+      .map((row) => DatabaseService._unpackLexiconRow(
+            Map<String, Object?>.from(row as Map),
+            languageCode,
+          ))
+      .toList(growable: false);
 }
 
 class DatabaseService {
@@ -44,7 +47,8 @@ class DatabaseService {
       'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
   static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
   static Database? _progressDb;
-  late final UserVaultSecurityService _progressVault = UserVaultSecurityService();
+  late final UserVaultSecurityService _progressVault =
+      UserVaultSecurityService();
   late final PooledDatabaseManager _contentPool = PooledDatabaseManager(
     openConnection: _openContentDb,
   );
@@ -60,7 +64,8 @@ class DatabaseService {
   Future<T> withContentDb<T>(
     String languageCode,
     Future<T> Function(Database database) action,
-  ) => _contentPool.withDatabase(_normalizeLanguageCode(languageCode), action);
+  ) =>
+      _contentPool.withDatabase(_normalizeLanguageCode(languageCode), action);
 
   // User progress remains physically and logically isolated from content packs.
   Future<Database> get progressDb async {
@@ -78,7 +83,7 @@ class DatabaseService {
   Future<Database> _openContentDb(String languageCode) async {
     // The bundled-pack SHA-256 check is also deferred beyond cold boot.
     await CrashLoopGuard.waitForIntegrityWindow();
-    if(languageCode!='de' && CrashLoopGuard.instance.safeModeEnabled) {
+    if (languageCode != 'de' && CrashLoopGuard.instance.safeModeEnabled) {
       throw StateError('External content packs are disabled in safe mode');
     }
     Database? db;
@@ -110,61 +115,59 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-      await db.execute('PRAGMA journal_mode = WAL;');
-      await db.execute('PRAGMA synchronous = NORMAL;');
-      await db.execute('PRAGMA busy_timeout = 5000;');
-        path,
-        version: 1,
-        onCreate: (db, version) async {
-          // جداول المحتوى (لـ 100 لغة)
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS language_profiles (
-             language_code TEXT PRIMARY KEY,
-             name_native TEXT NOT NULL,
-             name_ar TEXT NOT NULL,
-             direction TEXT NOT NULL
-            )
-          ''');
+    return await openDatabase(
+      path,
+      version: 1,
+      onOpen: (db) async {
+        await db.execute('PRAGMA journal_mode = WAL;');
+        await db.execute('PRAGMA synchronous = NORMAL;');
+        await db.execute('PRAGMA busy_timeout = 5000;');
+      },
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS language_profiles (
+            language_code TEXT PRIMARY KEY,
+            name_native TEXT NOT NULL,
+            name_ar TEXT NOT NULL,
+            direction TEXT NOT NULL
+          );
+        ''');
 
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS concepts (
-             concept_id TEXT PRIMARY KEY,
-             category TEXT NOT NULL,
-             cefr_level TEXT NOT NULL
-            )
-          ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS concepts (
+            concept_id TEXT PRIMARY KEY,
+            category TEXT NOT NULL,
+            cefr_level TEXT NOT NULL
+          );
+        ''');
 
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS lexemes (
-             lexeme_id TEXT PRIMARY KEY,
-             concept_id TEXT NOT NULL,
-             language_code TEXT NOT NULL,
-             lemma TEXT NOT NULL,
-             display_text TEXT NOT NULL,
-             article TEXT,
-             plural TEXT,
-             gender TEXT,
-             grammar_json TEXT DEFAULT '{}'
-            )
-          ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS lexemes (
+            lexeme_id TEXT PRIMARY KEY,
+            concept_id TEXT NOT NULL,
+            language_code TEXT NOT NULL,
+            lemma TEXT NOT NULL,
+            display_text TEXT NOT NULL,
+            article TEXT,
+            plural TEXT,
+            gender TEXT,
+            grammar_json TEXT DEFAULT '{}'
+          );
+        ''');
 
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS examples (
-             example_id TEXT PRIMARY KEY,
-             concept_id TEXT NOT NULL,
-             language_code TEXT NOT NULL,
-             sentence TEXT NOT NULL,
-             translation_ar TEXT
-            )
-          ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS examples (
+            example_id TEXT PRIMARY KEY,
+            concept_id TEXT NOT NULL,
+            language_code TEXT NOT NULL,
+            sentence TEXT NOT NULL,
+            translation_ar TEXT
+          );
+        ''');
 
-          // زرع بيانات مبدئية لكي يعمل المعجم فوراً
-          await _seedInitialData(db);
-        },
-      )
-      await db.execute('PRAGMA journal_mode = WAL;');
-      await db.execute('PRAGMA synchronous = NORMAL;');
-      await db.execute('PRAGMA busy_timeout = 5000;');
+        await _seedInitialData(db);
+      },
+    );
   }
 
   Future<String> _ensureGermanDatabase() async {
@@ -203,8 +206,8 @@ class DatabaseService {
   }
 
   Future<String> _installedPackPath(String languageCode) async {
-    final located = await StorageMigrationService()
-        .resolvePackPath('$languageCode.sqlite');
+    final located =
+        await StorageMigrationService().resolvePackPath('$languageCode.sqlite');
     if (located == null) {
       throw StateError('Language pack $languageCode is not installed');
     }
@@ -233,12 +236,18 @@ class DatabaseService {
       )
     ''');
     final names = <String, String>{
-      for (final row in records)
-        row['name'].toString(): row['type'].toString(),
+      for (final row in records) row['name'].toString(): row['type'].toString(),
     };
     const tables = <String>{
-      'metadata', 'schema_migrations', 'concepts', 'lexicon', 'senses',
-      'translations', 'examples', 'lexical_relations', 'grammar',
+      'metadata',
+      'schema_migrations',
+      'concepts',
+      'lexicon',
+      'senses',
+      'translations',
+      'examples',
+      'lexical_relations',
+      'grammar',
     };
     if (tables.any((name) => names[name] != 'table') ||
         names['lexemes'] != 'view' ||
@@ -248,22 +257,33 @@ class DatabaseService {
 
     Future<void> requireColumns(String table, Set<String> required) async {
       final rows = await db.rawQuery('PRAGMA table_info($table)');
-      final actual = rows.map((row) => row['name'])
-          .whereType<String>().toSet();
+      final actual = rows.map((row) => row['name']).whereType<String>().toSet();
       if (!actual.containsAll(required)) {
         throw StateError('Content database $code lacks $table columns');
       }
     }
+
     await requireColumns('metadata', <String>{'key', 'value'});
     await requireColumns('lexicon', <String>{
-      'id', 'surface', 'sort_key', 'language_code', 'cefr_level',
-      'part_of_speech', 'fields_json',
+      'id',
+      'surface',
+      'sort_key',
+      'language_code',
+      'cefr_level',
+      'part_of_speech',
+      'fields_json',
     });
     await requireColumns('senses', <String>{
-      'sense_id', 'lexeme_id', 'concept_id', 'payload_json',
+      'sense_id',
+      'lexeme_id',
+      'concept_id',
+      'payload_json',
     });
     await requireColumns('examples', <String>{
-      'example_id', 'lexeme_id', 'language_code', 'text',
+      'example_id',
+      'lexeme_id',
+      'language_code',
+      'text',
     });
 
     final metadata = <String, String>{
@@ -293,7 +313,8 @@ class DatabaseService {
   Future<File> migrateContentPack(
     String filename, {
     required PackStorageLocation destination,
-  }) => StorageMigrationService(
+  }) =>
+      StorageMigrationService(
         closeContentDb: (languageCode) => closeContentDb(languageCode),
       ).migratePack(filename, destination: destination);
 
@@ -383,7 +404,8 @@ class DatabaseService {
     );
     return compute(_decodeLexiconRows, <String, Object?>{
       'languageCode': code,
-      'rows': rows.map((row) => Map<String, Object?>.from(row))
+      'rows': rows
+          .map((row) => Map<String, Object?>.from(row))
           .toList(growable: false),
     });
   }
@@ -428,8 +450,8 @@ class DatabaseService {
             : a['lexeme_id'].toString().compareTo(b['lexeme_id'].toString());
       });
       dueIds.addAll(dueRows.take(limit).map(
-        (row) => row['lexeme_id'].toString(),
-      ));
+            (row) => row['lexeme_id'].toString(),
+          ));
     } else {
       legacyDb = await progressDb;
       final dueRows = await legacyDb.rawQuery('''
@@ -448,8 +470,7 @@ class DatabaseService {
       if (dueIds.isNotEmpty) {
         final placeholders = List<String>.filled(dueIds.length, '?').join(',');
         final rows = await db.rawQuery(
-          'SELECT id, surface, part_of_speech, fields_json '
-          'FROM lexicon WHERE id IN (' + placeholders + ')',
+          'SELECT id, surface, part_of_speech, fields_json FROM lexicon WHERE id IN ($placeholders)',
           dueIds,
         );
         final byId = <String, Map<String, Object?>>{
@@ -473,15 +494,12 @@ class DatabaseService {
         if (rows.isEmpty) break;
         offset += rows.length;
 
-        final reviewedOnPage =
-            vaultActive ? reviewedIds : <String>{};
+        final reviewedOnPage = vaultActive ? reviewedIds : <String>{};
         if (!vaultActive) {
           final ids = rows.map((row) => row['id'].toString()).toList();
           final placeholders = List<String>.filled(ids.length, '?').join(',');
           final tracked = await legacyDb!.rawQuery(
-            'SELECT lexeme_id FROM srs_progress '
-            'WHERE target_language_code = ? AND lexeme_id IN (' +
-                placeholders + ')',
+            'SELECT lexeme_id FROM srs_progress WHERE target_language_code = ? AND lexeme_id IN ($placeholders)',
             <Object?>[code, ...ids],
           );
           reviewedOnPage.addAll(
@@ -613,12 +631,17 @@ class DatabaseService {
   }) async {
     if (await _progressVault.isOperationalActive) {
       return _progressVault.gradeOperationalSrs(
-        lexemeId: lexemeId, languageCode: languageCode,
-        grade: grade, reviewedAt: reviewedAt);
+          lexemeId: lexemeId,
+          languageCode: languageCode,
+          grade: grade,
+          reviewedAt: reviewedAt);
     }
     return SrsSchedulerService().gradeAndPersist(
-      progressDb: await progressDb, lexemeId: lexemeId,
-      languageCode: languageCode, grade: grade, reviewedAt: reviewedAt);
+        progressDb: await progressDb,
+        lexemeId: lexemeId,
+        languageCode: languageCode,
+        grade: grade,
+        reviewedAt: reviewedAt);
   }
 
   Future<void> saveBookmark({
@@ -628,16 +651,19 @@ class DatabaseService {
   }) async {
     if (await _progressVault.isOperationalActive) {
       await _progressVault.putOperationalBookmark(
-        bookmarkId: bookmarkId, languageCode: languageCode, data: data);
+          bookmarkId: bookmarkId, languageCode: languageCode, data: data);
       return;
     }
     final db = await progressDb;
     await _ensureLegacyBookmarks(db);
-    await db.insert('vault_bookmarks', {
-      'id': bookmarkId,
-      'target_language_code': languageCode,
-      'payload': jsonEncode(data),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        'vault_bookmarks',
+        {
+          'id': bookmarkId,
+          'target_language_code': languageCode,
+          'payload': jsonEncode(data),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Map<String, dynamic>?> readBookmark({
@@ -646,15 +672,17 @@ class DatabaseService {
   }) async {
     if (await _progressVault.isOperationalActive) {
       return _progressVault.readOperationalBookmark(
-        bookmarkId: bookmarkId, languageCode: languageCode);
+          bookmarkId: bookmarkId, languageCode: languageCode);
     }
     final db = await progressDb;
     await _ensureLegacyBookmarks(db);
     final rows = await db.query('vault_bookmarks',
-      where: 'id = ? AND target_language_code = ?',
-      whereArgs: [bookmarkId, languageCode], limit: 1);
+        where: 'id = ? AND target_language_code = ?',
+        whereArgs: [bookmarkId, languageCode],
+        limit: 1);
     if (rows.isEmpty) return null;
-    return Map<String, dynamic>.from(jsonDecode(rows.single['payload'] as String) as Map);
+    return Map<String, dynamic>.from(
+        jsonDecode(rows.single['payload'] as String) as Map);
   }
 
   Future<void> deleteBookmark({
@@ -663,7 +691,7 @@ class DatabaseService {
   }) async {
     if (await _progressVault.isOperationalActive) {
       await _progressVault.deleteOperationalBookmark(
-        bookmarkId: bookmarkId, languageCode: languageCode);
+          bookmarkId: bookmarkId, languageCode: languageCode);
       return;
     }
     final db = await progressDb;
@@ -691,7 +719,7 @@ class DatabaseService {
       final normalizedCode = _normalizeLanguageCode(languageCode);
       if (await _progressVault.isOperationalActive) {
         await _progressVault.incrementOperationalSrs(
-          lexemeId: lexemeId, languageCode: normalizedCode, status: status);
+            lexemeId: lexemeId, languageCode: normalizedCode, status: status);
         return;
       }
       final db = await progressDb;
@@ -717,7 +745,8 @@ class DatabaseService {
   }
 
   static String _normalizeLanguageCode(String? value) {
-    final normalized = (value ?? 'de').trim().toLowerCase().replaceAll('_', '-');
+    final normalized =
+        (value ?? 'de').trim().toLowerCase().replaceAll('_', '-');
     if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
       throw ArgumentError.value(value, 'languageCode', 'Invalid language code');
     }

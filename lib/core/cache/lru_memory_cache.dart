@@ -50,8 +50,9 @@ class LruMemoryCache<K, V> {
 
   void _evictToFit() {
     while (_cache.isNotEmpty &&
-          (_cache.length > maxCapacity ||
-          (maxMemoryBytes != null && _currentMemoryBytes > maxMemoryBytes!))) {
+        (_cache.length > maxCapacity ||
+            (maxMemoryBytes != null &&
+                _currentMemoryBytes > maxMemoryBytes!))) {
       final firstKey = _cache.keys.first;
       _currentMemoryBytes -= _sizes[firstKey] ?? 0;
       _cache.remove(firstKey);
@@ -69,8 +70,8 @@ class LruMemoryCache<K, V> {
     int targetMemory = maxMemoryBytes != null ? maxMemoryBytes! ~/ 2 : 0;
 
     while (_cache.isNotEmpty &&
-          (_cache.length > targetCapacity ||
-          (maxMemoryBytes != null && _currentMemoryBytes > targetMemory))) {
+        (_cache.length > targetCapacity ||
+            (maxMemoryBytes != null && _currentMemoryBytes > targetMemory))) {
       final firstKey = _cache.keys.first;
       _currentMemoryBytes -= _sizes[firstKey] ?? 0;
       _cache.remove(firstKey);

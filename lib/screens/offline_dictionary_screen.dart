@@ -109,10 +109,12 @@ class _OfflineDictionaryScreenState
     final selectedLevel = _selectedLevel;
     final selectedArticle = _selectedArticle;
 
-    if (mounted) setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
 
     try {
       List<Map<String, dynamic>> found;
@@ -122,7 +124,9 @@ class _OfflineDictionaryScreenState
         try {
           // Handles FTS5-unavailable packs and short queries internally.
           final outcome = await _ftsSearch.searchDictionaryWithFeedback(
-            searchTerm, lang, limit: 50,
+            searchTerm,
+            lang,
+            limit: 50,
           );
           found = outcome.results;
           resolvedLemma = outcome.resolvedLemma;
@@ -130,7 +134,8 @@ class _OfflineDictionaryScreenState
         } catch (_) {
           // Retain the pre-FTS dictionary path for legacy installations.
           found = await DatabaseService.instance.searchDictionary(
-            searchTerm, lang,
+            searchTerm,
+            lang,
           );
         }
       } else {
@@ -153,9 +158,11 @@ class _OfflineDictionaryScreenState
         _suggestions = suggestions;
         _results = selectedArticle == 'الكل'
             ? found
-            : found.where((row) =>
-                row['article']?.toString() == selectedArticle,
-              ).toList(growable: false);
+            : found
+                .where(
+                  (row) => row['article']?.toString() == selectedArticle,
+                )
+                .toList(growable: false);
         _loading = false;
       });
     } catch (error) {
@@ -176,8 +183,8 @@ class _OfflineDictionaryScreenState
       if (previous != next) unawaited(_loadData());
     });
     final languageCode = ref.watch(activeLanguageCodeProvider);
-    final showKeyboardBar = _searchFocus.hasFocus &&
-        MediaQuery.of(context).viewInsets.bottom > 0;
+    final showKeyboardBar =
+        _searchFocus.hasFocus && MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
@@ -195,7 +202,8 @@ class _OfflineDictionaryScreenState
                           Text(
                             'المعجم الفوري',
                             style: AppTypography.display.copyWith(
-                              color: Colors.white, fontSize: 22,
+                              color: Colors.white,
+                              fontSize: 22,
                             ),
                           ),
                           const Spacer(),
@@ -238,12 +246,14 @@ class _OfflineDictionaryScreenState
                             color: Colors.white.withValues(alpha: 0.5),
                           ),
                           prefixIcon: const Icon(
-                            Icons.search_rounded, color: Colors.white70,
+                            Icons.search_rounded,
+                            color: Colors.white70,
                           ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.08),
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12,
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -265,7 +275,10 @@ class _OfflineDictionaryScreenState
                         child: Row(
                           children: <Widget>[
                             for (final option in <String>[
-                              'الكل', 'der', 'die', 'das',
+                              'الكل',
+                              'der',
+                              'die',
+                              'das',
                             ])
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
@@ -340,7 +353,10 @@ class _OfflineDictionaryScreenState
                                 )
                               : ListView.separated(
                                   padding: EdgeInsets.fromLTRB(
-                                    20, 8, 20, showKeyboardBar ? 80 : 96,
+                                    20,
+                                    8,
+                                    20,
+                                    showKeyboardBar ? 80 : 96,
                                   ),
                                   itemCount: _results.length,
                                   separatorBuilder: (_, __) =>
@@ -349,14 +365,15 @@ class _OfflineDictionaryScreenState
                                     final item = _results[index];
                                     final article =
                                         item['article']?.toString() ?? '';
-                                    final word =
-                                        item['lemma']?.toString() ??
-                                        item['surface']?.toString() ?? '';
+                                    final word = item['lemma']?.toString() ??
+                                        item['surface']?.toString() ??
+                                        '';
                                     final meaning =
                                         item['translation_ar']?.toString() ??
-                                        'بدون ترجمة';
+                                            'بدون ترجمة';
                                     return AppBaseGlassCard(
-                                      onTap: () => detail.WordDeepDiveSheet.show(
+                                      onTap: () =>
+                                          detail.WordDeepDiveSheet.show(
                                         context,
                                         wordData: item,
                                       ),
@@ -375,7 +392,8 @@ class _OfflineDictionaryScreenState
                                               children: <Widget>[
                                                 Text(
                                                   word,
-                                                  style: AppTypography.title.copyWith(
+                                                  style: AppTypography.title
+                                                      .copyWith(
                                                     color: Colors.white,
                                                     fontSize: 17,
                                                   ),
@@ -383,7 +401,8 @@ class _OfflineDictionaryScreenState
                                                 const SizedBox(height: 4),
                                                 Text(
                                                   meaning,
-                                                  style: AppTypography.body.copyWith(
+                                                  style: AppTypography.body
+                                                      .copyWith(
                                                     color: Colors.white70,
                                                     fontSize: 13,
                                                   ),

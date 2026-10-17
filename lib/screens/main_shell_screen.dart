@@ -34,15 +34,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
       bottomNavigationBar: MediaQuery.viewInsetsOf(context).bottom > 0
           ? null
           : FloatingBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const <NavBarItemData>[
-          NavBarItemData(icon: Icons.home_rounded, label: 'الرئيسية'),
-          NavBarItemData(icon: Icons.menu_book_rounded, label: 'الدروس'),
-          NavBarItemData(icon: Icons.translate_rounded, label: 'المعجم'),
-          NavBarItemData(icon: Icons.person_rounded, label: 'حسابي'),
-        ],
-      ),
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: const <NavBarItemData>[
+                NavBarItemData(icon: Icons.home_rounded, label: 'الرئيسية'),
+                NavBarItemData(icon: Icons.menu_book_rounded, label: 'الدروس'),
+                NavBarItemData(icon: Icons.translate_rounded, label: 'المعجم'),
+                NavBarItemData(icon: Icons.person_rounded, label: 'حسابي'),
+              ],
+            ),
     );
   }
 }

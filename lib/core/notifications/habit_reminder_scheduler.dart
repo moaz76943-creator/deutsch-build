@@ -23,11 +23,8 @@ class HabitReminderScheduler {
   }
 
   static HabitReminderScheduler get instance {
-    if (_instance == null) {
-      // Provide an in-memory fallback if not initialized explicitly
-      _instance = HabitReminderScheduler._internal(
-          InMemoryReminderStorage(), const ReminderPreferences());
-    }
+    _instance ??= HabitReminderScheduler._internal(
+        InMemoryReminderStorage(), const ReminderPreferences());
     return _instance!;
   }
 
@@ -49,11 +46,14 @@ class HabitReminderScheduler {
   /// Rejects duplicates for the same logical window.
   /// Uses a provided `now` to make testing deterministic.
   /// Changed back to static to keep original contract, delegating to instance.
-  static Future<void> scheduleDailyReminder({DateTime? srsDueDate, DateTime? now}) async {
-    return instance._scheduleDailyReminderImpl(srsDueDate: srsDueDate, now: now);
+  static Future<void> scheduleDailyReminder(
+      {DateTime? srsDueDate, DateTime? now}) async {
+    return instance._scheduleDailyReminderImpl(
+        srsDueDate: srsDueDate, now: now);
   }
 
-  Future<void> _scheduleDailyReminderImpl({DateTime? srsDueDate, DateTime? now}) async {
+  Future<void> _scheduleDailyReminderImpl(
+      {DateTime? srsDueDate, DateTime? now}) async {
     if (!_preferences.isOptedIn) {
       await cancelReminder();
       return;
@@ -65,8 +65,8 @@ class HabitReminderScheduler {
     if (srsDueDate != null && srsDueDate.isAfter(currentTime)) {
       targetTime = srsDueDate;
     } else {
-      targetTime = DateTime(currentTime.year, currentTime.month, currentTime.day,
-          _preferences.preferredHour);
+      targetTime = DateTime(currentTime.year, currentTime.month,
+          currentTime.day, _preferences.preferredHour);
       if (targetTime.isBefore(currentTime)) {
         targetTime = targetTime.add(const Duration(days: 1));
       }
@@ -91,7 +91,8 @@ class HabitReminderScheduler {
   DateTime _adjustForQuietHours(DateTime time) {
     int hour = time.hour;
     if (_preferences.quietHourStart > _preferences.quietHourEnd) {
-      if (hour >= _preferences.quietHourStart || hour < _preferences.quietHourEnd) {
+      if (hour >= _preferences.quietHourStart ||
+          hour < _preferences.quietHourEnd) {
         if (hour >= _preferences.quietHourStart) {
           return DateTime(
               time.year, time.month, time.day + 1, _preferences.quietHourEnd);
@@ -101,7 +102,8 @@ class HabitReminderScheduler {
         }
       }
     } else {
-      if (hour >= _preferences.quietHourStart && hour < _preferences.quietHourEnd) {
+      if (hour >= _preferences.quietHourStart &&
+          hour < _preferences.quietHourEnd) {
         return DateTime(
             time.year, time.month, time.day, _preferences.quietHourEnd);
       }

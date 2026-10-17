@@ -104,7 +104,8 @@ abstract class LanguageGrammarRuleProvider {
   String get languageCode;
 
   /// Returns the grammar capability profile for the specific language
-  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile();
+  GrammarCapabilityProfile get capabilityProfile =>
+      const GrammarCapabilityProfile();
 
   /// استنتاج الجنس النحوي للكلمة
   GrammaticalGender determineGender(String word, {String? article});

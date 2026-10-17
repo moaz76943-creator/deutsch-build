@@ -19,7 +19,8 @@ class DatabaseBootstrapper {
 
       if (!await file.exists()) {
         if (onSeedRequired != null) {
-          debugPrint('[Bootstrap] قاعدة البيانات غير موجودة، بدء التثبيت الأولي...');
+          debugPrint(
+              '[Bootstrap] قاعدة البيانات غير موجودة، بدء التثبيت الأولي...');
           await onSeedRequired();
         } else {
           return const DatabaseBootstrapResult(

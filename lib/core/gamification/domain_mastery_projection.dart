@@ -6,13 +6,14 @@ class DomainMasteryProjection {
   final String domainId;
   final String sourceLanguageId;
   final String targetLanguageId;
-  final int eligibleCardCount;   // إجمالي البطاقات المتاحة في المجال
+  final int eligibleCardCount; // إجمالي البطاقات المتاحة في المجال
   final int introducedCardCount; // البطاقات التي بدأ المستخدم بتعلمها
-  final int recalledCardCount;   // البطاقات التي تذكرها بنجاح مؤخراً
-  final int masteredCardCount;   // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
-  final int dueCardCount;        // البطاقات المستحقة للمراجعة الآن
-  final DateTime lastEvidenceUtc;// آخر نشاط حقيقي في هذا المجال
-  final int masteryRevision;     // رقم المراجعة لضمان التزامن
+  final int recalledCardCount; // البطاقات التي تذكرها بنجاح مؤخراً
+  final int
+      masteredCardCount; // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
+  final int dueCardCount; // البطاقات المستحقة للمراجعة الآن
+  final DateTime lastEvidenceUtc; // آخر نشاط حقيقي في هذا المجال
+  final int masteryRevision; // رقم المراجعة لضمان التزامن
 
   const DomainMasteryProjection({
     required this.domainId,
@@ -25,11 +26,12 @@ class DomainMasteryProjection {
     required this.dueCardCount,
     required this.lastEvidenceUtc,
     required this.masteryRevision,
-  }) : assert(eligibleCardCount >= 0, 'eligibleCardCount cannot be negative'),
-       assert(introducedCardCount >= 0, 'introducedCardCount cannot be negative'),
-       assert(recalledCardCount >= 0, 'recalledCardCount cannot be negative'),
-       assert(masteredCardCount >= 0, 'masteredCardCount cannot be negative'),
-       assert(dueCardCount >= 0, 'dueCardCount cannot be negative');
+  })  : assert(eligibleCardCount >= 0, 'eligibleCardCount cannot be negative'),
+        assert(
+            introducedCardCount >= 0, 'introducedCardCount cannot be negative'),
+        assert(recalledCardCount >= 0, 'recalledCardCount cannot be negative'),
+        assert(masteredCardCount >= 0, 'masteredCardCount cannot be negative'),
+        assert(dueCardCount >= 0, 'dueCardCount cannot be negative');
 
   /// حساب نسبة الإتقان الحقيقية للمجال (0.0 إلى 1.0)
   double get masteryPercentage {
@@ -52,8 +54,8 @@ class DomainMasteryProjection {
 }
 
 enum DomainMasteryState {
-  locked,      // يتطلب إنجاز مجالات سابقة
-  available,   // متاح للبدء
-  inProgress,  // قيد التعلم
-  mastered     // تم إتقان جميع بطاقاته
+  locked, // يتطلب إنجاز مجالات سابقة
+  available, // متاح للبدء
+  inProgress, // قيد التعلم
+  mastered // تم إتقان جميع بطاقاته
 }

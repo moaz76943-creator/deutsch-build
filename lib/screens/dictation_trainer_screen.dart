@@ -23,7 +23,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   int _attempts = 0;
   bool _submitted = false;
 
-  final MethodChannel _voiceChannel = const MethodChannel('com.deutschbilarabi.app/offline_voice_capability');
+  final MethodChannel _voiceChannel =
+      const MethodChannel('com.deutschbilarabi.app/offline_voice_capability');
 
   @override
   void initState() {
@@ -33,7 +34,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
 
   Future<void> _loadEntry() async {
     // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
-    List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(sourceLocale: 'ar-SA', targetLocale: 'de-DE');
+    List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(
+        sourceLocale: 'ar-SA', targetLocale: 'de-DE');
     if (entries.isEmpty) {
       // Fallback if empty
       if (mounted) {
@@ -57,7 +59,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
 
   Future<void> _checkVoiceAvailability(String locale) async {
     try {
-      final List<dynamic>? voices = await _voiceChannel.invokeMethod('getOfflineVoices');
+      final List<dynamic>? voices =
+          await _voiceChannel.invokeMethod('getOfflineVoices');
       bool available = false;
       if (voices != null) {
         for (final v in voices) {
@@ -126,7 +129,9 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
     if (_currentEntry == null && !_isVoiceLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
-        body: const Center(child: Text('No content available for training.', style: TextStyle(color: Colors.white))),
+        body: const Center(
+            child: Text('No content available for training.',
+                style: TextStyle(color: Colors.white))),
       );
     }
 
@@ -137,7 +142,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       );
     }
 
-    final targetDir = LanguageBiDiHelper.getDirection(_currentEntry!.targetLocale);
+    final targetDir =
+        LanguageBiDiHelper.getDirection(_currentEntry!.targetLocale);
 
     return Scaffold(
       appBar: AppBar(
@@ -158,28 +164,38 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: <Widget>[
-                      const Icon(Icons.headphones_rounded, color: Color(0xFF38BDF8), size: 48),
+                      const Icon(Icons.headphones_rounded,
+                          color: Color(0xFF38BDF8), size: 48),
                       const SizedBox(height: 12),
                       Text(
                         _isVoiceAvailable
-                          ? 'استمع للكلمة واكتبها إملائياً بصورة صحيحة'
-                          : 'الصوت غير متاح حالياً. اقرأ المعنى واكتب الكلمة.',
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            ? 'استمع للكلمة واكتبها إملائياً بصورة صحيحة'
+                            : 'الصوت غير متاح حالياً. اقرأ المعنى واكتب الكلمة.',
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 14),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text('المعنى المساعد: ${_currentEntry!.sourceMeaning}', style: const TextStyle(color: Color(0xFF34D399), fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('المعنى المساعد: ${_currentEntry!.sourceMeaning}',
+                          style: const TextStyle(
+                              color: Color(0xFF34D399),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 20),
                       IconButton(
                         iconSize: 56,
-                        color: _isVoiceAvailable ? const Color(0xFF38BDF8) : Colors.grey,
+                        color: _isVoiceAvailable
+                            ? const Color(0xFF38BDF8)
+                            : Colors.grey,
                         icon: const Icon(Icons.play_circle_fill_rounded),
-                        onPressed: _isVoiceAvailable ? () {
-                          OfflineAudioDispatcher.speakText(
-                            text: _currentEntry!.targetTerm,
-                            bcp47Locale: _currentEntry!.targetLocale,
-                          );
-                        } : null,
+                        onPressed: _isVoiceAvailable
+                            ? () {
+                                OfflineAudioDispatcher.speakText(
+                                  text: _currentEntry!.targetTerm,
+                                  bcp47Locale: _currentEntry!.targetLocale,
+                                );
+                              }
+                            : null,
                       ),
                     ],
                   ),
@@ -196,7 +212,9 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
                       hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
                     ),
                   ),
                 ),
@@ -205,25 +223,41 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: (_isCorrect ? const Color(0xFF34D399) : const Color(0xFFEF4444)).withValues(alpha: 0.15),
+                      color: (_isCorrect
+                              ? const Color(0xFF34D399)
+                              : const Color(0xFFEF4444))
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      _isCorrect ? 'إجابة صحيحة تماماً! أحسنت 🚀' : (_submitted ? 'خطأ تهجئي بسيط، الكلمة الصحيحة هي: ${_currentEntry!.targetTerm}' : 'حاول مرة أخرى'),
-                      style: TextStyle(color: _isCorrect ? const Color(0xFF34D399) : const Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 14),
+                      _isCorrect
+                          ? 'إجابة صحيحة تماماً! أحسنت 🚀'
+                          : (_submitted
+                              ? 'خطأ تهجئي بسيط، الكلمة الصحيحة هي: ${_currentEntry!.targetTerm}'
+                              : 'حاول مرة أخرى'),
+                      style: TextStyle(
+                          color: _isCorrect
+                              ? const Color(0xFF34D399)
+                              : const Color(0xFFEF4444),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 const Spacer(),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _submitted ? Colors.grey : const Color(0xFF38BDF8),
+                    backgroundColor:
+                        _submitted ? Colors.grey : const Color(0xFF38BDF8),
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _submitted ? null : _checkAnswer,
-                  child: const Text('تحقق من التهجئة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text('تحقق من التهجئة',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

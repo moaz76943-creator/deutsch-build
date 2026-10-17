@@ -19,7 +19,8 @@ class ResilientTextContainer extends StatelessWidget {
     return Container(
       padding: padding,
       alignment: alignment,
-      constraints: constraints ?? const BoxConstraints(minWidth: 0, minHeight: 0),
+      constraints:
+          constraints ?? const BoxConstraints(minWidth: 0, minHeight: 0),
       child: LayoutBuilder(
         builder: (context, layoutConstraints) {
           double maxWidth = layoutConstraints.maxWidth;
@@ -27,7 +28,7 @@ class ResilientTextContainer extends StatelessWidget {
           if (maxWidth.isInfinite) {
             final mediaQuery = MediaQuery.maybeOf(context);
             if (mediaQuery != null) {
-               maxWidth = mediaQuery.size.width;
+              maxWidth = mediaQuery.size.width;
             }
           }
 

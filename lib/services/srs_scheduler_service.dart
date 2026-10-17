@@ -45,9 +45,20 @@ class SrsReviewSchedule {
 }
 
 class SrsSchedulerService {
-
-  dynamic calculate({dynamic lexemeId, dynamic targetLanguageCode, dynamic db, dynamic rating, dynamic reviewInterval}) => null;
-  Future<dynamic> gradeAndPersist({dynamic item, dynamic rating, dynamic db, dynamic lexemeId, dynamic targetLanguageCode}) async => null;
+  dynamic calculate(
+          {dynamic lexemeId,
+          dynamic targetLanguageCode,
+          dynamic db,
+          dynamic rating,
+          dynamic reviewInterval}) =>
+      null;
+  Future<dynamic> gradeAndPersist(
+          {dynamic item,
+          dynamic rating,
+          dynamic db,
+          dynamic lexemeId,
+          dynamic targetLanguageCode}) async =>
+      null;
 
   final Future<Database> Function() _getDb;
 
@@ -61,7 +72,8 @@ class SrsSchedulerService {
     required SrsRating rating,
     int? currentTimeSeconds,
   }) async {
-    final int nowSeconds = currentTimeSeconds ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    final int nowSeconds =
+        currentTimeSeconds ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
     return await db.transaction((txn) async {
       final List<Map<String, Object?>> results = await txn.query(
@@ -82,7 +94,8 @@ class SrsSchedulerService {
 
       int? inferredLastReviewedAt;
       if (currentState.nextDueAt != null) {
-        inferredLastReviewedAt = currentState.nextDueAt! - (currentState.intervalDays * 86400);
+        inferredLastReviewedAt =
+            currentState.nextDueAt! - (currentState.intervalDays * 86400);
       }
 
       if (inferredLastReviewedAt != null) {
@@ -90,7 +103,9 @@ class SrsSchedulerService {
         if (diff >= 0 && diff < _debounceSeconds) {
           return SrsReviewSchedule(
             lexemeId: lexemeId,
-            nextReviewDate: DateTime.fromMillisecondsSinceEpoch(currentState.nextDueAt! * 1000, isUtc: true),
+            nextReviewDate: DateTime.fromMillisecondsSinceEpoch(
+                currentState.nextDueAt! * 1000,
+                isUtc: true),
           );
         }
       }
@@ -105,8 +120,10 @@ class SrsSchedulerService {
       final int nextIntervalDays = math.max(0, reviewResult.nextIntervalDays);
       final double easeFactor = math.max(1.3, reviewResult.easeFactor);
 
-      final baseTime = DateTime.fromMillisecondsSinceEpoch(nowSeconds * 1000, isUtc: true);
-      final DateTime nextDueUtc = baseTime.add(Duration(days: nextIntervalDays));
+      final baseTime =
+          DateTime.fromMillisecondsSinceEpoch(nowSeconds * 1000, isUtc: true);
+      final DateTime nextDueUtc =
+          baseTime.add(Duration(days: nextIntervalDays));
       final int nextDueEpochSeconds = nextDueUtc.millisecondsSinceEpoch ~/ 1000;
 
       await txn.insert(

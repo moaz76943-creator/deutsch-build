@@ -77,8 +77,7 @@ class ResilientStateBuilder<T> extends StatelessWidget {
             );
         break;
     }
-    if (state.type == UIStateType.data ||
-        state.type == UIStateType.degraded) {
+    if (state.type == UIStateType.data || state.type == UIStateType.degraded) {
       return content;
     }
     // Default status content may grow at large text scales. Do not

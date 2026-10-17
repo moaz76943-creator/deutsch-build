@@ -45,21 +45,27 @@ class OperationResult<T> {
   }
 
   OperationFailure get failure {
-    if (_failure == null) throw Exception('Cannot access failure of a successful result');
+    if (_failure == null) {
+      throw Exception('Cannot access failure of a successful result');
+    }
     // ignore: unnecessary_non_null_assertion
     return _failure!;
   }
 
   // Helper constructors for specific typed failures
-  factory OperationResult.unavailable(String code, String message, [Object? cause]) =>
+  factory OperationResult.unavailable(String code, String message,
+          [Object? cause]) =>
       OperationResult.failure(UnavailableFailure(code, message, cause));
 
-  factory OperationResult.invalidInput(String code, String message, [Object? cause]) =>
+  factory OperationResult.invalidInput(String code, String message,
+          [Object? cause]) =>
       OperationResult.failure(InvalidInputFailure(code, message, cause));
 
-  factory OperationResult.cancelled(String code, String message, [Object? cause]) =>
+  factory OperationResult.cancelled(String code, String message,
+          [Object? cause]) =>
       OperationResult.failure(CancelledFailure(code, message, cause));
 
-  factory OperationResult.incompatibleVersion(String code, String message, [Object? cause]) =>
+  factory OperationResult.incompatibleVersion(String code, String message,
+          [Object? cause]) =>
       OperationResult.failure(IncompatibleVersionFailure(code, message, cause));
 }

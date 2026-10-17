@@ -7,15 +7,16 @@ class DirectedPairId {
     required this.sourceLocale,
     required this.targetLocale,
     required this.semanticVersion,
-  }) : assert(sourceLocale != '', 'sourceLocale cannot be empty'),
-       assert(targetLocale != '', 'targetLocale cannot be empty'),
-       assert(semanticVersion != '', 'semanticVersion cannot be empty');
+  })  : assert(sourceLocale != '', 'sourceLocale cannot be empty'),
+        assert(targetLocale != '', 'targetLocale cannot be empty'),
+        assert(semanticVersion != '', 'semanticVersion cannot be empty');
 
   String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
 
   bool get isReflexive => sourceLocale == targetLocale;
 
-  bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
+  bool isValidForLearning() =>
+      !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
 
   @override
   bool operator ==(Object other) =>
@@ -33,7 +34,8 @@ class DirectedPairId {
 
   static DirectedPairId parse(String serialized) {
     if (serialized.isEmpty) {
-      throw const FormatException('Cannot parse empty string into DirectedPairId');
+      throw const FormatException(
+          'Cannot parse empty string into DirectedPairId');
     }
     final parts = serialized.split('_');
     if (parts.length == 3) {
@@ -41,7 +43,8 @@ class DirectedPairId {
       final target = parts[1];
       final version = parts[2];
       if (source.isEmpty || target.isEmpty || version.isEmpty) {
-        throw FormatException('Invalid DirectedPairId format: empty components in $serialized');
+        throw FormatException(
+            'Invalid DirectedPairId format: empty components in $serialized');
       }
       return DirectedPairId(
         sourceLocale: source,
@@ -53,7 +56,8 @@ class DirectedPairId {
       final source = parts[0];
       final target = parts[1];
       if (source.isEmpty || target.isEmpty) {
-        throw FormatException('Invalid legacy DirectedPairId format: empty components in $serialized');
+        throw FormatException(
+            'Invalid legacy DirectedPairId format: empty components in $serialized');
       }
       return DirectedPairId(
         sourceLocale: source,

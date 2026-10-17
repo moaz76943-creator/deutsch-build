@@ -41,11 +41,21 @@ class FlashcardsPlug implements FeaturePlug {
     if (commandPort != null) {
       ReviewRating enumRating;
       switch (rating) {
-        case 0: enumRating = ReviewRating.again; break;
-        case 1: enumRating = ReviewRating.hard; break;
-        case 2: enumRating = ReviewRating.good; break;
-        case 3: enumRating = ReviewRating.easy; break;
-        default: enumRating = ReviewRating.good; break;
+        case 0:
+          enumRating = ReviewRating.again;
+          break;
+        case 1:
+          enumRating = ReviewRating.hard;
+          break;
+        case 2:
+          enumRating = ReviewRating.good;
+          break;
+        case 3:
+          enumRating = ReviewRating.easy;
+          break;
+        default:
+          enumRating = ReviewRating.good;
+          break;
       }
       final command = ReviewCommand(
         reviewId: 'REV_${cardId}_${DateTime.now().millisecondsSinceEpoch}',
@@ -73,14 +83,22 @@ class _FlashcardsContainer extends StatelessWidget {
   final FlashcardData? card;
   final ReviewCommandPort? commandPort;
 
-  const _FlashcardsContainer({this.card, this.commandPort});
+  const _FlashcardsContainer()
+      : commandPort = null,
+        card = null;
 
   @override
   Widget build(BuildContext context) {
     if (card != null) {
       return FlashcardWidget(
         card: card!,
-        onReviewed: (cardId, rating, sourceIso, targetIso) => FlashcardsPlug.dispatchReview(cardId: cardId, rating: rating, sourceIso: sourceIso, targetIso: targetIso, commandPort: commandPort),
+        onReviewed: (cardId, rating, sourceIso, targetIso) =>
+            FlashcardsPlug.dispatchReview(
+                cardId: cardId,
+                rating: rating,
+                sourceIso: sourceIso,
+                targetIso: targetIso,
+                commandPort: commandPort),
       );
     }
     return Container(
@@ -104,8 +122,7 @@ class _FlashcardsContainer extends StatefulWidget {
 
   const _FlashcardsContainer({
     required this.items,
-    this.onComplete,
-  });
+  }) : onComplete = null;
 
   @override
   State<_FlashcardsContainer> createState() => _FlashcardsContainerState();
@@ -218,7 +235,8 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final transform = CardPhysicsHelper.compute3dFlipTransform(_controller.value);
+        final transform =
+            CardPhysicsHelper.compute3dFlipTransform(_controller.value);
         final isBack = CardPhysicsHelper.isBackSide(_controller.value);
 
         return GestureDetector(
@@ -248,7 +266,8 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
               textDirection: _getTextDirection(widget.item.sourceIso),
               child: Text(
                 widget.item.text,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -280,7 +299,8 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
                 textDirection: _getTextDirection(widget.item.sourceIso),
                 child: Text(
                   widget.item.text,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -289,7 +309,8 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
                 textDirection: _getTextDirection(widget.item.targetIso),
                 child: Text(
                   widget.item.translation,
-                  style: const TextStyle(fontSize: 20, color: Colors.blueAccent),
+                  style:
+                      const TextStyle(fontSize: 20, color: Colors.blueAccent),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -301,7 +322,8 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
                   textDirection: _getTextDirection(widget.item.sourceIso),
                   child: Text(
                     widget.item.example!,
-                    style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                    style: const TextStyle(
+                        fontSize: 16, fontStyle: FontStyle.italic),
                     textAlign: TextAlign.center,
                   ),
                 ),

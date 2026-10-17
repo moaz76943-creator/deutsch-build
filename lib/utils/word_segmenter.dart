@@ -318,8 +318,7 @@ class WordSegmenter {
   static bool _isLao(int rune) => _inRange(rune, 0x0E80, 0x0EFF);
 
   static bool _isKhmer(int rune) {
-    return _inRange(rune, 0x1780, 0x17FF) ||
-        _inRange(rune, 0x19E0, 0x19FF);
+    return _inRange(rune, 0x1780, 0x17FF) || _inRange(rune, 0x19E0, 0x19FF);
   }
 
   static bool _isCombiningRune(int rune) {

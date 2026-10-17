@@ -9,7 +9,7 @@ void main() {
 }
 
 class DeutschApp extends StatelessWidget {
-  const DeutschApp({Key? key}) : super(key: key);
+  const DeutschApp({super.key});
 
   @override
   Widget build(BuildContext context) {

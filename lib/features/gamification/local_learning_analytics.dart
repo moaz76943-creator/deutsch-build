@@ -31,20 +31,26 @@ class AnalyticsUnavailableState extends LearningAnalyticsResult {}
 
 /// محرك تقارير النمو وتحليل بيانات التعلم المحلية
 class LocalLearningAnalytics {
-  
-  static Future<LearningAnalyticsResult> generateReport(AnalyticsWindow window, {DateTime? nowUtc}) async {
+  static Future<LearningAnalyticsResult> generateReport(AnalyticsWindow window,
+      {DateTime? nowUtc}) async {
     final history = UnifiedSrsScheduler.instance.history;
     if (history.isEmpty) {
       return AnalyticsUnavailableState();
     }
 
     int windowDays = 30;
-    switch(window) {
-      case AnalyticsWindow.days7: windowDays = 7; break;
-      case AnalyticsWindow.days30: windowDays = 30; break;
-      case AnalyticsWindow.days90: windowDays = 90; break;
+    switch (window) {
+      case AnalyticsWindow.days7:
+        windowDays = 7;
+        break;
+      case AnalyticsWindow.days30:
+        windowDays = 30;
+        break;
+      case AnalyticsWindow.days90:
+        windowDays = 90;
+        break;
     }
-    
+
     final currentUtc = nowUtc ?? DateTime.now().toUtc();
     final input = {
       'history': history.map((e) => e.toMap()).toList(),
@@ -64,7 +70,8 @@ class LocalLearningAnalytics {
     }
   }
 
-  static Map<String, PairMetrics> _aggregateHistory(Map<String, dynamic> input) {
+  static Map<String, PairMetrics> _aggregateHistory(
+      Map<String, dynamic> input) {
     final List<dynamic> historyMaps = input['history'] ?? [];
     final int windowDays = input['windowDays'] ?? 30;
     final DateTime currentUtc = DateTime.parse(input['currentUtc']);
@@ -95,7 +102,8 @@ class LocalLearningAnalytics {
         continue; // Skip invalid dates
       }
 
-      if (timestamp.isAfter(threshold) || timestamp.isAtSameMomentAs(threshold)) {
+      if (timestamp.isAfter(threshold) ||
+          timestamp.isAtSameMomentAs(threshold)) {
         final pairKey = envMap['languagePairKey'];
         if (pairKey == null || pairKey is! String || pairKey.isEmpty) continue;
 
@@ -120,7 +128,9 @@ class LocalLearningAnalytics {
 
         final rating = ratingRaw;
         final contentKey = envMap['learnerContentKey'];
-        if (contentKey == null || contentKey is! String || contentKey.isEmpty) continue;
+        if (contentKey == null || contentKey is! String || contentKey.isEmpty) {
+          continue;
+        }
 
         totalReviews++;
         if (rating >= 3) {
@@ -135,14 +145,19 @@ class LocalLearningAnalytics {
         final timestampStr = envMap['timestamp'] as String;
         final timestamp = DateTime.parse(timestampStr).toUtc();
         // Explicitly defined local-day grouping (UTC date part only)
-        final localDayStr = "${timestamp.year.toString().padLeft(4, '0')}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}";
+        final localDayStr =
+            "${timestamp.year.toString().padLeft(4, '0')}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}";
         dailyReviews[localDayStr] = (dailyReviews[localDayStr] ?? 0) + 1;
       }
 
-      if (totalReviews == 0) continue; // Skip if all records within pair were corrupted
+      if (totalReviews == 0) {
+        continue; // Skip if all records within pair were corrupted
+      }
 
       double recallAccuracy = successfulReviews / totalReviews;
-      double completionRate = uniqueCards.isNotEmpty ? masteredCards.length / uniqueCards.length : 0.0;
+      double completionRate = uniqueCards.isNotEmpty
+          ? masteredCards.length / uniqueCards.length
+          : 0.0;
 
       result[pairKey] = PairMetrics(
         dailyReviews: dailyReviews,

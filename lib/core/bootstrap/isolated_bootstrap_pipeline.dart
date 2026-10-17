@@ -42,8 +42,8 @@ class IsolatedBootstrapPipeline {
       BootstrapStepResult result;
       try {
         final received = await step.execute().timeout(
-          step.timeout ?? defaultStepTimeout,
-        );
+              step.timeout ?? defaultStepTimeout,
+            );
         result = BootstrapStepResult(
           stepName: step.name,
           status: !step.isCritical &&

@@ -38,7 +38,8 @@ class L1VocabularyCache {
     return size;
   }
 
-  void putWithIdentity(String langCode, List<Map<String, dynamic>> items, CacheIdentity identity) {
+  void putWithIdentity(String langCode, List<Map<String, dynamic>> items,
+      CacheIdentity identity) {
     // Check if stale
     if (_identities.containsKey(langCode)) {
       final existingIdentity = _identities[langCode]!;
@@ -61,8 +62,10 @@ class L1VocabularyCache {
     final keysToRemove = <String>[];
     for (final entry in _identities.entries) {
       final id = entry.value;
-      if (id.language == newIdentity.language && id.direction == newIdentity.direction) {
-        if (id.contentVersion != newIdentity.contentVersion || id.pairEpoch < newIdentity.pairEpoch) {
+      if (id.language == newIdentity.language &&
+          id.direction == newIdentity.direction) {
+        if (id.contentVersion != newIdentity.contentVersion ||
+            id.pairEpoch < newIdentity.pairEpoch) {
           keysToRemove.add(entry.key);
         }
       }
@@ -75,7 +78,8 @@ class L1VocabularyCache {
 
   // Legacy fallback
   void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache.put(langCode, List.unmodifiable(items), itemSizeBytes: _measureSize(items));
+    _memoryCache.put(langCode, List.unmodifiable(items),
+        itemSizeBytes: _measureSize(items));
   }
 
   List<Map<String, dynamic>>? get(String langCode) {

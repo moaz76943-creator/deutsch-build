@@ -7,9 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/hybrid_audio_service.dart';
 import '../core/srs/review_command_port.dart';
-import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
-import '../widgets/bidi_lexicon_view.dart';
 import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
 import '../widgets/phonetic_ipa_view.dart';
@@ -19,7 +17,8 @@ import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 /// Review only scheduled-due cards and never-reviewed content entries.
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(
   String targetLangCode,
-) => DatabaseService.instance.loadDueFlashcards(targetLangCode);
+) =>
+    DatabaseService.instance.loadDueFlashcards(targetLangCode);
 
 class FlashcardsScreen extends ConsumerStatefulWidget {
   const FlashcardsScreen({super.key});
@@ -161,7 +160,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     }
   }
 
-
   Future<void> _playCardAudio() async {
     final card = _currentCard;
     if (card == null) return;
@@ -183,8 +181,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
 
     final generation = _loadGeneration;
     final languageCode = _languageCode;
-    final lexemeId =
-        (card['lexeme_id'] ?? card['id'])?.toString().trim() ?? '';
+    final lexemeId = (card['lexeme_id'] ?? card['id'])?.toString().trim() ?? '';
     final grade = switch (rating) {
       ReviewRating.again => 0,
       ReviewRating.hard => 2,
@@ -230,8 +227,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     setState(() {
       if (generation == _loadGeneration) {
         // A successfully graded card is not due again in this session.
-        _cards = List<Map<String, dynamic>>.from(_cards)
-          ..removeAt(_cardIndex);
+        _cards = List<Map<String, dynamic>>.from(_cards)..removeAt(_cardIndex);
         _cardIndex = _cards.isEmpty ? 0 : _cardIndex % _cards.length;
         _completedCount++;
         _isFlipped = false;
@@ -243,8 +239,10 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   @override
   Widget build(BuildContext context) {
     ref.listen<String>(activeLanguageCodeProvider, (previous, next) {
-      if (_hasStarted && !_restoringLanguage &&
-          next != previous && next != _languageCode) {
+      if (_hasStarted &&
+          !_restoringLanguage &&
+          next != previous &&
+          next != _languageCode) {
         unawaited(_loadCards(next));
       }
     });
@@ -253,7 +251,8 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
+        title:
+            const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
         actions: const <Widget>[LanguageSelectorButton()],
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -278,38 +277,40 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                       ),
                     )
                   : _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _cards.isEmpty
-                      ? Center(
-                          child: Text(_error ?? (_completedCount > 0
-                              ? 'اكتملت مراجعات اليوم.'
-                              : 'لا توجد بطاقات مستحقة للمراجعة اليوم.')),
-                        )
-                      : GestureDetector(
-                          onTap: _toggleFlip,
-                          child: Center(
-                            child: AnimatedBuilder(
-                              animation: _flipAnimation,
-                              builder: (context, child) {
-                                final angle = _flipAnimation.value * pi;
-                                final isFront = angle < pi / 2;
-                                return Transform(
-                                  alignment: Alignment.center,
-                                  transform: Matrix4.identity()
-                                    ..setEntry(3, 2, 0.001)
-                                    ..rotateX(angle),
-                                  child: isFront
-                                      ? _buildFrontCard()
-                                      : _buildBackCard(),
-                                );
-                              },
+                      ? const Center(child: CircularProgressIndicator())
+                      : _cards.isEmpty
+                          ? Center(
+                              child: Text(_error ??
+                                  (_completedCount > 0
+                                      ? 'اكتملت مراجعات اليوم.'
+                                      : 'لا توجد بطاقات مستحقة للمراجعة اليوم.')),
+                            )
+                          : GestureDetector(
+                              onTap: _toggleFlip,
+                              child: Center(
+                                child: AnimatedBuilder(
+                                  animation: _flipAnimation,
+                                  builder: (context, child) {
+                                    final angle = _flipAnimation.value * pi;
+                                    final isFront = angle < pi / 2;
+                                    return Transform(
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.identity()
+                                        ..setEntry(3, 2, 0.001)
+                                        ..rotateX(angle),
+                                      child: isFront
+                                          ? _buildFrontCard()
+                                          : _buildBackCard(),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
             ),
             if (_cards.isNotEmpty && _isFlipped)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: _isSubmitting
                     ? const CircularProgressIndicator()
                     : Column(
@@ -328,14 +329,18 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                             ),
                           ],
                           Wrap(
-                             alignment: WrapAlignment.center,
-                             spacing: 6,
-                             runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            spacing: 6,
+                            runSpacing: 8,
                             children: <Widget>[
-                              _ratingButton('مجدداً', Colors.redAccent, ReviewRating.again),
-                              _ratingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
-                              _ratingButton('جيد', Colors.blueAccent, ReviewRating.good),
-                              _ratingButton('سهل', Colors.green, ReviewRating.easy),
+                              _ratingButton('مجدداً', Colors.redAccent,
+                                  ReviewRating.again),
+                              _ratingButton('صعب', Colors.orangeAccent,
+                                  ReviewRating.hard),
+                              _ratingButton(
+                                  'جيد', Colors.blueAccent, ReviewRating.good),
+                              _ratingButton(
+                                  'سهل', Colors.green, ReviewRating.easy),
                             ],
                           ),
                         ],
@@ -344,7 +349,8 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
             else if (_cards.isNotEmpty)
               const Padding(
                 padding: EdgeInsets.all(40),
-                child: Text('اضغط للكشف والاستماع', style: TextStyle(color: Colors.white54)),
+                child: Text('اضغط للكشف والاستماع',
+                    style: TextStyle(color: Colors.white54)),
               ),
           ],
         ),
@@ -374,7 +380,8 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
               text: _headword,
               maxLines: 6,
               textDirection: isRtlLanguage(_languageCode)
-                  ? TextDirection.rtl : TextDirection.ltr,
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 32,
@@ -454,7 +461,8 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       onPressed: () => _handleRating(rating),
       child: Text(
         label,
-        style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+        style:
+            const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
       ),
     );
   }

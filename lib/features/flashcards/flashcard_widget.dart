@@ -20,7 +20,8 @@ class FlashcardWidget extends StatelessWidget {
   State<FlashcardWidget> createState() => _FlashcardWidgetState();
 }
 
-class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProviderStateMixin {
+class _FlashcardWidgetState extends State<FlashcardWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
   bool _isAnswering = false;
@@ -28,7 +29,8 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
   }
 
@@ -81,7 +83,8 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
         rating: srsRating,
       );
 
-      await widget.onReviewed(widget.card.id, rating, widget.card.sourceIso, widget.card.targetIso);
+      await widget.onReviewed(
+          widget.card.id, rating, widget.card.sourceIso, widget.card.targetIso);
     } finally {
       if (mounted) {
         setState(() {
@@ -101,16 +104,22 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Directionality(
-              textDirection: widget.card.sourceIso == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: widget.card.sourceIso == 'ar'
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
               child: Text(
                 widget.card.frontText,
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -128,13 +137,17 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Directionality(
-            textDirection: widget.card.targetIso == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+            textDirection: widget.card.targetIso == 'ar'
+                ? TextDirection.rtl
+                : TextDirection.ltr,
             child: Text(
               widget.card.backText,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -144,16 +157,21 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
           const SizedBox(height: 16),
           if (widget.card.example != null)
             Directionality(
-              textDirection: widget.card.targetIso == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: widget.card.targetIso == 'ar'
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
               child: Text(
                 widget.card.example!,
-                style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                style:
+                    const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
                 textAlign: TextAlign.center,
               ),
             ),
           if (widget.card.translation != null)
             Directionality(
-              textDirection: widget.card.sourceIso == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: widget.card.sourceIso == 'ar'
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
               child: Text(
                 widget.card.translation!,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
@@ -172,10 +190,18 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(onPressed: () => _submitRating(0), child: const Text('Wrong')),
-                ElevatedButton(onPressed: () => _submitRating(1), child: const Text('Skip')),
-                ElevatedButton(onPressed: () => _submitRating(2), child: const Text('Correct')),
-                ElevatedButton(onPressed: () => _submitRating(3), child: const Text('Easy')),
+                ElevatedButton(
+                    onPressed: () => _submitRating(0),
+                    child: const Text('Wrong')),
+                ElevatedButton(
+                    onPressed: () => _submitRating(1),
+                    child: const Text('Skip')),
+                ElevatedButton(
+                    onPressed: () => _submitRating(2),
+                    child: const Text('Correct')),
+                ElevatedButton(
+                    onPressed: () => _submitRating(3),
+                    child: const Text('Easy')),
               ],
             ),
         ],
@@ -197,7 +223,8 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
             onTap: onFlip,
             child: Transform(
               alignment: Alignment.center,
-              transform: CardPhysicsHelper.compute3dFlipTransform(animation.value),
+              transform:
+                  CardPhysicsHelper.compute3dFlipTransform(animation.value),
               child: Card(
                 clipBehavior: Clip.antiAlias,
                 child: Padding(
@@ -224,26 +251,27 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
   }
 
   List<Widget> _front() => <Widget>[
-    AppDirectionalText(entry.targetTerm,
-      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-      textAlign: TextAlign.center),
-    if (entry.partOfSpeech.trim().isNotEmpty) ...<Widget>[
-      const SizedBox(height: 12),
-      AppDirectionalText(entry.partOfSpeech, textAlign: TextAlign.center),
-    ],
-  ];
+        AppDirectionalText(entry.targetTerm,
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center),
+        if (entry.partOfSpeech.trim().isNotEmpty) ...<Widget>[
+          const SizedBox(height: 12),
+          AppDirectionalText(entry.partOfSpeech, textAlign: TextAlign.center),
+        ],
+      ];
 
   List<Widget> _back() => <Widget>[
-    AppDirectionalText(entry.sourceMeaning,
-      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      textAlign: TextAlign.center),
-    if (entry.targetExample.trim().isNotEmpty) ...<Widget>[
-      const SizedBox(height: 12),
-      AppDirectionalText(entry.targetExample, textAlign: TextAlign.center),
-    ],
-    if (entry.sourceExampleTranslation.trim().isNotEmpty) ...<Widget>[
-      const SizedBox(height: 8),
-      AppDirectionalText(entry.sourceExampleTranslation, textAlign: TextAlign.center),
-    ],
-  ];
+        AppDirectionalText(entry.sourceMeaning,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center),
+        if (entry.targetExample.trim().isNotEmpty) ...<Widget>[
+          const SizedBox(height: 12),
+          AppDirectionalText(entry.targetExample, textAlign: TextAlign.center),
+        ],
+        if (entry.sourceExampleTranslation.trim().isNotEmpty) ...<Widget>[
+          const SizedBox(height: 8),
+          AppDirectionalText(entry.sourceExampleTranslation,
+              textAlign: TextAlign.center),
+        ],
+      ];
 }

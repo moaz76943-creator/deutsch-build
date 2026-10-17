@@ -1,7 +1,7 @@
 import 'cognitive_metric_record.dart';
 
 enum AdaptationAction {
-  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
+  maintainFlow, // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
   reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
   deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
 }
@@ -10,11 +10,25 @@ sealed class AdaptationReason {
   const AdaptationReason();
 }
 
-class FatigueDetected extends AdaptationReason { const FatigueDetected(); }
-class ConsistentMastery extends AdaptationReason { const ConsistentMastery(); }
-class HysteresisCoolDown extends AdaptationReason { const HysteresisCoolDown(); }
-class InsufficientData extends AdaptationReason { const InsufficientData(); }
-class StableFlow extends AdaptationReason { const StableFlow(); }
+class FatigueDetected extends AdaptationReason {
+  const FatigueDetected();
+}
+
+class ConsistentMastery extends AdaptationReason {
+  const ConsistentMastery();
+}
+
+class HysteresisCoolDown extends AdaptationReason {
+  const HysteresisCoolDown();
+}
+
+class InsufficientData extends AdaptationReason {
+  const InsufficientData();
+}
+
+class StableFlow extends AdaptationReason {
+  const StableFlow();
+}
 
 class AdaptationDecision {
   final AdaptationAction action;
@@ -24,7 +38,8 @@ class AdaptationDecision {
 }
 
 class AdaptiveCognitiveEngine {
-  static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
+  static final AdaptiveCognitiveEngine instance =
+      AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
   static const String _defaultPairKey = 'default_pair';
@@ -35,9 +50,11 @@ class AdaptiveCognitiveEngine {
   final Map<String, AdaptationAction> _lastAction = {};
 
   static const int _windowSize = 20; // Bound history to 20 items per pair
-  static const Duration _hysteresisDuration = Duration(minutes: 5); // 5 minutes cooldown
+  static const Duration _hysteresisDuration =
+      Duration(minutes: 5); // 5 minutes cooldown
 
-  String _getPairKey(String? targetLanguageCode) => targetLanguageCode ?? _defaultPairKey;
+  String _getPairKey(String? targetLanguageCode) =>
+      targetLanguageCode ?? _defaultPairKey;
 
   void observe(CognitiveMetricRecord record) {
     final pairKey = _getPairKey(record.targetLanguageCode);
@@ -59,13 +76,15 @@ class AdaptiveCognitiveEngine {
   }
 
   /// Evaluates detailed state with reason and pair isolation
-  AdaptationDecision evaluateDetailedState({String? targetLanguageCode, DateTime? currentTime}) {
+  AdaptationDecision evaluateDetailedState(
+      {String? targetLanguageCode, DateTime? currentTime}) {
     final pairKey = _getPairKey(targetLanguageCode);
     final metrics = _metricsByPair[pairKey] ?? [];
 
     // Fallback if empty/cold-start
     if (metrics.isEmpty) {
-      return const AdaptationDecision(AdaptationAction.maintainFlow, InsufficientData());
+      return const AdaptationDecision(
+          AdaptationAction.maintainFlow, InsufficientData());
     }
 
     final now = currentTime ?? DateTime.now();
@@ -78,7 +97,8 @@ class AdaptiveCognitiveEngine {
     }
 
     // Determine state from recent metrics (last 5 for actual logic, while preserving 20 for history)
-    final recentWindow = metrics.length > 5 ? metrics.sublist(metrics.length - 5) : metrics;
+    final recentWindow =
+        metrics.length > 5 ? metrics.sublist(metrics.length - 5) : metrics;
 
     final sumStrain = recentWindow.map((m) {
       final strain = m.cognitiveStrainIndex;
@@ -91,7 +111,8 @@ class AdaptiveCognitiveEngine {
 
     // حالة إرهاق ذهني أو صعوبة مستمرة
     if (avgStrain >= 0.6) {
-      decision = const AdaptationDecision(AdaptationAction.reduceExtraneousLoad, FatigueDetected());
+      decision = const AdaptationDecision(
+          AdaptationAction.reduceExtraneousLoad, FatigueDetected());
     } else {
       // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
       final allCorrect = recentWindow.every((m) => m.isCorrect);
@@ -101,9 +122,11 @@ class AdaptiveCognitiveEngine {
       });
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        decision = const AdaptationDecision(AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        decision = const AdaptationDecision(
+            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
       } else {
-        decision = const AdaptationDecision(AdaptationAction.maintainFlow, StableFlow());
+        decision = const AdaptationDecision(
+            AdaptationAction.maintainFlow, StableFlow());
       }
     }
 

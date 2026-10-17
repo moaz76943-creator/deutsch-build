@@ -41,7 +41,8 @@ class VisualVocabularyScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => VisualVocabularyDetailScreen(item: item),
+                        builder: (context) =>
+                            VisualVocabularyDetailScreen(item: item),
                       ),
                     );
                   },
@@ -52,13 +53,20 @@ class VisualVocabularyScreen extends StatelessWidget {
                         tag: 'visual_vocab_${item['word']}',
                         child: Material(
                           color: Colors.transparent,
-                          child: Text(item['icon']!, style: const TextStyle(fontSize: 48)),
+                          child: Text(item['icon']!,
+                              style: const TextStyle(fontSize: 48)),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text(item['word']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(item['word']!,
+                          style: const TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(item['trans']!, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text(item['trans']!,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 13)),
                     ],
                   ),
                 );
@@ -99,13 +107,20 @@ class VisualVocabularyDetailScreen extends StatelessWidget {
                     tag: 'visual_vocab_${item['word']}',
                     child: Material(
                       color: Colors.transparent,
-                      child: Text(item['icon']!, style: const TextStyle(fontSize: 96)),
+                      child: Text(item['icon']!,
+                          style: const TextStyle(fontSize: 96)),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text(item['word']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(item['word']!,
+                      style: const TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  Text(item['trans']!, style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                  Text(item['trans']!,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 18)),
                 ],
               ),
             ),

@@ -46,7 +46,9 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalNumber determineNumber(String word) {
-    if (!profile.supports(GrammarCapability.number)) return GrammaticalNumber.none;
+    if (!profile.supports(GrammarCapability.number)) {
+      return GrammaticalNumber.none;
+    }
     return extractNumber(word);
   }
 
@@ -54,7 +56,9 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalCase determineCase(String word) {
-    if (!profile.supports(GrammarCapability.caseSystem)) return GrammaticalCase.none;
+    if (!profile.supports(GrammarCapability.caseSystem)) {
+      return GrammaticalCase.none;
+    }
     return extractCase(word);
   }
 
@@ -62,7 +66,9 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalPerson determinePerson(String word) {
-    if (!profile.supports(GrammarCapability.person)) return GrammaticalPerson.none;
+    if (!profile.supports(GrammarCapability.person)) {
+      return GrammaticalPerson.none;
+    }
     return extractPerson(word);
   }
 
@@ -70,7 +76,9 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalTense determineTense(String word) {
-    if (!profile.supports(GrammarCapability.tense)) return GrammaticalTense.none;
+    if (!profile.supports(GrammarCapability.tense)) {
+      return GrammaticalTense.none;
+    }
     return extractTense(word);
   }
 
@@ -78,7 +86,9 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalAspect determineAspect(String word) {
-    if (!profile.supports(GrammarCapability.aspect)) return GrammaticalAspect.none;
+    if (!profile.supports(GrammarCapability.aspect)) {
+      return GrammaticalAspect.none;
+    }
     return extractAspect(word);
   }
 

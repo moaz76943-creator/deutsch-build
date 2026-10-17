@@ -40,6 +40,7 @@ class StorageQuarantine {
   void _enforceBoundedRetention() {
     final nowEpoch = DateTime.now().millisecondsSinceEpoch;
     const retentionMs = _retentionDays * 24 * 60 * 60 * 1000;
-    _quarantine.removeWhere((item) => (nowEpoch - item.timestampEpoch) > retentionMs);
+    _quarantine
+        .removeWhere((item) => (nowEpoch - item.timestampEpoch) > retentionMs);
   }
 }

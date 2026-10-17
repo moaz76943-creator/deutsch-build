@@ -113,7 +113,8 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
         if (mounted) {
           setState(() {
             _isCorrect = false;
-            _feedbackMessage = '💡 الإجابة الصحيحة هي: ${currentEntry.targetTerm}';
+            _feedbackMessage =
+                '💡 الإجابة الصحيحة هي: ${currentEntry.targetTerm}';
           });
         }
       }
@@ -182,9 +183,10 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
     final targetExample = currentEntry.targetExample;
     final targetTerm = currentEntry.targetTerm;
 
-    String clozeSentence = targetExample.replaceAll(RegExp(RegExp.escape(targetTerm), caseSensitive: false), '___');
+    String clozeSentence = targetExample.replaceAll(
+        RegExp(RegExp.escape(targetTerm), caseSensitive: false), '___');
     if (clozeSentence == targetExample) {
-        clozeSentence = '$targetExample (___)';
+      clozeSentence = '$targetExample (___)';
     }
 
     return Scaffold(
@@ -206,11 +208,19 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: <Widget>[
-                      const Text('🧘 وضع التركيز العميق (Flow State)', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text('🧘 وضع التركيز العميق (Flow State)',
+                          style: TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
                       Text(
                         _formatTime(_remainingSeconds),
-                        style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold, letterSpacing: 2),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2),
                       ),
                       const SizedBox(height: 12),
                       const Text(
@@ -221,14 +231,24 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isTimerRunning ? Colors.redAccent : const Color(0xFF34D399),
+                          backgroundColor: _isTimerRunning
+                              ? Colors.redAccent
+                              : const Color(0xFF34D399),
                           foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: _isTimerRunning ? _stopTimer : _startTimer,
-                        icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
-                        label: Text(_isTimerRunning ? 'إيقاف مؤقت للراحة' : 'ابدأ جلسة التركيز', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        icon: Icon(
+                            _isTimerRunning ? Icons.pause : Icons.play_arrow),
+                        label: Text(
+                            _isTimerRunning
+                                ? 'إيقاف مؤقت للراحة'
+                                : 'ابدأ جلسة التركيز',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -244,9 +264,14 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('🧩 مختبر الفراغات السياقية', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+                          const Text('🧩 مختبر الفراغات السياقية',
+                              style: TextStyle(
+                                  color: Color(0xFF38BDF8),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold)),
                           IconButton(
-                            icon: const Icon(Icons.skip_next, color: Colors.white70),
+                            icon: const Icon(Icons.skip_next,
+                                color: Colors.white70),
                             onPressed: _skipQuestion,
                             tooltip: 'تخطي',
                           )
@@ -254,25 +279,33 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                       ),
                       const SizedBox(height: 16),
                       Directionality(
-                        textDirection: LanguageBiDiHelper.getDirection(currentEntry.targetLocale),
+                        textDirection: LanguageBiDiHelper.getDirection(
+                            currentEntry.targetLocale),
                         child: Text(
                           clozeSentence,
-                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1),
                           textAlign: TextAlign.center,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Directionality(
-                        textDirection: LanguageBiDiHelper.getDirection(currentEntry.sourceLocale),
+                        textDirection: LanguageBiDiHelper.getDirection(
+                            currentEntry.sourceLocale),
                         child: Text(
                           'تلميح: ${currentEntry.sourceMeaning}',
-                          style: const TextStyle(color: Color(0xFF34D399), fontSize: 13),
+                          style: const TextStyle(
+                              color: Color(0xFF34D399), fontSize: 13),
                           textAlign: TextAlign.center,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Directionality(
-                        textDirection: LanguageBiDiHelper.getDirection(currentEntry.targetLocale),
+                        textDirection: LanguageBiDiHelper.getDirection(
+                            currentEntry.targetLocale),
                         child: TextField(
                           controller: _answerController,
                           style: const TextStyle(color: Colors.white),
@@ -282,7 +315,9 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                             hintStyle: const TextStyle(color: Colors.white38),
                             filled: true,
                             fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none),
                           ),
                         ),
                       ),
@@ -292,18 +327,31 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                           backgroundColor: const Color(0xFF38BDF8),
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
                         ),
-                        onPressed: _isSubmitting || _hasAnsweredCurrent ? null : _checkAnswer,
+                        onPressed: _isSubmitting || _hasAnsweredCurrent
+                            ? null
+                            : _checkAnswer,
                         child: _isSubmitting
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                          : const Text('تحقق من الإجابة بهدوء', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.black))
+                            : const Text('تحقق من الإجابة بهدوء',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                       if (_feedbackMessage.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Text(
                           _feedbackMessage,
-                          style: TextStyle(color: _isCorrect ? const Color(0xFF34D399) : Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: _isCorrect
+                                  ? const Color(0xFF34D399)
+                                  : Colors.orangeAccent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                       ],

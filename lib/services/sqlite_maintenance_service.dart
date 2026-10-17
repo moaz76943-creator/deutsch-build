@@ -104,22 +104,26 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
       final db = await _progressDatabase();
       if (!db.isOpen) {
         return const SqliteMaintenanceReport(
-          walBytes: 0, shmBytes: 0,
-          checkpointAttempted: false, checkpointSucceeded: false,
+          walBytes: 0,
+          shmBytes: 0,
+          checkpointAttempted: false,
+          checkpointSucceeded: false,
           vacuumPagesRequested: 0,
         );
       }
       // Both .sqlite-wal and .db-wal paths are derived from the actual DB.
       final path = db.path;
-      walBytes = await _fileSize(File(path + '-wal'));
-      shmBytes = await _fileSize(File(path + '-shm'));
+      walBytes = await _fileSize(File('$path-wal'));
+      shmBytes = await _fileSize(File('$path-shm'));
       final now = _clock();
       final cooldownActive = _lastCheckpoint != null &&
           now.difference(_lastCheckpoint!) < minimumCheckpointGap;
       if (walBytes <= thresholdBytes || cooldownActive) {
         return SqliteMaintenanceReport(
-          walBytes: walBytes, shmBytes: shmBytes,
-          checkpointAttempted: false, checkpointSucceeded: false,
+          walBytes: walBytes,
+          shmBytes: shmBytes,
+          checkpointAttempted: false,
+          checkpointSucceeded: false,
           vacuumPagesRequested: 0,
         );
       }
@@ -136,7 +140,8 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
         final mode = modes.isEmpty ? null : modes.first.values.first;
         if (mode == 2) {
           final free = await db.rawQuery('PRAGMA freelist_count');
-          final count = free.isEmpty ? 0 : (free.first.values.first as num).toInt();
+          final count =
+              free.isEmpty ? 0 : (free.first.values.first as num).toInt();
           if (count >= 512) {
             // Incremental vacuum avoids aggressive full-file rewrite.
             pages = count < 128 ? count : 128;
@@ -145,16 +150,20 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
         }
       }
       return SqliteMaintenanceReport(
-        walBytes: walBytes, shmBytes: shmBytes,
+        walBytes: walBytes,
+        shmBytes: shmBytes,
         checkpointAttempted: true,
         checkpointSucceeded: successful,
         vacuumPagesRequested: pages,
       );
     } catch (error) {
       return SqliteMaintenanceReport(
-        walBytes: walBytes, shmBytes: shmBytes,
-        checkpointAttempted: false, checkpointSucceeded: false,
-        vacuumPagesRequested: 0, error: error,
+        walBytes: walBytes,
+        shmBytes: shmBytes,
+        checkpointAttempted: false,
+        checkpointSucceeded: false,
+        vacuumPagesRequested: 0,
+        error: error,
       );
     }
   }

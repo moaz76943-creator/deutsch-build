@@ -38,8 +38,12 @@ class NeumorphicVocabularyCard extends StatelessWidget {
                       imageUrl: imageUrl,
                       fit: BoxFit.contain,
                       width: MediaQuery.of(context).size.width * 0.8,
-                      placeholder: (context, url) => const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) => const Icon(Icons.error, size: 50, color: Colors.white),
+                      placeholder: (context, url) =>
+                          const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => const Icon(
+                          Icons.error,
+                          size: 50,
+                          color: Colors.white),
                     ),
                   ),
                 ),
@@ -94,8 +98,10 @@ class NeumorphicVocabularyCard extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.error, color: Colors.white54)),
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => const Center(
+                          child: Icon(Icons.error, color: Colors.white54)),
                     ),
                   ),
                 ),
@@ -103,7 +109,8 @@ class NeumorphicVocabularyCard extends StatelessWidget {
             else
               const Expanded(
                 child: Center(
-                  child: Icon(Icons.image_not_supported, size: 50, color: Colors.white24),
+                  child: Icon(Icons.image_not_supported,
+                      size: 50, color: Colors.white24),
                 ),
               ),
             if (child != null)

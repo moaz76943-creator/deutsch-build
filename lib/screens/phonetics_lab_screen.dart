@@ -118,7 +118,8 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
               itemBuilder: (context, index) {
                 final item = _sounds[index];
                 final hasAudio = item['hasAudio'] as bool;
-                final isCurrentPlaying = _currentlyPlayingIndex == index && _isPlaying;
+                final isCurrentPlaying =
+                    _currentlyPlayingIndex == index && _isPlaying;
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 14),
@@ -129,7 +130,8 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF34D399).withValues(alpha: 0.15),
+                            color:
+                                const Color(0xFF34D399).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -137,14 +139,18 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                             children: [
                               Text(
                                 item['symbol'] as String,
-                                style: const TextStyle(color: Color(0xFF34D399), fontSize: 18, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),
                               Directionality(
                                 textDirection: TextDirection.ltr,
                                 child: Text(
                                   item['ipa'] as String,
-                                  style: const TextStyle(color: Color(0xFF6EE7B7), fontSize: 14),
+                                  style: const TextStyle(
+                                      color: Color(0xFF6EE7B7), fontSize: 14),
                                 ),
                               ),
                             ],
@@ -159,12 +165,14 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                               children: <Widget>[
                                 Text(
                                   item['lang'] as String,
-                                  style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
+                                  style: const TextStyle(
+                                      color: Color(0xFF38BDF8), fontSize: 12),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   item['desc'] as String,
-                                  style: AppTypography.body.copyWith(color: Colors.white, fontSize: 14),
+                                  style: AppTypography.body.copyWith(
+                                      color: Colors.white, fontSize: 14),
                                 ),
                               ],
                             ),
@@ -176,13 +184,15 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                             onPressed: () => _playAudio(index),
                             semanticLabel: 'استمع للفظ الصحيح',
                             isActive: isCurrentPlaying,
-                            icon: isCurrentPlaying ? FontAwesomeIcons.stop : FontAwesomeIcons.volumeHigh,
+                            icon: isCurrentPlaying
+                                ? FontAwesomeIcons.stop
+                                : FontAwesomeIcons.volumeHigh,
                           )
                         else
-                          Tooltip(
+                          const Tooltip(
                             message: 'النطق الصوتي غير متوفر حالياً',
                             child: Padding(
-                              padding: const EdgeInsets.all(12.0),
+                              padding: EdgeInsets.all(12.0),
                               child: FaIcon(
                                 FontAwesomeIcons.microphoneSlash,
                                 color: Colors.white38,

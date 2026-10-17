@@ -43,7 +43,8 @@ class AccessibleMultilingualText extends StatelessWidget {
       child: AppDirectionalText(
         displayText,
         style: (style ?? const TextStyle()).copyWith(
-          height: style?.height ?? LanguageBiDiHelper.getLineHeight(languageCode),
+          height:
+              style?.height ?? LanguageBiDiHelper.getLineHeight(languageCode),
         ),
         forceDirection: direction,
         textAlign: textAlign,

@@ -1,7 +1,6 @@
 import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
-import '../../screens/main_shell_screen.dart';
 import '../../screens/onboarding_screen.dart';
 import '../../services/database_service.dart';
 import '../../core/catalog/language_readiness_matrix.dart';
@@ -38,7 +37,8 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
     if (!mounted) return;
     try {
       final db = await DatabaseService.instance.progressDb;
-      final result = await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
+      final result =
+          await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
       final count = (result.first['count'] as int?) ?? 0;
 
       if (!mounted) return;
@@ -64,7 +64,8 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
         if (langCode == 'ar') continue;
 
         final isReady = LanguageReadinessMatrix.isProductionReady(langCode);
-        final isMounted = await LanguagePackManager.verifyAndMountOfflinePack(bcp47Locale);
+        final isMounted =
+            await LanguagePackManager.verifyAndMountOfflinePack(bcp47Locale);
 
         if (isReady && isMounted) {
           selectedPath = langCode;
@@ -112,7 +113,7 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainShellScreen()),
       );
-    }
+    });
 
     return const Scaffold(
       backgroundColor: Color(0xFF0F172A),

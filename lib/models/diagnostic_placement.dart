@@ -161,8 +161,7 @@ final class PlacementDiagnosticRecord {
         'reviewItemIds': reviewItemIds.take(20).toList(growable: false),
         if (curriculumStartLevel != null)
           'curriculumStartLevel': curriculumStartLevel,
-        'recommendedStartTaskOrder':
-            recommendedStartTaskOrder.clamp(1, 50),
+        'recommendedStartTaskOrder': recommendedStartTaskOrder.clamp(1, 50),
         if (learningGoal != null) 'learningGoal': learningGoal,
       };
 
@@ -191,7 +190,9 @@ final class PlacementDiagnosticRecord {
       if (rawWeak is List) {
         for (final raw in rawWeak.take(DiagnosticDimension.values.length)) {
           final dimension = DiagnosticDimension.fromWire(raw?.toString());
-          if (dimension != null && !weak.contains(dimension)) weak.add(dimension);
+          if (dimension != null && !weak.contains(dimension)) {
+            weak.add(dimension);
+          }
         }
       }
 
@@ -242,7 +243,6 @@ final class PlacementDiagnosticRecord {
       );
     }
   }
-
 
   static String? _placementLevel(String? raw) {
     final value = raw?.trim().toUpperCase();

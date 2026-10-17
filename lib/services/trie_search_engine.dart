@@ -29,8 +29,10 @@ class TrieSearchEngine {
     this.maxSearchResults = 50,
     this.maxWordGraphemes = 256,
   }) {
-    if (maxNodes < 2 || maxResultsPerNode < 1 ||
-        maxSearchResults < 1 || maxWordGraphemes < 1) {
+    if (maxNodes < 2 ||
+        maxResultsPerNode < 1 ||
+        maxSearchResults < 1 ||
+        maxWordGraphemes < 1) {
       throw ArgumentError('Trie bounds must be positive');
     }
   }
@@ -44,17 +46,18 @@ class TrieSearchEngine {
         ? text.trim()
         : text.trim().toLowerCase();
     if (lang == 'de') {
-      result = result.replaceAll('ä', 'ae')
+      result = result
+          .replaceAll('ä', 'ae')
           .replaceAll('ö', 'oe')
           .replaceAll('ü', 'ue')
           .replaceAll('ß', 'ss');
     } else if (lang == 'ar') {
-      result = result.replaceAll(RegExp(
-        r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'
-      ), '');
+      result = result.replaceAll(
+          RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
     } else if (lang == 'he') {
       result = result.replaceAll(
-        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'), '',
+        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
+        '',
       );
     }
     return result;
@@ -71,8 +74,10 @@ class TrieSearchEngine {
 
   /// Returns false on capacity limits. A failed insert makes NO partial path.
   bool tryInsert(String word, String id, {String? pairKey}) {
-    if (!_matchesScope(pairKey) || id.isEmpty ||
-        word.length > maxInputCodeUnits || id.length > maxIdCodeUnits) {
+    if (!_matchesScope(pairKey) ||
+        id.isEmpty ||
+        word.length > maxInputCodeUnits ||
+        id.length > maxIdCodeUnits) {
       return false;
     }
     final normalized = normalizeForLanguage(word, languageCode);

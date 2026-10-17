@@ -45,26 +45,29 @@ class SessionState {
   }
 
   Map<String, dynamic> toMap() => {
-    'version': version,
-    'session_id': sessionId,
-    'current_route': currentRoute,
-    'last_item_index': lastItemIndex,
-    'timestamp': timestamp,
-    'language_pair_key': languagePairKey,
-    'committed_review_ids': committedReviewIds,
-    'recovery_attempts': recoveryAttempts,
-  };
+        'version': version,
+        'session_id': sessionId,
+        'current_route': currentRoute,
+        'last_item_index': lastItemIndex,
+        'timestamp': timestamp,
+        'language_pair_key': languagePairKey,
+        'committed_review_ids': committedReviewIds,
+        'recovery_attempts': recoveryAttempts,
+      };
 
   factory SessionState.fromMap(Map<String, dynamic> map) => SessionState(
-    version: map['version'] as int? ?? 1,
-    sessionId: map['session_id'] as String,
-    currentRoute: map['current_route'] as String,
-    lastItemIndex: map['last_item_index'] as int,
-    timestamp: map['timestamp'] as int,
-    languagePairKey: map['language_pair_key'] as String?,
-    committedReviewIds: (map['committed_review_ids'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
-    recoveryAttempts: map['recovery_attempts'] as int? ?? 0,
-  );
+        version: map['version'] as int? ?? 1,
+        sessionId: map['session_id'] as String,
+        currentRoute: map['current_route'] as String,
+        lastItemIndex: map['last_item_index'] as int,
+        timestamp: map['timestamp'] as int,
+        languagePairKey: map['language_pair_key'] as String?,
+        committedReviewIds: (map['committed_review_ids'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            const [],
+        recoveryAttempts: map['recovery_attempts'] as int? ?? 0,
+      );
 }
 
 class SessionRecoveryManager {
@@ -91,7 +94,8 @@ class SessionRecoveryManager {
       final state = SessionState.fromMap(decoded);
 
       // Validation
-      final nowSec = currentTimestampSec ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      final nowSec = currentTimestampSec ??
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
       // 1. Check max age (24 hours = 86400 seconds)
       if (nowSec - state.timestamp > 86400) {
@@ -120,13 +124,16 @@ class SessionRecoveryManager {
       }
 
       // 5. Check pack available
-      if (isPackAvailable != null && state.languagePairKey != null && !isPackAvailable(state.languagePairKey!)) {
+      if (isPackAvailable != null &&
+          state.languagePairKey != null &&
+          !isPackAvailable(state.languagePairKey!)) {
         clearSession();
         return null;
       }
 
       // Increment recovery attempts to prevent crash loops
-      final updatedState = state.copyWith(recoveryAttempts: state.recoveryAttempts + 1);
+      final updatedState =
+          state.copyWith(recoveryAttempts: state.recoveryAttempts + 1);
       persistSession(updatedState); // Async call, fire and forget
 
       return updatedState;

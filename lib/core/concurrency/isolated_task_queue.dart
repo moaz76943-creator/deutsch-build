@@ -147,7 +147,8 @@ class IsolatedTaskQueue {
         final timer = Timer(task.timeout, () {
           if (!completerInternal.isCompleted) {
             t?.cancel();
-            completerInternal.completeError(StateError('Operation was cancelled by user or timeout'));
+            completerInternal.completeError(
+                StateError('Operation was cancelled by user or timeout'));
           }
         });
 
@@ -214,12 +215,17 @@ class IsolatedTaskQueue {
   }
 
   Future<void> _processNext() async {
-    if (_isPaused || _queue.isEmpty || _activeTasks.length >= maxConcurrentTasks) return;
+    if (_isPaused ||
+        _queue.isEmpty ||
+        _activeTasks.length >= maxConcurrentTasks) {
+      return;
+    }
 
     final currentTask = _queue.removeAt(0);
 
     // Check if task itself is stale or canceled before attempting to run it
-    if (currentTask.sessionEpoch == _lastActiveEpoch && currentTask.cancellationToken?.isCancelled != true) {
+    if (currentTask.sessionEpoch == _lastActiveEpoch &&
+        currentTask.cancellationToken?.isCancelled != true) {
       _activeTasks[currentTask.id] = currentTask;
 
       // Fire and forget, but handle cleanup
@@ -243,7 +249,7 @@ class IsolatedTaskQueue {
     try {
       if (currentTask.cancellationToken?.isCancelled == true) {
         if (!currentTask.completer.isCompleted) {
-           currentTask.completer.complete(null);
+          currentTask.completer.complete(null);
         }
       } else {
         // Run the action, passing the token
@@ -262,7 +268,9 @@ class IsolatedTaskQueue {
       }
     } catch (e) {
       if (!currentTask.completer.isCompleted) {
-        if (e is StateError && (e.message.contains('cancelled') || e.message.contains('Operation was cancelled'))) {
+        if (e is StateError &&
+            (e.message.contains('cancelled') ||
+                e.message.contains('Operation was cancelled'))) {
           currentTask.completer.complete(null);
         } else if (e is TimeoutException) {
           currentTask.completer.complete(null);
@@ -286,7 +294,7 @@ class IsolatedTaskQueue {
     _queue.clear();
 
     for (final task in _activeTasks.values) {
-       task.cancellationToken?.cancel();
+      task.cancellationToken?.cancel();
     }
     // We let active tasks finish their async completion which will clean them from _activeTasks map
   }

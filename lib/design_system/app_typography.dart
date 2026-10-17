@@ -3,17 +3,26 @@ import '../core/text/language_identity.dart';
 
 class AppTypography {
   // Existing static styles
-  static const TextStyle label = TextStyle(fontSize: 12, fontWeight: FontWeight.w500);
-  static const TextStyle display = TextStyle(fontSize: 32, fontWeight: FontWeight.bold);
-  static const TextStyle title = TextStyle(fontSize: 22, fontWeight: FontWeight.bold);
-  static const TextStyle h1 = TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
-  static const TextStyle h2 = TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
-  static const TextStyle body = TextStyle(fontSize: 16, fontWeight: FontWeight.normal);
-  static const TextStyle caption = TextStyle(fontSize: 12, fontWeight: FontWeight.w300);
+  static const TextStyle label =
+      TextStyle(fontSize: 12, fontWeight: FontWeight.w500);
+  static const TextStyle display =
+      TextStyle(fontSize: 32, fontWeight: FontWeight.bold);
+  static const TextStyle title =
+      TextStyle(fontSize: 22, fontWeight: FontWeight.bold);
+  static const TextStyle h1 =
+      TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
+  static const TextStyle h2 =
+      TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
+  static const TextStyle body =
+      TextStyle(fontSize: 16, fontWeight: FontWeight.normal);
+  static const TextStyle caption =
+      TextStyle(fontSize: 12, fontWeight: FontWeight.w300);
 
   /// Returns safe font settings based on the language profile with appropriate fallbacks
-  static TextStyle getSafeStyle(LanguageIdentity identity, {double fontSize = 16.0, Color? color}) {
-    List<String> fallbacks = _getFallbacksForProfile(identity.typographyProfile);
+  static TextStyle getSafeStyle(LanguageIdentity identity,
+      {double fontSize = 16.0, Color? color}) {
+    List<String> fallbacks =
+        _getFallbacksForProfile(identity.typographyProfile);
 
     if (identity.typographyProfile == 'cairo') {
       return TextStyle(
@@ -57,7 +66,8 @@ class AppTypography {
   }
 
   /// Wraps text with strict directionality to prevent punctuation flipping in mixed-script texts
-  static Widget buildBiDiText(String text, LanguageIdentity identity, {TextStyle? style}) {
+  static Widget buildBiDiText(String text, LanguageIdentity identity,
+      {TextStyle? style}) {
     return Directionality(
       textDirection: identity.writingDirection == WritingDirection.rtl
           ? TextDirection.rtl
@@ -71,6 +81,7 @@ class AppTypography {
       ),
     );
   }
+
   static const List<String> fallbackFontFamilies = [
     'Noto Sans Arabic',
     'Noto Sans Hebrew',
