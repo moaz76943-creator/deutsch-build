@@ -1,102 +1,102 @@
-import '../catalog/language_readiness_matrix.dart';
+/// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
+enum PromotionEligibility { approved, degraded, blocked, notVerified }
 
-enum GateOutcome { passed, failed, blocked, notRun }
-enum EligibilityState { approved, degraded, blocked, notVerified }
+abstract class J025StartupContract {
+  bool get hasNewDartErrors;
+  bool get hasNormalStartup;
+  bool get hasSafeModeStartup;
+}
 
-class AcceptanceEvidence {
-  final bool? isOfflineSafe;
-  final bool? isStorageGuarded;
-  final bool? isLifecycleManaged;
-  final bool? isDatabaseIntact;
-  final bool? isContentReady;
+abstract class J095VerificationResult {
+  bool get hasMemoryRegression;
+  bool get hasFTS5Regression;
+  bool get isStorageCorrupt;
+  bool get isEvidenceStale;
+  bool get hasMissingMandatoryEvidence;
+}
 
-  final DateTime? verificationTime;
-  final List<String> claimedLanguages;
-  final bool optionalAudioAvailable;
+abstract class LanguageReadinessEvidence {
+  String get languageCode;
+  bool get hasLocalPackEvidence;
+  bool get isMetadataOnly;
+}
 
-  const AcceptanceEvidence({
-    this.isOfflineSafe,
-    this.isStorageGuarded,
-    this.isLifecycleManaged,
-    this.isDatabaseIntact,
-    this.isContentReady,
-    this.verificationTime,
-    this.claimedLanguages = const [],
-    this.optionalAudioAvailable = false,
+abstract class OptionalFeatureEvidence {
+  String get featureName;
+  bool get isAvailable;
+}
+
+class FeatureConfiguration {
+  final List<String> verifiedLanguages;
+  final List<String> availableOptionalFeatures;
+
+  const FeatureConfiguration({
+    required this.verifiedLanguages,
+    required this.availableOptionalFeatures,
   });
 }
 
-class AcceptanceResult {
-  final GateOutcome outcome;
-  final EligibilityState state;
-  final List<String> readyLanguages;
-
-  const AcceptanceResult(this.outcome, this.state, {this.readyLanguages = const []});
-}
-
-/// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
 class ProductionAcceptanceGate {
-  static AcceptanceResult evaluate(AcceptanceEvidence evidence, {DateTime? now}) {
-    if (evidence.verificationTime == null) {
-      return const AcceptanceResult(GateOutcome.notRun, EligibilityState.notVerified);
-    }
+  static FeatureConfiguration? _lastApprovedConfiguration;
+  static FeatureConfiguration? get lastApprovedConfiguration => _lastApprovedConfiguration;
 
-    final currentTime = now ?? DateTime.now();
-    final age = currentTime.difference(evidence.verificationTime!);
-    if (age.inMinutes > 30 || age.isNegative) {
-      // Stale evidence -> fails closed
-      return const AcceptanceResult(GateOutcome.failed, EligibilityState.blocked);
-    }
-
-    if (evidence.isOfflineSafe == null ||
-        evidence.isStorageGuarded == null ||
-        evidence.isLifecycleManaged == null ||
-        evidence.isDatabaseIntact == null ||
-        evidence.isContentReady == null) {
-      // Missing mandatory evidence -> fails closed
-      return const AcceptanceResult(GateOutcome.failed, EligibilityState.blocked);
-    }
-
-    if (evidence.isOfflineSafe == false ||
-        evidence.isStorageGuarded == false ||
-        evidence.isLifecycleManaged == false ||
-        evidence.isDatabaseIntact == false ||
-        evidence.isContentReady == false) {
-      // Regression / corruption -> blocked
-      return const AcceptanceResult(GateOutcome.blocked, EligibilityState.blocked);
-    }
-
-    final readyLanguages = <String>[];
-    for (final lang in evidence.claimedLanguages) {
-      if (LanguageReadinessMatrix.isProductionReady(lang)) {
-        readyLanguages.add(lang);
-      }
-    }
-
-    if (!evidence.optionalAudioAvailable) {
-      // Missing optional features -> gracefully degrades
-      return AcceptanceResult(GateOutcome.passed, EligibilityState.degraded, readyLanguages: readyLanguages);
-    }
-
-    return AcceptanceResult(GateOutcome.passed, EligibilityState.approved, readyLanguages: readyLanguages);
-  }
-
-  // Legacy fallback
   static bool verifyAppReadiness({
     required bool isOfflineSafe,
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-    final evidence = AcceptanceEvidence(
-      isOfflineSafe: isOfflineSafe,
-      isStorageGuarded: isStorageGuarded,
-      isLifecycleManaged: isLifecycleManaged,
-      isDatabaseIntact: true, // Assuming true for legacy
-      isContentReady: true,   // Assuming true for legacy
-      verificationTime: DateTime.now(),
-      optionalAudioAvailable: true, // Assuming fully approved for legacy true case
+    return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
+  }
+
+  static PromotionEligibility evaluatePromotion({
+    J025StartupContract? startupContract,
+    J095VerificationResult? verificationResult,
+    List<LanguageReadinessEvidence>? languageEvidence,
+    List<OptionalFeatureEvidence>? optionalFeatures,
+  }) {
+    if (startupContract == null || verificationResult == null) {
+      return PromotionEligibility.notVerified;
+    }
+
+    if (verificationResult.hasMissingMandatoryEvidence || verificationResult.isEvidenceStale) {
+      return PromotionEligibility.notVerified;
+    }
+
+    if (startupContract.hasNewDartErrors ||
+        !startupContract.hasNormalStartup ||
+        !startupContract.hasSafeModeStartup) {
+      return PromotionEligibility.blocked;
+    }
+
+    if (verificationResult.hasMemoryRegression ||
+        verificationResult.hasFTS5Regression ||
+        verificationResult.isStorageCorrupt) {
+      return PromotionEligibility.blocked;
+    }
+
+    final langs = languageEvidence ?? [];
+    for (final lang in langs) {
+      if (lang.isMetadataOnly || !lang.hasLocalPackEvidence) {
+        return PromotionEligibility.blocked;
+      }
+    }
+
+    final opts = optionalFeatures ?? [];
+    bool isDegraded = false;
+    for (final opt in opts) {
+      if (!opt.isAvailable) {
+        isDegraded = true;
+      }
+    }
+
+    final verifiedLangs = langs.map((e) => e.languageCode).toList();
+    final availableFeatures = opts.where((e) => e.isAvailable).map((e) => e.featureName).toList();
+
+    _lastApprovedConfiguration = FeatureConfiguration(
+      verifiedLanguages: verifiedLangs,
+      availableOptionalFeatures: availableFeatures,
     );
-    final result = evaluate(evidence);
-    return result.outcome == GateOutcome.passed;
+
+    return isDegraded ? PromotionEligibility.degraded : PromotionEligibility.approved;
   }
 }
