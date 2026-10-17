@@ -21,3 +21,4 @@
 -keep class io.flutter.** { *; }
 -dontwarn com.tekartik.sqflite.**
 -keep class com.tekartik.sqflite.** { *; }
+-keep class com.deutschbilarabi.app.** { *; }

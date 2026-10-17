@@ -1,8 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'dart:io';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart' as p;
+import 'package:deutsch_bilarabi/services/database_service.dart';
 
 void main() {
   setUpAll(() {
@@ -11,14 +12,10 @@ void main() {
   });
 
   setUp(() async {
-    // Reset database service state before each test
     await DatabaseService.instance.close();
-
-    // Delete existing test databases
     final dbPath = await databaseFactory.getDatabasesPath();
     final contentDbPath = p.join(dbPath, 'polyglot_content_v2.db');
     final progressDbPath = p.join(dbPath, 'user_progress_v2.db');
-
     if (await File(contentDbPath).exists()) {
       await File(contentDbPath).delete();
     }
@@ -33,14 +30,12 @@ void main() {
 
   test('contentDb enforces read-only access to immutable language packs', () async {
     final db = await DatabaseService.instance.contentDb;
-
-    // Attempting to write should throw an exception
     expect(
       () async => await db.insert('language_profiles', {
         'language_code': 'fr',
         'name_native': 'Français',
         'name_ar': 'الفرنسية',
-        'direction': 'ltr'
+        'direction': 'ltr',
       }),
       throwsA(isA<DatabaseException>()),
       reason: 'Read-only content packs cannot be modified by progress writes',
@@ -49,7 +44,6 @@ void main() {
 
   test('progressDb uses WAL mode for writable learner databases', () async {
     final db = await DatabaseService.instance.progressDb;
-
     final result = await db.rawQuery('PRAGMA journal_mode');
     expect(result.first.values.first.toString().toLowerCase(), 'wal',
         reason: 'Writable database must use WAL mode');
@@ -57,7 +51,6 @@ void main() {
 
   test('progressDb uses busy_timeout to handle SQLite busy/interrupted transactions', () async {
     final db = await DatabaseService.instance.progressDb;
-
     final result = await db.rawQuery('PRAGMA busy_timeout');
     expect(result.first.values.first.toString(), '5000',
         reason: 'Writable database must configure a busy_timeout for concurrency');
@@ -65,18 +58,15 @@ void main() {
 
   test('updateSrsProgressAtomic is atomic and commits on success', () async {
     final db = await DatabaseService.instance.progressDb;
-
     await DatabaseService.instance.updateSrsProgressAtomic(
       lexemeId: 'lex1',
       status: 'learning',
     );
 
     final realResults = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
-
     expect(realResults.length, 1);
     expect(realResults.first['repetition_count'], 1);
 
-    // Do it again to trigger the COALESCE logic
     await DatabaseService.instance.updateSrsProgressAtomic(
       lexemeId: 'lex1',
       status: 'reviewing',
@@ -88,7 +78,6 @@ void main() {
   });
 
   test('updateSrsProgressAtomic handles simultaneous requests correctly', () async {
-    // Fire off multiple transactions simultaneously
     final futures = <Future>[];
     for (int i = 0; i < 5; i++) {
       futures.add(DatabaseService.instance.updateSrsProgressAtomic(
@@ -98,16 +87,9 @@ void main() {
     }
 
     await Future.wait(futures);
-
     final db = await DatabaseService.instance.progressDb;
     final results = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex2']);
-
     expect(results.length, 1);
-    // Since they run simultaneously without explicit lock around the read/write,
-    // the COALESCE + subquery might lead to race conditions for repetition_count.
-    // In SQLite, if it is in an IMMEDIATE transaction, it will be serialized.
-    // sqflite default transaction is DEFERRED but writes will promote.
-    // This test ensures no "database is locked" crashes occur (WAL + busy_timeout).
     expect(results.first['lexeme_id'], 'lex2');
   });
 
@@ -122,5 +104,44 @@ void main() {
 
     expect(contentDb.isOpen, isFalse);
     expect(progressDb.isOpen, isFalse);
+  });
+
+  test('Simultaneous initialization requests return same instance', () async {
+    final futures = [
+      DatabaseService.instance.progressDb,
+      DatabaseService.instance.progressDb,
+    ];
+    final dbs = await Future.wait(futures);
+    expect(identical(dbs[0], dbs[1]), isTrue);
+
+    final contentFutures = [
+      DatabaseService.instance.contentDb,
+      DatabaseService.instance.contentDb,
+    ];
+    final contentDbs = await Future.wait(contentFutures);
+    expect(identical(contentDbs[0], contentDbs[1]), isTrue);
+  });
+
+  test('Transaction rollback (inserting invalid data throws and rolls back)', () async {
+    final service = DatabaseService.instance;
+    final progressDb = await service.progressDb;
+    var countResult = await progressDb.rawQuery('SELECT COUNT(*) FROM srs_progress;');
+    expect(countResult.first.values.first, 0);
+
+    try {
+      await progressDb.transaction((txn) async {
+        await txn.rawInsert('''
+          INSERT INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+          VALUES (?, ?, ?, ?)
+        ''', ['lex.test.1', 'de', 0, 'learning']);
+        await txn.rawInsert('INSERT INTO non_existent_table (id) VALUES (1)');
+      });
+      fail('Transaction should have thrown');
+    } catch (e) {
+      expect(e, isA<DatabaseException>());
+    }
+
+    countResult = await progressDb.rawQuery('SELECT COUNT(*) FROM srs_progress;');
+    expect(countResult.first.values.first, 0);
   });
 }

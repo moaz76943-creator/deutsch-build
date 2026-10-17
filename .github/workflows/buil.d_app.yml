@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: جلب كود المستودع
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: إعداد بيئة جافا (Java JDK 17)
         uses: actions/setup-java@v4
