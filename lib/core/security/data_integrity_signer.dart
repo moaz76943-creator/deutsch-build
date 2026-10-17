@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class DataIntegritySigner {
-  static const String approvedTrustedKey = 'trusted_key_v1';
+  static const List<String> supportedCapabilities = ['content_v1', 'content_v2'];
 
   static int computeChecksum(String payload) {
     final bytes = utf8.encode(payload);
@@ -17,23 +17,42 @@ class DataIntegritySigner {
     return computeChecksum(payload) == expectedChecksum;
   }
 
-  static bool verifyManifest(Map<String, dynamic> manifest) {
-    final signatureBlock = manifest['signature'];
-    if (signatureBlock == null || signatureBlock is! Map) return false;
+  static bool verifyManifest(String manifestJson, {DateTime? currentTime}) {
+    try {
+      final decoded = jsonDecode(manifestJson) as Map<String, dynamic>;
 
-    final keyId = signatureBlock['keyId'];
-    if (keyId != approvedTrustedKey) return false;
+      if (!decoded.containsKey('hash') || !decoded.containsKey('capabilities')) {
+        return false;
+      }
 
-    final algorithm = signatureBlock['algorithm'];
-    if (algorithm != 'FNV-1a') return false;
+      final capabilities = List<String>.from(decoded['capabilities'] as List);
+      if (capabilities.isEmpty || !capabilities.any((cap) => supportedCapabilities.contains(cap))) {
+        return false;
+      }
 
-    final hashValue = signatureBlock['hash'];
-    if (hashValue == null || hashValue is! int) return false;
+      if (decoded.containsKey('expiresAt')) {
+        final expiresAt = DateTime.parse(decoded['expiresAt'] as String);
+        final now = currentTime ?? DateTime.now();
+        if (now.isAfter(expiresAt)) {
+          return false;
+        }
+      }
 
-    final payload = manifest['payload'];
-    if (payload == null) return false;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
-    final payloadString = jsonEncode(payload);
-    return verifyIntegrity(payloadString, hashValue);
+  static bool verifyContentIntegrity(String payload, String manifestJson) {
+    if (!verifyManifest(manifestJson)) return false;
+
+    try {
+      final decoded = jsonDecode(manifestJson) as Map<String, dynamic>;
+      final expectedChecksum = decoded['hash'] as int;
+      return verifyIntegrity(payload, expectedChecksum);
+    } catch (_) {
+      return false;
+    }
   }
 }

@@ -1,59 +1,34 @@
-enum OperationType {
-  localRead,
-  localWrite,
-  userRequestedDownload,
+enum NetworkOperationType {
+  general,
   telemetry,
-  unrestrictedNetwork,
-}
-
-class DownloadCapability {
-  final String resourceId;
-  final DateTime expiresAt;
-
-  const DownloadCapability({
-    required this.resourceId,
-    required this.expiresAt,
-  });
-
-  bool get isExpired => DateTime.now().isAfter(expiresAt);
+  userDirectedDownload,
 }
 
 class OfflineGate {
   static const bool strictOfflineEnforced = true;
 
-  static bool isNetworkRequestPermitted() => !strictOfflineEnforced;
+  static bool isNetworkRequestPermitted(NetworkOperationType type, {String? authorizationToken}) {
+    if (!strictOfflineEnforced) return true;
 
-  static void assertZeroNetworkPolicy() {
-    if (strictOfflineEnforced) {
-      // منع تام لأي اتصال خارجي بدون إذن صريح للحفاظ على الخصوصية والسرعة
-      throw Exception('Unrestricted network access is denied by zero network policy.');
-    }
-  }
-
-  static bool isOperationPermitted(
-    OperationType type, {
-    DownloadCapability? capability,
-  }) {
     switch (type) {
-      case OperationType.localRead:
-      case OperationType.localWrite:
-        return true;
-      case OperationType.telemetry:
-      case OperationType.unrestrictedNetwork:
+      case NetworkOperationType.general:
+      case NetworkOperationType.telemetry:
         return false;
-      case OperationType.userRequestedDownload:
-        if (capability == null) return false;
-        if (capability.isExpired) return false;
-        return true;
+      case NetworkOperationType.userDirectedDownload:
+        return authorizationToken != null && _isValidToken(authorizationToken);
     }
   }
 
-  static void assertOperationPolicy(
-    OperationType type, {
-    DownloadCapability? capability,
-  }) {
-    if (!isOperationPermitted(type, capability: capability)) {
-      throw Exception('Operation not permitted by offline policy');
+  static void assertZeroNetworkPolicy(NetworkOperationType type, {String? authorizationToken}) {
+    if (!isNetworkRequestPermitted(type, authorizationToken: authorizationToken)) {
+      throw Exception('Network operation of type $type is blocked by zero-network policy.');
     }
+  }
+
+  static bool _isValidToken(String token) {
+    // For now, basic mock validation
+    // Avoid inventing new private signing keys, this is an explicit ephemeral/user-directed authorization
+    // In a real app this would verify a signature or session token.
+    return token.startsWith('user_auth_');
   }
 }
