@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'dart:math' as math;
 
 enum SrsRating { hard, good, easy }
@@ -13,14 +14,13 @@ class SrsCardReviewResult {
     required this.easeFactor,
     required this.repetitionCount,
     required this.nextReviewDate,
-  });
+  })  : assert(nextIntervalDays >= 0, 'nextIntervalDays cannot be negative'),
+        assert(easeFactor >= 0, 'easeFactor cannot be negative or NaN'),
+        assert(repetitionCount >= 0, 'repetitionCount cannot be negative');
 }
 
-/// Pure scheduling calculation. Call from the canonical worker-backed writer.
 class ProductionSrsEngine {
-  static const int maxIntervalDays = 36500;
-  static const int maxRepetitions = 1000000;
-
+  /// معالجة مراجعة البطاقة وفق خوارزمية SM-2 المعدلة رياضياً
   static SrsCardReviewResult processReview({
     required int currentIntervalDays,
     required double currentEaseFactor,
@@ -30,62 +30,62 @@ class ProductionSrsEngine {
     DateTime? currentTime,
   }) {
     if (currentIntervalDays < 0) {
-      throw ArgumentError.value(currentIntervalDays, 'currentIntervalDays');
+      throw ArgumentError('currentIntervalDays cannot be negative');
+    }
+    if (currentEaseFactor.isNaN) {
+      throw ArgumentError('currentEaseFactor cannot be NaN');
     }
     if (currentRepetitions < 0) {
-      throw ArgumentError.value(currentRepetitions, 'currentRepetitions');
+      throw ArgumentError('currentRepetitions cannot be negative');
     }
-    if (!currentEaseFactor.isFinite || currentEaseFactor <= 0) {
-      throw ArgumentError.value(currentEaseFactor, 'currentEaseFactor');
-    }
-    if (!morphologicalMultiplier.isFinite || morphologicalMultiplier <= 0) {
-      throw ArgumentError.value(morphologicalMultiplier, 'morphologicalMultiplier');
+    if (morphologicalMultiplier.isNaN || morphologicalMultiplier < 0) {
+      throw ArgumentError('morphologicalMultiplier must be a valid positive number');
     }
 
-    final interval = math.min(currentIntervalDays, maxIntervalDays);
-    final ease = currentEaseFactor.clamp(1.3, 3.0).toDouble();
-    final multiplier = morphologicalMultiplier.clamp(0.25, 4.0).toDouble();
-
-    var nextRepetitions = math.min(currentRepetitions, maxRepetitions);
-    var nextInterval = interval;
-    var nextEase = ease;
+    int newRepetitions = currentRepetitions;
+    int newInterval = currentIntervalDays;
+    double newEase = currentEaseFactor;
 
     switch (rating) {
       case SrsRating.hard:
-        nextRepetitions = 0;
-        nextInterval = 1;
-        nextEase = math.max(1.3, ease - 0.2);
+        newRepetitions = 0;
+        newInterval = 1;
+        newEase = math.max(1.3, currentEaseFactor - 0.2);
         break;
       case SrsRating.good:
-        if (nextRepetitions == 0) {
-          nextInterval = 1;
-        } else if (nextRepetitions == 1) {
-          nextInterval = 3;
+        if (newRepetitions == 0) {
+          newInterval = 1;
+        } else if (newRepetitions == 1) {
+          newInterval = 3;
         } else {
-          nextInterval = math.max(1, (interval * ease * multiplier).round());
+          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
         }
-        nextRepetitions = math.min(nextRepetitions + 1, maxRepetitions);
+        newRepetitions += 1;
         break;
       case SrsRating.easy:
-        if (nextRepetitions == 0) {
-          nextInterval = 2;
-        } else if (nextRepetitions == 1) {
-          nextInterval = 5;
+        if (newRepetitions == 0) {
+          newInterval = 2;
+        } else if (newRepetitions == 1) {
+          newInterval = 5;
         } else {
-          nextInterval = math.max(1, (interval * ease * 1.3 * multiplier).round());
+          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
         }
-        nextRepetitions = math.min(nextRepetitions + 1, maxRepetitions);
-        nextEase = math.min(2.5, ease + 0.15);
+        newRepetitions += 1;
+        newEase = math.min(2.5, currentEaseFactor + 0.15);
         break;
     }
 
-    nextInterval = math.min(nextInterval, maxIntervalDays);
+    // Correct Ease-Factor Minimum boundary
+    newEase = math.max(1.3, newEase);
+
     final now = currentTime ?? DateTime.now();
+    final nextDate = now.add(Duration(days: math.max(1, newInterval)));
+
     return SrsCardReviewResult(
-      nextIntervalDays: nextInterval,
-      easeFactor: nextEase,
-      repetitionCount: nextRepetitions,
-      nextReviewDate: now.add(Duration(days: nextInterval)),
+      nextIntervalDays: newInterval,
+      easeFactor: newEase,
+      repetitionCount: newRepetitions,
+      nextReviewDate: nextDate,
     );
   }
 }
