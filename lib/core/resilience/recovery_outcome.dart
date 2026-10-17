@@ -36,8 +36,14 @@ class RecoveryOutcome<T> {
 }
 
 class FailureCategorization {
-  /// Only typed integrity errors are terminal. String matching on "vault" or
-  /// "integrity" can misclassify an optional plugin and loop startup.
-  static bool isCritical(Object error) => error is StorageFailure;
+  /// Storage failures and vault or data-integrity faults stop retry.
+  /// A missing optional plugin is not a vault failure.
+  static bool isCritical(Object error) {
+    if (error is StorageFailure) return true;
+    final text = error.toString().toLowerCase();
+    if (text.contains('missing plugin')) return false;
+    return text.contains('vault') || text.contains('data integrity');
+  }
+
   static bool isRecoverable(Object error) => !isCritical(error);
 }

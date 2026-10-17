@@ -25,7 +25,7 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
     final items = await _repository.getVocabularyList();
     Map<String, int> fields = {};
     for (var item in items) {
-      String f = item['semanticField'] ?? 'عام';
+      final String f = '${item['semanticField'] ?? 'عام'}';
       fields[f] = (fields[f] ?? 0) + 1;
     }
     if (mounted) {

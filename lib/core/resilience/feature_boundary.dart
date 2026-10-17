@@ -31,7 +31,7 @@ class FeatureBoundary extends StatefulWidget {
 class _FeatureBoundaryState extends State<FeatureBoundary> {
   Object? _caughtError;
   FeatureRecoveryOutcome? _outcome;
-  final bool _isInitializing = false;
+  bool _isInitializing = false;
   String? _activeSessionId;
   bool _isDisposed = false;
 
@@ -112,7 +112,11 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
   }
 
   static Widget _defaultDegraded(
-      BuildContext context, String featureName, FeatureFailureReason reason) {
+    BuildContext context,
+    String featureName,
+    FeatureFailureReason reason, {
+    VoidCallback? onRetry,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -159,7 +163,11 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       return Column(mainAxisSize: MainAxisSize.min, children: [
         widget.degradedBuilder?.call(context, degradedOutcome.reason) ??
             _defaultDegraded(
-                context, widget.featureName, degradedOutcome.reason),
+              context,
+              widget.featureName,
+              degradedOutcome.reason,
+              onRetry: _runInitialization,
+            ),
         Flexible(child: widget.child),
       ]);
     }

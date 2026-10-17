@@ -41,3 +41,18 @@ abstract interface class ReviewCommandPort {
   /// ليتم تنفيذه عبر Persistent CPU Worker وتخزينه كـ Atomic Transaction.
   Future<void> submit(ReviewCommand command);
 }
+
+/// Forwards each review id once. A repeated id is the same command, not a
+/// second award of XP or a second schedule update.
+class IdempotentReviewCommandPort implements ReviewCommandPort {
+  IdempotentReviewCommandPort(this._delegate);
+
+  final ReviewCommandPort _delegate;
+  final Set<String> _seenReviewIds = <String>{};
+
+  @override
+  Future<void> submit(ReviewCommand command) async {
+    if (!_seenReviewIds.add(command.reviewId)) return;
+    await _delegate.submit(command);
+  }
+}

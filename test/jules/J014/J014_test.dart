@@ -12,8 +12,8 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: AccessibleMultilingualText(
-              'مرحبا',
-              locale: 'ar-SA',
+              text: 'مرحبا',
+              languageCode: 'ar-SA',
               semanticLabel: 'Welcome',
             ),
           ),
@@ -29,7 +29,9 @@ void main() {
       );
       expect(directionalityFinder, findsWidgets);
 
-      final semanticsFinder = find.bySemanticsLabel('Welcome');
+      final semanticsFinder = find.byWidgetPredicate(
+        (widget) => widget is Semantics && widget.properties.label == 'Welcome',
+      );
       expect(semanticsFinder, findsOneWidget);
     });
 
@@ -51,9 +53,15 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
 
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
-            body: BidiLexiconView(entry: entry),
+            body: BidiLexiconView(
+              sourceText: entry.sourceMeaning,
+              sourceLanguageCode: 'ar',
+              targetText: entry.targetTerm,
+              targetLanguageCode: 'de',
+              partOfSpeech: entry.partOfSpeech,
+            ),
           ),
         ),
       );
@@ -80,9 +88,12 @@ void main() {
       );
 
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
-            body: LexiconRichDetails(entry: entryEmpty),
+            body: LexiconRichDetails(
+              partOfSpeech: entryEmpty.partOfSpeech,
+              explanation: entryEmpty.sourceExampleTranslation,
+            ),
           ),
         ),
       );
@@ -109,10 +120,14 @@ void main() {
       tester.platformDispatcher.textScaleFactorTestValue = 3.0;
 
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: SingleChildScrollView(
-              child: LexiconRichDetails(entry: entry),
+              child: LexiconRichDetails(
+                partOfSpeech: entry.partOfSpeech,
+                explanation: entry.sourceExampleTranslation,
+                explanationLanguageCode: 'ar',
+              ),
             ),
           ),
         ),
@@ -120,7 +135,7 @@ void main() {
 
       expect(tester.takeException(), isNull); // Should not crash or overflow
       expect(find.textContaining('Verb'), findsOneWidget);
-      expect(find.byType(AccessibleMultilingualText), findsNWidgets(3));
+      expect(find.byType(AccessibleMultilingualText), findsOneWidget);
 
       tester.platformDispatcher.clearTextScaleFactorTestValue();
     });

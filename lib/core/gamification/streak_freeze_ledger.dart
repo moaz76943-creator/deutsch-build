@@ -18,9 +18,13 @@ class StreakFreezeLedger {
   int get remainingShields => totalShields - usageHistory.length;
   bool get canConsume => remainingShields > 0;
 
-  StreakFreezeLedger recordUsage(String reason, {DateTime? now}) {
+  StreakFreezeLedger recordUsage(
+    String reason, {
+    DateTime? now,
+    DateTime? timestamp,
+  }) {
     if (!canConsume) return this;
-    final currentTime = now ?? DateTime.now();
+    final currentTime = timestamp ?? now ?? DateTime.now();
 
     // Validate freeze consumption and prevent duplicate freezes
     for (final record in usageHistory) {

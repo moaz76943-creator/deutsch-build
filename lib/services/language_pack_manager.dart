@@ -99,6 +99,10 @@ class LanguagePackManager {
       ];
 
   static String getTtsLocale(String languageCode) => languageCode;
+
+  /// BCP-47 tag used by TTS. Stateless, so both static and instance callers
+  /// resolve the same catalog value.
+  static String resolveTtsLocale(String code) => getTtsLocale(code);
   String getLanguageNameInstance(String localeCode) =>
       getLanguageName(localeCode);
 
@@ -147,12 +151,13 @@ class LanguagePackManager {
   List<String> get supportedLanguagesInstance => supportedLanguages;
   List<String> get supportedLanguagesList => supportedLanguages;
   List<String> get supportedLanguagesField => supportedLanguages;
-  String resolveTtsLocale(String code) => getTtsLocale(code);
 }
 
 extension LanguagePackManagerInstanceExt on LanguagePackManager {
   List<String> get supportedLanguages => LanguagePackManager.supportedLanguages;
   String getTtsLocale(String code) => LanguagePackManager.getTtsLocale(code);
+  String resolveTtsLocale(String code) =>
+      LanguagePackManager.resolveTtsLocale(code);
   bool isLanguagesSupported(String code) =>
       LanguagePackManager.isLanguagesSupported(code);
   TextDirection textDirectionFor(String code) =>

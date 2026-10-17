@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../widgets/bidi_lexicon_view.dart';
-import '../widgets/phonetic_ipa_view.dart';
 import '../widgets/noun_classifier_view.dart';
 import '../widgets/idioms_view.dart';
 import '../widgets/example_sentences_view.dart';
@@ -348,12 +347,11 @@ class WordDeepDiveSheet extends StatelessWidget {
                 ],
               ),
             BidiLexiconView(
-              sourceWord: displayWord,
+              sourceText: displayWord,
               sourceLanguageCode: lang,
-              targetExplanation: displayMeaning,
-              sourceStyle: AppTypography.h1,
-              explanationStyle: AppTypography.bodyMedium,
-              phonetic: hasPhoneticData(ipa) ? PhoneticIpaView(ipa: ipa) : null,
+              targetText: displayMeaning,
+              targetLanguageCode: 'ar',
+              ipa: ipa,
             ),
             if (examples != null) ...<Widget>[
               const SizedBox(height: 12),

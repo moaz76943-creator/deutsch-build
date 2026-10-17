@@ -38,6 +38,18 @@ class PackDownloaderService {
     return true;
   }
 
+  /// Packs this process has marked installed. Attribution fields stay absent
+  /// until a download record actually stores them.
+  static Future<List<Map<String, dynamic>>> getInstalledPacks() async {
+    return _downloadStates.entries
+        .where((entry) => entry.value == PackDownloadState.installed)
+        .map((entry) => <String, dynamic>{
+              'languageCode': entry.key,
+              'state': entry.value.name,
+            })
+        .toList(growable: false);
+  }
+
   static Future<void> cancelDownload(String languageCode) async {
     _downloadStates[languageCode] = PackDownloadState.cancelled;
 

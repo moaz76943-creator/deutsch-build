@@ -4,10 +4,19 @@ import 'database_service.dart';
 
 /// One attested reverse-inflection hit, not a guessed morphological rule.
 class LemmaMatch {
-  const LemmaMatch({required this.lemma, this.lexiconId});
+  const LemmaMatch({
+    required this.lemma,
+    this.lexiconId,
+    this.languageCode,
+    this.senseId,
+  });
 
   final String lemma;
   final String? lexiconId;
+  final String? languageCode;
+
+  /// Concept id that keeps two lemmas with the same surface form apart.
+  final String? senseId;
 }
 
 typedef LemmatizationDictionarySearch = Future<List<Map<String, dynamic>>>
@@ -100,6 +109,46 @@ class LemmatizationService {
     if (matches.isEmpty) return null;
     if (matches.length > 1) return null;
     return matches.single.lemma;
+  }
+
+  /// Attested lexeme hits for [form] in one language.
+  ///
+  /// Matches lemma, display text, or plural stored on the installed pack.
+  /// Ambiguous surfaces stay as separate rows, distinguished by [LemmaMatch.senseId].
+  Future<List<LemmaMatch>> resolveLemma(String form, String languageCode) async {
+    final code = _normalizeLanguage(languageCode);
+    final word = form.trim();
+    if (word.isEmpty || word.runes.length > maxFormRunes) {
+      return const <LemmaMatch>[];
+    }
+
+    final db = await _openContentDb(code);
+    try {
+      final rows = await db.rawQuery(
+        'SELECT lexeme_id, lemma, concept_id, language_code '
+        'FROM lexemes '
+        'WHERE language_code = ? COLLATE NOCASE '
+        'AND ('
+        'lemma = ? COLLATE NOCASE '
+        'OR IFNULL(plural, \'\') = ? COLLATE NOCASE '
+        'OR display_text = ? COLLATE NOCASE'
+        ') '
+        'ORDER BY lemma, lexeme_id '
+        'LIMIT ?',
+        <Object?>[code, word, word, word, maxMatches],
+      );
+      return List<LemmaMatch>.unmodifiable(rows.map((row) => LemmaMatch(
+            lemma: row['lemma']!.toString(),
+            lexiconId: row['lexeme_id']?.toString(),
+            languageCode: (row['language_code'] ?? code).toString(),
+            senseId: row['concept_id']?.toString(),
+          )));
+    } on DatabaseException catch (error) {
+      if (error.toString().toLowerCase().contains('no such table')) {
+        return const <LemmaMatch>[];
+      }
+      rethrow;
+    }
   }
 
   /// Intercept only unsuccessful normal searches, then retry attested lemmas.
