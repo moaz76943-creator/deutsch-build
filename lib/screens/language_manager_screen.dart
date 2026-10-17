@@ -16,7 +16,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
   @override
   void initState() {
     super.initState();
-    _languages = LanguagePackManager.supportedLanguages.map((code) {
+    _languages = LanguagePackManager.supportedBcp47Locales.map((code) {
       final name = LanguagePackManager.getLanguageName(code);
       final isDefault = ['de', 'ar', 'en'].contains(code);
       return {
@@ -34,7 +34,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
     final item = _languages[index];
     final willDownload = !(item["downloaded"] as bool);
     if (willDownload) {
-      final ttsLocale = LanguagePackManager.getTtsLocale(item['code'] as String);
+      final ttsLocale = item['code'] as String;
       await LanguagePackManager.verifyAndMountOfflinePack(ttsLocale);
     }
     setState(() {
