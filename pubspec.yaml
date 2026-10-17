@@ -12,12 +12,10 @@ dependencies:
   uuid: ^4.6.0
   shared_preferences: ^2.5.6
   flutter_tts: ^3.8.5
-<<<<<<< HEAD
   path_provider: ^2.1.6
   flutter_riverpod: ^2.6.1
   sqflite: ^2.4.2+1
   path: ^1.9.1
-=======
   path_provider: ^2.1.2
   flutter_riverpod: ^2.5.1
   sqflite: ^2.3.3+1
@@ -28,25 +26,18 @@ dependencies:
   sqflite_common_ffi: '>=2.3.0 <2.4.0'
   sqlite3: '>=2.3.0 <3.0.0'
   path: ^1.9.0
->>>>>>> pr-179
   crypto: ^3.0.7
   encrypt: ^5.0.3
   http: ^1.6.0
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   archive: any
-=======
   archive: ^4.3.0
->>>>>>> pr-179
   flutter_animate: any
   font_awesome_flutter: any
   cached_network_image: ^3.4.1
-=======
   archive: ^4.5.1
   flutter_animate: ^4.5.2
   font_awesome_flutter: ^11.0.0
->>>>>>> pr-37
 
 dev_dependencies:
   custom_lint: ^0.6.4
@@ -55,10 +46,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.2
 
-<<<<<<< HEAD
   sqflite_common_ffi: ^2.4.0+3
-=======
->>>>>>> pr-179
 
 flutter:
   uses-material-design: true
