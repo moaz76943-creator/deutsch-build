@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../screens/main_shell_screen.dart';
-import '../../core/i18n/language_registry.dart';
-import '../../core/catalog/language_readiness_matrix.dart';
 import '../../services/language_pack_manager.dart';
+import '../../core/catalog/language_readiness_matrix.dart';
 
-/// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
 class FastOnboardingScreen extends StatefulWidget {
-  const FastOnboardingScreen({super.key, this.languagePackVerifier});
-  
-  final Future<bool> Function(String)? languagePackVerifier;
+  const FastOnboardingScreen({super.key});
 
   @override
   State<FastOnboardingScreen> createState() => _FastOnboardingScreenState();
@@ -17,109 +13,91 @@ class FastOnboardingScreen extends StatefulWidget {
 
 class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   bool _isLoading = true;
-  String? _interfaceLanguage;
-  String? _sourceLanguage;
-  String? _targetLanguage;
+  String _interfaceLanguage = 'ar-SA';
+  String _sourceLanguage = 'ar-SA';
+  String _targetLanguage = 'de-DE';
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _checkExistingLearner();
+    _loadPreferences();
   }
 
-  Future<void> _checkExistingLearner() async {
+  Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    final isComplete = prefs.getBool('onboarding_complete') ?? false;
+    final hasCompleted = prefs.getBool('has_completed_onboarding') ?? false;
 
-    if (!mounted) return;
-
-    if (isComplete) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainShellScreen()),
-      );
-    } else {
-      setState(() {
-        _isLoading = false;
-        // Default to Arabic interface if nothing is set
-        _interfaceLanguage = 'ar';
-      });
+    if (hasCompleted) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainShellScreen()),
+        );
+      }
+      return;
     }
+
+    setState(() {
+      _interfaceLanguage = prefs.getString('pref_interface_lang') ?? 'ar-SA';
+      _sourceLanguage = prefs.getString('pref_source_lang') ?? 'ar-SA';
+      _targetLanguage = prefs.getString('pref_target_lang') ?? 'de-DE';
+      _isLoading = false;
+    });
   }
 
-  void _onContinue() async {
-    if (_interfaceLanguage == null || _sourceLanguage == null || _targetLanguage == null) {
-      setState(() => _errorMessage = 'يرجى اختيار لغة الواجهة، اللغة المصدر، واللغة الهدف');
-      return;
-    }
+  Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pref_interface_lang', _interfaceLanguage);
+    await prefs.setString('pref_source_lang', _sourceLanguage);
+    await prefs.setString('pref_target_lang', _targetLanguage);
+  }
 
-    if (_sourceLanguage == _targetLanguage) {
-      setState(() => _errorMessage = 'لا يمكن أن تكون اللغة المصدر والهدف متطابقتين');
-      return;
-    }
-
-    final targetTier = LanguageReadinessMatrix.getTier(_targetLanguage!);
-    if (targetTier != LanguageReadinessTier.productionReady) {
-      setState(() => _errorMessage = 'هذه اللغة غير مدعومة حالياً للاستخدام كهدف');
-      return;
-    }
-
+  Future<void> _handleStart() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    try {
-      final Map<String, String> bcp47Map = {
-        'de': 'de-DE',
-        'ar': 'ar-SA',
-        'en': 'en-US',
-        'fr': 'fr-FR',
-        'es': 'es-ES',
-        'tr': 'tr-TR',
-        'ru': 'ru-RU',
-        'zh': 'zh-CN',
-        'it': 'it-IT',
-      };
+    if (_sourceLanguage == _targetLanguage) {
+      setState(() {
+        _errorMessage = 'Source and target languages cannot be the same.';
+        _isLoading = false;
+      });
+      return;
+    }
 
-      final String bcp47Target = bcp47Map[_targetLanguage!] ?? '${_targetLanguage!}-${_targetLanguage!.toUpperCase()}';
+    final targetBaseCode = _targetLanguage.split('-').first;
 
-      final verifier = widget.languagePackVerifier ?? LanguagePackManager.verifyAndMountOfflinePack;
-      final bool isReady = await verifier(bcp47Target);
+    if (!LanguageReadinessMatrix.isProductionReady(targetBaseCode)) {
+      setState(() {
+        _errorMessage = 'Target language is not yet ready for production.';
+        _isLoading = false;
+      });
+      return;
+    }
 
-      if (!mounted) return;
+    final isOfflinePackAvailable = await LanguagePackManager.verifyAndMountOfflinePack(_targetLanguage);
+    if (!isOfflinePackAvailable) {
+      setState(() {
+        _errorMessage = 'Offline pack for target language is not available.';
+        _isLoading = false;
+      });
+      return;
+    }
 
-      if (!isReady) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'حزمة اللغة غير متوفرة أو تالفة. يرجى التحقق من توفر الحزمة.';
-        });
-        return;
-      }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_onboarding', true);
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('onboarding_complete', true);
-      await prefs.setString('interface_lang', _interfaceLanguage!);
-      await prefs.setString('source_lang', _sourceLanguage!);
-      await prefs.setString('target_lang', _targetLanguage!);
-
-      if (!mounted) return;
-
+    if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainShellScreen()),
       );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'حدث خطأ غير متوقع: $e';
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_isLoading && _errorMessage == null) {
       return const Scaffold(
         backgroundColor: Color(0xFF0F172A),
         body: Center(
@@ -128,122 +106,122 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
       );
     }
 
-    final allLanguages = LanguageRegistry.supportedLanguages.keys.toList();
+    final isRtl = _interfaceLanguage.startsWith('ar');
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'إعدادات اللغة',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'لغة واجهة التطبيق:',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              DropdownButton<String>(
-                value: _interfaceLanguage,
-                dropdownColor: const Color(0xFF1E293B),
-                isExpanded: true,
-                hint: const Text('اختر لغة الواجهة', style: TextStyle(color: Colors.white54)),
-                items: allLanguages.map((code) {
-                  final profile = LanguageRegistry.getProfile(code);
-                  return DropdownMenuItem(
-                    value: code,
-                    child: Text('${profile.nameAr} (${profile.nameEn})', style: const TextStyle(color: Colors.white)),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() {
-                  _interfaceLanguage = val;
-                  _errorMessage = null;
-                }),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'اللغة التي تعرفها (المصدر):',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              DropdownButton<String>(
-                value: _sourceLanguage,
-                dropdownColor: const Color(0xFF1E293B),
-                isExpanded: true,
-                hint: const Text('اختر اللغة المصدر', style: TextStyle(color: Colors.white54)),
-                items: allLanguages.map((code) {
-                  final profile = LanguageRegistry.getProfile(code);
-                  return DropdownMenuItem(
-                    value: code,
-                    enabled: code != _targetLanguage,
-                    child: Text(
-                      '${profile.nameAr} (${profile.nameEn})',
-                      style: TextStyle(
-                        color: code == _targetLanguage ? Colors.white24 : Colors.white,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() {
-                  _sourceLanguage = val;
-                  _errorMessage = null;
-                }),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'اللغة التي تريد تعلمها (الهدف):',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              DropdownButton<String>(
-                value: _targetLanguage,
-                dropdownColor: const Color(0xFF1E293B),
-                isExpanded: true,
-                hint: const Text('اختر اللغة الهدف', style: TextStyle(color: Colors.white54)),
-                items: allLanguages.map((code) {
-                  final profile = LanguageRegistry.getProfile(code);
-                  return DropdownMenuItem(
-                    value: code,
-                    enabled: code != _sourceLanguage,
-                    child: Text(
-                      '${profile.nameAr} (${profile.nameEn})',
-                      style: TextStyle(
-                        color: code == _sourceLanguage ? Colors.white24 : Colors.white,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() {
-                  _targetLanguage = val;
-                  _errorMessage = null;
-                }),
-              ),
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 14),
+        child: Directionality(
+          textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 24),
+                const Icon(Icons.language, size: 64, color: Colors.blueAccent),
+                const SizedBox(height: 24),
+                const Text(
+                  'Welcome to Deutsch Bilarabi',
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-              ],
-              const SizedBox(height: 32),
-              ElevatedButton(
-                key: const Key('continue_button'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                const SizedBox(height: 32),
+
+                const Text('Interface Language', style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 8),
+                _buildLanguageDropdown(
+                  value: _interfaceLanguage,
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _interfaceLanguage = val;
+                        _savePreferences();
+                      });
+                    }
+                  },
                 ),
-                onPressed: _onContinue,
-                child: const Text('متابعة', style: TextStyle(color: Colors.white, fontSize: 18)),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                const Text('Source Language (Your native language)', style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 8),
+                _buildLanguageDropdown(
+                  value: _sourceLanguage,
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _sourceLanguage = val;
+                        _savePreferences();
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                const Text('Target Language (What you want to learn)', style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 8),
+                _buildLanguageDropdown(
+                  value: _targetLanguage,
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _targetLanguage = val;
+                        _savePreferences();
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 32),
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24.0),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleStart,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blueAccent,
+                  ),
+                  child: _isLoading
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Start Learning', style: TextStyle(fontSize: 18, color: Colors.white)),
+                ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageDropdown({required String value, required ValueChanged<String?> onChanged}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(20),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          dropdownColor: const Color(0xFF1E293B),
+          isExpanded: true,
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          items: LanguagePackManager.supportedBcp47Locales.map((locale) {
+            return DropdownMenuItem(
+              value: locale,
+              child: Text(
+                LanguagePackManager.getLanguageName(locale),
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
         ),
       ),
     );
