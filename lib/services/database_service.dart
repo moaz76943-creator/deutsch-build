@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -26,55 +28,64 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
+    if (!await File(path).exists()) {
+      final tempDb = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (db, version) async {
+          // جداول المحتوى (لـ 100 لغة)
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS language_profiles (
+             language_code TEXT PRIMARY KEY,
+             name_native TEXT NOT NULL,
+             name_ar TEXT NOT NULL,
+             direction TEXT NOT NULL
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS concepts (
+             concept_id TEXT PRIMARY KEY,
+             category TEXT NOT NULL,
+             cefr_level TEXT NOT NULL
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS lexemes (
+             lexeme_id TEXT PRIMARY KEY,
+             concept_id TEXT NOT NULL,
+             language_code TEXT NOT NULL,
+             lemma TEXT NOT NULL,
+             display_text TEXT NOT NULL,
+             article TEXT,
+             plural TEXT,
+             gender TEXT,
+             grammar_json TEXT DEFAULT '{}'
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS examples (
+             example_id TEXT PRIMARY KEY,
+             concept_id TEXT NOT NULL,
+             language_code TEXT NOT NULL,
+             sentence TEXT NOT NULL,
+             translation_ar TEXT
+            )
+          ''');
+
+          // زرع بيانات مبدئية لكي يعمل المعجم فوراً
+          await _seedInitialData(db);
+        },
+      );
+      await tempDb.close();
+    }
+
     return await openDatabase(
       path,
       version: 1,
-      onCreate: (db, version) async {
-        // جداول المحتوى (لـ 100 لغة)
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS language_profiles (
-           language_code TEXT PRIMARY KEY,
-           name_native TEXT NOT NULL,
-           name_ar TEXT NOT NULL,
-           direction TEXT NOT NULL
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS concepts (
-           concept_id TEXT PRIMARY KEY,
-           category TEXT NOT NULL,
-           cefr_level TEXT NOT NULL
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS lexemes (
-           lexeme_id TEXT PRIMARY KEY,
-           concept_id TEXT NOT NULL,
-           language_code TEXT NOT NULL,
-           lemma TEXT NOT NULL,
-           display_text TEXT NOT NULL,
-           article TEXT,
-           plural TEXT,
-           gender TEXT,
-           grammar_json TEXT DEFAULT '{}'
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS examples (
-           example_id TEXT PRIMARY KEY,
-           concept_id TEXT NOT NULL,
-           language_code TEXT NOT NULL,
-           sentence TEXT NOT NULL,
-           translation_ar TEXT
-          )
-        ''');
-
-        // زرع بيانات مبدئية لكي يعمل المعجم فوراً
-        await _seedInitialData(db);
-      },
+      readOnly: true,
     );
   }
 
@@ -85,6 +96,10 @@ class DatabaseService {
     return await openDatabase(
       path,
       version: 1,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA journal_mode = WAL');
+        await db.execute('PRAGMA synchronous = NORMAL');
+      },
       onCreate: (db, version) async {
         // جدول التكرار المتباعد (SuperMemo-2)
         await db.execute('''
@@ -150,20 +165,47 @@ class DatabaseService {
     await batch.commit(noResult: true);
   }
 
+  Future<void> close() async {
+    try {
+      if (_contentDb != null && _contentDb!.isOpen) {
+        await _contentDb!.close();
+      }
+    } catch (_) {}
+    try {
+      if (_progressDb != null && _progressDb!.isOpen) {
+        await _progressDb!.close();
+      }
+    } catch (_) {}
+    _contentDb = null;
+    _progressDb = null;
+  }
+
   Future<void> updateSrsProgressAtomic({
     required String lexemeId,
     required String status,
     String languageCode = 'de',
   }) async {
-    final db = await progressDb;
-    await db.transaction((txn) async {
-      await txn.rawInsert('''
-        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-        VALUES (?, ?,
-          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-          ?
-        )
-      ''', [lexemeId, languageCode, lexemeId, status]);
-    });
+    const int maxRetries = 3;
+    for (int i = 0; i < maxRetries; i++) {
+      try {
+        final db = await progressDb;
+        await db.transaction((txn) async {
+          await txn.rawInsert('''
+            INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+            VALUES (?, ?,
+              COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
+              ?
+            )
+          ''', [lexemeId, languageCode, lexemeId, status]);
+        });
+        return;
+      } on DatabaseException catch (_) {
+        if (i == maxRetries - 1) {
+          rethrow;
+        }
+        _progressDb = null; // nullify to force reopen if closed
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
   }
 }
