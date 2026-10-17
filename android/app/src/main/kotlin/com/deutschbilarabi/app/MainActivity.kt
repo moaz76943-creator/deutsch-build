@@ -8,7 +8,11 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
+<<<<<<< HEAD
     private lateinit var offlineVoiceProbe: AndroidOfflineVoiceCapabilityProbe
+=======
+    private lateinit var offlineVoiceCapabilityProbe: AndroidOfflineVoiceCapabilityProbe
+>>>>>>> pr-151
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -34,6 +38,7 @@ class MainActivity : FlutterActivity() {
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
 
+<<<<<<< HEAD
         offlineVoiceProbe = AndroidOfflineVoiceCapabilityProbe(this)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -46,6 +51,20 @@ class MainActivity : FlutterActivity() {
         if (::offlineVoiceProbe.isInitialized) {
             offlineVoiceProbe.destroy()
         }
+=======
+        offlineVoiceCapabilityProbe = AndroidOfflineVoiceCapabilityProbe(this)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
+        ).setMethodCallHandler(offlineVoiceCapabilityProbe)
+    }
+
+    override fun onDestroy() {
+        if (::offlineVoiceCapabilityProbe.isInitialized) {
+            offlineVoiceCapabilityProbe.dispose()
+        }
+        super.onDestroy()
+>>>>>>> pr-151
     }
 
     override fun onRequestPermissionsResult(
