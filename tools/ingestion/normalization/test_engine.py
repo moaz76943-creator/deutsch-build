@@ -30,10 +30,28 @@ class TestNormalizationEngine(unittest.TestCase):
         # م -> م
         self.assertEqual(result.search_key, "اهلا بكم")
 
+    def test_arabic_presentation_forms(self):
+        # Ligature for 'sallallahou alayhe wasallam'
+        # \uFDFA -> صلي الله عليه وسلم (after Arabic normalizer replaces Alef Maksura with Yeh)
+        text = "\uFDFA"
+        result = self.engine.normalize(text, "ar")
+        self.assertEqual(result.search_key, "صلي الله عليه وسلم")
+
     def test_hebrew(self):
         text = "שָׁלוֹם"
         result = self.engine.normalize(text, "he")
         self.assertEqual(result.search_key, "שלום")
+
+    def test_hebrew_presentation_forms(self):
+        # Hebrew ligature Alef Lamed (ﭏ) -> אל
+        text = "\uFB4F"
+        result = self.engine.normalize(text, "he")
+        self.assertEqual(result.search_key, "אל")
+
+        # Hebrew letter Shin with Dagesh and Shin dot (שּׁ) -> ש
+        text = "\uFB2C"
+        result = self.engine.normalize(text, "he")
+        self.assertEqual(result.search_key, "ש")
 
     def test_cjk(self):
         text = "こんにちは"
