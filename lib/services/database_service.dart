@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -53,9 +55,8 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    final exists = await databaseExists(path);
-    if (!exists) {
-      final db = await openDatabase(
+    if (!await File(path).exists()) {
+      final tempDb = await openDatabase(
         path,
         version: 1,
         onCreate: (db, version) async {
@@ -105,11 +106,12 @@ class DatabaseService {
           await _seedInitialData(db);
         },
       );
-      await db.close();
+      await tempDb.close();
     }
 
     return await openDatabase(
       path,
+      version: 1,
       readOnly: true,
     );
   }
@@ -122,6 +124,8 @@ class DatabaseService {
       path,
       version: 1,
       onConfigure: (db) async {
+        await db.execute('PRAGMA journal_mode = WAL');
+        await db.execute('PRAGMA synchronous = NORMAL');
         await db.execute('PRAGMA journal_mode = WAL;');
         await db.execute('PRAGMA busy_timeout = 5000;');
       },
@@ -147,7 +151,7 @@ class DatabaseService {
     final db = await contentDb;
     if (query.isEmpty) {
       return await db.rawQuery('''
-        SELECT l.*, e.sentence, e.translation_ar 
+        SELECT l.*, e.sentence, e.translation_ar
         FROM lexemes l
         LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
         WHERE l.language_code = ?
@@ -156,7 +160,7 @@ class DatabaseService {
     }
 
     return await db.rawQuery('''
-      SELECT l.*, e.sentence, e.translation_ar 
+      SELECT l.*, e.sentence, e.translation_ar
       FROM lexemes l
       LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
       WHERE l.language_code = ? AND (l.lemma LIKE ? OR l.display_text LIKE ? OR e.translation_ar LIKE ?)
@@ -167,7 +171,7 @@ class DatabaseService {
   // إدخال بيانات تجريبية (مفاهيم الحياة اليومية)
   Future<void> _seedInitialData(Database db) async {
     final batch = db.batch();
-    
+
     // إدخال اللغات
     batch.insert('language_profiles', {'language_code': 'de', 'name_native': 'Deutsch', 'name_ar': 'الألمانية', 'direction': 'ltr'});
     batch.insert('language_profiles', {'language_code': 'ar', 'name_native': 'العربية', 'name_ar': 'العربية', 'direction': 'rtl'});
@@ -190,20 +194,47 @@ class DatabaseService {
     await batch.commit(noResult: true);
   }
 
+  Future<void> close() async {
+    try {
+      if (_contentDb != null && _contentDb!.isOpen) {
+        await _contentDb!.close();
+      }
+    } catch (_) {}
+    try {
+      if (_progressDb != null && _progressDb!.isOpen) {
+        await _progressDb!.close();
+      }
+    } catch (_) {}
+    _contentDb = null;
+    _progressDb = null;
+  }
+
   Future<void> updateSrsProgressAtomic({
     required String lexemeId,
     required String status,
     String languageCode = 'de',
   }) async {
-    final db = await progressDb;
-    await db.transaction((txn) async {
-      await txn.rawInsert('''
-        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-        VALUES (?, ?,
-          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-          ?
-        )
-      ''', [lexemeId, languageCode, lexemeId, status]);
-    });
+    const int maxRetries = 3;
+    for (int i = 0; i < maxRetries; i++) {
+      try {
+        final db = await progressDb;
+        await db.transaction((txn) async {
+          await txn.rawInsert('''
+            INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+            VALUES (?, ?,
+              COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
+              ?
+            )
+          ''', [lexemeId, languageCode, lexemeId, status]);
+        });
+        return;
+      } on DatabaseException catch (_) {
+        if (i == maxRetries - 1) {
+          rethrow;
+        }
+        _progressDb = null; // nullify to force reopen if closed
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
   }
 }
