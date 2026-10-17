@@ -1,0 +1,8 @@
+{
+  "schema_version": 2,
+  "language": {"language_code":"de","name_native":"Deutsch","name_ar":"الألمانية","direction":"ltr"},
+  "concepts": [{"concept_id":"travel.train.01","category":"transport","cefr_level":"A1","priority":1}],
+  "lexemes": [{"lexeme_id":"lex.de.travel.train.01","concept_id":"travel.train.01","language_code":"de","sense_id":"travel.train.01","part_of_speech":"noun","lemma":"Zug","display_text":"der Zug","ipa":"/t͡suːk/","gender":"m","article":"der","plural":"Züge","cefr_level":"A1","grammar":{"plural":"Züge"}}],
+  "example_groups": [{"group_id":"ex.travel.train.daily.01","concept_id":"travel.train.01","context_type":"daily"}],
+  "examples": [{"example_id":"ex.de.travel.train.daily.01","group_id":"ex.travel.train.daily.01","sentence":"Ich fahre mit dem Zug.","translation_ar":"أسافر بالقطار."}]
+}
