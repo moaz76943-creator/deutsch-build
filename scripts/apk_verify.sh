@@ -9,6 +9,15 @@ load_toolchain
 APK="${1:-}"
 MODE="${2:-release}"
 SIGNING_MODE="${3:-}"
+<<<<<<< HEAD
+[[ -n "$APK" ]] || fatal --code "$ERR_ENV" "Usage: ./scripts/apk_verify.sh <apk> <debug|release> [--ephemeral]"
+[[ "$MODE" == "debug" || "$MODE" == "release" ]] || fatal --code "$ERR_ENV" "Build mode must be debug or release"
+[[ -z "$SIGNING_MODE" || "$SIGNING_MODE" == "--ephemeral" ]] || fatal --code "$ERR_ENV" "Usage: ./scripts/apk_verify.sh <apk> <debug|release> [--ephemeral]"
+[[ -f "$APK" ]] || fatal --code "$ERR_VERIFY" "APK does not exist: $APK"
+[[ -s "$APK" ]] || fatal --code "$ERR_VERIFY" "APK is empty: $APK"
+
+need() { command -v "$1" >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Required APK verification tool is missing: $1"; }
+=======
 [[ -n "$APK" ]] || fatal $ERR_ENV "Usage: ./scripts/apk_verify.sh <apk> <debug|release> [--ephemeral]"
 [[ "$MODE" == "debug" || "$MODE" == "release" ]] || fatal $ERR_ENV "Build mode must be debug or release"
 [[ -z "$SIGNING_MODE" || "$SIGNING_MODE" == "--ephemeral" ]] || fatal $ERR_ENV "Usage: ./scripts/apk_verify.sh <apk> <debug|release> [--ephemeral]"
@@ -16,6 +25,7 @@ SIGNING_MODE="${3:-}"
 [[ -s "$APK" ]] || fatal $ERR_ARTIFACT "APK is empty: $APK"
 
 need() { command -v "$1" >/dev/null 2>&1 || fatal $ERR_ENV "Required APK verification tool is missing: $1"; }
+>>>>>>> origin/main
 need unzip
 need sha256sum
 need aapt
@@ -23,6 +33,19 @@ if [[ "$MODE" == "release" ]]; then need apksigner; fi
 
 APP_VERSION="$(app_version)"
 APP_BUILD="$(app_build_number)"
+<<<<<<< HEAD
+[[ -n "$APP_VERSION" && -n "$APP_BUILD" ]] || fatal --code "$ERR_ENV" "Could not read app version/build number from pubspec.yaml"
+
+BADGING="$(aapt dump badging "$APK")" || fatal --code "$ERR_VERIFY" "aapt could not parse APK manifest/resources"
+grep -F "package: name='com.deutschbilarabi.app'" <<<"$BADGING" >/dev/null || fatal --code "$ERR_VERIFY" "Package ID mismatch"
+grep -F "versionCode='$APP_BUILD'" <<<"$BADGING" >/dev/null || fatal --code "$ERR_VERIFY" "Version code mismatch: expected $APP_BUILD"
+grep -F "versionName='$APP_VERSION'" <<<"$BADGING" >/dev/null || fatal --code "$ERR_VERIFY" "Version name mismatch: expected $APP_VERSION"
+APK_ABI="arm64-v8a"
+grep -F "native-code: '$APK_ABI'" <<<"$BADGING" >/dev/null || fatal --code "$ERR_VERIFY" "APK does not advertise $APK_ABI native code"
+
+PERMISSIONS="$(aapt dump permissions "$APK")" || fatal --code "$ERR_VERIFY" "aapt could not inspect APK permissions"
+grep -F "android.permission.RECORD_AUDIO" <<<"$PERMISSIONS" >/dev/null || fatal --code "$ERR_VERIFY" "Required pronunciation permission is missing from merged APK"
+=======
 [[ -n "$APP_VERSION" && -n "$APP_BUILD" ]] || fatal $ERR_ENV "Could not read app version/build number from pubspec.yaml"
 
 BADGING="$(aapt dump badging "$APK")" || fatal $ERR_ARTIFACT "aapt could not parse APK manifest/resources"
@@ -34,6 +57,7 @@ grep -F "native-code: '$APK_ABI'" <<<"$BADGING" >/dev/null || fatal $ERR_ARTIFAC
 
 PERMISSIONS="$(aapt dump permissions "$APK")" || fatal $ERR_ARTIFACT "aapt could not inspect APK permissions"
 grep -F "android.permission.RECORD_AUDIO" <<<"$PERMISSIONS" >/dev/null || fatal $ERR_ARTIFACT "Required pronunciation permission is missing from merged APK"
+>>>>>>> origin/main
 for forbidden_permission in \
   android.permission.INTERNET \
   android.permission.ACCESS_NETWORK_STATE \
@@ -42,6 +66,16 @@ for forbidden_permission in \
   android.permission.CHANGE_WIFI_STATE \
   android.permission.POST_NOTIFICATIONS; do
   if [[ "$MODE" == release ]] && grep -F "$forbidden_permission" <<<"$PERMISSIONS" >/dev/null; then
+<<<<<<< HEAD
+    fatal --code "$ERR_VERIFY" "Unexpected release permission in merged APK: $forbidden_permission"
+  fi
+done
+
+ZIP_LIST="$(unzip -Z1 "$APK")" || fatal --code "$ERR_VERIFY" "APK is not a readable ZIP archive"
+grep -Fx 'AndroidManifest.xml' <<<"$ZIP_LIST" >/dev/null || fatal --code "$ERR_VERIFY" "AndroidManifest.xml missing"
+grep -Fx 'resources.arsc' <<<"$ZIP_LIST" >/dev/null || fatal --code "$ERR_VERIFY" "resources.arsc missing"
+grep -F 'lib/arm64-v8a/' <<<"$ZIP_LIST" >/dev/null || fatal --code "$ERR_VERIFY" "arm64-v8a native library directory missing"
+=======
     fatal $ERR_ARTIFACT "Unexpected release permission in merged APK: $forbidden_permission"
   fi
 done
@@ -50,6 +84,7 @@ ZIP_LIST="$(unzip -Z1 "$APK")" || fatal $ERR_ARTIFACT "APK is not a readable ZIP
 grep -Fx 'AndroidManifest.xml' <<<"$ZIP_LIST" >/dev/null || fatal $ERR_ARTIFACT "AndroidManifest.xml missing"
 grep -Fx 'resources.arsc' <<<"$ZIP_LIST" >/dev/null || fatal $ERR_ARTIFACT "resources.arsc missing"
 grep -F 'lib/arm64-v8a/' <<<"$ZIP_LIST" >/dev/null || fatal $ERR_ARTIFACT "arm64-v8a native library directory missing"
+>>>>>>> origin/main
 python3 - "$APK" "$MODE" <<'PY'
 import struct
 import sys
@@ -78,17 +113,30 @@ with zipfile.ZipFile(sys.argv[1]) as apk:
 PY
 
 if [[ "$MODE" == "release" ]]; then
+<<<<<<< HEAD
+  CERT_INFO="$(apksigner verify --verbose --print-certs "$APK")" || fatal --code "$ERR_VERIFY" "Release APK signature verification failed"
+=======
   CERT_INFO="$(apksigner verify --verbose --print-certs "$APK")" || fatal $ERR_SIGNING "Release APK signature verification failed"
+>>>>>>> origin/main
   signing_args=(--fingerprint)
   if [[ "$SIGNING_MODE" == "--ephemeral" ]]; then
     signing_args+=(--ephemeral)
   fi
+<<<<<<< HEAD
+  EXPECTED_CERT="$(python3 "$ROOT/tool/release_signing.py" "${signing_args[@]}")" || fatal --code "$ERR_SIGN" "Could not verify expected production signing certificate"
+  grep -Fi "certificate SHA-256 digest: $EXPECTED_CERT" <<<"$CERT_INFO" >/dev/null || fatal --code "$ERR_VERIFY" "APK certificate differs from the configured release identity"
+fi
+
+SIZE_BYTES="$(wc -c < "$APK" | tr -d ' ')"
+[[ "$SIZE_BYTES" =~ ^[0-9]+$ && "$SIZE_BYTES" -gt 100000 ]] || fatal --code "$ERR_VERIFY" "APK size is implausibly small: ${SIZE_BYTES} bytes"
+=======
   EXPECTED_CERT="$(python3 "$ROOT/tool/release_signing.py" "${signing_args[@]}")" || fatal $ERR_SIGNING "Could not verify expected production signing certificate"
   grep -Fi "certificate SHA-256 digest: $EXPECTED_CERT" <<<"$CERT_INFO" >/dev/null || fatal $ERR_SIGNING "APK certificate differs from the configured release identity"
 fi
 
 SIZE_BYTES="$(wc -c < "$APK" | tr -d ' ')"
 [[ "$SIZE_BYTES" =~ ^[0-9]+$ && "$SIZE_BYTES" -gt 100000 ]] || fatal $ERR_ARTIFACT "APK size is implausibly small: ${SIZE_BYTES} bytes"
+>>>>>>> origin/main
 SHA256="$(sha256sum "$APK" | awk '{print $1}')"
 
 printf 'APK Verification: PASS\n'

@@ -5,6 +5,24 @@ IFS=$'\n\t'
 ROOT="${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 TOOLCHAIN_FILE="$ROOT/toolchain.lock"
 
+<<<<<<< HEAD
+export ERR_ENV=10
+export ERR_DEP=11
+export ERR_COMP=12
+export ERR_SIGN=13
+export ERR_VERIFY=14
+
+fatal() {
+  local code=1
+  if [[ "${1:-}" == "--code" ]]; then
+    code="$2"
+    shift 2
+  fi
+  printf '[ERROR] %s\n' "$*" >&2
+  exit "$code"
+}
+
+=======
 ERR_ENV=10
 ERR_COMPILE=11
 ERR_SIGNING=12
@@ -20,6 +38,7 @@ fatal() {
   printf '[ERROR] %s\n' "$*" >&2
   exit "$exit_code"
 }
+>>>>>>> origin/main
 log() { printf '[%s] %s\n' "$1" "$2"; }
 
 with_retry() {
@@ -29,6 +48,18 @@ with_retry() {
   while true; do
     if "$@"; then
       return 0
+<<<<<<< HEAD
+    else
+      if (( attempt >= max_attempts )); then
+        log ERR "Command failed after $max_attempts attempts: $*"
+        return 1
+      fi
+      log WARN "Command failed (attempt $attempt/$max_attempts). Retrying in $delay seconds: $*"
+      sleep "$delay"
+      (( attempt++ ))
+      (( delay *= 2 ))
+    fi
+=======
     elif (( attempt >= max_attempts )); then
       fatal $ERR_DEPENDENCY "Command failed after $max_attempts attempts: $*"
     fi
@@ -36,6 +67,7 @@ with_retry() {
     sleep "$delay"
     ((attempt++))
     ((delay *= 2))
+>>>>>>> origin/main
   done
 }
 
@@ -64,7 +96,11 @@ check_disk_space() {
   available="$(df -Pk "$path" | awk 'NR==2 {print $4}')" || fatal $ERR_ENV "Cannot inspect disk space at $path"
   [[ "$available" =~ ^[0-9]+$ ]] || fatal $ERR_ENV "Cannot determine available disk space at $path"
   if (( available < MIN_FREE_KB )); then
+<<<<<<< HEAD
+    fatal --code "$ERR_ENV" "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
+=======
     fatal $ERR_ENV "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
+>>>>>>> origin/main
   elif (( available < RECOMMENDED_FREE_KB )); then
     log WARN "Free space at $path: $available KiB; recommended $RECOMMENDED_FREE_KB KiB (3 GiB). Continuing with preserved caches."
   else
@@ -73,7 +109,11 @@ check_disk_space() {
 }
 
 snapshot_lockfile() {
+<<<<<<< HEAD
+  [[ -f "$ROOT/pubspec.lock" ]] || fatal --code "$ERR_ENV" "pubspec.lock is missing; reproducible dependency resolution cannot start."
+=======
   [[ -f "$ROOT/pubspec.lock" ]] || fatal $ERR_DEPENDENCY "pubspec.lock is missing; reproducible dependency resolution cannot start."
+>>>>>>> origin/main
   LOCK_BEFORE="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
   export LOCK_BEFORE
 }
@@ -83,7 +123,11 @@ assert_lockfile_unchanged() {
   LOCK_AFTER="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
   export LOCK_AFTER
   if [[ "$LOCK_BEFORE" != "$LOCK_AFTER" ]]; then
+<<<<<<< HEAD
+    fatal --code "$ERR_DEP" "pubspec.lock changed during this build. Dependency updates must be deliberate and committed before building. Before=$LOCK_BEFORE After=$LOCK_AFTER"
+=======
     fatal $ERR_DEPENDENCY "pubspec.lock changed during this build. Dependency updates must be deliberate and committed before building. Before=$LOCK_BEFORE After=$LOCK_AFTER"
+>>>>>>> origin/main
   fi
 }
 
