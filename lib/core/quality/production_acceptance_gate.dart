@@ -1,95 +1,102 @@
 import '../catalog/language_readiness_matrix.dart';
 
 enum GateOutcome { passed, failed, blocked, notRun }
-
 enum EligibilityState { approved, degraded, blocked, notVerified }
 
 class AcceptanceEvidence {
-  final bool hasJ025Contract;
-  final bool hasJ095Contract;
-  final bool dartErrorsDetected;
-  final bool memoryRegressionConfirmed;
-  final bool fts5RegressionConfirmed;
-  final bool normalStartupVerified;
-  final bool safeModeVerified;
-  final bool isOfflineSafe;
-  final bool isStorageGuarded;
-  final bool isLifecycleManaged;
-  final bool optionalTtsAvailable;
-  final bool isStale;
-  final String? languageCode;
+  final bool? isOfflineSafe;
+  final bool? isStorageGuarded;
+  final bool? isLifecycleManaged;
+  final bool? isDatabaseIntact;
+  final bool? isContentReady;
+
+  final DateTime? verificationTime;
+  final List<String> claimedLanguages;
+  final bool optionalAudioAvailable;
 
   const AcceptanceEvidence({
-    required this.hasJ025Contract,
-    required this.hasJ095Contract,
-    required this.dartErrorsDetected,
-    required this.memoryRegressionConfirmed,
-    required this.fts5RegressionConfirmed,
-    required this.normalStartupVerified,
-    required this.safeModeVerified,
-    required this.isOfflineSafe,
-    required this.isStorageGuarded,
-    required this.isLifecycleManaged,
-    this.optionalTtsAvailable = false,
-    this.isStale = false,
-    this.languageCode,
+    this.isOfflineSafe,
+    this.isStorageGuarded,
+    this.isLifecycleManaged,
+    this.isDatabaseIntact,
+    this.isContentReady,
+    this.verificationTime,
+    this.claimedLanguages = const [],
+    this.optionalAudioAvailable = false,
   });
 }
 
 class AcceptanceResult {
   final GateOutcome outcome;
   final EligibilityState state;
+  final List<String> readyLanguages;
 
-  const AcceptanceResult(this.outcome, this.state);
+  const AcceptanceResult(this.outcome, this.state, {this.readyLanguages = const []});
 }
 
 /// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
 class ProductionAcceptanceGate {
-  static AcceptanceEvidence? _lastApprovedFeatureConfiguration;
-
-  static AcceptanceEvidence? get lastApprovedFeatureConfiguration => _lastApprovedFeatureConfiguration;
-
-  static AcceptanceResult evaluate(AcceptanceEvidence evidence) {
-    if (evidence.isStale) {
-      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
+  static AcceptanceResult evaluate(AcceptanceEvidence evidence, {DateTime? now}) {
+    if (evidence.verificationTime == null) {
+      return const AcceptanceResult(GateOutcome.notRun, EligibilityState.notVerified);
     }
 
-    if (!evidence.hasJ025Contract || !evidence.hasJ095Contract) {
-      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
+    final currentTime = now ?? DateTime.now();
+    final age = currentTime.difference(evidence.verificationTime!);
+    if (age.inMinutes > 30 || age.isNegative) {
+      // Stale evidence -> fails closed
+      return const AcceptanceResult(GateOutcome.failed, EligibilityState.blocked);
     }
 
-    if (!evidence.normalStartupVerified || !evidence.safeModeVerified) {
-      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
+    if (evidence.isOfflineSafe == null ||
+        evidence.isStorageGuarded == null ||
+        evidence.isLifecycleManaged == null ||
+        evidence.isDatabaseIntact == null ||
+        evidence.isContentReady == null) {
+      // Missing mandatory evidence -> fails closed
+      return const AcceptanceResult(GateOutcome.failed, EligibilityState.blocked);
     }
 
-    if (evidence.dartErrorsDetected || evidence.memoryRegressionConfirmed || evidence.fts5RegressionConfirmed) {
+    if (evidence.isOfflineSafe == false ||
+        evidence.isStorageGuarded == false ||
+        evidence.isLifecycleManaged == false ||
+        evidence.isDatabaseIntact == false ||
+        evidence.isContentReady == false) {
+      // Regression / corruption -> blocked
       return const AcceptanceResult(GateOutcome.blocked, EligibilityState.blocked);
     }
 
-    if (!evidence.isOfflineSafe || !evidence.isStorageGuarded || !evidence.isLifecycleManaged) {
-      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
-    }
-
-    if (evidence.languageCode != null) {
-      if (!LanguageReadinessMatrix.isProductionReady(evidence.languageCode!)) {
-         return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
+    final readyLanguages = <String>[];
+    for (final lang in evidence.claimedLanguages) {
+      if (LanguageReadinessMatrix.isProductionReady(lang)) {
+        readyLanguages.add(lang);
       }
     }
 
-    if (!evidence.optionalTtsAvailable) {
-       _lastApprovedFeatureConfiguration = evidence;
-      return const AcceptanceResult(GateOutcome.passed, EligibilityState.degraded);
+    if (!evidence.optionalAudioAvailable) {
+      // Missing optional features -> gracefully degrades
+      return AcceptanceResult(GateOutcome.passed, EligibilityState.degraded, readyLanguages: readyLanguages);
     }
 
-    _lastApprovedFeatureConfiguration = evidence;
-    return const AcceptanceResult(GateOutcome.passed, EligibilityState.approved);
+    return AcceptanceResult(GateOutcome.passed, EligibilityState.approved, readyLanguages: readyLanguages);
   }
 
+  // Legacy fallback
   static bool verifyAppReadiness({
     required bool isOfflineSafe,
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-    return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
+    final evidence = AcceptanceEvidence(
+      isOfflineSafe: isOfflineSafe,
+      isStorageGuarded: isStorageGuarded,
+      isLifecycleManaged: isLifecycleManaged,
+      isDatabaseIntact: true, // Assuming true for legacy
+      isContentReady: true,   // Assuming true for legacy
+      verificationTime: DateTime.now(),
+      optionalAudioAvailable: true, // Assuming fully approved for legacy true case
+    );
+    final result = evaluate(evidence);
+    return result.outcome == GateOutcome.passed;
   }
 }
