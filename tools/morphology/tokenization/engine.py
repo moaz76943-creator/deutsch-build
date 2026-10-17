@@ -1,193 +1,123 @@
 import unicodedata
-from typing import List, Optional, Set, Dict, Any
-from dataclasses import dataclass, field
+from typing import List, Dict, Set
+from tools.morphology.tokenization.interfaces import (
+    LanguageTokenizer,
+    Token,
+    TokenizationResult
+)
 
-# If there is no existing J009 contract, we provide the definition.
-# A previous reviewer assumed "Require the integrated morphology contract from J009"
-# meant importing it, but it appears `tools/morphology/` is completely empty except for what we created.
-# Wait, "No existing morphology compiler rewrites" - maybe it is in `tools/morphology/` outside of tokenization but we just didn't see it?
-# Let's check `ls -la tools/morphology` again... it was empty except `tokenization`.
-# So we must define the TokenIdentity.
+MAX_INPUT_LENGTH = 10000
+MAX_CANDIDATE_EVALUATIONS_PER_DOC = 50000
 
-@dataclass
-class TokenIdentity:
-    surface: str
-    start_offset: int
-    end_offset: int
-    candidate_types: Set[str] = field(default_factory=set)
-    is_ambiguous: bool = False
+class SegmentationEngine:
+    """
+    Registers and queries tokenizers.
+    """
+    def __init__(self):
+        self._tokenizers: Dict[str, LanguageTokenizer] = {}
 
-class TokenizerInterface:
-    def segment(self, text: str) -> List[TokenIdentity]:
-        raise NotImplementedError
+    def register_tokenizer(self, language_code: str, tokenizer: LanguageTokenizer):
+        self._tokenizers[language_code] = tokenizer
 
-class DictionaryBasedTokenizer(TokenizerInterface):
-    def __init__(self, dictionary: Optional[Set[str]] = None, max_word_length: int = 10, max_tokens: int = 100000):
-        self.dictionary = dictionary if dictionary is not None else set()
-        self.max_word_length = max_word_length
-        self.max_tokens = max_tokens
+    def tokenize(self, text: str, language_code: str) -> TokenizationResult:
+        if len(text) > MAX_INPUT_LENGTH:
+            raise ValueError(f"Input text exceeds maximum length of {MAX_INPUT_LENGTH}")
 
-    def find_longest_match(self, text: str, start: int) -> int:
-        max_search = min(start + self.max_word_length, len(text))
-        for end in range(max_search, start, -1):
-            if text[start:end] in self.dictionary:
-                return end - start
+        tokenizer = self._tokenizers.get(language_code)
+        if not tokenizer:
+            return TokenizationResult(tokens=[], unavailable_tokenization=True)
 
-        # Safe fallback: don't split base char and its combining marks (Mn)
-        # Even if we just slice 1 character, check if following chars are Mn.
-        fallback_len = 1
-        while start + fallback_len < len(text) and unicodedata.category(text[start+fallback_len]) == "Mn":
-            fallback_len += 1
-        return fallback_len
+        return tokenizer.tokenize(text)
 
-class ChineseTokenizer(DictionaryBasedTokenizer):
-    def __init__(self, dictionary: Optional[Set[str]] = None):
-        super().__init__(dictionary, max_word_length=10)
+class CJKThaiTokenizer(LanguageTokenizer):
+    """
+    Tokenizer for CJK and Thai utilizing bounded longest-match dictionary approach,
+    ensuring Unicode combining character integrity and script boundaries.
+    """
+    def __init__(self, dictionary: Set[str]):
+        self.dictionary = dictionary
 
-    def segment(self, text: str) -> List[TokenIdentity]:
-        tokens = []
-        i = 0
-        n = len(text)
+    def _is_combining(self, char: str) -> bool:
+        category = unicodedata.category(char)
+        return category.startswith('M') or ('\u0e31' <= char <= '\u0e3a') or ('\u0e47' <= char <= '\u0e4e')
 
-        while i < n:
-            if len(tokens) >= self.max_tokens:
-                break
+    def _get_grapheme_clusters(self, text: str) -> List[str]:
+        clusters = []
+        if not text:
+            return clusters
 
-            # Avoid matching base char from dictionary if it has combining marks following it
-            match_len = self.find_longest_match(text, i)
-            # If the next char is Mn, we MUST NOT stop at this boundary.
-            while i + match_len < n and unicodedata.category(text[i+match_len]) == "Mn":
-                # We have an orphaned combining mark following our match.
-                # In this case, we have to extend the match_len and force ambiguity,
-                # OR we could just append it to the token. Let's just extend match_len.
-                match_len += 1
-
-            surface = text[i:i+match_len]
-            # If we didn't find it in dictionary exactly, it's ambiguous
-            is_ambiguous = (surface not in self.dictionary) if self.dictionary else True
-            tokens.append(TokenIdentity(
-                surface=surface,
-                start_offset=i,
-                end_offset=i+match_len,
-                candidate_types={"zh_word"},
-                is_ambiguous=is_ambiguous
-            ))
-            i += match_len
-        return tokens
-
-class JapaneseTokenizer(DictionaryBasedTokenizer):
-    def __init__(self, dictionary: Optional[Set[str]] = None):
-        super().__init__(dictionary, max_word_length=10)
-
-    def segment(self, text: str) -> List[TokenIdentity]:
-        tokens = []
-        i = 0
-        n = len(text)
-
-        def get_script(c: str) -> str:
-            try:
-                name = unicodedata.name(c)
-                if "PUNCTUATION" in name or "COMMA" in name or "FULL STOP" in name:
-                    return "PUNCT"
-                first_part = name.split(" ")[0]
-                if first_part == "KATAKANA-HIRAGANA":
-                    return "KATAKANA"
-                return first_part
-            except ValueError:
-                return "UNKNOWN"
-
-        while i < n:
-            if len(tokens) >= self.max_tokens:
-                break
-
-            dict_match_len = self.find_longest_match(text, i)
-            # Prevent splitting base char from Mn
-            while i + dict_match_len < n and unicodedata.category(text[i+dict_match_len]) == "Mn":
-                dict_match_len += 1
-
-            if text[i:i+dict_match_len] in self.dictionary:
-                match_len = dict_match_len
-                is_ambiguous = False
+        current_cluster = text[0]
+        for char in text[1:]:
+            if self._is_combining(char):
+                current_cluster += char
             else:
-                is_ambiguous = True if self.dictionary else False
-                script = get_script(text[i])
-                match_len = 1
-                while i + match_len < n and unicodedata.category(text[i+match_len]) == "Mn":
-                    match_len += 1
+                clusters.append(current_cluster)
+                current_cluster = char
 
-                # If it's not a punctuation, group scripts
-                if script != "PUNCT":
-                    while i + match_len < n:
-                        next_c = text[i+match_len]
-                        if unicodedata.category(next_c) == "Mn":
-                            match_len += 1
-                            continue
-                        next_script = get_script(next_c)
-                        if next_script == "PUNCT":
+        if current_cluster:
+            clusters.append(current_cluster)
+        return clusters
+
+    def tokenize(self, text: str) -> TokenizationResult:
+        if not text:
+            return TokenizationResult(tokens=[])
+
+        clusters = self._get_grapheme_clusters(text)
+        cluster_offsets = []
+        current_offset = 0
+        for cluster in clusters:
+            cluster_offsets.append((current_offset, current_offset + len(cluster)))
+            current_offset += len(cluster)
+
+        tokens: List[Token] = []
+        idx = 0
+
+        while idx < len(clusters):
+            match_found = False
+            max_len = min(len(clusters) - idx, 20)
+
+            best_match_len = 0
+            is_ambiguous = False
+
+            token_evaluations = 0
+            MAX_EVALS_PER_TOKEN = 100
+
+            for length in range(max_len, 0, -1):
+                token_evaluations += 1
+                if token_evaluations > MAX_EVALS_PER_TOKEN:
+                    break
+
+                candidate = "".join(clusters[idx:idx+length])
+                if candidate in self.dictionary:
+                    # Check for ambiguity
+                    for sub_len in range(length - 1, 0, -1):
+                        sub_candidate = "".join(clusters[idx:idx+sub_len])
+                        if sub_candidate in self.dictionary:
+                            is_ambiguous = True
                             break
-                        if "CJK" in script and "CJK" in next_script:
-                            match_len += 1
-                        elif script == next_script:
-                            match_len += 1
-                        else:
+                    for sub_len in range(1, length):
+                        sub_candidate = "".join(clusters[idx+sub_len:idx+length])
+                        if sub_candidate in self.dictionary:
+                            is_ambiguous = True
                             break
-            surface = text[i:i+match_len]
-            tokens.append(TokenIdentity(
-                surface=surface,
-                start_offset=i,
-                end_offset=i+match_len,
-                candidate_types={"ja_word"},
-                is_ambiguous=is_ambiguous
-            ))
-            i += match_len
-        return tokens
 
-class ThaiTokenizer(DictionaryBasedTokenizer):
-    def __init__(self, dictionary: Optional[Set[str]] = None):
-        super().__init__(dictionary, max_word_length=10)
+                    best_match_len = length
+                    match_found = True
+                    break
 
-    def segment(self, text: str) -> List[TokenIdentity]:
-        tokens = []
-        i = 0
-        n = len(text)
-
-        while i < n:
-            if len(tokens) >= self.max_tokens:
-                break
-
-            dict_match_len = self.find_longest_match(text, i)
-            while i + dict_match_len < n and unicodedata.category(text[i+dict_match_len]) == "Mn":
-                dict_match_len += 1
-
-            if text[i:i+dict_match_len] in self.dictionary:
-                match_len = dict_match_len
-                is_ambiguous = False
+            if match_found:
+                start_offset = cluster_offsets[idx][0]
+                end_offset = cluster_offsets[idx + best_match_len - 1][1]
+                token_text = "".join(clusters[idx:idx+best_match_len])
+                tokens.append(Token(text=token_text, start=start_offset, end=end_offset, is_ambiguous=is_ambiguous))
+                idx += best_match_len
             else:
-                is_ambiguous = True if self.dictionary else False
-                match_len = 1
-                while i + match_len < n and unicodedata.category(text[i+match_len]) == "Mn":
-                    match_len += 1
-            surface = text[i:i+match_len]
-            tokens.append(TokenIdentity(
-                surface=surface,
-                start_offset=i,
-                end_offset=i+match_len,
-                candidate_types={"th_word"},
-                is_ambiguous=is_ambiguous
-            ))
-            i += match_len
-        return tokens
+                # OOV Fallback: fallback 1 cluster to allow longest match to pick up the next word
+                fallback_len = 1
+                start_offset = cluster_offsets[idx][0]
+                end_offset = cluster_offsets[idx + fallback_len - 1][1]
+                token_text = "".join(clusters[idx:idx+fallback_len])
+                tokens.append(Token(text=token_text, start=start_offset, end=end_offset, is_ambiguous=False))
+                idx += fallback_len
 
-class TokenizationEngine:
-    def __init__(self, dictionaries: Optional[Dict[str, Set[str]]] = None):
-        dicts = dictionaries or {}
-        self.tokenizers = {
-            "zh": ChineseTokenizer(dicts.get("zh")),
-            "ja": JapaneseTokenizer(dicts.get("ja")),
-            "th": ThaiTokenizer(dicts.get("th")),
-        }
-
-    def segment(self, text: str, language_code: str) -> Any:
-        if language_code not in self.tokenizers:
-            return "unavailableTokenization"
-        return self.tokenizers[language_code].segment(text)
+        return TokenizationResult(tokens=tokens)

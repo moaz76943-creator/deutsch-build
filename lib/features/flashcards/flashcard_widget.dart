@@ -1,11 +1,14 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/features/flashcards/card_physics_helper.dart';
-import 'package:deutsch_bilarabi/features/flashcards/flashcard_models.dart';
-import 'package:deutsch_bilarabi/core/srs/production_srs_engine.dart';
+import 'package:deutsch_bilarabi/core/lexical_repository.dart';
+import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
+import 'card_physics_helper.dart';
 
-class FlashcardWidget extends StatefulWidget {
-  final FlashcardData card;
-  final Future<void> Function(String cardId, int rating, String sourceIso, String targetIso) onReviewed;
+/// Screen-independent, multiscript flashcard. No review mutations happen here.
+class FlashcardWidget extends StatelessWidget {
+  final LexicalEntry entry;
+  final Animation<double> animation;
+  final VoidCallback? onFlip;
 
   const FlashcardWidget({
     super.key,
@@ -183,23 +186,64 @@ class _FlashcardWidgetState extends State<FlashcardWidget> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final transform = CardPhysicsHelper.compute3dFlipTransform(_animation.value);
-        final isBack = CardPhysicsHelper.isBackSide(_animation.value);
-
-        return Transform(
-          transform: transform,
-          alignment: Alignment.center,
-          child: isBack
-              ? Transform(
-                  transform: Matrix4.identity()..rotateY(3.1415926535897932), // pi
-                  alignment: Alignment.center,
-                  child: _buildBack(),
-                )
-              : _buildFront(),
+      animation: animation,
+      builder: (context, _) {
+        final back = CardPhysicsHelper.isBackSide(animation.value);
+        return Semantics(
+          button: onFlip != null,
+          label: 'اقلب البطاقة',
+          child: GestureDetector(
+            key: const Key('flashcard-toggle'),
+            onTap: onFlip,
+            child: Transform(
+              alignment: Alignment.center,
+              transform: CardPhysicsHelper.compute3dFlipTransform(animation.value),
+              child: Card(
+                clipBehavior: Clip.antiAlias,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.rotationY(back ? math.pi : 0),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: back ? _back() : _front(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
   }
+
+  List<Widget> _front() => <Widget>[
+    AppDirectionalText(entry.targetTerm,
+      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+      textAlign: TextAlign.center),
+    if (entry.partOfSpeech.trim().isNotEmpty) ...<Widget>[
+      const SizedBox(height: 12),
+      AppDirectionalText(entry.partOfSpeech, textAlign: TextAlign.center),
+    ],
+  ];
+
+  List<Widget> _back() => <Widget>[
+    AppDirectionalText(entry.sourceMeaning,
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      textAlign: TextAlign.center),
+    if (entry.targetExample.trim().isNotEmpty) ...<Widget>[
+      const SizedBox(height: 12),
+      AppDirectionalText(entry.targetExample, textAlign: TextAlign.center),
+    ],
+    if (entry.sourceExampleTranslation.trim().isNotEmpty) ...<Widget>[
+      const SizedBox(height: 8),
+      AppDirectionalText(entry.sourceExampleTranslation, textAlign: TextAlign.center),
+    ],
+  ];
 }
