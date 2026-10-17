@@ -7,6 +7,7 @@ import fcntl
 from pathlib import PurePosixPath
 import sys
 import tempfile
+import time
 
 class ScopeGuard:
     def __init__(self, ledger_path=".scope_guard_ledger.json"):
@@ -69,8 +70,10 @@ class ScopeGuard:
 
 
 class AutoHealExecutor:
-    def __init__(self, plan_path):
+    def __init__(self, plan_path, attempts_file=".auto_heal_attempts.json", failures_file=".auto_heal_failures.json"):
         self.plan_path = plan_path
+        self.attempts_file = attempts_file
+        self.failures_file = failures_file
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard()
@@ -137,9 +140,37 @@ class AutoHealExecutor:
         for op in self.plan.get("operations", []):
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
+    def _check_and_increment_attempts(self, max_attempts=3):
+        plan_id = self.plan.get("plan_id")
+        if not plan_id:
+            return
+
+        attempts = {}
+        if os.path.exists(self.attempts_file):
+            try:
+                with open(self.attempts_file, 'r') as f:
+                    attempts = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
+        count = attempts.get(plan_id, 0)
+        if count >= max_attempts:
+            raise RuntimeError(f"Plan {plan_id} has reached maximum attempt limit of {max_attempts}.")
+
+        attempts[plan_id] = count + 1
+        with open(self.attempts_file, 'w') as f:
+            json.dump(attempts, f)
+
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
         self._verify_base_sha()
+
+        try:
+            self._check_and_increment_attempts()
+        except RuntimeError as e:
+            print(f"BLOCKED: {e}")
+            sys.exit(1)
+
         paths = self.plan.get("allowed_paths", [])
 
         try:
@@ -184,6 +215,19 @@ class AutoHealExecutor:
         paths = self.plan.get("allowed_paths", [])
         self.guard.update_status(self.agent_id, paths, "CANCELLED")
 
+        plan_id = self.plan.get("plan_id")
+        if plan_id:
+            failures = []
+            if os.path.exists(self.failures_file):
+                try:
+                    with open(self.failures_file, 'r') as f:
+                        failures = json.load(f)
+                except json.JSONDecodeError:
+                    pass
+            failures.append({"plan_id": plan_id, "timestamp": time.time()})
+            with open(self.failures_file, 'w') as f:
+                json.dump(failures, f)
+
     def _apply_operation(self, op):
         op_type = op.get("type")
         path = op.get("path")
@@ -217,8 +261,10 @@ class AutoHealExecutor:
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
-                    f.write(op.get("content", "regenerated"))
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, dir=os.path.dirname(path)) as tmp_f:
+                    tmp_f.write(op.get("content", "regenerated"))
+                    tmp_path = tmp_f.name
+                os.replace(tmp_path, path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
