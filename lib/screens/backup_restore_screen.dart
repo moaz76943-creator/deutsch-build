@@ -31,14 +31,18 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           File('${directory.path}/deutsch_backup_$timestamp.json');
       await backupFile.writeAsString(jsonEncode(data));
 
+      if (!mounted) return;
       setState(() {
         _statusMessage =
             'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _statusMessage = 'فشل تصدير النسخة: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -53,6 +57,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           .toList();
 
       if (files.isEmpty) {
+        if (!mounted) return;
         setState(() => _statusMessage = 'لا توجد نسخ احتياطية سابقة محلياً.');
         return;
       }
@@ -79,13 +84,17 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         }
       }
 
+      if (!mounted) return;
       setState(() {
         _statusMessage = 'تمت استعادة البيانات بنجاح من:\n${latest.path}';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _statusMessage = 'فشل استعادة البيانات: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

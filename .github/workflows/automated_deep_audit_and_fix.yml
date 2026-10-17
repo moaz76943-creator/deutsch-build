@@ -10,7 +10,7 @@ on:
       - "lib/**"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   deep-audit-and-stress:
@@ -36,70 +36,7 @@ jobs:
           touch assets/audio/.gitkeep assets/images/.gitkeep
           flutter pub get
 
-      - name: 1. معالجة وتوافق LanguagePackManager و PackDownloaderService
-        run: |
-          # 1. تحديث LanguagePackManager وتضمين دالة getLanguageName
-          cat << 'DART' > lib/services/language_pack_manager.dart
-          // ignore_for_file: unused_import
-
-          class LanguagePackManager {
-            static const List<String> supportedBcp47Locales = [
-              'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
-            ];
-
-            static const Map<String, String> _languageNames = {
-              'de-DE': 'الألمانية (Deutsch)',
-              'ar-SA': 'العربية',
-              'en-US': 'الإنجليزية (English)',
-              'fr-FR': 'الفرنسية (Français)',
-              'es-ES': 'الإسبانية (Español)',
-              'tr-TR': 'التركية (Türkçe)',
-              'ru-RU': 'الروسية (Русский)',
-              'zh-CN': 'الصينية (中文)',
-            };
-
-            static String getLanguageName(String localeCode) {
-              return _languageNames[localeCode] ?? localeCode;
-            }
-
-            // دعم استدعاء الدالة سواء كـ static أو من خلال كائن instance
-            String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
-
-            static bool isLocaleSupported(String localeCode) {
-              if (localeCode.isEmpty) return false;
-              if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
-              return supportedBcp47Locales.contains(localeCode);
-            }
-
-            static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
-              if (!isLocaleSupported(bcp47Locale)) return false;
-              return true;
-            }
-          }
-          DART
-
-          # 2. تحويل PackDownloaderService إلى خدمة أوفلاين نقية بدون مكتبات شبكية
-          cat << 'DART' > lib/services/pack_downloader_service.dart
-          // ignore_for_file: unused_import
-          import 'dart:async';
-
-          /// خدمة إدارة وتثبيت الحزم محلياً أوفلاين بدون استدعاءات شبكة خارجية
-          class PackDownloaderService {
-            static Future<bool> downloadPack(String languageCode) async {
-              // تحميل محلي وتثبيت فوري من قواعد البيانات الداخلية
-              await Future.delayed(const Duration(milliseconds: 50));
-              return true;
-            }
-
-            static Future<bool> isPackDownloaded(String languageCode) async {
-              return true;
-            }
-
-            static Future<void> cancelDownload(String languageCode) async {}
-          }
-          DART
-
-      - name: 2. تنفيذ محاكاة الإجهاد الرياضي (100,000 عملية SRS)
+      - name: 1. تنفيذ محاكاة الإجهاد الرياضي (100,000 عملية SRS)
         run: |
           cat << 'PYEOF' > run_stress_simulation.py
           import math, random, time
@@ -158,14 +95,6 @@ jobs:
           PYEOF
           python3 run_stress_simulation.py
 
-      - name: 3. التحقق المعماري الصارم من استقرار Dart
+      - name: 2. التحقق المعماري الصارم من استقرار Dart
         run: |
           flutter analyze lib/services/language_pack_manager.dart lib/services/pack_downloader_service.dart lib/core/ --no-fatal-infos
-
-      - name: 4. حفظ واعتماد الإصلاحات في الفرع الرئيسي main
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add lib/services/
-          git commit -m "fix(services): add getLanguageName and make pack downloader fully offline" || exit 0
-          git push

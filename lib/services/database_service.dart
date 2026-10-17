@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
@@ -309,6 +308,10 @@ class DatabaseService {
       _contentPool.close(_normalizeLanguageCode(languageCode));
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
+
+  /// Closes unleased background SQLite connections under memory pressure.
+  Future<int> trimUnleasedContentConnections() =>
+      _contentPool.closeUnleased();
 
   Future<File> migrateContentPack(
     String filename, {
