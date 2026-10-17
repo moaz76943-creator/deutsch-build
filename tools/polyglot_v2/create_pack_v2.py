@@ -108,6 +108,26 @@ def build(source, output):
                 db.execute('INSERT INTO examples VALUES (?,?,?,?,?)',(
                     req(item,'example_id'),req(item,'group_id'),language_code,
                     req(item,'sentence'),item.get('translation_ar')))
+
+            db.execute("CREATE VIRTUAL TABLE IF NOT EXISTS lexemes_fts USING fts5(lemma, display_text, content='lexemes', content_rowid='rowid')")
+            db.execute("INSERT INTO lexemes_fts(rowid, lemma, display_text) SELECT rowid, lemma, display_text FROM lexemes")
+            db.execute('''
+            CREATE TRIGGER lexemes_ai AFTER INSERT ON lexemes BEGIN
+              INSERT INTO lexemes_fts(rowid, lemma, display_text) VALUES (new.rowid, new.lemma, new.display_text);
+            END;
+            ''')
+            db.execute('''
+            CREATE TRIGGER lexemes_ad AFTER DELETE ON lexemes BEGIN
+              INSERT INTO lexemes_fts(lexemes_fts, rowid, lemma, display_text) VALUES('delete', old.rowid, old.lemma, old.display_text);
+            END;
+            ''')
+            db.execute('''
+            CREATE TRIGGER lexemes_au AFTER UPDATE ON lexemes BEGIN
+              INSERT INTO lexemes_fts(lexemes_fts, rowid, lemma, display_text) VALUES('delete', old.rowid, old.lemma, old.display_text);
+              INSERT INTO lexemes_fts(rowid, lemma, display_text) VALUES (new.rowid, new.lemma, new.display_text);
+            END;
+            ''')
+
             db.commit()
             if db.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
                 raise ValueError('sqlite_integrity_failed')
