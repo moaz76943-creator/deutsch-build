@@ -1,43 +1,57 @@
 import 'package:flutter/material.dart';
-import '../core/language_bidi_helper.dart';
-import '../core/design/bidi_text_isolator.dart';
+import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
+import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
+import 'package:deutsch_bilarabi/core/design/bidi_text_isolator.dart';
 
 class AccessibleMultilingualText extends StatelessWidget {
   final String text;
-  final String bcp47Code;
+  final String locale;
   final TextStyle? style;
+  final String? semanticLabel;
+  final TextAlign? textAlign;
   final int? maxLines;
   final TextOverflow? overflow;
-  final String? semanticLabel;
 
   const AccessibleMultilingualText(
     this.text, {
     super.key,
-    required this.bcp47Code,
+    required this.locale,
     this.style,
+    this.semanticLabel,
+    this.textAlign,
     this.maxLines,
     this.overflow,
-    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final direction = LanguageBiDiHelper.getDirection(bcp47Code);
-    final lineHeight = LanguageBiDiHelper.getLineHeight(bcp47Code);
-    final isRtl = direction == TextDirection.rtl;
+    if (text.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    // Isolate text to prevent punctuation bleeding and guarantee correct rendering
+    final direction = LanguageBiDiHelper.getDirection(locale);
+    final isRtl = direction == TextDirection.rtl;
+    final lineHeight = LanguageBiDiHelper.getLineHeight(locale);
+
+    // Protect text selection, URLs and embedded punctuation using isolation markers.
     final isolatedText = BiDiTextIsolator.wrapDirectional(text, isRtl: isRtl);
 
-    return Directionality(
+    final defaultStyle = style ?? const TextStyle();
+    final combinedStyle = defaultStyle.copyWith(
+      height: defaultStyle.height ?? lineHeight,
+    );
+
+    return Semantics(
+      label: semanticLabel ?? text,
       textDirection: direction,
-      child: Text(
-        isolatedText,
-        maxLines: maxLines,
-        overflow: overflow ?? TextOverflow.visible,
-        semanticsLabel: semanticLabel ?? text,
-        style: (style ?? const TextStyle()).copyWith(
-          height: lineHeight,
+      child: ExcludeSemantics(
+        child: AppDirectionalText(
+          isolatedText,
+          style: combinedStyle,
+          forceDirection: direction,
+          textAlign: textAlign,
+          maxLines: maxLines,
+          overflow: overflow,
         ),
       ),
     );

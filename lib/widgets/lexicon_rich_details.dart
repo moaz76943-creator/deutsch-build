@@ -1,65 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:deutsch_bilarabi/core/lexical_repository.dart';
+import 'package:deutsch_bilarabi/design_system/app_typography.dart';
+import 'resilient_text_container.dart';
 import 'accessible_multilingual_text.dart';
-import '../core/lexical_repository.dart';
 
 class LexiconRichDetails extends StatelessWidget {
   final LexicalEntry entry;
 
-  const LexiconRichDetails({super.key, required this.entry});
+  const LexiconRichDetails({
+    super.key,
+    required this.entry,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // Changed from stretch to start to prevent Infinite width constraints
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Target term (e.g. German word)
-        AccessibleMultilingualText(
-          entry.targetTerm,
-          bcp47Code: entry.targetLocale,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          semanticLabel: 'Term: ${entry.targetTerm}',
-        ),
-        const SizedBox(height: 8),
-
-        // Part of speech
-        AccessibleMultilingualText(
-          entry.partOfSpeech,
-          bcp47Code: entry.targetLocale,
-          style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
-
-        // Meaning
-        const Text('Meaning:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-        AccessibleMultilingualText(
-          entry.sourceMeaning,
-          bcp47Code: entry.sourceLocale,
-          style: const TextStyle(fontSize: 18),
-          semanticLabel: 'Meaning: ${entry.sourceMeaning}',
-        ),
-
-        // Target Example
-        if (entry.targetExample.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          const Text('Example:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          AccessibleMultilingualText(
-            entry.targetExample,
-            bcp47Code: entry.targetLocale,
-            style: const TextStyle(fontSize: 16),
-            semanticLabel: 'Example: ${entry.targetExample}',
-          ),
+    return ResilientTextContainer(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (entry.partOfSpeech.isNotEmpty) ...[
+            AccessibleMultilingualText(
+              entry.partOfSpeech,
+              locale: entry.targetLocale,
+              style: AppTypography.caption.copyWith(fontStyle: FontStyle.italic),
+              semanticLabel: 'Part of Speech: ${entry.partOfSpeech}',
+            ),
+            const SizedBox(height: 8.0),
+          ],
+          if (entry.targetExample.isNotEmpty) ...[
+            AccessibleMultilingualText(
+              entry.targetExample,
+              locale: entry.targetLocale,
+              style: AppTypography.body,
+              semanticLabel: 'Example: ${entry.targetExample}',
+            ),
+            const SizedBox(height: 4.0),
+          ],
           if (entry.sourceExampleTranslation.isNotEmpty) ...[
-            const SizedBox(height: 4),
             AccessibleMultilingualText(
               entry.sourceExampleTranslation,
-              bcp47Code: entry.sourceLocale,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              locale: entry.sourceLocale,
+              style: AppTypography.body.copyWith(color: Colors.grey.shade700),
               semanticLabel: 'Example Translation: ${entry.sourceExampleTranslation}',
             ),
-          ]
+          ],
         ],
-      ],
+      ),
     );
   }
 }
