@@ -6,11 +6,10 @@ class CognitiveMetricRecord {
   final bool isCorrect;
   final DateTime recordedAt;
 
-  // New optional fields
-  final String pairKey;
-  final int? srsGrade;
+  final String languagePair;
   final String? cefrLevel;
-  final bool cefrVerified;
+  final bool isCefrVerified;
+  final double reviewDifficulty;
 
   const CognitiveMetricRecord({
     required this.sessionEventId,
@@ -19,33 +18,31 @@ class CognitiveMetricRecord {
     this.hesitationTaps = 0,
     required this.isCorrect,
     required this.recordedAt,
-    this.pairKey = 'default',
-    this.srsGrade,
+    this.languagePair = 'default',
     this.cefrLevel,
-    this.cefrVerified = false,
+    this.isCefrVerified = false,
+    this.reviewDifficulty = 0.0,
   });
-
-  bool get isMalformed {
-    if (responseLatency.inMilliseconds < 0) return true;
-    if (hesitationTaps < 0) return true;
-    if (srsGrade != null && (srsGrade! < 0 || srsGrade! > 3)) return true;
-    return false;
-  }
 
   /// حساب مؤشر الجهد الإدراكي (من 0.0 إلى 1.0)
   double get cognitiveStrainIndex {
-    if (isMalformed) return 1.0;
-
     double strain = 0.0;
+
+    int latencyMs = responseLatency.inMilliseconds;
+    if (latencyMs < 0) latencyMs = 0;
+
+    int taps = hesitationTaps;
+    if (taps < 0) taps = 0;
+
     // استجابة بطيئة تزيد عن 5 ثوانٍ تشير إلى إجهاد أو صعوبة
-    if (responseLatency.inMilliseconds > 5000) {
+    if (latencyMs > 5000) {
       strain += 0.4;
-    } else if (responseLatency.inMilliseconds > 3000) {
+    } else if (latencyMs > 3000) {
       strain += 0.2;
     }
 
     // التردد أثناء الإجابة
-    if (hesitationTaps > 1) {
+    if (taps > 1) {
       strain += 0.3;
     }
 
@@ -54,18 +51,14 @@ class CognitiveMetricRecord {
       strain += 0.3;
     }
 
-    // تأثير تقييم التكرار المتباعد
-    if (srsGrade != null) {
-      if (srsGrade == 0) {
-        strain += 0.4;
-      } else if (srsGrade == 1) {
-        strain += 0.2;
-      } else if (srsGrade == 2) {
-        strain -= 0.1;
-      } else if (srsGrade == 3) {
-        strain -= 0.2;
-      }
+    double difficulty = reviewDifficulty;
+    if (difficulty.isNaN) {
+      difficulty = 0.0;
+    } else if (difficulty < 0.0) {
+      difficulty = 0.0;
     }
+
+    strain += (difficulty * 0.2); // Incorporate review difficulty safely
 
     return strain.clamp(0.0, 1.0);
   }
