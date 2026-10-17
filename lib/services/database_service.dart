@@ -122,7 +122,7 @@ class DatabaseService {
     final db = await contentDb;
     if (query.isEmpty) {
       return await db.rawQuery('''
-        SELECT l.*, e.sentence, e.translation_ar 
+        SELECT l.*, e.sentence, e.translation_ar
         FROM lexemes l
         LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
         WHERE l.language_code = ?
@@ -131,7 +131,7 @@ class DatabaseService {
     }
 
     return await db.rawQuery('''
-      SELECT l.*, e.sentence, e.translation_ar 
+      SELECT l.*, e.sentence, e.translation_ar
       FROM lexemes l
       LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
       WHERE l.language_code = ? AND (l.lemma LIKE ? OR l.display_text LIKE ? OR e.translation_ar LIKE ?)
@@ -142,7 +142,7 @@ class DatabaseService {
   // إدخال بيانات تجريبية (مفاهيم الحياة اليومية)
   Future<void> _seedInitialData(Database db) async {
     final batch = db.batch();
-    
+
     // إدخال اللغات
     batch.insert('language_profiles', {'language_code': 'de', 'name_native': 'Deutsch', 'name_ar': 'الألمانية', 'direction': 'ltr'});
     batch.insert('language_profiles', {'language_code': 'ar', 'name_native': 'العربية', 'name_ar': 'العربية', 'direction': 'rtl'});
