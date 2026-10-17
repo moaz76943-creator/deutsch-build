@@ -23,13 +23,13 @@ log CHECK "1/10 Environment"
 
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
-flutter analyze
-flutter test
-python -m pytest -q tests
+flutter analyze || fatal --code "$ERR_COMP" "Flutter analyze failed"
+flutter test || fatal --code "$ERR_COMP" "Flutter tests failed"
+python -m pytest -q tests || fatal --code "$ERR_COMP" "Python tests failed"
 
 log CHECK "4/10 Content Quality"
 python tool/quality_audit.py
@@ -45,10 +45,10 @@ fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
-  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (release) failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
-  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (debug) failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 

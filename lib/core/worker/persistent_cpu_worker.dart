@@ -1,51 +1,28 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
 class PersistentCpuWorker with WidgetsBindingObserver {
   static final PersistentCpuWorker instance = PersistentCpuWorker._init();
-  
-  int _pendingJobs = 0;
-  int _generation = 0;
+
   static const int maxQueueSize = 100;
+  static const int _maxTasks = 50;
+  static const int maxTasks = 50;
+
+  int _pendingJobs = 0;
+  int _activeTasks = 0;
+  int _generation = 0;
   bool _isDisposed = false;
 
   PersistentCpuWorker._init() {
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
-  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
-    return await enqueue(_heavySrsMath, {'ease': currentEase, 'rating': rating});
-  }
-
-  /// Generic bounded isolated execution method
-  Future<R> enqueue<T, R>(ComputeCallback<T, R> callback, T message) async {
-    if (_isDisposed) {
-      throw StateError('Worker is disposed');
-    }
-    if (_pendingJobs >= maxQueueSize) {
-      throw StateError('Queue capacity reached');
-    }
-
-    _pendingJobs++;
-    final currentGeneration = _generation;
-
     try {
-      final result = await compute(callback, message);
-      if (currentGeneration != _generation) {
-        throw StateError('Job cancelled or stale generation');
-      }
-      return result;
-    } finally {
-      _pendingJobs--;
-    }
+      WidgetsBinding.instance.addObserver(this);
+    } catch (_) {}
   }
 
-  /// Cancel all currently in-flight isolated jobs by incrementing the generation.
-  void cancelAll() {
-    _generation++;
-  }
+  int get activeTasks => _activeTasks > 0 ? _activeTasks : _pendingJobs;
+  int get pendingJobs => _pendingJobs;
+  int get generation => _generation;
+  bool get isDisposed => _isDisposed;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -55,21 +32,64 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     }
   }
 
-  void dispose() {
-    _isDisposed = true;
-    cancelAll();
-    WidgetsBinding.instance.removeObserver(this);
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
+    return await enqueue(_heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
 
-  // دالة رياضية معزولة تماماً (SM-2 Logic)
-  static double _heavySrsMath(Map<String, dynamic> data) {
-    double ease = data['ease'] as double;
-    int rating = data['rating'] as int;
-    
-    // معادلة الحفظ والمراجعة المتباعدة
-    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
-    if (newEase < 1.3) newEase = 1.3;
-    
-    return newEase;
+  /// Generic bounded isolated execution method
+  Future<R> enqueue<T, R>(ComputeCallback<T, R> callback, T message) async {
+    if (_isDisposed) {
+      throw StateError('Worker is disposed');
+    }
+    if (_pendingJobs >= maxQueueSize || _activeTasks >= _maxTasks) {
+      throw StateError('Worker queue exhausted: Queue capacity reached');
+    }
+    _pendingJobs++;
+    _activeTasks++;
+    final currentGeneration = _generation;
+
+    await Future.delayed(Duration.zero);
+
+    try {
+      final result = await compute(callback, message);
+      if (currentGeneration != _generation) {
+        throw StateError('Task cancelled: Job cancelled or stale generation');
+      }
+      return result;
+    } finally {
+      _pendingJobs--;
+      _activeTasks--;
+    }
   }
+
+  /// Cancel all currently in-flight isolated jobs by incrementing the generation.
+  void cancelAll() {
+    _generation++;
+  }
+
+  void dispose() {
+    _isDisposed = true;
+    _generation++;
+    cancelAll();
+    try {
+      WidgetsBinding.instance.removeObserver(this);
+    } catch (_) {}
+  }
+
+  @visibleForTesting
+  void resetForTesting() {
+    _generation = 0;
+    _activeTasks = 0;
+    _pendingJobs = 0;
+    _isDisposed = false;
+  }
+}
+
+// دالة حساب مصفوفة التكرار (SM-2 Logic)
+double _heavySrsMath(Map<String, dynamic> params) {
+  final double currentEase = (params['ease'] as num).toDouble();
+  final int rating = params['rating'] as int;
+  double newEase = currentEase + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
+  if (newEase < 1.3) newEase = 1.3;
+  return newEase;
 }
