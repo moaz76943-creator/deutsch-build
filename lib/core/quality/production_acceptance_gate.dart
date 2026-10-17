@@ -1,3 +1,60 @@
+enum GateOutcome {
+  passed,
+  failed,
+  blocked,
+  notRun,
+}
+
+enum PromotionEligibility {
+  approved,
+  degraded,
+  blocked,
+  notVerified,
+}
+
+class J095VerificationResult {
+  final GateOutcome outcome;
+  final PromotionEligibility eligibility;
+  final String reason;
+
+  const J095VerificationResult({
+    required this.outcome,
+    required this.eligibility,
+    required this.reason,
+  });
+}
+
+class J025StartupContract {
+  final bool isOfflineSafe;
+  final bool isStorageGuarded;
+  final bool isLifecycleManaged;
+
+  final bool isContentCorrupted;
+  final bool isIntegrityEvidenceMissing;
+  final bool isStartupRecoveryFailed;
+  final bool isVerificationStale;
+
+  final Set<String> registeredLanguages;
+  final Set<String> verifiedDictionaries;
+
+  final bool hasOptionalAudio;
+  final bool hasExecutedTests;
+
+  const J025StartupContract({
+    required this.isOfflineSafe,
+    required this.isStorageGuarded,
+    required this.isLifecycleManaged,
+    this.isContentCorrupted = false,
+    this.isIntegrityEvidenceMissing = false,
+    this.isStartupRecoveryFailed = false,
+    this.isVerificationStale = false,
+    this.registeredLanguages = const {},
+    this.verifiedDictionaries = const {},
+    this.hasOptionalAudio = true,
+    this.hasExecutedTests = true,
+  });
+}
+
 /// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
 enum PromotionEligibility { approved, degraded, blocked, notVerified }
 
@@ -45,7 +102,93 @@ class ProductionAcceptanceGate {
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-    return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
+    final contract = J025StartupContract(
+      isOfflineSafe: isOfflineSafe,
+      isStorageGuarded: isStorageGuarded,
+      isLifecycleManaged: isLifecycleManaged,
+    );
+    final result = evaluateReadiness(contract);
+    return result.outcome == GateOutcome.passed;
+  }
+
+  static J095VerificationResult evaluateReadiness(J025StartupContract contract) {
+    if (!contract.hasExecutedTests) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.notRun,
+        eligibility: PromotionEligibility.notVerified,
+        reason: 'Verification tests have not executed.',
+      );
+    }
+
+    if (contract.isVerificationStale) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.notRun,
+        eligibility: PromotionEligibility.notVerified,
+        reason: 'Verification results are stale.',
+      );
+    }
+
+    if (contract.isIntegrityEvidenceMissing) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.blocked,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Missing integrity evidence.',
+      );
+    }
+
+    if (contract.isContentCorrupted) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Corrupted content detected.',
+      );
+    }
+
+    if (contract.isStartupRecoveryFailed) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Startup recovery failed.',
+      );
+    }
+
+    if (!contract.isOfflineSafe || !contract.isStorageGuarded || !contract.isLifecycleManaged) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Mandatory infrastructure checks failed.',
+      );
+    }
+
+    bool hasUnsupportedClaims = false;
+    for (final lang in contract.registeredLanguages) {
+      if (!contract.verifiedDictionaries.contains(lang)) {
+        hasUnsupportedClaims = true;
+        break;
+      }
+    }
+
+    if (hasUnsupportedClaims) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.failed,
+        eligibility: PromotionEligibility.blocked,
+        reason: 'Unsupported language claims detected.',
+      );
+    }
+
+    if (!contract.hasOptionalAudio) {
+      return const J095VerificationResult(
+        outcome: GateOutcome.passed,
+        eligibility: PromotionEligibility.degraded,
+        reason: 'Passed with degraded optional features.',
+      );
+    }
+
+    return const J095VerificationResult(
+      outcome: GateOutcome.passed,
+      eligibility: PromotionEligibility.approved,
+      reason: 'All mandatory and optional checks passed.',
+    );
   }
 
   static PromotionEligibility evaluatePromotion({
