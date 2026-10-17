@@ -1,0 +1,13 @@
+{}
+{
+  "tasks": {
+    "J001": {
+      "state": "ACTIVE",
+      "allowed_paths": [
+        "AGENTS.md",
+        "docs/project-record/**",
+        "tools/agent_contract/**"
+      ]
+    }
+  }
+}

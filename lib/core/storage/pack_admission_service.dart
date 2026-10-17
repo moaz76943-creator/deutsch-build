@@ -48,7 +48,7 @@ class PackAdmissionService {
       // Verify SHA-256
       final bytes = await stagedFile.readAsBytes();
       final digest = sha256.convert(bytes);
-      
+
       if (digest.toString() != expectedHash) {
         debugPrint("فشل التحقق: Hash غير متطابق.");
         quarantine.isolateCorruptData(
@@ -72,7 +72,8 @@ class PackAdmissionService {
         allowReplacement: allowReplacement,
       );
 
-      return result.status == DatabaseInstallStatus.installed || result.status == DatabaseInstallStatus.replaced;
+      return result.status == DatabaseInstallStatus.installed ||
+          result.status == DatabaseInstallStatus.replaced;
     } catch (e) {
       debugPrint("خطأ أثناء فحص الحزمة: $e");
       return false;
@@ -91,7 +92,8 @@ class PackAdmissionService {
 
       // Check integrity
       final integrityCheck = await db.rawQuery('PRAGMA integrity_check');
-      if (integrityCheck.isEmpty || integrityCheck.first.values.first.toString().toLowerCase() != 'ok') {
+      if (integrityCheck.isEmpty ||
+          integrityCheck.first.values.first.toString().toLowerCase() != 'ok') {
         debugPrint("فشل التحقق: SQLite integrity_check فشل.");
         quarantine.isolateCorruptData(
           id: path,
@@ -116,8 +118,7 @@ class PackAdmissionService {
 
       // Verify at least one table exists (excluding sqlite_ master tables)
       final tables = await db.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-      );
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
       if (tables.isEmpty) {
         debugPrint("فشل التحقق: لا توجد جداول بيانات.");
         quarantine.isolateCorruptData(

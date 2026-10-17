@@ -1,6 +1,12 @@
 import 'dart:io';
 
-enum DatabaseInstallStatus { installed, replaced, alreadyExists, corrupted, failed }
+enum DatabaseInstallStatus {
+  installed,
+  replaced,
+  alreadyExists,
+  corrupted,
+  failed
+}
 
 class DatabaseInstallResult {
   final DatabaseInstallStatus status;
@@ -57,9 +63,9 @@ class AtomicDatabaseInstaller {
       // If this fails, the original targetFile is untouched.
       await tempFile.rename(targetPath);
 
-      return DatabaseInstallResult(
-        targetExists ? DatabaseInstallStatus.replaced : DatabaseInstallStatus.installed
-      );
+      return DatabaseInstallResult(targetExists
+          ? DatabaseInstallStatus.replaced
+          : DatabaseInstallStatus.installed);
     } catch (e) {
       if (await tempFile.exists()) {
         await tempFile.delete();
