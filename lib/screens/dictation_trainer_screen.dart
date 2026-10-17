@@ -125,6 +125,12 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   @override
+  void dispose() {
+    _answerController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_currentEntry == null && !_isVoiceLoading) {
       return Scaffold(
