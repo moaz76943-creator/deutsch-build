@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/ui/contracts/ui_state_contract.dart';
 import 'package:deutsch_bilarabi/core/ui/components/resilient_async_builder.dart';
+import 'package:deutsch_bilarabi/core/ui/components/resilient_state_builder.dart';
+import 'package:deutsch_bilarabi/core/ui/contracts/ui_state.dart';
 import 'package:deutsch_bilarabi/core/ui/components/optional_media_widget.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
 
@@ -12,9 +14,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateSuccess('Success Data'),
-              builder: (context, data) => Text(data),
+
+              futureBuilder: (token) async => 'Success Data',
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -29,9 +31,10 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateEmpty('No Data Here'),
-              builder: (context, data) => Text(data),
+
+              futureBuilder: (token) async => null,
+              emptyMessage: 'No Data Here',
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -46,9 +49,10 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateFailed('Error occurred', userMessage: 'Something went wrong'),
-              builder: (context, data) => Text(data),
+
+              futureBuilder: (token) async => throw Exception('error'),
+              errorBuilder: (context, error, message) => Text('Something went wrong'),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -62,10 +66,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateDegraded('Stale Data', 'Warning: Offline mode'),
-              builder: (context, data) => Text(data),
+            body: ResilientStateBuilder<String>(
+              state: UIState.degraded('Stale Data', message: 'Warning: Offline mode'),
+              dataBuilder: (context, data) => Column(children: [Text('Warning: Offline mode'), Text(data)]),
             ),
           ),
         ),
@@ -111,9 +114,10 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: ResilientAsyncBuilder<String>(
-                featureName: 'ScaleFeature',
-                fetcher: () async => const UiStateFailed('Error', userMessage: 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
-                builder: (context, data) => Text(data),
+
+                futureBuilder: (token) async => throw Exception('Error'),
+                errorBuilder: (context, error, message) => Text('A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
+                dataBuilder: (context, data) => Text(data),
               ),
             ),
           ),
@@ -134,9 +138,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateSuccess('Data'),
-              builder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
+
+              futureBuilder: (token) async => 'Data',
+              dataBuilder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
             ),
           ),
         ),
