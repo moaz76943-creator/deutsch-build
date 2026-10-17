@@ -43,6 +43,7 @@ grep -F "versionName='$APP_VERSION'" <<<"$BADGING" >/dev/null || fatal --code "$
 APK_ABI="arm64-v8a"
 grep -F "native-code: '$APK_ABI'" <<<"$BADGING" >/dev/null || fatal --code "$ERR_VERIFY" "APK does not advertise $APK_ABI native code"
 
+<<<<<<< HEAD
 PERMISSIONS="$(aapt dump permissions "$APK")" || fatal --code "$ERR_VERIFY" "aapt could not inspect APK permissions"
 grep -F "android.permission.RECORD_AUDIO" <<<"$PERMISSIONS" >/dev/null || fatal --code "$ERR_VERIFY" "Required pronunciation permission is missing from merged APK"
 =======
@@ -70,6 +71,10 @@ for forbidden_permission in \
     fatal --code "$ERR_VERIFY" "Unexpected release permission in merged APK: $forbidden_permission"
   fi
 done
+=======
+PERMISSIONS="$(aapt dump permissions "$APK")" || fatal "$ERR_ARTIFACT" "aapt could not inspect APK permissions"
+printf '%s\n' "$PERMISSIONS" | bash "$ROOT/scripts/check_apk_permissions.sh" "$MODE" || fatal "$ERR_ARTIFACT" "Release APK permission policy failed"
+>>>>>>> pr-179
 
 ZIP_LIST="$(unzip -Z1 "$APK")" || fatal --code "$ERR_VERIFY" "APK is not a readable ZIP archive"
 grep -Fx 'AndroidManifest.xml' <<<"$ZIP_LIST" >/dev/null || fatal --code "$ERR_VERIFY" "AndroidManifest.xml missing"

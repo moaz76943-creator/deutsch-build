@@ -38,8 +38,12 @@ android {
     }
 
     namespace "com.deutschbilarabi.app"
+<<<<<<< HEAD
     compileSdk 36 // استخدام إصدار مستقر
     ndkVersion = "28.2.13676358"
+=======
+    compileSdk = 36
+>>>>>>> pr-179
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -58,7 +62,7 @@ android {
         applicationId "com.deutschbilarabi.app"
         // نرفع الإصدار لـ 21 فقط لدعم SQLite و TTS
         minSdkVersion flutter.minSdkVersion
-        targetSdk 34
+        targetSdk = 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
 
@@ -66,6 +70,7 @@ android {
         multiDexEnabled true
     }
 
+<<<<<<< HEAD
     // Read signing config via external gradle script
     apply from: rootProject.file('release-signing.gradle')
     def releaseSigningConfig = resolveReleaseSigning()
@@ -79,12 +84,40 @@ android {
                 keyPassword releaseSigningConfig.releaseKeyPassword
             }
         }
+=======
+            signingConfigs {
+        secureRelease {
+            def keystorePropertiesFile = rootProject.file('key.properties')
+            def keystoreProperties = new Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystorePropertiesFile.withInputStream { stream ->
+                    keystoreProperties.load(stream)
+                }
+            }
+            def keyFilePath = project.findProperty('releaseStoreFile') ?: keystoreProperties['storeFile']
+            if (keyFilePath) {
+                def keyFile = file(keyFilePath)
+                if (!keyFile.exists() && rootProject.file(keyFilePath).exists()) {
+                    keyFile = rootProject.file(keyFilePath)
+                }
+                storeFile keyFile
+                storePassword (project.findProperty('releaseStorePassword') ?: keystoreProperties['storePassword'])
+                keyAlias (project.findProperty('releaseKeyAlias') ?: keystoreProperties['keyAlias'])
+                keyPassword (project.findProperty('releaseKeyPassword') ?: keystoreProperties['keyPassword'])
+            }
+        }
+        release {
+            initWith(signingConfigs.secureRelease)
+        }
+>>>>>>> pr-179
     }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.secureRelease
             minifyEnabled false
             shrinkResources false
+<<<<<<< HEAD
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
 <<<<<<< HEAD
@@ -97,10 +130,11 @@ android {
                 signingConfig null
             }
 >>>>>>> pr-45
+=======
+>>>>>>> pr-179
         }
     }
 }
-
 flutter {
     source '../..'
 }

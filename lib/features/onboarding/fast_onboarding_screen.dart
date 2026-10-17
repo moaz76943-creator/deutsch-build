@@ -1,3 +1,4 @@
+import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
 import '../../screens/main_shell_screen.dart';
@@ -107,6 +108,7 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     if (_hasError) {
       return Scaffold(
         backgroundColor: const Color(0xFF0F172A),
@@ -148,6 +150,11 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
             ),
           ),
         ),
+=======
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainShellScreen()),
+>>>>>>> pr-179
       );
     }
 
