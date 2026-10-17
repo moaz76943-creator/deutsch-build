@@ -7,10 +7,10 @@ source "$ROOT/scripts/common.sh"
 load_toolchain
 
 MODE="${1:-debug}"
-case "$MODE" in debug|release) ;; *) fatal "Usage: ./scripts/build.sh [debug|release]";; esac
+case "$MODE" in debug|release) ;; *) fatal $ERR_ENV "Usage: ./scripts/build.sh [debug|release]";; esac
 
 JSON_CONTENT="${DEUTSCH_JSON_CONTENT:-false}"
-case "$JSON_CONTENT" in true|false) ;; *) fatal "DEUTSCH_JSON_CONTENT must be true or false";; esac
+case "$JSON_CONTENT" in true|false) ;; *) fatal $ERR_ENV "DEUTSCH_JSON_CONTENT must be true or false";; esac
 DART_DEFINE=("--dart-define=DEUTSCH_JSON_CONTENT=$JSON_CONTENT")
 cd "$ROOT"
 LOG_DIR="${HOME}/.deutsch_bilarabi_logs"
@@ -23,6 +23,7 @@ log CHECK "1/10 Environment"
 
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 assert_lockfile_unchanged
 
@@ -30,13 +31,22 @@ log TEST "3/10 Analyze + tests + project audits"
 flutter analyze || fatal --code "$ERR_COMP" "Flutter analyze failed"
 flutter test || fatal --code "$ERR_COMP" "Flutter tests failed"
 python -m pytest -q tests || fatal --code "$ERR_COMP" "Python tests failed"
+=======
+with_retry flutter pub get --enforce-lockfile
+assert_lockfile_unchanged
+
+log TEST "3/10 Analyze + tests + project audits"
+flutter analyze || fatal $ERR_COMPILE "Flutter analyze failed"
+flutter test || fatal $ERR_COMPILE "Flutter test failed"
+python -m pytest -q tests || fatal $ERR_COMPILE "Python tests failed"
+>>>>>>> origin/main
 
 log CHECK "4/10 Content Quality"
-python tool/quality_audit.py
+python tool/quality_audit.py || fatal $ERR_COMPILE "Quality audit failed"
 
 log CHECK "5/10 Security"
-python tool/security_audit.py
-python tool/phase17_production_gate.py
+python tool/security_audit.py || fatal $ERR_COMPILE "Security audit failed"
+python tool/phase17_production_gate.py || fatal $ERR_COMPILE "Production gate failed"
 
 if [[ "$MODE" == "release" ]]; then
   log CHECK "6/10 Release signing"
@@ -45,10 +55,17 @@ fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
+<<<<<<< HEAD
   flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (release) failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
   flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (debug) failed"
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal $ERR_COMPILE "Release build failed"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal $ERR_COMPILE "Debug build failed"
+>>>>>>> origin/main
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 

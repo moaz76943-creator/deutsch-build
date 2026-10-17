@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 import 'dart:io';
+=======
+>>>>>>> origin/main
 import 'package:sqflite/sqflite.dart';
 import 'database_service.dart';
 
 class SqliteMaintenanceService {
+<<<<<<< HEAD
   final DatabaseService _dbService;
 
   SqliteMaintenanceService({DatabaseService? dbService, DatabaseService? databaseService})
@@ -14,6 +18,15 @@ class SqliteMaintenanceService {
       List<Map<String, Object?>> checkpointResult;
       try {
         checkpointResult = await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE);');
+=======
+  SqliteMaintenanceService({DatabaseService? databaseService});
+
+  Future<void> performMaintenance(Database db) async {
+    try {
+      List<Map<String, Object?>> checkpointResult;
+      try {
+        checkpointResult = await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE)');
+>>>>>>> origin/main
       } on DatabaseException catch (e) {
         final errorMessage = e.toString().toLowerCase();
         if (errorMessage.contains('readonly') || errorMessage.contains('read-only')) {
@@ -30,6 +43,10 @@ class SqliteMaintenanceService {
       }
 
       await db.execute('REINDEX');
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
     } on DatabaseException catch (e) {
       final errorMessage = e.toString().toLowerCase();
       if (errorMessage.contains('busy') ||
@@ -42,6 +59,7 @@ class SqliteMaintenanceService {
       }
       rethrow;
     }
+<<<<<<< HEAD
 
     if (targetDb == null) {
       await _cleanupTempFiles();
@@ -67,5 +85,7 @@ class SqliteMaintenanceService {
     } catch (e) {
       // ignore
     }
+=======
+>>>>>>> origin/main
   }
 }

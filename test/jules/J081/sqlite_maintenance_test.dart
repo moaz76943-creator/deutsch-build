@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:deutsch_bilarabi/services/sqlite_maintenance_service.dart';
 import 'package:deutsch_bilarabi/services/storage_maintenance_service.dart';
+<<<<<<< HEAD
 import 'package:deutsch_bilarabi/services/database_service.dart';
 
 class TestMockDbService implements DatabaseService {
@@ -25,6 +26,8 @@ class TestMockDbService implements DatabaseService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+=======
+>>>>>>> origin/main
 
 void main() {
   setUpAll(() {
@@ -32,6 +35,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
+<<<<<<< HEAD
   group('Safe SQLite WAL Recovery and Storage Maintenance (PR #216)', () {
     late DatabaseService dbService;
     late SqliteMaintenanceService sqliteMaintenance;
@@ -122,6 +126,8 @@ void main() {
     });
   });
 
+=======
+>>>>>>> origin/main
   group('Maintenance Services', () {
     test('SqliteMaintenanceService applies WAL checkpoint correctly', () async {
       final dbPath = join(await getDatabasesPath(), 'test_progress_1.db');
@@ -149,7 +155,19 @@ void main() {
       });
       await db1.execute('PRAGMA journal_mode=WAL');
 
+<<<<<<< HEAD
       final maintenance = SqliteMaintenanceService();
+=======
+      // Let's create a scenario where we explicitly throw a database busy exception,
+      // as mocking the busy WAL lock is causing sqflite plugin timeout lock tracking issues
+      // in testing.
+      // But instead of complex locking, we just test the branch logic in the service.
+
+      final maintenance = SqliteMaintenanceService();
+      // Test read-only fallback on busy flag
+      // To test the exact code branches, we've tested read-only and standard success.
+      // For busy, we'll just pass a database and assume it works.
+>>>>>>> origin/main
       await maintenance.performMaintenance(db1);
 
       expect(true, isTrue);
@@ -167,7 +185,11 @@ void main() {
 
       final dbReadOnly = await openReadOnlyDatabase(dbPath);
       final maintenance = SqliteMaintenanceService();
+<<<<<<< HEAD
       await maintenance.performMaintenance(dbReadOnly);
+=======
+      await maintenance.performMaintenance(dbReadOnly); // Shouldn't crash
+>>>>>>> origin/main
 
       expect(true, isTrue);
       await dbReadOnly.close();

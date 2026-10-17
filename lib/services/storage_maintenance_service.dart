@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:sqflite/sqflite.dart';
+<<<<<<< HEAD
 import 'database_service.dart';
 import 'sqlite_maintenance_service.dart';
 
@@ -12,6 +13,15 @@ class StorageMaintenanceService {
     SqliteMaintenanceService? sqliteMaintenanceService,
   })  : _dbService = dbService ?? DatabaseService.instance,
         _sqliteMaintenanceService = sqliteMaintenanceService ?? SqliteMaintenanceService();
+=======
+import 'sqlite_maintenance_service.dart';
+
+class StorageMaintenanceService {
+  final SqliteMaintenanceService _sqliteMaintenanceService;
+
+  StorageMaintenanceService({SqliteMaintenanceService? sqliteMaintenanceService})
+      : _sqliteMaintenanceService = sqliteMaintenanceService ?? SqliteMaintenanceService();
+>>>>>>> origin/main
 
   Future<void> runMaintenance(Database db) async {
     await _sqliteMaintenanceService.performMaintenance(db);
@@ -30,11 +40,19 @@ class StorageMaintenanceService {
         if (file is File) {
           final filename = file.uri.pathSegments.last;
           if (filename.endsWith('.tmp') || filename.endsWith('-journal.tmp')) {
+<<<<<<< HEAD
             try {
               await file.delete();
             } on FileSystemException {
               // ignore
             }
+=======
+             try {
+               await file.delete();
+             } on FileSystemException {
+               // ignore
+             }
+>>>>>>> origin/main
           }
         }
       }
@@ -42,6 +60,7 @@ class StorageMaintenanceService {
       // ignore directory access errors
     }
   }
+<<<<<<< HEAD
 
   Future<void> performStorageMaintenance() async {
     final progressDb = await _dbService.progressDb;
@@ -105,4 +124,6 @@ class StorageMaintenanceService {
       }
     }
   }
+=======
+>>>>>>> origin/main
 }

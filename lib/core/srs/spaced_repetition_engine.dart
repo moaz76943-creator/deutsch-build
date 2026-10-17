@@ -6,6 +6,7 @@ class SpacedRepetitionEngine {
   static LeitnerCardState calculateNextInterval({
     required LeitnerCardState previousState,
     required int rating,
+<<<<<<< HEAD
     int? nowEpoch,
   }) {
     if (rating < 0) throw ArgumentError('Rating cannot be negative');
@@ -13,6 +14,21 @@ class SpacedRepetitionEngine {
     if (previousState.consecutiveSuccesses < 0) throw ArgumentError('Consecutive successes cannot be negative');
 
     final now = nowEpoch ?? DateTime.now().millisecondsSinceEpoch;
+=======
+    DateTime? currentTime,
+  }) {
+    if (rating < 0) {
+      throw ArgumentError('rating cannot be negative');
+    }
+    if (previousState.consecutiveSuccesses < 0) {
+      throw ArgumentError('consecutiveSuccesses cannot be negative');
+    }
+    if (previousState.easeFactor.isNaN) {
+      throw ArgumentError('easeFactor cannot be NaN');
+    }
+
+    final now = (currentTime ?? DateTime.now()).millisecondsSinceEpoch;
+>>>>>>> origin/main
 
     if (rating <= 1) {
       return LeitnerCardState(

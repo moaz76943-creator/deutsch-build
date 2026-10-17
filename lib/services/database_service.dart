@@ -55,6 +55,7 @@ class DatabaseService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
+<<<<<<< HEAD
       await db.execute('PRAGMA journal_mode = WAL;');
       await db.execute('PRAGMA synchronous = NORMAL;');
       await db.execute('PRAGMA busy_timeout = 5000;');
@@ -70,6 +71,29 @@ class DatabaseService {
              direction TEXT NOT NULL
             )
           ''');
+=======
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        // جداول المحتوى (لـ 100 لغة)
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS language_profiles (
+           language_code TEXT PRIMARY KEY,
+           name_native TEXT NOT NULL,
+           name_ar TEXT NOT NULL,
+           direction TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS concepts (
+           concept_id TEXT PRIMARY KEY,
+           category TEXT NOT NULL,
+           cefr_level TEXT NOT NULL
+          )
+        ''');
+>>>>>>> origin/main
 
           await db.execute('''
             CREATE TABLE IF NOT EXISTS concepts (
