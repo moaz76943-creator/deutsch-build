@@ -1,140 +1,173 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 class WorkerQueueExhaustedException implements Exception {
   final String message;
-  WorkerQueueExhaustedException([this.message = 'Worker queue is exhausted.']);
+  WorkerQueueExhaustedException([this.message = "Worker queue is full"]);
   @override
-  String toString() => 'WorkerQueueExhaustedException: $message';
+  String toString() => message;
 }
 
 class WorkerCancelledException implements Exception {
   final String message;
-  WorkerCancelledException([this.message = 'Worker task was cancelled due to generation change or disposal.']);
+  WorkerCancelledException([this.message = "Task was cancelled"]);
   @override
-  String toString() => 'WorkerCancelledException: $message';
+  String toString() => message;
 }
 
-class WorkerDisposedException implements Exception {
-  final String message;
-  WorkerDisposedException([this.message = 'Worker is disposed.']);
-  @override
-  String toString() => 'WorkerDisposedException: $message';
+class _QueuedTask<Q, R> {
+  final ComputeCallback<Q, R> task;
+  final Q message;
+  final Completer<R> completer;
+  final int generation;
+
+  _QueuedTask({
+    required this.task,
+    required this.message,
+    required this.completer,
+    required this.generation,
+  });
 }
 
-/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
-class PersistentCpuWorker {
-  static final PersistentCpuWorker instance = PersistentCpuWorker._init();
-  
-  int _pendingJobsCount = 0;
+class PersistentCpuWorker with WidgetsBindingObserver {
+  static PersistentCpuWorker instance = PersistentCpuWorker._init();
+
+  final int maxConcurrentTasks;
+  final int maxQueueSize;
+
+  int _activeJobs = 0;
   int _generation = 0;
-  bool _isDisposed = false;
-  bool _isPaused = false;
+  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
 
-  // Track tasks in progress to limit concurrency if needed, but the main goal is to enforce queue limits.
-  // Wait, the review mentioned: "The bounding mechanism limits in-flight requests to 50 but does not throttle concurrency. A robust CPU worker should queue tasks to run sequentially or on a small pool of isolates, rather than spawning up to 50 isolates at once."
-
-  final List<_WorkerTask> _queue = [];
-  bool _isProcessing = false;
-
-  PersistentCpuWorker._init();
-
-  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
-  Future<double> calculateNewEaseFactor(double currentEase, int rating) {
-    return _enqueue(() => compute(_heavySrsMath, {'ease': currentEase, 'rating': rating}));
+  PersistentCpuWorker._init()
+      : maxConcurrentTasks = 4,
+        maxQueueSize = 50 {
+    _registerObserver();
+  }
+  
+  void _registerObserver() {
+     try {
+       WidgetsBinding.instance.addObserver(this);
+     } catch (_) {
+       // Ignore if not initialized
+     }
   }
 
-  // Method added for testing worker errors.
-  Future<double> simulateFailingTask() {
-    return _enqueue(() => compute(_heavySrsMath, {'throwError': true}));
+  @visibleForTesting
+  static void resetForTesting() {
+    instance.dispose();
+    instance = PersistentCpuWorker._init();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      cancelAll();
+    }
   }
 
   void cancelAll() {
     _generation++;
-    for (var task in _queue) {
+    for (final task in _queue) {
       if (!task.completer.isCompleted) {
         task.completer.completeError(WorkerCancelledException());
       }
     }
     _queue.clear();
-    _pendingJobsCount = 0;
   }
 
   void dispose() {
-    _isDisposed = true;
+    try {
+      WidgetsBinding.instance.removeObserver(this);
+    } catch (_) {}
     cancelAll();
   }
 
-  void pause() {
-    _isPaused = true;
-  }
-
-  void resume() {
-    _isPaused = false;
-    _processQueue();
-  }
-
-  Future<T> _enqueue<T>(Future<T> Function() task) async {
-    if (_isDisposed) {
-      throw WorkerDisposedException();
+  Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
+    if (_queue.length >= maxQueueSize) {
+      return Future.error(WorkerQueueExhaustedException());
     }
-    if (_pendingJobsCount >= 50) {
-      throw WorkerQueueExhaustedException();
-    }
-    // Note: Do not throw early if paused, just enqueue and it will process when resumed.
-    // If it's paused, it shouldn't cancel jobs proactively unless they try to execute or cancelAll is called.
 
-    final completer = Completer<T>();
-    final currentGeneration = _generation;
+    final completer = Completer<R>();
+    final queuedTask = _QueuedTask<Q, R>(
+      task: task,
+      message: message,
+      completer: completer,
+      generation: _generation,
+    );
 
-    _pendingJobsCount++;
-    _queue.add(_WorkerTask<T>(task, completer, currentGeneration));
-
-    _processQueue();
+    _queue.add(queuedTask);
+    _pump();
 
     return completer.future;
   }
 
-  Future<void> _processQueue() async {
-    if (_isProcessing || _isPaused || _queue.isEmpty) return;
-
-    _isProcessing = true;
-
-    while (_queue.isNotEmpty && !_isPaused) {
-      final workerTask = _queue.removeAt(0);
-      _pendingJobsCount--;
-
-      if (_isDisposed || workerTask.generation != _generation) {
-        if (!workerTask.completer.isCompleted) {
-          workerTask.completer.completeError(WorkerCancelledException());
-        }
-        continue;
-      }
-
-      try {
-        final result = await workerTask.task();
-        if (_isDisposed || workerTask.generation != _generation) {
-          if (!workerTask.completer.isCompleted) {
-            workerTask.completer.completeError(WorkerCancelledException());
-          }
-        } else {
-          workerTask.completer.complete(result);
-        }
-      } catch (e, st) {
-        if (!workerTask.completer.isCompleted) {
-          workerTask.completer.completeError(e, st);
-        }
-      }
+  void _pump() {
+    if (_activeJobs >= maxConcurrentTasks || _queue.isEmpty) {
+      return;
     }
 
-    _isProcessing = false;
+    final queuedTask = _queue.removeFirst();
+    _unpackAndExecute(queuedTask);
+  }
+
+  void _unpackAndExecute(dynamic task) {
+    if (task is _QueuedTask) {
+       _executeQueuedTask(task);
+    }
+  }
+
+  void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
+
+    if (queuedTask.generation != _generation) {
+      if (!queuedTask.completer.isCompleted) {
+         queuedTask.completer.completeError(WorkerCancelledException());
+      }
+      _pump();
+      return;
+    }
+
+    _activeJobs++;
+
+    Future.microtask(() async {
+      try {
+        // Do not pass `queuedTask` or anything referencing Completer into compute.
+        // Copy task and message to local vars to avoid capturing `this` or `queuedTask`.
+        // To be completely safe from capturing the current context, we should pass the task directly
+        // back to compute if it's already a static top-level function, but if it is a closure we might still have problems.
+        // Dart's compute expects a top-level or static function.
+        final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
+
+        if (queuedTask.generation == _generation) {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.complete(result);
+          }
+        } else {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.completeError(WorkerCancelledException());
+          }
+        }
+      } catch (e, st) {
+        if (!queuedTask.completer.isCompleted) {
+          queuedTask.completer.completeError(e, st);
+        }
+      } finally {
+        _activeJobs--;
+        _pump();
+      }
+    });
+  }
+
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) {
+    return executeTask<Map<String, dynamic>, double>(_heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
 
   // دالة رياضية معزولة تماماً (SM-2 Logic)
-  static double _heavySrsMath(Map<String, dynamic> data) {
-    if (data['throwError'] == true) {
-      throw Exception('Simulated worker error');
-    }
+  static double _heavySrsMath(dynamic rawData) {
+    final data = rawData as Map<String, dynamic>;
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
     
@@ -144,12 +177,4 @@ class PersistentCpuWorker {
     
     return newEase;
   }
-}
-
-class _WorkerTask<T> {
-  final Future<T> Function() task;
-  final Completer<T> completer;
-  final int generation;
-
-  _WorkerTask(this.task, this.completer, this.generation);
 }
