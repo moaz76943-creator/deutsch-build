@@ -39,15 +39,15 @@ class VaultException implements Exception {
 }
 
 class KeyUnavailableException extends VaultException {
-  KeyUnavailableException(String message) : super(message);
+  KeyUnavailableException(super.message);
 }
 
 class CorruptRecordException extends VaultException {
-  CorruptRecordException(String message) : super(message);
+  CorruptRecordException(super.message);
 }
 
 class TamperedRecordException extends VaultException {
-  TamperedRecordException(String message) : super(message);
+  TamperedRecordException(super.message);
 }
 
 class UserVaultSecurityService {

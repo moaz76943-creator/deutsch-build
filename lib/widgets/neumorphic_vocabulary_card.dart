@@ -8,11 +8,11 @@ class NeumorphicVocabularyCard extends StatelessWidget {
   final Widget? child;
 
   const NeumorphicVocabularyCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.heroTag,
     this.child,
-  }) : super(key: key);
+  });
 
   void _showZoomedImage(BuildContext context) {
     showDialog(
@@ -24,7 +24,7 @@ class NeumorphicVocabularyCard extends StatelessWidget {
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
               ),
             ),
             GestureDetector(
@@ -66,13 +66,13 @@ class NeumorphicVocabularyCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withValues(alpha: 0.6),
               offset: const Offset(4, 4),
               blurRadius: 10,
               spreadRadius: 1,
             ),
             BoxShadow(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               offset: const Offset(-4, -4),
               blurRadius: 10,
               spreadRadius: 1,

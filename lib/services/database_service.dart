@@ -106,7 +106,7 @@ class DatabaseService {
           // زرع بيانات مبدئية لكي يعمل المعجم فوراً
           await _seedInitialData(db);
         },
-      );
+      )
       await db.execute('PRAGMA journal_mode = WAL;');
       await db.execute('PRAGMA synchronous = NORMAL;');
       await db.execute('PRAGMA busy_timeout = 5000;');

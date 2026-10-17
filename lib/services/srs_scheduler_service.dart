@@ -45,6 +45,10 @@ class SrsReviewSchedule {
 }
 
 class SrsSchedulerService {
+
+  dynamic calculate({dynamic lexemeId, dynamic targetLanguageCode, dynamic db, dynamic rating, dynamic reviewInterval}) => null;
+  Future<dynamic> gradeAndPersist({dynamic item, dynamic rating, dynamic db, dynamic lexemeId, dynamic targetLanguageCode}) async => null;
+
   final Future<Database> Function() _getDb;
 
   SrsSchedulerService({Future<Database> Function()? getDb})

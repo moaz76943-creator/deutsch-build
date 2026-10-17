@@ -108,7 +108,7 @@ class DirectedReadinessEngine {
 
     final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
     if (!_supportedPairs.contains(pair)) {
-      return UnsupportedPairState('Directed language pair ${sourceIso} -> ${targetIso} is not authorized for learning.');
+      return UnsupportedPairState('Directed language pair $sourceIso -> $targetIso is not authorized for learning.');
     }
 
     final sourceState = _checkLanguage(sourceIso, 'Source');

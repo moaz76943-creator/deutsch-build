@@ -69,7 +69,7 @@ class _FlashcardsContainer extends StatelessWidget {
   final FlashcardData? card;
   final ReviewCommandPort? commandPort;
 
-  const _FlashcardsContainer({Key? key, this.card, this.commandPort}) : super(key: key);
+  const _FlashcardsContainer({this.card, this.commandPort});
 
   @override
   Widget build(BuildContext context) {

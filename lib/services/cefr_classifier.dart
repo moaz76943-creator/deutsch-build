@@ -113,8 +113,9 @@ class CefrClassifier {
     bool compound = evidence.isCompound ?? false;
 
     if (lang == 'de') {
-      if (rank <= 500) inferred = CefrLevel.a1;
-      else if (rank <= 2000) inferred = CefrLevel.a2;
+      if (rank <= 500) {
+        inferred = CefrLevel.a1;
+      } else if (rank <= 2000) inferred = CefrLevel.a2;
       else if (rank <= 4000) inferred = CefrLevel.b1;
       else if (rank <= 8000) inferred = CefrLevel.b2;
       else inferred = CefrLevel.c1;
@@ -123,15 +124,17 @@ class CefrClassifier {
         inferred = CefrLevel.a2; // Compounds are generally harder
       }
     } else if (lang == 'ar') {
-      if (rank <= 600) inferred = CefrLevel.a1;
-      else if (rank <= 2500) inferred = CefrLevel.a2;
+      if (rank <= 600) {
+        inferred = CefrLevel.a1;
+      } else if (rank <= 2500) inferred = CefrLevel.a2;
       else if (rank <= 5000) inferred = CefrLevel.b1;
       else if (rank <= 10000) inferred = CefrLevel.b2;
       else inferred = CefrLevel.c1;
     } else {
       // Generic fallback
-      if (rank <= 1000) inferred = CefrLevel.a1;
-      else if (rank <= 3000) inferred = CefrLevel.a2;
+      if (rank <= 1000) {
+        inferred = CefrLevel.a1;
+      } else if (rank <= 3000) inferred = CefrLevel.a2;
       else if (rank <= 6000) inferred = CefrLevel.b1;
       else if (rank <= 10000) inferred = CefrLevel.b2;
       else inferred = CefrLevel.c1;
@@ -140,8 +143,9 @@ class CefrClassifier {
 
     // If length is extremely long but rank is high, could bump difficulty
     if (evidence.charLength != null && evidence.charLength! > 15) {
-      if (inferred == CefrLevel.a1) inferred = CefrLevel.a2;
-      else if (inferred == CefrLevel.a2) inferred = CefrLevel.b1;
+      if (inferred == CefrLevel.a1) {
+        inferred = CefrLevel.a2;
+      } else if (inferred == CefrLevel.a2) inferred = CefrLevel.b1;
     }
 
     return CefrClassification(

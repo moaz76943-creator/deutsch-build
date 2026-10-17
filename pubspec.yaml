@@ -24,6 +24,7 @@ dependencies:
   font_awesome_flutter: any
   cached_network_image: ^3.4.1
 
+  synchronized: any
 dev_dependencies:
   custom_lint: ^0.6.0
   custom_lint_builder: ^0.6.0

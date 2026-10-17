@@ -8,10 +8,10 @@ class FlashcardWidget extends StatefulWidget {
   final Future<void> Function(String cardId, int rating, String sourceIso, String targetIso) onReviewed;
 
   const FlashcardWidget({
-    Key? key,
+    super.key,
     required this.card,
     required this.onReviewed,
-  }) : super(key: key);
+  });
 
   @override
   State<FlashcardWidget> createState() => _FlashcardWidgetState();
