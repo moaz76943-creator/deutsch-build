@@ -1,86 +1,129 @@
-enum PromotionEligibility { approved, degraded, blocked, notVerified }
+import '../catalog/language_readiness_matrix.dart';
 
-class ProductionEvidence {
-  final bool? isJ025ContractVerified;
-  final bool? isJ095ContractVerified;
-  final bool? hasDartErrors;
-  final bool? hasMemoryRegression;
-  final bool? hasFTS5Regression;
-  final bool? isNormalStartupVerified;
-  final bool? isSafeModeVerified;
-  final bool? isStorageCorrupt;
-  final bool? isOptionalTTSAvailable;
-  final bool? isLanguagePackLocalEvidenceAvailable;
-  final bool? isMetadataOnlyLanguage;
-  final DateTime timestamp;
+enum GateOutcome { PASSED, FAILED, BLOCKED, NOT_RUN }
 
-  const ProductionEvidence({
-    this.isJ025ContractVerified,
-    this.isJ095ContractVerified,
-    this.hasDartErrors,
-    this.hasMemoryRegression,
-    this.hasFTS5Regression,
-    this.isNormalStartupVerified,
-    this.isSafeModeVerified,
-    this.isStorageCorrupt,
-    this.isOptionalTTSAvailable,
-    this.isLanguagePackLocalEvidenceAvailable,
-    this.isMetadataOnlyLanguage,
-    required this.timestamp,
+class AcceptanceResult {
+  final GateOutcome outcome;
+  final String reason;
+  final List<String> verifiedLanguages;
+  final bool isAudioAvailable;
+
+  const AcceptanceResult({
+    required this.outcome,
+    required this.reason,
+    required this.verifiedLanguages,
+    required this.isAudioAvailable,
   });
+}
 
-  bool get isStale => DateTime.now().toUtc().difference(timestamp.toUtc()).inMinutes > 5;
+class AcceptanceEvidence {
+  final bool isOfflineSafe;
+  final bool isStorageGuarded;
+  final bool isLifecycleManaged;
+  final bool hasStorageCorruption;
+  final bool hasStartupRecoveryFailed;
+  final DateTime? verificationTimestamp;
+  final List<String> declaredLanguages;
+  final bool isAudioAvailable;
+
+  const AcceptanceEvidence({
+    required this.isOfflineSafe,
+    required this.isStorageGuarded,
+    required this.isLifecycleManaged,
+    this.hasStorageCorruption = false,
+    this.hasStartupRecoveryFailed = false,
+    this.verificationTimestamp,
+    this.declaredLanguages = const [],
+    this.isAudioAvailable = false,
+  });
 }
 
 /// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
 class ProductionAcceptanceGate {
-  static ProductionEvidence? _lastApprovedEvidence;
-
-  static ProductionEvidence? get lastApprovedEvidence => _lastApprovedEvidence;
-
-  static PromotionEligibility evaluatePromotionEligibility(ProductionEvidence? evidence) {
-    if (evidence == null || evidence.isStale) {
-      return PromotionEligibility.notVerified;
+  static AcceptanceResult evaluateReadiness(AcceptanceEvidence evidence) {
+    if (evidence.verificationTimestamp == null) {
+      return const AcceptanceResult(
+        outcome: GateOutcome.NOT_RUN,
+        reason: 'Verification timestamp is missing.',
+        verifiedLanguages: [],
+        isAudioAvailable: false,
+      );
     }
 
-    // Treat missing mandatory evidence as notVerified.
-    if (evidence.isJ025ContractVerified == null ||
-        evidence.isJ095ContractVerified == null ||
-        evidence.isNormalStartupVerified == null ||
-        evidence.isSafeModeVerified == null ||
-        evidence.isLanguagePackLocalEvidenceAvailable == null ||
-        evidence.hasDartErrors == null ||
-        evidence.hasMemoryRegression == null ||
-        evidence.hasFTS5Regression == null ||
-        evidence.isStorageCorrupt == null ||
-        evidence.isMetadataOnlyLanguage == null) {
-      return PromotionEligibility.notVerified;
+    if (evidence.hasStorageCorruption) {
+      return AcceptanceResult(
+        outcome: GateOutcome.BLOCKED,
+        reason: 'Storage corruption detected.',
+        verifiedLanguages: [],
+        isAudioAvailable: evidence.isAudioAvailable,
+      );
     }
 
-    if (evidence.isJ025ContractVerified == false || evidence.isJ095ContractVerified == false) {
-      return PromotionEligibility.notVerified;
+    if (evidence.hasStartupRecoveryFailed) {
+      return AcceptanceResult(
+        outcome: GateOutcome.BLOCKED,
+        reason: 'Startup recovery failed.',
+        verifiedLanguages: [],
+        isAudioAvailable: evidence.isAudioAvailable,
+      );
     }
 
-    // Critical integrity or security decisions that block promotion
-    if (evidence.hasDartErrors == true ||
-        evidence.hasMemoryRegression == true ||
-        evidence.hasFTS5Regression == true ||
-        evidence.isStorageCorrupt == true ||
-        evidence.isNormalStartupVerified == false ||
-        evidence.isSafeModeVerified == false ||
-        evidence.isMetadataOnlyLanguage == true ||
-        evidence.isLanguagePackLocalEvidenceAvailable == false) {
-      return PromotionEligibility.blocked;
+    if (!evidence.isOfflineSafe) {
+      return AcceptanceResult(
+        outcome: GateOutcome.FAILED,
+        reason: 'Missing offline safety evidence.',
+        verifiedLanguages: [],
+        isAudioAvailable: evidence.isAudioAvailable,
+      );
     }
 
-    // Optional features like TTS can degrade the readiness but not block it
-    if (evidence.isOptionalTTSAvailable == false || evidence.isOptionalTTSAvailable == null) {
-      _lastApprovedEvidence = evidence;
-      return PromotionEligibility.degraded;
+    if (!evidence.isStorageGuarded) {
+      return AcceptanceResult(
+        outcome: GateOutcome.FAILED,
+        reason: 'Missing storage guard evidence.',
+        verifiedLanguages: [],
+        isAudioAvailable: evidence.isAudioAvailable,
+      );
     }
 
-    _lastApprovedEvidence = evidence;
-    return PromotionEligibility.approved;
+    if (!evidence.isLifecycleManaged) {
+      return AcceptanceResult(
+        outcome: GateOutcome.FAILED,
+        reason: 'Missing lifecycle managed evidence.',
+        verifiedLanguages: [],
+        isAudioAvailable: evidence.isAudioAvailable,
+      );
+    }
+
+    final now = DateTime.now();
+    if (now.difference(evidence.verificationTimestamp!).inHours > 1) {
+      return AcceptanceResult(
+        outcome: GateOutcome.FAILED,
+        reason: 'Stale verification results.',
+        verifiedLanguages: [],
+        isAudioAvailable: evidence.isAudioAvailable,
+      );
+    }
+
+    final verifiedLangs = <String>[];
+    for (final lang in evidence.declaredLanguages) {
+      if (!LanguageReadinessMatrix.isProductionReady(lang)) {
+        return AcceptanceResult(
+          outcome: GateOutcome.FAILED,
+          reason: 'Unverified dictionary claim for language: $lang.',
+          verifiedLanguages: verifiedLangs,
+          isAudioAvailable: evidence.isAudioAvailable,
+        );
+      }
+      verifiedLangs.add(lang);
+    }
+
+    return AcceptanceResult(
+      outcome: GateOutcome.PASSED,
+      reason: 'All mandatory and declared evidence passed.',
+      verifiedLanguages: verifiedLangs,
+      isAudioAvailable: evidence.isAudioAvailable,
+    );
   }
 
   static bool verifyAppReadiness({
@@ -88,6 +131,13 @@ class ProductionAcceptanceGate {
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-    return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
+    final evidence = AcceptanceEvidence(
+      isOfflineSafe: isOfflineSafe,
+      isStorageGuarded: isStorageGuarded,
+      isLifecycleManaged: isLifecycleManaged,
+      verificationTimestamp: DateTime.now(),
+    );
+    final result = evaluateReadiness(evidence);
+    return result.outcome == GateOutcome.PASSED;
   }
 }
