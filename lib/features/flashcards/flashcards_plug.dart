@@ -2,27 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
+import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
 import 'package:deutsch_bilarabi/core/design/bidi_text_isolator.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
 import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
+import 'package:deutsch_bilarabi/features/flashcards/flashcard_models.dart';
+import 'package:deutsch_bilarabi/features/flashcards/flashcard_widget.dart';
 import 'card_physics_helper.dart';
 
 class FlashcardsPlug implements FeaturePlug {
   final String sourceLocale;
   final String targetLocale;
+  final FlashcardData? initialCard;
+  final ReviewCommandPort? commandPort;
 
-  FlashcardsPlug({
+  const FlashcardsPlug({
     this.sourceLocale = 'de-DE',
     this.targetLocale = 'ar-SA',
+    this.initialCard,
+    this.commandPort,
   });
 
   @override
   String get id => 'flashcards_core';
 
   @override
-  String get displayName => 'البطاقات التفاعلية';
+  String get displayName => 'بطاقات التكرار المتباعد';
 
   @override
   Widget buildEntry(BuildContext context) {
@@ -31,23 +38,29 @@ class FlashcardsPlug implements FeaturePlug {
       child: _FlashcardsContainer(
         sourceLocale: sourceLocale,
         targetLocale: targetLocale,
+        card: initialCard,
+        commandPort: commandPort,
       ),
     );
   }
 
-  /// إرسال حدث مراجعة للنواة دون قلق بشأن قاعدة البيانات أو مسارات التخزين
   static Future<void> dispatchReview({
     required String cardId,
     required int rating,
-    String sourceIso = 'de',
-    String targetIso = 'ar',
+    required String sourceIso,
+    required String targetIso,
+    ReviewCommandPort? commandPort,
   }) async {
-    await SrsCompatBridge.instance.recordReviewCompat(
-      contentKey: cardId,
-      rating: rating,
-      sourceIso: sourceIso,
-      targetIso: targetIso,
-    );
+    if (commandPort != null) {
+      await commandPort.recordReview(cardId, rating);
+    } else {
+      await SrsCompatBridge.instance.recordReviewCompat(
+        contentKey: cardId,
+        rating: rating,
+        sourceIso: sourceIso,
+        targetIso: targetIso,
+      );
+    }
   }
 }
 
@@ -56,11 +69,16 @@ enum FlashcardState { loading, front, back, completed, error }
 class _FlashcardsContainer extends StatefulWidget {
   final String sourceLocale;
   final String targetLocale;
+  final FlashcardData? card;
+  final ReviewCommandPort? commandPort;
 
   const _FlashcardsContainer({
-    required this.sourceLocale,
-    required this.targetLocale,
-  });
+    Key? key,
+    this.sourceLocale = 'de-DE',
+    this.targetLocale = 'ar-SA',
+    this.card,
+    this.commandPort,
+  }) : super(key: key);
 
   @override
   State<_FlashcardsContainer> createState() => _FlashcardsContainerState();
@@ -105,15 +123,15 @@ class _FlashcardsContainerState extends State<_FlashcardsContainer> {
 
     final entry = _entries[_currentIndex];
 
-    if (rating != -1) { // -1 means skipped
-      await SrsCompatBridge.instance.recordReviewCompat(
-        contentKey: entry.id,
+    if (rating != -1) {
+      await FlashcardsPlug.dispatchReview(
+        cardId: entry.id,
         rating: rating,
         sourceIso: entry.sourceLocale.split('-')[0],
         targetIso: entry.targetLocale.split('-')[0],
+        commandPort: widget.commandPort,
       );
 
-      // Repeated-answer flow: if rating is 0 (hard/again), we should repeat the card later.
       if (rating == 0) {
         _entries.add(entry);
       }
@@ -142,14 +160,28 @@ class _FlashcardsContainerState extends State<_FlashcardsContainer> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.card != null) {
+      return FlashcardWidget(
+        card: widget.card!,
+        onReviewed: (cardId, rating, sourceIso, targetIso) =>
+            FlashcardsPlug.dispatchReview(
+          cardId: cardId,
+          rating: rating,
+          sourceIso: sourceIso,
+          targetIso: targetIso,
+          commandPort: widget.commandPort,
+        ),
+      );
+    }
+
     if (_state == FlashcardState.loading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_state == FlashcardState.error) {
-      return const Center(child: Text('لا توجد بطاقات متاحة'));
+      return const Center(child: Text('لا توجد بطاقات متاحة حالياً'));
     }
     if (_state == FlashcardState.completed) {
-      return const Center(child: Text('اكتملت المراجعة'));
+      return const Center(child: Text('اكتملت المراجعة!'));
     }
 
     final entry = _entries[_currentIndex];
@@ -261,7 +293,7 @@ class _FlashcardViewState extends State<FlashcardView> with SingleTickerProvider
   Widget _buildBack() {
     final textDir = LanguageBiDiHelper.getDirection(widget.entry.targetLocale);
     return Transform(
-      transform: Matrix4.rotationY(3.141592653589793), // Pi
+      transform: Matrix4.rotationY(3.141592653589793),
       alignment: Alignment.center,
       child: Card(
         child: Container(
@@ -304,36 +336,36 @@ class _FlashcardViewState extends State<FlashcardView> with SingleTickerProvider
                     textAlign: TextAlign.center,
                   ),
                 ),
-                if (widget.entry.sourceExampleTranslation.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Directionality(
-                    textDirection: LanguageBiDiHelper.getDirection(widget.entry.sourceLocale),
-                    child: Text(
-                      BiDiTextIsolator.wrapDirectional(widget.entry.sourceExampleTranslation, isRtl: LanguageBiDiHelper.getDirection(widget.entry.sourceLocale) == TextDirection.rtl),
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                      textAlign: TextAlign.center,
-                    ),
+              ],
+              if (widget.entry.sourceExampleTranslation.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Directionality(
+                  textDirection: LanguageBiDiHelper.getDirection(widget.entry.sourceLocale),
+                  child: Text(
+                    BiDiTextIsolator.wrapDirectional(widget.entry.sourceExampleTranslation, isRtl: LanguageBiDiHelper.getDirection(widget.entry.sourceLocale) == TextDirection.rtl),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    textAlign: TextAlign.center,
                   ),
-                ]
+                ),
               ],
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: widget.isSubmitting ? null : () => widget.onRate(-1), // Skip
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(-1),
                     child: const Text('تخطي'),
                   ),
                   ElevatedButton(
-                    onPressed: widget.isSubmitting ? null : () => widget.onRate(0), // Hard / Again
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(0),
                     child: const Text('صعب'),
                   ),
                   ElevatedButton(
-                    onPressed: widget.isSubmitting ? null : () => widget.onRate(1), // Good
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(1),
                     child: const Text('جيد'),
                   ),
                   ElevatedButton(
-                    onPressed: widget.isSubmitting ? null : () => widget.onRate(2), // Easy
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(2),
                     child: const Text('سهل'),
                   ),
                 ],

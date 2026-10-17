@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: جلب كود المستودع
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: إعداد بيئة Dart و Flutter
         uses: subosito/flutter-action@v2
@@ -20,7 +20,7 @@ jobs:
           cache: true
 
       - name: إعداد بيئة بايثون للتحقق المعجمي
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
