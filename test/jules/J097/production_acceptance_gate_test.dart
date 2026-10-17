@@ -2,226 +2,286 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
 void main() {
-  group('ProductionAcceptanceGate', () {
-    test('missing evidence returns notVerified', () {
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(null);
-      expect(result, PromotionEligibility.notVerified);
+  group('ProductionAcceptanceGate - notVerified states', () {
+    test('returns notVerified on null evidence', () {
+      expect(ProductionAcceptanceGate.evaluateEligibility(null), EligibilityState.notVerified);
     });
 
-    test('stale evidence returns notVerified', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+    test('returns notVerified on missing mandatory evidence', () {
+      final evidence = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 6)),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: true,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
-
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.notVerified);
+      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.notVerified);
     });
 
-    test('missing mandatory evidence returns notVerified', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: null, // missing
-        hasDartErrors: false,
+    test('returns notVerified on stale evidence', () {
+      final evidence = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: true,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
-
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.notVerified);
+      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.notVerified);
     });
 
-    test('missing J025 or J095 contract verification returns notVerified', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: false,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+    test('returns notVerified when J025 or J095 are missing', () {
+      final noJ025 = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: false,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.notVerified);
-    });
-
-    test('failed benchmarks and regressions block promotion', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
-        hasMemoryRegression: true, // Memory regression
-        hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
-      );
-
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.blocked);
-    });
-
-    test('corrupt storage blocks promotion', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+      final noJ095 = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: false,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: true, // Corrupt storage
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.blocked);
+      expect(ProductionAcceptanceGate.evaluateEligibility(noJ025), EligibilityState.notVerified);
+      expect(ProductionAcceptanceGate.evaluateEligibility(noJ095), EligibilityState.notVerified);
     });
+  });
 
-    test('fatal startup errors blocks promotion', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: true, // Dart errors
+  group('ProductionAcceptanceGate - blocked states', () {
+    test('returns blocked on critical failures (Dart errors, Regressions, corrupted storage)', () {
+      final noOffline = AcceptanceEvidence(
+        isOfflineSafe: false,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: false, // Fatal startup error
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.blocked);
-    });
-
-    test('metadata only language returns blocked', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+      final hasDartErrors = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: true,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: true,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.blocked);
-    });
+      final hasMemoryRegression = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
+        hasMemoryRegression: true,
+        hasFTS5Regression: false,
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
+      );
 
-    test('valid optional-feature failure (TTS absence) degrades safely', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+      final corruptStorage = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: false,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: false, // TTS unavailable
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.degraded);
-      expect(ProductionAcceptanceGate.lastApprovedEvidence, evidence);
+      expect(ProductionAcceptanceGate.evaluateEligibility(noOffline), EligibilityState.blocked);
+      expect(ProductionAcceptanceGate.evaluateEligibility(hasDartErrors), EligibilityState.blocked);
+      expect(ProductionAcceptanceGate.evaluateEligibility(hasMemoryRegression), EligibilityState.blocked);
+      expect(ProductionAcceptanceGate.evaluateEligibility(corruptStorage), EligibilityState.blocked);
     });
+  });
 
-    test('successful verification returns approved', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+  group('ProductionAcceptanceGate - degraded and approved states, rollback and configuration', () {
+    test('returns degraded when optional TTS is unavailable', () {
+      final evidence = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: false,
-        isOptionalTTSAvailable: true,
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: false,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.approved);
-      expect(ProductionAcceptanceGate.lastApprovedEvidence, evidence);
+      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.degraded);
+      expect(ProductionAcceptanceGate.lastApprovedConfiguration, isNotNull);
+      expect(ProductionAcceptanceGate.lastApprovedConfiguration!.isOptionalTtsAvailable, false);
     });
 
-    test('critical errors are never silently overridden', () {
-      final evidence = ProductionEvidence(
-        isJ025ContractVerified: true,
-        isJ095ContractVerified: true,
-        hasDartErrors: false,
+    test('returns approved when fully verified', () {
+      final evidence = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
         hasMemoryRegression: false,
         hasFTS5Regression: false,
-        isNormalStartupVerified: true,
-        isSafeModeVerified: true,
-        isStorageCorrupt: true, // Corrupt storage - must block
-        isOptionalTTSAvailable: false, // TTS missing - should degrade, but block takes precedence
-        isLanguagePackLocalEvidenceAvailable: true,
-        isMetadataOnlyLanguage: false,
-        timestamp: DateTime.now(),
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de', 'ar'],
+        metadataOnlyLanguages: [],
       );
 
-      final result = ProductionAcceptanceGate.evaluatePromotionEligibility(evidence);
-      expect(result, PromotionEligibility.blocked); // Must be blocked, not degraded!
+      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.approved);
+      expect(ProductionAcceptanceGate.lastApprovedConfiguration, evidence);
     });
 
-    test('public api verifyAppReadiness preserves existing behavior', () {
-       expect(ProductionAcceptanceGate.verifyAppReadiness(
-         isOfflineSafe: true,
-         isStorageGuarded: true,
-         isLifecycleManaged: true
-       ), isTrue);
+    test('returns blocked if a local language pack is not production ready', () {
+      final evidence = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
+        hasMemoryRegression: false,
+        hasFTS5Regression: false,
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de', 'fr'], // fr is assetsReady, not productionReady
+        metadataOnlyLanguages: [],
+      );
 
-       expect(ProductionAcceptanceGate.verifyAppReadiness(
-         isOfflineSafe: false,
-         isStorageGuarded: true,
-         isLifecycleManaged: true
-       ), isFalse);
+      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.blocked);
+    });
+
+    test('returns blocked if there are metadata-only languages', () {
+      final evidence = AcceptanceEvidence(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        hasNewDartErrors: false,
+        hasMemoryRegression: false,
+        hasFTS5Regression: false,
+        verifiedNormalStartup: true,
+        verifiedSafeModeStartup: true,
+        isEvidenceStale: false,
+        isMissingMandatoryEvidence: false,
+        isOptionalTtsAvailable: true,
+        verifiedLocalLanguagePacks: ['de'],
+        metadataOnlyLanguages: ['en'],
+      );
+
+      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.blocked);
+    });
+
+    test('backwards compatibility: verifyAppReadiness', () {
+      expect(
+        ProductionAcceptanceGate.verifyAppReadiness(
+          isOfflineSafe: true,
+          isStorageGuarded: true,
+          isLifecycleManaged: true,
+        ),
+        isTrue,
+      );
+
+      expect(
+        ProductionAcceptanceGate.verifyAppReadiness(
+          isOfflineSafe: false,
+          isStorageGuarded: true,
+          isLifecycleManaged: true,
+        ),
+        isFalse,
+      );
     });
   });
 }
