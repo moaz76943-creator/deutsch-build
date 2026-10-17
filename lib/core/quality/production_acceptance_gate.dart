@@ -1,110 +1,88 @@
 import '../catalog/language_readiness_matrix.dart';
 
 enum GateOutcome { passed, failed, blocked, notRun }
+
 enum EligibilityState { approved, degraded, blocked, notVerified }
 
 class AcceptanceEvidence {
+  final bool hasJ025Contract;
+  final bool hasJ095Contract;
+  final bool dartErrorsDetected;
+  final bool memoryRegressionConfirmed;
+  final bool fts5RegressionConfirmed;
+  final bool normalStartupVerified;
+  final bool safeModeVerified;
   final bool isOfflineSafe;
   final bool isStorageGuarded;
   final bool isLifecycleManaged;
-  final bool hasCorruptedContent;
-  final bool hasRegressions;
+  final bool optionalTtsAvailable;
   final bool isStale;
-  final bool missingOptionalFeatures;
-  final List<String> verifiedLanguages;
+  final String? languageCode;
 
   const AcceptanceEvidence({
+    required this.hasJ025Contract,
+    required this.hasJ095Contract,
+    required this.dartErrorsDetected,
+    required this.memoryRegressionConfirmed,
+    required this.fts5RegressionConfirmed,
+    required this.normalStartupVerified,
+    required this.safeModeVerified,
     required this.isOfflineSafe,
     required this.isStorageGuarded,
     required this.isLifecycleManaged,
-    this.hasCorruptedContent = false,
-    this.hasRegressions = false,
+    this.optionalTtsAvailable = false,
     this.isStale = false,
-    this.missingOptionalFeatures = false,
-    this.verifiedLanguages = const [],
+    this.languageCode,
   });
 }
 
 class AcceptanceResult {
   final GateOutcome outcome;
   final EligibilityState state;
-  final String reason;
 
-  const AcceptanceResult({
-    required this.outcome,
-    required this.state,
-    required this.reason,
-  });
-
-  bool get isReady => outcome == GateOutcome.passed;
+  const AcceptanceResult(this.outcome, this.state);
 }
 
 /// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
 class ProductionAcceptanceGate {
-  static AcceptanceResult evaluateEvidence(AcceptanceEvidence? evidence) {
-    if (evidence == null) {
-      return const AcceptanceResult(
-        outcome: GateOutcome.notRun,
-        state: EligibilityState.notVerified,
-        reason: 'Missing evidence.',
-      );
-    }
+  static AcceptanceEvidence? _lastApprovedFeatureConfiguration;
 
+  static AcceptanceEvidence? get lastApprovedFeatureConfiguration => _lastApprovedFeatureConfiguration;
+
+  static AcceptanceResult evaluate(AcceptanceEvidence evidence) {
     if (evidence.isStale) {
-      return const AcceptanceResult(
-        outcome: GateOutcome.notRun,
-        state: EligibilityState.notVerified,
-        reason: 'Stale evidence.',
-      );
+      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
     }
 
-    if (evidence.hasCorruptedContent) {
-      return const AcceptanceResult(
-        outcome: GateOutcome.blocked,
-        state: EligibilityState.blocked,
-        reason: 'Corrupted content detected.',
-      );
+    if (!evidence.hasJ025Contract || !evidence.hasJ095Contract) {
+      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
     }
 
-    if (evidence.hasRegressions) {
-      return const AcceptanceResult(
-        outcome: GateOutcome.blocked,
-        state: EligibilityState.blocked,
-        reason: 'Regressions detected.',
-      );
+    if (!evidence.normalStartupVerified || !evidence.safeModeVerified) {
+      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
+    }
+
+    if (evidence.dartErrorsDetected || evidence.memoryRegressionConfirmed || evidence.fts5RegressionConfirmed) {
+      return const AcceptanceResult(GateOutcome.blocked, EligibilityState.blocked);
     }
 
     if (!evidence.isOfflineSafe || !evidence.isStorageGuarded || !evidence.isLifecycleManaged) {
-      return const AcceptanceResult(
-        outcome: GateOutcome.failed,
-        state: EligibilityState.blocked,
-        reason: 'Missing critical infrastructure readiness.',
-      );
+      return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
     }
 
-    for (final lang in evidence.verifiedLanguages) {
-      if (!LanguageReadinessMatrix.isProductionReady(lang)) {
-        return AcceptanceResult(
-          outcome: GateOutcome.failed,
-          state: EligibilityState.blocked,
-          reason: 'Language not production ready: $lang.',
-        );
+    if (evidence.languageCode != null) {
+      if (!LanguageReadinessMatrix.isProductionReady(evidence.languageCode!)) {
+         return const AcceptanceResult(GateOutcome.failed, EligibilityState.notVerified);
       }
     }
 
-    if (evidence.missingOptionalFeatures) {
-      return const AcceptanceResult(
-        outcome: GateOutcome.passed,
-        state: EligibilityState.degraded,
-        reason: 'Passed with degraded features.',
-      );
+    if (!evidence.optionalTtsAvailable) {
+       _lastApprovedFeatureConfiguration = evidence;
+      return const AcceptanceResult(GateOutcome.passed, EligibilityState.degraded);
     }
 
-    return const AcceptanceResult(
-      outcome: GateOutcome.passed,
-      state: EligibilityState.approved,
-      reason: 'Fully approved.',
-    );
+    _lastApprovedFeatureConfiguration = evidence;
+    return const AcceptanceResult(GateOutcome.passed, EligibilityState.approved);
   }
 
   static bool verifyAppReadiness({
@@ -112,11 +90,6 @@ class ProductionAcceptanceGate {
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-    final result = evaluateEvidence(AcceptanceEvidence(
-      isOfflineSafe: isOfflineSafe,
-      isStorageGuarded: isStorageGuarded,
-      isLifecycleManaged: isLifecycleManaged,
-    ));
-    return result.isReady;
+    return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
   }
 }

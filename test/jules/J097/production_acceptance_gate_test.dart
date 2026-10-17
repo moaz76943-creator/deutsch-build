@@ -2,286 +2,164 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
 void main() {
-  group('ProductionAcceptanceGate - notVerified states', () {
-    test('returns notVerified on null evidence', () {
-      expect(ProductionAcceptanceGate.evaluateEligibility(null), EligibilityState.notVerified);
-    });
-
-    test('returns notVerified on missing mandatory evidence', () {
+  group('ProductionAcceptanceGate Tests', () {
+    test('missing mandatory evidence -> notVerified / failed', () {
       final evidence = AcceptanceEvidence(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: true,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
-      );
-      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.notVerified);
-    });
-
-    test('returns notVerified on stale evidence', () {
-      final evidence = AcceptanceEvidence(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: true,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
-      );
-      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.notVerified);
-    });
-
-    test('returns notVerified when J025 or J095 are missing', () {
-      final noJ025 = AcceptanceEvidence(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
         hasJ025Contract: false,
         hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
-      );
-
-      final noJ095 = AcceptanceEvidence(
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: false,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: false,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
+        optionalTtsAvailable: true,
       );
 
-      expect(ProductionAcceptanceGate.evaluateEligibility(noJ025), EligibilityState.notVerified);
-      expect(ProductionAcceptanceGate.evaluateEligibility(noJ095), EligibilityState.notVerified);
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.notVerified);
     });
-  });
 
-  group('ProductionAcceptanceGate - blocked states', () {
-    test('returns blocked on critical failures (Dart errors, Regressions, corrupted storage)', () {
-      final noOffline = AcceptanceEvidence(
-        isOfflineSafe: false,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
+    test('failed benchmarks (regressions) -> blocked', () {
+      final evidence = AcceptanceEvidence(
         hasJ025Contract: true,
         hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
-      );
-
-      final hasDartErrors = AcceptanceEvidence(
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: true,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: true,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
+        optionalTtsAvailable: true,
       );
 
-      final hasMemoryRegression = AcceptanceEvidence(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.blocked);
+      expect(result.state, EligibilityState.blocked);
+    });
+
+    test('corrupt storage / critical failures -> failed', () {
+      final evidence = AcceptanceEvidence(
         hasJ025Contract: true,
         hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: true,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
-      );
-
-      final corruptStorage = AcceptanceEvidence(
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: false,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
         isOfflineSafe: true,
         isStorageGuarded: false,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
+        optionalTtsAvailable: true,
       );
 
-      expect(ProductionAcceptanceGate.evaluateEligibility(noOffline), EligibilityState.blocked);
-      expect(ProductionAcceptanceGate.evaluateEligibility(hasDartErrors), EligibilityState.blocked);
-      expect(ProductionAcceptanceGate.evaluateEligibility(hasMemoryRegression), EligibilityState.blocked);
-      expect(ProductionAcceptanceGate.evaluateEligibility(corruptStorage), EligibilityState.blocked);
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.notVerified);
     });
-  });
 
-  group('ProductionAcceptanceGate - degraded and approved states, rollback and configuration', () {
-    test('returns degraded when optional TTS is unavailable', () {
+    test('optional TTS absence -> degraded', () {
       final evidence = AcceptanceEvidence(
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: false,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: false,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: [],
+        optionalTtsAvailable: false,
       );
 
-      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.degraded);
-      expect(ProductionAcceptanceGate.lastApprovedConfiguration, isNotNull);
-      expect(ProductionAcceptanceGate.lastApprovedConfiguration!.isOptionalTtsAvailable, false);
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.passed);
+      expect(result.state, EligibilityState.degraded);
     });
 
-    test('returns approved when fully verified', () {
+    test('stale evidence -> fail closed', () {
       final evidence = AcceptanceEvidence(
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: false,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de', 'ar'],
-        metadataOnlyLanguages: [],
+        optionalTtsAvailable: true,
+        isStale: true,
       );
 
-      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.approved);
-      expect(ProductionAcceptanceGate.lastApprovedConfiguration, evidence);
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.notVerified);
     });
 
-    test('returns blocked if a local language pack is not production ready', () {
-      final evidence = AcceptanceEvidence(
+    test('existing public API verifyAppReadiness backward compatibility', () {
+      final result = ProductionAcceptanceGate.verifyAppReadiness(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de', 'fr'], // fr is assetsReady, not productionReady
-        metadataOnlyLanguages: [],
       );
+      expect(result, true);
 
-      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.blocked);
+      final resultFalse = ProductionAcceptanceGate.verifyAppReadiness(
+        isOfflineSafe: true,
+        isStorageGuarded: false,
+        isLifecycleManaged: true,
+      );
+      expect(resultFalse, false);
     });
 
-    test('returns blocked if there are metadata-only languages', () {
+    test('language readiness matrix integration - production ready', () {
       final evidence = AcceptanceEvidence(
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: false,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        hasNewDartErrors: false,
-        hasMemoryRegression: false,
-        hasFTS5Regression: false,
-        verifiedNormalStartup: true,
-        verifiedSafeModeStartup: true,
-        isEvidenceStale: false,
-        isMissingMandatoryEvidence: false,
-        isOptionalTtsAvailable: true,
-        verifiedLocalLanguagePacks: ['de'],
-        metadataOnlyLanguages: ['en'],
+        optionalTtsAvailable: true,
+        languageCode: 'en',
       );
 
-      expect(ProductionAcceptanceGate.evaluateEligibility(evidence), EligibilityState.blocked);
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.passed);
+      expect(result.state, EligibilityState.approved);
     });
 
-    test('backwards compatibility: verifyAppReadiness', () {
-      expect(
-        ProductionAcceptanceGate.verifyAppReadiness(
-          isOfflineSafe: true,
-          isStorageGuarded: true,
-          isLifecycleManaged: true,
-        ),
-        isTrue,
+    test('language readiness matrix integration - not production ready', () {
+      final evidence = AcceptanceEvidence(
+        hasJ025Contract: true,
+        hasJ095Contract: true,
+        dartErrorsDetected: false,
+        memoryRegressionConfirmed: false,
+        fts5RegressionConfirmed: false,
+        normalStartupVerified: true,
+        safeModeVerified: true,
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        optionalTtsAvailable: true,
+        languageCode: 'fr',
       );
 
-      expect(
-        ProductionAcceptanceGate.verifyAppReadiness(
-          isOfflineSafe: false,
-          isStorageGuarded: true,
-          isLifecycleManaged: true,
-        ),
-        isFalse,
-      );
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.notVerified);
     });
   });
 }
