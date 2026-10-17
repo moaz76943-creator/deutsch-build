@@ -165,24 +165,24 @@ class AdaptiveCognitiveEngine {
       _lastAction.clear();
     }
 =======
-  final List<CognitiveMetricRecord> _recentMetrics = [];
-  static const int _windowSize = 5; // مراقبة آخر 5 تفاعلات
+  final List<CognitiveMetricRecord> recentMetrics = [];
+  const int windowSize = 5; // مراقبة آخر 5 تفاعلات
 
   void observe(CognitiveMetricRecord record) {
-    _recentMetrics.add(record);
-    if (_recentMetrics.length > _windowSize) {
-      _recentMetrics.removeAt(0);
+    recentMetrics.add(record);
+    if (recentMetrics.length > windowSize) {
+      recentMetrics.removeAt(0);
     }
   }
 
   /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
   AdaptationAction evaluateState() {
-    if (_recentMetrics.isEmpty) return AdaptationAction.maintainFlow;
+    if (recentMetrics.isEmpty) return AdaptationAction.maintainFlow;
 
-    final avgStrain = _recentMetrics
+    final avgStrain = recentMetrics
             .map((m) => m.cognitiveStrainIndex)
             .reduce((a, b) => a + b) /
-        _recentMetrics.length;
+        recentMetrics.length;
 
     // حالة إرهاق ذهني أو صعوبة مستمرة
     if (avgStrain >= 0.6) {
@@ -190,10 +190,10 @@ class AdaptiveCognitiveEngine {
     }
 
     // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
-    final allCorrect = _recentMetrics.every((m) => m.isCorrect);
-    final isFast = _recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
+    final allCorrect = recentMetrics.every((m) => m.isCorrect);
+    final isFast = recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
 
-    if (allCorrect && isFast && _recentMetrics.length >= 3) {
+    if (allCorrect && isFast && recentMetrics.length >= 3) {
       return AdaptationAction.deepenLinguisticChallenge;
     }
 
@@ -201,7 +201,7 @@ class AdaptiveCognitiveEngine {
   }
 
   void clearSession() {
-    _recentMetrics.clear();
+    recentMetrics.clear();
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }

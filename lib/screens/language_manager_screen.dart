@@ -213,7 +213,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
           ),
         ),
       ),
-    );
+    )
   }
 
   Widget _packCard(
@@ -431,7 +431,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
           ],
         ),
       ),
-    );
+    )
   }
 
   Widget _statusChip(String label, Color color) {

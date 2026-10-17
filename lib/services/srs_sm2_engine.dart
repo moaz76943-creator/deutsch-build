@@ -81,10 +81,10 @@ class SrsSm2Engine {
     final DateTime nextDate = DateTime.now().add(Duration(days: newInterval));
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return Sm2ReviewResult(
-      easeFactor: newEf,
-      intervalDays: newInterval,
-      repetitions: newReps,
-      nextReviewDate:
+      easeFactor = newEf,
+      intervalDays = newInterval,
+      repetitions = newReps,
+      nextReviewDate =
           (currentTime ?? DateTime.now()).add(Duration(days: newInterval)),
     );
   }

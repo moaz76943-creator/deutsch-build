@@ -15,7 +15,7 @@ class LanguagePackManager {
 // ignore_for_file: unused_import
 
 class LanguagePackManager {
-  static const List<String> supportedBcp47Locales = [
+  static List<String> supportedBcp47Locales = [
     'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
   ];

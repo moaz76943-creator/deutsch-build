@@ -1,8 +1,7 @@
-import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import '../../../lib/core/concurrency/cancellation_token.dart';
-import '../../../lib/core/concurrency/isolated_task_queue.dart';
-import '../../../lib/core/concurrency/worker_task.dart';
+import 'package:deutsch_bilarabi/core/concurrency/cancellation_token.dart';
+import 'package:deutsch_bilarabi/core/concurrency/isolated_task_queue.dart';
+import 'package:deutsch_bilarabi/core/concurrency/worker_task.dart';
 
 void main() {
   group('J085 - Bounded Concurrency & Task Scheduling', () {
@@ -30,9 +29,7 @@ void main() {
           priority: TaskPriority.normal,
           action: action,
         );
-        if (f != null) {
-          futures.add(f);
-        }
+        futures.add(f);
       }
 
       expect(queue.length + queue.activeTasksCount, lessThanOrEqualTo(5));
@@ -55,7 +52,7 @@ void main() {
             await Future.delayed(const Duration(milliseconds: 50));
             return executions;
           },
-        )!);
+        ));
       }
 
       final results = await Future.wait(futures);
@@ -176,7 +173,7 @@ void main() {
         },
       );
 
-      await Future.wait([f1!, f2!, f3!]);
+      await Future.wait([f1, f2, f3]);
 
       expect(execOrder, ['low_1', 'high_1', 'low_2']);
     });
@@ -189,7 +186,9 @@ void main() {
       // Simulate heavy CPU work with yields
       for (int i = 0; i < 1000; i++) {
         double val = 0;
-        for(int j=0; j<100; j++) val += j * i;
+        for(int j=0; j<100; j++) {
+          val += j * i;
+        }
         await token.yieldAndCheck();
       }
 

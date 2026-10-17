@@ -132,7 +132,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
     }
   }
 
-  void _onSearchChanged(String val) {
+  void onSearchChanged(String val) {
     setState(() => _searchQuery = val);
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     // تأخير بسيط عشان ما يبحث مع كل حرف بنكتبه (بيخفف الضغط)
@@ -282,7 +282,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                   ),
                   const SizedBox(height: 14),
                   TextField(
-                    onChanged: _onSearchChanged,
+                    onChanged: onSearchChanged,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'ابحث عن كلمة ألمانية أو عربية...',
@@ -490,12 +490,12 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
           ],
         ),
       ),
-    );
+    )
   }
 }
 
 class WordDeepDiveSheet extends StatelessWidget {
-  static void show(BuildContext context, {required String article, required String word, required String plural, required String meaning, required String example}) {
+  void show(BuildContext context, {required String article, required String word, required String plural, required String meaning, required String example}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

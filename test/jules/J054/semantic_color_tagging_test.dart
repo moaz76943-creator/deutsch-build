@@ -80,12 +80,12 @@ void main() {
       final engine1 = SemanticPresentationEngine(ruleProvider: mockFr1, packVersion: 'v1');
 
       final m1 = engine1.getPresentationForWord('test');
-      final m1_cached = engine1.getPresentationForWord('test');
+      final m1Cached = engine1.getPresentationForWord('test');
 
       expect(m1.color, AppColors.primary);
 
       // Ensure the same engine returns the exact identical cached object.
-      expect(identical(m1, m1_cached), isTrue);
+      expect(identical(m1, m1Cached), isTrue);
     });
   });
 
@@ -96,7 +96,7 @@ void main() {
         determineGenderMock: (word, {article}) => GrammaticalGender.feminine,
       );
       final engine = SemanticPresentationEngine(ruleProvider: mockAr, packVersion: 'v1');
-      final word = 'شمس';
+      const word = 'شمس';
 
       await tester.pumpWidget(
         MaterialApp(

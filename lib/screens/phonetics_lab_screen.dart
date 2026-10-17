@@ -98,6 +98,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
   @override
 =======
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> sounds = [
       {"symbol": "ä / ö / ü", "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية", "lang": "الألمانية"},
@@ -180,14 +181,14 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                               const SizedBox(height: 4),
                               Directionality(
                                 textDirection: TextDirection.ltr,
+=======
+                                item['lang']!,
+                                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
                                 child: Text(
                                   item['ipa'] as String,
                                   style: const TextStyle(
                                       color: Color(0xFF6EE7B7), fontSize: 14),
                                 ),
-=======
-                                item['lang']!,
-                                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -248,8 +249,9 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                       ],
                     ),
                   ),
-                );
-              },
+                )
+              }
+return null;,
             ),
           ),
         ),

@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
-import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
-import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
-import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
-import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
-import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
 void main() {
   setUp(() {

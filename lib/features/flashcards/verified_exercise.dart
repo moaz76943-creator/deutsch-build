@@ -57,7 +57,7 @@ class VerifiedExercise {
   }
 
   String get stableKey =>
-      languageCode + '::' + conceptId + '::' + _stableSeed(prompt).toString();
+      '$languageCode::$conceptId::${_stableSeed(prompt)}';
 
   List<String> get options {
     final values = <String>[...distractors];

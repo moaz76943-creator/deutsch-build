@@ -4,8 +4,8 @@ import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
 void main() {
   group('DirectedPairId', () {
     test('enforces directional identity', () {
-      final aToB = const DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
-      final bToA = const DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0.0');
+      const aToB = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      const bToA = DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0.0');
 
       expect(aToB, isNot(equals(bToA)));
       expect(aToB.uniqueKey, isNot(equals(bToA.uniqueKey)));
@@ -13,10 +13,10 @@ void main() {
     });
 
     test('validates learning scenario: distinct languages and non-empty', () {
-      final valid = const DirectedPairId(sourceLocale: 'ar', targetLocale: 'en', semanticVersion: '1.0.0');
+      const valid = DirectedPairId(sourceLocale: 'ar', targetLocale: 'en', semanticVersion: '1.0.0');
       expect(valid.isValidForLearning(), isTrue);
 
-      final reflexive = const DirectedPairId(sourceLocale: 'ar', targetLocale: 'ar', semanticVersion: '1.0.0');
+      const reflexive = DirectedPairId(sourceLocale: 'ar', targetLocale: 'ar', semanticVersion: '1.0.0');
       expect(reflexive.isValidForLearning(), isFalse);
       expect(reflexive.isReflexive, isTrue);
     });
@@ -31,8 +31,8 @@ void main() {
       // Actually, since we reverted the custom object cache,
       // identical metadata creation string representation handles the O(N) by GCing unreferenced pairs
       // when no longer used, while the uniqueKey provides deterministic string keys for pooling.
-      final pair1 = const DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
-      final pair2 = const DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      const pair1 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      const pair2 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
 
       // Dart const constructors yield identical instances
       expect(identical(pair1, pair2), isTrue);
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('serialization and legacy pair ID migration', () {
-      final original = const DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '2.1.0');
+      const original = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '2.1.0');
       final serialized = original.serialize();
       expect(serialized, 'en_de_2.1.0');
 
@@ -80,8 +80,8 @@ void main() {
     });
 
     test('version-transition scenarios', () {
-      final oldVersion = const DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
-      final newVersion = const DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '2.0.0');
+      const oldVersion = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      const newVersion = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '2.0.0');
 
       expect(oldVersion, isNot(equals(newVersion)));
       expect(identical(oldVersion, newVersion), isFalse);

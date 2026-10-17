@@ -99,7 +99,7 @@ class SrsSchedulerService {
 
   SrsSchedulerService({required this.db});
 
-  static const int _debounceSeconds = 60; // 60 seconds debounce
+  const int debounceSeconds = 60; // 60 seconds debounce
 
 <<<<<<< HEAD
   Future<SrsReviewSchedule?> processReview({

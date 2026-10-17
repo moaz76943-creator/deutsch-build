@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/widgets/lexical/accessible_multilingual_text.dart';
 import 'package:deutsch_bilarabi/widgets/lexical/bidi_lexicon_view.dart';
-import 'package:deutsch_bilarabi/widgets/lexical/resilient_text_container.dart';
 import 'package:deutsch_bilarabi/widgets/lexical/lexicon_rich_details.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
 
 void main() {

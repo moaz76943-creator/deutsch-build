@@ -28,7 +28,7 @@ class TrieSearchEngine {
     }
   }
 
-  static String normalizeForLanguage(String text, String language) {
+  String normalizeForLanguage(String text, String language) {
     if (text.isEmpty) return '';
     final lang = language.split('-').first.toLowerCase();
     // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
@@ -72,7 +72,7 @@ class TrieSearchEngine {
   }
 
   // دعم التوافق مع الكود السابق
-  static String normalizeGerman(String text) => normalizeUniversal(text);
+  String normalizeGerman(String text) => normalizeUniversal(text);
 
   void insert(String word, String id) {
     final normalized = normalizeUniversal(word);
@@ -98,17 +98,17 @@ class TrieSearchEngine {
 <<<<<<< HEAD
 
   // Legacy static entrypoints retained; universal no longer means Latin fold.
-  static String normalizeUniversal(String text) =>
+  String normalizeUniversal(String text) =>
       normalizeForLanguage(text, 'und');
-  static String normalizeGerman(String text) =>
+  String normalizeGerman(String text) =>
       normalizeForLanguage(text, 'de');
 
-  bool _matchesScope(String? pairKey) =>
+  bool matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
   /// Returns false on capacity limits. A failed insert makes NO partial path.
   bool tryInsert(String word, String id, {String? pairKey}) {
-    if (!_matchesScope(pairKey) ||
+    if (!matchesScope(pairKey) ||
         id.isEmpty ||
         word.length > maxInputCodeUnits ||
         id.length > maxIdCodeUnits) {
@@ -161,7 +161,7 @@ class TrieSearchEngine {
   }
 
   List<String> searchPrefix(String prefix, {String? pairKey}) {
-    if (!_matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
+    if (!matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
       return <String>[];
     }
     final normalized = normalizeForLanguage(prefix, languageCode);

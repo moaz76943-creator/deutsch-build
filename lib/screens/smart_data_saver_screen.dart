@@ -34,7 +34,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Expanded(child: const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('التخزين المؤقت للبيانات الصوتية',
@@ -66,7 +66,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Expanded(child: const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('ضغط حزم البيانات والملفات',

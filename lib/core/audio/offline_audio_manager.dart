@@ -8,7 +8,7 @@ import 'package:deutsch_bilarabi/core/audio/audio_generation_tracker.dart';
 class OfflineAudioManager {
   static final OfflineAudioManager instance = OfflineAudioManager._init();
   final FlutterTts _flutterTts = FlutterTts();
-  String _currentLocale = 'de-DE';
+  final String _currentLocale = 'de-DE';
 
 <<<<<<< HEAD
   OfflineAudioManager._init() : _createTts = FlutterTts.new;
@@ -68,10 +68,10 @@ class OfflineAudioManager {
       await tts.stop();
 =======
   OfflineAudioManager._init() {
-    _setupTts();
+    setupTts();
   }
 
-  Future<void> _setupTts() async {
+  Future<void> setupTts() async {
     try {
       await _flutterTts.setLanguage('de-DE');
       await _flutterTts.setSpeechRate(0.4);

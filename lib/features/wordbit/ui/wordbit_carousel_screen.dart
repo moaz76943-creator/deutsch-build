@@ -45,13 +45,13 @@ class WordBitCarouselScreen extends StatefulWidget {
 }
 
 class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
-  final PageController _pageController = PageController(viewportFraction: 0.9);
-  bool _isFlipped = false;
-  int _currentIndex = 0;
+  final PageController pageController = PageController(viewportFraction: 0.9);
+  bool isFlipped = false;
+  int currentIndex = 0;
 <<<<<<< HEAD
   bool _isProcessing = false;
 
-  List<WordBitCard> _cards = [];
+  List<WordBitCard> cards = [];
 
   @override
   void initState() {
@@ -76,7 +76,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
     );
 
     setState(() {
-      _cards = entries
+      cards = entries
           .map((e) => WordBitCard(
                 id: e.id,
                 term: e.targetTerm,
@@ -90,8 +90,8 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                 sourceLocale: e.sourceLocale,
               ))
           .toList();
-      _currentIndex = 0;
-      _isFlipped = false;
+      currentIndex = 0;
+      isFlipped = false;
     });
   }
 
@@ -101,7 +101,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
 =======
 
   // عينة تدعم تعدد الأزواج اللغوية العالمية ديناميكياً
-  final List<UniversalCardItem> _cards = const [
+  final List<UniversalCardItem> cards = const [
     UniversalCardItem(
       targetWord: 'die Herausforderung',
       targetLocale: 'de-DE',
@@ -134,19 +134,19 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   @override
   void dispose() {
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    _pageController.dispose();
+    pageController.dispose();
     super.dispose();
   }
 
-  void _flipCard() {
+  void flipCard() {
     setState(() {
-      _isFlipped = !_isFlipped;
+      isFlipped = !isFlipped;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_cards.isEmpty) {
+    if (cards.isEmpty) {
       return Scaffold(
         backgroundColor: const Color(0xFF0F172A),
         appBar: AppBar(
@@ -187,7 +187,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
-                  value: (_currentIndex + 1) / _cards.length,
+                  value: (currentIndex + 1) / cards.length,
                   minHeight: 6,
                   backgroundColor: Colors.white10,
 <<<<<<< HEAD
@@ -203,22 +203,22 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
             SizedBox(
               height: 380,
               child: PageView.builder(
-                controller: _pageController,
-                itemCount: _cards.length,
+                controller: pageController,
+                itemCount: cards.length,
                 onPageChanged: (index) {
 <<<<<<< HEAD
                   OfflineAudioDispatcher.stopCurrentAudio();
 =======
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
                   setState(() {
-                    _currentIndex = index;
-                    _isFlipped = false;
+                    currentIndex = index;
+                    isFlipped = false;
                   });
                 },
                 itemBuilder: (context, index) {
-                  final card = _cards[index];
+                  final card = cards[index];
                   return GestureDetector(
-                    onTap: _flipCard,
+                    onTap: flipCard,
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 350),
                       transitionBuilder: (child, animation) {
@@ -234,7 +234,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                           builder: (context, child) {
 <<<<<<< HEAD
                             final isUnder =
-                                (ValueKey(_isFlipped) != child?.key);
+                                (ValueKey(isFlipped) != child?.key);
                             var tilt =
                                 ((animation.value - 0.5).abs() - 0.5) * 0.002;
                             tilt = isUnder ? -tilt : tilt;
@@ -242,7 +242,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                               transform: Matrix4.rotationY(rotateAnim.value)
                                 ..setEntry(3, 0, tilt),
 =======
-                            final isUnder = (ValueKey(_isFlipped) != child?.key);
+                            final isUnder = (ValueKey(isFlipped) != child?.key);
                             var tilt = ((animation.value - 0.5).abs() - 0.5) * 0.002;
                             tilt = isUnder ? -tilt : tilt;
                             return Transform(
@@ -254,7 +254,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                           },
                         );
                       },
-                      child: _isFlipped ? _buildBack(card) : _buildFront(card),
+                      child: isFlipped ? _buildBack(card) : buildFront(card),
                     ),
                   );
                 },
@@ -295,7 +295,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   }
 
 <<<<<<< HEAD
-  Widget _buildFront(WordBitCard card) {
+  Widget buildFront(WordBitCard card) {
     final targetDir = LanguageBiDiHelper.getDirection(card.bcp47Locale);
     final targetHeight = LanguageBiDiHelper.getLineHeight(card.bcp47Locale);
 =======
@@ -428,7 +428,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   }
 
 <<<<<<< HEAD
-  Widget _buildBack(WordBitCard card) {
+  Widget buildBack(WordBitCard card) {
     final sourceDir = LanguageBiDiHelper.getDirection(card.sourceLocale);
     final sourceHeight = LanguageBiDiHelper.getLineHeight(card.sourceLocale);
     final targetDir = LanguageBiDiHelper.getDirection(card.bcp47Locale);
@@ -541,7 +541,7 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   }
 
 <<<<<<< HEAD
-  Widget _buildActionButton(String label, Color color, int rating) {
+  Widget buildActionButton(String label, Color color, int rating) {
 =======
   Widget _buildActionButton(String label, Color color) {
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
@@ -556,12 +556,12 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
       ),
 <<<<<<< HEAD
       onPressed: () async {
-        if (_isProcessing || _cards.isEmpty) return;
+        if (_isProcessing || cards.isEmpty) return;
         setState(() {
           _isProcessing = true;
         });
 
-        final card = _cards[_currentIndex];
+        final card = cards[currentIndex];
         await SrsCompatBridge.instance.recordReviewCompat(
           contentKey: card.id,
           rating: rating,
@@ -569,8 +569,8 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
           targetIso: card.bcp47Locale,
         );
 
-        if (_currentIndex < _cards.length - 1) {
-          await _pageController.nextPage(
+        if (currentIndex < cards.length - 1) {
+          await pageController.nextPage(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut);
           if (mounted) {

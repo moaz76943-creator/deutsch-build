@@ -15,8 +15,7 @@ void main() {
 
   test('renders IPA and lightweight markdown without creating a WebView', () {
     final tick = String.fromCharCode(96);
-    final span = parser.parse('Haus [ˈhaʊ̯s] **noun** *German* ' +
-        tick + 'das' + tick);
+    final span = parser.parse('Haus [ˈhaʊ̯s] **noun** *German* ${tick}das$tick');
     final nodes = span.children!.whereType<TextSpan>().toList();
     expect(span.toPlainText(), 'Haus [ˈhaʊ̯s] noun German das');
     expect(nodes.any((node) =>

@@ -13,7 +13,7 @@ class RuntimeLifecycleRegistry {
 <<<<<<< HEAD
   final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
   final Set<String> _disposedOwners = {};
-  bool _isDisposed = false;
+  final bool _isDisposed = false;
 
   bool get isDisposed => _isDisposed;
 
@@ -44,45 +44,45 @@ class RuntimeLifecycleRegistry {
   Future<void> disposeOwner(String owner) async {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
-    await _disposeOwnerResources(owner);
+    await disposeOwnerResources(owner);
 =======
-  final List<StreamSubscription<dynamic>> _subscriptions = [];
-  final List<Timer> _timers = [];
-  bool _isDisposed = false;
+  final List<StreamSubscription<dynamic>> subscriptions = [];
+  final List<Timer> timers = [];
+  bool isDisposed = false;
 
   void registerSubscription(StreamSubscription<dynamic> sub) {
-    if (_isDisposed) {
+    if (isDisposed) {
       sub.cancel();
       return;
     }
-    _subscriptions.add(sub);
+    subscriptions.add(sub);
   }
 
   void registerTimer(Timer timer) {
-    if (_isDisposed) {
+    if (isDisposed) {
       timer.cancel();
       return;
     }
-    _timers.add(timer);
+    timers.add(timer);
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> disposeAll() async {
-    _isDisposed = true;
+    isDisposed = true;
 <<<<<<< HEAD
 
     final owners = _cleanups.keys.toList().reversed;
     for (final owner in owners) {
       if (!_disposedOwners.contains(owner)) {
         _disposedOwners.add(owner);
-        await _disposeOwnerResources(owner);
+        await disposeOwnerResources(owner);
       }
     }
 
     _cleanups.clear();
   }
 
-  Future<void> _disposeOwnerResources(String owner) async {
+  Future<void> disposeOwnerResources(String owner) async {
     final cleanups = _cleanups[owner];
     if (cleanups == null || cleanups.isEmpty) return;
 
@@ -91,22 +91,22 @@ class RuntimeLifecycleRegistry {
     _cleanups.remove(owner); // clear before execution to handle race conditions
 
     for (final cleanup in callbacks) {
-      await _safeCleanup(cleanup);
+      await safeCleanup(cleanup);
 =======
-    for (final timer in _timers) {
+    for (final timer in timers) {
       timer.cancel();
     }
-    _timers.clear();
+    timers.clear();
 
-    for (final sub in _subscriptions) {
+    for (final sub in subscriptions) {
       await sub.cancel();
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
     }
-    _subscriptions.clear();
+    subscriptions.clear();
   }
 
 <<<<<<< HEAD
-  Future<void> _safeCleanup(FutureOr<void> Function() cleanup) async {
+  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
       if (result is Future) {
@@ -139,9 +139,9 @@ class RuntimeLifecycleRegistry {
   void resetForTest() {
     _cleanups.clear();
     _disposedOwners.clear();
-    _isDisposed = false;
+    isDisposed = false;
   }
 =======
-  bool get isDisposed => _isDisposed;
+  bool get isDisposed => isDisposed;
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

@@ -190,7 +190,7 @@ class LocalLearningAnalytics {
 class LocalLearningAnalytics {
 
   /// توليد تقرير النمو لآخر 30 يوماً
-  static Future<Map<String, dynamic>> generate30DayReport() async {
+  Future<Map<String, dynamic>> generate30DayReport() async {
     debugPrint("جاري توليد تقرير النمو محلياً...");
 
     // محاكاة حسابات قواعد البيانات للإتقان
@@ -203,7 +203,7 @@ class LocalLearningAnalytics {
   }
 
   /// التحقق من استحقاق المستخدم لوسام جديد
-  static Future<String?> checkNewBadge() async {
+  Future<String?> checkNewBadge() async {
     // منح وسام إذا أتقن المستخدم أكثر من 100 بطاقة فعلياً
     final report = await generate30DayReport();
     if (report['mastered_cards'] > 100) {
@@ -213,3 +213,4 @@ class LocalLearningAnalytics {
     return null;
   }
 }
+ return null;

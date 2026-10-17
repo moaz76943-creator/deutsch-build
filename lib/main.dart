@@ -306,25 +306,25 @@ class ResilientAppRoot extends StatefulWidget {
 }
 
 class _ResilientAppRootState extends State<ResilientAppRoot> {
-  bool _isBootstrapping = true;
-  bool _isSafeMode = false;
-  String? _errorMessage;
+  bool isBootstrapping = true;
+  bool isSafeMode = false;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _bootstrap();
+    bootstrap();
   }
 
-  Future<void> _bootstrap() async {
+  Future<void> bootstrap() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final guard = CrashLoopGuard(prefs);
 
       if (guard.isCrashLoopDetected()) {
         setState(() {
-          _isSafeMode = true;
-          _isBootstrapping = false;
+          isSafeMode = true;
+          isBootstrapping = false;
         });
         return;
       }
@@ -352,45 +352,45 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
 
       if (hasFatal) {
         setState(() {
-          _isSafeMode = true;
-          _isBootstrapping = false;
-          _errorMessage = fatalMsg;
+          isSafeMode = true;
+          isBootstrapping = false;
+          errorMessage = fatalMsg;
         });
       } else {
         await guard.recordSuccess();
         setState(() {
-          _isSafeMode = false;
-          _isBootstrapping = false;
+          isSafeMode = false;
+          isBootstrapping = false;
         });
       }
     } catch (e) {
       setState(() {
-        _isSafeMode = true;
-        _isBootstrapping = false;
-        _errorMessage = e.toString();
+        isSafeMode = true;
+        isBootstrapping = false;
+        errorMessage = e.toString();
       });
     }
   }
 
-  void _retry() {
+  void retry() {
     setState(() {
-      _isBootstrapping = true;
-      _errorMessage = null;
+      isBootstrapping = true;
+      errorMessage = null;
     });
-    _bootstrap();
+    bootstrap();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isBootstrapping) {
-      return MaterialApp(
+    if (isBootstrapping) {
+      return const MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: Color(0xFFF8FAFC),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
                 Text("جاري التهيئة..."),
@@ -401,10 +401,10 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
       );
     }
 
-    if (_isSafeMode) {
+    if (isSafeMode) {
       return SafeModeRecoveryGate(
-        onRetry: _retry,
-        message: _errorMessage,
+        onRetry: retry,
+        message: errorMessage,
       );
     }
 

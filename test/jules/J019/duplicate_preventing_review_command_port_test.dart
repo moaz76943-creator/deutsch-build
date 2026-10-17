@@ -35,7 +35,7 @@ void main() {
     });
 
     test('accepts valid command and delegates', () async {
-      final command = ReviewCommand(
+      const command = ReviewCommand(
         reviewId: 'r1',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('rejects duplicate commands (idempotency)', () async {
-      final command = ReviewCommand(
+      const command = ReviewCommand(
         reviewId: 'r2',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -70,7 +70,7 @@ void main() {
     });
 
     test('rejects commands for wrong language pair', () async {
-      final commandWrong = ReviewCommand(
+      const commandWrong = ReviewCommand(
         reviewId: 'r3',
         sourceLanguageId: 'fr',
         targetLanguageId: 'de',
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('rejects commands for reverse language pair', () async {
-      final commandReverse = ReviewCommand(
+      const commandReverse = ReviewCommand(
         reviewId: 'r4',
         sourceLanguageId: 'de',
         targetLanguageId: 'en',
@@ -113,7 +113,7 @@ void main() {
     });
 
     test('handles simulated storage failure and allows retry (recoverable)', () async {
-      final command = ReviewCommand(
+      const command = ReviewCommand(
         reviewId: 'r5',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',

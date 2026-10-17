@@ -73,9 +73,9 @@ void main() {
   });
 
   testWidgets('Screen pops when the last card is graded', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
+    await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
-        body: const WordBitCarouselScreen(
+        body: WordBitCarouselScreen(
           sourceLocale: 'ar-SA',
           targetLocale: 'de-DE',
         )

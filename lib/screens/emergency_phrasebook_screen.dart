@@ -165,7 +165,7 @@ class EmergencyPhrasebookDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    )
   }
 }
 

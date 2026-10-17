@@ -1,10 +1,8 @@
-import 'dart:typed_data';
 
 import 'package:deutsch_bilarabi/services/fts_search_service.dart';
 import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -55,7 +53,7 @@ void main() {
       UserVaultSecurityService.clearRecoveryMessage();
     });
 
-    final cipher = AndroidKeystoreVaultCipher();
+    const cipher = AndroidKeystoreVaultCipher();
     await expectLater(
       cipher.decrypt('progress/v1/ready', Uint8List.fromList(List.filled(29, 0))),
       throwsA(isA<PlatformException>()),

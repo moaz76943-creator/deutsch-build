@@ -35,7 +35,7 @@ class PackAdmissionService {
 class PackAdmissionService {
   
   /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256)
-  static Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
+  Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
     try {
 <<<<<<< HEAD
@@ -60,7 +60,7 @@ class PackAdmissionService {
 <<<<<<< HEAD
 
   /// التحقق من توقيع Ed25519 الرقمي للحزمة ومطابقته لسجل المفاتيح الموثوقة (Study 06)
-  static Future<bool> verifyPackSignature({
+  Future<bool> verifyPackSignature({
     required File packFile,
     required String signatureHex,
     required String publicKeyHex,
@@ -147,7 +147,7 @@ class PackAdmissionService {
       }
 
       // Verify SQLite integrity and schema
-      if (!await _verifySqliteIntegrity(stagedFile.path)) {
+      if (!await verifySqliteIntegrity(stagedFile.path)) {
         return false;
       }
 
@@ -167,7 +167,7 @@ class PackAdmissionService {
     }
   }
 
-  Future<bool> _verifySqliteIntegrity(String path) async {
+  Future<bool> verifySqliteIntegrity(String path) async {
     Database? db;
     try {
       db = await dbFactory.openDatabase(

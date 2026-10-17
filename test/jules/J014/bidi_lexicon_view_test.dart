@@ -6,7 +6,7 @@ import 'package:deutsch_bilarabi/widgets/lexicon_rich_details.dart';
 import 'package:deutsch_bilarabi/widgets/resilient_text_container.dart';
 
 void main() {
-  Widget _wrap(Widget child) {
+  Widget wrap(Widget child) {
     return MaterialApp(
       home: Scaffold(body: child),
     );
@@ -14,7 +14,7 @@ void main() {
 
   group('J014 BiDi Lexical Widgets Tests', () {
     testWidgets('AccessibleMultilingualText renders correct direction', (tester) async {
-      await tester.pumpWidget(_wrap(
+      await tester.pumpWidget(wrap(
         const AccessibleMultilingualText(
           text: 'مرحبا',
           languageCode: 'ar',
@@ -41,7 +41,7 @@ void main() {
     });
 
     testWidgets('LexiconRichDetails handles missing metadata gracefully', (tester) async {
-      await tester.pumpWidget(_wrap(
+      await tester.pumpWidget(wrap(
         const LexiconRichDetails(
           partOfSpeech: null,
           gender: null,
@@ -56,7 +56,7 @@ void main() {
     });
 
     testWidgets('LexiconRichDetails renders metadata and RTL explanation', (tester) async {
-      await tester.pumpWidget(_wrap(
+      await tester.pumpWidget(wrap(
         const LexiconRichDetails(
           partOfSpeech: 'Noun',
           gender: 'der',
@@ -84,11 +84,11 @@ void main() {
 
     testWidgets('ResilientTextContainer bounds test without overflow', (tester) async {
       // Intentionally using long text and constrained width to ensure LayoutBuilder prevents unbounded constraints
-      await tester.pumpWidget(_wrap(
-        SizedBox(
+      await tester.pumpWidget(wrap(
+        const SizedBox(
           width: 100,
           child: ResilientTextContainer(
-            child: const Text('A very very very very very very very very long text that could overflow'),
+            child: Text('A very very very very very very very very long text that could overflow'),
           ),
         ),
       ));
@@ -98,7 +98,7 @@ void main() {
     });
 
     testWidgets('BidiLexiconView renders mixed scripts correctly', (tester) async {
-      await tester.pumpWidget(_wrap(
+      await tester.pumpWidget(wrap(
         const BidiLexiconView(
           sourceText: 'Haus',
           sourceLanguageCode: 'de',

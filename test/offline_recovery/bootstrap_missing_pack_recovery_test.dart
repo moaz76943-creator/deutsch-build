@@ -21,7 +21,7 @@ void main() {
   });
 
   test('missing database without seeder stays NOT_READY', () async {
-    final file = File(scratch.path + '/missing.sqlite');
+    final file = File('${scratch.path}/missing.sqlite');
     final result = await DatabaseBootstrapper.verifyAndPrepare(
       dbPath: file.path,
     );
@@ -31,7 +31,7 @@ void main() {
 
   test('seeder that completes without creating SQLite is NOT_READY',
       () async {
-    final file = File(scratch.path + '/unseeded.sqlite');
+    final file = File('${scratch.path}/unseeded.sqlite');
     var seedCalls = 0;
     final result = await DatabaseBootstrapper.verifyAndPrepare(
       dbPath: file.path,
@@ -50,7 +50,7 @@ void main() {
 
   test('interrupted seed with incomplete header does not become ready',
       () async {
-    final file = File(scratch.path + '/truncated.sqlite');
+    final file = File('${scratch.path}/truncated.sqlite');
     final result = await DatabaseBootstrapper.verifyAndPrepare(
       dbPath: file.path,
       onSeedRequired: () async {
@@ -63,7 +63,7 @@ void main() {
 
   test('seeder exception is reported without removing existing data',
       () async {
-    final file = File(scratch.path + '/unavailable.sqlite');
+    final file = File('${scratch.path}/unavailable.sqlite');
     final result = await DatabaseBootstrapper.verifyAndPrepare(
       dbPath: file.path,
       onSeedRequired: () async {

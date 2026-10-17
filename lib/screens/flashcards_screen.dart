@@ -47,43 +47,43 @@ class FlashcardsScreen extends StatefulWidget {
 }
 
 class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _flipController;
-  late Animation<double> _flipAnimation;
-  bool _isFlipped = false;
-  bool _isSubmitting = false;
+  late AnimationController flipController;
+  late Animation<double> flipAnimation;
+  bool isFlipped = false;
+  bool isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _flipController = AnimationController(
+    flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_flipController);
+    flipAnimation = Tween<double>(begin: 0, end: 1).animate(flipController);
   }
 
   @override
   void dispose() {
-    _flipController.dispose();
+    flipController.dispose();
     OfflineAudioManager.instance.stop();
     super.dispose();
   }
 
-  void _toggleFlip() {
-    if (_isSubmitting) return;
+  void toggleFlip() {
+    if (isSubmitting) return;
     setState(() {
-      _isFlipped = !_isFlipped;
+      isFlipped = !isFlipped;
     });
-    if (_isFlipped) {
-      _flipController.forward();
+    if (isFlipped) {
+      flipController.forward();
       OfflineAudioManager.instance.speak("das Buch");
     } else {
-      _flipController.reverse();
+      flipController.reverse();
     }
   }
 
 <<<<<<< HEAD
-  Future<void> _playCardAudio() async {
+  Future<void> playCardAudio() async {
     final card = _currentCard;
     if (card == null) return;
     final fields = _fields(card);
@@ -99,9 +99,9 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
 
 =======
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
-  Future<void> _handleRating(ReviewRating rating) async {
-    if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
+  Future<void> handleRating(ReviewRating rating) async {
+    if (isSubmitting) return;
+    setState(() => isSubmitting = true);
 
 <<<<<<< HEAD
     final generation = _loadGeneration;
@@ -119,8 +119,8 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
 
     if (mounted) {
       setState(() {
-        _isSubmitting = false;
-        _toggleFlip();
+        isSubmitting = false;
+        toggleFlip();
       });
     }
 <<<<<<< HEAD
@@ -128,11 +128,11 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     // The card may advance only after the transaction has committed.
     if (!mounted) return;
     if (generation != _loadGeneration) {
-      setState(() => _isSubmitting = false);
+      setState(() => isSubmitting = false);
       return;
     }
     try {
-      await _flipController.reverse();
+      await flipController.reverse();
     } catch (_) {
       // The review is already persisted; animation failure must not regrade it.
     }
@@ -143,9 +143,9 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
         _cards = List<Map<String, dynamic>>.from(_cards)..removeAt(_cardIndex);
         _cardIndex = _cards.isEmpty ? 0 : _cardIndex % _cards.length;
         _completedCount++;
-        _isFlipped = false;
+        isFlipped = false;
       }
-      _isSubmitting = false;
+      isSubmitting = false;
     });
 =======
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
@@ -205,12 +205,12 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                                       : 'لا توجد بطاقات مستحقة للمراجعة اليوم.')),
                             )
                           : GestureDetector(
-                              onTap: _toggleFlip,
+                              onTap: toggleFlip,
                               child: Center(
                                 child: AnimatedBuilder(
-                                  animation: _flipAnimation,
+                                  animation: flipAnimation,
                                   builder: (context, child) {
-                                    final angle = _flipAnimation.value * pi;
+                                    final angle = flipAnimation.value * pi;
                                     final isFront = angle < pi / 2;
                                     return Transform(
                                       alignment: Alignment.center,
@@ -247,12 +247,12 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
               ),
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
             ),
-            if (_isFlipped)
+            if (isFlipped)
               Padding(
 <<<<<<< HEAD
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                child: _isSubmitting
+                child: isSubmitting
                     ? const CircularProgressIndicator()
                     : Column(
                         mainAxisSize: MainAxisSize.min,
@@ -264,7 +264,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                               style: TextStyle(color: Colors.redAccent),
                             ),
                             TextButton.icon(
-                              onPressed: () => _handleRating(_failedRating!),
+                              onPressed: () => handleRating(_failedRating!),
                               icon: const Icon(Icons.refresh),
                               label: const Text('إعادة المحاولة'),
                             ),
@@ -318,7 +318,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildFrontAppBaseGlassCard() {
+  Widget buildFrontAppBaseGlassCard() {
     return Container(
       width: 320,
       height: 400,
@@ -335,7 +335,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildBackAppBaseGlassCard() {
+  Widget buildBackAppBaseGlassCard() {
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
@@ -359,14 +359,14 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                   ? TextDirection.rtl
                   : TextDirection.ltr,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
             if (ipa.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               PhoneticIpaView(ipa: ipa),
             ],
 =======
@@ -382,7 +382,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildRatingButton(String label, Color color, ReviewRating rating) {
+  Widget buildRatingButton(String label, Color color, ReviewRating rating) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withAlpha(51),
@@ -391,7 +391,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
         minimumSize: const Size(70, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      onPressed: () => _handleRating(rating),
+      onPressed: () => handleRating(rating),
 <<<<<<< HEAD
       child: Text(
         label,

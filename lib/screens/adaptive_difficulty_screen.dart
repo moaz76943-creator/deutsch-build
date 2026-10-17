@@ -35,7 +35,7 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Expanded(child: const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('تفعيل التكيّف التلقائي',

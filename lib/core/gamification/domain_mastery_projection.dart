@@ -94,7 +94,7 @@ class DomainMasteryProjection {
       throw ArgumentError('Eligible card count cannot be negative');
     }
 
-    final String targetPairKey = '${sourceLanguageId}_${targetLanguageId}';
+    final String targetPairKey = '${sourceLanguageId}_$targetLanguageId';
 
     // Deduplicate by reviewEventId, taking the first valid one we see.
     // Also ignore events outside the bounded replay window (e.g. in the future).

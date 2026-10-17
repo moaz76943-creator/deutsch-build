@@ -139,7 +139,7 @@ class HabitReminderScheduler {
 class HabitReminderScheduler {
 
   /// جدولة تذكير يومي مجهول (بدون Exact Alarms لمنع استنزاف البطارية)
-  static Future<void> scheduleDailyReminder() async {
+  Future<void> scheduleDailyReminder() async {
     // 1. التحقق من صلاحيات الإشعارات (كما طلب تقرير الأمن)
     // 2. جدولة إشعار محلي باستخدام مكتبة flutter_local_notifications
     // سيتم تنفيذ الربط الفعلي هنا.
@@ -149,7 +149,7 @@ class HabitReminderScheduler {
   }
 
   /// إنشاء تقرير النمو لليوم 30 أو 90 (Day-30 Retention)
-  static Future<void> generateGrowthReport(int daysActive) async {
+  Future<void> generateGrowthReport(int daysActive) async {
     if (daysActive == 30) {
       // عرض رسالة تحفيزية بإنجازات الشهر الأول
       // "لقد أتقنت X كلمة في Y مجالات!"

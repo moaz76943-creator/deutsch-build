@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../../../lib/services/srs_scheduler_service.dart';
-import '../../../lib/core/srs/production_srs_engine.dart';
+import 'package:deutsch_bilarabi/services/srs_scheduler_service.dart';
+import 'package:deutsch_bilarabi/core/srs/production_srs_engine.dart';
 
 void main() {
   late Database db;

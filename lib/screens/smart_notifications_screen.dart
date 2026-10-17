@@ -35,7 +35,7 @@ class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Expanded(child: const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('تذكير يومي لحماية الـ Streak',

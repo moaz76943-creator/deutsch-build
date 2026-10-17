@@ -340,7 +340,7 @@ class CefrClassifier {
 
 class CefrClassifier {
   /// تحديد المستوى بناءً على ترتيب الشيوع وطول الكلمة لأي لغة
-  static CefrLevel detectLevel(int frequencyRank, int charLength) {
+  CefrLevel detectLevel(int frequencyRank, int charLength) {
     if (frequencyRank <= 500 && charLength <= 6) return CefrLevel.a1;
     if (frequencyRank <= 1500) return CefrLevel.a2;
     if (frequencyRank <= 3500) return CefrLevel.b1;
@@ -349,7 +349,7 @@ class CefrClassifier {
   }
 
   /// التسمية المعيارية الدولية الصالحة لجميع اللغات الـ 100
-  static String getCode(CefrLevel level) {
+  String getCode(CefrLevel level) {
     switch (level) {
       case CefrLevel.a1: return 'A1';
       case CefrLevel.a2: return 'A2';
@@ -363,7 +363,7 @@ class CefrClassifier {
   }
 
   /// وصف المستوى باللغة العربية
-  static String getLabelAr(CefrLevel level) {
+  String getLabelAr(CefrLevel level) {
     switch (level) {
 <<<<<<< HEAD
       case CefrLevel.a1:
@@ -393,10 +393,10 @@ class CefrClassifier {
   }
 
   /// التوافق العكسي
-  static String getLabel(CefrLevel level) => getLabelAr(level);
+  String getLabel(CefrLevel level) => getLabelAr(level);
 
   /// ألوان التمييز البصري لكل مستوى
-  static Color getLevelColor(CefrLevel level) {
+  Color getLevelColor(CefrLevel level) {
     switch (level) {
 <<<<<<< HEAD
       case CefrLevel.a1:

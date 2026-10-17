@@ -93,7 +93,7 @@ class DatabaseService {
     try {
       final databasePath = languageCode == 'de'
           ? await _ensureGermanDatabase()
-          : await _installedPackPath(languageCode);
+          : await installedPackPath(languageCode);
 =======
   Future<Database> _initContentDb(String fileName) async {
     final dbPath = await getDatabasesPath();
@@ -123,7 +123,7 @@ class DatabaseService {
         ''');
 
 <<<<<<< HEAD
-  Future<Database> _initContentDb(String fileName) async {
+  Future<Database> initContentDb(String fileName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
@@ -228,7 +228,7 @@ class DatabaseService {
   }
 <<<<<<< HEAD
 
-  Future<String> _installedPackPath(String languageCode) async {
+  Future<String> installedPackPath(String languageCode) async {
     final located =
         await StorageMigrationService().resolvePackPath('$languageCode.sqlite');
     if (located == null) {
@@ -347,7 +347,7 @@ class DatabaseService {
 =======
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
-  Future<Database> _initProgressDb(String fileName) async {
+  Future<Database> initProgressDb(String fileName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
@@ -514,7 +514,7 @@ class DatabaseService {
         };
         for (final id in dueIds) {
           final row = byId[id];
-          if (row != null) cards.add(_unpackLexiconRow(row, code));
+          if (row != null) cards.add(unpackLexiconRow(row, code));
         }
       }
 
@@ -545,7 +545,7 @@ class DatabaseService {
         for (final row in rows) {
           final id = row['id']?.toString() ?? '';
           if (id.isEmpty || reviewedOnPage.contains(id)) continue;
-          cards.add(_unpackLexiconRow(row, code));
+          cards.add(unpackLexiconRow(row, code));
           if (cards.length == limit) break;
         }
         if (rows.length < pageSize) break;
@@ -556,7 +556,7 @@ class DatabaseService {
 
   /// Interpret both legacy flat values and structured v2 translations.
   /// A definition must retain its source language instead of pretending to be Arabic.
-  static LexiconTranslation? resolveLexiconTranslation(
+  LexiconTranslation? resolveLexiconTranslation(
     Map<String, dynamic> fields,
   ) {
     String? nonEmptyText(Object? value) {
@@ -617,7 +617,7 @@ class DatabaseService {
     return null;
   }
 
-  static Map<String, dynamic> _unpackLexiconRow(
+  Map<String, dynamic> unpackLexiconRow(
     Map<String, Object?> row,
     String languageCode,
   ) {
@@ -691,7 +691,7 @@ class DatabaseService {
       return;
     }
     final db = await progressDb;
-    await _ensureLegacyBookmarks(db);
+    await ensureLegacyBookmarks(db);
     await db.insert(
         'vault_bookmarks',
         {
@@ -711,7 +711,7 @@ class DatabaseService {
           bookmarkId: bookmarkId, languageCode: languageCode);
     }
     final db = await progressDb;
-    await _ensureLegacyBookmarks(db);
+    await ensureLegacyBookmarks(db);
     final rows = await db.query('vault_bookmarks',
         where: 'id = ? AND target_language_code = ?',
         whereArgs: [bookmarkId, languageCode],
@@ -731,13 +731,13 @@ class DatabaseService {
       return;
     }
     final db = await progressDb;
-    await _ensureLegacyBookmarks(db);
+    await ensureLegacyBookmarks(db);
     await db.delete('vault_bookmarks',
         where: 'id = ? AND target_language_code = ?',
         whereArgs: [bookmarkId, languageCode]);
   }
 
-  Future<void> _ensureLegacyBookmarks(Database db) => db.execute('''
+  Future<void> ensureLegacyBookmarks(Database db) => db.execute('''
     CREATE TABLE IF NOT EXISTS vault_bookmarks (
       id TEXT NOT NULL,
       target_language_code TEXT NOT NULL,
@@ -749,7 +749,7 @@ class DatabaseService {
 =======
            lexeme_id TEXT PRIMARY KEY,
            target_language_code TEXT NOT NULL,
-           repetition_count INTEGER NOT NULL DEFAULT 0,
+           repetitionCount INTEGER NOT NULL DEFAULT 0,
            interval_days INTEGER NOT NULL DEFAULT 1,
            ease_factor REAL NOT NULL DEFAULT 2.5,
            next_due_at INTEGER,
@@ -826,11 +826,11 @@ class DatabaseService {
       await db.transaction((txn) async {
         await txn.rawInsert('''
           INSERT INTO srs_progress (
-            lexeme_id, target_language_code, repetition_count, status
+            lexeme_id, target_language_code, repetitionCount, status
           )
           VALUES (?, ?, 1, ?)
           ON CONFLICT(lexeme_id, target_language_code) DO UPDATE SET
-            repetition_count = srs_progress.repetition_count + 1,
+            repetitionCount = srs_progress.repetition_count + 1,
             status = excluded.status
         ''', <Object?>[lexemeId, normalizedCode, status]);
       });
@@ -912,7 +912,7 @@ class DatabaseService {
     final db = await progressDb;
     await db.transaction((txn) async {
       await txn.rawInsert('''
-        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetitionCount, status)
         VALUES (?, ?,
           COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
           ?

@@ -179,6 +179,7 @@ class SessionRecoveryManager {
   }
 =======
       return SessionState.fromMap(decoded);
+return null;
     } catch (_) {
       return null;
     }
