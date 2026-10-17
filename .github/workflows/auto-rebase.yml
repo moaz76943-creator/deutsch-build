@@ -2,7 +2,7 @@ name: Auto Rebase PRs
 
 on:
   push:
-    branches: [main, staging/v2-full-platform]
+    branches: [main]
     paths-ignore:
       - 'docs/project-record/**'
   workflow_dispatch:
@@ -33,9 +33,9 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          target_base="${GITHUB_REF_NAME:-staging/v2-full-platform}"
-          if [[ "$target_base" != "main" && "$target_base" != "staging/v2-full-platform" ]]; then
-            target_base="staging/v2-full-platform"
+          target_base="${GITHUB_REF_NAME:-main}"
+          if [[ "$target_base" != "main" ]]; then
+            target_base="main"
           fi
           mapfile -t prs < <(
             gh pr list \

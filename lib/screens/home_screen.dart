@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 import 'srs_flashcard_deck_screen.dart';
 import 'package:deutsch_bilarabi/design_system/app_base_cards.dart'
     hide AppBaseGlassCard;
-=======
-import 'package:deutsch_bilarabi/design_system/app_base_cards.dart' hide AppBaseGlassCard;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
@@ -102,14 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(Icons.local_fire_department_rounded,
                           color: Color(0xFFF39C6B), size: 20),
                       SizedBox(width: 4),
-<<<<<<< HEAD
                       Text('ابدأ اليوم',
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),
-=======
-                      Text('5 أيام', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                     ],
                   ),
                 ),
@@ -177,12 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: 'شروحات A1',
                     icon: Icons.menu_book_rounded,
                     gradient: AppGradients.blueCard,
-<<<<<<< HEAD
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const SrsFlashcardDeckScreen())),
-=======
-                    onTap: () {},
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                   ),
                 ),
               ],

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
@@ -169,24 +168,6 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   // دالة رياضية معزولة تماماً (SM-2 Logic)
   static double _heavySrsMath(dynamic rawData) {
     final data = rawData as Map<String, dynamic>;
-=======
-import 'package:flutter/foundation.dart';
-
-/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
-class PersistentCpuWorker {
-  final PersistentCpuWorker instance = PersistentCpuWorker._init();
-
-  PersistentCpuWorker._init();
-
-  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
-  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
-    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
-    return await compute(heavySrsMath, {'ease': currentEase, 'rating': rating});
-  }
-
-  // دالة رياضية معزولة تماماً (SM-2 Logic)
-  double heavySrsMath(Map<String, dynamic> data) {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
 

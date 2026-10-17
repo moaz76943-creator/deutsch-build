@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - staging/v2-full-platform
     paths-ignore:
       - docs/architecture/DECISION_LOG.md
 

@@ -6,6 +6,7 @@ class ReviewCommand {
   final String reviewId;
   final String sourceLanguageId;
   final String targetLanguageId;
+  final String semanticVersion;
   final String cardId;
   final String facetKey;
   final int pairEpoch;
@@ -16,6 +17,7 @@ class ReviewCommand {
     required this.reviewId,
     required this.sourceLanguageId,
     required this.targetLanguageId,
+    this.semanticVersion = '1.0.0',
     required this.cardId,
     required this.facetKey,
     required this.pairEpoch,

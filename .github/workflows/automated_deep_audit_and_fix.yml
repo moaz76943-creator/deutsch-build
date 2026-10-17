@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - staging/v2-full-platform
     paths:
       - "lib/**"
 

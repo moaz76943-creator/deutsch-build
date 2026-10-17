@@ -90,6 +90,17 @@ class TamperedRecordException extends VaultException {
   TamperedRecordException(super.message);
 }
 
+/// Result of a verified, lossless opt-in legacy database migration.
+class LegacyProgressMigrationResult {
+  const LegacyProgressMigrationResult({
+    required this.migrated,
+    required this.tableRowCounts,
+  });
+
+  final bool migrated;
+  final Map<String, int> tableRowCounts;
+}
+
 /// Opt-in encrypted record vault. This does not silently rewrite legacy
 /// user_progress_v2.db, which needs a separate, lossless migration.
 class UserVaultSecurityService {
