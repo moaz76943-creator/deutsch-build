@@ -1,171 +1,215 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show compute, debugPrint;
 import '../../core/srs_scheduler.dart';
+import '../../core/progress/review_transaction_envelope.dart';
 
-enum AnalyticsWindow {
-  days7(7),
-  days30(30),
-  days90(90);
-
-  final int days;
-  const AnalyticsWindow(this.days);
+sealed class AnalyticsState {
+  const AnalyticsState();
 }
 
-abstract class LocalAnalyticsResult {
-  const LocalAnalyticsResult();
+class AnalyticsUnavailable extends AnalyticsState {
+  final String reason;
+  const AnalyticsUnavailable(this.reason);
 }
 
-class LocalAnalyticsUnavailable extends LocalAnalyticsResult {
-  const LocalAnalyticsUnavailable();
-}
-
-class LocalAnalyticsData extends LocalAnalyticsResult {
+class AnalyticsData extends AnalyticsState {
   final int totalReviews;
   final double recallAccuracy;
   final double completionRate;
-  final String learningTrend; // 'upward', 'downward', 'flat'
-  final Map<String, int> dailyReviews; // YYYY-MM-DD -> count
+  final Map<DateTime, int> dailyReviews;
+  final String learningTrend;
+  final int masteredCards;
 
-  const LocalAnalyticsData({
+  const AnalyticsData({
     required this.totalReviews,
     required this.recallAccuracy,
     required this.completionRate,
-    required this.learningTrend,
     required this.dailyReviews,
+    required this.learningTrend,
+    required this.masteredCards,
   });
 }
 
 class LocalLearningAnalytics {
-  /// Compute local analytics for a given time window and language pair.
-  static Future<LocalAnalyticsResult> generateReport({
-    AnalyticsWindow window = AnalyticsWindow.days30,
-    String? languagePairKey,
-    List<Map<String, dynamic>>? testHistory,
-    String? testNowUtc,
+  /// Aggregates progress based on the requested window using isolated processing
+  static Future<AnalyticsState> analyze({
+    required String languagePairKey,
+    required int daysWindow,
+    DateTime? currentTime,
+    List<ReviewTransactionEnvelope>? testHistory,
   }) async {
-    // If we're not in a test, let the isolate read the history directly to avoid heavy serialization on UI thread.
-    // However, since UnifiedSrsScheduler is an in-memory singleton, we can't easily access its instance from another isolate
-    // because singletons are per-isolate. But the instructions say "avoid loading full progress history into widget memory."
-    // Let's pass the list from the main isolate if testHistory is provided, else we pull it here and send it.
-    // Given it's in-memory, we have no choice but to pass it from the main isolate unless it's stored in sqflite.
-    final history = testHistory ?? UnifiedSrsScheduler.instance.history.map((e) => e.toMap()).toList();
-    final nowString = testNowUtc ?? DateTime.now().toUtc().toIso8601String();
-    
-    final resultParams = await compute(_computeAnalytics, {
-      'windowDays': window.days,
-      'languagePairKey': languagePairKey,
-      'history': history,
-      'now': nowString,
-    });
+    try {
+      final history = testHistory ?? UnifiedSrsScheduler.instance.history;
 
-    if (resultParams == null) {
-      return const LocalAnalyticsUnavailable();
+      if (history.isEmpty) {
+        return const AnalyticsData(
+          totalReviews: 0,
+          recallAccuracy: 0.0,
+          completionRate: 0.0,
+          dailyReviews: {},
+          learningTrend: 'flat',
+          masteredCards: 0,
+        );
+      }
+
+      final now = (currentTime ?? DateTime.now()).toUtc();
+
+      // Limit memory by isolating computation
+      final resultMap = await compute(_processAnalytics, {
+        'history': history.map((e) => e.toMap()).toList(),
+        'languagePairKey': languagePairKey,
+        'daysWindow': daysWindow,
+        'now': now.millisecondsSinceEpoch,
+      });
+
+      if (resultMap['error'] != null) {
+        return AnalyticsUnavailable(resultMap['error'] as String);
+      }
+
+      return AnalyticsData(
+        totalReviews: resultMap['totalReviews'] as int,
+        recallAccuracy: resultMap['recallAccuracy'] as double,
+        completionRate: resultMap['completionRate'] as double,
+        dailyReviews: (resultMap['dailyReviews'] as Map<String, dynamic>).map(
+          (k, v) => MapEntry(DateTime.parse(k), v as int),
+        ),
+        learningTrend: resultMap['learningTrend'] as String,
+        masteredCards: resultMap['masteredCards'] as int,
+      );
+    } catch (e) {
+      return AnalyticsUnavailable("Failed to process analytics: $e");
     }
-
-    return LocalAnalyticsData(
-      totalReviews: resultParams['totalReviews'] as int,
-      recallAccuracy: resultParams['recallAccuracy'] as double,
-      completionRate: resultParams['completionRate'] as double,
-      learningTrend: resultParams['learningTrend'] as String,
-      dailyReviews: Map<String, int>.from(resultParams['dailyReviews'] as Map),
-    );
   }
 
-  static Map<String, dynamic>? _computeAnalytics(Map<String, dynamic> params) {
-    final int windowDays = params['windowDays'] as int;
-    final String? languagePairKey = params['languagePairKey'] as String?;
-    final List<Map<String, dynamic>> historyMaps = (params['history'] as List).cast<Map<String, dynamic>>();
-    final DateTime nowUtc = DateTime.parse(params['now'] as String).toUtc();
+  /// توليد تقرير النمو لآخر 30 يوماً
+  static Future<Map<String, dynamic>> generate30DayReport({
+    String languagePairKey = 'unknown',
+  }) async {
+    debugPrint("جاري توليد تقرير النمو محلياً...");
+    final state = await analyze(languagePairKey: languagePairKey, daysWindow: 30);
 
-    final List<Map<String, dynamic>> validRecords = [];
-    final Set<String> seenEventIds = {};
+    if (state is AnalyticsData) {
+      return {
+        'mastered_cards': state.masteredCards,
+        'learning_trend': state.learningTrend,
+        'consistency_score': (state.completionRate * 100).toInt(),
+      };
+    }
 
-    for (final map in historyMaps) {
-      if (map['reviewEventId'] == null || map['timestamp'] == null || map['learnerContentKey'] == null) continue;
+    return {
+      'mastered_cards': 0,
+      'learning_trend': 'flat',
+      'consistency_score': 0,
+    };
+  }
 
-      final String eventId = map['reviewEventId'] as String;
+  /// التحقق من استحقاق المستخدم لوسام جديد
+  static Future<String?> checkNewBadge({
+    String languagePairKey = 'unknown',
+  }) async {
+    final report = await generate30DayReport(languagePairKey: languagePairKey);
+    if ((report['mastered_cards'] as int) > 100) {
+      return 'وسام المائة بطاقة المتقنة';
+    }
+    return null;
+  }
+}
+
+Map<String, dynamic> _processAnalytics(Map<String, dynamic> params) {
+  try {
+    final rawHistory = params['history'] as List<dynamic>;
+    final targetPairKey = params['languagePairKey'] as String;
+    final daysWindow = params['daysWindow'] as int;
+    final nowMs = params['now'] as int;
+    final nowUtc = DateTime.fromMillisecondsSinceEpoch(nowMs, isUtc: true);
+
+    final windowStart = nowUtc.subtract(Duration(days: daysWindow));
+
+    final seenEventIds = <String>{};
+
+    int totalReviews = 0;
+    int correctReviews = 0;
+
+    final dailyReviewsCount = <DateTime, int>{};
+    final latestRatings = <String, Map<String, dynamic>>{};
+
+    int h1Reviews = 0;
+    int h2Reviews = 0;
+    final halfWindowMs = (daysWindow * 86400000) ~/ 2;
+    final midPoint = windowStart.add(Duration(milliseconds: halfWindowMs));
+
+    for (var i = 0; i < rawHistory.length; i++) {
+      final rawEnv = rawHistory[i];
+      if (rawEnv is! Map) continue;
+
+      final eventId = rawEnv['reviewEventId']?.toString();
+      final pairKey = rawEnv['languagePairKey']?.toString();
+      final contentKey = rawEnv['learnerContentKey']?.toString();
+      final ratingRaw = rawEnv['rating'];
+      final timestampStr = rawEnv['timestamp']?.toString();
+
+      if (eventId == null || eventId.isEmpty) continue;
+      if (pairKey != targetPairKey) continue;
+      if (contentKey == null || contentKey.isEmpty) continue;
+      if (ratingRaw == null) continue;
+      if (timestampStr == null) continue;
+
+      final rating = ratingRaw is int ? ratingRaw : int.tryParse(ratingRaw.toString()) ?? 0;
+
       if (seenEventIds.contains(eventId)) continue;
       seenEventIds.add(eventId);
 
-      final timestampStr = map['timestamp'] as String;
-      DateTime timestamp;
-      try {
-        timestamp = DateTime.parse(timestampStr).toUtc();
-      } catch (e) {
-        continue;
+      final timestamp = DateTime.tryParse(timestampStr)?.toUtc();
+      if (timestamp == null) continue;
+
+      if (timestamp.isBefore(windowStart)) continue;
+      if (timestamp.isAfter(nowUtc)) continue;
+
+      totalReviews++;
+      if (rating >= 3) {
+        correctReviews++;
       }
 
-      if (languagePairKey != null && map['languagePairKey'] != languagePairKey) continue;
+      final dayKey = DateTime.utc(timestamp.year, timestamp.month, timestamp.day);
+      dailyReviewsCount[dayKey] = (dailyReviewsCount[dayKey] ?? 0) + 1;
 
-      final difference = nowUtc.difference(timestamp).inDays;
-      if (difference >= 0 && difference < windowDays) {
-        validRecords.add(map);
-      }
-    }
-
-    if (validRecords.isEmpty) {
-      return null;
-    }
-
-    int totalReviews = validRecords.length;
-    int correctReviews = 0;
-
-    final Set<String> uniqueKeys = {};
-    final Set<String> passedKeys = {};
-    final Map<String, int> dailyReviews = {};
-
-    int firstHalfCorrect = 0;
-    int firstHalfTotal = 0;
-    int secondHalfCorrect = 0;
-    int secondHalfTotal = 0;
-    final int halfWindow = windowDays ~/ 2;
-
-    for (final record in validRecords) {
-      final rating = record['rating'] as int? ?? 0;
-      final isCorrect = rating >= 2;
-      if (isCorrect) correctReviews++;
-
-      final contentKey = record['learnerContentKey'] as String;
-      uniqueKeys.add(contentKey);
-      if (isCorrect) {
-        passedKeys.add(contentKey);
-      }
-
-      final timestampUtc = DateTime.parse(record['timestamp'] as String).toUtc();
-
-      // Use explicit local-day grouping by converting to local time before generating the date key
-      final localTimestamp = timestampUtc.toLocal();
-      final dateKey = "${localTimestamp.year.toString().padLeft(4, '0')}-${localTimestamp.month.toString().padLeft(2, '0')}-${localTimestamp.day.toString().padLeft(2, '0')}";
-      dailyReviews[dateKey] = (dailyReviews[dateKey] ?? 0) + 1;
-
-      final diffDays = nowUtc.difference(timestampUtc).inDays;
-      if (diffDays < halfWindow) {
-        secondHalfTotal++;
-        if (isCorrect) secondHalfCorrect++;
+      if (timestamp.isBefore(midPoint)) {
+        h1Reviews++;
       } else {
-        firstHalfTotal++;
-        if (isCorrect) firstHalfCorrect++;
+        h2Reviews++;
+      }
+
+      final currentLatest = latestRatings[contentKey];
+      if (currentLatest == null || timestamp.isAfter(currentLatest['ts'] as DateTime)) {
+        latestRatings[contentKey] = {'ts': timestamp, 'rating': rating};
       }
     }
 
-    final recallAccuracy = totalReviews > 0 ? correctReviews / totalReviews : 0.0;
-    final completionRate = uniqueKeys.isNotEmpty ? passedKeys.length / uniqueKeys.length : 0.0;
+    final recallAccuracy = totalReviews > 0 ? (correctReviews / totalReviews) : 0.0;
+    final completionRate = dailyReviewsCount.length / (daysWindow > 0 ? daysWindow : 1);
 
-    final firstHalfRatio = firstHalfTotal > 0 ? firstHalfCorrect / firstHalfTotal : 0.0;
-    final secondHalfRatio = secondHalfTotal > 0 ? secondHalfCorrect / secondHalfTotal : 0.0;
+    int masteredCards = 0;
+    for (final info in latestRatings.values) {
+      if ((info['rating'] as int) >= 4) {
+        masteredCards++;
+      }
+    }
 
     String learningTrend = 'flat';
-    if (secondHalfRatio > firstHalfRatio + 0.05) {
+    if (h2Reviews > (h1Reviews * 1.1)) {
       learningTrend = 'upward';
-    } else if (secondHalfRatio < firstHalfRatio - 0.05) {
+    } else if (h2Reviews < (h1Reviews * 0.9) && h1Reviews > 0) {
       learningTrend = 'downward';
     }
 
     return {
       'totalReviews': totalReviews,
       'recallAccuracy': recallAccuracy,
-      'completionRate': completionRate,
+      'completionRate': completionRate.clamp(0.0, 1.0),
+      'dailyReviews': dailyReviewsCount.map((k, v) => MapEntry(k.toIso8601String(), v)),
       'learningTrend': learningTrend,
-      'dailyReviews': dailyReviews,
+      'masteredCards': masteredCards,
     };
+  } catch (e) {
+    return {'error': e.toString()};
   }
 }
