@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'srs_flashcard_deck_screen.dart';
-import 'ai_pronunciation_coach_screen.dart';
+import 'license_attribution_screen.dart';
 import 'vocabulary_journal_screen.dart';
 import 'emergency_phrasebook_screen.dart';
 
@@ -30,9 +30,9 @@ class DashboardScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      _buildStatItem('سلسلة الأيام', '🔥 5 أيام'),
-                      _buildStatItem('الكلمات المحفوظة', '📚 512 كلمة'),
-                      _buildStatItem('مستوى الإتقان', '⭐ 84%'),
+                      _buildStatItem('سلسلة الأيام', '🔥 نشط'),
+                      _buildStatItem('الكلمات المحفوظة', '📚 المعجم'),
+                      _buildStatItem('مستوى الإتقان', '⭐ تقدمك'),
                     ],
                   ),
                 ),
@@ -70,7 +70,7 @@ class DashboardScreen extends StatelessWidget {
                         const EmergencyPhrasebookScreen()),
 =======
                     _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded, const SrsFlashcardDeckScreen()),
-                    _buildActionCard(context, 'مدرب النطق', Icons.mic_rounded, const AiPronunciationCoachScreen()),
+                    _buildActionCard(context, 'التراخيص والمصادر', Icons.verified_user_rounded, const LicenseAttributionScreen()),
                     _buildActionCard(context, 'المفكرة الشخصية', Icons.book_rounded, const VocabularyJournalScreen()),
                     _buildActionCard(context, 'طوارئ السفر', Icons.local_hospital_rounded, const EmergencyPhrasebookScreen()),
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957

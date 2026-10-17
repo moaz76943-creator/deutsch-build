@@ -28,10 +28,10 @@ on:
   issue_comment:
     types: [created]
   pull_request:
-    branches: [main]
+    branches: [main, staging/v2-full-platform]
     types: [opened, synchronize, reopened, ready_for_review, edited]
   pull_request_target:
-    branches: [main]
+    branches: [main, staging/v2-full-platform]
     types: [opened, synchronize, reopened, ready_for_review, edited]
   pull_request_review:
     types: [submitted, edited, dismissed]

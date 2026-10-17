@@ -1,3 +1,4 @@
+import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
 <<<<<<< HEAD
@@ -113,7 +114,7 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
+        MaterialPageRoute(builder: (_) => const MainShellScreen()),
       );
     });
 
