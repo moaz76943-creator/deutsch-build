@@ -108,53 +108,9 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    if (_hasError) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF0F172A),
-        body: SafeArea(
-          child: Directionality(
-            textDirection: _errorDirection,
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
-                    SizedBox(height: 16),
-                    Text(
-                      'تعذر تحميل حزمة اللغة الأساسية. يرجى التحقق من الملفات أو إعادة التثبيت.',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24, // Using large accessibility font settings
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 24),
-                    Text(
-                      'Missing core language pack. Please verify files or reinstall.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 20, // Using large accessibility font settings
-                        height: 1.5,
-                      ),
-                      textAlign: TextAlign.center,
-                      textDirection: TextDirection.ltr, // Explicitly LTR for English text
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-=======
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainShellScreen()),
->>>>>>> pr-179
       );
     }
 

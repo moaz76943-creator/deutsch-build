@@ -59,33 +59,8 @@ class _OfflineDictionaryScreenState
     super.dispose();
   }
 
-<<<<<<< HEAD
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    try {
-      // جلب البيانات الحقيقية من قاعدة البيانات
-      final normalizedQuery = TrieSearchEngine.normalizeUniversal(_searchQuery);
-    final results = await DatabaseService.instance.searchDictionary(
-      normalizedQuery.isEmpty ? _searchQuery : normalizedQuery,
-      'de',
-    );
-
-      List<Map<String, dynamic>> filtered = results;
-      if (['der', 'die', 'das'].contains(_selectedFilter)) {
-        filtered = results.where((w) => w['article'] == _selectedFilter).toList();
-      }
-
-      setState(() {
-        _searchResults = filtered;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-=======
   void _onFocusChanged() {
     if (mounted) setState(() {});
->>>>>>> pr-179
   }
 
   void _onControllerChanged() {
@@ -340,78 +315,11 @@ class _OfflineDictionaryScreenState
                       ],
                     ),
                   ),
-<<<<<<< HEAD
-                ],
-              ),
-            ),
-            Expanded(
-              child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
-                : _searchResults.isEmpty
-                  ? Center(
-                      child: Text(
-                        'لم نجد نتائج مطابقة',
-                        style: AppTypography.body.copyWith(color: Colors.white54),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
-                      itemCount: _searchResults.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
-                        final item = _searchResults[idx];
-                        final article = item['article'] ?? '';
-                        final word = item['lemma'] ?? '';
-                        final plural = item['plural'] ?? '-';
-                        final meaning = item['translation_ar'] ?? 'بدون ترجمة';
-                        final example = item['sentence'] ?? 'بدون مثال';
-
-                        return AppBaseGlassCard(
-                          onTap: () {
-                            WordDeepDiveSheet.show(
-                              context,
-                              article: article.isEmpty ? '?' : article,
-                              word: word,
-                              plural: plural,
-                              meaning: meaning,
-                              example: example,
-                            );
-                          },
-                          child: Row(
-                            children: <Widget>[
-                              if (article.isNotEmpty)
-                                ArticleBadge(article: article)
-                              else
-                                const SizedBox(width: 40), // مسافة إذا مافي أداة
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      word,
-                                      style: AppTypography.title.copyWith(color: Colors.white, fontSize: 17),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      meaning,
-                                      style: AppTypography.body.copyWith(
-                                        color: Colors.white.withValues(alpha: 0.75),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
-                            ],
-=======
                 Expanded(
                   child: _loading
                       ? const Center(
                           child: CircularProgressIndicator(
                             color: Color(0xFF38BDF8),
->>>>>>> pr-179
                           ),
                         )
                       : _error != null

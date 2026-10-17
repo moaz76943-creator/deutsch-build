@@ -14,45 +14,6 @@ class LanguageManagerScreen extends ConsumerWidget {
   static const _accent = Color(0xFF38BDF8);
 
   @override
-<<<<<<< HEAD
-  void initState() {
-    super.initState();
-    _languages = LanguagePackManager.supportedBcp47Locales.map((code) {
-      final name = LanguagePackManager.getLanguageName(code);
-      final isDefault = ['de', 'ar', 'en'].contains(code);
-      return {
-        'code': code,
-        'name': name,
-        'downloaded': isDefault,
-        'size': '${(3.2 + (code.hashCode.abs() % 25) / 10).toStringAsFixed(1)} MB',
-      };
-    }).toList();
-  }
-
-  Future<void> _toggleDownload(int index) async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    final item = _languages[index];
-    final willDownload = !(item["downloaded"] as bool);
-    if (willDownload) {
-      final ttsLocale = item['code'] as String;
-      await LanguagePackManager.verifyAndMountOfflinePack(ttsLocale);
-    }
-    setState(() {
-      item['downloaded'] = willDownload;
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            willDownload
-                ? 'تم تحميل وتفعيل حزمة لغة: ${item['name']}'
-                : 'تم إلغاء حزمة لغة: ${item['name']}',
-          ),
-          backgroundColor: const Color(0xFF38BDF8),
-=======
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(activeLanguageProvider);
     final packs = state.visiblePacks;
@@ -76,7 +37,6 @@ class LanguageManagerScreen extends ConsumerWidget {
               icon: const Icon(Icons.refresh_rounded),
             ),
           ],
->>>>>>> pr-179
         ),
         body: SafeArea(
           child: Center(

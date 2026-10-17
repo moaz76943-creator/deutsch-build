@@ -16,25 +16,6 @@ import '../widgets/phonetic_ipa_view.dart';
 import '../widgets/resilient_text_container.dart';
 import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
-<<<<<<< HEAD
-Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
-  final db = await LocalDatabaseService.instance.database;
-  return await db.rawQuery(
-    '''
-    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence
-    FROM lexemes AS l
-    LEFT JOIN examples AS e
-      ON e.concept_id = l.concept_id AND e.language_code = l.language_code
-    WHERE l.language_code = ?
-    LIMIT 10
-    ''',
-    [targetLangCode],
-  );
-}
-
-class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key});
-=======
 /// Review only scheduled-due cards and never-reviewed content entries.
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(
   String targetLangCode,
@@ -43,7 +24,6 @@ Future<List<Map<String, dynamic>>> loadFlashcardsSafe(
 class FlashcardsScreen extends ConsumerStatefulWidget {
   const FlashcardsScreen({super.key});
 
->>>>>>> pr-179
   @override
   ConsumerState<FlashcardsScreen> createState() => _FlashcardsScreenState();
 }
@@ -84,11 +64,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   void dispose() {
     _loadGeneration++;
     _flipController.dispose();
-<<<<<<< HEAD
-    OfflineAudioManager.instance.stop();
-=======
     unawaited(_audio.dispose());
->>>>>>> pr-179
     super.dispose();
   }
 
@@ -177,31 +153,14 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     setState(() => _isFlipped = !_isFlipped);
     if (_isFlipped) {
       _flipController.forward();
-<<<<<<< HEAD
-      OfflineAudioManager.instance.speak("das Buch");
-=======
       if (_headword.isNotEmpty) {
         unawaited(_playCardAudio());
       }
->>>>>>> pr-179
     } else {
       _flipController.reverse();
     }
   }
 
-<<<<<<< HEAD
-  Future<void> _handleRating(ReviewRating rating) async {
-    if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
-
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-        _toggleFlip();
-      });
-=======
 
   Future<void> _playCardAudio() async {
     final card = _currentCard;
@@ -254,7 +213,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
         });
       }
       return; // The current card is retained for an explicit retry.
->>>>>>> pr-179
     }
 
     // The card may advance only after the transaction has committed.
@@ -351,20 +309,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
             ),
             if (_cards.isNotEmpty && _isFlipped)
               Padding(
-<<<<<<< HEAD
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: _isSubmitting
-                  ? const CircularProgressIndicator()
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildRatingButton('مجدداً', Colors.redAccent, ReviewRating.again),
-                        _buildRatingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
-                        _buildRatingButton('جيد', Colors.blueAccent, ReviewRating.good),
-                        _buildRatingButton('سهل', Colors.green, ReviewRating.easy),
-                      ],
-                    ),
-=======
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: _isSubmitting
                     ? const CircularProgressIndicator()
@@ -396,7 +340,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                           ),
                         ],
                       ),
->>>>>>> pr-179
               )
             else if (_cards.isNotEmpty)
               const Padding(
@@ -423,33 +366,8 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(24),
       ),
-<<<<<<< HEAD
-      alignment: Alignment.center,
-      child: const Text(
-        'das Buch',
-        style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildBackAppBaseGlassCard() {
-    return Transform(
-      alignment: Alignment.center,
-      transform: Matrix4.identity()..rotateX(pi),
-      child: Container(
-        width: 320,
-        height: 400,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: const Color(0xFF334155),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
-        ),
-        child: const Column(
-=======
       child: SingleChildScrollView(
         child: Column(
->>>>>>> pr-179
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ResilientTextContainer(
@@ -531,13 +449,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withAlpha(51),
         foregroundColor: color,
-<<<<<<< HEAD
-        elevation: 0,
         minimumSize: const Size(70, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-=======
-        minimumSize: const Size(70, 56),
->>>>>>> pr-179
       ),
       onPressed: () => _handleRating(rating),
       child: Text(

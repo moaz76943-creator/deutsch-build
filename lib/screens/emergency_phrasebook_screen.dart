@@ -37,24 +37,6 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                 child: Semantics(
                   button: true,
                   child: AppBaseGlassCard(
-<<<<<<< HEAD
-                    padding: const EdgeInsets.all(16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EmergencyPhrasebookDetailScreen(item: item),
-                        ),
-                      );
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        Hero(
-                          tag: 'emergency_phrase_${item['title']}',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Text(item['icon']!, style: const TextStyle(fontSize: 32)),
-=======
                   padding: const EdgeInsets.all(16),
                   onTap: () {
                     Navigator.of(context).push(
@@ -77,7 +59,6 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                               item['icon']!,
                               style: const TextStyle(fontSize: 32),
                             ),
->>>>>>> pr-179
                           ),
                         ),
                         const SizedBox(width: 16),

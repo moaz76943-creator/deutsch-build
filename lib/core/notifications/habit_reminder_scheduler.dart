@@ -7,17 +7,6 @@ enum OSIntegrationStatus {
 }
 
 class HabitReminderScheduler {
-<<<<<<< HEAD
-
-  /// جدولة تذكير يومي مجهول (بدون Exact Alarms لمنع استنزاف البطارية)
-  static Future<void> scheduleDailyReminder() async {
-    // 1. التحقق من صلاحيات الإشعارات (كما طلب تقرير الأمن)
-    // 2. جدولة إشعار محلي باستخدام مكتبة flutter_local_notifications
-    // سيتم تنفيذ الربط الفعلي هنا.
-
-    // مثال منطقي:
-    // إذا لم يكمل المستخدم مراجعته اليوم، أرسل إشعاراً في الساعة 6 مساءً.
-=======
   final ReminderStorage _storage;
   ReminderPreferences _preferences;
 
@@ -132,7 +121,6 @@ class HabitReminderScheduler {
       return true;
     }
     return false;
->>>>>>> pr-257
   }
 
   static Future<void> generateGrowthReport(int daysActive) async {

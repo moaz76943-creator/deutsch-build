@@ -35,26 +35,6 @@ class OfflineAudioManager {
     }
   }
 
-<<<<<<< HEAD
-  Future<bool> verifyOfflineCapability(String bcp47) async {
-    try {
-      final isAvailable = await _flutterTts.isLanguageAvailable(bcp47);
-      return isAvailable == true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> speak(String text, {String locale = 'de-DE', double rate = 0.4}) async {
-    try {
-      await stop();
-
-      final bool isCapable = await verifyOfflineCapability(locale);
-      if (!isCapable) return;
-
-      final int currentGen = _generationTracker.nextGeneration();
-
-=======
   Future<void> speak(
     String text, {
     String locale = 'de-DE',
@@ -65,23 +45,10 @@ class OfflineAudioManager {
       await _ensureInitialized();
       final tts = _flutterTts!;
       await tts.stop();
->>>>>>> pr-179
       if (_currentLocale != locale) {
         await tts.setLanguage(locale);
         _currentLocale = locale;
       }
-<<<<<<< HEAD
-      await _flutterTts.setSpeechRate(rate);
-
-      if (_generationTracker.isCurrent(currentGen)) {
-        await _flutterTts.speak(text);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> stop() async {
-    _generationTracker.reset();
-=======
       await tts.setSpeechRate(rate);
       await tts.speak(text);
     } catch (_) {
@@ -92,7 +59,6 @@ class OfflineAudioManager {
   Future<void> stop() async {
     final tts = _flutterTts;
     if (tts == null) return;
->>>>>>> pr-179
     try {
       await tts.stop();
     } catch (_) {}

@@ -29,11 +29,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final allLangs = LanguagePackManager.supportedBcp47Locales;
-=======
     final allLangs = LanguagePackManager().supportedLanguages;
->>>>>>> pr-179
     final filteredLangs = allLangs.where((code) {
       final name = LanguagePackManager.getLanguageName(code).toLowerCase();
       final query = _searchQuery.toLowerCase().trim();

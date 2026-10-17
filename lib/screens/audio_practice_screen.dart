@@ -30,17 +30,6 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
     _loadRandomSentence();
   }
 
-<<<<<<< HEAD
-  Future<void> _initTts() async {
-    final locale = AudioFeedbackEngine.resolveLocaleTag(widget.languageCode);
-    await _flutterTts.setLanguage(locale);
-    await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(''));
-    await _flutterTts.setSpeechRate(_playbackSpeed);
-
-    _flutterTts.setCompletionHandler(() {
-      if (mounted) setState(() => _isPlaying = false);
-    });
-=======
   void _onTtsStatus(TtsStatus status, {String? locale, String? message}) {
     if (!mounted) return;
     if (status == TtsStatus.completed ||
@@ -50,7 +39,6 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
         status == TtsStatus.voiceMissing) {
       setState(() => _isPlaying = false);
     }
->>>>>>> pr-179
   }
 
   Future<void> _loadRandomSentence() async {
