@@ -26,7 +26,7 @@ if [[ "$SKIP_FLUTTER_CHECK" == "1" ]]; then
   log SKIP "Flutter SDK checks disabled by SKIP_FLUTTER_CHECK=1"
 else
   log CHECK "Locked Flutter dependencies"
-  flutter pub get --enforce-lockfile
+  with_retry flutter pub get --enforce-lockfile
   assert_lockfile_unchanged
 fi
 

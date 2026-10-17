@@ -24,7 +24,11 @@ log CHECK "1/10 Environment"
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
 <<<<<<< HEAD
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
+=======
+with_retry flutter pub get --enforce-lockfile
+>>>>>>> pr-136
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"

@@ -86,10 +86,14 @@ bash "$ROOT/scripts/build_guard.sh"
 
 snapshot_lockfile
 <<<<<<< HEAD
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 =======
 run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
 >>>>>>> pr-61
+=======
+with_retry flutter pub get --enforce-lockfile
+>>>>>>> pr-136
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
