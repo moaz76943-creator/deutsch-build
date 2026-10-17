@@ -1,15 +1,17 @@
 import 'language_grammar_rule_provider.dart';
+import 'grammar_capabilities.dart';
+import 'grammar_profile.dart';
 
 abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
   @override
-  String get languageCode;
+  GrammarProfile get profile;
 
   @override
-  GrammarProfile get profile => const GrammarProfile();
+  String get languageCode => profile.languageCode;
 
   @override
   GrammaticalGender determineGender(String word, {String? article}) {
-    if (!profile.supportsFeature(GrammarFeature.gender)) {
+    if (!profile.supports(GrammarCapability.gender)) {
       return GrammaticalGender.none;
     }
     return extractGender(word, article: article);
@@ -30,7 +32,7 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   bool isValidArticle(String word, String article) {
-    if (!profile.supportsFeature(GrammarFeature.gender)) {
+    if (!profile.supports(GrammarCapability.gender)) {
       return true; // Or whatever makes sense for a language without articles/gender
     }
     return checkValidArticle(word, article);
@@ -40,54 +42,63 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
     return true;
   }
 
+  // Capability-guarded properties
+
   @override
-  GrammaticalNumber determineNumber(String word, {String? context}) {
-    if (!profile.supportsFeature(GrammarFeature.number)) return GrammaticalNumber.none;
+  GrammaticalNumber determineNumber(String word) {
+    if (!profile.supports(GrammarCapability.number)) {
+      return GrammaticalNumber.none;
+    }
     return extractNumber(word);
   }
 
   GrammaticalNumber extractNumber(String word) => GrammaticalNumber.none;
 
   @override
-  GrammaticalCase determineCase(String word, {String? context}) {
-    if (!profile.supportsFeature(GrammarFeature.grammaticalCase)) return GrammaticalCase.none;
+  GrammaticalCase determineCase(String word) {
+    if (!profile.supports(GrammarCapability.caseSystem)) {
+      return GrammaticalCase.none;
+    }
     return extractCase(word);
   }
 
   GrammaticalCase extractCase(String word) => GrammaticalCase.none;
 
   @override
-  GrammaticalPerson determinePerson(String word, {String? context}) {
-    if (!profile.supportsFeature(GrammarFeature.person)) return GrammaticalPerson.none;
+  GrammaticalPerson determinePerson(String word) {
+    if (!profile.supports(GrammarCapability.person)) {
+      return GrammaticalPerson.none;
+    }
     return extractPerson(word);
   }
 
   GrammaticalPerson extractPerson(String word) => GrammaticalPerson.none;
 
   @override
-  GrammaticalTense determineTense(String word, {String? context}) {
-    if (!profile.supportsFeature(GrammarFeature.tense)) return GrammaticalTense.none;
+  GrammaticalTense determineTense(String word) {
+    if (!profile.supports(GrammarCapability.tense)) {
+      return GrammaticalTense.none;
+    }
     return extractTense(word);
   }
 
   GrammaticalTense extractTense(String word) => GrammaticalTense.none;
 
   @override
-  GrammaticalAspect determineAspect(String word, {String? context}) {
-    if (!profile.supportsFeature(GrammarFeature.aspect)) return GrammaticalAspect.none;
+  GrammaticalAspect determineAspect(String word) {
+    if (!profile.supports(GrammarCapability.aspect)) {
+      return GrammaticalAspect.none;
+    }
     return extractAspect(word);
   }
 
   GrammaticalAspect extractAspect(String word) => GrammaticalAspect.none;
 
   @override
-  GrammaticalMood determineMood(String word, {String? context}) {
-    if (!profile.supportsFeature(GrammarFeature.mood)) return GrammaticalMood.none;
+  GrammaticalMood determineMood(String word) {
+    if (!profile.supports(GrammarCapability.mood)) return GrammaticalMood.none;
     return extractMood(word);
   }
 
   GrammaticalMood extractMood(String word) => GrammaticalMood.none;
-
-  @override
-  bool supportsFeature(GrammarFeature feature) => profile.supportsFeature(feature);
 }

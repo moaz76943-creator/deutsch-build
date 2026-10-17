@@ -64,10 +64,13 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
                     final isUsed = _assembledMorphemes.contains(block);
                     return ActionChip(
                       label: Text('${block.text} (${block.type})'),
-                      backgroundColor: block.isRoot ? Colors.blue.shade100 : Colors.amber.shade100,
+                      backgroundColor: block.isRoot
+                          ? Colors.blue.shade100
+                          : Colors.amber.shade100,
                       onPressed: isUsed
                           ? null
-                          : () => setState(() => _assembledMorphemes.add(block)),
+                          : () =>
+                              setState(() => _assembledMorphemes.add(block)),
                     );
                   }).toList(),
                 ),
@@ -84,14 +87,17 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
                     _assembledMorphemes.isEmpty
                         ? 'انقر الكتل لبناء المتتالية الصرفية...'
                         : _assembledMorphemes.map((e) => e.text).join(''),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     ElevatedButton(
-                      onPressed: _assembledMorphemes.isEmpty ? null : _evaluateMorphemes,
+                      onPressed: _assembledMorphemes.isEmpty
+                          ? null
+                          : _evaluateMorphemes,
                       child: const Text('تقييم عبر العقد'),
                     ),
                     const SizedBox(width: 8),
@@ -119,8 +125,11 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
               children: [
                 Wrap(
                   spacing: 4,
-                  children: List.generate(_ambigContract.payload.sentenceTokens.length, (index) {
-                    final isBlurred = _ambigContract.payload.blurredIndices.contains(index) && !_revealed;
+                  children: List.generate(
+                      _ambigContract.payload.sentenceTokens.length, (index) {
+                    final isBlurred =
+                        _ambigContract.payload.blurredIndices.contains(index) &&
+                            !_revealed;
                     return isBlurred
                         ? Container(
                             color: Colors.grey.shade400,
@@ -130,11 +139,13 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
                               style: const TextStyle(color: Colors.transparent),
                             ),
                           )
-                        : Text(_ambigContract.payload.sentenceTokens[index], style: const TextStyle(fontSize: 15));
+                        : Text(_ambigContract.payload.sentenceTokens[index],
+                            style: const TextStyle(fontSize: 15));
                   }),
                 ),
                 const SizedBox(height: 10),
-                Text('السؤال: ${_ambigContract.payload.question}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('السؤال: ${_ambigContract.payload.question}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -145,7 +156,8 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
                     const SizedBox(width: 8),
                     TextButton(
                       onPressed: () => setState(() => _revealed = true),
-                      child: const Text('كشف النص المطموس', style: TextStyle(color: Colors.red)),
+                      child: const Text('كشف النص المطموس',
+                          style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),
@@ -158,7 +170,8 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
           _buildContractCard(
             title: '3. سيناريو تجريبي قيد الاعتماد (Fail-Closed Sandbox)',
             contract: _unverifiedContract,
-            child: const Text('هذا المكون لن يظهر في بيئة الإنتاج ما دام غير موثق.'),
+            child: const Text(
+                'هذا المكون لن يظهر في بيئة الإنتاج ما دام غير موثق.'),
           ),
         ],
       ),
@@ -184,20 +197,29 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  child: Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isAvailable ? Colors.green.shade100 : Colors.red.shade100,
+                    color: isAvailable
+                        ? Colors.green.shade100
+                        : Colors.red.shade100,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    isAvailable ? 'عقد نشط (${contract.languagePair.key})' : 'معطل صراحةً (Fail-Closed)',
+                    isAvailable
+                        ? 'عقد نشط (${contract.languagePair.key})'
+                        : 'معطل صراحةً (Fail-Closed)',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: isAvailable ? Colors.green.shade800 : Colors.red.shade800,
+                      color: isAvailable
+                          ? Colors.green.shade800
+                          : Colors.red.shade800,
                     ),
                   ),
                 ),
@@ -218,7 +240,10 @@ class _Wave05HubScreenState extends State<Wave05HubScreen> {
                 ),
                 child: const Text(
                   'الميزة معطلة وقائياً: هذا السيناريو بانتظار مراجعة وتوثيق لغوي معتمد.',
-                  style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold),
                 ),
               )
             else

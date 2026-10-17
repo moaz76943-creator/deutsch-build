@@ -1,17 +1,33 @@
 import 'cognitive_metric_record.dart';
 
 enum AdaptationAction {
-  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
+  maintainFlow, // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
   reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
   deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
 }
 
-enum AdaptationReason {
-  coldStart,
-  sustainedStrain,
-  excellentFlow,
-  recovering,
-  defaultFlow,
+sealed class AdaptationReason {
+  const AdaptationReason();
+}
+
+class FatigueDetected extends AdaptationReason {
+  const FatigueDetected();
+}
+
+class ConsistentMastery extends AdaptationReason {
+  const ConsistentMastery();
+}
+
+class HysteresisCoolDown extends AdaptationReason {
+  const HysteresisCoolDown();
+}
+
+class InsufficientData extends AdaptationReason {
+  const InsufficientData();
+}
+
+class StableFlow extends AdaptationReason {
+  const StableFlow();
 }
 
 class AdaptationDecision {
@@ -22,90 +38,123 @@ class AdaptationDecision {
 }
 
 class AdaptiveCognitiveEngine {
-  static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
+  static final AdaptiveCognitiveEngine instance =
+      AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
-  final Map<String, List<CognitiveMetricRecord>> _metricsHistory = {};
-  static const int _windowSize = 5; // مراقبة آخر 5 تفاعلات
+  static const String _defaultPairKey = 'default_pair';
+  final Map<String, List<CognitiveMetricRecord>> _metricsByPair = {};
 
-  void observe(CognitiveMetricRecord record, {String languagePairKey = 'default'}) {
-    // Drop malformed/extreme records (e.g. latency > 1 hour)
-    if (record.responseLatency.inHours > 1) {
-      return;
+  // Hysteresis tracking
+  final Map<String, DateTime> _lastActionTime = {};
+  final Map<String, AdaptationAction> _lastAction = {};
+
+  static const int _windowSize = 20; // Bound history to 20 items per pair
+  static const Duration _hysteresisDuration =
+      Duration(minutes: 5); // 5 minutes cooldown
+
+  String _getPairKey(String? targetLanguageCode) =>
+      targetLanguageCode ?? _defaultPairKey;
+
+  void observe(CognitiveMetricRecord record) {
+    final pairKey = _getPairKey(record.targetLanguageCode);
+
+    if (!_metricsByPair.containsKey(pairKey)) {
+      _metricsByPair[pairKey] = [];
     }
 
-    final pairKey = record.languagePairKey != 'default' ? record.languagePairKey : languagePairKey;
-    _metricsHistory.putIfAbsent(pairKey, () => []);
-    _metricsHistory[pairKey]!.add(record);
+    final metrics = _metricsByPair[pairKey]!;
+    metrics.add(record);
 
-    if (_metricsHistory[pairKey]!.length > _windowSize) {
-      _metricsHistory[pairKey]!.removeAt(0);
+    if (metrics.length > _windowSize) {
+      metrics.removeAt(0);
     }
+
+    // Idempotent daily cleanup: remove records older than 24 hours for this pair
+    final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 24));
+    metrics.removeWhere((m) => m.recordedAt.isBefore(cutoff));
   }
 
-  final Map<String, AdaptationAction> _previousActions = {};
+  /// Evaluates detailed state with reason and pair isolation
+  AdaptationDecision evaluateDetailedState(
+      {String? targetLanguageCode, DateTime? currentTime}) {
+    final pairKey = _getPairKey(targetLanguageCode);
+    final metrics = _metricsByPair[pairKey] ?? [];
 
-  AdaptationDecision evaluateDecision({String languagePairKey = 'default'}) {
-    final recentMetrics = _metricsHistory[languagePairKey] ?? [];
-
-    if (recentMetrics.isEmpty) {
-      _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
-      return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.coldStart);
+    // Fallback if empty/cold-start
+    if (metrics.isEmpty) {
+      return const AdaptationDecision(
+          AdaptationAction.maintainFlow, InsufficientData());
     }
 
-    final avgStrain = recentMetrics
-            .map((m) => m.cognitiveStrainIndex)
-            .reduce((a, b) => a + b) /
-        recentMetrics.length;
+    final now = currentTime ?? DateTime.now();
 
-    final prevAction = _previousActions[languagePairKey] ?? AdaptationAction.maintainFlow;
-
-    // Hysteresis: If we were reducing load, require significantly better metrics to escape.
-    if (prevAction == AdaptationAction.reduceExtraneousLoad) {
-      if (avgStrain < 0.3) {
-        // Recovered
-        _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
-        return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.recovering);
-      }
-      return const AdaptationDecision(AdaptationAction.reduceExtraneousLoad, AdaptationReason.sustainedStrain);
+    // Hysteresis check: prevent oscillating difficulty
+    final lastTime = _lastActionTime[pairKey];
+    if (lastTime != null && now.difference(lastTime) < _hysteresisDuration) {
+      final lastAct = _lastAction[pairKey] ?? AdaptationAction.maintainFlow;
+      return AdaptationDecision(lastAct, const HysteresisCoolDown());
     }
+
+    // Determine state from recent metrics (last 5 for actual logic, while preserving 20 for history)
+    final recentWindow =
+        metrics.length > 5 ? metrics.sublist(metrics.length - 5) : metrics;
+
+    final sumStrain = recentWindow.map((m) {
+      final strain = m.cognitiveStrainIndex;
+      return strain.isNaN ? 1.0 : strain;
+    }).reduce((a, b) => a + b);
+
+    final avgStrain = sumStrain / recentWindow.length;
+
+    AdaptationDecision decision;
 
     // حالة إرهاق ذهني أو صعوبة مستمرة
     if (avgStrain >= 0.6) {
-      _previousActions[languagePairKey] = AdaptationAction.reduceExtraneousLoad;
-      return const AdaptationDecision(AdaptationAction.reduceExtraneousLoad, AdaptationReason.sustainedStrain);
+      decision = const AdaptationDecision(
+          AdaptationAction.reduceExtraneousLoad, FatigueDetected());
+    } else {
+      // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
+      final allCorrect = recentWindow.every((m) => m.isCorrect);
+      final isFast = recentWindow.every((m) {
+        final latency = m.responseLatency.inMilliseconds;
+        return latency >= 0 && latency < 2000;
+      });
+
+      if (allCorrect && isFast && recentWindow.length >= 3) {
+        decision = const AdaptationDecision(
+            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+      } else {
+        decision = const AdaptationDecision(
+            AdaptationAction.maintainFlow, StableFlow());
+      }
     }
 
-    // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
-    final allCorrect = recentMetrics.every((m) => m.isCorrect);
-    final isFast = recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
-
-    // Any signs of struggle drop deepened challenge immediately (Hysteresis for Deepen)
-    if (prevAction == AdaptationAction.deepenLinguisticChallenge && (!allCorrect || !isFast || avgStrain > 0.1)) {
-       _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
-       return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.recovering);
+    // Update hysteresis state if decision changes
+    if (_lastAction[pairKey] != decision.action) {
+      _lastAction[pairKey] = decision.action;
+      _lastActionTime[pairKey] = now;
     }
 
-    if (allCorrect && isFast && recentMetrics.length >= 3) {
-      _previousActions[languagePairKey] = AdaptationAction.deepenLinguisticChallenge;
-      return const AdaptationDecision(AdaptationAction.deepenLinguisticChallenge, AdaptationReason.excellentFlow);
-    }
-
-    _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
-    return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.defaultFlow);
+    return decision;
   }
 
   /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
-  AdaptationAction evaluateState({String languagePairKey = 'default'}) {
-    // For backward compatibility
-    return evaluateDecision(languagePairKey: languagePairKey).action;
+  /// Maintains signature for backward compatibility
+  AdaptationAction evaluateState({String? targetLanguageCode}) {
+    return evaluateDetailedState(targetLanguageCode: targetLanguageCode).action;
   }
 
-  void clearSession({String languagePairKey = 'default'}) {
-    if (languagePairKey == 'default' && _metricsHistory.keys.length == 1 && _metricsHistory.containsKey('default')) {
-       _metricsHistory.clear();
+  void clearSession({String? targetLanguageCode}) {
+    if (targetLanguageCode != null) {
+      final pairKey = _getPairKey(targetLanguageCode);
+      _metricsByPair.remove(pairKey);
+      _lastActionTime.remove(pairKey);
+      _lastAction.remove(pairKey);
     } else {
-       _metricsHistory.remove(languagePairKey);
+      _metricsByPair.clear();
+      _lastActionTime.clear();
+      _lastAction.clear();
     }
   }
 }

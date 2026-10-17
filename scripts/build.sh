@@ -7,24 +7,32 @@ source "$ROOT/scripts/common.sh"
 load_toolchain
 
 MODE="${1:-debug}"
-case "$MODE" in debug|release) ;; *) fatal $ERR_ENV "Usage: ./scripts/build.sh [debug|release]";; esac
+case "$MODE" in debug|release) ;; *) fatal "$ERR_ENV" "Usage: ./scripts/build.sh [debug|release]";; esac
 
 JSON_CONTENT="${DEUTSCH_JSON_CONTENT:-false}"
-case "$JSON_CONTENT" in true|false) ;; *) fatal $ERR_ENV "DEUTSCH_JSON_CONTENT must be true or false";; esac
+case "$JSON_CONTENT" in true|false) ;; *) fatal "$ERR_ENV" "DEUTSCH_JSON_CONTENT must be true or false";; esac
 DART_DEFINE=("--dart-define=DEUTSCH_JSON_CONTENT=$JSON_CONTENT")
 cd "$ROOT"
-LOG_DIR="${HOME}/.deutsch_bilarabi_logs"
-mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/build_${MODE}_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="$(bash "$ROOT/scripts/create_private_build_log.sh" "$MODE")" || fatal "$ERR_ENV" "Cannot create a private build log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 log CHECK "1/10 Environment"
-"$ROOT/scripts/build_guard.sh"
+"$ROOT/scripts/build_guard.sh" || fatal "$ERR_ENV" "Environment guard failed"
 
 log CHECK "2/10 Dependencies"
+python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
+=======
+with_retry flutter pub get --enforce-lockfile
+>>>>>>> pr-136
+=======
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
+>>>>>>> pr-188
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
@@ -32,45 +40,71 @@ flutter analyze || fatal --code "$ERR_COMP" "Flutter analyze failed"
 flutter test || fatal --code "$ERR_COMP" "Flutter tests failed"
 python -m pytest -q tests || fatal --code "$ERR_COMP" "Python tests failed"
 =======
-with_retry flutter pub get --enforce-lockfile
+run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
-flutter analyze || fatal $ERR_COMPILE "Flutter analyze failed"
-flutter test || fatal $ERR_COMPILE "Flutter test failed"
-python -m pytest -q tests || fatal $ERR_COMPILE "Python tests failed"
->>>>>>> origin/main
+flutter analyze || fatal "$ERR_COMP" "Flutter analyze failed"
+flutter test || fatal "$ERR_COMP" "Flutter test failed"
+python -m pytest -q tests || fatal "$ERR_COMP" "Pytest failed"
+>>>>>>> pr-61
 
 log CHECK "4/10 Content Quality"
-python tool/quality_audit.py || fatal $ERR_COMPILE "Quality audit failed"
+python tool/quality_audit.py || fatal "$ERR_COMP" "Quality audit failed"
+=======
+run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
+assert_lockfile_unchanged
+
+log TEST "3/10 Analyze + tests + project audits"
+bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Blocking Dart errors or analyzer failure"
+flutter test || fatal "$ERR_COMP" "Flutter tests failed"
+python -m pytest -q tests || fatal "$ERR_COMP" "Python tests failed"
+
+log CHECK "4/10 Content Quality"
+python tool/quality_audit.py || fatal "$ERR_COMP" "Content audit failed"
+>>>>>>> pr-179
 
 log CHECK "5/10 Security"
-python tool/security_audit.py || fatal $ERR_COMPILE "Security audit failed"
-python tool/phase17_production_gate.py || fatal $ERR_COMPILE "Production gate failed"
+python tool/security_audit.py || fatal "$ERR_COMP" "Security audit failed"
+python tool/phase17_production_gate.py || fatal "$ERR_COMP" "Production gate failed"
 
 if [[ "$MODE" == "release" ]]; then
   log CHECK "6/10 Release signing"
-  "$ROOT/scripts/signing_guard.sh"
+  "$ROOT/scripts/signing_guard.sh" || fatal "$ERR_SIGN" "Signing check failed"
 fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
   flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (release) failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
   flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (debug) failed"
 =======
-  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal $ERR_COMPILE "Release build failed"
+  run_with_retry flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "$ERR_COMP" "Release build failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
-  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal $ERR_COMPILE "Debug build failed"
->>>>>>> origin/main
+  run_with_retry flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "$ERR_COMP" "Debug build failed"
+>>>>>>> pr-61
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "$ERR_COMP" "Release APK build failed"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "$ERR_COMP" "Debug APK build failed"
+>>>>>>> pr-179
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "Flutter build apk (release) failed" "$EXIT_COMP"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "Flutter build apk (debug) failed" "$EXIT_COMP"
+>>>>>>> pr-188
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 
 log CHECK "8/10 APK Verification"
-"$ROOT/scripts/apk_verify.sh" "$APK" "$MODE"
+"$ROOT/scripts/apk_verify.sh" "$APK" "$MODE" || fatal "$ERR_ARTIFACT" "APK verification failed"
 
 log CHECK "9/10 Build provenance"
 mkdir -p "$ROOT/build"

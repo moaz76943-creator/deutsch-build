@@ -1,173 +1,146 @@
-import json
-import os
-import subprocess
-import tempfile
 import unittest
-from pathlib import Path
+import subprocess
+import os
+import tempfile
+import json
+import time
 from unittest.mock import patch, MagicMock
+from tools.agent_contract.guard import main
 
-# Import the module to test
-import tools.agent_contract.guard as guard
-
-class TestScopeGuard(unittest.TestCase):
-
+class TestGuard(unittest.TestCase):
     def setUp(self):
-        # Create a temporary directory for the ledger and tests
-        self.test_dir = tempfile.TemporaryDirectory()
-        self.ledger_file = os.path.join(self.test_dir.name, ".ledger.json")
-        # Override the LEDGER_FILE path in the module
-        self.original_ledger_file = guard.LEDGER_FILE
-        guard.LEDGER_FILE = self.ledger_file
-
-        # Patch subprocess to not actually call git unless we want it to
-        self.subprocess_run_patcher = patch('subprocess.run')
-        self.mock_run = self.subprocess_run_patcher.start()
-
-        # Setup default mock behavior for git
-        self.mock_run.return_value = MagicMock(
-            stdout="",
-            returncode=0
-        )
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.ledger_path = os.path.join(self.temp_dir.name, "ledger.json")
+        self.report_path = os.path.join(self.temp_dir.name, "report.json")
+        with open(self.ledger_path, "w") as f:
+            json.dump({}, f)
 
     def tearDown(self):
-        self.test_dir.cleanup()
-        guard.LEDGER_FILE = self.original_ledger_file
-        self.subprocess_run_patcher.stop()
+        self.temp_dir.cleanup()
 
-    def test_path_allowed(self):
-        self.assertTrue(guard.is_path_allowed("AGENTS.md"))
-        self.assertTrue(guard.is_path_allowed("docs/project-record/TEST.md"))
-        self.assertTrue(guard.is_path_allowed("tools/agent_contract/guard.py"))
+    def test_allowed_paths_explicit(self):
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "docs/project-record/file.txt", "tools/agent_contract/guard.py", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
 
-        self.assertFalse(guard.is_path_allowed("lib/main.dart"))
-        self.assertFalse(guard.is_path_allowed("android/app/build.gradle"))
-        self.assertFalse(guard.is_path_allowed("package.json"))
+    def test_claim_without_paths(self):
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("Paths must be provided for initial CLAIM.", report["blockers"])
 
-    def test_path_traversal_blocked(self):
-        # Create a symlink to test escape attempts
-        symlink_path = Path("tools/agent_contract/sneaky_link")
-        if not symlink_path.exists():
-            try:
-                os.symlink("../../lib", symlink_path)
-            except OSError:
-                pass # Might not have permission, ignore
+    def test_denied_paths(self):
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "lib/main.dart", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("lib/main.dart", report["denied_paths"])
+            self.assertIn("Changes to forbidden paths detected.", report["blockers"])
 
-        if symlink_path.exists():
-            self.assertFalse(guard.is_path_allowed("tools/agent_contract/sneaky_link/main.dart"))
-            os.remove(symlink_path)
+    def test_path_escape(self):
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/../../lib/main.dart", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("tools/agent_contract/../../lib/main.dart", report["denied_paths"])
 
-        self.assertFalse(guard.is_path_allowed("tools/agent_contract/../../lib/main.dart"))
+    def test_overlapping_claims(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
 
-    def test_path_collision(self):
-        ledger = {
-            "TASK-1": {
-                "state": "ACTIVE",
-                "paths": ["tools/agent_contract/"]
-            }
-        }
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertTrue(any("AGENTS.md" in b and "T1" in b for b in report["blockers"]))
 
-        # Same path
-        self.assertEqual(
-            guard.check_path_collision(ledger, "TASK-2", ["tools/agent_contract/guard.py"]),
-            "tools/agent_contract/guard.py"
-        )
+    def test_overlapping_directory_claims(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "CLAIM", "paths": ["tools/agent_contract/"], "timestamp": time.time()}}, f)
 
-        # Different path
-        self.assertIsNone(
-            guard.check_path_collision(ledger, "TASK-2", ["docs/project-record/"])
-        )
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/guard.py", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertTrue(any("tools/agent_contract/guard.py overlaps with tools/agent_contract/" in b for b in report["blockers"]))
 
-        # Collision with completed task (should be allowed)
-        ledger["TASK-1"]["state"] = "COMPLETE"
-        self.assertIsNone(
-            guard.check_path_collision(ledger, "TASK-2", ["tools/agent_contract/guard.py"])
-        )
+    def test_invalid_transition(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
 
-    def test_stale_base_sha(self):
-        self.mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=128, cmd=['git', 'cat-file', '-e', 'BADSHA^{commit}']
-        )
+        with patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md']):
+            res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+            self.assertEqual(res, 1)
+            with open(self.report_path) as f:
+                report = json.load(f)
+                self.assertIn("Invalid transition from CLAIM to COMPLETE", report["blockers"])
 
-        with self.assertRaisesRegex(guard.ScopeGuardException, "Invalid or stale BASE_SHA"):
-            guard.validate_base_sha("BADSHA")
+    def test_modify_unclaimed_file_on_complete(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
 
-    @patch('sys.exit')
-    @patch('builtins.print')
-    def test_valid_state_transitions(self, mock_print, mock_exit):
-        base_sha = "validsha"
-        self.mock_run.return_value.stdout = "" # No changed files
+        with patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md', 'tools/agent_contract/guard.py']):
+            res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+            self.assertEqual(res, 1)
+            with open(self.report_path) as f:
+                report = json.load(f)
+                self.assertTrue(any("tools/agent_contract/guard.py modified but not originally claimed." in b for b in report["blockers"]))
 
-        # CLAIM
-        guard.process_claim("TASK-1", base_sha, "CLAIM", ["tools/agent_contract/"])
-        mock_exit.assert_not_called()
+    def test_stale_lock_recovery(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}}, f)
 
-        # ACTIVE
-        guard.process_claim("TASK-1", base_sha, "ACTIVE", [])
-        mock_exit.assert_not_called()
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
 
-        # COMPLETE
-        guard.process_claim("TASK-1", base_sha, "COMPLETE", [])
-        mock_exit.assert_not_called()
-
-        # Read ledger to verify state
-        with open(self.ledger_file, 'r') as f:
+        with open(self.ledger_path) as f:
             ledger = json.load(f)
-            self.assertEqual(ledger["TASK-1"]["state"], "COMPLETE")
+            self.assertEqual(ledger["T1"]["state"], "BLOCKED")
+            self.assertIn("Stale lock recovered", ledger["T1"]["recovery_evidence"])
+            self.assertEqual(ledger["T2"]["state"], "CLAIM")
 
-    @patch('sys.exit')
-    @patch('builtins.print')
-    def test_invalid_state_transition(self, mock_print, mock_exit):
-        base_sha = "validsha"
-        self.mock_run.return_value.stdout = ""
+    @patch('subprocess.check_call')
+    def test_stale_base_sha(self, mock_check_call):
+        mock_check_call.side_effect = subprocess.CalledProcessError(1, 'git')
+        with open(self.ledger_path, "w") as f:
+            json.dump({"_metadata": {"latest_base_sha": "def456"}}, f)
 
-        # Start CLAIM
-        guard.process_claim("TASK-1", base_sha, "CLAIM", ["tools/agent_contract/"])
+        res = main(["--task-id", "T1", "--base-sha", "abc1234", "--transition", "CLAIM", "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("Stale branch-base SHA detected. Base SHA is behind the latest completed merge.", report["blockers"])
 
-        # Invalid transition: CLAIM -> COMPLETE
-        guard.process_claim("TASK-1", base_sha, "COMPLETE", [])
+    def test_explicit_cancellation(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
 
-        # Check that it errored out
-        mock_exit.assert_called_with(1)
+        with patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md']):
+            res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CANCELLED", "--ledger", self.ledger_path, "--report", self.report_path])
+            self.assertEqual(res, 0)
+            with open(self.ledger_path) as f:
+                ledger = json.load(f)
+                self.assertEqual(ledger["T1"]["state"], "CANCELLED")
 
-        # Find the error message
-        found_error = False
-        for call in mock_print.call_args_list:
-            args, _ = call
-            try:
-                msg = json.loads(args[0])
-                if msg.get("status") == "error" and "Invalid state transition" in msg.get("message", ""):
-                    found_error = True
-            except:
-                pass
-        self.assertTrue(found_error)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
 
-    @patch('sys.exit')
-    @patch('builtins.print')
-    def test_unauthorized_modification(self, mock_print, mock_exit):
-        base_sha = "validsha"
+    def test_task_dependency_blocked(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
 
-        def mock_subprocess_run(args, **kwargs):
-            if args[0] == 'git' and args[1] == 'diff':
-                return MagicMock(stdout="lib/main.dart\n", returncode=0)
-            elif args[0] == 'git' and args[1] == 'status':
-                return MagicMock(stdout="", returncode=0)
-            return MagicMock(stdout="", returncode=0)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/guard.py", "--depends-on", "T1", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertTrue(any("Task depends on T1 which is in state CLAIM" in b for b in report["blockers"]))
 
-        self.mock_run.side_effect = mock_subprocess_run
+    def test_task_dependency_allowed(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "COMPLETE", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
 
-        guard.process_claim("TASK-1", base_sha, "CLAIM", ["tools/agent_contract/"])
-
-        mock_exit.assert_called_with(1)
-        found_error = False
-        for call in mock_print.call_args_list:
-            args, _ = call
-            try:
-                msg = json.loads(args[0])
-                if msg.get("status") == "error" and "Unauthorized file modification" in msg.get("message", ""):
-                    found_error = True
-            except:
-                pass
-        self.assertTrue(found_error)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/guard.py", "--depends-on", "T1", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
 
 if __name__ == '__main__':
     unittest.main()

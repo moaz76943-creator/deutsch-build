@@ -36,7 +36,8 @@ class FontFallbackEngine {
       fallbacks.add('NotoSansDevanagari');
     }
     // Ethiopic (1200–137F, 1380–139F, 2D80–2DDF, AB00–AB2F)
-    if (RegExp(r'[\u1200-\u137F\u1380-\u139F\u2D80-\u2DDF\uAB00-\uAB2F]').hasMatch(text)) {
+    if (RegExp(r'[\u1200-\u137F\u1380-\u139F\u2D80-\u2DDF\uAB00-\uAB2F]')
+        .hasMatch(text)) {
       fallbacks.add('NotoSansEthiopic');
     }
     // Georgian (10A0–10FF, 2D00–2D2F)
