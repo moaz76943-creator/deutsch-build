@@ -5,19 +5,49 @@ class TrieNode {
 
 class TrieSearchEngine {
   TrieNode _root = TrieNode();
-  int _nodeCount = 0;
   final int maxNodes;
   final int maxResults;
+  int _nodeCount = 1;
+  String? _contentVersion;
+  String? _languagePair;
 
-  TrieSearchEngine({this.maxNodes = 100000, this.maxResults = 100});
+  TrieSearchEngine({
+    this.maxNodes = 100000,
+    this.maxResults = 100,
+  });
+
+  void clear({String? contentVersion, String? languagePair}) {
+    _root = TrieNode();
+    _nodeCount = 1;
+    _contentVersion = contentVersion;
+    _languagePair = languagePair;
+  }
+
+  bool isStale(String contentVersion, String languagePair) {
+    if (_contentVersion == null || _languagePair == null) return true;
+    return _contentVersion != contentVersion || _languagePair != languagePair;
+  }
 
   /// تطبيع نصي عالمي يدعم اللاتينية، السلافية، والتشكيل العربي
   static String normalizeUniversal(String text) {
     if (text.isEmpty) return text;
     String res = text.toLowerCase().trim();
 
-    // إزالة التشكيل العربي والنيقود العبري
-    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670\u0591-\u05C7]'), '');
+    // إزالة التشكيل العربي
+    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+
+    // Arabic specific normalizations
+    // Remove Tatweel
+    res = res.replaceAll('\u0640', '');
+    // Normalize Alefs (أ إ آ -> ا)
+    res = res.replaceAll(RegExp(r'[\u0622\u0623\u0625]'), '\u0627');
+    // Normalize Teh Marbuta to Heh (ة -> ه)
+    res = res.replaceAll('\u0629', '\u0647');
+    // Normalize Alef Maksura to Yeh (ى -> ي)
+    res = res.replaceAll('\u0649', '\u064A');
+
+    // Remove Hebrew Niqqud
+    res = res.replaceAll(RegExp(r'[\u0591-\u05C7]'), '');
 
     // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
     final diacritics = {
@@ -39,57 +69,38 @@ class TrieSearchEngine {
   // دعم التوافق مع الكود السابق
   static String normalizeGerman(String text) => normalizeUniversal(text);
 
-  void clear() {
-    _root = TrieNode();
-    _nodeCount = 0;
-  }
-
   void insert(String word, String id) {
-    if (word.isEmpty) return;
-
-    // Instead of iterating by byte/code unit, use runes to safely handle multi-byte characters
     final normalized = normalizeUniversal(word);
     if (normalized.isEmpty) return;
 
     TrieNode current = _root;
-    final runes = normalized.runes.toList();
-
-    for (int i = 0; i < runes.length; i++) {
-      final char = String.fromCharCode(runes[i]);
-      if (_nodeCount >= maxNodes) {
-        if (!current.children.containsKey(char)) {
-            break;
+    for (final rune in normalized.runes) {
+      final char = String.fromCharCode(rune);
+      if (!current.children.containsKey(char)) {
+        if (_nodeCount >= maxNodes) {
+          // Stop adding new nodes if memory bound is reached
+          break;
         }
-        current = current.children[char]!;
-      } else {
-        current = current.children.putIfAbsent(char, () {
-          _nodeCount++;
-          return TrieNode();
-        });
+        current.children[char] = TrieNode();
+        _nodeCount++;
       }
-
-      // Add id to intermediate nodes for fast prefix retrieval
+      current = current.children[char]!;
       if (current.wordIds.length < maxResults) {
-          current.wordIds.add(id);
+        current.wordIds.add(id);
       }
     }
   }
 
   List<String> searchPrefix(String prefix) {
-    if (prefix.isEmpty) return [];
-
     final normalized = normalizeUniversal(prefix);
     if (normalized.isEmpty) return [];
 
     TrieNode current = _root;
-    final runes = normalized.runes.toList();
-
-    for (int i = 0; i < runes.length; i++) {
-      final char = String.fromCharCode(runes[i]);
+    for (final rune in normalized.runes) {
+      final char = String.fromCharCode(rune);
       if (!current.children.containsKey(char)) return [];
       current = current.children[char]!;
     }
-
-    return current.wordIds.toList(); // Return bounded results directly, deduplicated via Set
+    return current.wordIds.toList();
   }
 }
