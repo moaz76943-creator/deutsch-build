@@ -193,7 +193,6 @@ const String ccBySa40Url =
 // Original: creativecommons/creativecommons.org docroot/legalcode/by-sa_4.0.txt
 const String ccBySa40LegalText = r'''Attribution-ShareAlike 4.0 International
 
-=======================================================================
 
 Creative Commons Corporation ("Creative Commons") is not a law firm and
 does not provide legal services or legal advice. Distribution of
@@ -245,7 +244,6 @@ exhaustive, and do not form part of our licenses.
      for the public:
     wiki.creativecommons.org/Considerations_for_licensees
 
-=======================================================================
 
 Creative Commons Attribution-ShareAlike 4.0 International Public
 License
@@ -598,7 +596,6 @@ Section 8 -- Interpretation.
      processes of any jurisdiction or authority.
 
 
-=======================================================================
 
 Creative Commons is not a party to its public
 licenses. Notwithstanding, Creative Commons may elect to apply one of
