@@ -21,7 +21,9 @@ class BiDiHelper {
     for (int i = 0; i < clean.length; i++) {
       final code = clean.codeUnitAt(i);
       // Skip neutral characters (whitespace, punctuation, brackets, symbols, digits)
-      if (code <= 0x0040 || (code >= 0x005B && code <= 0x0060) || (code >= 0x007B && code <= 0x00BF)) {
+      if (code <= 0x0040 ||
+          (code >= 0x005B && code <= 0x0060) ||
+          (code >= 0x007B && code <= 0x00BF)) {
         continue;
       }
 

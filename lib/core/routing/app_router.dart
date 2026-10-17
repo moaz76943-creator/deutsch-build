@@ -17,7 +17,8 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case initialRoute:
-        return MaterialPageRoute(builder: (_) => OnboardingScreen(onStart: () {}));
+        return MaterialPageRoute(
+            builder: (_) => OnboardingScreen(onStart: () {}));
       case dashboard:
         return MaterialPageRoute(builder: (_) => DashboardScreen());
       case flashcards:

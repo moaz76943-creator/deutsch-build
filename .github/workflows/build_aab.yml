@@ -1,50 +1,35 @@
-name: Build Signed Release AAB
+name: Android Production Build (APK & AAB)
 
 on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  actions: none
-  checks: none
-  id-token: none
-  pull-requests: none
-
-concurrency:
-  group: signed-release-aab-${{ github.ref }}
-  cancel-in-progress: false
+  push:
+    branches: [ "staging/v2-full-platform", "main" ]
 
 jobs:
-  build-aab:
-    name: Build signed AAB 3.3.10+133
-    if: github.event.repository.private == true && github.ref_name == 'main'
+  build:
+    name: Build & Release Android
     runs-on: ubuntu-latest
-    timeout-minutes: 45
 
     steps:
+<<<<<<< HEAD
       - name: Checkout main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+=======
+      - name: 📥 مسحب الكود البرمجي (Checkout)
+        uses: actions/checkout@v4
+
+      - name: ⚙️ إعداد بيئة جافا (Java 17)
+        uses: actions/setup-java@v3
+>>>>>>> pr-179
         with:
-          persist-credentials: false
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Read locked toolchain
-        id: toolchain
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          source toolchain.lock
-          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          printf 'java=%s\n' "$JAVA_MAJOR" >> "$GITHUB_OUTPUT"
-          printf 'android_compile_sdk=%s\n' "$ANDROID_COMPILE_SDK" >> "$GITHUB_OUTPUT"
-          printf 'android_build_tools=%s\n' "$ANDROID_BUILD_TOOLS_VERSION" >> "$GITHUB_OUTPUT"
-          printf 'android_ndk=%s\n' "$ANDROID_NDK_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Java
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      - name: 🐦 إعداد بيئة فلاتر (Flutter)
+        uses: subosito/flutter-action@v2
         with:
-          distribution: temurin
-          java-version: "${{ steps.toolchain.outputs.java }}"
+          channel: 'stable'
 
+<<<<<<< HEAD
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
@@ -177,7 +162,7 @@ jobs:
           echo "AAB SHA-256: $AAB_SHA256"
 
       - name: Upload signed AAB artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: deutsch-bilarabi-3.3.10-133-aab
           path: |
@@ -188,17 +173,37 @@ jobs:
           compression-level: 0
 
       - name: Upload debug symbols artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: deutsch-bilarabi-3.3.10-133-symbols
           path: |
             symbols/
             release-metadata/SHA256SUMS.txt
           if-no-files-found: error
+=======
+      - name: 📦 جلب الحزم والمكاتب (Pub Get)
+        run: flutter pub get
+
+      - name: 🔍 فحص الأخطاء البرمجية (Analyze)
+        run: flutter analyze lib/
+
+      - name: 🛠️ بناء التطبيق للهاتف (Build APK)
+        run: flutter build apk --release
+
+      - name: 🛠️ بناء التطبيق للمتجر (Build AAB)
+        run: flutter build appbundle --release
+
+      - name: 📤 استخراج وحفظ نسخة الهاتف (Upload APK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Deutsch-BiLarabi-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+>>>>>>> pr-179
           retention-days: 7
 
-      - name: Remove CI-owned signing material
-        if: always()
-        shell: bash
-        run: |
-          rm -f android/app/upload-keystore.jks
+      - name: 📤 استخراج وحفظ نسخة المتجر (Upload AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Deutsch-BiLarabi-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7

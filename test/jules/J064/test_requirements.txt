@@ -1,0 +1,6 @@
+- Verify first-use flow
+- Verify genuine offline content availability check
+- Degraded flow on missing optional data
+- Safe state transitions for pack updates
+- Existing learner progress preserved
+- Prevent duplicate navigation

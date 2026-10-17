@@ -14,10 +14,10 @@ class ReviewTransactionEnvelope {
   });
 
   Map<String, dynamic> toMap() => {
-    'reviewEventId': reviewEventId,
-    'learnerContentKey': learnerContentKey,
-    'rating': rating,
-    'timestamp': timestamp.toIso8601String(),
-    'languagePairKey': languagePairKey,
-  };
+        'reviewEventId': reviewEventId,
+        'learnerContentKey': learnerContentKey,
+        'rating': rating,
+        'timestamp': timestamp.toIso8601String(),
+        'languagePairKey': languagePairKey,
+      };
 }

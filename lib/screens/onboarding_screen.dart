@@ -31,12 +31,14 @@ class OnboardingScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.school_rounded, size: 48, color: Colors.white),
+                  child: const Icon(Icons.school_rounded,
+                      size: 48, color: Colors.white),
                 ),
                 const SizedBox(height: 28),
                 Text(
                   'Deutsch بالعربي',
-                  style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32),
+                  style: AppTypography.display
+                      .copyWith(color: Colors.white, fontSize: 32),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
@@ -54,12 +56,14 @@ class OnboardingScreen extends StatelessWidget {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.offline_bolt_rounded, color: Color(0xFF10B981), size: 24),
+                          const Icon(Icons.offline_bolt_rounded,
+                              color: Color(0xFF10B981), size: 24),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'دروس ومفردات مخزنة محلياً بالكامل',
-                              style: AppTypography.title.copyWith(color: Colors.white, fontSize: 14),
+                              style: AppTypography.title
+                                  .copyWith(color: Colors.white, fontSize: 14),
                             ),
                           ),
                         ],
@@ -67,12 +71,14 @@ class OnboardingScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.auto_awesome_rounded, color: Color(0xFFF39C6B), size: 24),
+                          const Icon(Icons.auto_awesome_rounded,
+                              color: Color(0xFFF39C6B), size: 24),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'نظام تدريب ذكي للمراجعة والحفظ الدائم',
-                              style: AppTypography.title.copyWith(color: Colors.white, fontSize: 14),
+                              style: AppTypography.title
+                                  .copyWith(color: Colors.white, fontSize: 14),
                             ),
                           ),
                         ],
