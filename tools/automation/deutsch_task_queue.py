@@ -232,11 +232,20 @@ class TaskQueueManager:
         eligible_tasks.sort(key=lambda x: (x.get("priority", 10), x.get("created_at", "")))
         return eligible_tasks[0]
 
-    def update_task_state(self, task_id: str, new_state: str, record: Optional[Dict[str, Any]] = None) -> None:
+    def update_task_state(
+        self,
+        task_id: str,
+        new_state: str,
+        record: Optional[Dict[str, Any]] = None,
+        *,
+        retries: Optional[int] = None,
+    ) -> None:
         data = self.load_queue()
         for t in data.get("tasks", []):
             if t["task_id"] == task_id:
                 t["state"] = new_state
+                if retries is not None:
+                    t["retries"] = retries
                 if record:
                     t.setdefault("execution_history", []).append(record)
                 break
@@ -304,7 +313,8 @@ class QueueExecutor:
                 else:
                     retries = task.get("retries", 0) + 1
                     max_retries = task.get("max_retries", 2)
-                    task["retries"] = retries
+                    # Persist the budget before cooldown or another queue reload.
+                    self.manager.update_task_state(task_id, STATE_IN_PROGRESS, retries=retries)
 
                     if retries < max_retries:
                         cooldown = task.get("cooldown_seconds", 30)
@@ -501,3 +511,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
