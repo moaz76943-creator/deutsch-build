@@ -8,18 +8,27 @@ load_toolchain
 
 check_version() {
   local label="$1" expected="$2" actual="$3"
+<<<<<<< HEAD
   [[ "$actual" == *"$expected"* ]] || fatal --code "$ERR_ENV" "$label mismatch. Expected: $expected Found: $actual"
+=======
+  [[ "$actual" == *"$expected"* ]] || fatal "$ERR_ENV" "$label mismatch. Expected: $expected Found: $actual"
+>>>>>>> pr-61
   log OK "$label $expected"
 }
 
 log CHECK "Deutsch بالعربي Build Guard"
 cd "$ROOT"
 
+<<<<<<< HEAD
 [[ "$(uname -m)" =~ ^(aarch64|arm64|x86_64|amd64)$ ]] || fatal --code "$ERR_ENV" "Unsupported architecture: $(uname -m)"
+=======
+[[ "$(uname -m)" =~ ^(aarch64|arm64|x86_64|amd64)$ ]] || fatal "$ERR_ENV" "Unsupported architecture: $(uname -m)"
+>>>>>>> pr-61
 ARCH="$(uname -m)"
 log OK "Architecture $ARCH"
 
 for required in pubspec.yaml pubspec.lock lib android android/app/build.gradle android/settings.gradle android/gradlew android/gradle/wrapper/gradle-wrapper.properties; do
+<<<<<<< HEAD
   [[ -e "$required" ]] || fatal --code "$ERR_ENV" "Required project file/directory is missing: $required"
 done
 
@@ -27,12 +36,26 @@ command -v flutter >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Flutter is not in
 command -v dart >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Dart is not in PATH"
 command -v java >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Java is not in PATH"
 command -v javac >/dev/null 2>&1 || fatal --code "$ERR_ENV" "A full JDK is required; javac is not in PATH (a Java runtime alone cannot build Android)"
+=======
+  [[ -e "$required" ]] || fatal "$ERR_ENV" "Required project file/directory is missing: $required"
+done
+
+command -v flutter >/dev/null 2>&1 || fatal "$ERR_ENV" "Flutter is not in PATH"
+command -v dart >/dev/null 2>&1 || fatal "$ERR_ENV" "Dart is not in PATH"
+command -v java >/dev/null 2>&1 || fatal "$ERR_ENV" "Java is not in PATH"
+command -v javac >/dev/null 2>&1 || fatal "$ERR_ENV" "A full JDK is required; javac is not in PATH (a Java runtime alone cannot build Android)"
+>>>>>>> pr-61
 FLUTTER_BIN="$(readlink -f "$(command -v flutter)")"
 DART_BIN="$(readlink -f "$(command -v dart)")"
 FLUTTER_ROOT="$(cd "$(dirname "$FLUTTER_BIN")/.." && pwd)"
 DART_ROOT="$(cd "$(dirname "$DART_BIN")/.." && pwd)"
+<<<<<<< HEAD
 case "$DART_ROOT" in "$FLUTTER_ROOT"|"$FLUTTER_ROOT"/*) ;; *) fatal --code "$ERR_ENV" "Dart is not from the selected Flutter toolchain: $DART_ROOT";; esac
 [[ ":$PATH:" == *":$(dirname "$(command -v flutter)"):"* ]] || fatal --code "$ERR_ENV" "Flutter bin directory is not present in PATH"
+=======
+case "$DART_ROOT" in "$FLUTTER_ROOT"|"$FLUTTER_ROOT"/*) ;; *) fatal "$ERR_ENV" "Dart is not from the selected Flutter toolchain: $DART_ROOT";; esac
+[[ ":$PATH:" == *":$(dirname "$(command -v flutter)"):"* ]] || fatal "$ERR_ENV" "Flutter bin directory is not present in PATH"
+>>>>>>> pr-61
 check_version "Flutter" "$FLUTTER_VERSION" "$(flutter --version | head -1)"
 check_version "Dart" "$DART_VERSION" "$(dart --version 2>&1 | head -1)"
 JAVA_VERSION="$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2; exit}')"
@@ -50,10 +73,17 @@ if [[ -z "$ANDROID_SDK_ROOT" ]]; then
     fi
   done
 fi
+<<<<<<< HEAD
 [[ -n "$ANDROID_SDK_ROOT" && -d "$ANDROID_SDK_ROOT" ]] || fatal --code "$ERR_ENV" "Android SDK was not found. Set ANDROID_SDK_ROOT."
 export ANDROID_SDK_ROOT ANDROID_HOME="$ANDROID_SDK_ROOT"
 [[ -d "$ANDROID_SDK_ROOT/platforms/android-${ANDROID_COMPILE_SDK}" ]] || fatal --code "$ERR_ENV" "Android platform android-${ANDROID_COMPILE_SDK} is missing."
 [[ -d "$ANDROID_SDK_ROOT/build-tools/${ANDROID_BUILD_TOOLS_VERSION}" ]] || fatal --code "$ERR_ENV" "Android Build Tools ${ANDROID_BUILD_TOOLS_VERSION} are missing."
+=======
+[[ -n "$ANDROID_SDK_ROOT" && -d "$ANDROID_SDK_ROOT" ]] || fatal "$ERR_ENV" "Android SDK was not found. Set ANDROID_SDK_ROOT."
+export ANDROID_SDK_ROOT ANDROID_HOME="$ANDROID_SDK_ROOT"
+[[ -d "$ANDROID_SDK_ROOT/platforms/android-${ANDROID_COMPILE_SDK}" ]] || fatal "$ERR_ENV" "Android platform android-${ANDROID_COMPILE_SDK} is missing."
+[[ -d "$ANDROID_SDK_ROOT/build-tools/${ANDROID_BUILD_TOOLS_VERSION}" ]] || fatal "$ERR_ENV" "Android Build Tools ${ANDROID_BUILD_TOOLS_VERSION} are missing."
+>>>>>>> pr-61
 log OK "Android SDK ${ANDROID_COMPILE_SDK} / Build Tools ${ANDROID_BUILD_TOOLS_VERSION}"
 
 if [[ -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION" ]]; then
@@ -61,11 +91,16 @@ if [[ -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION" ]]; then
 elif is_termux; then
   log OK "Termux packages prebuilt JNI libraries; no Google host NDK/CMake execution required"
 elif grep -Eq '^[[:space:]]*ndkVersion[[:space:]=]' android/app/build.gradle; then
+<<<<<<< HEAD
   fatal --code "$ERR_ENV" "Project declares an NDK but required $ANDROID_NDK_VERSION is missing."
+=======
+  fatal "$ERR_ENV" "Project declares an NDK but required $ANDROID_NDK_VERSION is missing."
+>>>>>>> pr-61
 else
   log WARN "NDK reference $ANDROID_NDK_VERSION recorded; current app has no explicit NDK requirement."
 fi
 
+<<<<<<< HEAD
 [[ -x android/gradlew ]] || fatal --code "$ERR_ENV" "android/gradlew is missing or not executable"
 [[ -f android/gradle/wrapper/gradle-wrapper.jar ]] || fatal --code "$ERR_ENV" "Gradle Wrapper JAR is missing: android/gradle/wrapper/gradle-wrapper.jar"
 python3 "$ROOT/tool/gradle_wrapper_integrity.py" || fatal --code "$ERR_ENV" "Gradle wrapper integrity check failed"
@@ -82,6 +117,24 @@ log OK "AGP $AGP_VERSION / Kotlin $KOTLIN_VERSION / Android targets"
 
 if is_termux && [[ "$ARCH" =~ ^(aarch64|arm64)$ ]]; then
   command -v aapt2 >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Termux ARM64 build requires native aapt2 in PATH"
+=======
+[[ -x android/gradlew ]] || fatal "$ERR_ENV" "android/gradlew is missing or not executable"
+[[ -f android/gradle/wrapper/gradle-wrapper.jar ]] || fatal "$ERR_ENV" "Gradle Wrapper JAR is missing: android/gradle/wrapper/gradle-wrapper.jar"
+python3 "$ROOT/tool/gradle_wrapper_integrity.py"
+WRAPPER_URL="$(sed -nE 's/^distributionUrl=.*gradle-([0-9.]+)-all\.zip$/\1/p' android/gradle/wrapper/gradle-wrapper.properties)"
+[[ "$WRAPPER_URL" == "$GRADLE_VERSION" ]] || fatal "$ERR_ENV" "Gradle Wrapper mismatch. Expected $GRADLE_VERSION Found $WRAPPER_URL"
+grep -F "distributionSha256Sum=" android/gradle/wrapper/gradle-wrapper.properties >/dev/null || fatal "$ERR_ENV" "Gradle Wrapper SHA-256 pin is missing"
+log OK "Gradle Wrapper $GRADLE_VERSION"
+grep -F "version \"$AGP_VERSION\"" android/settings.gradle >/dev/null || fatal "$ERR_ENV" "AGP $AGP_VERSION is not pinned in settings.gradle"
+grep -F "version \"$KOTLIN_VERSION\"" android/settings.gradle >/dev/null || fatal "$ERR_ENV" "Kotlin $KOTLIN_VERSION is not pinned in settings.gradle"
+grep -F "compileSdk $ANDROID_COMPILE_SDK" android/app/build.gradle >/dev/null || fatal "$ERR_ENV" "compileSdk contract mismatch"
+grep -F "targetSdk $ANDROID_TARGET_SDK" android/app/build.gradle >/dev/null || fatal "$ERR_ENV" "targetSdk contract mismatch"
+grep -F "minSdkVersion flutter.minSdkVersion" android/app/build.gradle >/dev/null || fatal "$ERR_ENV" "minSdk contract mismatch"
+log OK "AGP $AGP_VERSION / Kotlin $KOTLIN_VERSION / Android targets"
+
+if is_termux && [[ "$ARCH" =~ ^(aarch64|arm64)$ ]]; then
+  command -v aapt2 >/dev/null 2>&1 || fatal "$ERR_ENV" "Termux ARM64 build requires native aapt2 in PATH"
+>>>>>>> pr-61
 fi
 
 check_disk_space "$ROOT"

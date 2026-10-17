@@ -23,6 +23,7 @@ log CHECK "1/10 Environment"
 
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 assert_lockfile_unchanged
 
@@ -30,13 +31,22 @@ log TEST "3/10 Analyze + tests + project audits"
 flutter analyze || fatal --code "$ERR_COMP" "Flutter analyze failed"
 flutter test || fatal --code "$ERR_COMP" "Flutter tests failed"
 python -m pytest -q tests || fatal --code "$ERR_COMP" "Python tests failed"
+=======
+run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
+assert_lockfile_unchanged
+
+log TEST "3/10 Analyze + tests + project audits"
+flutter analyze || fatal "$ERR_COMP" "Flutter analyze failed"
+flutter test || fatal "$ERR_COMP" "Flutter test failed"
+python -m pytest -q tests || fatal "$ERR_COMP" "Pytest failed"
+>>>>>>> pr-61
 
 log CHECK "4/10 Content Quality"
-python tool/quality_audit.py
+python tool/quality_audit.py || fatal "$ERR_COMP" "Quality audit failed"
 
 log CHECK "5/10 Security"
-python tool/security_audit.py
-python tool/phase17_production_gate.py
+python tool/security_audit.py || fatal "$ERR_COMP" "Security audit failed"
+python tool/phase17_production_gate.py || fatal "$ERR_COMP" "Production gate failed"
 
 if [[ "$MODE" == "release" ]]; then
   log CHECK "6/10 Release signing"
@@ -45,10 +55,17 @@ fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
+<<<<<<< HEAD
   flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (release) failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
   flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (debug) failed"
+=======
+  run_with_retry flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "$ERR_COMP" "Release build failed"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  run_with_retry flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "$ERR_COMP" "Debug build failed"
+>>>>>>> pr-61
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 

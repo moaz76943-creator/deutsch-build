@@ -52,7 +52,7 @@ printf '\n'
 if [[ "$failures" -ne 0 ]]; then
   row Analyzer "- not run until environment is fixed"
   row Tests "- not run until environment is fixed"
-  exit 1
+  exit "$ERR_ENV"
 fi
 
 snapshot_lockfile
@@ -62,7 +62,8 @@ assert_lockfile_unchanged
 
 if [[ "$failures" -eq 0 ]]; then
   printf '\nDOCTOR PASS\n'
+  exit 0
 else
   printf '\nDOCTOR FAIL\n'
+  exit "$ERR_COMP"
 fi
-exit "$failures"

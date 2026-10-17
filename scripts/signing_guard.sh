@@ -16,6 +16,7 @@ case "${1:-}" in
   "")
     ;;
   *)
+<<<<<<< HEAD
     fatal --code "$ERR_ENV" "Usage: ./scripts/signing_guard.sh [--ephemeral]"
     ;;
 esac
@@ -27,13 +28,32 @@ check_release_signing "${SIGNING_ARGS[@]}" || fatal --code "$ERR_SIGN" "Run bash
 grep -F 'secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal --code "$ERR_SIGN" "secureRelease signing config is missing"
 grep -F 'signingConfig signingConfigs.secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal --code "$ERR_SIGN" "Release build is not bound to secureRelease signing"
 ! grep -F 'signingConfigs.debug' "$ROOT/android/app/build.gradle" >/dev/null || fatal --code "$ERR_SIGN" "Release signing must never fall back to the debug keystore"
+=======
+    fatal "$ERR_SIGN" "Usage: ./scripts/signing_guard.sh [--ephemeral]"
+    ;;
+esac
+[[ "$#" -eq 0 ]] || fatal "$ERR_SIGN" "Usage: ./scripts/signing_guard.sh [--ephemeral]"
+
+# shellcheck disable=SC1091
+source "$ROOT/scripts/release-signing.sh"
+check_release_signing "${SIGNING_ARGS[@]}" || fatal "$ERR_SIGN" "Run bash scripts/local-release.sh to prepare local signing."
+grep -F 'secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal "$ERR_SIGN" "secureRelease signing config is missing"
+grep -F 'signingConfig signingConfigs.secureRelease' "$ROOT/android/app/build.gradle" >/dev/null || fatal "$ERR_SIGN" "Release build is not bound to secureRelease signing"
+! grep -F 'signingConfigs.debug' "$ROOT/android/app/build.gradle" >/dev/null || fatal "$ERR_SIGN" "Release signing must never fall back to the debug keystore"
+>>>>>>> pr-61
 log OK "Android release signing contract verified"
 
 if [[ -d "$ROOT/ios" ]]; then
   PBXPROJ="$ROOT/ios/Runner.xcodeproj/project.pbxproj"
+<<<<<<< HEAD
   [[ -f "$PBXPROJ" ]] || fatal --code "$ERR_ENV" "iOS platform exists but Runner.xcodeproj/project.pbxproj is missing"
   grep -F 'CODE_SIGN_STYLE' "$PBXPROJ" >/dev/null || fatal --code "$ERR_SIGN" "iOS code-sign style is not configured"
   grep -F 'PRODUCT_BUNDLE_IDENTIFIER' "$PBXPROJ" >/dev/null || fatal --code "$ERR_SIGN" "iOS bundle identifier is not configured"
+=======
+  [[ -f "$PBXPROJ" ]] || fatal "$ERR_SIGN" "iOS platform exists but Runner.xcodeproj/project.pbxproj is missing"
+  grep -F 'CODE_SIGN_STYLE' "$PBXPROJ" >/dev/null || fatal "$ERR_SIGN" "iOS code-sign style is not configured"
+  grep -F 'PRODUCT_BUNDLE_IDENTIFIER' "$PBXPROJ" >/dev/null || fatal "$ERR_SIGN" "iOS bundle identifier is not configured"
+>>>>>>> pr-61
   log OK "iOS production signing configuration is present"
 else
   log OK "iOS signing check: NOT_APPLICABLE (no ios/ platform directory in this Android project)"
