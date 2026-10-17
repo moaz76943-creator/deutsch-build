@@ -6,7 +6,8 @@ class WellbeingSanctuaryScreen extends StatefulWidget {
   const WellbeingSanctuaryScreen({super.key});
 
   @override
-  State<WellbeingSanctuaryScreen> createState() => _WellbeingSanctuaryScreenState();
+  State<WellbeingSanctuaryScreen> createState() =>
+      _WellbeingSanctuaryScreenState();
 }
 
 class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
@@ -35,8 +36,15 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: const Color(0xFF38BDF8).withValues(alpha: 0.5))),
-        title: const Text('🛡️ درع تبديد قلق الأداء الطولي', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+                color: const Color(0xFF38BDF8).withValues(alpha: 0.5))),
+        title: const Text('🛡️ درع تبديد قلق الأداء الطولي',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold)),
         content: const Text(
           'تذكر دائماً: تعلم اللغات ليس سباقاً رقمياً ولا اختباراً نهائياً، بل هو نمو بيولوجي وعصبي هادئ.\n\n'
           'حتى لو تذبذب إيقاعك أو نسيت بعض الكلمات أحياناً، فدماغك يبني المسارات الخلفية بثبات. تنفس بعمق، وأنت تسير في الطريق الصحيح تماماً.',
@@ -45,9 +53,12 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
         actions: [
           Center(
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF38BDF8)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF38BDF8)),
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('اطمأن قلبي، شكراً', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: const Text('اطمأن قلبي، شكراً',
+                  style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -77,7 +88,8 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -88,15 +100,23 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.spa_rounded, color: Color(0xFF34D399), size: 28),
+                                Icon(Icons.spa_rounded,
+                                    color: Color(0xFF34D399), size: 28),
                                 SizedBox(width: 12),
-                                Text('مؤشر الرضا المعرفي الكلي', style: TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.bold)),
+                                Text('مؤشر الرضا المعرفي الكلي',
+                                    style: TextStyle(
+                                        color: Color(0xFF34D399),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                             SizedBox(height: 12),
                             Text(
                               'لا توجد لوحات صدارة ولا مقارنات رقمية. يقاس نجاحك هنا بمدى شعورك بالهدوء والعمق الإدراكي بعد كل جلسة استيعاب.',
-                              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                  height: 1.5),
                             ),
                           ],
                         ),
@@ -107,13 +127,25 @@ class _WellbeingSanctuaryScreenState extends State<WellbeingSanctuaryScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('✨ حالة الوعي والاتزان العصبي', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+                            const Text('✨ حالة الوعي والاتزان العصبي',
+                                style: TextStyle(
+                                    color: Color(0xFF38BDF8),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
-                            Text('حجم الغلال المعرفي المستقر: $_totalItems وحدة', style: const TextStyle(color: Colors.white, fontSize: 14)),
+                            Text(
+                                'حجم الغلال المعرفي المستقر: $_totalItems وحدة',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14)),
                             const SizedBox(height: 8),
-                            const Text('مستوى الاستقرار والهدوء العصبي: عالٍ ومستدام', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            const Text(
+                                'مستوى الاستقرار والهدوء العصبي: عالٍ ومستدام',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 13)),
                             const SizedBox(height: 8),
-                            const Text('درع تبديد القلق: مفعل ومحمٍ بالكامل', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 13)),
+                            const Text('درع تبديد القلق: مفعل ومحمٍ بالكامل',
+                                style: TextStyle(
+                                    color: Color(0xFF38BDF8), fontSize: 13)),
                           ],
                         ),
                       ),

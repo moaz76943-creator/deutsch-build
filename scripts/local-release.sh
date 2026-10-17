@@ -23,22 +23,14 @@ for argument in "$@"; do
       printf 'Usage: bash scripts/local-release.sh [--setup-only] [--verify] [--bootstrap] [--debug]\n'
       printf 'Reuses ~/.gradle/release-key.jks or decodes RELEASE_KEYSTORE_BASE64[_FILE].\n'
       exit 0 ;;
-<<<<<<< HEAD
     *) fatal --code "$ERR_ENV" "Unknown option: $argument" ;;
-=======
-    *) fatal $ERR_ENV "Unknown option: $argument" ;;
->>>>>>> origin/main
   esac
 done
 
 cd "$ROOT"
 case "${DEUTSCH_JSON_CONTENT:-false}" in
   true|false) ;;
-<<<<<<< HEAD
   *) fatal --code "$ERR_ENV" "DEUTSCH_JSON_CONTENT must be true or false" ;;
-=======
-  *) fatal $ERR_ENV "DEUTSCH_JSON_CONTENT must be true or false" ;;
->>>>>>> origin/main
 esac
 if [[ "$SETUP_ONLY" == false ]]; then
 case "${PREFIX:-}" in
@@ -52,21 +44,12 @@ case "${PREFIX:-}" in
       FLUTTER_ROOT="$(cd "$(dirname "$(readlink -f "$(command -v flutter)")")/.." && pwd)"
     fi
     hydrate_environment ;;
-<<<<<<< HEAD
   *) [[ "$BOOTSTRAP" == false ]] || fatal --code "$ERR_ENV" "--bootstrap installs Termux tools only; configure Flutter and Android SDK on this host." ;;
 esac
 fi
 
 command -v python3 >/dev/null 2>&1 || fatal --code "$ERR_ENV" "python3 is required"
 command -v java >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Java 17 or 21 is required"
-=======
-  *) [[ "$BOOTSTRAP" == false ]] || fatal $ERR_ENV "--bootstrap installs Termux tools only; configure Flutter and Android SDK on this host." ;;
-esac
-fi
-
-command -v python3 >/dev/null 2>&1 || fatal $ERR_ENV "python3 is required"
-command -v java >/dev/null 2>&1 || fatal $ERR_ENV "Java 17 or 21 is required"
->>>>>>> origin/main
 if [[ -z "${JAVA_HOME:-}" ]]; then
   export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
 fi
@@ -74,22 +57,14 @@ export PATH="$JAVA_HOME/bin:$PATH"
 
 if [[ "$MODE" == release || "$SETUP_ONLY" == true ]]; then
   log CHECK "Validate local release signing"
-<<<<<<< HEAD
   prepare_release_signing --interactive || fatal --code "$ERR_SIGN" "Run scripts/setup_local_signing.sh once to configure the existing production key"
-=======
-  prepare_release_signing --interactive || fatal $ERR_SIGNING "Run scripts/setup_local_signing.sh once to configure the existing production key"
->>>>>>> origin/main
 fi
 if [[ "$SETUP_ONLY" == true ]]; then
   log OK "Signing configured; run cd android && ./gradlew assembleRelease in a prepared Flutter checkout"
   exit 0
 fi
 
-<<<<<<< HEAD
 command -v flutter >/dev/null 2>&1 || fatal --code "$ERR_ENV" "Flutter is required; on Termux use --bootstrap"
-=======
-command -v flutter >/dev/null 2>&1 || fatal $ERR_ENV "Flutter is required; on Termux use --bootstrap"
->>>>>>> origin/main
 FLUTTER_ROOT="${FLUTTER_ROOT:-$(cd "$(dirname "$(readlink -f "$(command -v flutter)")")/.." && pwd)}"
 export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
 if [[ -z "$ANDROID_SDK_ROOT" ]]; then
@@ -97,43 +72,53 @@ if [[ -z "$ANDROID_SDK_ROOT" ]]; then
     if [[ -d "$candidate" ]]; then ANDROID_SDK_ROOT="$candidate"; break; fi
   done
 fi
-<<<<<<< HEAD
 [[ -d "$ANDROID_SDK_ROOT" ]] || fatal --code "$ERR_ENV" "Set ANDROID_SDK_ROOT to an installed Android SDK"
 export ANDROID_HOME="$ANDROID_SDK_ROOT"
 if is_termux && [[ ! -x "$PREFIX/bin/aapt" || ! -x "$PREFIX/bin/aapt2" ]]; then
   log CHECK "Install native Termux packaging tools"
   pkg install -y aapt || fatal --code "$ERR_ENV" "Could not install the native Termux aapt package"
-=======
-[[ -d "$ANDROID_SDK_ROOT" ]] || fatal $ERR_ENV "Set ANDROID_SDK_ROOT to an installed Android SDK"
-export ANDROID_HOME="$ANDROID_SDK_ROOT"
-if is_termux && [[ ! -x "$PREFIX/bin/aapt" || ! -x "$PREFIX/bin/aapt2" ]]; then
-  log CHECK "Install native Termux packaging tools"
-  pkg install -y aapt || fatal $ERR_ENV "Could not install the native Termux aapt package"
->>>>>>> origin/main
 fi
 configure_android_build_path
 build_exports="$(python3 "$ROOT/tool/local_build_environment.py" "$FLUTTER_ROOT" "$ANDROID_SDK_ROOT")"
 eval "$build_exports"
-bash "$ROOT/scripts/build_guard.sh" || fatal $ERR_ENV "Build guard failed"
-(cd "$ROOT/android" && ./gradlew --version) || fatal $ERR_ENV "gradlew --version failed"
+bash "$ROOT/scripts/build_guard.sh"
+(cd "$ROOT/android" && ./gradlew --version)
 
+python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 =======
+run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
+>>>>>>> pr-61
+=======
 with_retry flutter pub get --enforce-lockfile
->>>>>>> origin/main
+>>>>>>> pr-136
+=======
+run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
+>>>>>>> pr-179
+=======
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
+>>>>>>> pr-188
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
-  python3 "$ROOT/tool/content_compiler.py" compile --output-dir "$ROOT/lib/data/generated" || fatal $ERR_COMPILE "Content compiler failed"
+  python3 "$ROOT/tool/content_compiler.py" compile --output-dir "$ROOT/lib/data/generated"
 fi
 if [[ "$MODE" == "release" || "$VERIFY" == true ]]; then
   log CHECK "Mandatory local quality gate before release"
-  bash "$ROOT/scripts/local_quality_gate.sh" || fatal $ERR_COMPILE "Quality gate failed"
+  bash "$ROOT/scripts/local_quality_gate.sh" || fatal "$ERR_COMP" "Local quality gate failed"
 fi
-bash "$ROOT/scripts/check-dart-errors.sh" || fatal $ERR_COMPILE "Dart error check failed"
-if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh" || fatal $ERR_SIGNING "Signing guard failed"; fi
+<<<<<<< HEAD
+bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Dart analysis failed"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
+=======
+bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Blocking Dart errors or analyzer failure"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh" || fatal "$ERR_SIGN" "Signing guard failed"; fi
+>>>>>>> pr-179
 
 mkdir -p "$ROOT/build/symbols"
 log BUILD "ARM64 $MODE (incremental build and Gradle/pub caches preserved)"
@@ -143,18 +128,26 @@ if [[ "$MODE" == release ]]; then
   # a stripped AOT snapshot directly so native Termux packaging exposes no DWARF.
   build_options=(--obfuscate "--split-debug-info=$ROOT/build/symbols" --extra-gen-snapshot-options=--strip)
 fi
-flutter build apk "--$MODE" --no-pub \
+run_with_retry flutter build apk "--$MODE" --no-pub \
   --target-platform android-arm64 \
   --dart-define="DEUTSCH_JSON_CONTENT=${DEUTSCH_JSON_CONTENT:-false}" \
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
   "${build_options[@]}" || fatal --code "$ERR_COMP" "Flutter build failed"
 =======
-  "${build_options[@]}" || fatal $ERR_COMPILE "Flutter build failed"
->>>>>>> origin/main
+  "${build_options[@]}" || fatal "$ERR_COMP" "APK build failed"
+>>>>>>> pr-61
+=======
+  "${build_options[@]}" || fatal "$ERR_COMP" "Local APK build failed"
+>>>>>>> pr-179
+=======
+  "${build_options[@]}" || fatal "Flutter build apk ($MODE) failed" "$EXIT_COMP"
+>>>>>>> pr-188
 assert_lockfile_unchanged
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"
-bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE"
+bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE" || fatal "$ERR_ARTIFACT" "Local APK verification failed"
 {
   printf 'Git Commit: %s\n' "$(git_commit)"
   printf 'Version: %s+%s\n' "$(app_version)" "$(app_build_number)"
