@@ -25,10 +25,14 @@ snapshot_lockfile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 =======
 with_retry flutter pub get --enforce-lockfile
 >>>>>>> pr-136
+=======
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
+>>>>>>> pr-188
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
@@ -73,6 +77,7 @@ log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (release) failed"
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
@@ -89,6 +94,12 @@ else
 else
   flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "$ERR_COMP" "Debug APK build failed"
 >>>>>>> pr-179
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "Flutter build apk (release) failed" "$EXIT_COMP"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "Flutter build apk (debug) failed" "$EXIT_COMP"
+>>>>>>> pr-188
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 

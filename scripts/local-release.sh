@@ -89,6 +89,7 @@ snapshot_lockfile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 =======
 run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
@@ -99,6 +100,9 @@ with_retry flutter pub get --enforce-lockfile
 =======
 run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
 >>>>>>> pr-179
+=======
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
+>>>>>>> pr-188
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
@@ -129,6 +133,7 @@ run_with_retry flutter build apk "--$MODE" --no-pub \
   --dart-define="DEUTSCH_JSON_CONTENT=${DEUTSCH_JSON_CONTENT:-false}" \
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   "${build_options[@]}" || fatal --code "$ERR_COMP" "Flutter build failed"
 =======
   "${build_options[@]}" || fatal "$ERR_COMP" "APK build failed"
@@ -136,6 +141,9 @@ run_with_retry flutter build apk "--$MODE" --no-pub \
 =======
   "${build_options[@]}" || fatal "$ERR_COMP" "Local APK build failed"
 >>>>>>> pr-179
+=======
+  "${build_options[@]}" || fatal "Flutter build apk ($MODE) failed" "$EXIT_COMP"
+>>>>>>> pr-188
 assert_lockfile_unchanged
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"

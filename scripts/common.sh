@@ -7,6 +7,7 @@ TOOLCHAIN_FILE="$ROOT/toolchain.lock"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 export ERR_ENV=10
 export ERR_DEP=11
 export ERR_COMP=12
@@ -48,6 +49,50 @@ fatal() {
 <<<<<<< HEAD
 
 log() { printf '[%s] %s\n' "$1" "$2"; }
+=======
+EXIT_ENV=10
+EXIT_DEP=11
+EXIT_COMP=12
+EXIT_SIGN=13
+EXIT_ART=14
+
+fatal() {
+  local msg="$1"
+  local code="${2:-1}"
+  printf '[ERROR] %s\n' "$msg" | redact_secrets >&2
+  exit "$code"
+}
+
+log() {
+  local level="$1"
+  local msg="$2"
+  printf '[%s] %s\n' "$level" "$msg" | redact_secrets
+}
+
+redact_secrets() {
+  sed -E -e 's/(RELEASE_KEYSTORE_BASE64=)[^ ]*/\1[REDACTED]/g' \
+         -e 's/(-----BEGIN (PRIVATE KEY|CERTIFICATE)-----).*(-----END \2-----)/[REDACTED_PEM]/g'
+}
+
+with_retry() {
+  local retries=3
+  local count=0
+  local delay=2
+  while true; do
+    if "$@"; then
+      return 0
+    else
+      count=$((count + 1))
+      if (( count >= retries )); then
+        log ERROR "Command failed after $retries attempts: $*"
+        return 1
+      fi
+      log WARN "Transient failure; retrying ($count/$retries) in $delay seconds: $*"
+      sleep "$delay"
+    fi
+  done
+}
+>>>>>>> pr-188
 
 <<<<<<< HEAD
 with_retry() {
@@ -159,10 +204,14 @@ check_disk_space() {
   [[ "$available" =~ ^[0-9]+$ ]] || fatal "$ERR_ENV" "Cannot determine available disk space at $path"
   if (( available < MIN_FREE_KB )); then
 <<<<<<< HEAD
+<<<<<<< HEAD
     fatal --code "$ERR_ENV" "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
 =======
     fatal "$ERR_ENV" "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building."
 >>>>>>> pr-61
+=======
+    fatal "Free space at $path: $available KiB; minimum $MIN_FREE_KB KiB (1 GiB). Free space manually before building." "$EXIT_ENV"
+>>>>>>> pr-188
   elif (( available < RECOMMENDED_FREE_KB )); then
     log WARN "Free space at $path: $available KiB; recommended $RECOMMENDED_FREE_KB KiB (3 GiB). Continuing with preserved caches."
   else
@@ -172,15 +221,20 @@ check_disk_space() {
 
 snapshot_lockfile() {
 <<<<<<< HEAD
+<<<<<<< HEAD
   [[ -f "$ROOT/pubspec.lock" ]] || fatal --code "$ERR_ENV" "pubspec.lock is missing; reproducible dependency resolution cannot start."
 =======
   [[ -f "$ROOT/pubspec.lock" ]] || fatal "$ERR_DEP" "pubspec.lock is missing; reproducible dependency resolution cannot start."
 >>>>>>> pr-61
+=======
+  [[ -f "$ROOT/pubspec.lock" ]] || fatal "pubspec.lock is missing; reproducible dependency resolution cannot start." "$EXIT_DEP"
+>>>>>>> pr-188
   LOCK_BEFORE="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
   export LOCK_BEFORE
 }
 
 assert_lockfile_unchanged() {
+<<<<<<< HEAD
   [[ -f "$ROOT/pubspec.lock" ]] || fatal "$ERR_DEP" "pubspec.lock disappeared during dependency resolution."
   LOCK_AFTER="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
   export LOCK_AFTER
@@ -190,6 +244,13 @@ assert_lockfile_unchanged() {
 =======
     fatal "$ERR_DEP" "pubspec.lock changed during this build. Dependency updates must be deliberate and committed before building. Before=$LOCK_BEFORE After=$LOCK_AFTER"
 >>>>>>> pr-61
+=======
+  [[ -f "$ROOT/pubspec.lock" ]] || fatal "pubspec.lock disappeared during dependency resolution." "$EXIT_DEP"
+  LOCK_AFTER="$(sha256sum "$ROOT/pubspec.lock" | awk '{print $1}')"
+  export LOCK_AFTER
+  if [[ "$LOCK_BEFORE" != "$LOCK_AFTER" ]]; then
+    fatal "pubspec.lock changed during this build. Dependency updates must be deliberate and committed before building. Before=$LOCK_BEFORE After=$LOCK_AFTER" "$EXIT_DEP"
+>>>>>>> pr-188
   fi
 }
 
