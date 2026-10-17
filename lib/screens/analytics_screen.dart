@@ -31,6 +31,7 @@ class AnalyticsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
 <<<<<<< HEAD
+<<<<<<< HEAD
                         Expanded(
                             child: Text('--%',
                                 softWrap: true,
@@ -40,6 +41,9 @@ class AnalyticsScreen extends StatelessWidget {
                             color: Colors.white, size: 44),
 =======
                         Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
+=======
+                        Expanded(child: Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32))),
+>>>>>>> origin/staging/v2-full-platform-9617688105299726044
                         const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       ],

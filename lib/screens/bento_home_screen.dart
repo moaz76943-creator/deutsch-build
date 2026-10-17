@@ -39,7 +39,7 @@ class BentoHomeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
+                    Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
@@ -58,7 +58,7 @@ class BentoHomeScreen extends ConsumerWidget {
                               fontWeight: FontWeight.w600),
                         ),
                       ],
-                    ),
+                    )),
                     Row(
                       children: [
                         IconButton(
