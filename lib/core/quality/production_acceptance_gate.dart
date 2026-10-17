@@ -1,3 +1,19 @@
+enum GateOutcome { passed, failed, blocked, notRun }
+
+class AcceptanceResult {
+  final GateOutcome outcome;
+  final String message;
+  final ApprovedFeatureConfiguration? configuration;
+  final bool isDegraded;
+
+  const AcceptanceResult({
+    required this.outcome,
+    required this.message,
+    this.configuration,
+    this.isDegraded = false,
+  });
+}
+
 enum PromotionEligibility { approved, degraded, blocked, notVerified }
 
 abstract class J095VerificationContract {
@@ -49,6 +65,87 @@ class ProductionAcceptanceGate {
     return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
   }
 
+  static AcceptanceResult evaluate({
+    required bool isOfflineSafe,
+    required bool isStorageGuarded,
+    required bool isLifecycleManaged,
+    required J095VerificationContract? j095contract,
+    required List<J025LanguageContract> languages,
+    required OptionalFeatureContract optionalFeatures,
+  }) {
+    if (j095contract == null) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.notRun, message: 'Missing verification contract');
+    }
+
+    if (!j095contract.hasMandatoryEvidence) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.notRun, message: 'Missing mandatory evidence');
+    }
+
+    if (j095contract.hasStaleEvidence) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.notRun, message: 'Stale verification results');
+    }
+
+    if (!verifyAppReadiness(
+      isOfflineSafe: isOfflineSafe,
+      isStorageGuarded: isStorageGuarded,
+      isLifecycleManaged: isLifecycleManaged,
+    )) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.blocked, message: 'Critical app readiness missing');
+    }
+
+    if (j095contract.hasCorruptStorage) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.failed, message: 'Corrupted storage');
+    }
+
+    if (!j095contract.isNormalStartupVerified) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.failed, message: 'Failed startup recovery');
+    }
+
+    if (j095contract.hasNewDartErrors ||
+        j095contract.hasMemoryRegression ||
+        j095contract.hasFTS5Regression ||
+        !j095contract.isSafeModeBehaviorVerified) {
+      return const AcceptanceResult(
+          outcome: GateOutcome.failed, message: 'Verification regressions detected');
+    }
+
+    for (var lang in languages) {
+      if (!lang.hasLocalPackEvidence) {
+        return const AcceptanceResult(
+            outcome: GateOutcome.blocked, message: 'Missing integrity evidence for a language');
+      }
+      if (lang.isMetadataOnly) {
+        return const AcceptanceResult(
+            outcome: GateOutcome.blocked, message: 'Unsupported language claims (metadata only)');
+      }
+    }
+
+    final config = ApprovedFeatureConfiguration(
+      isOfflineSafe: isOfflineSafe,
+      isStorageGuarded: isStorageGuarded,
+      isLifecycleManaged: isLifecycleManaged,
+      approvalTime: DateTime.now(),
+    );
+
+    _lastApprovedConfiguration = config;
+
+    bool degraded = !optionalFeatures.isTtsAvailable;
+
+    return AcceptanceResult(
+      outcome: GateOutcome.passed,
+      message: degraded ? 'Passed with degraded features' : 'All checks passed',
+      configuration: config,
+      isDegraded: degraded,
+    );
+  }
+
+  @Deprecated('Use evaluate() instead')
   static PromotionEligibility evaluatePromotion({
     required bool isOfflineSafe,
     required bool isStorageGuarded,
@@ -57,47 +154,26 @@ class ProductionAcceptanceGate {
     required List<J025LanguageContract> languages,
     required OptionalFeatureContract optionalFeatures,
   }) {
-    if (j095contract == null ||
-        !j095contract.hasMandatoryEvidence ||
-        j095contract.hasStaleEvidence) {
-      return PromotionEligibility.notVerified;
-    }
-
-    if (!verifyAppReadiness(
+    final result = evaluate(
       isOfflineSafe: isOfflineSafe,
       isStorageGuarded: isStorageGuarded,
       isLifecycleManaged: isLifecycleManaged,
-    )) {
-      return PromotionEligibility.blocked;
-    }
-
-    if (j095contract.hasNewDartErrors ||
-        j095contract.hasMemoryRegression ||
-        j095contract.hasFTS5Regression ||
-        j095contract.hasCorruptStorage ||
-        !j095contract.isNormalStartupVerified ||
-        !j095contract.isSafeModeBehaviorVerified) {
-      return PromotionEligibility.blocked;
-    }
-
-    for (var lang in languages) {
-      if (!lang.hasLocalPackEvidence || lang.isMetadataOnly) {
-        return PromotionEligibility.blocked;
-      }
-    }
-
-    _lastApprovedConfiguration = ApprovedFeatureConfiguration(
-      isOfflineSafe: isOfflineSafe,
-      isStorageGuarded: isStorageGuarded,
-      isLifecycleManaged: isLifecycleManaged,
-      approvalTime: DateTime.now(),
+      j095contract: j095contract,
+      languages: languages,
+      optionalFeatures: optionalFeatures,
     );
 
-    if (!optionalFeatures.isTtsAvailable) {
-      return PromotionEligibility.degraded;
+    switch (result.outcome) {
+      case GateOutcome.passed:
+        return result.isDegraded
+            ? PromotionEligibility.degraded
+            : PromotionEligibility.approved;
+      case GateOutcome.notRun:
+        return PromotionEligibility.notVerified;
+      case GateOutcome.blocked:
+      case GateOutcome.failed:
+        return PromotionEligibility.blocked;
     }
-
-    return PromotionEligibility.approved;
   }
 
   // For testing purposes
