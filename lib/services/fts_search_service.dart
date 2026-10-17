@@ -134,11 +134,16 @@ class FtsSearchService {
         term.runes.length > FuzzySearchEngine.maxQueryRunes) {
       return SearchFeedback(results: results);
     }
+    final code = _normalizeLanguageCode(languageCode);
+    final scoped = await _lexiconHasLanguageCode(database);
     final firstGlyph = String.fromCharCodes(<int>[term.runes.first]);
     final candidates = await database.rawQuery(
-      r"SELECT surface FROM lexicon WHERE surface LIKE ? ESCAPE '\' "
+      'SELECT surface FROM lexicon WHERE '
+      "${scoped ? 'language_code = ? AND ' : ''}"
+      r"surface LIKE ? ESCAPE '\' "
       'ORDER BY surface COLLATE NOCASE LIMIT ?',
       <Object?>[
+        if (scoped) code,
         '${_escapeLike(firstGlyph)}%',
         FuzzySearchEngine.maxCandidateChecks.clamp(1, 50),
       ],
@@ -165,41 +170,54 @@ class FtsSearchService {
       throw RangeError.range(limit, 1, 50, 'limit');
     }
 
+    final code = _normalizeLanguageCode(languageCode);
+    final scoped = await _lexiconHasLanguageCode(database);
     final term = query.trim();
     List<Map<String, Object?>> rows;
     if (term.isEmpty) {
       rows = await database.rawQuery('''
         SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
+               ${scoped ? ', language_code' : ''}
         FROM lexicon
+        WHERE ${scoped ? 'language_code = ?' : '1 = 1'}
         ORDER BY rowid
         LIMIT ?
-      ''', <Object?>[limit]);
+      ''', <Object?>[if (scoped) code, limit]);
     } else if (term.runes.length >= 3) {
       try {
         final phrase = '"${term.replaceAll('"', '""')}"';
         rows = await database.rawQuery('''
           SELECT l.rowid AS search_rowid, l.id, l.surface,
                  l.part_of_speech, l.fields_json
+                 ${scoped ? ', l.language_code' : ''}
           FROM lexicon_fts
           JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
           WHERE lexicon_fts MATCH ?
+            AND ${scoped ? 'l.language_code = ?' : '1 = 1'}
           ORDER BY CASE
             WHEN l.surface = ? COLLATE NOCASE THEN 0
             WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
             ELSE 2
           END, bm25(lexicon_fts), length(l.surface), l.rowid
           LIMIT ?
-        ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+        ''', <Object?>[
+          phrase,
+          if (scoped) code,
+          term,
+          '${_escapeLike(term)}%',
+          limit,
+        ]);
+        if (rows.isEmpty) {
+          rows = await _fallback(database, term, limit, code, scoped);
+        }
       } on DatabaseException catch (_) {
         // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
         // expression: parameterized LIKE stays available on vendor SQLite.
-        rows = await _fallback(database, term, limit);
+        rows = await _fallback(database, term, limit, code, scoped);
       }
     } else {
-      rows = await _fallback(database, term, limit);
+      rows = await _fallback(database, term, limit, code, scoped);
     }
-
-    final code = languageCode.trim().toLowerCase().replaceAll('_', '-');
     return compute(_decodeFtsRows, <String, Object?>{
       'languageCode': code,
       'rows': rows
@@ -213,20 +231,43 @@ class FtsSearchService {
       .replaceAll('%', '\\%')
       .replaceAll('_', '\\_');
 
+  /// Same acceptance rule as DatabaseService: trim, lower-case, '_' to '-',
+  /// and collapse a German region tag to `de`. Anything else that is not a
+  /// language tag is rejected before it can reach SQL.
+  static String _normalizeLanguageCode(String? value) {
+    final normalized =
+        (value ?? 'de').trim().toLowerCase().replaceAll('_', '-');
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
+      throw ArgumentError.value(value, 'languageCode', 'Invalid language code');
+    }
+    return normalized.split('-').first == 'de' ? 'de' : normalized;
+  }
+
+  static Future<bool> _lexiconHasLanguageCode(Database database) async {
+    final info = await database.rawQuery('PRAGMA table_info(lexicon)');
+    return info.any((row) => row['name']?.toString() == 'language_code');
+  }
+
   static Future<List<Map<String, Object?>>> _fallback(
     Database database,
     String term,
     int limit,
+    String languageCode,
+    bool scoped,
   ) async {
     final literal = _escapeLike(term);
+    final languageSql = scoped ? 'language_code = ? AND ' : '';
+    final languageColumn = scoped ? ', language_code' : '';
+    final languageArg = scoped ? <Object?>[languageCode] : <Object?>[];
     // This query can use idx_lexicon_surface_nocase, if shipped by the builder.
     final prefixRows = await database.rawQuery('''
       SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
+             $languageColumn
       FROM lexicon
-      WHERE surface LIKE ? ESCAPE '\\'
+      WHERE $languageSql surface LIKE ? ESCAPE '\\'
       ORDER BY length(surface), rowid
       LIMIT ?
-    ''', <Object?>['$literal%', limit]);
+    ''', <Object?>[...languageArg, '$literal%', limit]);
     if (prefixRows.length >= limit) return prefixRows;
 
     // Preserve substring/JSON lookup on older Android SQLite engines; this
@@ -241,12 +282,19 @@ class FtsSearchService {
         : 'AND rowid NOT IN (${List.filled(alreadyFound.length, '?').join(',')})';
     final substringRows = await database.rawQuery('''
       SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
+             $languageColumn
       FROM lexicon
-      WHERE (surface LIKE ? ESCAPE '\\' OR fields_json LIKE ? ESCAPE '\\')
+      WHERE $languageSql (surface LIKE ? ESCAPE '\\' OR fields_json LIKE ? ESCAPE '\\')
       $exclusions
       ORDER BY length(surface), rowid
       LIMIT ?
-    ''', <Object?>['%$literal%', '%$literal%', ...alreadyFound, remaining]);
+    ''', <Object?>[
+      ...languageArg,
+      '%$literal%',
+      '%$literal%',
+      ...alreadyFound,
+      remaining,
+    ]);
     return <Map<String, Object?>>[...prefixRows, ...substringRows];
   }
 
@@ -272,11 +320,15 @@ class FtsSearchService {
     final id = row['id']?.toString() ?? '';
     final surface = row['surface']?.toString() ?? '';
     final translation = DatabaseService.resolveLexiconTranslation(fields);
+    final storedLanguage = row['language_code']?.toString();
     return <String, dynamic>{
       'id': id,
       'lexeme_id': id,
       'concept_id': id,
-      'language_code': languageCode,
+      'language_code':
+          (storedLanguage == null || storedLanguage.isEmpty)
+              ? languageCode
+              : storedLanguage,
       'surface': surface,
       'display_text': surface,
       'part_of_speech': row['part_of_speech'],

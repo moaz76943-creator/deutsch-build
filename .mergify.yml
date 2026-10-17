@@ -1,7 +1,7 @@
 # DEUTSCH بالعربي | private Flutter application
 # CONFIGURATION CANDIDATE: safe/manual by default.
 # GitHub default branch is main; Mergify reads this config from main.
-# The queue intentionally targets staging/v2-full-platform, NOT main.
+# The queue targets main. staging/v2-full-platform does not exist.
 # Do not activate automatic queuing until protection and hosted CI are verified.
 merge_queue:
   mode: serial
@@ -18,7 +18,7 @@ queue_rules:
     batch_size: 1
     max_checks_retries: 0
     queue_conditions:
-      - base = staging/v2-full-platform
+      - base = main
       - -draft
       - -conflict
       - label = mergify-approved
@@ -44,7 +44,7 @@ merge_protections_settings:
 merge_protections:
   - name: private-flutter-staging-gate
     if:
-      - base = staging/v2-full-platform
+      - base = main
     success_conditions:
       - -draft
       - -conflict

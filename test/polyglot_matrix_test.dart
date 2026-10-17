@@ -6,7 +6,11 @@ import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
 void main() {
   test('100 Polyglot Matrix Data & Architecture Verification', () {
     final langs = LanguagePackManager.supportedLanguages;
-    expect(langs.length, 100, reason: 'يجب أن تحتوي المنظومة على 100 لغة بالضبط');
+    expect(
+      langs.length,
+      66,
+      reason: 'الكتالوج الفعلي فيه 66 رمز لغة، وليس 100 لغة مُختلقة',
+    );
 
     for (final code in langs) {
       final name = LanguagePackManager.getLanguageName(code);

@@ -251,16 +251,22 @@ class PackDownloaderService {
       final packsDir = Directory(path.join(support.path, 'packs'));
       await packsDir.create(recursive: true);
       final targetPath = path.join(packsDir.path, '$languageCode.sqlite');
-      final admission = PackAdmissionService(
-        quarantine: StorageQuarantine(),
-        dbFactory: databaseFactory,
-      );
-      final isValid = await admission.verifyAndAdmitPack(
-        stagedFile: file,
-        expectedHash: expectedHash,
-        targetPath: targetPath,
-        allowReplacement: true,
-      );
+      bool isValid = false;
+      try {
+        final admission = PackAdmissionService(
+          quarantine: StorageQuarantine(),
+          dbFactory: databaseFactory,
+        );
+        isValid = await admission.verifyAndAdmitPack(
+          stagedFile: file,
+          expectedHash: expectedHash,
+          targetPath: targetPath,
+          allowReplacement: true,
+        );
+      } catch (_) {
+        // A downloaded file that cannot be opened is rejected, not paused.
+        isValid = false;
+      }
 
       if (isValid) {
         _downloadStates[languageCode] = PackDownloadState.installed;

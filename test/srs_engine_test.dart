@@ -22,7 +22,9 @@ void main() {
       previousInterval: 1,
     );
     expect(result['repetitions'], 2);
-    expect(result['interval'], 4);
+    // SuperMemo SM-2: the second successful review is I(2) = 6 days.
+    // An older hardcode returned 4 here; that is not the algorithm.
+    expect(result['interval'], 6);
 
     // اختبار الإخفاق وتصفير العداد
     result = SrsEngine.calculateNextReview(

@@ -11,6 +11,7 @@ import '../services/database_service.dart';
 import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
 import '../widgets/phonetic_ipa_view.dart';
+import '../services/language_pack_manager.dart';
 import '../widgets/resilient_text_container.dart';
 import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
@@ -139,6 +140,15 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       if (value is String && value.trim().isNotEmpty) return value.trim();
     }
     return '';
+  }
+
+  static String? _optionalField(
+    Map<String, dynamic> fields,
+    Map<String, dynamic> card,
+    List<String> keys,
+  ) {
+    final value = _string(<String, dynamic>{...fields, ...card}, keys);
+    return value.isEmpty ? null : value;
   }
 
   String get _headword {
@@ -377,16 +387,20 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ResilientTextContainer(
-              text: _headword,
-              maxLines: 6,
-              textDirection: isRtlLanguage(_languageCode)
-                  ? TextDirection.rtl
-                  : TextDirection.ltr,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              child: Directionality(
+                textDirection: LanguagePackManager.isRtlLanguage(_languageCode)
+                    ? TextDirection.rtl
+                    : TextDirection.ltr,
+                child: Text(
+                  _headword,
+                  maxLines: 6,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
             if (ipa.isNotEmpty) ...<Widget>[
@@ -423,18 +437,38 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
             children: <Widget>[
               if (translation.isNotEmpty) ...<Widget>[
                 ResilientTextContainer(
-                  text: translation,
-                  maxLines: 8,
-                  textDirection: TextDirection.rtl,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, color: Colors.white),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      translation,
+                      maxLines: 8,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 22, color: Colors.white),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
               LexiconRichDetails(
-                entry: card,
-                languageCode: _languageCode,
-                showMeaning: translation.isEmpty,
+                partOfSpeech: _optionalField(fields, card, const <String>[
+                  'part_of_speech',
+                  'pos',
+                ]),
+                gender: _optionalField(fields, card, const <String>[
+                  'gender',
+                  'article',
+                ]),
+                pluralForm: _optionalField(fields, card, const <String>[
+                  'plural',
+                  'plural_form',
+                ]),
+                explanation: translation.isEmpty
+                    ? _optionalField(fields, card, const <String>[
+                        'definition',
+                        'explanation',
+                      ])
+                    : null,
+                explanationLanguageCode: 'ar',
               ),
               TextButton.icon(
                 onPressed: () => WordDeepDiveSheet.show(
