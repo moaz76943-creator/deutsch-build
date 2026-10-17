@@ -23,6 +23,9 @@ class OfflineGate {
     NetworkOperation operation = NetworkOperation.general,
     DownloadAuthorization? auth,
   ]) {
+    if (operation == NetworkOperation.telemetry) {
+      return false;
+    }
     if (operation == NetworkOperation.download && auth != null && auth.isAuthorized()) {
       return true;
     }
@@ -33,6 +36,9 @@ class OfflineGate {
     NetworkOperation operation = NetworkOperation.general,
     DownloadAuthorization? auth,
   ]) {
+    if (operation == NetworkOperation.telemetry) {
+      throw Exception('Telemetry network requests are strictly forbidden.');
+    }
     if (operation == NetworkOperation.download && auth != null && auth.isAuthorized()) {
       return;
     }

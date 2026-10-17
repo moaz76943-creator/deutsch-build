@@ -18,7 +18,11 @@ class DataIntegritySigner {
   static bool verifyManifestIntegrity(Map<String, dynamic>? manifest, String contentPayload) {
     if (manifest == null) return false;
 
-    if (manifest['trustedKey'] != true) {
+    if (!manifest.containsKey('trustedKey') || manifest['trustedKey'] != true) {
+      return false;
+    }
+
+    if (manifest.containsKey('unsupportedAlgorithm') || manifest['algorithm'] == 'unsupported') {
       return false;
     }
 
