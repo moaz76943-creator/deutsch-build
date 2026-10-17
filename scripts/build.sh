@@ -7,21 +7,23 @@ source "$ROOT/scripts/common.sh"
 load_toolchain
 
 MODE="${1:-debug}"
-case "$MODE" in debug|release) ;; *) fatal "$ERR_ENV" "Usage: ./scripts/build.sh [debug|release]";; esac
+case "$MODE" in debug|release) ;; *) fatal "Usage: ./scripts/build.sh [debug|release]";; esac
 
 JSON_CONTENT="${DEUTSCH_JSON_CONTENT:-false}"
-case "$JSON_CONTENT" in true|false) ;; *) fatal "$ERR_ENV" "DEUTSCH_JSON_CONTENT must be true or false";; esac
+case "$JSON_CONTENT" in true|false) ;; *) fatal "DEUTSCH_JSON_CONTENT must be true or false";; esac
 DART_DEFINE=("--dart-define=DEUTSCH_JSON_CONTENT=$JSON_CONTENT")
 cd "$ROOT"
-LOG_FILE="$(bash "$ROOT/scripts/create_private_build_log.sh" "$MODE")" || fatal "$ERR_ENV" "Cannot create a private build log"
+LOG_DIR="${HOME}/.deutsch_bilarabi_logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/build_${MODE}_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 log CHECK "1/10 Environment"
-"$ROOT/scripts/build_guard.sh" || fatal "$ERR_ENV" "Environment guard failed"
+"$ROOT/scripts/build_guard.sh"
 
 log CHECK "2/10 Dependencies"
-python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -53,28 +55,36 @@ log CHECK "4/10 Content Quality"
 python tool/quality_audit.py || fatal "$ERR_COMP" "Quality audit failed"
 =======
 run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
+=======
+flutter pub get --enforce-lockfile
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
-bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Blocking Dart errors or analyzer failure"
-flutter test || fatal "$ERR_COMP" "Flutter tests failed"
-python -m pytest -q tests || fatal "$ERR_COMP" "Python tests failed"
+flutter analyze
+flutter test
+python -m pytest -q tests
 
 log CHECK "4/10 Content Quality"
+<<<<<<< HEAD
 python tool/quality_audit.py || fatal "$ERR_COMP" "Content audit failed"
 >>>>>>> pr-179
+=======
+python tool/quality_audit.py
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 log CHECK "5/10 Security"
-python tool/security_audit.py || fatal "$ERR_COMP" "Security audit failed"
-python tool/phase17_production_gate.py || fatal "$ERR_COMP" "Production gate failed"
+python tool/security_audit.py
+python tool/phase17_production_gate.py
 
 if [[ "$MODE" == "release" ]]; then
   log CHECK "6/10 Release signing"
-  "$ROOT/scripts/signing_guard.sh" || fatal "$ERR_SIGN" "Signing check failed"
+  "$ROOT/scripts/signing_guard.sh"
 fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -100,11 +110,17 @@ else
 else
   flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "Flutter build apk (debug) failed" "$EXIT_COMP"
 >>>>>>> pr-188
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 
 log CHECK "8/10 APK Verification"
-"$ROOT/scripts/apk_verify.sh" "$APK" "$MODE" || fatal "$ERR_ARTIFACT" "APK verification failed"
+"$ROOT/scripts/apk_verify.sh" "$APK" "$MODE"
 
 log CHECK "9/10 Build provenance"
 mkdir -p "$ROOT/build"

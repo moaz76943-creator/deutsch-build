@@ -1,7 +1,5 @@
 package com.deutschbilarabi.app
 
-import android.content.Intent
-import android.speech.tts.TextToSpeech
 import android.os.Bundle
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
@@ -9,12 +7,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private companion object {
-        const val PROCESS_TEXT_CHANNEL = "com.deutsch_bilarabi.app/process_text"
-        const val MAX_PENDING_PROCESS_TEXT = 8
-    }
-
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     private lateinit var offlineVoiceProbe: AndroidOfflineVoiceCapabilityProbe
@@ -76,34 +70,11 @@ class MainActivity : FlutterActivity() {
     }
 
 >>>>>>> pr-179
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        processTextListenerReady = false
-        processTextChannel = MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            PROCESS_TEXT_CHANNEL,
-        ).also { channel ->
-            channel.setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "ready" -> {
-                        // Dart sends this only after setMethodCallHandler().
-                        processTextListenerReady = true
-                        result.success(null)
-                        dispatchPendingProcessText()
-                    }
-                    "notReady" -> {
-                        processTextListenerReady = false
-                        result.success(null)
-                    }
-                    else -> result.notImplemented()
-                }
-            }
-        }
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidUserVaultCipher.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidUserVaultCipher(this))
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidSecureSessionStorage.CHANNEL_NAME,
@@ -125,6 +96,7 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 <<<<<<< HEAD
@@ -180,6 +152,8 @@ class MainActivity : FlutterActivity() {
             }
         }
 >>>>>>> pr-179
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     }
 
     override fun onRequestPermissionsResult(
@@ -206,6 +180,7 @@ class MainActivity : FlutterActivity() {
         if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+<<<<<<< HEAD
         captureProcessText(intent)
     }
 
@@ -220,5 +195,7 @@ class MainActivity : FlutterActivity() {
         processTextChannel?.setMethodCallHandler(null)
         processTextChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     }
 }

@@ -1,12 +1,16 @@
 import 'dart:async';
 
+<<<<<<< HEAD
 import 'package:flutter/foundation.dart';
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
+<<<<<<< HEAD
   final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
   final Set<String> _disposedOwners = {};
   bool _isDisposed = false;
@@ -41,11 +45,31 @@ class RuntimeLifecycleRegistry {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
     await _disposeOwnerResources(owner);
+=======
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+  final List<Timer> _timers = [];
+  bool _isDisposed = false;
+
+  void registerSubscription(StreamSubscription<dynamic> sub) {
+    if (_isDisposed) {
+      sub.cancel();
+      return;
+    }
+    _subscriptions.add(sub);
+  }
+
+  void registerTimer(Timer timer) {
+    if (_isDisposed) {
+      timer.cancel();
+      return;
+    }
+    _timers.add(timer);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> disposeAll() async {
-    if (_isDisposed) return;
     _isDisposed = true;
+<<<<<<< HEAD
 
     final owners = _cleanups.keys.toList().reversed;
     for (final owner in owners) {
@@ -68,9 +92,20 @@ class RuntimeLifecycleRegistry {
 
     for (final cleanup in callbacks) {
       await _safeCleanup(cleanup);
+=======
+    for (final timer in _timers) {
+      timer.cancel();
     }
+    _timers.clear();
+
+    for (final sub in _subscriptions) {
+      await sub.cancel();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    }
+    _subscriptions.clear();
   }
 
+<<<<<<< HEAD
   Future<void> _safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
@@ -106,4 +141,7 @@ class RuntimeLifecycleRegistry {
     _disposedOwners.clear();
     _isDisposed = false;
   }
+=======
+  bool get isDisposed => _isDisposed;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

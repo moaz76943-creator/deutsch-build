@@ -1,9 +1,15 @@
-# Release R8 rules: keep only Android/JVM entry points that need stable names.
-# Dart AOT code and bundled Flutter assets are outside R8's code-shrinking scope.
+# Flutter & Application Security Architecture
+-keep class io.flutter.app.** { *; }
+-keep class io.flutter.plugin.**  { *; }
+-keep class io.flutter.util.**  { *; }
+-keep class io.flutter.view.**  { *; }
+-keep class io.flutter.** { *; }
 
-# Preserve metadata used by Java/Kotlin reflection and plugin integrations.
--keepattributes Signature,InnerClasses,EnclosingMethod,*Annotation*
+# الحفاظ على دوال وقواعد البيانات والـ Models
+-keepattributes *Annotation*
+-dontwarn io.flutter.embedding.**
 
+<<<<<<< HEAD
 # Native sqflite plugin: preserve its channel entry points and SQLite bridge.
 -keep class com.tekartik.sqflite.** { *; }
 <<<<<<< HEAD
@@ -29,3 +35,17 @@
 # Optional Play Core APIs referenced by Flutter are not required for this APK.
 -dontwarn com.google.android.play.core.**
 >>>>>>> pr-179
+=======
+# تحسين وتقليص استهلاك الذاكرة
+-repackageclasses
+-allowaccessmodification
+-dontwarn com.google.android.play.core.**
+-dontwarn io.flutter.app.**
+-keep class io.flutter.app.** { *; }
+
+-dontwarn com.google.android.play.core.**
+-dontwarn io.flutter.**
+-keep class io.flutter.** { *; }
+-dontwarn com.tekartik.sqflite.**
+-keep class com.tekartik.sqflite.** { *; }
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957

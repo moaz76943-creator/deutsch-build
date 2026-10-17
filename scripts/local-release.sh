@@ -84,8 +84,8 @@ eval "$build_exports"
 bash "$ROOT/scripts/build_guard.sh"
 (cd "$ROOT/android" && ./gradlew --version)
 
-python3 "$ROOT/scripts/verify_locked_dependencies.py" || fatal "$ERR_DEP" "Dependency lock mismatch; regenerate with pinned SDK"
 snapshot_lockfile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -103,6 +103,9 @@ run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
 =======
 with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
 >>>>>>> pr-188
+=======
+flutter pub get --enforce-lockfile
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
@@ -110,8 +113,9 @@ if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROO
 fi
 if [[ "$MODE" == "release" || "$VERIFY" == true ]]; then
   log CHECK "Mandatory local quality gate before release"
-  bash "$ROOT/scripts/local_quality_gate.sh" || fatal "$ERR_COMP" "Local quality gate failed"
+  bash "$ROOT/scripts/local_quality_gate.sh"
 fi
+<<<<<<< HEAD
 <<<<<<< HEAD
 bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Dart analysis failed"
 if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
@@ -119,6 +123,10 @@ if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
 bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Blocking Dart errors or analyzer failure"
 if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh" || fatal "$ERR_SIGN" "Signing guard failed"; fi
 >>>>>>> pr-179
+=======
+bash "$ROOT/scripts/check-dart-errors.sh"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 mkdir -p "$ROOT/build/symbols"
 log BUILD "ARM64 $MODE (incremental build and Gradle/pub caches preserved)"
@@ -134,6 +142,7 @@ run_with_retry flutter build apk "--$MODE" --no-pub \
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   "${build_options[@]}" || fatal --code "$ERR_COMP" "Flutter build failed"
 =======
   "${build_options[@]}" || fatal "$ERR_COMP" "APK build failed"
@@ -144,10 +153,13 @@ run_with_retry flutter build apk "--$MODE" --no-pub \
 =======
   "${build_options[@]}" || fatal "Flutter build apk ($MODE) failed" "$EXIT_COMP"
 >>>>>>> pr-188
+=======
+  "${build_options[@]}"
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 assert_lockfile_unchanged
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"
-bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE" || fatal "$ERR_ARTIFACT" "Local APK verification failed"
+bash "$ROOT/scripts/apk_verify.sh" "$APK" "$MODE"
 {
   printf 'Git Commit: %s\n' "$(git_commit)"
   printf 'Version: %s+%s\n' "$(app_version)" "$(app_build_number)"

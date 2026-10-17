@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design_system/design_system.dart';
-import 'language_manager_screen.dart';
+import 'offline_storage_screen.dart';
 
 class ProfileHubScreen extends StatelessWidget {
   const ProfileHubScreen({super.key});
@@ -32,10 +32,14 @@ class ProfileHubScreen extends StatelessWidget {
             const SizedBox(height: 24),
             AppBaseGlassCard(
               onTap: () {
+<<<<<<< HEAD
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => const LanguageManagerScreen()));
+=======
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineStorageScreen()));
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
               },
               child: const Row(
                 children: <Widget>[

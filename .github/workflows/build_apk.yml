@@ -2,7 +2,11 @@ name: Build and Release Direct APK
 
 on:
   push:
+<<<<<<< HEAD
     branches: [ main, staging/v2-full-platform ]
+=======
+    branches: [ main ]
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   workflow_dispatch:
 
 permissions:
@@ -40,10 +44,13 @@ jobs:
 
       - name: Publish Direct APK Release
         uses: ncipollo/release-action@v1
+<<<<<<< HEAD
 =======
       - name: Upload Private Artifacts
         uses: actions/upload-artifact@v7
 >>>>>>> pr-4
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         with:
           artifacts: "deutsch-app.apk"
           tag: "latest"

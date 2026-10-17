@@ -88,6 +88,7 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   @override
+<<<<<<< HEAD
   void dispose() {
     OfflineAudioDispatcher.stopCurrentAudio();
     _answerController.dispose();
@@ -125,6 +126,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   @override
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   Widget build(BuildContext context) {
     if (_currentEntry == null && !_isVoiceLoading) {
       return Scaffold(

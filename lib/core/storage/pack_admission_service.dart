@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+<<<<<<< HEAD
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
 <<<<<<< HEAD
@@ -28,6 +29,14 @@ class PackAdmissionService {
     required String targetPath,
     bool allowReplacement = false,
   }) async {
+=======
+
+/// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
+class PackAdmissionService {
+  
+  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256)
+  static Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     try {
 <<<<<<< HEAD
       if (!await stagedFile.exists()) {
@@ -44,10 +53,11 @@ class PackAdmissionService {
       debugPrint("فشل التحقق: الحزمة تالفة أو غير موثوقة.");
       return false;
     } catch (e) {
-      debugPrint("خطأ أثناء فحص الحزمة: ${e}");
+      debugPrint("خطأ أثناء فحص الحزمة: \$e");
       return false;
     }
   }
+<<<<<<< HEAD
 
   /// التحقق من توقيع Ed25519 الرقمي للحزمة ومطابقته لسجل المفاتيح الموثوقة (Study 06)
   static Future<bool> verifyPackSignature({
@@ -219,4 +229,6 @@ class PackAdmissionService {
       await db?.close();
     }
   }
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

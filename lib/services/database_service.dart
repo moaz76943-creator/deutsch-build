@@ -1,11 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:crypto/crypto.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
+<<<<<<< HEAD
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
 import 'database_integrity_service.dart';
@@ -36,27 +30,33 @@ List<Map<String, dynamic>> _decodeLexiconRows(Map<String, Object?> request) {
           ))
       .toList(growable: false);
 }
+=======
+import 'package:path/path.dart';
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
-
-  static const String germanGoldenSha256 =
-      'cc6f23bad631f6d0f13b5adb4fb840397534db496d5cdc375dce91d00920e2d2';
-  static const String _germanAssetPath =
-      'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
-  static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
+  static Database? _contentDb;
   static Database? _progressDb;
+<<<<<<< HEAD
   late final UserVaultSecurityService _progressVault =
       UserVaultSecurityService();
   late final PooledDatabaseManager _contentPool = PooledDatabaseManager(
     openConnection: _openContentDb,
   );
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   DatabaseService._init();
 
-  // Backward-compatible default content database getter.
-  Future<Database> get contentDb => getContentDb();
+  // 1. قاعدة المحتوى (اللغات، الكلمات، الأمثلة)
+  Future<Database> get contentDb async {
+    if (_contentDb != null) return _contentDb!;
+    _contentDb = await _initContentDb('polyglot_content_v2.db');
+    return _contentDb!;
+  }
 
+<<<<<<< HEAD
   Future<Database> getContentDb([String? languageCode]) =>
       _contentPool.open(_normalizeLanguageCode(languageCode));
 
@@ -67,6 +67,9 @@ class DatabaseService {
       _contentPool.withDatabase(_normalizeLanguageCode(languageCode), action);
 
   // User progress remains physically and logically isolated from content packs.
+=======
+  // 2. قاعدة تقدم المستخدم (SRS Progress) - مفصولة لحماية البيانات
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   Future<Database> get progressDb async {
     if (_progressDb != null) return _progressDb!;
     if (_progressDbInitFuture != null) return await _progressDbInitFuture!;
@@ -79,6 +82,7 @@ class DatabaseService {
     return _progressDb!;
   }
 
+<<<<<<< HEAD
   Future<Database> _openContentDb(String languageCode) async {
     // The bundled-pack SHA-256 check is also deferred beyond cold boot.
     await CrashLoopGuard.waitForIntegrityWindow();
@@ -90,26 +94,35 @@ class DatabaseService {
       final databasePath = languageCode == 'de'
           ? await _ensureGermanDatabase()
           : await _installedPackPath(languageCode);
+=======
+  Future<Database> _initContentDb(String fileName) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, fileName);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
-      db = await _openContentReadOnly(databasePath);
-      if (!await DatabaseIntegrityService.instance
-          .checkMountedPack(languageCode, db)) {
-        throw StateError('SQLite content pack is quarantined: $languageCode');
-      }
-      await verifyUniversalSchema(db, languageCode);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        // جداول المحتوى (لـ 100 لغة)
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS language_profiles (
+           language_code TEXT PRIMARY KEY,
+           name_native TEXT NOT NULL,
+           name_ar TEXT NOT NULL,
+           direction TEXT NOT NULL
+          )
+        ''');
 
-      return db;
-    } catch (error) {
-      if (db != null && db.isOpen) {
-        try {
-          await db.close();
-        } catch (_) {}
-      }
-      await DatabaseIntegrityService.instance.quarantine(languageCode, error);
-      rethrow;
-    }
-  }
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS concepts (
+           concept_id TEXT PRIMARY KEY,
+           category TEXT NOT NULL,
+           cefr_level TEXT NOT NULL
+          )
+        ''');
 
+<<<<<<< HEAD
   Future<Database> _initContentDb(String fileName) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
@@ -168,11 +181,33 @@ class DatabaseService {
       },
     );
   }
+=======
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS lexemes (
+           lexeme_id TEXT PRIMARY KEY,
+           concept_id TEXT NOT NULL,
+           language_code TEXT NOT NULL,
+           lemma TEXT NOT NULL,
+           display_text TEXT NOT NULL,
+           article TEXT,
+           plural TEXT,
+           gender TEXT,
+           grammar_json TEXT DEFAULT '{}'
+          )
+        ''');
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
-  Future<String> _ensureGermanDatabase() async {
-    final dbRoot = await getDatabasesPath();
-    final target = File(path.join(dbRoot, _germanDatabaseFileName));
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS examples (
+           example_id TEXT PRIMARY KEY,
+           concept_id TEXT NOT NULL,
+           language_code TEXT NOT NULL,
+           sentence TEXT NOT NULL,
+           translation_ar TEXT
+          )
+        ''');
 
+<<<<<<< HEAD
     if (await target.exists()) {
       final installedHash = await _sha256File(target);
       if (_constantTimeHexEquals(installedHash, germanGoldenSha256)) {
@@ -184,25 +219,14 @@ class DatabaseService {
     final assetBytes = assetData.buffer.asUint8List(
       assetData.offsetInBytes,
       assetData.lengthInBytes,
+=======
+        // زرع بيانات مبدئية لكي يعمل المعجم فوراً
+        await _seedInitialData(db);
+      },
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     );
-    final assetHash = sha256.convert(assetBytes).toString();
-    if (!_constantTimeHexEquals(assetHash, germanGoldenSha256)) {
-      throw StateError(
-        'Bundled German database does not match the Golden baseline. '
-        'Expected $germanGoldenSha256, got $assetHash.',
-      );
-    }
-
-    await Directory(dbRoot).create(recursive: true);
-    final staged = File('${target.path}.installing');
-    if (await staged.exists()) {
-      await staged.delete();
-    }
-    await staged.writeAsBytes(assetBytes, flush: true);
-    await _verifySqliteHeader(staged);
-    await _replaceAtomically(staged, target);
-    return target.path;
   }
+<<<<<<< HEAD
 
   Future<String> _installedPackPath(String languageCode) async {
     final located =
@@ -320,17 +344,26 @@ class DatabaseService {
       StorageMigrationService(
         closeContentDb: (languageCode) => closeContentDb(languageCode),
       ).migratePack(filename, destination: destination);
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   Future<Database> _initProgressDb(String fileName) async {
     final dbPath = await getDatabasesPath();
-    final databasePath = path.join(dbPath, fileName);
+    final path = join(dbPath, fileName);
 
     return await openDatabase(
+<<<<<<< HEAD
       databasePath,
       version: 2,
+=======
+      path,
+      version: 1,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       onCreate: (db, version) async {
+        // جدول التكرار المتباعد (SuperMemo-2)
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
+<<<<<<< HEAD
             lexeme_id TEXT NOT NULL,
             target_language_code TEXT NOT NULL,
             repetition_count INTEGER NOT NULL DEFAULT 0,
@@ -713,11 +746,75 @@ class DatabaseService {
     )
   ''');
 
+=======
+           lexeme_id TEXT PRIMARY KEY,
+           target_language_code TEXT NOT NULL,
+           repetition_count INTEGER NOT NULL DEFAULT 0,
+           interval_days INTEGER NOT NULL DEFAULT 1,
+           ease_factor REAL NOT NULL DEFAULT 2.5,
+           next_due_at INTEGER,
+           status TEXT NOT NULL DEFAULT 'learning'
+          )
+        ''');
+      },
+    );
+  }
+
+  // دالة البحث في المعجم الفوري
+  Future<List<Map<String, dynamic>>> searchDictionary(String query, String langCode) async {
+    final db = await contentDb;
+    if (query.isEmpty) {
+      return await db.rawQuery('''
+        SELECT l.*, e.sentence, e.translation_ar
+        FROM lexemes l
+        LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
+        WHERE l.language_code = ?
+        LIMIT 20
+      ''', [langCode]);
+    }
+
+    return await db.rawQuery('''
+      SELECT l.*, e.sentence, e.translation_ar
+      FROM lexemes l
+      LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
+      WHERE l.language_code = ? AND (l.lemma LIKE ? OR l.display_text LIKE ? OR e.translation_ar LIKE ?)
+      LIMIT 20
+    ''', [langCode, '%$query%', '%$query%', '%$query%']);
+  }
+
+  // إدخال بيانات تجريبية (مفاهيم الحياة اليومية)
+  Future<void> _seedInitialData(Database db) async {
+    final batch = db.batch();
+
+    // إدخال اللغات
+    batch.insert('language_profiles', {'language_code': 'de', 'name_native': 'Deutsch', 'name_ar': 'الألمانية', 'direction': 'ltr'});
+    batch.insert('language_profiles', {'language_code': 'ar', 'name_native': 'العربية', 'name_ar': 'العربية', 'direction': 'rtl'});
+
+    // إدخال المفاهيم
+    batch.insert('concepts', {'concept_id': 'daily.water', 'category': 'daily', 'cefr_level': 'A1'});
+    batch.insert('concepts', {'concept_id': 'daily.book', 'category': 'daily', 'cefr_level': 'A1'});
+    batch.insert('concepts', {'concept_id': 'daily.car', 'category': 'daily', 'cefr_level': 'A1'});
+
+    // إدخال الكلمات (ألماني)
+    batch.insert('lexemes', {'lexeme_id': 'lex.de.water', 'concept_id': 'daily.water', 'language_code': 'de', 'lemma': 'Wasser', 'display_text': 'das Wasser', 'article': 'das', 'gender': 'n'});
+    batch.insert('lexemes', {'lexeme_id': 'lex.de.book', 'concept_id': 'daily.book', 'language_code': 'de', 'lemma': 'Buch', 'display_text': 'das Buch', 'article': 'das', 'plural': 'Bücher', 'gender': 'n'});
+    batch.insert('lexemes', {'lexeme_id': 'lex.de.car', 'concept_id': 'daily.car', 'language_code': 'de', 'lemma': 'Auto', 'display_text': 'das Auto', 'article': 'das', 'plural': 'Autos', 'gender': 'n'});
+
+    // إدخال الأمثلة
+    batch.insert('examples', {'example_id': 'ex.de.water', 'concept_id': 'daily.water', 'language_code': 'de', 'sentence': 'Ich trinke Wasser.', 'translation_ar': 'أشرب الماء.'});
+    batch.insert('examples', {'example_id': 'ex.de.book', 'concept_id': 'daily.book', 'language_code': 'de', 'sentence': 'Ich lese ein Buch.', 'translation_ar': 'أقرأ كتاباً.'});
+    batch.insert('examples', {'example_id': 'ex.de.car', 'concept_id': 'daily.car', 'language_code': 'de', 'sentence': 'Das Auto ist schnell.', 'translation_ar': 'السيارة سريعة.'});
+
+    await batch.commit(noResult: true);
+  }
+
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   Future<void> updateSrsProgressAtomic({
     required String lexemeId,
     required String status,
     String languageCode = 'de',
   }) async {
+<<<<<<< HEAD
     try {
       final normalizedCode = _normalizeLanguageCode(languageCode);
       if (await _progressVault.isOperationalActive) {
@@ -811,5 +908,17 @@ class DatabaseService {
       difference |= a.codeUnitAt(index) ^ b.codeUnitAt(index);
     }
     return difference == 0;
+=======
+    final db = await progressDb;
+    await db.transaction((txn) async {
+      await txn.rawInsert('''
+        INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
+        VALUES (?, ?,
+          COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
+          ?
+        )
+      ''', [lexemeId, languageCode, lexemeId, status]);
+    });
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }

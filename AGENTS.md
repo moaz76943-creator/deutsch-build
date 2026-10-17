@@ -5,6 +5,7 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 - `docs/project-record/SESSION_OPERATING_CONTRACT.md`
 - `docs/project-record/PROJECT_INTENT.md`
 
+<<<<<<< HEAD
 ## Commit and CI policy (effective 2026-10-15)
 
 - Never add CI-skip tokens (including `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`) or `skip-checks: true` to **new** commit messages, whether created by Jules, Gemini, Antigravity, or an automated workflow.
@@ -12,6 +13,8 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 - Keep historical commits unchanged. For older PRs with skip directives, use a reviewed, non-skipping integration tip and validate the exact head before merge; never force-push Jules branches to rewrite their history.
 - Follow the repository's actual branch and task CI contracts; this notice does not activate disabled workflows or authorize paid services.
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 Before any mutation:
 1. verify this is the canonical repository `sali97m-cpu/deutsch-bilarabi`;
 2. inspect live branch/PR/CI state;

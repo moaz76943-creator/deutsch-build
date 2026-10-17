@@ -2,16 +2,16 @@ name: Flutter Build & Analyze Gate
 
 on:
   push:
-    branches: [ main, staging/v2-full-platform ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, staging/v2-full-platform ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+<<<<<<< HEAD
 <<<<<<< HEAD
     - uses: actions/checkout@v7
 =======
@@ -23,28 +23,28 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 >>>>>>> pr-179
+=======
+    - uses: actions/checkout@v3
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
 <<<<<<< HEAD
+<<<<<<< HEAD
         flutter-version: '3.27.x'
 =======
 >>>>>>> pr-179
+=======
+        flutter-version: '3.19.x'
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         channel: 'stable'
-        cache: true
-
-    - name: Prepare Bundled Content Assets
-      run: |
-        mkdir -p assets/content/packs/de/sqlite assets/content/packs/ar/sqlite
-        python3 -c "import gzip, shutil; shutil.copyfileobj(gzip.open('assets/content/packs/de/bundles/de-1.0.0.pack.gz', 'rb'), open('assets/content/packs/de/sqlite/de-1.0.0.sqlite', 'wb'))"
-        python3 -c "import gzip, shutil; shutil.copyfileobj(gzip.open('assets/content/packs/ar/bundles/ar-1.0.0.pack.gz', 'rb'), open('assets/content/packs/ar/sqlite/ar-1.0.0.sqlite', 'wb'))"
-        python3 scripts/ensure_bundled_offline_assets.py
 
     - name: Install Dependencies
       run: flutter pub get
 
     - name: Run Static Analysis
+<<<<<<< HEAD
       run: dart analyze --no-fatal-warnings lib/
 
     - name: Run Release Preflight
@@ -52,4 +52,9 @@ jobs:
 
     - name: Run Targeted Core Tests
       run: flutter test test/core/database/bootstrap/database_bootstrapper_test.dart test/services/delta_patch_service_test.dart test/services/srs_scheduler_persisted_counter_integrity_test.dart test/services/lemmatization_service_test.dart test/jules/J049/trie_search_engine_test.dart test/jules/WS16/ test/offline_gate_test.dart
+=======
+      run: dart analyze lib/
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
+    - name: Run Unit Tests
+      run: flutter test

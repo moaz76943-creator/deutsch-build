@@ -39,11 +39,15 @@ android {
 
     namespace "com.deutschbilarabi.app"
 <<<<<<< HEAD
+<<<<<<< HEAD
     compileSdk 36 // استخدام إصدار مستقر
     ndkVersion = "28.2.13676358"
 =======
     compileSdk = 36
 >>>>>>> pr-179
+=======
+    compileSdk 34 // استخدام إصدار مستقر
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -62,7 +66,7 @@ android {
         applicationId "com.deutschbilarabi.app"
         // نرفع الإصدار لـ 21 فقط لدعم SQLite و TTS
         minSdkVersion flutter.minSdkVersion
-        targetSdk = 36
+        targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
 
@@ -70,6 +74,7 @@ android {
         multiDexEnabled true
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     // Read signing config via external gradle script
     apply from: rootProject.file('release-signing.gradle')
@@ -112,11 +117,13 @@ android {
 >>>>>>> pr-179
     }
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     buildTypes {
         release {
-            signingConfig signingConfigs.secureRelease
             minifyEnabled false
             shrinkResources false
+<<<<<<< HEAD
 <<<<<<< HEAD
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
@@ -132,9 +139,15 @@ android {
 >>>>>>> pr-45
 =======
 >>>>>>> pr-179
+=======
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            signingConfig signingConfigs.debug
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         }
     }
 }
+
 flutter {
     source '../..'
 }

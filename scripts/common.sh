@@ -8,6 +8,7 @@ TOOLCHAIN_FILE="$ROOT/toolchain.lock"
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 export ERR_ENV=10
 export ERR_DEP=11
 export ERR_COMP=12
@@ -178,6 +179,11 @@ run_pub_get_with_retry() (
 
 >>>>>>> pr-179
 
+=======
+fatal() { printf '[ERROR] %s\n' "$*" >&2; exit 1; }
+log() { printf '[%s] %s\n' "$1" "$2"; }
+
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 load_toolchain() {
   [[ -f "$TOOLCHAIN_FILE" ]] || fatal "toolchain.lock is missing: $TOOLCHAIN_FILE"
   # shellcheck disable=SC1090
