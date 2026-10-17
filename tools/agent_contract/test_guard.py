@@ -1,119 +1,150 @@
-import os
-import tempfile
 import unittest
-from unittest.mock import patch
-from tools.agent_contract.guard import TaskLedger, ScopeGuard, TaskState
+import os
+import json
+import shutil
+import tempfile
+import sys
+from unittest.mock import patch, MagicMock
+import subprocess
 
-class TestTaskLedger(unittest.TestCase):
-    def test_claim_paths_prefix_spoof(self):
-        self.ledger.claim_paths("task1", ["docs/project-record/file1.md"])
-        success, msg = self.ledger.claim_paths("task2", ["docs/project-record-spoofed/file2.md"])
-        self.assertTrue(success) # Should not overlap because they are in different directories
+from tools.agent_contract import guard
 
+class TestGuardSubsystem(unittest.TestCase):
     def setUp(self):
-        self.temp_file = tempfile.NamedTemporaryFile(delete=False)
-        self.ledger = TaskLedger(ledger_path=self.temp_file.name)
+        # Create a temporary directory for tests
+        self.test_dir = tempfile.mkdtemp()
+        self.ledger_path = os.path.join(self.test_dir, 'task_ledger.json')
+
+        # Patch the ledger path in the guard module
+        self.patcher = patch('tools.agent_contract.guard.LEDGER_PATH', self.ledger_path)
+        self.patcher.start()
 
     def tearDown(self):
-        os.remove(self.temp_file.name)
+        self.patcher.stop()
+        shutil.rmtree(self.test_dir)
 
-    def test_claim_paths_success(self):
-        success, msg = self.ledger.claim_paths("task1", ["docs/project-record/file1.md"])
-        self.assertTrue(success)
-        self.assertEqual(msg, "Success")
+    def test_claim_task_success(self):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
+        ledger = guard.load_ledger()
+        self.assertIn('TASK-001', ledger)
+        self.assertEqual(ledger['TASK-001']['state'], 'CLAIM')
+        self.assertEqual(ledger['TASK-001']['base_sha'], 'abcdef123')
+        self.assertEqual(ledger['TASK-001']['allowed_paths'], ['docs/project-record/*'])
 
-    def test_claim_paths_overlap_descendant(self):
-        self.ledger.claim_paths("task1", ["docs/project-record/"])
-        success, msg = self.ledger.claim_paths("task2", ["docs/project-record/nested/file.md"])
-        self.assertFalse(success)
-        self.assertIn("Overlap detected", msg)
+    def test_parallel_claim_overlap(self):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
 
-    def test_claim_paths_overlap_ancestor(self):
-        self.ledger.claim_paths("task1", ["docs/project-record/nested/file.md"])
-        success, msg = self.ledger.claim_paths("task2", ["docs/project-record/"])
-        self.assertFalse(success)
-        self.assertIn("Overlap detected", msg)
+        with self.assertRaises(SystemExit) as cm:
+            with patch('sys.stderr', new_callable=lambda: open(os.devnull, 'w')):
+                guard.claim_task('TASK-002', 'def456', ['docs/project-record/task_ledger.json'])
+        self.assertEqual(cm.exception.code, 1)
 
-    def test_claim_paths_no_overlap(self):
-        self.ledger.claim_paths("task1", ["docs/project-record/dir1/"])
-        success, msg = self.ledger.claim_paths("task2", ["docs/project-record/dir2/"])
-        self.assertTrue(success)
+    def test_parallel_claim_no_overlap(self):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
+        guard.claim_task('TASK-002', 'def456', ['tools/agent_contract/*'])
 
-    def test_transition_state(self):
-        self.ledger.claim_paths("task1", ["docs/"])
-        success, msg = self.ledger.transition_state("task1", TaskState.ACTIVE)
-        self.assertTrue(success)
+        ledger = guard.load_ledger()
+        self.assertIn('TASK-001', ledger)
+        self.assertIn('TASK-002', ledger)
 
-        # Verify state is active in ledger
-        with open(self.temp_file.name, 'r') as f:
-            content = f.read()
-            self.assertIn('"state": "ACTIVE"', content)
+    def test_claim_overlap_with_completed_task(self):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
+        guard.transition_task('TASK-001', 'ACTIVE')
+        guard.transition_task('TASK-001', 'COMPLETE')
 
+        # Should succeed because TASK-001 is complete
+        guard.claim_task('TASK-002', 'def456', ['docs/project-record/*'])
 
-class TestScopeGuard(unittest.TestCase):
-    def setUp(self):
-        self.allowed = ["AGENTS.md", "docs/project-record/**", "tools/agent_contract/**"]
-        self.guard = ScopeGuard("task1", "dummy_sha", self.allowed)
+        ledger = guard.load_ledger()
+        self.assertIn('TASK-002', ledger)
 
-    @patch('subprocess.run')
-    def test_verify_base_sha_valid(self, mock_run):
-        mock_run.return_value.returncode = 0
-        success, msg = self.guard.verify_base_sha()
-        self.assertTrue(success)
+    def test_transition_success(self):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
+        guard.transition_task('TASK-001', 'ACTIVE')
+        ledger = guard.load_ledger()
+        self.assertEqual(ledger['TASK-001']['state'], 'ACTIVE')
 
-    @patch('subprocess.run')
-    def test_verify_base_sha_stale(self, mock_run):
-        mock_run.return_value.returncode = 1
-        success, msg = self.guard.verify_base_sha()
-        self.assertFalse(success)
-        self.assertIn("Stale base SHA", msg)
+    def test_invalid_transition(self):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
+        # CLAIM -> COMPLETE is invalid
+        with self.assertRaises(SystemExit) as cm:
+            with patch('sys.stderr', new_callable=lambda: open(os.devnull, 'w')):
+                guard.transition_task('TASK-001', 'COMPLETE')
+        self.assertEqual(cm.exception.code, 1)
 
-    def test_check_paths_allowed_permitted(self):
-        changed = ["docs/project-record/SESSION_OPERATING_CONTRACT.md", "tools/agent_contract/guard.py"]
-        success, msg, permitted, denied = self.guard.check_paths_allowed(changed)
-        self.assertTrue(success)
-        self.assertEqual(len(denied), 0)
-        self.assertEqual(len(permitted), 2)
+    def test_transition_nonexistent_task(self):
+        with self.assertRaises(SystemExit) as cm:
+            with patch('sys.stderr', new_callable=lambda: open(os.devnull, 'w')):
+                guard.transition_task('TASK-999', 'ACTIVE')
+        self.assertEqual(cm.exception.code, 1)
 
-    def test_check_paths_allowed_forbidden(self):
-        changed = ["lib/main.dart", "android/app/build.gradle"]
-        success, msg, permitted, denied = self.guard.check_paths_allowed(changed)
-        self.assertFalse(success)
-        self.assertEqual(len(denied), 2)
-        self.assertEqual(len(permitted), 0)
+    def test_path_allowed_valid(self):
+        self.assertTrue(guard._is_path_allowed('docs/project-record/some_file.md', ['docs/project-record/*']))
+        self.assertTrue(guard._is_path_allowed('AGENTS.md', ['AGENTS.md']))
 
-    def test_check_paths_allowed_traversal(self):
-        # Attempt directory traversal to escape allowed path
-        changed = ["tools/agent_contract/../../lib/main.dart"]
-        success, msg, permitted, denied = self.guard.check_paths_allowed(changed)
-        self.assertFalse(success)
-        self.assertEqual(len(denied), 1)
-        self.assertEqual(len(permitted), 0)
+    def test_path_allowed_forbidden(self):
+        self.assertFalse(guard._is_path_allowed('lib/main.dart', ['*']))
+        self.assertFalse(guard._is_path_allowed('android/app/build.gradle', ['android/*']))
 
+    def test_path_allowed_traversal(self):
+        self.assertFalse(guard._is_path_allowed('../outside.txt', ['*']))
+        self.assertFalse(guard._is_path_allowed('docs/../lib/main.dart', ['docs/*']))
 
-    def test_check_paths_allowed_symlink_escape(self):
-        # Create a symlink that escapes the allowed paths
-        original_realpath = os.path.realpath
-        def fake_realpath(path):
-            if "symlink" in path:
-                return "/mock/lib/main.dart"
-            return original_realpath(path.replace("/**", ""))
+    @patch('subprocess.check_call')
+    @patch('subprocess.check_output')
+    def test_validate_success(self, mock_check_output, mock_check_call):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
 
-        with patch('os.path.realpath', side_effect=fake_realpath):
-            guard = ScopeGuard("task1", "dummy_sha", ["/mock/docs/project-record/**"])
-            changed = ["/mock/docs/project-record/symlink_to_lib"]
-            success, msg, permitted, denied = guard.check_paths_allowed(changed)
-            self.assertFalse(success)
-            self.assertEqual(len(denied), 1)
-            self.assertEqual(denied[0], "/mock/docs/project-record/symlink_to_lib")
+        # Mock git commands
+        mock_check_call.return_value = 0
 
-    def test_check_paths_allowed_prefix_spoof(self):
-        # Attempt to spoof a directory prefix
-        changed = ["docs/project-record-spoofed/file.md"]
-        success, msg, permitted, denied = self.guard.check_paths_allowed(changed)
-        self.assertFalse(success)
-        self.assertEqual(len(denied), 1)
-        self.assertEqual(len(permitted), 0)
+        def mock_git_output(args, **kwargs):
+            if 'diff' in args:
+                return b'docs/project-record/task_ledger.json\n'
+            if 'ls-files' in args:
+                return b''
+            return b''
+
+        mock_check_output.side_effect = mock_git_output
+
+        with self.assertRaises(SystemExit) as cm:
+            with patch('sys.stdout', new_callable=lambda: open(os.devnull, 'w')):
+                guard.validate_task('TASK-001')
+        self.assertEqual(cm.exception.code, 0)
+
+    @patch('subprocess.check_call')
+    @patch('subprocess.check_output')
+    def test_validate_unauthorized_modification(self, mock_check_output, mock_check_call):
+        guard.claim_task('TASK-001', 'abcdef123', ['docs/project-record/*'])
+
+        # Mock git commands
+        mock_check_call.return_value = 0
+
+        def mock_git_output(args, **kwargs):
+            if 'diff' in args:
+                return b'lib/main.dart\n' # Forbidden and not in allowed paths
+            if 'ls-files' in args:
+                return b''
+            return b''
+
+        mock_check_output.side_effect = mock_git_output
+
+        with self.assertRaises(SystemExit) as cm:
+            with patch('sys.stderr', new_callable=lambda: open(os.devnull, 'w')):
+                with patch('sys.stdout', new_callable=lambda: open(os.devnull, 'w')):
+                    guard.validate_task('TASK-001')
+        self.assertEqual(cm.exception.code, 1)
+
+    @patch('subprocess.check_call')
+    def test_validate_stale_base_sha(self, mock_check_call):
+        guard.claim_task('TASK-001', 'invalid_sha', ['docs/project-record/*'])
+
+        mock_check_call.side_effect = subprocess.CalledProcessError(128, 'git')
+
+        with self.assertRaises(SystemExit) as cm:
+            with patch('sys.stderr', new_callable=lambda: open(os.devnull, 'w')):
+                guard.validate_task('TASK-001')
+        self.assertEqual(cm.exception.code, 1)
 
 if __name__ == '__main__':
     unittest.main()
