@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
-import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
-
-import 'package:deutsch_bilarabi/features/flashcards/flashcard_models.dart';
 import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
-import 'package:deutsch_bilarabi/features/flashcards/flashcard_widget.dart';
+import 'flashcard_session.dart';
 
+/// Gated production entry. No fake success through an in-memory SRS journal.
 class FlashcardsPlug implements FeaturePlug {
-  final FlashcardData? initialCard;
-  final ReviewCommandPort? commandPort;
+  final List<FlashcardReviewItem>? reviewItems;
+  final ReviewCommandPort? reviewPort;
 
-  const FlashcardsPlug({this.initialCard, this.commandPort});
+  const FlashcardsPlug({this.reviewItems, this.reviewPort});
+
   @override
   String get id => 'flashcards_core';
 
@@ -19,77 +18,56 @@ class FlashcardsPlug implements FeaturePlug {
   String get displayName => 'البطاقات التفاعلية';
 
   @override
-  Widget buildEntry(BuildContext context) {
-    return FeatureBoundary(
-      featureName: displayName,
-      child: _FlashcardsContainer(card: initialCard, commandPort: commandPort),
-    );
-  }
+  Widget buildEntry(BuildContext context) => FeatureBoundary(
+    featureName: displayName,
+    child: reviewPort != null && reviewItems != null && reviewItems!.isNotEmpty
+        ? FlashcardSessionWidget(items: reviewItems!, reviewPort: reviewPort!)
+        : const _FlashcardsContainer(),
+  );
 
-  /// إرسال حدث مراجعة للنواة دون قلق بشأن قاعدة البيانات أو مسارات التخزين
+  /// Legacy callers get a clear failure instead of a non-durable write.
+  /// The session must provide an ID that remains stable across process death.
+  @Deprecated('Use FlashcardSessionWidget with a durable reviewPort')
   static Future<void> dispatchReview({
     required String cardId,
     required int rating,
     String sourceIso = 'de',
     String targetIso = 'ar',
-    ReviewCommandPort? commandPort,
+    ReviewCommandPort? reviewPort,
+    String? reviewEventId,
+    String? semanticVersion,
+    int? pairEpoch,
   }) async {
-    if (commandPort != null) {
-      ReviewRating enumRating;
-      switch (rating) {
-        case 0: enumRating = ReviewRating.again; break;
-        case 1: enumRating = ReviewRating.hard; break;
-        case 2: enumRating = ReviewRating.good; break;
-        case 3: enumRating = ReviewRating.easy; break;
-        default: enumRating = ReviewRating.good; break;
-      }
-      final command = ReviewCommand(
-        reviewId: 'REV_${cardId}_${DateTime.now().millisecondsSinceEpoch}',
-        sourceLanguageId: sourceIso,
-        targetLanguageId: targetIso,
-        cardId: cardId,
-        facetKey: 'flashcard',
-        pairEpoch: DateTime.now().millisecondsSinceEpoch,
-        rating: enumRating,
-        hinted: false,
-      );
-      await commandPort.submit(command);
-    } else {
-      await SrsCompatBridge.instance.recordReviewCompat(
-        contentKey: cardId,
-        rating: rating,
-        sourceIso: sourceIso,
-        targetIso: targetIso,
-      );
+    if (reviewPort == null ||
+        reviewEventId == null ||
+        semanticVersion == null ||
+        pairEpoch == null ||
+        rating < 0 ||
+        rating > 3) {
+      throw StateError('A durable, versioned review writer is required');
     }
+    await reviewPort.submit(ReviewCommand(
+      reviewId: reviewEventId,
+      sourceLanguageId: sourceIso,
+      targetLanguageId: targetIso,
+      semanticVersion: semanticVersion,
+      cardId: cardId,
+      facetKey: 'lexeme',
+      pairEpoch: pairEpoch,
+      rating: ReviewRating.values[rating],
+      hinted: false,
+    ));
   }
 }
 
 class _FlashcardsContainer extends StatelessWidget {
-  final FlashcardData? card;
-  final ReviewCommandPort? commandPort;
-
-  const _FlashcardsContainer({Key? key, this.card, this.commandPort}) : super(key: key);
+  const _FlashcardsContainer();
 
   @override
-  Widget build(BuildContext context) {
-    if (card != null) {
-      return FlashcardWidget(
-        card: card!,
-        onReviewed: (cardId, rating, sourceIso, targetIso) => FlashcardsPlug.dispatchReview(cardId: cardId, rating: rating, sourceIso: sourceIso, targetIso: targetIso, commandPort: commandPort),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'جاهز للتعلم التكيفي',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const Center(
+    child: Padding(
+      padding: EdgeInsets.all(16),
+      child: Text('البطاقات جاهزة بعد ربط التخزين المحلي الآمن'),
+    ),
+  );
 }
