@@ -32,6 +32,7 @@ dependencies:
   cached_network_image: ^3.4.1
 
   synchronized: any
+  characters: any
 dev_dependencies:
   custom_lint: ^0.6.4
   custom_lint_builder: ^0.6.4
