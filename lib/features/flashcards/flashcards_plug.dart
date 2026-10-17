@@ -2,58 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
-
-import 'package:deutsch_bilarabi/features/flashcards/flashcard_models.dart';
 import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
+import 'package:deutsch_bilarabi/core/lexical_repository.dart';
+import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
+import 'package:deutsch_bilarabi/core/design/bidi_text_isolator.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
+import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
+import 'package:deutsch_bilarabi/features/flashcards/flashcard_models.dart';
 import 'package:deutsch_bilarabi/features/flashcards/flashcard_widget.dart';
+import 'card_physics_helper.dart';
 
 class FlashcardsPlug implements FeaturePlug {
+  final String sourceLocale;
+  final String targetLocale;
   final FlashcardData? initialCard;
   final ReviewCommandPort? commandPort;
 
-  const FlashcardsPlug({this.initialCard, this.commandPort});
+  const FlashcardsPlug({
+    this.sourceLocale = 'de-DE',
+    this.targetLocale = 'ar-SA',
+    this.initialCard,
+    this.commandPort,
+  });
+
   @override
   String get id => 'flashcards_core';
 
   @override
-  String get displayName => 'البطاقات التفاعلية';
+  String get displayName => 'بطاقات التكرار المتباعد';
 
   @override
   Widget buildEntry(BuildContext context) {
     return FeatureBoundary(
       featureName: displayName,
-      child: _FlashcardsContainer(card: initialCard, commandPort: commandPort),
+      child: _FlashcardsContainer(
+        sourceLocale: sourceLocale,
+        targetLocale: targetLocale,
+        card: initialCard,
+        commandPort: commandPort,
+      ),
     );
   }
 
-  /// إرسال حدث مراجعة للنواة دون قلق بشأن قاعدة البيانات أو مسارات التخزين
   static Future<void> dispatchReview({
     required String cardId,
     required int rating,
-    String sourceIso = 'de',
-    String targetIso = 'ar',
+    required String sourceIso,
+    required String targetIso,
     ReviewCommandPort? commandPort,
   }) async {
     if (commandPort != null) {
-      ReviewRating enumRating;
-      switch (rating) {
-        case 0: enumRating = ReviewRating.again; break;
-        case 1: enumRating = ReviewRating.hard; break;
-        case 2: enumRating = ReviewRating.good; break;
-        case 3: enumRating = ReviewRating.easy; break;
-        default: enumRating = ReviewRating.good; break;
-      }
-      final command = ReviewCommand(
-        reviewId: 'REV_${cardId}_${DateTime.now().millisecondsSinceEpoch}',
-        sourceLanguageId: sourceIso,
-        targetLanguageId: targetIso,
-        cardId: cardId,
-        facetKey: 'flashcard',
-        pairEpoch: DateTime.now().millisecondsSinceEpoch,
-        rating: enumRating,
-        hinted: false,
-      );
-      await commandPort.submit(command);
+      await commandPort.recordReview(cardId, rating);
     } else {
       await SrsCompatBridge.instance.recordReviewCompat(
         contentKey: cardId,
@@ -65,30 +64,315 @@ class FlashcardsPlug implements FeaturePlug {
   }
 }
 
-class _FlashcardsContainer extends StatelessWidget {
+enum FlashcardState { loading, front, back, completed, error }
+
+class _FlashcardsContainer extends StatefulWidget {
+  final String sourceLocale;
+  final String targetLocale;
   final FlashcardData? card;
   final ReviewCommandPort? commandPort;
 
-  const _FlashcardsContainer({Key? key, this.card, this.commandPort}) : super(key: key);
+  const _FlashcardsContainer({
+    Key? key,
+    this.sourceLocale = 'de-DE',
+    this.targetLocale = 'ar-SA',
+    this.card,
+    this.commandPort,
+  }) : super(key: key);
+
+  @override
+  State<_FlashcardsContainer> createState() => _FlashcardsContainerState();
+}
+
+class _FlashcardsContainerState extends State<_FlashcardsContainer> {
+  FlashcardState _state = FlashcardState.loading;
+  List<LexicalEntry> _entries = [];
+  int _currentIndex = 0;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEntries();
+  }
+
+  void _loadEntries() {
+    setState(() {
+      _state = FlashcardState.loading;
+    });
+
+    final allEntries = LexicalRepository.getEntriesForPair(
+      sourceLocale: widget.sourceLocale,
+      targetLocale: widget.targetLocale,
+    );
+
+    _entries = List.from(allEntries);
+
+    if (_entries.isNotEmpty) {
+      _state = FlashcardState.front;
+    } else {
+      _state = FlashcardState.error;
+    }
+  }
+
+  void _handleReview(int rating) async {
+    if (_isSubmitting) return;
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final entry = _entries[_currentIndex];
+
+    if (rating != -1) {
+      await FlashcardsPlug.dispatchReview(
+        cardId: entry.id,
+        rating: rating,
+        sourceIso: entry.sourceLocale.split('-')[0],
+        targetIso: entry.targetLocale.split('-')[0],
+        commandPort: widget.commandPort,
+      );
+
+      if (rating == 0) {
+        _entries.add(entry);
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+        if (_currentIndex < _entries.length - 1) {
+          _currentIndex++;
+          _state = FlashcardState.front;
+        } else {
+          _state = FlashcardState.completed;
+        }
+      });
+    }
+  }
+
+  void _flipCard() {
+    if (_state == FlashcardState.front) {
+      setState(() {
+        _state = FlashcardState.back;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (card != null) {
+    if (widget.card != null) {
       return FlashcardWidget(
-        card: card!,
-        onReviewed: (cardId, rating, sourceIso, targetIso) => FlashcardsPlug.dispatchReview(cardId: cardId, rating: rating, sourceIso: sourceIso, targetIso: targetIso, commandPort: commandPort),
+        card: widget.card!,
+        onReviewed: (cardId, rating, sourceIso, targetIso) =>
+            FlashcardsPlug.dispatchReview(
+          cardId: cardId,
+          rating: rating,
+          sourceIso: sourceIso,
+          targetIso: targetIso,
+          commandPort: widget.commandPort,
+        ),
       );
     }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'جاهز للتعلم التكيفي',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+    if (_state == FlashcardState.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_state == FlashcardState.error) {
+      return const Center(child: Text('لا توجد بطاقات متاحة حالياً'));
+    }
+    if (_state == FlashcardState.completed) {
+      return const Center(child: Text('اكتملت المراجعة!'));
+    }
+
+    final entry = _entries[_currentIndex];
+
+    return FlashcardView(
+      entry: entry,
+      state: _state,
+      isSubmitting: _isSubmitting,
+      onFlip: _flipCard,
+      onRate: _handleReview,
+    );
+  }
+}
+
+class FlashcardView extends StatefulWidget {
+  final LexicalEntry entry;
+  final FlashcardState state;
+  final bool isSubmitting;
+  final VoidCallback onFlip;
+  final ValueChanged<int> onRate;
+
+  const FlashcardView({
+    Key? key,
+    required this.entry,
+    required this.state,
+    required this.isSubmitting,
+    required this.onFlip,
+    required this.onRate,
+  }) : super(key: key);
+
+  @override
+  State<FlashcardView> createState() => _FlashcardViewState();
+}
+
+class _FlashcardViewState extends State<FlashcardView> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
+  }
+
+  @override
+  void didUpdateWidget(FlashcardView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state == FlashcardState.back && oldWidget.state != FlashcardState.back) {
+      _animationController.forward();
+    } else if (widget.state == FlashcardState.front && oldWidget.state != FlashcardState.front) {
+      _animationController.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final transform = CardPhysicsHelper.compute3dFlipTransform(_animation.value);
+        final isBack = CardPhysicsHelper.isBackSide(_animation.value);
+
+        return GestureDetector(
+          onTap: !isBack ? widget.onFlip : null,
+          child: Transform(
+            transform: transform,
+            alignment: Alignment.center,
+            child: isBack ? _buildBack() : _buildFront(),
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFront() {
+    final textDir = LanguageBiDiHelper.getDirection(widget.entry.sourceLocale);
+    return Card(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24.0),
+        constraints: const BoxConstraints(minHeight: 200),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Directionality(
+              textDirection: textDir,
+              child: Text(
+                BiDiTextIsolator.wrapDirectional(widget.entry.sourceMeaning, isRtl: textDir == TextDirection.rtl),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBack() {
+    final textDir = LanguageBiDiHelper.getDirection(widget.entry.targetLocale);
+    return Transform(
+      transform: Matrix4.rotationY(3.141592653589793),
+      alignment: Alignment.center,
+      child: Card(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24.0),
+          constraints: const BoxConstraints(minHeight: 200),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Directionality(
+                    textDirection: textDir,
+                    child: Text(
+                      BiDiTextIsolator.wrapDirectional(widget.entry.targetTerm, isRtl: textDir == TextDirection.rtl),
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AppAudioButton(
+                    onPressed: () {
+                      OfflineAudioDispatcher.speakText(
+                        text: widget.entry.targetTerm,
+                        bcp47Locale: widget.entry.targetLocale,
+                      );
+                    },
+                    semanticLabel: 'استمع',
+                  ),
+                ],
+              ),
+              if (widget.entry.targetExample.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Directionality(
+                  textDirection: textDir,
+                  child: Text(
+                    BiDiTextIsolator.wrapDirectional(widget.entry.targetExample, isRtl: textDir == TextDirection.rtl),
+                    style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              if (widget.entry.sourceExampleTranslation.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Directionality(
+                  textDirection: LanguageBiDiHelper.getDirection(widget.entry.sourceLocale),
+                  child: Text(
+                    BiDiTextIsolator.wrapDirectional(widget.entry.sourceExampleTranslation, isRtl: LanguageBiDiHelper.getDirection(widget.entry.sourceLocale) == TextDirection.rtl),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(-1),
+                    child: const Text('تخطي'),
+                  ),
+                  ElevatedButton(
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(0),
+                    child: const Text('صعب'),
+                  ),
+                  ElevatedButton(
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(1),
+                    child: const Text('جيد'),
+                  ),
+                  ElevatedButton(
+                    onPressed: widget.isSubmitting ? null : () => widget.onRate(2),
+                    child: const Text('سهل'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
