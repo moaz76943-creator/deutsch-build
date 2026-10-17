@@ -46,9 +46,9 @@ android {
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        
+
         // تفعيل Multidex بأبسط شكل ممكن
-        multiDexEnabled true 
+        multiDexEnabled true
     }
 
     buildTypes {
