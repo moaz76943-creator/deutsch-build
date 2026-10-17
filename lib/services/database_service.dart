@@ -7,21 +7,48 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
   static Database? _contentDb;
   static Database? _progressDb;
+  static Future<Database>? _contentDbInitFuture;
+  static Future<Database>? _progressDbInitFuture;
 
   DatabaseService._init();
 
   // 1. قاعدة المحتوى (اللغات، الكلمات، الأمثلة)
   Future<Database> get contentDb async {
     if (_contentDb != null) return _contentDb!;
-    _contentDb = await _initContentDb('polyglot_content_v2.db');
+    if (_contentDbInitFuture != null) return await _contentDbInitFuture!;
+    _contentDbInitFuture = _initContentDb('polyglot_content_v2.db');
+    try {
+      _contentDb = await _contentDbInitFuture!;
+    } finally {
+      _contentDbInitFuture = null;
+    }
     return _contentDb!;
   }
 
   // 2. قاعدة تقدم المستخدم (SRS Progress) - مفصولة لحماية البيانات
   Future<Database> get progressDb async {
     if (_progressDb != null) return _progressDb!;
-    _progressDb = await _initProgressDb('user_progress_v2.db');
+    if (_progressDbInitFuture != null) return await _progressDbInitFuture!;
+    _progressDbInitFuture = _initProgressDb('user_progress_v2.db');
+    try {
+      _progressDb = await _progressDbInitFuture!;
+    } finally {
+      _progressDbInitFuture = null;
+    }
     return _progressDb!;
+  }
+
+  Future<void> close() async {
+    if (_contentDb != null) {
+      await _contentDb!.close();
+      _contentDb = null;
+    }
+    if (_progressDb != null) {
+      await _progressDb!.close();
+      _progressDb = null;
+    }
+    _contentDbInitFuture = null;
+    _progressDbInitFuture = null;
   }
 
   Future<Database> _initContentDb(String fileName) async {
@@ -99,6 +126,8 @@ class DatabaseService {
       onConfigure: (db) async {
         await db.execute('PRAGMA journal_mode = WAL');
         await db.execute('PRAGMA synchronous = NORMAL');
+        await db.execute('PRAGMA journal_mode = WAL;');
+        await db.execute('PRAGMA busy_timeout = 5000;');
       },
       onCreate: (db, version) async {
         // جدول التكرار المتباعد (SuperMemo-2)
