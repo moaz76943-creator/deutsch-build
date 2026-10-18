@@ -15,6 +15,8 @@ class TestAutoHeal(unittest.TestCase):
         self.ledger_path = os.path.join(self.test_dir, ".scope_guard_ledger.json")
         self.plan_path = os.path.join(self.test_dir, "plan.json")
         self.target_file = os.path.join(self.test_dir, "target.dart")
+        self.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
+        self.failures_file = os.path.join(self.test_dir, ".auto_heal_failures.json")
 
         with open(self.target_file, 'w') as f:
             f.write("import 'bad_path';\n")
@@ -41,13 +43,13 @@ class TestAutoHeal(unittest.TestCase):
         shutil.rmtree(self.test_dir)
 
     def test_dry_run(self):
-        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.dry_run()
 
     @patch('auto_heal.AutoHealExecutor._run_gate')
     def test_execute_success(self, mock_gate):
         mock_gate.return_value = True
-        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         executor.execute()
@@ -63,7 +65,7 @@ class TestAutoHeal(unittest.TestCase):
     @patch('auto_heal.AutoHealExecutor._run_gate')
     def test_execute_failure_rollback(self, mock_gate):
         mock_gate.return_value = False
-        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         with self.assertRaises(SystemExit):
@@ -78,7 +80,7 @@ class TestAutoHeal(unittest.TestCase):
         self.assertEqual(ledger["leases"][self.target_file]["status"], "CANCELLED")
 
     def test_blocked_if_gate_missing(self):
-        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
 
         with patch('os.path.exists', side_effect=lambda p: False if p == "scripts/verify_contracts.py" else True):
             self.assertFalse(executor._run_gate())
@@ -89,7 +91,7 @@ class TestAutoHeal(unittest.TestCase):
             json.dump(self.plan_data, f)
 
         with self.assertRaises(Exception) as context:
-            auto_heal.AutoHealExecutor(self.plan_path)
+            auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         self.assertIn("Missing signature", str(context.exception))
 
     @patch('auto_heal.subprocess.check_call')
@@ -101,7 +103,7 @@ class TestAutoHeal(unittest.TestCase):
         with open(self.plan_path, 'w') as f:
             json.dump(self.plan_data, f)
 
-        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         executor.execute()
@@ -112,7 +114,7 @@ class TestAutoHeal(unittest.TestCase):
         self.assertEqual(calls[2][0][0], ["git", "commit", "-m", "Fix(J093-TEST): Auto-heal repair [skip ci]"])
 
     def test_scope_guard_collision(self):
-        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         # Pre-claim the lease with another agent
@@ -123,6 +125,68 @@ class TestAutoHeal(unittest.TestCase):
             mock_exit.side_effect = Exception("SystemExit")
             with self.assertRaises(Exception):
                 executor.execute()
+
+    def test_bounded_attempts(self):
+        # Initial execution
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        executor.guard.ledger_path = self.ledger_path
+
+        with patch('auto_heal.AutoHealExecutor._run_gate', return_value=False):
+            with self.assertRaises(SystemExit):
+                executor.execute()
+
+        with open(self.attempts_file, 'r') as f:
+            attempts = json.load(f)
+        self.assertEqual(attempts["J093-TEST"], 1)
+
+        with open(self.failures_file, 'r') as f:
+            failures = json.load(f)
+        self.assertIn("J093-TEST", failures)
+        self.assertEqual(len(failures["J093-TEST"]), 1)
+
+        # Simulate two more attempts
+        attempts["J093-TEST"] = 3
+        with open(self.attempts_file, 'w') as f:
+            json.dump(attempts, f)
+
+        # 4th attempt should fail before executing
+        executor2 = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        executor2.guard.ledger_path = self.ledger_path
+
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = Exception("SystemExit")
+            with self.assertRaises(Exception):
+                executor2.execute()
+
+        with open(self.failures_file, 'r') as f:
+            failures2 = json.load(f)
+
+        self.assertIn("maximum attempts", str(failures2["J093-TEST"][-1]))
+
+
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_atomic_artifact_regeneration(self, mock_gate):
+        mock_gate.return_value = True
+        artifact_path = os.path.join(self.test_dir, "test_artifact.txt")
+        self.plan_data["allowed_paths"].append(artifact_path)
+        self.plan_data["operations"].append({
+            "type": "regenerate_artifact",
+            "path": artifact_path,
+            "content": "new_artifact_content"
+        })
+        with open(self.plan_path, 'w') as f:
+            json.dump(self.plan_data, f)
+
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        executor.guard.ledger_path = self.ledger_path
+
+        executor.execute()
+
+        with open(artifact_path, 'r') as f:
+            content = f.read()
+
+        self.assertEqual(content, "new_artifact_content")
+        self.assertFalse(os.path.exists(artifact_path + ".tmp"))
 
 if __name__ == '__main__':
     unittest.main()

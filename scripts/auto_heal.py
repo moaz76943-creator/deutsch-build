@@ -69,12 +69,14 @@ class ScopeGuard:
 
 
 class AutoHealExecutor:
-    def __init__(self, plan_path):
+    def __init__(self, plan_path, attempts_file=".auto_heal_attempts.json", failures_file=".auto_heal_failures.json"):
         self.plan_path = plan_path
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard()
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
+        self.attempts_file = attempts_file
+        self.failures_file = failures_file
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -137,8 +139,53 @@ class AutoHealExecutor:
         for op in self.plan.get("operations", []):
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
+    def _check_and_increment_attempt(self):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        try:
+            if os.path.exists(self.attempts_file):
+                with open(self.attempts_file, 'r') as f:
+                    data = json.load(f)
+            else:
+                data = {}
+        except json.JSONDecodeError:
+            data = {}
+
+        attempts = data.get(plan_id, 0)
+        if attempts >= 3:
+            raise ValueError(f"Execution blocked: maximum attempts (3) exceeded for plan {plan_id}.")
+
+        data[plan_id] = attempts + 1
+        with open(self.attempts_file, 'w') as f:
+            json.dump(data, f)
+
+    def _record_failure(self, error_message):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        try:
+            if os.path.exists(self.failures_file):
+                with open(self.failures_file, 'r') as f:
+                    data = json.load(f)
+            else:
+                data = {}
+        except json.JSONDecodeError:
+            data = {}
+
+        if plan_id not in data:
+            data[plan_id] = []
+        data[plan_id].append(str(error_message))
+
+        with open(self.failures_file, 'w') as f:
+            json.dump(data, f)
+
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
+
+        try:
+            self._check_and_increment_attempt()
+        except ValueError as e:
+            print(e)
+            self._record_failure(e)
+            sys.exit(1)
+
         self._verify_base_sha()
         paths = self.plan.get("allowed_paths", [])
 
@@ -147,6 +194,7 @@ class AutoHealExecutor:
             self.guard.update_status(self.agent_id, paths, "ACTIVE")
         except ValueError as e:
             print(f"Failed to claim leases: {e}")
+            self._record_failure(e)
             sys.exit(1)
 
         self._backup_files()
@@ -156,7 +204,9 @@ class AutoHealExecutor:
                 self._apply_operation(op)
 
             if not self._run_gate():
-                print("Verification failed. Rolling back...")
+                error_msg = "Verification failed."
+                print(f"{error_msg} Rolling back...")
+                self._record_failure(error_msg)
                 self.rollback()
                 sys.exit(1)
 
@@ -168,6 +218,7 @@ class AutoHealExecutor:
 
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
+            self._record_failure(e)
             self.rollback()
             sys.exit(1)
 
@@ -217,8 +268,10 @@ class AutoHealExecutor:
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
+                temp_path = f"{path}.tmp"
+                with open(temp_path, 'w') as f:
                     f.write(op.get("content", "regenerated"))
+                os.replace(temp_path, path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
