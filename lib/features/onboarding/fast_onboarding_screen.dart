@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
 import '../../screens/onboarding_screen.dart';
 import '../../services/database_service.dart';
-import '../../core/catalog/language_readiness_matrix.dart';
-import '../../services/language_pack_manager.dart';
-import '../../core/language_bidi_helper.dart';
 
 /// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
 class FastOnboardingScreen extends StatefulWidget {
@@ -16,9 +13,8 @@ class FastOnboardingScreen extends StatefulWidget {
 }
 
 class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
-  bool _isNavigating = false;
+  bool _routed = false;
   bool _hasError = false;
-  TextDirection _errorDirection = TextDirection.rtl;
 
   @override
   void initState() {
@@ -26,95 +22,50 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
     _checkState();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Resolve basic direction from current context as fallback
-    _errorDirection = Directionality.maybeOf(context) ?? TextDirection.rtl;
-  }
-
   Future<void> _checkState() async {
-    if (!mounted) return;
+    if (!mounted || _routed) return;
     try {
       final db = await DatabaseService.instance.progressDb;
       final result =
           await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
       final count = (result.first['count'] as int?) ?? 0;
 
-      if (!mounted) return;
+      if (!mounted || _routed) return;
+      _routed = true;
 
-      if (count > 0) {
-        if (!_isNavigating) {
-          _isNavigating = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainShellScreen()),
-          );
-        }
-        return;
-      }
-
-      // New user: Resolve available learning paths instead of hardcoding 'de'
-      String? selectedPath;
-      String? selectedPack;
-
-      for (final bcp47Locale in LanguagePackManager.supportedBcp47Locales) {
-        final langCode = bcp47Locale.split('-').first.toLowerCase();
-
-        // Skip user language (Arabic in this case, although we should query actual UI lang ideally)
-        if (langCode == 'ar') continue;
-
-        final isReady = LanguageReadinessMatrix.isProductionReady(langCode);
-        final isMounted =
-            await LanguagePackManager.verifyAndMountOfflinePack(bcp47Locale);
-
-        if (isReady && isMounted) {
-          selectedPath = langCode;
-          selectedPack = bcp47Locale;
-          break; // Prefer the first available path (e.g. 'de-DE' since it's first)
-        }
-      }
-
-      if (!mounted) return;
-
-      if (selectedPath != null && selectedPack != null) {
-        if (!_isNavigating) {
-          _isNavigating = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => OnboardingScreen(
-                onStart: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
-                  );
-                },
-              ),
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _hasError = true;
-          // Dynamically set RTL/LTR based on system language or default ar-SA for error screen
-          _errorDirection = LanguageBiDiHelper.getDirection('ar-SA');
-        });
-      }
+      // A missing content pack must not block the first-run explanation.
+      // Learners with saved review rows return to the shell.
+      final Widget next = count > 0
+          ? const MainShellScreen()
+          : OnboardingScreen(
+              onStart: () {
+                if (!mounted) return;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => const FlashcardsScreen(),
+                  ),
+                );
+              },
+            );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => next),
+      );
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _hasError = true;
-        _errorDirection = LanguageBiDiHelper.getDirection('ar-SA');
-      });
+      setState(() => _hasError = true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainShellScreen()),
+    if (_hasError) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F172A),
+        body: Center(
+          child: Text('تعذر فتح سجل التقدّم المحلي.'),
+        ),
       );
-    });
-
+    }
     return const Scaffold(
       backgroundColor: Color(0xFF0F172A),
       body: Center(

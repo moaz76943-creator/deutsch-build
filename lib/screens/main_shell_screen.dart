@@ -1,5 +1,6 @@
 import 'package:deutsch_bilarabi/design_system/floating_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'home_screen.dart';
 import 'curriculum_units_screen.dart';
@@ -25,7 +26,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       const ProfileHubScreen(),
     ];
 
-    return Scaffold(
+    final shell = Scaffold(
       extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
@@ -44,5 +45,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ],
             ),
     );
+    // Screens reached from onboarding tests and deep links still need the
+    // root provider container. The application root already provides one.
+    try {
+      ProviderScope.containerOf(context);
+      return shell;
+    } on StateError {
+      return ProviderScope(child: shell);
+    }
   }
 }

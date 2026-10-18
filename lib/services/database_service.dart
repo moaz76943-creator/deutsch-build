@@ -417,6 +417,22 @@ class DatabaseService {
     if (ownedRows.isEmpty) {
       throw StateError('Content database $code has no matching lexemes');
     }
+
+    // sqlite_master.type is "table" for both ordinary tables and FTS5 virtual
+    // tables. A real lexicon index must answer MATCH.
+    try {
+      await db.rawQuery(
+        'SELECT 1 FROM lexicon_fts WHERE lexicon_fts MATCH ? LIMIT 1',
+        <Object?>['probe'],
+      );
+    } on DatabaseException {
+      throw StateError('Content database $code lexicon_fts is not FTS5');
+    }
+
+    final foreignKeys = await db.rawQuery('PRAGMA foreign_key_check');
+    if (foreignKeys.isNotEmpty) {
+      throw StateError('Content database $code has dangling foreign keys');
+    }
   }
 
   Future<void> closeContentDb([String? languageCode]) =>

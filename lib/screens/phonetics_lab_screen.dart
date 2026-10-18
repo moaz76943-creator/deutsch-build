@@ -36,7 +36,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
     },
     {
       "symbol": "ğ",
-      "ipa": "[ɰ]",
+      "ipa": "[ː]",
       "desc": "الحرف الصامت أو الناعم في اللغة التركية",
       "lang": "التركية",
       "langCode": "tr-TR",
@@ -98,12 +98,15 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: Icon(
-              _speechRate == 0.9 ? Icons.speed : Icons.speed_outlined,
-              semanticLabel: 'تغيير سرعة النطق',
+          Tooltip(
+            message: 'تغيير سرعة النطق',
+            child: IconButton(
+              icon: Icon(
+                _speechRate == 0.9 ? Icons.speed : Icons.speed_outlined,
+                semanticLabel: 'تغيير سرعة النطق',
+              ),
+              onPressed: _toggleSpeed,
             ),
-            onPressed: _toggleSpeed,
           )
         ],
       ),

@@ -9,7 +9,16 @@ import 'package:deutsch_bilarabi/services/database_service.dart';
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
+    // The background FFI isolate does not deliver while pumpAndSettle is
+    // draining frames. The same factory, without a helper isolate, lets the
+    // progress query finish on the test microtask queue.
+    databaseFactory = databaseFactoryFfiNoIsolate;
+  });
+
+  setUp(() async {
+    // Open the progress database before the first frame. pumpAndSettle does not
+    // deliver a background SQLite response while the loading spinner is ticking.
+    await DatabaseService.instance.progressDb;
   });
 
   tearDown(() async {
@@ -38,7 +47,10 @@ void main() {
     });
 
     await tester.pumpWidget(const MaterialApp(home: FastOnboardingScreen()));
-    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    // The shell keeps a loading ticker while content is absent, so waiting
+    // for a fully idle frame never returns. The route itself is the contract.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byType(MainShellScreen), findsOneWidget);
   });

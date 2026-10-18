@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/bootstrap/startup_boundary.dart';
 import 'features/explore/presentation/section_explorer_screen.dart';
 
@@ -13,7 +14,8 @@ class DeutschApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ProviderScope(
+      child: MaterialApp(
       title: 'DEUTSCH بالعربي',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
@@ -30,6 +32,7 @@ class DeutschApp extends StatelessWidget {
       home: const StartupBoundary(
         child: SectionExplorerScreen(initialLanguage: 'de'),
       ),
+    ),
     );
   }
 }

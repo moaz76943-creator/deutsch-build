@@ -16,8 +16,10 @@ class AnalyticsScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
         child: SafeArea(
-          child: ListView(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               AppBaseGlassCard(
                 gradient: AppGradients.heroSunset,
@@ -116,6 +118,7 @@ class AnalyticsScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

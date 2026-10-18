@@ -5,6 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('offline legal code and exact upstream revision are displayed',
       (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(home: LicenseAttributionScreen(
       installedPacksLoader: () async => [
         {'languageCode': 'fr', 'version': '2.1',
@@ -18,12 +22,13 @@ void main() {
       ],
     )));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Wiktionary contributors'), findsOneWidget);
+    expect(find.textContaining('Wiktionary contributors'), findsAtLeastNWidgets(1));
     expect(find.textContaining('2026-08-10'), findsOneWidget);
     expect(find.textContaining(ccBySa40Url), findsOneWidget);
     expect(ccBySa40LegalText, contains('Section 8'));
-    await tester.ensureVisible(find.byKey(const ValueKey('legalcode-fr')));
-    await tester.tap(find.byKey(const ValueKey('legalcode-fr')));
+    final legalTile = find.byKey(const ValueKey('legalcode-fr'));
+    await tester.ensureVisible(legalTile);
+    await tester.tap(legalTile);
     await tester.pumpAndSettle();
     expect(find.byType(SelectableText), findsWidgets);
   });

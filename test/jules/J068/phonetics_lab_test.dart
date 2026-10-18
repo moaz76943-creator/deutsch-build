@@ -17,7 +17,7 @@ void main() {
 
     expect(find.text('[ɛː] / [øː] / [yː]'), findsOneWidget);
     expect(find.text('[ɲ]'), findsOneWidget);
-    expect(find.text('[ɰ]'), findsOneWidget);
+    expect(find.text('[ː]'), findsOneWidget);
 
     // Check that long description text renders without overflowing Layout
     expect(tester.takeException(), isNull);
