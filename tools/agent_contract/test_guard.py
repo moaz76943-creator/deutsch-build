@@ -41,6 +41,15 @@ class TestGuard(unittest.TestCase):
         self.assertEqual(result, 1)
         self.assertEqual(Path(self.ledger_path).read_bytes(), original)
 
+    def test_valid_json_with_legacy_nested_tasks_is_not_overwritten(self):
+        original = json.dumps({"tasks": {"J001": {"state": "ACTIVE"}}}, indent=2).encode()
+        Path(self.ledger_path).write_bytes(original)
+        result = main(["--task-id", "T1", "--base-sha", "abc",
+                       "--transition", "CLAIM", "--paths", "AGENTS.md",
+                       "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(result, 1)
+        self.assertEqual(Path(self.ledger_path).read_bytes(), original)
+
     def test_default_ledger_does_not_write_tracked_project_record(self):
         from tools.agent_contract.guard import default_state_dir
         with patch.dict(os.environ, {"XDG_STATE_HOME": self.temp_dir.name}):
