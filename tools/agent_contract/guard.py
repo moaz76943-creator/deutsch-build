@@ -6,7 +6,7 @@ import sys
 import os
 import time
 import fcntl
-from pathlib import PurePosixPath
+from pathlib import PurePosixPath, Path
 
 ALLOWED_PATHS = [
     "AGENTS.md",
@@ -17,7 +17,7 @@ ALLOWED_PATHS = [
 VALID_TRANSITIONS = {
     "CLAIM": ["ACTIVE", "BLOCKED", "CANCELLED"],
     "ACTIVE": ["COMPLETE", "BLOCKED", "CANCELLED"],
-    "BLOCKED": ["ACTIVE", "COMPLETE", "CANCELLED"],
+    "BLOCKED": ["ACTIVE", "CANCELLED"],
     "COMPLETE": [],
     "CANCELLED": []
 }
@@ -34,18 +34,26 @@ def get_changed_files(base_sha, result_sha="HEAD"):
         raise ValueError(f"Git diff failed or stale base SHA. Ensure BASE_SHA is valid. Error: {e.stderr}")
 
 def is_path_allowed(path_str):
-    p = PurePosixPath(path_str)
-    if ".." in p.parts or p.is_absolute():
-        return False
+    try:
+        resolved = Path(path_str).resolve()
+        repo_path = Path(REPO_ROOT).resolve()
 
-    path_str = str(p)
-    if path_str == "AGENTS.md":
-        return True
-    if path_str.startswith("docs/project-record/"):
-        return True
-    if path_str.startswith("tools/agent_contract/"):
-        return True
-    return False
+        # Check if the path is within REPO_ROOT to prevent directory traversal
+        if not str(resolved).startswith(str(repo_path)):
+            return False
+
+        # Get the relative string using as_posix() to ensure forward slashes
+        rel_str = resolved.relative_to(repo_path).as_posix()
+
+        if rel_str == "AGENTS.md":
+            return True
+        if rel_str.startswith("docs/project-record/"):
+            return True
+        if rel_str.startswith("tools/agent_contract/"):
+            return True
+        return False
+    except ValueError:
+        return False
 
 def is_symlink_safe(path_str):
     if not os.path.islink(path_str):
