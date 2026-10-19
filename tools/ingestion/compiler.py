@@ -114,22 +114,36 @@ def build(source, output):
                     if level is not None and level not in LEVELS:
                         raise ValueError('invalid_lexeme_cefr_level')
 
-                    # Store everything inside fields_json (generic grammar forms)
-                    if 'gender' in item: grammar['gender'] = item['gender']
-                    if 'article' in item: grammar['article'] = item['article']
-                    if 'plural' in item: grammar['plural'] = item['plural']
+                    # Preserve supplied lexical fields when consolidating grammar.
+                    # Never silently discard a previously authored translation or note.
+                    supplied = item.get('fields_json', {})
+                    if isinstance(supplied, str):
+                        try:
+                            supplied = json.loads(supplied)
+                        except json.JSONDecodeError as exc:
+                            raise ValueError('invalid_fields_json') from exc
+                    if not isinstance(supplied, dict):
+                        raise ValueError('fields_json_must_be_object')
+                    merged = dict(supplied)
+                    for field, value in grammar.items():
+                        if field in merged and merged[field] != value:
+                            raise ValueError('conflicting_fields_json_' + field)
+                        merged[field] = value
+                    for field in ('gender', 'article', 'plural'):
+                        if field in item:
+                            if field in merged and merged[field] != item[field]:
+                                raise ValueError('conflicting_fields_json_' + field)
+                            merged[field] = item[field]
 
-                    fields_json = json.dumps(grammar,ensure_ascii=False,sort_keys=True,separators=(',',':'))
+                    fields_json = json.dumps(merged,ensure_ascii=False,sort_keys=True,separators=(',',':'))
+                    surface = req(item,'surface') if 'surface' in item else req(item,'display_text')
+                    sort_key = req(item,'sort_key') if 'sort_key' in item else req(item,'lemma')
 
                     db.execute('INSERT INTO lexemes VALUES (?,?,?,?,?,?,?,?,?,?)',(
                         req_id(item,'lexeme_id'),req_id(item,'concept_id'),code,
                         req_id(item,'sense_id'),
-                        req(item,'display_text'), # mapping display_text to surface
-                        req(item,'lemma'), # mapping lemma to sort_key
-                        req(item,'part_of_speech'),
-                        item.get('ipa'),
-                        level,
-                        fields_json))
+                        surface, sort_key, req(item,'part_of_speech'),
+                        item.get('ipa'), level, fields_json))
                 for item in sorted(arr(document,'example_groups'),key=lambda x:x['group_id']):
                     obj(item)
                     db.execute('INSERT INTO example_groups VALUES (?,?,?)',(
