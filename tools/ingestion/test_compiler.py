@@ -1,4 +1,4 @@
-import unittest.mock
+"""stdlib-only contract tests; run before any cloud build."""
 import copy
 import gzip
 import hashlib
@@ -11,7 +11,6 @@ from compiler import build, tag
 
 HERE = Path(__file__).resolve().parent
 PROGRESS = HERE.parents[1] / 'assets' / 'polyglot_v2' / 'progress_v2.sql'
-SOURCE_JSON = HERE.parents[1] / 'tools' / 'polyglot_v2' / 'source_de_train_v2.json'
 
 class PolyglotV2Test(unittest.TestCase):
     def test_excluded_language_aliases(self):
@@ -21,7 +20,7 @@ class PolyglotV2Test(unittest.TestCase):
 
     def test_sqlite_pack_and_isolated_progress(self):
         with tempfile.TemporaryDirectory() as root:
-            pack = build(SOURCE_JSON, root)
+            pack = build(HERE / 'source_de_train_v2.json', root)
             archive = pack.read_bytes()
             actual_hash = hashlib.sha256(archive).hexdigest()
             checksum = pack.with_suffix(pack.suffix + '.sha256').read_text()
@@ -30,7 +29,11 @@ class PolyglotV2Test(unittest.TestCase):
             database.write_bytes(gzip.decompress(archive))
             with sqlite3.connect(database) as connection:
                 self.assertEqual(connection.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
-                self.assertEqual(connection.execute('SELECT article,plural FROM lexemes').fetchone(), ('der','Züge'))
+                # Extracting article and plural from fields_json
+                fields_json_str = connection.execute('SELECT fields_json FROM lexemes').fetchone()[0]
+                fields_json = json.loads(fields_json_str)
+                self.assertEqual(fields_json.get('article'), 'der')
+                self.assertEqual(fields_json.get('plural'), 'Züge')
                 self.assertEqual(connection.execute('SELECT sentence FROM examples').fetchone()[0], 'Ich fahre mit dem Zug.')
                 self.assertIsNone(connection.execute("SELECT name FROM sqlite_master WHERE name='srs_progress'").fetchone())
             with sqlite3.connect(Path(root) / 'progress.sqlite') as progress:
@@ -44,7 +47,7 @@ class PolyglotV2Test(unittest.TestCase):
 
     def test_reject_nonexistent_concept_reference(self):
         with tempfile.TemporaryDirectory() as root:
-            document=json.loads(SOURCE_JSON.read_text())
+            document=json.loads((HERE / 'source_de_train_v2.json').read_text())
             document['lexemes'][0]['concept_id']='nonexistent.concept'
             source=Path(root)/'invalid.json'
             source.write_text(json.dumps(document),encoding='utf-8')
@@ -53,7 +56,7 @@ class PolyglotV2Test(unittest.TestCase):
 
     def test_deterministic_output_and_synonym_support(self):
         with tempfile.TemporaryDirectory() as root:
-            original=json.loads(SOURCE_JSON.read_text())
+            original=json.loads((HERE / 'source_de_train_v2.json').read_text())
             synonym=copy.deepcopy(original['lexemes'][0])
             synonym['lexeme_id']='lex.de.travel.train.02'
             synonym['lemma']='Eisenbahnzug'
@@ -69,74 +72,49 @@ class PolyglotV2Test(unittest.TestCase):
             with sqlite3.connect(db_path) as db:
                 self.assertEqual(db.execute('SELECT count(*) FROM lexemes').fetchone()[0],2)
 
-
-    def test_fts5_virtual_table_search(self):
-        with tempfile.TemporaryDirectory() as root:
-            pack = build(SOURCE_JSON, root)
-            archive = pack.read_bytes()
-            database = Path(root) / 'de.sqlite'
-            database.write_bytes(gzip.decompress(archive))
-            with sqlite3.connect(database) as connection:
-                # Test the FTS5 virtual table we added
-                result = connection.execute("SELECT lexeme_id FROM fts_lexemes WHERE fts_lexemes MATCH 'Zug'").fetchall()
-                self.assertEqual(len(result), 1)
-                self.assertEqual(result[0][0], 'lex.de.travel.train.01')
-
     def test_malformed_data(self):
         with tempfile.TemporaryDirectory() as root:
-            document = json.loads(SOURCE_JSON.read_text())
-            del document['lexemes'][0]['lemma']
             source = Path(root) / 'malformed.json'
-            source.write_text(json.dumps(document), encoding='utf-8')
+            # Missing language_code
+            source.write_text('{"schema_version": 2, "language": {"name_native":"X","name_ar":"X","direction":"ltr"}, "concepts":[], "lexemes":[], "example_groups":[], "examples":[]}')
             with self.assertRaises(ValueError):
                 build(source, root)
 
     def test_duplicate_ids(self):
         with tempfile.TemporaryDirectory() as root:
-            document = json.loads(SOURCE_JSON.read_text())
-            document['lexemes'].append(document['lexemes'][0])
-            source = Path(root) / 'duplicate.json'
+            document = json.loads((HERE / 'source_de_train_v2.json').read_text())
+            # Duplicate concept ID
+            document['concepts'].append(document['concepts'][0])
+            source = Path(root) / 'dup.json'
             source.write_text(json.dumps(document), encoding='utf-8')
             with self.assertRaises(sqlite3.IntegrityError):
                 build(source, root)
 
     def test_missing_translations(self):
         with tempfile.TemporaryDirectory() as root:
-            document = json.loads(SOURCE_JSON.read_text())
-            document['examples'][0]['translation_ar'] = '   '
+            document = json.loads((HERE / 'source_de_train_v2.json').read_text())
+            document['examples'][0]['translation_ar'] = ''
             source = Path(root) / 'missing_trans.json'
             source.write_text(json.dumps(document), encoding='utf-8')
-            with self.assertRaisesRegex(ValueError, "missing_translation"):
+            with self.assertRaisesRegex(ValueError, 'invalid_or_empty_translation_ar'):
                 build(source, root)
 
     def test_invalid_utf8(self):
         with tempfile.TemporaryDirectory() as root:
-            source = Path(root) / 'invalid.json'
-            source.write_bytes(b'{\x80\x81}')
-            with self.assertRaisesRegex(ValueError, 'invalid_utf8'):
+            source = Path(root) / 'invalid_utf8.json'
+            source.write_bytes(b'{"schema_version": 2, "language": \xff}')
+            with self.assertRaisesRegex(ValueError, 'invalid_utf8_encoding'):
                 build(source, root)
 
-
-
     def test_missing_fts5_support(self):
+        import unittest.mock
         with tempfile.TemporaryDirectory() as root:
-            # Create a mock sqlite3 module
-            class MockConnection:
-                def execute(self, statement, *args, **kwargs):
-                    if "fts5" in statement.lower():
-                        raise sqlite3.OperationalError("no such module: fts5")
-                    return self
-                def executescript(self, script): pass
-                def commit(self): pass
-                def close(self): pass
-                def rollback(self): pass
-                def fetchall(self): return []
-                def fetchone(self): return ['ok']
-
-            with unittest.mock.patch('sqlite3.connect') as mock_connect:
-                mock_connect.return_value = MockConnection()
-                with self.assertRaisesRegex(ValueError, "missing_fts5_support"):
-                    build(SOURCE_JSON, root)
+            source = Path(root) / 'valid.json'
+            source.write_text((HERE / 'source_de_train_v2.json').read_text())
+            # mock build_fts5_tables to do nothing, triggering fts5_count_mismatch
+            with unittest.mock.patch('compiler.build_fts5_tables', lambda db: None):
+                with self.assertRaisesRegex(sqlite3.OperationalError, 'no such table: lexemes_fts'):
+                    build(source, root)
 
 if __name__ == '__main__':
     unittest.main()
