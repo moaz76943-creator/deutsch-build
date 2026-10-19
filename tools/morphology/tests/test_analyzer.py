@@ -30,6 +30,8 @@ class TestAnalyzer(unittest.TestCase):
     def test_turkish_agglutinative(self):
         self.ndb.execute("INSERT INTO nominals VALUES ('ev1', 'ev', 'noun', 'none', 'sg')")
         self.ndb.execute("INSERT INTO nominals VALUES ('araba1', 'araba', 'noun', 'none', 'sg')")
+        self.ndb.execute("INSERT INTO nominals VALUES ('kapi1', 'KAPI', 'noun', 'none', 'sg')")
+        self.ndb.execute("INSERT INTO nominals VALUES ('kedi1', 'kedi', 'noun', 'none', 'sg')")
         self.ndb.commit()
 
         tr = get_profile("tr")
@@ -40,9 +42,25 @@ class TestAnalyzer(unittest.TestCase):
         self.assertEqual(res[0].lemma, "ev")
         self.assertEqual(res[0].tags, ["PL", "POSS1P", "LOC"])
 
-        # Test vowel harmony restriction
+        # Test vowel harmony restriction (2-way)
         res2 = analyzer.analyze("arabaler")
         self.assertEqual(len(res2), 0)
+
+        # Test uppercase and 2-way harmony back vowel
+        res3 = analyzer.analyze("KAPILAR")
+        self.assertEqual(len(res3), 1)
+        self.assertEqual(res3[0].lemma, "KAPI")
+        self.assertEqual(res3[0].tags, ["PL"])
+
+        # Test 4-way harmony restriction false match
+        res4 = analyzer.analyze("kedimüz")
+        self.assertEqual(len(res4), 0)
+
+        # Test 4-way harmony match
+        res5 = analyzer.analyze("kedimiz")
+        self.assertEqual(len(res5), 1)
+        self.assertEqual(res5[0].lemma, "kedi")
+        self.assertEqual(res5[0].tags, ["POSS1P"])
 
         analyzer.close()
 
@@ -67,6 +85,9 @@ class TestAnalyzer(unittest.TestCase):
         res3 = analyzer.analyze("talossä")
         self.assertEqual(len(res3), 0)
 
+        res4 = analyzer.analyze("metsässa")
+        self.assertEqual(len(res4), 0)
+
         analyzer.close()
 
     def test_german_strong_weak(self):
@@ -74,10 +95,12 @@ class TestAnalyzer(unittest.TestCase):
         self.vdb.execute("INSERT INTO verbs VALUES ('v2', 'gehen', 'go', 2)")
         self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c1', 'v1', 'present', '1s', 'mache')")
         self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c2', 'v2', 'past', '3s', 'ging')")
+        self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c3', 'v1', 'part_perf', 'none', 'gemacht')")
         self.vdb.commit()
 
         self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Kind', 'noun', 'neu', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'pl', 'def', 'Kinder')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'n1', 'dat', 'pl', 'def', 'Kindern')")
         self.ndb.commit()
 
         de = get_profile("de")
@@ -86,12 +109,12 @@ class TestAnalyzer(unittest.TestCase):
         res = analyzer.analyze("gemacht")
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].lemma, "machen")
-        self.assertEqual(res[0].tags, ["PART_PERF"])
+        self.assertEqual(res[0].tags, ["part_perf", "none"])
 
         res = analyzer.analyze("Kindern")
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].lemma, "Kind")
-        self.assertEqual(res[0].tags, ["DAT", "PL"])
+        self.assertEqual(res[0].tags, ["dat", "pl", "def"])
 
         res = analyzer.analyze("ging")
         self.assertEqual(len(res), 1)
@@ -108,6 +131,8 @@ class TestAnalyzer(unittest.TestCase):
         self.ndb.execute("INSERT INTO nominals VALUES ('n2', 'Tor', 'noun', 'masc', 'sg')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d3', 'n2', 'nom', 'sg', 'def', 'Tor')")
         self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d4', 'n2', 'nom', 'pl', 'def', 'Toren')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d5', 'n2', 'dat', 'pl', 'def', 'Toren')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d6', 'n1', 'dat', 'pl', 'def', 'Toren')")
         self.ndb.commit()
 
         de = get_profile("de")
