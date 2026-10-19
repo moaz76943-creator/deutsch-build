@@ -36,7 +36,7 @@ def test_live_snapshot_renders_escaped_content_and_pr_links():
     assert "skipped" in page
     assert "DRAFT" in page
     assert SHA[:12] in page
-    assert "المسارات التقنية (20)" in page
+    assert "المسارات التقنية (30)" in page
 
 
 def test_failed_api_does_not_fake_zero_or_success():
@@ -123,3 +123,43 @@ def test_offline_snapshot_cannot_label_invalid_head_as_live():
     snapshot["observations"]["head"]["items"] = {"sha": "invalid"}
     with pytest.raises(SnapshotError):
         render(snapshot)
+
+
+def test_pr_inventory_reads_all_pages_and_retains_exact_head():
+    calls = []
+    def paginated(path):
+        calls.append(path)
+        if '/pulls?' in path:
+            page = int(path.split('page=')[-1])
+            if page == 1:
+                return [{'number': i, 'head': {'sha': SHA}, 'base': {'ref': INTEGRATION_BRANCH}}
+                        for i in range(1, 101)]
+            return [{'number': 101, 'head': {'sha': '3' * 40}, 'base': {'ref': 'main'}}]
+        return fake_api(path)
+    report = collect_snapshot(paginated)
+    pulls = report['observations']['pulls']
+    assert len(pulls['items']) == 101
+    assert pulls['truncated'] is False
+    assert pulls['items'][-1]['head_sha'] == '3' * 40
+    assert any('page=2' in p for p in calls)
+    assert 'WRONG_BASE' in render(report)
+
+
+def test_offline_cli_relabels_saved_live_observations_as_cached(tmp_path):
+    source = tmp_path / 'snapshot.json'
+    source.write_text(json.dumps(collect_snapshot(fake_api)))
+    dest = tmp_path / 'owner.html'
+    subprocess.run(['python', 'tools/dashboard/owner_panel.py', '--snapshot', str(source),
+                    '--output', str(dest)], check=True)
+    page = dest.read_text()
+    assert 'CACHED' in page
+    assert 'data-observation="LIVE"' not in page
+    assert 'data-observation="CACHED"' in page
+
+
+def test_snapshot_has_capture_time():
+    from datetime import datetime
+    snapshot = collect_snapshot(fake_api)
+    captured = datetime.fromisoformat(snapshot['captured_at'].replace('Z', '+00:00'))
+    assert captured.tzinfo is not None
+    assert snapshot['captured_at'] in render(snapshot)
