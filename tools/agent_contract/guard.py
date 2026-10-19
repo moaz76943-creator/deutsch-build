@@ -6,7 +6,7 @@ import sys
 import os
 import time
 import fcntl
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 ALLOWED_PATHS = [
     "AGENTS.md",
@@ -22,39 +22,46 @@ VALID_TRANSITIONS = {
     "CANCELLED": []
 }
 
-REPO_ROOT = os.path.abspath(os.getcwd())
+REPO_ROOT = str(Path(__file__).resolve().parents[2])
 LOCK_TTL_SECONDS = 3600
 
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
     try:
-        output = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE)
+        output = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE, cwd=REPO_ROOT)
         return [line.strip() for line in output.splitlines() if line.strip()]
     except subprocess.CalledProcessError as e:
         raise ValueError(f"Git diff failed or stale base SHA. Ensure BASE_SHA is valid. Error: {e.stderr}")
 
-from pathlib import Path
-
 def is_path_allowed(path_str):
+    """Validate a repository-relative claim without following any symlink."""
+    if not isinstance(path_str, str):
+        return False
     try:
-        resolved_path = Path(path_str).resolve()
-        repo_root_path = Path(REPO_ROOT).resolve()
-
-        # Check if the resolved path is within REPO_ROOT
-        if not str(resolved_path).startswith(str(repo_root_path)):
+        path = PurePosixPath(path_str)
+        if (not path.parts or path.is_absolute() or
+                ".." in path.parts or ".git" in path.parts):
             return False
 
-        rel_path = resolved_path.relative_to(repo_root_path)
-        path_str = rel_path.as_posix()
+        normalized = path.as_posix()
+        if not (
+            normalized == "AGENTS.md"
+            or normalized == "docs/project-record"
+            or normalized.startswith("docs/project-record/")
+            or normalized == "tools/agent_contract"
+            or normalized.startswith("tools/agent_contract/")
+        ):
+            return False
 
-        if path_str == "AGENTS.md":
-            return True
-        if path_str.startswith("docs/project-record/"):
-            return True
-        if path_str.startswith("tools/agent_contract/"):
-            return True
-        return False
-    except ValueError:
+        root = Path(REPO_ROOT).resolve()
+        candidate = root
+        for component in path.parts:
+            candidate = candidate / component
+            # Even in-scope symlink aliases obscure the actual claimed file.
+            if candidate.is_symlink():
+                return False
+        return candidate.resolve().is_relative_to(root)
+    except (OSError, RuntimeError, ValueError):
         return False
 
 def paths_overlap(p1, p2):
@@ -86,7 +93,7 @@ def is_stale_base_sha(ledger, base_sha):
     if latest_completed:
         try:
             subprocess.check_call(["git", "merge-base", "--is-ancestor", latest_completed, base_sha],
-                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=REPO_ROOT)
         except subprocess.CalledProcessError:
             return True
     return False
