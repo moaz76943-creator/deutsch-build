@@ -64,6 +64,9 @@ class ChineseTokenizer(LanguageTokenizer):
             # If there's more than one valid match of length > 1, it's potentially ambiguous
             if len(valid_match_lengths) > 1:
                 ambiguous = True
+            elif longest_match_lexical_id is None:
+                # If there are no matches, OOV fallback to char-by-char is considered ambiguous
+                ambiguous = True
 
             end_idx = boundaries[longest_match_end_i]
             tokens.append(Token(
