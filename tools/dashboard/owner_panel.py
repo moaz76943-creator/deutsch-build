@@ -83,23 +83,28 @@ def collect_snapshot(api: Callable[[str], Any] = github_api) -> dict[str, Any]:
             elif key == "pulls":
                 if not isinstance(value, list):
                     raise SnapshotError("Unexpected pull request shape")
+                if any(not isinstance(item, dict) or type(item.get("number")) is not int
+                       or item["number"] <= 0 for item in value):
+                    raise SnapshotError("Malformed pull request row")
                 normalized = [{"number": item["number"], "title": str(item.get("title", ""))[:240],
                                "draft": item.get("draft") is True,
                                "mergeable": item.get("mergeable"),
                                "base": (item.get("base") or {}).get("ref", "UNKNOWN")}
-                              for item in value if isinstance(item, dict) and type(item.get("number")) is int]
+                              for item in value]
             else:
                 field = "workflow_runs" if key == "runs" else "workflows"
                 if not isinstance(value, dict) or not isinstance(value.get(field), list):
                     raise SnapshotError(f"Unexpected {key} shape")
                 records = value[field]
+                if any(not isinstance(x, dict) or type(x.get("id")) is not int
+                       or x["id"] <= 0 for x in records):
+                    raise SnapshotError(f"Malformed {key} row")
                 normalized = ([{"name": str(x.get("name") or x.get("display_title") or "")[:120],
                                 "id": x.get("id"), "status": x.get("status", "UNKNOWN"),
                                 "conclusion": x.get("conclusion") or "NOT_RUN"} for x in records
-                               if isinstance(x, dict) and type(x.get("id")) is int])
+                               ])
             snapshot["observations"][key] = {"status": "LIVE", "items": normalized,
-                                                  "truncated": isinstance(value, list) and len(value) == MAX_ITEMS
-                                                  if key == "pulls" else False}
+                                                  "truncated": len(normalized) >= MAX_ITEMS if key != "head" else False}
         except (SnapshotError, ValueError, KeyError, TypeError, AttributeError) as exc:
             snapshot["observations"][key] = {"status": "UNAVAILABLE", "items": None,
                                                   "truncated": False}
@@ -117,8 +122,14 @@ def validate_snapshot(snapshot: Any) -> dict[str, Any]:
         item = observations.get(key)
         if not isinstance(item, dict) or item.get("status") not in ("LIVE", "UNAVAILABLE", "NOT_RUN"):
             raise SnapshotError(f"Missing or invalid status for {key}")
-        if item["status"] == "LIVE" and (key != "head" and not isinstance(item.get("items"), list)):
-            raise SnapshotError(f"Missing live data for {key}")
+        if item["status"] == "LIVE":
+            if key == "head":
+                head = item.get("items")
+                if (not isinstance(head, dict) or not isinstance(head.get("sha"), str)
+                        or not re.fullmatch(r"[0-9a-fA-F]{40}", head["sha"])):
+                    raise SnapshotError("Invalid LIVE HEAD SHA")
+            elif not isinstance(item.get("items"), list):
+                raise SnapshotError(f"Missing live data for {key}")
     return snapshot
 
 
