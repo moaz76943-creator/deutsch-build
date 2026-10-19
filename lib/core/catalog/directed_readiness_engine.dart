@@ -42,14 +42,20 @@ class UnsupportedPairState extends UnavailableState {
   const UnsupportedPairState(super.reason);
 }
 
+class SilentPivotPreventedState extends UnavailableState {
+  const SilentPivotPreventedState(super.reason);
+}
+
 class DirectedReadinessEngine {
   final Map<String, LanguagePackGateResult> _packStatus = {};
-  final Set<LanguagePair> _supportedPairs = {};
 
-  // Bounded cache, max 50 items
-  final int _maxCacheSize = 50;
-  final LinkedHashMap<LanguagePair, PairReadinessState> _pairCache =
-      LinkedHashMap();
+  // Bounded LRU cache, max 100 items to keep O(N) constraints
+  final int _maxCacheSize = 100;
+  final LinkedHashMap<LanguagePair, PairReadinessState> _pairCache = LinkedHashMap<LanguagePair, PairReadinessState>();
+
+  /// Deprecated. Maintained for API compatibility. Engine now computes supported pairs lazily.
+  @Deprecated('Engine computes supported pairs lazily based on Readiness Matrix.')
+  void authorizeDirectedPair(String sourceIso, String targetIso) {}
 
   void submitPackForEvaluation({
     required String packCode,
@@ -66,6 +72,7 @@ class DirectedReadinessEngine {
   }
 
   void invalidatePack(String packCode) {
+    if (!_packStatus.containsKey(packCode)) return;
     _packStatus.remove(packCode);
     _invalidateCacheForLanguage(packCode);
   }
@@ -84,7 +91,11 @@ class DirectedReadinessEngine {
     final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
 
     if (_pairCache.containsKey(pair)) {
-      return _pairCache[pair]!;
+      final state = _pairCache[pair]!;
+      // Move to end for LRU
+      _pairCache.remove(pair);
+      _pairCache[pair] = state;
+      return state;
     }
 
     final state = _computeReadiness(sourceIso, targetIso);
@@ -98,46 +109,48 @@ class DirectedReadinessEngine {
     return state;
   }
 
-  void authorizeDirectedPair(String sourceIso, String targetIso) {
-    final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
-    _supportedPairs.add(pair);
-    _pairCache.remove(
-        pair); // Invalidate in cache just in case it was cached as unsupported
-  }
-
   PairReadinessState _computeReadiness(String sourceIso, String targetIso) {
     if (sourceIso == targetIso) {
       return IdenticalPairState(
           'Source and target languages are identical: $sourceIso');
     }
 
-    final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
-    if (!_supportedPairs.contains(pair)) {
-      return UnsupportedPairState(
-          'Directed language pair $sourceIso -> $targetIso is not authorized for learning.');
-    }
-
-    final sourceState = _checkLanguage(sourceIso, 'Source');
+    final sourceState = _checkLanguageRegistered(sourceIso, 'Source');
     if (sourceState is! ReadyState) return sourceState;
 
-    final targetState = _checkLanguage(targetIso, 'Target');
+    final targetState = _checkLanguageRegistered(targetIso, 'Target');
     if (targetState is! ReadyState) return targetState;
+
+    // Reject nominal languages
+    if (LanguageReadinessMatrix.getTier(sourceIso) == LanguageReadinessTier.nominal) {
+       return UnverifiedLanguageState('Source language "$sourceIso" is nominal and not supported.');
+    }
+    if (LanguageReadinessMatrix.getTier(targetIso) == LanguageReadinessTier.nominal) {
+       return UnverifiedLanguageState('Target language "$targetIso" is nominal and not supported.');
+    }
+
+    // Check for silent pivot
+    if (LanguageReadinessMatrix.getTier(sourceIso) != LanguageReadinessTier.productionReady &&
+        LanguageReadinessMatrix.getTier(targetIso) != LanguageReadinessTier.productionReady) {
+      return SilentPivotPreventedState('Neither source ($sourceIso) nor target ($targetIso) is a production-ready anchor language');
+    }
+
+    // Note: Learning A -> B only requires target pack B to be verified.
+    final targetPackState = _checkLanguagePack(targetIso, 'Target');
+    if (targetPackState is! ReadyState) return targetPackState;
 
     return const ReadyState();
   }
 
-  PairReadinessState _checkLanguage(String iso, String role) {
+  PairReadinessState _checkLanguageRegistered(String iso, String role) {
     if (!LanguageRegistry.supportedLanguages.containsKey(iso.toLowerCase())) {
       return UnregisteredLanguageState(
           '$role language "$iso" is not registered.');
     }
+    return const ReadyState();
+  }
 
-    if (LanguageReadinessMatrix.getTier(iso) !=
-        LanguageReadinessTier.productionReady) {
-      return UnverifiedLanguageState(
-          '$role language "$iso" is not verified for production.');
-    }
-
+  PairReadinessState _checkLanguagePack(String iso, String role) {
     final packResult = _packStatus[iso];
     if (packResult == null) {
       return MissingPackState('$role language "$iso" pack is missing.');
