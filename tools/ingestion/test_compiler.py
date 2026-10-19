@@ -72,6 +72,41 @@ class PolyglotV2Test(unittest.TestCase):
             with sqlite3.connect(db_path) as db:
                 self.assertEqual(db.execute('SELECT count(*) FROM lexemes').fetchone()[0],2)
 
+    def test_preserve_explicit_lexical_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            document = json.loads((HERE / 'source_de_train_v2.json').read_text())
+            entry = document['lexemes'][0]
+            entry['surface'] = 'Zug'
+            entry['sort_key'] = 'zug.custom'
+            entry['fields_json'] = json.dumps({
+                'translation_ar': 'قطار', 'provenance': 'curated-fixture'
+            }, ensure_ascii=False)
+            source = Path(root) / 'metadata.json'
+            source.write_text(json.dumps(document, ensure_ascii=False), encoding='utf-8')
+            archive = build(source, root)
+            database = Path(root) / 'pack.sqlite'
+            database.write_bytes(gzip.decompress(archive.read_bytes()))
+            with sqlite3.connect(database) as connection:
+                surface, sort_key, stored = connection.execute(
+                    'SELECT surface, sort_key, fields_json FROM lexemes'
+                ).fetchone()
+                self.assertEqual(surface, 'Zug')
+                self.assertEqual(sort_key, 'zug.custom')
+                metadata = json.loads(stored)
+                self.assertEqual(metadata['translation_ar'], 'قطار')
+                self.assertEqual(metadata['provenance'], 'curated-fixture')
+                self.assertEqual(metadata['article'], 'der')
+                self.assertEqual(metadata['plural'], 'Züge')
+
+    def test_reject_conflicting_lexical_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            document = json.loads((HERE / 'source_de_train_v2.json').read_text())
+            document['lexemes'][0]['fields_json'] = '{"article":"die"}'
+            source = Path(root) / 'conflict.json'
+            source.write_text(json.dumps(document, ensure_ascii=False), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'conflicting_fields_json'):
+                build(source, root)
+
     def test_malformed_data(self):
         with tempfile.TemporaryDirectory() as root:
             source = Path(root) / 'malformed.json'
