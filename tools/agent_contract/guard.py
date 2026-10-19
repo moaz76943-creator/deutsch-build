@@ -128,6 +128,12 @@ def process_ledger(parsed, f):
     f.seek(0)
     content = f.read()
     ledger = json.loads(content) if content else {}
+    states = frozenset(VALID_TRANSITIONS)
+    if (not isinstance(ledger, dict) or
+            any(not isinstance(value, dict) or
+                (key != "_metadata" and value.get("state") not in states)
+                for key, value in ledger.items())):
+        raise ValueError("invalid_ledger_schema")
 
     report = {
         "task_id": parsed.task_id,
