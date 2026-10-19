@@ -107,6 +107,11 @@ class PolyglotV2Test(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'conflicting_fields_json'):
                 build(source, root)
 
+    def test_legacy_compiler_module_remains_a_compatible_alias(self):
+        import compile_v2_pack_safe
+        self.assertIs(compile_v2_pack_safe.build, build)
+        self.assertIs(compile_v2_pack_safe.tag, tag)
+
     def test_malformed_data(self):
         with tempfile.TemporaryDirectory() as root:
             source = Path(root) / 'malformed.json'
