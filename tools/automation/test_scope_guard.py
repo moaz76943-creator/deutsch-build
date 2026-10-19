@@ -44,6 +44,14 @@ class ScopeGuardLedgerTests(unittest.TestCase):
         self.assertTrue(self.guard.request_ownership("src/main.py"))
         self.assertFalse(self.guard.request_ownership("../outside.txt"))
 
+    def test_expired_self_claim_does_not_authorize_mutation(self):
+        import time
+        self.ledger.write_text(json.dumps({
+            "RepairPlanner": {"state": "ACTIVE", "paths": ["src/main.py"],
+                              "timestamp": time.time() - 7200}
+        }))
+        self.assertFalse(self.guard.request_ownership("src/main.py"))
+
     def test_unclaimed_scope_is_not_a_lock(self):
         self.ledger.write_text("{}")
         self.assertFalse(self.guard.request_ownership("src/main.py"))
