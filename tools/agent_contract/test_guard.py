@@ -6,6 +6,7 @@ import json
 import time
 from unittest.mock import patch, MagicMock
 from tools.agent_contract.guard import main
+from tools.agent_contract import guard
 
 class TestGuard(unittest.TestCase):
     def setUp(self):
@@ -151,6 +152,35 @@ class TestGuard(unittest.TestCase):
 
         res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/guard.py", "--depends-on", "T1", "--ledger", self.ledger_path, "--report", self.report_path])
         self.assertEqual(res, 0)
+
+    def test_canonical_paths_do_not_depend_on_process_cwd(self):
+        repo = Path(self.temp_dir.name) / "repo"
+        allowed = repo / "tools" / "agent_contract"
+        allowed.mkdir(parents=True)
+        (allowed / "guard.py").write_text("fixture")
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(self.temp_dir.name)
+            with patch.object(guard, "REPO_ROOT", str(repo)):
+                self.assertTrue(guard.is_path_allowed("tools/agent_contract/guard.py"))
+                self.assertTrue(guard.is_path_allowed("tools/agent_contract/"))
+        finally:
+            os.chdir(original_cwd)
+
+    def test_symlink_within_allowed_scope_is_denied(self):
+        repo = Path(self.temp_dir.name) / "repo"
+        allowed = repo / "tools" / "agent_contract"
+        allowed.mkdir(parents=True)
+        (allowed / "target.py").write_text("fixture")
+        (allowed / "shortcut.py").symlink_to(allowed / "target.py")
+        with patch.object(guard, "REPO_ROOT", str(repo)):
+            self.assertFalse(guard.is_path_allowed("tools/agent_contract/shortcut.py"))
+
+    def test_parent_navigation_inside_allowed_scope_is_denied(self):
+        repo = Path(self.temp_dir.name) / "repo"
+        (repo / "tools" / "agent_contract").mkdir(parents=True)
+        with patch.object(guard, "REPO_ROOT", str(repo)):
+            self.assertFalse(guard.is_path_allowed("tools/agent_contract/../agent_contract/guard.py"))
 
 if __name__ == '__main__':
     unittest.main()
