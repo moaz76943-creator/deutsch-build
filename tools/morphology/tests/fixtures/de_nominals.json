@@ -1,0 +1,20 @@
+{
+  "nominals": [
+    {
+      "id": "de:Kind",
+      "lemma": "Kind",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d1",
+          "grammatical_case": "DAT",
+          "number": "PL",
+          "definiteness": "def",
+          "inflected_form": "Kindern"
+        }
+      ]
+    }
+  ]
+}

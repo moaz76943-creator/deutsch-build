@@ -1,0 +1,57 @@
+{
+  "nominals": [
+    {
+      "id": "de:Tor:neu",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "a1",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "a2",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Tore"
+        },
+        {
+          "id": "a3",
+          "grammatical_case": "dat",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Toren"
+        }
+      ]
+    },
+    {
+      "id": "de:Tor:masc",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "masc",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "a4",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "a5",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Toren"
+        }
+      ]
+    }
+  ]
+}

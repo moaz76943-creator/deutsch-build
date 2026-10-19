@@ -27,7 +27,11 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        evaluations = [0]
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            evaluations[0] += 1
+            if evaluations[0] > analyzer.max_evaluations:
+                return
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -44,18 +48,35 @@ class TurkishProfile(LanguageProfile):
         return results
 
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
-        back_vowels = set("aıouAIOU")
-        front_vowels = set("eiöüEİÖÜ")
-        stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
-        suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
+        vowels = "aeıioöuü"
+        def get_vowels(w: str) -> List[str]:
+            res = []
+            for c in w:
+                if c == 'I': res.append('ı')
+                elif c == 'İ': res.append('i')
+                else:
+                    c_low = c.lower()
+                    if c_low in vowels:
+                        res.append(c_low)
+            return res
+
+        stem_vowels = get_vowels(stem)
+        suffix_vowels = get_vowels(suffix)
         if not stem_vowels or not suffix_vowels:
             return True
-        last_stem_vowel = stem_vowels[-1]
-        first_suffix_vowel = suffix_vowels[0]
-        if last_stem_vowel in back_vowels and first_suffix_vowel in front_vowels:
-            return False
-        if last_stem_vowel in front_vowels and first_suffix_vowel in back_vowels:
-            return False
+
+        last_stem = stem_vowels[-1]
+        first_suff = suffix_vowels[0]
+
+        if first_suff in "ae":
+            if last_stem in "aıou" and first_suff == "e": return False
+            if last_stem in "eiöü" and first_suff == "a": return False
+        elif first_suff in "ıiuü":
+            if last_stem in "aı" and first_suff != "ı": return False
+            if last_stem in "ei" and first_suff != "i": return False
+            if last_stem in "ou" and first_suff != "u": return False
+            if last_stem in "öü" and first_suff != "ü": return False
+
         return True
 
 class FinnishProfile(LanguageProfile):
@@ -69,7 +90,11 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        evaluations = [0]
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            evaluations[0] += 1
+            if evaluations[0] > analyzer.max_evaluations:
+                return
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -112,31 +137,6 @@ class GermanProfile(LanguageProfile):
         for nf in analyzer.lookup_nominal_form(word):
             results.append(AnalysisResult(word, nf['lemma'], nf['id'], nf['part_of_speech'], [nf['grammatical_case'], nf['number'], nf['definiteness']]))
 
-        if word.startswith("ge") and word.endswith("t"):
-            stem = word[2:-1]
-            if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-                for v in analyzer.lookup_verb_lemma(stem + "n"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-
-        if word.startswith("ge") and word.endswith("en"):
-            stem = word[2:-2]
-            if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-
-        if word.endswith("n"):
-            stem1 = word[:-1]
-            if len(stem1) > 0:
-                for n in analyzer.lookup_nominal_form(stem1):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
-        if word.endswith("en"):
-            stem2 = word[:-2]
-            if len(stem2) > 0:
-                for n in analyzer.lookup_nominal_form(stem2):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
-
         return results
 
 class MorphologyAnalyzer:
@@ -147,6 +147,7 @@ class MorphologyAnalyzer:
         self.profile = profile
         self.max_recursion_depth = 4
         self.max_results = 50
+        self.max_evaluations = 1000
 
     def close(self):
         for db in self.dbs:
