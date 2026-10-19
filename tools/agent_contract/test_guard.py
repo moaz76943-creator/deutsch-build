@@ -21,7 +21,7 @@ class TestGuard(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def test_corrupt_ledger_fails_closed_without_rewriting_it(self):
-        original = b'{}\\n{"tasks": {"J001": {"state": "ACTIVE"}}}\\n'
+        original = b'{}' + bytes([10]) + b'{"tasks": {"J001": {"state": "ACTIVE"}}}' + bytes([10])
         with open(self.ledger_path, 'wb') as handle:
             handle.write(original)
         result = main(["--task-id", "T1", "--base-sha", "abc",
@@ -33,7 +33,7 @@ class TestGuard(unittest.TestCase):
         self.assertTrue(any("Invalid ledger JSON" in issue for issue in report["blockers"]))
 
     def test_blocked_claim_does_not_rewrite_ledger(self):
-        original = b'{  "T1": { "state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": 9999999999 } }\\n'
+        original = b'{  "T1": { "state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": 9999999999 } }' + bytes([10])
         Path(self.ledger_path).write_bytes(original)
         result = main(["--task-id", "T2", "--base-sha", "abc",
                        "--transition", "CLAIM", "--paths", "AGENTS.md",
