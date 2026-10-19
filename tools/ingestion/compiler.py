@@ -129,7 +129,7 @@ def build(source, output):
                         if field in merged and merged[field] != value:
                             raise ValueError('conflicting_fields_json_' + field)
                         merged[field] = value
-                    for field in ('gender', 'article', 'plural'):
+                    for field in ('lemma', 'display_text', 'gender', 'article', 'plural'):
                         if field in item:
                             if field in merged and merged[field] != item[field]:
                                 raise ValueError('conflicting_fields_json_' + field)
@@ -160,6 +160,11 @@ def build(source, output):
                     examples_count += 1
 
                 build_fts5_tables(db)
+                # External-content count(*) reads the source tables, so equal
+                # counts cannot prove that either search index was populated.
+                # rank=1 compares the actual index against its content table.
+                db.execute("INSERT INTO lexemes_fts(lexemes_fts, rank) VALUES('integrity-check', 1)")
+                db.execute("INSERT INTO examples_fts(examples_fts, rank) VALUES('integrity-check', 1)")
 
             if db.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
                 raise ValueError('sqlite_integrity_failed')

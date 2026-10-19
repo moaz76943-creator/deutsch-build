@@ -146,6 +146,49 @@ class PolyglotV2Test(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'invalid_utf8_encoding'):
                 build(source, root)
 
+    def test_external_content_table_counts_do_not_prove_search_indexed(self):
+        import unittest.mock
+        def empty_indexes(db):
+            db.execute("CREATE VIRTUAL TABLE lexemes_fts USING fts5(sort_key, surface, content='lexemes', content_rowid='rowid')")
+            db.execute("CREATE VIRTUAL TABLE examples_fts USING fts5(sentence, translation_ar, content='examples', content_rowid='rowid')")
+        with tempfile.TemporaryDirectory() as root:
+            # External-content SELECT count(*) reads the source table even when
+            # the actual FTS index is empty. The compiler must reject this pack.
+            with unittest.mock.patch('compiler.build_fts5_tables', empty_indexes):
+                with self.assertRaises(sqlite3.DatabaseError):
+                    build(HERE / 'source_de_train_v2.json', root)
+            self.assertFalse((Path(root) / 'de.db.gz').exists())
+
+    def test_empty_example_index_is_rejected_and_old_archive_survives(self):
+        import unittest.mock
+        from build_fts5_virtual_tables import build_fts5_tables
+        def omit_examples(db):
+            build_fts5_tables(db)
+            db.execute("INSERT INTO examples_fts(examples_fts) VALUES('delete-all')")
+        with tempfile.TemporaryDirectory() as root:
+            archive = build(HERE / 'source_de_train_v2.json', root)
+            original = archive.read_bytes()
+            checksum = archive.with_suffix('.gz.sha256').read_bytes()
+            with unittest.mock.patch('compiler.build_fts5_tables', omit_examples):
+                with self.assertRaises(sqlite3.DatabaseError):
+                    build(HERE / 'source_de_train_v2.json', root)
+            self.assertEqual(archive.read_bytes(), original)
+            self.assertEqual(archive.with_suffix('.gz.sha256').read_bytes(), checksum)
+
+    def test_explicit_surface_preserves_original_lemma_and_display_text(self):
+        with tempfile.TemporaryDirectory() as root:
+            document = json.loads((HERE / 'source_de_train_v2.json').read_text())
+            document['lexemes'][0].update(surface='Zug', sort_key='zug')
+            source = Path(root) / 'source.json'
+            source.write_text(json.dumps(document), encoding='utf-8')
+            archive = build(source, root)
+            database = Path(root) / 'pack.sqlite'
+            database.write_bytes(gzip.decompress(archive.read_bytes()))
+            with sqlite3.connect(database) as db:
+                metadata = json.loads(db.execute('SELECT fields_json FROM lexemes').fetchone()[0])
+                self.assertEqual(metadata['lemma'], 'Zug')
+                self.assertEqual(metadata['display_text'], 'der Zug')
+
     def test_missing_fts5_support(self):
         import unittest.mock
         with tempfile.TemporaryDirectory() as root:
