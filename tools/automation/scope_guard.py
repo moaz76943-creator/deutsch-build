@@ -1,11 +1,12 @@
 import os
 import json
+import time
 import posixpath
 from pathlib import Path
 from typing import List, Optional, Union
 
 try:
-    from tools.agent_contract.guard import paths_overlap
+    from tools.agent_contract.guard import paths_overlap, LOCK_TTL_SECONDS
 except ImportError:
     paths_overlap = None
 
@@ -74,6 +75,10 @@ class ScopeGuard:
                 return True
             own = ledger.get(self.owner)
             if not isinstance(own, dict) or own.get("state") not in ("CLAIM", "ACTIVE"):
+                return True
+            stamp = own.get("timestamp")
+            if (not isinstance(stamp, (int, float)) or
+                    time.time() - stamp > LOCK_TTL_SECONDS):
                 return True
             paths = own.get("paths")
             if not isinstance(paths, list) or not paths or any(not isinstance(p, str) for p in paths):
