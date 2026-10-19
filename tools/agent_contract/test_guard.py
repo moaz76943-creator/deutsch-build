@@ -20,6 +20,35 @@ class TestGuard(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
+    def test_corrupt_ledger_fails_closed_without_rewriting_it(self):
+        original = b'{}\\n{"tasks": {"J001": {"state": "ACTIVE"}}}\\n'
+        with open(self.ledger_path, 'wb') as handle:
+            handle.write(original)
+        result = main(["--task-id", "T1", "--base-sha", "abc",
+                       "--transition", "CLAIM", "--paths", "AGENTS.md",
+                       "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(result, 1)
+        self.assertEqual(Path(self.ledger_path).read_bytes(), original)
+        report = json.loads(Path(self.report_path).read_text())
+        self.assertTrue(any("Invalid ledger JSON" in issue for issue in report["blockers"]))
+
+    def test_blocked_claim_does_not_rewrite_ledger(self):
+        original = b'{  "T1": { "state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": 9999999999 } }\\n'
+        Path(self.ledger_path).write_bytes(original)
+        result = main(["--task-id", "T2", "--base-sha", "abc",
+                       "--transition", "CLAIM", "--paths", "AGENTS.md",
+                       "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(result, 1)
+        self.assertEqual(Path(self.ledger_path).read_bytes(), original)
+
+    def test_default_ledger_does_not_write_tracked_project_record(self):
+        from tools.agent_contract.guard import default_state_dir
+        with patch.dict(os.environ, {"XDG_STATE_HOME": self.temp_dir.name}):
+            state_dir = default_state_dir()
+            self.assertEqual(state_dir, Path(self.temp_dir.name) / "deutsch-agent-contract")
+        self.assertNotEqual(state_dir / "task_ledger.json",
+                            Path(guard.REPO_ROOT) / "docs/project-record/task_ledger.json")
+
     def test_allowed_paths_explicit(self):
         res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "docs/project-record/file.txt", "tools/agent_contract/guard.py", "--ledger", self.ledger_path, "--report", self.report_path])
         self.assertEqual(res, 0)
