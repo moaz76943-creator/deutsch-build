@@ -6,6 +6,7 @@ import sys
 import os
 import time
 import fcntl
+import tempfile
 from pathlib import Path, PurePosixPath
 
 ALLOWED_PATHS = [
@@ -24,6 +25,31 @@ VALID_TRANSITIONS = {
 
 REPO_ROOT = str(Path(__file__).resolve().parents[2])
 LOCK_TTL_SECONDS = 3600
+
+
+def default_state_dir():
+    """Keep mutable agent state outside the source-controlled repository."""
+    base = os.environ.get("XDG_STATE_HOME")
+    return (Path(base) if base else Path.home() / ".local" / "state") / "deutsch-agent-contract"
+
+
+def write_json_atomic(path, value):
+    """Durably replace JSON under the caller's stable sibling-file lock."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(prefix=".agent-state-", dir=target.parent)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(value, stream, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
 
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
@@ -200,26 +226,35 @@ def main(args=None):
     parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
-    parser.add_argument("--ledger", default="docs/project-record/task_ledger.json")
-    parser.add_argument("--report", default="tools/agent_contract/evidence_report.json")
+    parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
+    parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
 
     parsed = parser.parse_args(args)
 
-    os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
+    ledger_path = Path(parsed.ledger)
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    # A persistent sibling lock remains valid across atomic inode replacements.
+    with open(str(ledger_path) + ".lock", "a+", encoding="utf-8") as lock:
+        os.chmod(str(ledger_path) + ".lock", 0o600)
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            if ledger_path.exists():
+                with ledger_path.open("r", encoding="utf-8") as current:
+                    result_code, report, updated_ledger = process_ledger(parsed, current)
+            else:
+                import io
+                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
+        except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
+            result_code = 1
+            report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
+                      "result_sha": parsed.result_sha, "transition": parsed.transition,
+                      "permitted_paths": [], "denied_paths": [],
+                      "blockers": ["Invalid ledger JSON/schema: existing state preserved"]}
+            updated_ledger = None
 
-    with open(parsed.ledger, "a+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        result_code, report, updated_ledger = process_ledger(parsed, f)
-
-        os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
-        with open(parsed.report, "w") as rf:
-            json.dump(report, rf, indent=2)
-
-        f.seek(0)
-        f.truncate()
-        json.dump(updated_ledger, f, indent=2)
-        # Add a newline for posix compliance
-        f.write("\n")
+        write_json_atomic(parsed.report, report)
+        if result_code == 0:
+            write_json_atomic(ledger_path, updated_ledger)
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
