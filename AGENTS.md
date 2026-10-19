@@ -13,7 +13,7 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 - Follow the repository's actual branch and task CI contracts; this notice does not activate disabled workflows or authorize paid services.
 
 Before any mutation:
-1. verify this is the canonical repository `sali97m-cpu/deutsch-bilarabi`;
+1. verify this is the private application repository `moaz76943-creator/deutsch-build` (integration target `staging/v2-full-platform`); use `moaz76943-creator/-offline-packs-store` only for the separate public content factory (`main`);
 2. inspect live branch/PR/CI state;
 3. reconcile task ownership and mutable scope;
 4. reuse the existing TASK_ID when work is already active;
@@ -37,7 +37,7 @@ DEUTSCH بالعربي is built on a tripartite multilingual model:
 - Direction matters: (A -> B) is NOT identical to (B -> A).
 - German (DE) is our initial reference implementation, NOT a universal schema.
 - NEVER silently pivot through German or English when processing other language pairs.
-- The platform is designed to scale to 20 languages and 380 directed pairs without replicating application code.
+- The platform targets 100 registered languages with language-specific intelligence and directed A→B pair isolation; a registered language is not a verified installed pack, and directed pairs must not be pre-materialized as an O(N²) matrix.
 
 2. LINGUISTIC & CONTENT INTEGRITY:
 - German Grammatical Metadata:
