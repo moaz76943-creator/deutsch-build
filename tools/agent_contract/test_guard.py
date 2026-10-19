@@ -136,18 +136,29 @@ class TestGuard(unittest.TestCase):
                 report = json.load(f)
                 self.assertTrue(any("tools/agent_contract/guard.py modified but not originally claimed." in b for b in report["blockers"]))
 
-    def test_stale_lock_recovery(self):
+    def test_expired_claim_cannot_be_stolen_without_owner_release(self):
+        original = json.dumps({"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"],
+                                      "timestamp": time.time() - 4000}})
         with open(self.ledger_path, "w") as f:
-            json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}}, f)
-
-        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
-        self.assertEqual(res, 0)
-
+            f.write(original)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM",
+                    "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
         with open(self.ledger_path) as f:
-            ledger = json.load(f)
-            self.assertEqual(ledger["T1"]["state"], "BLOCKED")
-            self.assertIn("Stale lock recovered", ledger["T1"]["recovery_evidence"])
-            self.assertEqual(ledger["T2"]["state"], "CLAIM")
+            self.assertEqual(f.read(), original)
+        with open(self.report_path) as f:
+            self.assertTrue(any("explicit release" in b for b in json.load(f)["blockers"]))
+
+    def test_expired_owner_does_not_block_independent_paths(self):
+        owner = {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": owner}, f)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM",
+                    "--paths", "tools/agent_contract/guard.py", "--ledger", self.ledger_path,
+                    "--report", self.report_path])
+        self.assertEqual(res, 0)
+        with open(self.ledger_path) as f:
+            self.assertEqual(json.load(f)["T1"], owner)
 
     @patch('subprocess.check_call')
     def test_stale_base_sha(self, mock_check_call):

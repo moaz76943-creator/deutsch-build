@@ -101,17 +101,18 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now):
         if other_task == task_id or other_task == "_metadata":
             continue
         if data.get("state") in ["CLAIM", "ACTIVE"]:
-            timestamp = data.get("timestamp", 0)
-            if now - timestamp > LOCK_TTL_SECONDS:
-                data["state"] = "BLOCKED"
-                data["recovery_evidence"] = f"Stale lock recovered after {now - timestamp} seconds."
-                continue
-
+            # Age alone does not prove the original process stopped writing.
+            # Keep overlapping ownership until explicit cancellation/completion;
+            # unrelated paths remain runnable even when another claim is stale.
+            expired = now - data.get("timestamp", 0) > LOCK_TTL_SECONDS
             other_paths = data.get("paths", [])
             for p in requested_paths:
                 for op in other_paths:
                     if paths_overlap(p, op):
-                        return True, f"Path {p} overlaps with {op} claimed by {other_task}"
+                        reason = f"Path {p} overlaps with {op} claimed by {other_task}"
+                        if expired:
+                            reason += "; expired claim requires explicit release after owner reconciliation"
+                        return True, reason
     return False, ""
 
 def is_stale_base_sha(ledger, base_sha):
