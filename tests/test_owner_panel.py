@@ -86,3 +86,40 @@ def test_gh_error_is_redacted(monkeypatch):
     with pytest.raises(SnapshotError) as err:
         github_api("/repos/owner/repo")
     assert "secret-token" not in str(err.value)
+
+
+def test_untrusted_api_rows_never_claim_a_false_zero():
+    def malformed(path):
+        if "/pulls?" in path:
+            return [{"title": "missing PR number"}]
+        if "/actions/runs" in path:
+            return {"workflow_runs": [{"id": "not-an-id", "name": "bad"}]}
+        if "/actions/workflows" in path:
+            return {"workflows": [{"id": None, "name": "bad"}]}
+        return fake_api(path)
+
+    snapshot = collect_snapshot(malformed)
+    for key in ("pulls", "runs", "workflows"):
+        assert snapshot["observations"][key]["status"] == "UNAVAILABLE"
+    assert "لا تعتبرها صفرًا" in render(snapshot)
+
+
+def test_page_limited_workflow_counts_are_not_exact_totals():
+    def capped(path):
+        if "/actions/runs" in path:
+            return {"workflow_runs": [{"id": i, "name": "CI"} for i in range(1, 101)]}
+        if "/actions/workflows" in path:
+            return {"workflows": [{"id": i, "name": "CI"} for i in range(1, 101)]}
+        return fake_api(path)
+
+    snapshot = collect_snapshot(capped)
+    assert snapshot["observations"]["runs"]["truncated"] is True
+    assert snapshot["observations"]["workflows"]["truncated"] is True
+    assert render(snapshot).count("100+") >= 2
+
+
+def test_offline_snapshot_cannot_label_invalid_head_as_live():
+    snapshot = collect_snapshot(fake_api)
+    snapshot["observations"]["head"]["items"] = {"sha": "invalid"}
+    with pytest.raises(SnapshotError):
+        render(snapshot)
