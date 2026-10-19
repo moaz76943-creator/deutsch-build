@@ -75,6 +75,16 @@ class TestGuard(unittest.TestCase):
                 report = json.load(f)
                 self.assertIn("Invalid transition from CLAIM to COMPLETE", report["blockers"])
 
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "BLOCKED", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
+
+        with patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md']):
+            res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+            self.assertEqual(res, 1)
+            with open(self.report_path) as f:
+                report = json.load(f)
+                self.assertIn("Invalid transition from BLOCKED to COMPLETE", report["blockers"])
+
     def test_modify_unclaimed_file_on_complete(self):
         with open(self.ledger_path, "w") as f:
             json.dump({"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)

@@ -17,7 +17,7 @@ ALLOWED_PATHS = [
 VALID_TRANSITIONS = {
     "CLAIM": ["ACTIVE", "BLOCKED", "CANCELLED"],
     "ACTIVE": ["COMPLETE", "BLOCKED", "CANCELLED"],
-    "BLOCKED": ["ACTIVE", "COMPLETE", "CANCELLED"],
+    "BLOCKED": ["ACTIVE", "CANCELLED"],
     "COMPLETE": [],
     "CANCELLED": []
 }
@@ -33,31 +33,29 @@ def get_changed_files(base_sha, result_sha="HEAD"):
     except subprocess.CalledProcessError as e:
         raise ValueError(f"Git diff failed or stale base SHA. Ensure BASE_SHA is valid. Error: {e.stderr}")
 
+from pathlib import Path
+
 def is_path_allowed(path_str):
-    p = PurePosixPath(path_str)
-    if ".." in p.parts or p.is_absolute():
+    try:
+        resolved_path = Path(path_str).resolve()
+        repo_root_path = Path(REPO_ROOT).resolve()
+
+        # Check if the resolved path is within REPO_ROOT
+        if not str(resolved_path).startswith(str(repo_root_path)):
+            return False
+
+        rel_path = resolved_path.relative_to(repo_root_path)
+        path_str = rel_path.as_posix()
+
+        if path_str == "AGENTS.md":
+            return True
+        if path_str.startswith("docs/project-record/"):
+            return True
+        if path_str.startswith("tools/agent_contract/"):
+            return True
         return False
-
-    path_str = str(p)
-    if path_str == "AGENTS.md":
-        return True
-    if path_str.startswith("docs/project-record/"):
-        return True
-    if path_str.startswith("tools/agent_contract/"):
-        return True
-    return False
-
-def is_symlink_safe(path_str):
-    if not os.path.islink(path_str):
-        return True
-
-    target = os.path.realpath(path_str)
-    if not target.startswith(REPO_ROOT):
+    except ValueError:
         return False
-
-    rel_target = os.path.relpath(target, REPO_ROOT)
-    rel_target = rel_target.replace(os.sep, "/")
-    return is_path_allowed(rel_target)
 
 def paths_overlap(p1, p2):
     parts1 = PurePosixPath(p1).parts
@@ -127,11 +125,7 @@ def process_ledger(parsed, f):
 
     for p in requested_paths:
         if is_path_allowed(p):
-            if os.path.exists(p) and not is_symlink_safe(p):
-                report["denied_paths"].append(p)
-                report["blockers"].append(f"Symlink {p} points to forbidden path")
-            else:
-                report["permitted_paths"].append(p)
+            report["permitted_paths"].append(p)
         else:
             report["denied_paths"].append(p)
 
@@ -199,7 +193,7 @@ def main(args=None):
     parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
-    parser.add_argument("--ledger", default="tools/agent_contract/task_ledger.json")
+    parser.add_argument("--ledger", default="docs/project-record/task_ledger.json")
     parser.add_argument("--report", default="tools/agent_contract/evidence_report.json")
 
     parsed = parser.parse_args(args)
