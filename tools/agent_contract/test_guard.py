@@ -142,5 +142,40 @@ class TestGuard(unittest.TestCase):
         res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/guard.py", "--depends-on", "T1", "--ledger", self.ledger_path, "--report", self.report_path])
         self.assertEqual(res, 0)
 
+    @patch('subprocess.check_call')
+    @patch('tools.agent_contract.guard.get_changed_files')
+    def test_stale_base_sha_on_complete(self, mock_get_changed, mock_check_call):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"_metadata": {"latest_base_sha": "def456"}, "T1": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
+
+        mock_get_changed.return_value = ["AGENTS.md"]
+        mock_check_call.side_effect = subprocess.CalledProcessError(1, 'git')
+
+        res = main(["--task-id", "T1", "--base-sha", "abc1234", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("Stale branch-base SHA detected. Base SHA is behind the latest completed merge.", report["blockers"])
+
+    @patch('subprocess.check_call')
+    @patch('tools.agent_contract.guard.get_changed_files')
+    def test_delayed_commit_with_stolen_lock(self, mock_get_changed, mock_check_call):
+        # T1's lock was stolen, marking it BLOCKED. Now T1 wakes up and tries to COMPLETE.
+        with open(self.ledger_path, "w") as f:
+            json.dump({
+                "T1": {"state": "BLOCKED", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000},
+                "T2": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time()}
+            }, f)
+
+        mock_get_changed.return_value = ["AGENTS.md"]
+        mock_check_call.return_value = None # Assume base SHA is somehow valid
+
+        res = main(["--task-id", "T1", "--base-sha", "abc1234", "--result-sha", "def5678", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("Invalid transition from BLOCKED to COMPLETE", report["blockers"])
+
 if __name__ == '__main__':
     unittest.main()

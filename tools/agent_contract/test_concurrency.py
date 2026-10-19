@@ -63,5 +63,23 @@ class TestGuardConcurrency(unittest.TestCase):
             t1_t2_claims = [k for k, v in ledger.items() if k in ["T1", "T2"] and v.get("state") == "CLAIM"]
             self.assertEqual(len(t1_t2_claims), 1)
 
+    def test_concurrent_crash_recovery(self):
+        # Simulate an agent claiming a file but crashing
+        with open(self.ledger_path, "w") as f:
+            json.dump({
+                "T_CRASHED": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}
+            }, f)
+
+        # Agent 2 recovers the stale lock
+        res, stderr = run_guard("T_RECOVER", "abc", "CLAIM", ["AGENTS.md"], self.ledger_path, os.path.join(self.temp_dir.name, "report_recover.json"))
+        self.assertEqual(res, 0)
+
+        # Verify the ledger state reflects recovery
+        with open(self.ledger_path) as f:
+            ledger = json.load(f)
+            self.assertEqual(ledger["T_CRASHED"]["state"], "BLOCKED")
+            self.assertIn("Stale lock recovered", ledger["T_CRASHED"]["recovery_evidence"])
+            self.assertEqual(ledger["T_RECOVER"]["state"], "CLAIM")
+
 if __name__ == '__main__':
     unittest.main()
