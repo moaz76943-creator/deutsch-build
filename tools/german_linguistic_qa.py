@@ -268,9 +268,19 @@ def _validate_word_families(
         interference = family.get("interferenceRisk")
 
         if family_id is None:
-            _error(issues, "word_family.family_id_blank", path + ".familyId", "familyId is required")
+            _error(
+                issues,
+                "word_family.family_id_blank",
+                path + ".familyId",
+                "familyId is required",
+            )
         if base_id is None:
-            _error(issues, "word_family.base_id_blank", path + ".baseConceptId", "baseConceptId is required")
+            _error(
+                issues,
+                "word_family.base_id_blank",
+                path + ".baseConceptId",
+                "baseConceptId is required",
+            )
         elif base_id not in concept_ids:
             _error(
                 issues,
@@ -317,9 +327,7 @@ def _validate_word_families(
                 )
 
         if family_id is not None and base_id is not None and relation is not None:
-            families.setdefault(family_id, []).append(
-                (concept_id, base_id, relation)
-            )
+            families.setdefault(family_id, []).append((concept_id, base_id, relation))
 
     for family_id, members in families.items():
         base_ids = {member[1] for member in members}
@@ -333,9 +341,7 @@ def _validate_word_families(
             continue
         base_id = next(iter(base_ids))
         bases = [
-            concept_id
-            for concept_id, _, relation in members
-            if relation == "base"
+            concept_id for concept_id, _, relation in members if relation == "base"
         ]
         if bases != [base_id]:
             _error(
@@ -446,7 +452,9 @@ def _validate_verb(
 ) -> None:
     infinitive = _clean(verb.get("infinitive"))
     if infinitive is None:
-        _error(issues, "verb.infinitive_blank", path + ".infinitive", "infinitive is blank")
+        _error(
+            issues, "verb.infinitive_blank", path + ".infinitive", "infinitive is blank"
+        )
     elif surface is not None and infinitive != surface:
         _error(
             issues,
@@ -479,14 +487,22 @@ def _validate_verb(
             path,
             "verb cannot declare both separable and inseparable prefixes",
         )
-    if infinitive is not None and separable is not None and not infinitive.startswith(separable):
+    if (
+        infinitive is not None
+        and separable is not None
+        and not infinitive.startswith(separable)
+    ):
         _error(
             issues,
             "verb.separable_prefix_mismatch",
             path + ".separablePrefix",
             "separable prefix must be a prefix of infinitive",
         )
-    if infinitive is not None and inseparable is not None and not infinitive.startswith(inseparable):
+    if (
+        infinitive is not None
+        and inseparable is not None
+        and not infinitive.startswith(inseparable)
+    ):
         _error(
             issues,
             "verb.inseparable_prefix_mismatch",
@@ -594,33 +610,7 @@ def assert_german_source(document: Mapping[str, Any]) -> QaReport:
     return report
 
 
-def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
-    issues: list[QaIssue] = []
-    language_row = connection.execute(
-        "SELECT value FROM metadata WHERE key='languageCode'"
-    ).fetchone()
-    if language_row is None or str(language_row[0]).split("-", 1)[0].lower() != "de":
-        return QaReport(())
-
-    try:
-        foreign_key_rows = connection.execute("PRAGMA foreign_key_check").fetchall()
-    except sqlite3.Error as exc:
-        _error(
-            issues,
-            "sqlite.foreign_key_check_failed",
-            "sqlite",
-            "foreign_key_check failed: " + str(exc),
-        )
-        return _report(issues)
-
-    for row in foreign_key_rows:
-        _error(
-            issues,
-            "sqlite.foreign_key_violation",
-            "sqlite." + str(row[0]),
-            "foreign key violation in canonical pack",
-        )
-
+def _audit_sqlite_nouns(connection: sqlite3.Connection, issues: list[QaIssue]) -> None:
     noun_sql = """
         SELECT c.concept_id, c.lemma, c.part_of_speech,
                n.gender, n.plural, n.declension_class,
@@ -658,7 +648,9 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 "german_nouns row must reference a noun concept",
             )
         if _clean(gender) not in {"masculine", "feminine", "neuter"}:
-            _error(issues, "noun.gender_unresolved", path + ".gender", "gender unresolved")
+            _error(
+                issues, "noun.gender_unresolved", path + ".gender", "gender unresolved"
+            )
         if _clean(declension) in {None, "unknown"}:
             _error(
                 issues,
@@ -673,7 +665,9 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
             ("genitive_singular", genitive_singular),
         ):
             if _clean(value) is None:
-                _error(issues, "noun.case_form_blank", path + "." + name, "case form blank")
+                _error(
+                    issues, "noun.case_form_blank", path + "." + name, "case form blank"
+                )
         if _clean(lemma) != _clean(nominative_singular):
             _error(
                 issues,
@@ -712,6 +706,8 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                     "declared plural requires all plural case forms",
                 )
 
+
+def _audit_sqlite_verbs(connection: sqlite3.Connection, issues: list[QaIssue]) -> None:
     verb_sql = """
         SELECT c.concept_id, c.lemma, c.part_of_speech,
                v.infinitive, v.separable_prefix, v.inseparable_prefix,
@@ -765,14 +761,22 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
         infinitive_text = _clean(infinitive)
         if sep is not None and insep is not None:
             _error(issues, "verb.prefix_conflict", path, "conflicting prefix metadata")
-        if sep is not None and infinitive_text is not None and not infinitive_text.startswith(sep):
+        if (
+            sep is not None
+            and infinitive_text is not None
+            and not infinitive_text.startswith(sep)
+        ):
             _error(
                 issues,
                 "verb.separable_prefix_mismatch",
                 path + ".separable_prefix",
                 "separable prefix is not a prefix of infinitive",
             )
-        if insep is not None and infinitive_text is not None and not infinitive_text.startswith(insep):
+        if (
+            insep is not None
+            and infinitive_text is not None
+            and not infinitive_text.startswith(insep)
+        ):
             _error(
                 issues,
                 "verb.inseparable_prefix_mismatch",
@@ -780,6 +784,10 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 "inseparable prefix is not a prefix of infinitive",
             )
 
+
+def _audit_sqlite_valency(
+    connection: sqlite3.Connection, issues: list[QaIssue]
+) -> None:
     valency_sql = """
         SELECT concept_id, frame_id, governed_case, preposition,
                preposition_case, semantic_role
@@ -802,7 +810,9 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 path,
                 "preposition and prepositionCase must be declared together",
             )
-        if _clean(governed) is None and not (prep is not None and prep_case is not None):
+        if _clean(governed) is None and not (
+            prep is not None and prep_case is not None
+        ):
             _error(
                 issues,
                 "valency.missing_government",
@@ -810,6 +820,10 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 "valency frame requires case or preposition government",
             )
 
+
+def _audit_sqlite_word_families(
+    connection: sqlite3.Connection, issues: list[QaIssue]
+) -> None:
     tables = {
         str(row[0])
         for row in connection.execute(
@@ -843,9 +857,19 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
             if _clean(distance) not in _WORD_FAMILY_DISTANCES:
                 _error(issues, "word_family.distance_invalid", path, "invalid distance")
             if _clean(level) not in _WORD_FAMILY_LEVELS:
-                _error(issues, "word_family.level_invalid", path, "invalid pedagogical level")
+                _error(
+                    issues,
+                    "word_family.level_invalid",
+                    path,
+                    "invalid pedagogical level",
+                )
             if risk not in (0, 1):
-                _error(issues, "word_family.interference_invalid", path, "invalid interference flag")
+                _error(
+                    issues,
+                    "word_family.interference_invalid",
+                    path,
+                    "invalid interference flag",
+                )
             by_family.setdefault(str(family_id), []).append(row)
 
         for family_id, rows in by_family.items():
@@ -859,11 +883,7 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 )
                 continue
             base_id = next(iter(base_ids))
-            bases = [
-                str(row[2])
-                for row in rows
-                if str(row[3]) == "base"
-            ]
+            bases = [str(row[2]) for row in rows if str(row[3]) == "base"]
             if bases != [base_id]:
                 _error(
                     issues,
@@ -871,6 +891,39 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                     "sqlite.word_family." + family_id,
                     "family base relation does not match base concept",
                 )
+
+
+def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
+    issues: list[QaIssue] = []
+    language_row = connection.execute(
+        "SELECT value FROM metadata WHERE key='languageCode'"
+    ).fetchone()
+    if language_row is None or str(language_row[0]).split("-", 1)[0].lower() != "de":
+        return QaReport(())
+
+    try:
+        foreign_key_rows = connection.execute("PRAGMA foreign_key_check").fetchall()
+    except sqlite3.Error as exc:
+        _error(
+            issues,
+            "sqlite.foreign_key_check_failed",
+            "sqlite",
+            "foreign_key_check failed: " + str(exc),
+        )
+        return _report(issues)
+
+    for row in foreign_key_rows:
+        _error(
+            issues,
+            "sqlite.foreign_key_violation",
+            "sqlite." + str(row[0]),
+            "foreign key violation in canonical pack",
+        )
+
+    _audit_sqlite_nouns(connection, issues)
+    _audit_sqlite_verbs(connection, issues)
+    _audit_sqlite_valency(connection, issues)
+    _audit_sqlite_word_families(connection, issues)
 
     return _report(issues)
 
@@ -895,7 +948,9 @@ def _merge(reports: Iterable[QaReport]) -> QaReport:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run deterministic German linguistic QA")
+    parser = argparse.ArgumentParser(
+        description="Run deterministic German linguistic QA"
+    )
     parser.add_argument("--source", action="append", default=[])
     parser.add_argument("--sqlite", action="append", default=[])
     parser.add_argument("--report")
@@ -914,7 +969,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 reports.append(audit_sqlite_connection(connection))
             finally:
                 connection.close()
-    except (OSError, json.JSONDecodeError, sqlite3.Error, GermanLinguisticQaError) as exc:
+    except (
+        OSError,
+        json.JSONDecodeError,
+        sqlite3.Error,
+        GermanLinguisticQaError,
+    ) as exc:
         report = {
             "status": "error",
             "message": str(exc),
