@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,9 +49,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
       final files = directory
           .listSync()
           .whereType<File>()
-          .where((f) =>
-              p.basename(f.path).startsWith('deutsch_backup_') &&
-              p.basename(f.path).endsWith('.json'))
+          .where((f) => f.path.contains('deutsch_backup_'))
           .toList();
 
       if (files.isEmpty) {
@@ -64,7 +61,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
       final latest = files.first;
       final raw = await latest.readAsString();
-      final Map<String, dynamic> data = jsonDecode(raw) as Map<String, dynamic>;
+      final Map<String, dynamic> data = jsonDecode(raw);
 
       final prefs = await SharedPreferences.getInstance();
       for (final entry in data.entries) {
