@@ -5,7 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  # Manual staging verification is available without scheduling costly private builds.
+  # Manual staging verification requires this workflow to be valid on the default
+  # main branch too; staging changes alone do not register workflow_dispatch.
   workflow_dispatch:
 
 permissions:
