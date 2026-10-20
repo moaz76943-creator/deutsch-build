@@ -11,8 +11,8 @@ void main() {
     expect(dark.useMaterial3, isTrue);
     expect(light.brightness, Brightness.light);
     expect(dark.brightness, Brightness.dark);
-    expect(light.fontFamily, 'Cairo');
-    expect(dark.fontFamily, 'Cairo');
+    expect(light.textTheme.bodyMedium?.fontFamily, 'Cairo');
+    expect(dark.textTheme.bodyMedium?.fontFamily, 'Cairo');
   });
 
   test('both themes preserve their expected readable surfaces', () {
