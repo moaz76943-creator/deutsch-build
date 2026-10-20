@@ -98,6 +98,137 @@ def get_sha256(filepath):
             hasher.update(chunk)
     return hasher.hexdigest()
 
+def _create_tables(cur):
+    """1. إنشاء الجداول الأساسية"""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS concepts (
+            concept_id TEXT PRIMARY KEY,
+            section_id TEXT,
+            cefr TEXT,
+            category TEXT,
+            priority INTEGER DEFAULT 1
+        );
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS lexicon (
+            concept_id TEXT PRIMARY KEY,
+            display_text TEXT,
+            lemma TEXT,
+            part_of_speech TEXT,
+            cefr_level TEXT,
+            language_code TEXT,
+            direction TEXT,
+            gender TEXT,
+            plural TEXT,
+            ipa TEXT,
+            audio_key TEXT
+        );
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS exercises (
+            exercise_id TEXT PRIMARY KEY,
+            concept_id TEXT,
+            exercise_type TEXT,
+            prompt TEXT,
+            correct_answer TEXT,
+            distractors_json TEXT
+        );
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_progress (
+            concept_id TEXT PRIMARY KEY,
+            box_level INTEGER DEFAULT 0,
+            ease_factor REAL DEFAULT 2.5,
+            interval_days INTEGER DEFAULT 0,
+            repetitions INTEGER DEFAULT 0,
+            last_reviewed_at INTEGER,
+            next_review_at INTEGER
+        );
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS dataset_metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );
+    """)
+
+
+def _inject_lexicon(cur, lang_code, direction):
+    """2. حقن المفاهيم والمفردات مع مراعاة خصوصية كل لغة"""
+    words_for_quizzes = []
+    for cid, data in MULTILINGUAL_SEEDS.items():
+        sec = data["sec"]
+        lvl = data["cefr"]
+        pos = data["pos"]
+        # جلب اللفظ الخاص باللغة أو البديل الإنجليزي المعلم بكود اللغة
+        term = data.get(lang_code, f"{data['en']} [{lang_code}]")
+
+        cur.execute("""
+            INSERT OR REPLACE INTO concepts (concept_id, section_id, cefr, category, priority)
+            VALUES (?, ?, ?, ?, 1);
+        """, (cid, sec, lvl, sec))
+
+        cur.execute("""
+            INSERT OR REPLACE INTO lexicon (concept_id, display_text, lemma, part_of_speech, cefr_level, language_code, direction)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+        """, (cid, term, term, pos, lvl, lang_code, direction))
+
+        words_for_quizzes.append((cid, sec, term))
+    return words_for_quizzes
+
+
+def _create_fts(cur, words_for_quizzes):
+    """3. جدول FTS5 للبحث اللحظي مع تطبيع النصوص"""
+    cur.execute("DROP TABLE IF EXISTS lexicon_fts;")
+    cur.execute("CREATE VIRTUAL TABLE lexicon_fts USING fts5(concept_id UNINDEXED, display_text, lemma, tokenize='unicode61');")
+    for cid, sec, term in words_for_quizzes:
+        clean_term = strip_diacritics(term)
+        cur.execute("INSERT INTO lexicon_fts (concept_id, display_text, lemma) VALUES (?, ?, ?);", (cid, clean_term, clean_term))
+
+
+def _generate_exercises(cur, lang_code, words_for_quizzes):
+    """4. توليد التمارين والمشتتات"""
+    cur.execute("DELETE FROM exercises;")
+    for cid, sec, term in words_for_quizzes:
+        pool = [w for c, s, w in words_for_quizzes if w != term]
+        distractors = pool[:3] if len(pool) >= 3 else [f"Option A", f"Option B", f"Option C"]
+        cur.execute("""
+            INSERT INTO exercises (exercise_id, concept_id, exercise_type, prompt, correct_answer, distractors_json)
+            VALUES (?, ?, 'MULTIPLE_CHOICE', ?, ?, ?);
+        """, (f"ex_{lang_code}_{cid}", cid, f"اختر المعنى الصحيح: ({term})", term, json.dumps(distractors, ensure_ascii=False)))
+
+
+def _inject_metadata(cur, lang_code, lang_name, direction):
+    """5. توثيق الترخيص والبيانات الوصفية"""
+    cur.executemany("INSERT OR REPLACE INTO dataset_metadata VALUES (?, ?);", [
+        ("source", "Kaikki.org / Wiktionary"),
+        ("license", "CC BY-SA 4.0 / GFDL 1.3"),
+        ("language_code", lang_code),
+        ("language_name", lang_name),
+        ("direction", direction),
+        ("pipeline_build", "2026-10-12")
+    ])
+
+
+def _compress_package(db_path, gz_path):
+    """6. ضغط الحزمة"""
+    with open(db_path, "rb") as f_in:
+        with gzip.open(gz_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+
+def _document_manifest(manifest, lang_code, lang_name, direction, gz_path):
+    """7. التوثيق في البيان"""
+    manifest["packs"][lang_code] = {
+        "name": lang_name,
+        "direction": direction,
+        "size_bytes": os.path.getsize(gz_path),
+        "sha256": get_sha256(gz_path),
+        "total_concepts": len(MULTILINGUAL_SEEDS),
+        "db_version": "3.0.0"
+    }
+
+
 def build_all_100_languages():
     print(f"🌍 [معالجة الـ 100 لغة] بدء توليد وحقن وضغط القواعد وتطبيع الفهارس لـ {len(LANGUAGES_100)} لغة...")
     manifest = {"version": "3.0.0", "packs": {}}
@@ -111,124 +242,17 @@ def build_all_100_languages():
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        # 1. إنشاء الجداول الأساسية
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS concepts (
-                concept_id TEXT PRIMARY KEY,
-                section_id TEXT,
-                cefr TEXT,
-                category TEXT,
-                priority INTEGER DEFAULT 1
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS lexicon (
-                concept_id TEXT PRIMARY KEY,
-                display_text TEXT,
-                lemma TEXT,
-                part_of_speech TEXT,
-                cefr_level TEXT,
-                language_code TEXT,
-                direction TEXT,
-                gender TEXT,
-                plural TEXT,
-                ipa TEXT,
-                audio_key TEXT
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS exercises (
-                exercise_id TEXT PRIMARY KEY,
-                concept_id TEXT,
-                exercise_type TEXT,
-                prompt TEXT,
-                correct_answer TEXT,
-                distractors_json TEXT
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS user_progress (
-                concept_id TEXT PRIMARY KEY,
-                box_level INTEGER DEFAULT 0,
-                ease_factor REAL DEFAULT 2.5,
-                interval_days INTEGER DEFAULT 0,
-                repetitions INTEGER DEFAULT 0,
-                last_reviewed_at INTEGER,
-                next_review_at INTEGER
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS dataset_metadata (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            );
-        """)
-
-        # 2. حقن المفاهيم والمفردات مع مراعاة خصوصية كل لغة
-        words_for_quizzes = []
-        for cid, data in MULTILINGUAL_SEEDS.items():
-            sec = data["sec"]
-            lvl = data["cefr"]
-            pos = data["pos"]
-            # جلب اللفظ الخاص باللغة أو البديل الإنجليزي المعلم بكود اللغة
-            term = data.get(lang_code, f"{data['en']} [{lang_code}]")
-
-            cur.execute("""
-                INSERT OR REPLACE INTO concepts (concept_id, section_id, cefr, category, priority)
-                VALUES (?, ?, ?, ?, 1);
-            """, (cid, sec, lvl, sec))
-
-            cur.execute("""
-                INSERT OR REPLACE INTO lexicon (concept_id, display_text, lemma, part_of_speech, cefr_level, language_code, direction)
-                VALUES (?, ?, ?, ?, ?, ?, ?);
-            """, (cid, term, term, pos, lvl, lang_code, direction))
-
-            words_for_quizzes.append((cid, sec, term))
-
-        # 3. جدول FTS5 للبحث اللحظي مع تطبيع النصوص
-        cur.execute("DROP TABLE IF EXISTS lexicon_fts;")
-        cur.execute("CREATE VIRTUAL TABLE lexicon_fts USING fts5(concept_id UNINDEXED, display_text, lemma, tokenize='unicode61');")
-        for cid, sec, term in words_for_quizzes:
-            clean_term = strip_diacritics(term)
-            cur.execute("INSERT INTO lexicon_fts (concept_id, display_text, lemma) VALUES (?, ?, ?);", (cid, clean_term, clean_term))
-
-        # 4. توليد التمارين والمشتتات
-        cur.execute("DELETE FROM exercises;")
-        for cid, sec, term in words_for_quizzes:
-            pool = [w for c, s, w in words_for_quizzes if w != term]
-            distractors = pool[:3] if len(pool) >= 3 else [f"Option A", f"Option B", f"Option C"]
-            cur.execute("""
-                INSERT INTO exercises (exercise_id, concept_id, exercise_type, prompt, correct_answer, distractors_json)
-                VALUES (?, ?, 'MULTIPLE_CHOICE', ?, ?, ?);
-            """, (f"ex_{lang_code}_{cid}", cid, f"اختر المعنى الصحيح: ({term})", term, json.dumps(distractors, ensure_ascii=False)))
-
-        # 5. توثيق الترخيص والبيانات الوصفية
-        cur.executemany("INSERT OR REPLACE INTO dataset_metadata VALUES (?, ?);", [
-            ("source", "Kaikki.org / Wiktionary"),
-            ("license", "CC BY-SA 4.0 / GFDL 1.3"),
-            ("language_code", lang_code),
-            ("language_name", lang_name),
-            ("direction", direction),
-            ("pipeline_build", "2026-10-12")
-        ])
+        _create_tables(cur)
+        words_for_quizzes = _inject_lexicon(cur, lang_code, direction)
+        _create_fts(cur, words_for_quizzes)
+        _generate_exercises(cur, lang_code, words_for_quizzes)
+        _inject_metadata(cur, lang_code, lang_name, direction)
 
         conn.commit()
         conn.close()
 
-        # 6. ضغط الحزمة
-        with open(db_path, "rb") as f_in:
-            with gzip.open(gz_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-
-        # 7. التوثيق في البيان
-        manifest["packs"][lang_code] = {
-            "name": lang_name,
-            "direction": direction,
-            "size_bytes": os.path.getsize(gz_path),
-            "sha256": get_sha256(gz_path),
-            "total_concepts": len(MULTILINGUAL_SEEDS),
-            "db_version": "3.0.0"
-        }
+        _compress_package(db_path, gz_path)
+        _document_manifest(manifest, lang_code, lang_name, direction, gz_path)
 
     with open(MANIFEST_FILE, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
