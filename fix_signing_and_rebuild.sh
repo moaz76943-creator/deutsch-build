@@ -11,8 +11,8 @@ if os.path.exists(gradle_path):
         content = f.read()
 
     # تحويل التوقيع في وضع release لاستخدام debug signing التلقائي عند غياب المفتاح لضمان بناء APK قابل للتثبيت فوراً
-    if 'signingConfig signingConfigs.release' in content:
-        content = re.sub(r'signingConfig\s+signingConfigs\.release', 'signingConfig signingConfigs.debug', content)
+    if re.search(r'signingConfig\s+signingConfigs\.(release|secureRelease)', content):
+        content = re.sub(r'signingConfig\s+signingConfigs\.(release|secureRelease)', 'signingConfig signingConfigs.debug', content)
         with open(gradle_path, 'w', encoding='utf-8') as f:
             f.write(content)
         print('✅ تم ضبط توقيع release في build.gradle بنجاح.')
