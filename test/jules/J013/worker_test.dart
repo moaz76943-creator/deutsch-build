@@ -7,8 +7,8 @@ void main() {
 
   setUp(() {
     WidgetsFlutterBinding.ensureInitialized();
+    PersistentCpuWorker.resetForTesting();
     worker = PersistentCpuWorker.instance;
-    worker.reset();
   });
 
   group('PersistentCpuWorker - Core Calculations', () {
@@ -27,20 +27,23 @@ void main() {
     test('throws WorkerQueueExhaustedException when queue is full', () async {
       worker.setMaxQueueSize(2);
 
-      // We need to exhaust the queue immediately, we should send tasks sync
-      worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
-      worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
-      worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
-      worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
-      worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
-      worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
+      // Four running jobs and two pending jobs saturate the bounded queue.
+      // Await accepted jobs so they cannot leak into the next test.
+      final accepted = <Future<double>>[];
+      for (var i = 0; i < 6; i++) {
+        accepted.add(worker.calculateNewEaseFactor(2.5, 4));
+      }
 
-      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<WorkerQueueExhaustedException>()));
+      await expectLater(
+        worker.calculateNewEaseFactor(2.5, 4),
+        throwsA(isA<WorkerQueueExhaustedException>()),
+      );
+      await Future.wait(accepted);
     });
 
     test('worker failure propagates correctly', () async {
-      expect(
-        () => worker.calculateNewEaseFactor(-1.0, 4),
+      await expectLater(
+        worker.calculateNewEaseFactor(-1.0, 4),
         throwsA(isA<ArgumentError>()),
       );
     });
@@ -57,7 +60,10 @@ void main() {
       final future = worker.calculateNewEaseFactor(2.5, 4);
       worker.dispose();
       await expectLater(future, throwsA(isA<WorkerCancelledException>()));
-      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<StateError>()));
+      await expectLater(
+        worker.calculateNewEaseFactor(2.5, 4),
+        throwsA(isA<StateError>()),
+      );
     });
   });
 
