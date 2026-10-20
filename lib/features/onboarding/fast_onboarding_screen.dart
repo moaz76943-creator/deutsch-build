@@ -37,15 +37,19 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
       // Learners with saved review rows return to the shell.
       final Widget next = count > 0
           ? const MainShellScreen()
-          : OnboardingScreen(
-              onStart: () {
-                if (!mounted) return;
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) => const FlashcardsScreen(),
-                  ),
-                );
-              },
+          : Builder(
+              // This context belongs to the new onboarding route. The
+              // FastOnboardingScreen state is disposed by pushReplacement.
+              builder: (onboardingContext) => OnboardingScreen(
+                onStart: () {
+                  if (!onboardingContext.mounted) return;
+                  Navigator.of(onboardingContext).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const FlashcardsScreen(),
+                    ),
+                  );
+                },
+              ),
             );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => next),
