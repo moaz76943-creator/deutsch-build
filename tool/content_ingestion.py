@@ -280,21 +280,7 @@ def _source_audio_asset(source_root: Path, relative: str) -> Path:
     return asset
 
 
-def publish_batch(
-    source_dir: Path,
-    content_path: Path,
-    verb_path: Path,
-    generated_dir: Path,
-    audio_manifest_path: Path,
-    audio_root: Path,
-) -> tuple[int, int, int]:
-    """atomically publish a reviewed content batch and its audio assets."""
-    source_dir = source_dir.resolve()
-    batch_path = source_dir / "batch.json"
-    if not batch_path.is_file():
-        raise ValueError("publish-batch requires batch.json inside the source directory")
-    batch = _read_json(batch_path)
-    content_rows, verb_rows, audio_rows = _validate_batch(batch, content_path, verb_path)
+def _prepare_source_assets(audio_rows: list[dict[str, str]], source_dir: Path, audio_root: Path) -> list[tuple[dict[str, str], Path, Path]]:
     source_assets: list[tuple[dict[str, str], Path, Path]] = []
     seen_destinations: set[Path] = set()
     for entry in audio_rows:
@@ -312,7 +298,18 @@ def publish_batch(
             if destination.exists():
                 raise ValueError(f"existing target audio asset: {value}")
             source_assets.append((entry, src, destination))
+    return source_assets
 
+
+def _merge_content_data(
+    batch_path: Path,
+    content_path: Path,
+    verb_path: Path,
+    audio_manifest_path: Path,
+    content_rows: list[dict[str, object]],
+    verb_rows: list[dict[str, object]],
+    audio_rows: list[dict[str, str]],
+) -> tuple[list[object], list[object], dict[str, object]]:
     from content_quality_gate import review_batch
     quality = review_batch(batch_path, existing_content_path=content_path)
     if quality["status"] != "PASS":
@@ -333,7 +330,20 @@ def publish_batch(
         if entry["contentId"] in existing_audio_ids:
             raise ValueError(f"duplicate existing audio contentId: {entry['contentId']}")
     merged_audio = {"version": 1, "entries": existing_audio["entries"] + audio_rows}
+    return merged_content, merged_verbs, merged_audio
 
+
+def _execute_publish_transaction(
+    merged_content: list[object],
+    merged_verbs: list[object],
+    merged_audio: dict[str, object],
+    source_assets: list[tuple[dict[str, str], Path, Path]],
+    content_path: Path,
+    verb_path: Path,
+    audio_manifest_path: Path,
+    generated_dir: Path,
+    audio_root: Path,
+) -> None:
     generated_dir.parent.mkdir(parents=True, exist_ok=True)
     audio_root.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="content_publish_", dir=str(generated_dir.parent)) as tmp:
@@ -390,6 +400,33 @@ def publish_batch(
                     shutil.rmtree(audio_root)
                 shutil.copytree(backup / "audio", audio_root)
             raise
+
+
+def publish_batch(
+    source_dir: Path,
+    content_path: Path,
+    verb_path: Path,
+    generated_dir: Path,
+    audio_manifest_path: Path,
+    audio_root: Path,
+) -> tuple[int, int, int]:
+    """atomically publish a reviewed content batch and its audio assets."""
+    source_dir = source_dir.resolve()
+    batch_path = source_dir / "batch.json"
+    if not batch_path.is_file():
+        raise ValueError("publish-batch requires batch.json inside the source directory")
+    batch = _read_json(batch_path)
+    content_rows, verb_rows, audio_rows = _validate_batch(batch, content_path, verb_path)
+    source_assets = _prepare_source_assets(audio_rows, source_dir, audio_root)
+    merged_content, merged_verbs, merged_audio = _merge_content_data(
+        batch_path, content_path, verb_path, audio_manifest_path, content_rows, verb_rows, audio_rows
+    )
+
+    _execute_publish_transaction(
+        merged_content, merged_verbs, merged_audio, source_assets,
+        content_path, verb_path, audio_manifest_path, generated_dir, audio_root
+    )
+
     return len(merged_content), len(merged_verbs), len(merged_audio["entries"])
 
 def validate() -> tuple[int, int, int]:
