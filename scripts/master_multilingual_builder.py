@@ -307,10 +307,7 @@ def setup_database_schema(db_path):
     conn.commit()
     conn.close()
 
-def build_all_complete_languages():
-    print(f"🚀 [بدء الأتمتة الشاملة] بناء {len(SUPPORTED_LANGS)} لغات متكاملة بالمفردات والأفعال والجمل...")
-
-    # 1. تحديث المصفوفة المرجعية TSV
+def _update_tsv_reference():
     existing_tsv_ids = set()
     if os.path.exists(TSV_FILE):
         with open(TSV_FILE, "r", encoding="utf-8") as f:
@@ -339,84 +336,93 @@ def build_all_complete_languages():
             writer.writerows(new_tsv_rows)
         print(f"📝 تم تزويد {TSV_FILE} بـ {len(new_tsv_rows)} مفهوماً مصنفاً جديداً.")
 
+def _build_language_pack(lang):
+    lang_dir = f"{PACKS_DIR}/{lang}/sqlite"
+    os.makedirs(lang_dir, exist_ok=True)
+    db_path = f"{lang_dir}/{lang}-1.0.0.sqlite"
+
+    setup_database_schema(db_path)
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    c_cols = get_table_cols(cur, "concepts")
+    l_cols = get_table_cols(cur, "lexicon")
+
+    for item in COMPREHENSIVE_CORPUS:
+        cid = item["id"]
+        sec = item["sec"]
+        lvl = item["cefr"]
+        pos = item["pos"]
+        lang_data = item.get(lang, item["en"])
+        term = lang_data["term"]
+        direction = "rtl" if lang == "ar" else "ltr"
+
+        # إدراج جدول concepts
+        c_dict = {}
+        for col in c_cols:
+            if col in ("concept_id", "id"):
+                c_dict[col] = cid
+            elif col == "sense_id":
+                c_dict[col] = f"{cid}_s1"
+            elif col == "section_id":
+                c_dict[col] = sec
+            elif col in ("cefr", "cefr_level"):
+                c_dict[col] = lvl
+            elif col == "category":
+                c_dict[col] = sec
+            elif col == "priority":
+                c_dict[col] = 1
+            elif c_cols[col]:
+                c_dict[col] = ""
+
+        cur.execute(f"""
+            INSERT OR REPLACE INTO concepts ({", ".join(c_dict.keys())})
+            VALUES ({", ".join(["?"] * len(c_dict))});
+        """, list(c_dict.values()))
+
+        # إدراج جدول lexicon
+        l_dict = {}
+        for col in l_cols:
+            if col in ("concept_id", "id", "word_id"):
+                l_dict[col] = cid
+            elif col in ("display_text", "surface", "lemma", "word"):
+                l_dict[col] = term
+            elif col in ("part_of_speech", "pos"):
+                l_dict[col] = pos
+            elif col in ("cefr_level", "cefr"):
+                l_dict[col] = lvl
+            elif col in ("language_code", "lang"):
+                l_dict[col] = lang
+            elif col == "direction":
+                l_dict[col] = direction
+            elif l_cols[col]:
+                l_dict[col] = ""
+
+        cur.execute(f"""
+            INSERT OR REPLACE INTO lexicon ({", ".join(l_dict.keys())})
+            VALUES ({", ".join(["?"] * len(l_dict))});
+        """, list(l_dict.values()))
+
+    conn.commit()
+    conn.close()
+
+    # ضغط حزمة التوزيع
+    gz_path = f"{PACKS_DIR}/{lang}/{lang}-1.0.0.pack.gz"
+    with open(db_path, "rb") as f_in:
+        with gzip.open(gz_path, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    print(f"  ✓ [{lang.upper()}] تم بناء وتحديث الحزمة المضغوطة بالكامل.")
+
+def build_all_complete_languages():
+    print(f"🚀 [بدء الأتمتة الشاملة] بناء {len(SUPPORTED_LANGS)} لغات متكاملة بالمفردات والأفعال والجمل...")
+
+    # 1. تحديث المصفوفة المرجعية TSV
+    _update_tsv_reference()
+
     # 2. حقن كل لغة ببياناتها الأصلية بالكامل
     for lang in SUPPORTED_LANGS:
-        lang_dir = f"{PACKS_DIR}/{lang}/sqlite"
-        os.makedirs(lang_dir, exist_ok=True)
-        db_path = f"{lang_dir}/{lang}-1.0.0.sqlite"
-
-        setup_database_schema(db_path)
-
-        conn = sqlite3.connect(db_path)
-        cur = conn.cursor()
-        c_cols = get_table_cols(cur, "concepts")
-        l_cols = get_table_cols(cur, "lexicon")
-
-        for item in COMPREHENSIVE_CORPUS:
-            cid = item["id"]
-            sec = item["sec"]
-            lvl = item["cefr"]
-            pos = item["pos"]
-            lang_data = item.get(lang, item["en"])
-            term = lang_data["term"]
-            direction = "rtl" if lang == "ar" else "ltr"
-
-            # إدراج جدول concepts
-            c_dict = {}
-            for col in c_cols:
-                if col in ("concept_id", "id"):
-                    c_dict[col] = cid
-                elif col == "sense_id":
-                    c_dict[col] = f"{cid}_s1"
-                elif col == "section_id":
-                    c_dict[col] = sec
-                elif col in ("cefr", "cefr_level"):
-                    c_dict[col] = lvl
-                elif col == "category":
-                    c_dict[col] = sec
-                elif col == "priority":
-                    c_dict[col] = 1
-                elif c_cols[col]:
-                    c_dict[col] = ""
-
-            cur.execute(f"""
-                INSERT OR REPLACE INTO concepts ({", ".join(c_dict.keys())})
-                VALUES ({", ".join(["?"] * len(c_dict))});
-            """, list(c_dict.values()))
-
-            # إدراج جدول lexicon
-            l_dict = {}
-            for col in l_cols:
-                if col in ("concept_id", "id", "word_id"):
-                    l_dict[col] = cid
-                elif col in ("display_text", "surface", "lemma", "word"):
-                    l_dict[col] = term
-                elif col in ("part_of_speech", "pos"):
-                    l_dict[col] = pos
-                elif col in ("cefr_level", "cefr"):
-                    l_dict[col] = lvl
-                elif col in ("language_code", "lang"):
-                    l_dict[col] = lang
-                elif col == "direction":
-                    l_dict[col] = direction
-                elif l_cols[col]:
-                    l_dict[col] = ""
-
-            cur.execute(f"""
-                INSERT OR REPLACE INTO lexicon ({", ".join(l_dict.keys())})
-                VALUES ({", ".join(["?"] * len(l_dict))});
-            """, list(l_dict.values()))
-
-        conn.commit()
-        conn.close()
-
-        # ضغط حزمة التوزيع
-        gz_path = f"{PACKS_DIR}/{lang}/{lang}-1.0.0.pack.gz"
-        with open(db_path, "rb") as f_in:
-            with gzip.open(gz_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-
-        print(f"  ✓ [{lang.upper()}] تم بناء وتحديث الحزمة المضغوطة بالكامل.")
+        _build_language_pack(lang)
 
     print("\n🎉 اكتمل البناء الاحترافي لجميع اللغات.")
 
