@@ -15,7 +15,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Java Development Kit
         uses: actions/setup-java@v4
@@ -23,14 +25,28 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Read locked toolchain
+        shell: bash
+        id: toolchain
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Setup Flutter Framework
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.3'
+          flutter-version: "${{ steps.toolchain.outputs.flutter }}"
           cache: true
 
       - name: Install Dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
+
+      - name: Run static analysis before build
+        run: dart analyze lib/
+
+      - name: Run tests before build
+        run: flutter test
 
       - name: Build Split APKs
         run: flutter build apk --release --split-per-abi
