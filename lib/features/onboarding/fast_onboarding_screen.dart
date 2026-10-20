@@ -6,7 +6,11 @@ import '../../services/database_service.dart';
 
 /// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
 class FastOnboardingScreen extends StatefulWidget {
-  const FastOnboardingScreen({super.key});
+  const FastOnboardingScreen({super.key, this.readReviewCount});
+
+  /// Optional read seam for deterministic widget tests. Production keeps the
+  /// existing learner progress database as the sole source of truth.
+  final Future<int> Function()? readReviewCount;
 
   @override
   State<FastOnboardingScreen> createState() => _FastOnboardingScreenState();
@@ -22,13 +26,25 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
     _checkState();
   }
 
+  Future<int> _loadReviewCount() async {
+    final db = await DatabaseService.instance.progressDb;
+    final result =
+        await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
+    return (result.first['count'] as int?) ?? 0;
+  }
+
+  void _retry() {
+    if (!mounted || _routed) return;
+    setState(() => _hasError = false);
+    _checkState();
+  }
+
   Future<void> _checkState() async {
     if (!mounted || _routed) return;
     try {
-      final db = await DatabaseService.instance.progressDb;
-      final result =
-          await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
-      final count = (result.first['count'] as int?) ?? 0;
+      final count = await (widget.readReviewCount?.call() ??
+              _loadReviewCount())
+          .timeout(const Duration(seconds: 8));
 
       if (!mounted || _routed) return;
       _routed = true;
@@ -63,10 +79,29 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
-        body: Center(
-          child: Text('تعذر فتح سجل التقدّم المحلي.'),
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'تعذر فتح سجل التقدّم المحلي.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: _retry,
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
