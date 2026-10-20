@@ -440,6 +440,11 @@ class DatabaseService {
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
 
+  /// Close only idle SQLite content connections under memory pressure.
+  /// Retained as a compatibility API; active leases are never interrupted.
+  Future<int> trimUnleasedContentConnections() =>
+      _contentPool.closeUnleased();
+
   Future<File> migrateContentPack(
     String filename, {
     required PackStorageLocation destination,
