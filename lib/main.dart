@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'design_system/app_theme.dart';
 import 'core/bootstrap/startup_boundary.dart';
 import 'features/explore/presentation/section_explorer_screen.dart';
 
@@ -19,16 +21,18 @@ class DeutschApp extends StatelessWidget {
       title: 'DEUTSCH بالعربي',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-        brightness: Brightness.dark,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ar'),
+        Locale('en'),
+        Locale('de'),
+      ],
       home: const StartupBoundary(
         child: SectionExplorerScreen(initialLanguage: 'de'),
       ),
