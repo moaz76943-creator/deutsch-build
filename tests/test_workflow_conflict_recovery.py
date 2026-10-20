@@ -61,10 +61,13 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         self.assertLess(source.index("flutter test"), source.index("flutter build apk"))
         self.assertLess(source.index("flutter build apk"), source.index("Publish Direct APK Release"))
         self.assertNotIn("branches: [ main, staging/v2-full-platform ]", source)
+        self.assertIn("workflow_dispatch:", source)
+        self.assertNotRegex(source, r"(?m)^  push:")
 
     def test_signed_aab_preserves_main_and_secret_gate(self):
         source = self.read("build_aab.yml")
-        self.assertIn('branches: [ "main" ]', source)
+        self.assertIn("workflow_dispatch:", source)
+        self.assertNotRegex(source, r"(?m)^  push:")
         self.assertIn("github.ref_name == 'main'", source)
         self.assertIn("Validate signing secrets", source)
         self.assertIn("jarsigner -verify -strict", source)
