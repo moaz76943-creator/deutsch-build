@@ -410,36 +410,46 @@ class _StartupBoundaryState extends State<StartupBoundary> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Directionality(
-                textDirection: TextDirection.rtl,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 52),
-                    const SizedBox(height: 20),
-                    Text(title, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 12),
-                    Text(description, textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
-                    if (retry != null)
-                      FilledButton(
-                        onPressed: retry,
-                        child: const Text('إعادة المحاولة مرة واحدة'),
-                      ),
-                    if (secondaryAction != null) ...[
-                      const SizedBox(height: 8),
-                      OutlinedButton(
-                        onPressed: secondaryAction,
-                        child: Text(secondaryLabel ?? 'متابعة دون اتصال'),
-                      ),
-                    ],
-                    if (retry == null && secondaryAction == null)
-                      const Text('لا توجد محاولات استعادة إضافية لهذه الجلسة.'),
-                  ],
+          // A recovery message must remain operable on a small phone, with
+          // accessibility text scaling or the keyboard open. Never clip the
+          // retry and safe-offline actions during an error.
+          child: SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, size: 52),
+                        const SizedBox(height: 20),
+                        Text(title,
+                            style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 12),
+                        Text(description, textAlign: TextAlign.center),
+                        const SizedBox(height: 24),
+                        if (retry != null)
+                          FilledButton(
+                            onPressed: retry,
+                            child: const Text('إعادة المحاولة مرة واحدة'),
+                          ),
+                        if (secondaryAction != null) ...[
+                          const SizedBox(height: 8),
+                          OutlinedButton(
+                            onPressed: secondaryAction,
+                            child: Text(
+                                secondaryLabel ?? 'متابعة دون اتصال'),
+                          ),
+                        ],
+                        if (retry == null && secondaryAction == null)
+                          const Text(
+                              'لا توجد محاولات استعادة إضافية لهذه الجلسة.'),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
