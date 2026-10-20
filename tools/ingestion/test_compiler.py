@@ -18,6 +18,23 @@ class PolyglotV2Test(unittest.TestCase):
             with self.subTest(alias=alias):
                 with self.assertRaises(ValueError): tag(alias)
 
+    def test_cli_and_namespace_import_compatibility(self):
+        # No temporary sys.path injection: simulate an app/tool importing
+        # from the repository root rather than executing this file directly.
+        import subprocess
+        import sys
+        result = subprocess.run(
+            [sys.executable, "-c",
+             "from tools.ingestion.compile_v2_pack_safe import build, tag; "
+             "from tools.ingestion.compiler import build as canonical; "
+             "from tools.ingestion.build_fts5_virtual_tables import build_fts5_tables; "
+             "assert build is canonical; assert tag('de') == 'de'; "
+             "assert callable(build_fts5_tables)"],
+            cwd=HERE.parents[1], capture_output=True, text=True,
+            timeout=20,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_sqlite_pack_and_isolated_progress(self):
         with tempfile.TemporaryDirectory() as root:
             pack = build(HERE / 'source_de_train_v2.json', root)
