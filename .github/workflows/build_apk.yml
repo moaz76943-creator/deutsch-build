@@ -18,6 +18,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Validate workflow regression contracts
+        run: python3 -m unittest discover -s tests -p 'test_workflow_conflict_recovery.py' -v
+
       - name: Setup Java Development Kit
         uses: actions/setup-java@v4
         with:
