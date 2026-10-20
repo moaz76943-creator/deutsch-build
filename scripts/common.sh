@@ -23,25 +23,34 @@ fatal() {
 
 log() { printf '[%s] %s\n' "$1" "$2"; }
 
-with_retry() {
-  local max_attempts=3
-  local attempt=1
-  local delay=2
-  while true; do
-    if "$@"; then
+# Only retry proven transient transport faults. Capture output privately:
+# command arguments and tool output can contain credentials or tokens.
+with_retry() (
+  umask 077
+  local max_attempts=3 attempt=1 delay=1 status=1 output_file
+  output_file="$(mktemp)" || return 1
+  trap 'rm -f -- "$output_file"' EXIT
+  while (( attempt <= max_attempts )); do
+    if "$@" > "$output_file" 2>&1; then
       return 0
     else
-      if (( attempt >= max_attempts )); then
-        log ERR "Command failed after $max_attempts attempts: $*"
-        return 1
-      fi
-      log WARN "Command failed (attempt $attempt/$max_attempts). Retrying in $delay seconds: $*"
-      sleep "$delay"
-      (( attempt++ ))
-      (( delay *= 2 ))
+      status=$?
     fi
+    if ! grep -Eiq '(timed? out|timeout|connection reset|connection refused|temporar(y|ily)|network error|socketexception|network is unreachable)' "$output_file"; then
+      log ERR "Non-transient operation failure; no retry (exit $status)"
+      return "$status"
+    fi
+    if (( attempt >= max_attempts )); then
+      log ERR "Transient operation failed after $max_attempts attempts (exit $status)"
+      return "$status"
+    fi
+    log WARN "Transient operation failure; retry $attempt/$max_attempts"
+    sleep "$delay"
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
   done
-}
+  return "$status"
+)
 
 load_toolchain() {
   [[ -f "$TOOLCHAIN_FILE" ]] || fatal "toolchain.lock is missing: $TOOLCHAIN_FILE"
