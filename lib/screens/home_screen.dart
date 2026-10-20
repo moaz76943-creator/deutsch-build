@@ -2,6 +2,7 @@ import 'srs_flashcard_deck_screen.dart';
 import 'package:deutsch_bilarabi/design_system/app_base_cards.dart'
     hide AppBaseGlassCard;
 import 'package:flutter/material.dart';
+import 'package:deutsch_bilarabi/features/explore/presentation/section_explorer_screen.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'flashcards_screen.dart';
@@ -174,6 +175,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            AppFeatureCard(
+              title: 'استكشف الأقسام',
+              subtitle: 'مفردات حسب الموضوع والمستوى',
+              icon: Icons.explore_rounded,
+              gradient: AppGradients.blueCard,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SectionExplorerScreen(),
+                ),
+              ),
             ),
           ],
         ),
