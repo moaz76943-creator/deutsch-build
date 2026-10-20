@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'design_system/app_theme.dart';
 import 'core/bootstrap/startup_boundary.dart';
-import 'features/explore/presentation/section_explorer_screen.dart';
+import 'features/onboarding/fast_onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +34,7 @@ class DeutschApp extends StatelessWidget {
         Locale('de'),
       ],
       home: const StartupBoundary(
-        child: SectionExplorerScreen(initialLanguage: 'de'),
+        child: FastOnboardingScreen(),
       ),
     ),
     );
