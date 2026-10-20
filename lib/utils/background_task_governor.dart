@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:meta/meta.dart';
 
 /// Duty-cycle profiles for background tasks to prevent device overheating and battery drain.
 enum ThermalProfile {
@@ -188,6 +189,9 @@ class _SqliteIsolateWorker {
     }
   }
 }
+
+@visibleForTesting
+Future<void> sqliteWorkerEntryForTest(List<Object> args) => _sqliteWorkerEntry(args);
 
 Future<void> _sqliteWorkerEntry(List<Object> args) async {
   final ready = args[0] as SendPort;

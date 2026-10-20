@@ -1,9 +1,16 @@
 import 'dart:isolate';
 
 import 'package:deutsch_bilarabi/utils/background_task_governor.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   test('chunks are bounded at exactly 200 and preserve order', () {
     final chunks = BackgroundTaskGovernor.batches(List<int>.generate(401, (i) => i)).toList();
     expect(chunks.map((chunk) => chunk.length).toList(), [200, 200, 1]);
@@ -43,5 +50,45 @@ void main() {
     expect(seen, 200);
     expect(iterator.moveNext(), isTrue);
     expect(seen, 400);
+  });
+
+  test('background sqlite worker handles and propagates unknown commands', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final token = RootIsolateToken.instance!;
+
+    final readyPort = ReceivePort();
+
+    // Call the worker entry function directly for testing
+    sqliteWorkerEntryForTest([readyPort.sendPort, token, inMemoryDatabasePath]);
+
+    final requestsPort = await readyPort.first;
+    expect(requestsPort, isA<SendPort>());
+    final workerSendPort = requestsPort as SendPort;
+
+    // Now we can send an unknown command
+    final replyPort = ReceivePort();
+    workerSendPort.send(['unknownCommand', null, replyPort.sendPort]);
+
+    final response = await replyPort.first;
+    expect(response, isA<Map>());
+    final responseMap = response as Map;
+    expect(responseMap, containsPair('error', contains('Unknown background task')));
+    replyPort.close();
+
+    // Send an invalid format to insert
+    final insertReplyPort = ReceivePort();
+    workerSendPort.send(['insert', [{'id': '', 'surface': ''}], insertReplyPort.sendPort]);
+    final insertResponse = await insertReplyPort.first;
+    expect(insertResponse, isA<Map>());
+    final insertResponseMap = insertResponse as Map;
+    expect(insertResponseMap, containsPair('error', contains('Lexicon rows require nonempty id and surface')));
+    insertReplyPort.close();
+
+    // Close it
+    final closeReplyPort = ReceivePort();
+    workerSendPort.send(['close', null, closeReplyPort.sendPort]);
+    await closeReplyPort.first;
+    closeReplyPort.close();
+    readyPort.close();
   });
 }
