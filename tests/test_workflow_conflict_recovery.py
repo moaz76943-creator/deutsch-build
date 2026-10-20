@@ -49,6 +49,7 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         source = self.read("build.yml")
         self.assertIn("source toolchain.lock", source)
         self.assertIn("workflow_dispatch:", source)
+        self.assertNotRegex(source, r"(?m)^  push:|^  pull_request:")
         self.assertIn("flutter pub get --enforce-lockfile", source)
         self.assertIn("steps.toolchain.outputs.flutter", source)
         self.assertIn("dart analyze", source)
