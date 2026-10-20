@@ -1,8 +1,7 @@
 name: Build and Release Direct APK
 
 on:
-  push:
-    branches: [ main ]
+  # Manual-only publishing; keep analyze and tests as hard release prerequisites.
   workflow_dispatch:
 
 permissions:
