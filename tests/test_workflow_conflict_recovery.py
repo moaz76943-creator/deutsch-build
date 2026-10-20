@@ -14,6 +14,7 @@ REPAIRED = (
     "build_apk.yml",
     "build_aab.yml",
     "content_expansion_bot.yml",
+    "auto_multilingual_builder.yml",
 )
 
 
@@ -70,6 +71,12 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         self.assertIn("jarsigner -verify -strict", source)
         self.assertIn("Upload signed AAB artifact", source)
         self.assertIn("Upload debug symbols artifact", source)
+
+    def test_legacy_api_generator_is_manual_only(self):
+        source = self.read("auto_multilingual_builder.yml")
+        self.assertIn("workflow_dispatch:", source)
+        self.assertNotRegex(source, r"(?m)^  schedule:")
+        self.assertIn("Manual-only", source)
 
     def test_content_bot_remains_review_only(self):
         source = self.read("content_expansion_bot.yml")
