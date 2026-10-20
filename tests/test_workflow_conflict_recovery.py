@@ -92,6 +92,8 @@ class RecoveredWorkflowContracts(unittest.TestCase):
 
     def test_content_bot_remains_review_only(self):
         source = self.read("content_expansion_bot.yml")
+        self.assertIn("workflow_dispatch:", source)
+        self.assertNotRegex(source, r"(?m)^  schedule:")
         self.assertIn("GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED", source)
         self.assertIn("quarantine", source)
         self.assertIn("Stop when a bot review PR is already open", source)
