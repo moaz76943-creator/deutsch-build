@@ -354,6 +354,17 @@ class _StartupBoundaryState extends State<StartupBoundary> {
       case StartupState.READY:
         return widget.child;
       case StartupState.DEGRADED:
+        // Explicit crash-recovery sessions may expose only verified content.
+        // A normal zero-pack first launch is still allowed below.
+        if (_safeSession && !_contentAvailable) {
+          return _recoveryScreen(
+            icon: Icons.health_and_safety_outlined,
+            title: 'لا تتوفر حزمة محلية موثوقة',
+            description: 'يظل الوضع الآمن مفعلًا ولا يمكن فتح محتوى غير متحقق منه. '
+                'بيانات التقدّم محفوظة.',
+            retry: null,
+          );
+        }
         // Missing optional content is not a broken learner database.
         // Keep offline onboarding/settings reachable with zero packs.
         // Feature-specific repositories must still reject missing packs.
