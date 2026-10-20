@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/features/onboarding/fast_onboarding_screen.dart';
 import 'package:deutsch_bilarabi/screens/main_shell_screen.dart';
 import 'package:deutsch_bilarabi/screens/onboarding_screen.dart';
+import 'package:deutsch_bilarabi/screens/flashcards_screen.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
 
 void main() {
@@ -33,6 +34,12 @@ void main() {
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
     expect(find.byType(OnboardingScreen), findsOneWidget);
+    // The previous FastOnboardingScreen route has been replaced/disposed.
+    // The CTA must use the current onboarding route, not the stale state.
+    await tester.tap(find.text('ابدأ التعلم الآن'));
+    await tester.pump();
+    expect(find.byType(FlashcardsScreen), findsOneWidget);
+
   });
 
   testWidgets('Restored learner (progress exists) routes to MainShellScreen', (WidgetTester tester) async {
