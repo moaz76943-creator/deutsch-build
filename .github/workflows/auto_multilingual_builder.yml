@@ -43,5 +43,5 @@ jobs:
           fi
 
           git commit -m "feat(content): automated multilingual pack expansion"
-          git pull --rebase origin main
-          git push origin main
+          git pull --rebase origin staging/v2-full-platform
+          git push origin staging/v2-full-platform
