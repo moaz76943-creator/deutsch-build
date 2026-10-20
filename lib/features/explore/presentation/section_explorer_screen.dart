@@ -183,22 +183,23 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   }
 
   void showLicenseDialog() async {
+    final requestedLanguage = currentLanguage;
     // Always read attribution for the selected language; never silently
     // substitute another active pack's provenance.
     Map<String, String> metadata;
     try {
       metadata =
-          await PackManager.getDatasetMetadata(languageCode: currentLanguage);
+          await PackManager.getDatasetMetadata(languageCode: requestedLanguage);
     } catch (_) {
       metadata = const <String, String>{};
     }
-    if (!mounted) return;
+    if (!mounted || currentLanguage != requestedLanguage) return;
     final attribution = DatasetAttribution.fromMetadata(metadata);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('المصادر والتراخيص المفتوحة ⚖️'),
+        title: const Text('معلومات المصدر والترخيص ⚖️'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -343,7 +344,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            tooltip: 'التراخيص والتصدير',
+            tooltip: 'المصادر والتراخيص',
             onPressed: showLicenseDialog,
           ),
         ],
