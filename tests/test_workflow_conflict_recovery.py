@@ -67,6 +67,15 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         self.assertIn("workflow_dispatch:", source)
         self.assertNotRegex(source, r"(?m)^  push:")
 
+    def test_apk_release_has_verified_sha256_receipt(self):
+        source = self.read("build_apk.yml")
+        self.assertIn("sha256sum deutsch-app.apk > deutsch-app.apk.sha256", source)
+        self.assertIn("sha256sum --check deutsch-app.apk.sha256", source)
+        self.assertIn('artifacts: "deutsch-app.apk,deutsch-app.apk.sha256"', source)
+        self.assertLess(source.index("flutter build apk"), source.index("sha256sum deutsch-app.apk"))
+        self.assertLess(source.index("sha256sum --check deutsch-app.apk.sha256"),
+                        source.index("Publish Direct APK Release"))
+
     def test_signed_aab_preserves_main_and_secret_gate(self):
         source = self.read("build_aab.yml")
         self.assertIn("workflow_dispatch:", source)
