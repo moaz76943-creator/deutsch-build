@@ -21,9 +21,7 @@ RTL_LANGUAGES = frozenset({"ar", "fa", "he", "ur", "ps"})
 ALLOWED_TRANSLATION_STRATEGIES = frozenset(
     {"contextual", "idiomatic", "cultural_equivalent", "sense_equivalent"}
 )
-CANONICAL_METADATA_FIELDS = frozenset(
-    {"description", "placeholders", "layout"}
-)
+CANONICAL_METADATA_FIELDS = frozenset({"description", "placeholders", "layout"})
 
 
 class LocalizationAgentError(ValueError):
@@ -161,11 +159,7 @@ def _branch_messages(style: str) -> list[str]:
         if index >= len(style):
             break
         selector_start = index
-        while (
-            index < len(style)
-            and not style[index].isspace()
-            and style[index] != "{"
-        ):
+        while index < len(style) and not style[index].isspace() and style[index] != "{":
             index += 1
         selector = style[selector_start:index].strip()
         index = _skip_ws(style, index)
@@ -197,9 +191,7 @@ def icu_argument_names(text: str) -> frozenset[str]:
         content = text[index + 1 : end]
         name, kind, style = _split_argument_header(content)
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
-            raise LocalizationAgentError(
-                f"invalid ICU argument name: {name!r}"
-            )
+            raise LocalizationAgentError(f"invalid ICU argument name: {name!r}")
         names.add(name)
         if kind in {"plural", "selectordinal", "select"}:
             for branch in _branch_messages(style):
@@ -250,20 +242,12 @@ def _layout_budget(
     layout = base_meta.get("layout")
     if isinstance(layout, Mapping):
         raw = layout.get("maxWidthEm")
-        if (
-            isinstance(raw, (int, float))
-            and not isinstance(raw, bool)
-            and raw > 0
-        ):
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool) and raw > 0:
             return float(raw)
     layout = target_meta.get("layout")
     if isinstance(layout, Mapping):
         raw = layout.get("maxWidthEm")
-        if (
-            isinstance(raw, (int, float))
-            and not isinstance(raw, bool)
-            and raw > 0
-        ):
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool) and raw > 0:
             return float(raw)
     return 48.0
 
@@ -276,13 +260,10 @@ def _assert_target_locale(
     declared = target_arb.get("@@locale")
     if declared is not None:
         if not isinstance(declared, str) or not declared.strip():
-            raise LocalizationAgentError(
-                "target @@locale must be a non-empty string"
-            )
+            raise LocalizationAgentError("target @@locale must be a non-empty string")
         if _primary_language(declared) != locale:
             raise LocalizationAgentError(
-                f"target locale mismatch: declared {declared!r}, "
-                f"requested {locale!r}"
+                f"target locale mismatch: declared {declared!r}, requested {locale!r}"
             )
     return locale
 
@@ -331,9 +312,7 @@ def synchronize_arb(
     for key in base_keys:
         value = target_arb[key]
         if not isinstance(value, str) or not value.strip():
-            raise LocalizationAgentError(
-                f"empty translation for key: {key}"
-            )
+            raise LocalizationAgentError(f"empty translation for key: {key}")
         result[key] = value
 
         base_meta = dict(_metadata(base_arb, key))
@@ -350,6 +329,127 @@ def synchronize_arb(
     return result
 
 
+def _audit_message(
+    key: str,
+    base_arb: Mapping[str, Any],
+    target_arb: Mapping[str, Any],
+    target_keys: set[str],
+    locale: str,
+    base_locale: str,
+    errors: list[AuditIssue],
+    warnings: list[AuditIssue],
+) -> None:
+    if key not in target_keys:
+        errors.append(
+            AuditIssue(
+                "arb.missing_key",
+                key,
+                "required ARB message is missing",
+            )
+        )
+        return
+    base_text = base_arb[key]
+    target_text = target_arb[key]
+    if not isinstance(base_text, str) or not isinstance(target_text, str):
+        errors.append(
+            AuditIssue(
+                "arb.non_string_message",
+                key,
+                "ARB messages must be strings",
+            )
+        )
+        return
+    if not target_text.strip():
+        errors.append(
+            AuditIssue(
+                "arb.empty_translation",
+                key,
+                "translation must not be empty",
+            )
+        )
+        return
+
+    base_meta = _metadata(base_arb, key)
+    target_meta = _metadata(target_arb, key)
+    try:
+        base_args = icu_argument_names(base_text)
+        target_args = icu_argument_names(target_text)
+    except LocalizationAgentError as exc:
+        errors.append(AuditIssue("icu.invalid", key, str(exc)))
+        return
+    if base_args != target_args:
+        errors.append(
+            AuditIssue(
+                "placeholder.mismatch",
+                key,
+                f"ICU argument set changed: {sorted(base_args)} -> "
+                f"{sorted(target_args)}",
+            )
+        )
+
+    for field in ("placeholders", "layout"):
+        if field in target_meta and target_meta.get(field) != base_meta.get(field):
+            errors.append(
+                AuditIssue(
+                    "metadata.canonical_mismatch",
+                    key,
+                    f"target metadata cannot replace canonical {field}",
+                )
+            )
+
+    if locale != base_locale:
+        strategy = target_meta.get("translationStrategy")
+        if strategy == "literal":
+            errors.append(
+                AuditIssue(
+                    "translation.literal_forbidden",
+                    key,
+                    "literal translation strategy is forbidden; "
+                    "use contextual equivalence",
+                )
+            )
+        elif strategy not in ALLOWED_TRANSLATION_STRATEGIES:
+            errors.append(
+                AuditIssue(
+                    "translation.strategy_required",
+                    key,
+                    "translationStrategy must document "
+                    "contextual/idiomatic equivalence",
+                )
+            )
+        if target_meta.get("reviewStatus") != "reviewed":
+            errors.append(
+                AuditIssue(
+                    "translation.review_required",
+                    key,
+                    "localized message must be semantically reviewed "
+                    "before production use",
+                )
+            )
+
+    budget = _layout_budget(base_meta, target_meta)
+    width = estimate_width_units(target_text)
+    if width > budget:
+        errors.append(
+            AuditIssue(
+                "layout.overflow_risk",
+                key,
+                f"estimated width {width:.2f}em exceeds {budget:.2f}em budget",
+            )
+        )
+    base_width = max(estimate_width_units(base_text), 1.0)
+    expansion = width / base_width
+    if base_width >= 7.0 and expansion > 2.35:
+        warnings.append(
+            AuditIssue(
+                "layout.high_expansion",
+                key,
+                f"localized text expands to {expansion:.2f}x source width",
+                severity="warning",
+            )
+        )
+
+
 def audit_arb(
     base_arb: Mapping[str, Any],
     target_arb: Mapping[str, Any],
@@ -359,27 +459,18 @@ def audit_arb(
     errors: list[AuditIssue] = []
     warnings: list[AuditIssue] = []
     target_locale_raw = locale_code or target_arb.get("@@locale")
-    if (
-        not isinstance(target_locale_raw, str)
-        or not target_locale_raw.strip()
-    ):
-        raise LocalizationAgentError(
-            "target ARB requires @@locale or locale_code"
-        )
+    if not isinstance(target_locale_raw, str) or not target_locale_raw.strip():
+        raise LocalizationAgentError("target ARB requires @@locale or locale_code")
     locale = _primary_language(target_locale_raw)
     direction = text_direction_for(locale)
 
     declared = target_arb.get("@@locale")
-    if (
-        isinstance(declared, str)
-        and _primary_language(declared) != locale
-    ):
+    if isinstance(declared, str) and _primary_language(declared) != locale:
         errors.append(
             AuditIssue(
                 "locale.mismatch",
                 "@@locale",
-                f"declared locale {declared!r} does not match "
-                f"requested {locale!r}",
+                f"declared locale {declared!r} does not match requested {locale!r}",
             )
         )
 
@@ -393,120 +484,16 @@ def audit_arb(
     target_keys = set(_message_keys(target_arb))
 
     for key in base_keys:
-        if key not in target_keys:
-            errors.append(
-                AuditIssue(
-                    "arb.missing_key",
-                    key,
-                    "required ARB message is missing",
-                )
-            )
-            continue
-        base_text = base_arb[key]
-        target_text = target_arb[key]
-        if not isinstance(base_text, str) or not isinstance(target_text, str):
-            errors.append(
-                AuditIssue(
-                    "arb.non_string_message",
-                    key,
-                    "ARB messages must be strings",
-                )
-            )
-            continue
-        if not target_text.strip():
-            errors.append(
-                AuditIssue(
-                    "arb.empty_translation",
-                    key,
-                    "translation must not be empty",
-                )
-            )
-            continue
-
-        base_meta = _metadata(base_arb, key)
-        target_meta = _metadata(target_arb, key)
-        try:
-            base_args = icu_argument_names(base_text)
-            target_args = icu_argument_names(target_text)
-        except LocalizationAgentError as exc:
-            errors.append(AuditIssue("icu.invalid", key, str(exc)))
-            continue
-        if base_args != target_args:
-            errors.append(
-                AuditIssue(
-                    "placeholder.mismatch",
-                    key,
-                    f"ICU argument set changed: {sorted(base_args)} -> "
-                    f"{sorted(target_args)}",
-                )
-            )
-
-        for field in ("placeholders", "layout"):
-            if (
-                field in target_meta
-                and target_meta.get(field) != base_meta.get(field)
-            ):
-                errors.append(
-                    AuditIssue(
-                        "metadata.canonical_mismatch",
-                        key,
-                        f"target metadata cannot replace canonical {field}",
-                    )
-                )
-
-        if locale != base_locale:
-            strategy = target_meta.get("translationStrategy")
-            if strategy == "literal":
-                errors.append(
-                    AuditIssue(
-                        "translation.literal_forbidden",
-                        key,
-                        "literal translation strategy is forbidden; "
-                        "use contextual equivalence",
-                    )
-                )
-            elif strategy not in ALLOWED_TRANSLATION_STRATEGIES:
-                errors.append(
-                    AuditIssue(
-                        "translation.strategy_required",
-                        key,
-                        "translationStrategy must document "
-                        "contextual/idiomatic equivalence",
-                    )
-                )
-            if target_meta.get("reviewStatus") != "reviewed":
-                errors.append(
-                    AuditIssue(
-                        "translation.review_required",
-                        key,
-                        "localized message must be semantically reviewed "
-                        "before production use",
-                    )
-                )
-
-        budget = _layout_budget(base_meta, target_meta)
-        width = estimate_width_units(target_text)
-        if width > budget:
-            errors.append(
-                AuditIssue(
-                    "layout.overflow_risk",
-                    key,
-                    f"estimated width {width:.2f}em exceeds "
-                    f"{budget:.2f}em budget",
-                )
-            )
-        base_width = max(estimate_width_units(base_text), 1.0)
-        expansion = width / base_width
-        if base_width >= 7.0 and expansion > 2.35:
-            warnings.append(
-                AuditIssue(
-                    "layout.high_expansion",
-                    key,
-                    f"localized text expands to "
-                    f"{expansion:.2f}x source width",
-                    severity="warning",
-                )
-            )
+        _audit_message(
+            key,
+            base_arb,
+            target_arb,
+            target_keys,
+            locale,
+            base_locale,
+            errors,
+            warnings,
+        )
 
     extra = sorted(target_keys.difference(base_keys))
     for key in extra:
@@ -530,9 +517,7 @@ def audit_arb(
 def _load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
-        raise LocalizationAgentError(
-            f"ARB document must be a JSON object: {path}"
-        )
+        raise LocalizationAgentError(f"ARB document must be a JSON object: {path}")
     return value
 
 
