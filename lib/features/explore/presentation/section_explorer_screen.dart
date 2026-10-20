@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
 import '../../../core/services/audio_tts_service.dart';
+import '../../../services/fts_search_service.dart';
 
 class SectionExplorerScreen extends StatefulWidget {
   final String initialLanguage;
@@ -145,7 +146,11 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
     _searchDebounce = Timer(const Duration(milliseconds: 250), () async {
       try {
-        final results = await PackManager.searchInstant(normalized);
+        final results = await FtsSearchService().searchDictionary(
+          normalized,
+          currentLanguage,
+          limit: 50,
+        );
         if (!mounted || gen != _searchGeneration) return;
         setState(() {
           searchResults = results;
@@ -164,7 +169,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     final meta = await PackManager.getDatasetMetadata();
     if (!mounted) return;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('المصادر والتراخيص المفتوحة ⚖️'),
@@ -227,14 +232,14 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     if (exercises.isEmpty || !mounted) return;
 
     final ex = exercises.first;
-    final List distractors =
-        jsonDecode(ex['distractors_json'] as String? ?? '[]');
+    final List<dynamic> distractors =
+        jsonDecode(ex['distractors_json'] as String? ?? '[]') as List<dynamic>;
     final List<String> options = [
       ex['correct_answer'] as String,
       ...distractors.map((e) => e.toString())
     ]..shuffle();
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ex['prompt'] as String? ?? 'اختر الإجابة الصحيحة'),
@@ -430,7 +435,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                     itemBuilder: (context, index) {
                       final item = displayList[index];
                       final pos = item['part_of_speech'] ?? 'noun';
-                      final word = item['word'] ?? item['display_text'] ?? '';
+                      final word = (item['word'] ?? item['display_text'] ?? '') as String;
                       final boxLevel = item['box_level'] as int? ?? 0;
 
                       return Directionality(
@@ -495,7 +500,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                     color: Colors.indigo),
                                 tooltip: 'بدء تمرين',
                                 onPressed: () =>
-                                    openQuizDialog(item['concept_id'], word),
+                                    openQuizDialog((item['concept_id'] ?? '') as String, word),
                               ),
                             ],
                           ),
