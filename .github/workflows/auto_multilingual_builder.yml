@@ -7,6 +7,9 @@ on:
 
 jobs:
   build-and-expand:
+    # Zero-additional-billing invariant: this legacy script calls a paid API.
+    # Keep historical code available for audit, but do not execute it.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
 
