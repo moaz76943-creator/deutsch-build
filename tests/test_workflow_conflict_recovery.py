@@ -70,6 +70,12 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         self.assertIn("Validate signing secrets", source)
         self.assertIn("jarsigner -verify -strict", source)
         self.assertIn("Upload signed AAB artifact", source)
+        self.assertLess(source.index("Validate signing secrets"),
+                        source.index("Fetch locked Flutter dependencies"))
+        self.assertLess(source.index("dart analyze lib/"),
+                        source.index("Build signed production AAB"))
+        self.assertLess(source.index("flutter test"),
+                        source.index("Build signed production AAB"))
         self.assertIn("Upload debug symbols artifact", source)
 
     def test_legacy_api_generator_is_manual_only(self):
