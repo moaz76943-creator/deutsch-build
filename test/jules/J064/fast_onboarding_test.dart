@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/features/onboarding/fast_onboarding_screen.dart';
@@ -28,7 +29,9 @@ void main() {
   });
 
   testWidgets('Fresh install (no progress) routes to OnboardingScreen', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FastOnboardingScreen()));
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: FastOnboardingScreen())),
+    );
 
     // Wait for async checks to complete and navigation to occur
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
