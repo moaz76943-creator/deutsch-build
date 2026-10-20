@@ -14,7 +14,11 @@ import sqlite3
 import sys
 import tempfile
 
-from build_fts5_virtual_tables import build_fts5_tables
+# CLI execution and package imports must use the same canonical implementation.
+if __package__:
+    from .build_fts5_virtual_tables import build_fts5_tables
+else:
+    from build_fts5_virtual_tables import build_fts5_tables
 
 BASE = Path(__file__).resolve().parent
 SCHEMA = BASE / 'schema_v2.sql'
