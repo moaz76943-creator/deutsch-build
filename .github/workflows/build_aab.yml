@@ -28,6 +28,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Validate workflow regression contracts
+        run: python3 -m unittest discover -s tests -p 'test_workflow_conflict_recovery.py' -v
+
       - name: Validate signing secrets
         shell: bash
         env:
