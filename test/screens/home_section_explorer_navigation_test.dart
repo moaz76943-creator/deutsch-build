@@ -13,7 +13,8 @@ void main() {
     ));
 
     final explore = find.text('استكشف الأقسام');
-    await tester.ensureVisible(explore);
+    await tester.scrollUntilVisible(explore, 160,
+        scrollable: find.byType(Scrollable).first);
     expect(explore, findsOneWidget);
 
     await tester.tap(explore);
