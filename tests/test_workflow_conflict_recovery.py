@@ -82,6 +82,7 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         self.assertIn("workflow_dispatch:", source)
         self.assertNotRegex(source, r"(?m)^  schedule:")
         self.assertIn("Manual-only", source)
+        self.assertIn("if: ${{ false }}", source)
 
     def test_content_bot_remains_review_only(self):
         source = self.read("content_expansion_bot.yml")
