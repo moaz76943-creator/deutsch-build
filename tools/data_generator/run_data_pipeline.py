@@ -134,6 +134,97 @@ def _write_report(report: Mapping[str, Any], report_path: Path) -> None:
     )
 
 
+def _process_candidates(
+    candidates: Sequence[tuple[Path, bool]],
+    schema_path: Path,
+    files: list[dict[str, Any]],
+    errors: list[dict[str, str]],
+    valid_datasets: list[tuple[Path, Mapping[str, Any], bool]],
+) -> None:
+    """Process all candidate paths, validate them, and accumulate metrics."""
+    for path, is_skeleton in candidates:
+        item = {"path": _display_path(path), "kind": "matrix_skeleton" if is_skeleton else "core"}
+        try:
+            dataset = load_and_validate(path, schema_path=schema_path)
+            metrics = _cross_language_metrics(dataset["entries"], require_concept_id=is_skeleton)
+            item.update({"valid": True, "entries": metrics["records"]})
+            files.append(item)
+            valid_datasets.append((path, dataset, is_skeleton))
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            item.update({"valid": False, "entries": 0, "error": str(exc)})
+            files.append(item)
+            errors.append({"path": _display_path(path), "error": str(exc)})
+
+
+def _compute_coverage_metrics(
+    valid_datasets: list[tuple[Path, Mapping[str, Any], bool]],
+) -> dict[str, Any]:
+    """Compute overall coverage and cross-language metrics from valid datasets."""
+    total_records = 0
+    covered_records = 0
+    matrix_records = 0
+    matrix_pairs: set[str] = set()
+    matrix_concepts: set[str] = set()
+
+    for _path, dataset, is_skeleton in valid_datasets:
+        for entry in dataset["entries"]:
+            total_records += 1
+            if _complete_audio_marker(entry):
+                covered_records += 1
+            if is_skeleton:
+                matrix_records += 1
+                pair = entry["pair_identity"]
+                matrix_pairs.add(pair["id"])
+                concept_id = entry.get("concept_id")
+                if isinstance(concept_id, str) and concept_id.strip():
+                    matrix_concepts.add(concept_id)
+
+    coverage = round((covered_records / total_records * 100.0) if total_records else 0.0, 2)
+    return {
+        "total_records": total_records,
+        "covered_records": covered_records,
+        "matrix_records": matrix_records,
+        "matrix_pairs": matrix_pairs,
+        "matrix_concepts": matrix_concepts,
+        "coverage": coverage,
+    }
+
+
+def _build_report(
+    files: list[dict[str, Any]],
+    errors: list[dict[str, str]],
+    metrics: dict[str, Any],
+    skeleton_paths: tuple[Path, ...],
+    fail_under_coverage: float | None,
+) -> dict[str, Any]:
+    """Assemble the final report dictionary."""
+    invalid_files = sum(1 for item in files if not item["valid"])
+    return {
+        "status": "unhealthy" if errors else "healthy",
+        "schemaVersion": "1.0.0",
+        "schemaValidation": {
+            "filesChecked": len(files),
+            "validFiles": len(files) - invalid_files,
+            "invalidFiles": invalid_files,
+            "files": files,
+        },
+        "crossLanguageExpansion": {
+            "skeletonFiles": len(skeleton_paths),
+            "records": metrics["matrix_records"],
+            "directedPairs": len(metrics["matrix_pairs"]),
+            "conceptIds": len(metrics["matrix_concepts"]),
+        },
+        "audioCoverage": {
+            "totalRecords": metrics["total_records"],
+            "coveredRecords": metrics["covered_records"],
+            "missingRecords": metrics["total_records"] - metrics["covered_records"],
+            "coveragePercent": metrics["coverage"],
+            "requiredPercent": fail_under_coverage,
+        },
+        "errors": errors,
+    }
+
+
 def run_pipeline(
     *,
     core_path: str | Path = DEFAULT_CORE_PATH,
@@ -165,39 +256,11 @@ def run_pipeline(
         (path, True) for path in skeleton_paths
     )
 
-    for path, is_skeleton in candidates:
-        item = {"path": _display_path(path), "kind": "matrix_skeleton" if is_skeleton else "core"}
-        try:
-            dataset = load_and_validate(path, schema_path=schema)
-            metrics = _cross_language_metrics(dataset["entries"], require_concept_id=is_skeleton)
-            item.update({"valid": True, "entries": metrics["records"]})
-            files.append(item)
-            valid_datasets.append((path, dataset, is_skeleton))
-        except (OSError, ValueError, TypeError, KeyError) as exc:
-            item.update({"valid": False, "entries": 0, "error": str(exc)})
-            files.append(item)
-            errors.append({"path": _display_path(path), "error": str(exc)})
+    _process_candidates(candidates, schema, files, errors, valid_datasets)
 
-    total_records = 0
-    covered_records = 0
-    matrix_records = 0
-    matrix_pairs: set[str] = set()
-    matrix_concepts: set[str] = set()
+    metrics = _compute_coverage_metrics(valid_datasets)
+    coverage = metrics["coverage"]
 
-    for _path, dataset, is_skeleton in valid_datasets:
-        for entry in dataset["entries"]:
-            total_records += 1
-            if _complete_audio_marker(entry):
-                covered_records += 1
-            if is_skeleton:
-                matrix_records += 1
-                pair = entry["pair_identity"]
-                matrix_pairs.add(pair["id"])
-                concept_id = entry.get("concept_id")
-                if isinstance(concept_id, str) and concept_id.strip():
-                    matrix_concepts.add(concept_id)
-
-    coverage = round((covered_records / total_records * 100.0) if total_records else 0.0, 2)
     threshold_failed = fail_under_coverage is not None and coverage < fail_under_coverage
     if threshold_failed:
         errors.append(
@@ -207,33 +270,10 @@ def run_pipeline(
             }
         )
 
-    invalid_files = sum(1 for item in files if not item["valid"])
-    report: dict[str, Any] = {
-        "status": "unhealthy" if errors else "healthy",
-        "schemaVersion": "1.0.0",
-        "schemaValidation": {
-            "filesChecked": len(files),
-            "validFiles": len(files) - invalid_files,
-            "invalidFiles": invalid_files,
-            "files": files,
-        },
-        "crossLanguageExpansion": {
-            "skeletonFiles": len(skeleton_paths),
-            "records": matrix_records,
-            "directedPairs": len(matrix_pairs),
-            "conceptIds": len(matrix_concepts),
-        },
-        "audioCoverage": {
-            "totalRecords": total_records,
-            "coveredRecords": covered_records,
-            "missingRecords": total_records - covered_records,
-            "coveragePercent": coverage,
-            "requiredPercent": fail_under_coverage,
-        },
-        "errors": errors,
-    }
+    report = _build_report(files, errors, metrics, skeleton_paths, fail_under_coverage)
     _write_report(report, report_file)
 
+    invalid_files = report["schemaValidation"]["invalidFiles"]
     if invalid_files or any(error["path"] != "audioCoverage" for error in errors):
         raise PipelineValidationError(
             f"data pipeline validation failed with {len(errors)} error(s)", report
