@@ -28,6 +28,9 @@ jobs:
         source toolchain.lock
         printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
 
+    - name: Validate all GitHub Actions workflow contracts
+      run: python3 -m unittest discover -s tests -p 'test_workflow_conflict_recovery.py' -v
+
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
@@ -38,7 +41,7 @@ jobs:
       run: flutter pub get --enforce-lockfile
 
     - name: Run Static Analysis
-      run: dart analyze --no-fatal-warnings lib/
+      run: dart analyze lib/
 
     - name: Run Release Preflight
       run: python3 deutsch_release_preflight.py
