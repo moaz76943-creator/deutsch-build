@@ -30,6 +30,35 @@ class RecoveredWorkflowContracts(unittest.TestCase):
                 self.assertRegex(source, r"(?m)^on:")
                 self.assertRegex(source, r"(?m)^jobs:")
 
+    def test_no_conflict_markers_in_any_registered_workflow(self):
+        """Prevent merge artifacts escaping the originally affected five files."""
+        paths = sorted(WORKFLOWS.glob("*.yml")) + sorted(WORKFLOWS.glob("*.yaml"))
+        self.assertTrue(paths, "No registered GitHub Actions workflows found")
+        for path in paths:
+            with self.subTest(workflow=path.name):
+                source = path.read_text(encoding="utf-8")
+                self.assertNotRegex(source, r"(?m)^(?:<<<<<<< |=======$|>>>>>>> )")
+
+    def test_no_registered_workflow_has_empty_schedule(self):
+        """An empty top-level on.schedule prevents GitHub from registering it."""
+        paths = sorted(WORKFLOWS.glob("*.yml")) + sorted(WORKFLOWS.glob("*.yaml"))
+        self.assertTrue(paths, "No registered GitHub Actions workflows found")
+        for path in paths:
+            with self.subTest(workflow=path.name):
+                source = path.read_text(encoding="utf-8")
+                lines = source.splitlines()
+                for idx, line in enumerate(lines):
+                    if line != "  schedule:":
+                        continue
+                    next_active = next(
+                        (s for s in lines[idx + 1:]
+                         if s.strip() and not s.lstrip().startswith("#")), ""
+                    )
+                    self.assertRegex(
+                        next_active, r"^    - cron:\s*\S+",
+                        f"{path.name}: on.schedule has no cron entry",
+                    )
+
     def test_yaml_is_parsable_when_a_yaml_parser_is_available(self):
         if importlib.util.find_spec("yaml") is None:
             self.skipTest("PyYAML not installed; structural checks still run")
