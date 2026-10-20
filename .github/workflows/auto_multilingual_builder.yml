@@ -1,8 +1,8 @@
 name: Multilingual Pack Builder Engine
 
 on:
-  schedule:
-    # - cron: '0 * * * *' (disabled)
+  # Manual-only: do not schedule this legacy OpenAI API-backed generator.
+  # It is NOT part of the zero-additional-billing public factory.
   workflow_dispatch:
 
 jobs:
