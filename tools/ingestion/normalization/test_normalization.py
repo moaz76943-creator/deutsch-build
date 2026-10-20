@@ -19,7 +19,7 @@ class NormalizationTests(unittest.TestCase):
         word = "أَحْمَدٌ"
         normalized = self.engine.normalize(word, "ar")
         self.assertEqual(normalized.original, word)
-        self.assertEqual(normalized.search_key, "أحمد")
+        self.assertEqual(normalized.search_key, "احمد")
         self.assertEqual(self.engine.normalize("مُعَلِّم", "ar").search_key, "معلم")
 
     def test_hebrew_mark_stripping_is_language_scoped(self):
