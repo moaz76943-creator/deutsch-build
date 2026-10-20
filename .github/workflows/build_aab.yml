@@ -28,6 +28,27 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Validate signing secrets
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -Eeuo pipefail
+          for name in \
+            ANDROID_KEYSTORE_BASE64 \
+            ANDROID_KEYSTORE_PASSWORD \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD
+          do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Required release-signing secret is missing: ${name}"
+              exit 1
+            fi
+          done
+
       - name: Read locked toolchain
         id: toolchain
         shell: bash
@@ -87,29 +108,14 @@ jobs:
       - name: Fetch locked Flutter dependencies
         run: flutter pub get --enforce-lockfile
 
+      - name: Check static analysis before release
+        run: dart analyze lib/
+
+      - name: Run Flutter tests before release
+        run: flutter test
+
       - name: Materialize generated runtime content
         run: python3 tool/content_compiler.py compile --output-dir lib/data/generated
-
-      - name: Validate signing secrets
-        shell: bash
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          set -Eeuo pipefail
-          for name in \
-            ANDROID_KEYSTORE_BASE64 \
-            ANDROID_KEYSTORE_PASSWORD \
-            ANDROID_KEY_ALIAS \
-            ANDROID_KEY_PASSWORD
-          do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::Required release-signing secret is missing: ${name}"
-              exit 1
-            fi
-          done
 
       - name: Materialize private upload keystore
         shell: bash
