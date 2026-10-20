@@ -18,6 +18,23 @@ class _CriticalStartup implements StartupOperations {
       const StartupOutcome(StartupState.DEGRADED);
 }
 
+
+class _MissingPackStartup implements StartupOperations {
+  @override
+  Future<StartupOutcome> start() async =>
+      const StartupOutcome(StartupState.DEGRADED);
+
+  @override
+  Future<void> markStable() async {}
+
+  @override
+  Future<void> exitSafeMode() async {}
+
+  @override
+  Future<StartupOutcome> continueSafeOffline() async =>
+      const StartupOutcome(StartupState.DEGRADED);
+}
+
 void main() {
   testWidgets('critical recovery stays scrollable on compact RTL screens',
       (tester) async {
@@ -46,4 +63,24 @@ void main() {
     expect(find.byType(SingleChildScrollView), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('offline first run remains accessible when no pack is installed',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: StartupBoundary(
+        operations: _MissingPackStartup(),
+        child: const Scaffold(
+          body: Center(child: Text('FIRST_RUN_ONBOARDING')),
+        ),
+      ),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('FIRST_RUN_ONBOARDING'), findsOneWidget);
+    expect(find.textContaining('حزمة اللغة'), findsWidgets);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
 }
