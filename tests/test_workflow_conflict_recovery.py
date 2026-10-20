@@ -48,6 +48,8 @@ class RecoveredWorkflowContracts(unittest.TestCase):
     def test_flutter_ci_uses_locked_version(self):
         source = self.read("build.yml")
         self.assertIn("source toolchain.lock", source)
+        self.assertIn("workflow_dispatch:", source)
+        self.assertIn("flutter pub get --enforce-lockfile", source)
         self.assertIn("steps.toolchain.outputs.flutter", source)
         self.assertIn("dart analyze", source)
         self.assertIn("flutter test", source)
