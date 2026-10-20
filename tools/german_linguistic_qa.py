@@ -103,6 +103,97 @@ def _primary_language(document: Mapping[str, Any]) -> str:
     return language.split("-", 1)[0].lower()
 
 
+def _validate_lexicon_entry(raw_entry: Any, index: int, issues: list[QaIssue]) -> None:
+    if not isinstance(raw_entry, Mapping):
+        _error(
+            issues,
+            "source.entry_invalid",
+            f"lexicon[{index}]",
+            "lexicon entry must be an object",
+        )
+        return
+
+    path = f"lexicon[{index}]"
+    surface = _clean(raw_entry.get("surface"))
+    part_of_speech = (_clean(raw_entry.get("partOfSpeech")) or "").lower()
+    fields = raw_entry.get("fields")
+    if not isinstance(fields, Mapping):
+        return
+    canonical = fields.get("canonical")
+    if canonical is None:
+        # Phase-2 migration intentionally permits untouched legacy rows.
+        return
+    if not isinstance(canonical, Mapping):
+        _error(
+            issues,
+            "canonical.invalid",
+            path + ".fields.canonical",
+            "canonical data must be an object",
+        )
+        return
+
+    cefr = _clean(canonical.get("cefr"))
+    if cefr in {None, "unknown"}:
+        _warning(
+            issues,
+            "concept.cefr_unresolved",
+            path + ".fields.canonical.cefr",
+            "CEFR is not resolved yet",
+        )
+    register = _clean(canonical.get("register"))
+    if register in {None, "unknown"}:
+        _warning(
+            issues,
+            "concept.register_unresolved",
+            path + ".fields.canonical.register",
+            "register is not resolved yet",
+        )
+
+    noun = canonical.get("noun")
+    verb = canonical.get("verb")
+    if part_of_speech == "noun":
+        if not isinstance(noun, Mapping):
+            _error(
+                issues,
+                "noun.canonical_missing",
+                path + ".fields.canonical.noun",
+                "canonical noun entry requires noun morphology",
+            )
+        else:
+            _validate_noun(noun, surface, path + ".fields.canonical.noun", issues)
+        if verb is not None:
+            _error(
+                issues,
+                "noun.verb_branch_present",
+                path + ".fields.canonical.verb",
+                "noun entry cannot carry canonical verb morphology",
+            )
+    elif part_of_speech == "verb":
+        if not isinstance(verb, Mapping):
+            _error(
+                issues,
+                "verb.canonical_missing",
+                path + ".fields.canonical.verb",
+                "canonical verb entry requires verb morphology",
+            )
+        else:
+            _validate_verb(verb, surface, path + ".fields.canonical.verb", issues)
+        if noun is not None:
+            _error(
+                issues,
+                "verb.noun_branch_present",
+                path + ".fields.canonical.noun",
+                "verb entry cannot carry canonical noun morphology",
+            )
+    elif noun is not None or verb is not None:
+        _error(
+            issues,
+            "canonical.part_of_speech_mismatch",
+            path + ".partOfSpeech",
+            "German noun/verb morphology does not match partOfSpeech",
+        )
+
+
 def validate_german_source(document: Mapping[str, Any]) -> QaReport:
     if _primary_language(document) != "de":
         return QaReport(())
@@ -114,94 +205,7 @@ def validate_german_source(document: Mapping[str, Any]) -> QaReport:
         return _report(issues)
 
     for index, raw_entry in enumerate(lexicon):
-        if not isinstance(raw_entry, Mapping):
-            _error(
-                issues,
-                "source.entry_invalid",
-                f"lexicon[{index}]",
-                "lexicon entry must be an object",
-            )
-            continue
-
-        path = f"lexicon[{index}]"
-        surface = _clean(raw_entry.get("surface"))
-        part_of_speech = (_clean(raw_entry.get("partOfSpeech")) or "").lower()
-        fields = raw_entry.get("fields")
-        if not isinstance(fields, Mapping):
-            continue
-        canonical = fields.get("canonical")
-        if canonical is None:
-            # Phase-2 migration intentionally permits untouched legacy rows.
-            continue
-        if not isinstance(canonical, Mapping):
-            _error(
-                issues,
-                "canonical.invalid",
-                path + ".fields.canonical",
-                "canonical data must be an object",
-            )
-            continue
-
-        cefr = _clean(canonical.get("cefr"))
-        if cefr in {None, "unknown"}:
-            _warning(
-                issues,
-                "concept.cefr_unresolved",
-                path + ".fields.canonical.cefr",
-                "CEFR is not resolved yet",
-            )
-        register = _clean(canonical.get("register"))
-        if register in {None, "unknown"}:
-            _warning(
-                issues,
-                "concept.register_unresolved",
-                path + ".fields.canonical.register",
-                "register is not resolved yet",
-            )
-
-        noun = canonical.get("noun")
-        verb = canonical.get("verb")
-        if part_of_speech == "noun":
-            if not isinstance(noun, Mapping):
-                _error(
-                    issues,
-                    "noun.canonical_missing",
-                    path + ".fields.canonical.noun",
-                    "canonical noun entry requires noun morphology",
-                )
-            else:
-                _validate_noun(noun, surface, path + ".fields.canonical.noun", issues)
-            if verb is not None:
-                _error(
-                    issues,
-                    "noun.verb_branch_present",
-                    path + ".fields.canonical.verb",
-                    "noun entry cannot carry canonical verb morphology",
-                )
-        elif part_of_speech == "verb":
-            if not isinstance(verb, Mapping):
-                _error(
-                    issues,
-                    "verb.canonical_missing",
-                    path + ".fields.canonical.verb",
-                    "canonical verb entry requires verb morphology",
-                )
-            else:
-                _validate_verb(verb, surface, path + ".fields.canonical.verb", issues)
-            if noun is not None:
-                _error(
-                    issues,
-                    "verb.noun_branch_present",
-                    path + ".fields.canonical.noun",
-                    "verb entry cannot carry canonical noun morphology",
-                )
-        elif noun is not None or verb is not None:
-            _error(
-                issues,
-                "canonical.part_of_speech_mismatch",
-                path + ".partOfSpeech",
-                "German noun/verb morphology does not match partOfSpeech",
-            )
+        _validate_lexicon_entry(raw_entry, index, issues)
 
     _validate_word_families(lexicon, issues)
     return _report(issues)
