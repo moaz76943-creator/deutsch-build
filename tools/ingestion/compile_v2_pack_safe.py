@@ -6,7 +6,11 @@ CLI paths working; do not maintain a second compiler.
 """
 from __future__ import annotations
 
-from compiler import build, tag
+# Support both the historical direct script and the package import path.
+if __package__:
+    from .compiler import build, tag
+else:
+    from compiler import build, tag
 
 __all__ = ["build", "tag"]
 
