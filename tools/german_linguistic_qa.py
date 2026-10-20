@@ -268,9 +268,19 @@ def _validate_word_families(
         interference = family.get("interferenceRisk")
 
         if family_id is None:
-            _error(issues, "word_family.family_id_blank", path + ".familyId", "familyId is required")
+            _error(
+                issues,
+                "word_family.family_id_blank",
+                path + ".familyId",
+                "familyId is required",
+            )
         if base_id is None:
-            _error(issues, "word_family.base_id_blank", path + ".baseConceptId", "baseConceptId is required")
+            _error(
+                issues,
+                "word_family.base_id_blank",
+                path + ".baseConceptId",
+                "baseConceptId is required",
+            )
         elif base_id not in concept_ids:
             _error(
                 issues,
@@ -317,9 +327,7 @@ def _validate_word_families(
                 )
 
         if family_id is not None and base_id is not None and relation is not None:
-            families.setdefault(family_id, []).append(
-                (concept_id, base_id, relation)
-            )
+            families.setdefault(family_id, []).append((concept_id, base_id, relation))
 
     for family_id, members in families.items():
         base_ids = {member[1] for member in members}
@@ -333,9 +341,7 @@ def _validate_word_families(
             continue
         base_id = next(iter(base_ids))
         bases = [
-            concept_id
-            for concept_id, _, relation in members
-            if relation == "base"
+            concept_id for concept_id, _, relation in members if relation == "base"
         ]
         if bases != [base_id]:
             _error(
@@ -446,7 +452,9 @@ def _validate_verb(
 ) -> None:
     infinitive = _clean(verb.get("infinitive"))
     if infinitive is None:
-        _error(issues, "verb.infinitive_blank", path + ".infinitive", "infinitive is blank")
+        _error(
+            issues, "verb.infinitive_blank", path + ".infinitive", "infinitive is blank"
+        )
     elif surface is not None and infinitive != surface:
         _error(
             issues,
@@ -479,14 +487,22 @@ def _validate_verb(
             path,
             "verb cannot declare both separable and inseparable prefixes",
         )
-    if infinitive is not None and separable is not None and not infinitive.startswith(separable):
+    if (
+        infinitive is not None
+        and separable is not None
+        and not infinitive.startswith(separable)
+    ):
         _error(
             issues,
             "verb.separable_prefix_mismatch",
             path + ".separablePrefix",
             "separable prefix must be a prefix of infinitive",
         )
-    if infinitive is not None and inseparable is not None and not infinitive.startswith(inseparable):
+    if (
+        infinitive is not None
+        and inseparable is not None
+        and not infinitive.startswith(inseparable)
+    ):
         _error(
             issues,
             "verb.inseparable_prefix_mismatch",
@@ -494,7 +510,11 @@ def _validate_verb(
             "inseparable prefix must be a prefix of infinitive",
         )
 
-    frames = verb.get("valencyFrames", [])
+    _validate_valency_frames(verb.get("valencyFrames", []), path, issues)
+    _validate_verb_forms(verb.get("forms", []), path, issues)
+
+
+def _validate_valency_frames(frames: Any, path: str, issues: list[QaIssue]) -> None:
     if isinstance(frames, list):
         seen_frames: set[str] = set()
         for index, raw_frame in enumerate(frames):
@@ -553,7 +573,8 @@ def _validate_verb(
                     "valency frame requires case or preposition government",
                 )
 
-    forms = verb.get("forms", [])
+
+def _validate_verb_forms(forms: Any, path: str, issues: list[QaIssue]) -> None:
     if isinstance(forms, list):
         seen_forms: set[tuple[str, str]] = set()
         for index, raw_form in enumerate(forms):
@@ -658,7 +679,9 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 "german_nouns row must reference a noun concept",
             )
         if _clean(gender) not in {"masculine", "feminine", "neuter"}:
-            _error(issues, "noun.gender_unresolved", path + ".gender", "gender unresolved")
+            _error(
+                issues, "noun.gender_unresolved", path + ".gender", "gender unresolved"
+            )
         if _clean(declension) in {None, "unknown"}:
             _error(
                 issues,
@@ -673,7 +696,9 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
             ("genitive_singular", genitive_singular),
         ):
             if _clean(value) is None:
-                _error(issues, "noun.case_form_blank", path + "." + name, "case form blank")
+                _error(
+                    issues, "noun.case_form_blank", path + "." + name, "case form blank"
+                )
         if _clean(lemma) != _clean(nominative_singular):
             _error(
                 issues,
@@ -765,14 +790,22 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
         infinitive_text = _clean(infinitive)
         if sep is not None and insep is not None:
             _error(issues, "verb.prefix_conflict", path, "conflicting prefix metadata")
-        if sep is not None and infinitive_text is not None and not infinitive_text.startswith(sep):
+        if (
+            sep is not None
+            and infinitive_text is not None
+            and not infinitive_text.startswith(sep)
+        ):
             _error(
                 issues,
                 "verb.separable_prefix_mismatch",
                 path + ".separable_prefix",
                 "separable prefix is not a prefix of infinitive",
             )
-        if insep is not None and infinitive_text is not None and not infinitive_text.startswith(insep):
+        if (
+            insep is not None
+            and infinitive_text is not None
+            and not infinitive_text.startswith(insep)
+        ):
             _error(
                 issues,
                 "verb.inseparable_prefix_mismatch",
@@ -802,7 +835,9 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 path,
                 "preposition and prepositionCase must be declared together",
             )
-        if _clean(governed) is None and not (prep is not None and prep_case is not None):
+        if _clean(governed) is None and not (
+            prep is not None and prep_case is not None
+        ):
             _error(
                 issues,
                 "valency.missing_government",
@@ -843,9 +878,19 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
             if _clean(distance) not in _WORD_FAMILY_DISTANCES:
                 _error(issues, "word_family.distance_invalid", path, "invalid distance")
             if _clean(level) not in _WORD_FAMILY_LEVELS:
-                _error(issues, "word_family.level_invalid", path, "invalid pedagogical level")
+                _error(
+                    issues,
+                    "word_family.level_invalid",
+                    path,
+                    "invalid pedagogical level",
+                )
             if risk not in (0, 1):
-                _error(issues, "word_family.interference_invalid", path, "invalid interference flag")
+                _error(
+                    issues,
+                    "word_family.interference_invalid",
+                    path,
+                    "invalid interference flag",
+                )
             by_family.setdefault(str(family_id), []).append(row)
 
         for family_id, rows in by_family.items():
@@ -859,11 +904,7 @@ def audit_sqlite_connection(connection: sqlite3.Connection) -> QaReport:
                 )
                 continue
             base_id = next(iter(base_ids))
-            bases = [
-                str(row[2])
-                for row in rows
-                if str(row[3]) == "base"
-            ]
+            bases = [str(row[2]) for row in rows if str(row[3]) == "base"]
             if bases != [base_id]:
                 _error(
                     issues,
@@ -895,7 +936,9 @@ def _merge(reports: Iterable[QaReport]) -> QaReport:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run deterministic German linguistic QA")
+    parser = argparse.ArgumentParser(
+        description="Run deterministic German linguistic QA"
+    )
     parser.add_argument("--source", action="append", default=[])
     parser.add_argument("--sqlite", action="append", default=[])
     parser.add_argument("--report")
@@ -914,7 +957,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 reports.append(audit_sqlite_connection(connection))
             finally:
                 connection.close()
-    except (OSError, json.JSONDecodeError, sqlite3.Error, GermanLinguisticQaError) as exc:
+    except (
+        OSError,
+        json.JSONDecodeError,
+        sqlite3.Error,
+        GermanLinguisticQaError,
+    ) as exc:
         report = {
             "status": "error",
             "message": str(exc),
