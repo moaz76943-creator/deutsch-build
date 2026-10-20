@@ -5,6 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # Manual staging verification is available without scheduling costly private builds.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,7 +36,7 @@ jobs:
         channel: 'stable'
 
     - name: Install Dependencies
-      run: flutter pub get
+      run: flutter pub get --enforce-lockfile
 
     - name: Run Static Analysis
       run: dart analyze --no-fatal-warnings lib/
