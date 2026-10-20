@@ -354,28 +354,33 @@ class _StartupBoundaryState extends State<StartupBoundary> {
       case StartupState.READY:
         return widget.child;
       case StartupState.DEGRADED:
-        if (_contentAvailable) {
-          return Column(
-            children: [
-              Material(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text(
-                      'بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'),
+        // Missing optional content is not a broken learner database.
+        // Keep offline onboarding/settings reachable with zero packs.
+        // Feature-specific repositories must still reject missing packs.
+        return Column(
+          children: [
+            Material(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      _contentAvailable
+                          ? 'بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'
+                          : 'حزمة اللغة غير متاحة حاليًا. يمكنك فتح التطبيق دون اتصال؛ '
+                              'التعلّم بهذا المحتوى يتطلب حزمة محلية متحققًا منها. '
+                              'بيانات التقدّم محفوظة.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ),
-              Expanded(child: widget.child),
-            ],
-          );
-        }
-        return _recoveryScreen(
-          icon: Icons.menu_book_outlined,
-          title: 'المحتوى غير متاح حاليًا',
-          description:
-              'تعذر التحقق من حزمة اللغة المحلية. بيانات التعلّم محفوظة. '
-              'يمكنك المحاولة مجددًا بعد التأكد من تثبيت الحزمة.',
-          retry: _manualRetries < 1 && !_safeSession ? _retry : null,
+            ),
+            Expanded(child: widget.child),
+          ],
         );
       case StartupState.SAFE_MODE:
         return _recoveryScreen(
