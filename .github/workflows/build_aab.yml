@@ -1,8 +1,8 @@
 name: Build Signed Release AAB
 
 on:
-  push:
-    branches: [ "main" ]
+  # Release is an explicit owner action, never an automatic billed push job.
+  workflow_dispatch:
 
 permissions:
   contents: read
