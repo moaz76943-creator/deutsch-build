@@ -3,7 +3,6 @@
 This test does not trigger Flutter builds, publish APK/AAB, or call GitHub.
 """
 import importlib.util
-import re
 import unittest
 from pathlib import Path
 
@@ -26,7 +25,7 @@ class RecoveredWorkflowContracts(unittest.TestCase):
         for name in REPAIRED:
             with self.subTest(name=name):
                 source = self.read(name)
-                self.assertNotRegex(source, r"(?m)^(?:<<<<<<< |=======\\s*$|>>>>>>> )")
+                self.assertNotRegex(source, r"(?m)^(?:<<<<<<< |=======$|>>>>>>> )")
                 self.assertRegex(source, r"(?m)^name: ")
                 self.assertRegex(source, r"(?m)^on:")
                 self.assertRegex(source, r"(?m)^jobs:")
