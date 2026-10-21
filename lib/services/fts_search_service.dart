@@ -48,6 +48,50 @@ class SearchFeedback<T> {
 /// Search of 1-2 Unicode scalars, or devices without FTS5, uses a NOCASE
 /// B-tree prefix query first, then a legacy substring scan if more results
 /// are needed. The latter cannot promise index-only performance.
+
+class _SearchLexiconTranslation {
+  const _SearchLexiconTranslation(this.text, this.languageCode);
+  final String text;
+  final String? languageCode;
+}
+
+_SearchLexiconTranslation? _resolveLexiconTranslation(Map<String, dynamic> fields) {
+  String? nonEmptyText(Object? value) {
+    if (value is! String || value.trim().isEmpty) return null;
+    return value.trim();
+  }
+  String? languageTag(Object? value) {
+    final code = nonEmptyText(value);
+    return code?.toLowerCase().replaceAll('_', '-');
+  }
+  _SearchLexiconTranslation? taggedItem(Object? value) {
+    if (value is! Map) return null;
+    final text = nonEmptyText(value['text']);
+    if (text == null) return null;
+    return _SearchLexiconTranslation(
+      text,
+      languageTag(value['languageCode'] ?? value['language_code']),
+    );
+  }
+  final directArabic = nonEmptyText(fields['translation_ar']);
+  if (directArabic != null) {
+    return _SearchLexiconTranslation(directArabic, 'ar');
+  }
+  final translations = fields['translations'];
+  if (translations is List) {
+    _SearchLexiconTranslation? firstAvailable;
+    for (final item in translations) {
+      final parsed = taggedItem(item);
+      if (parsed != null) {
+        if (parsed.languageCode == 'ar') return parsed;
+        firstAvailable ??= parsed;
+      }
+    }
+    return firstAvailable;
+  }
+  return null;
+}
+
 class FtsSearchService {
   final DatabaseService _databaseService;
 
@@ -166,7 +210,8 @@ class FtsSearchService {
     }
 
     final term = query.trim();
-    List<Map<String, Object?>> rows;
+    List<Map<String, Object?>> rows = [];
+
     if (term.isEmpty) {
       rows = await database.rawQuery('''
         SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
@@ -175,24 +220,44 @@ class FtsSearchService {
         LIMIT ?
       ''', <Object?>[limit]);
     } else if (term.runes.length >= 3) {
+      bool useFts = false;
       try {
-        final phrase = '"${term.replaceAll('"', '""')}"';
-        rows = await database.rawQuery('''
-          SELECT l.rowid AS search_rowid, l.id, l.surface,
-                 l.part_of_speech, l.fields_json
-          FROM lexicon_fts
-          JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
-          WHERE lexicon_fts MATCH ?
-          ORDER BY CASE
-            WHEN l.surface = ? COLLATE NOCASE THEN 0
-            WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
-            ELSE 2
-          END, bm25(lexicon_fts), length(l.surface), l.rowid
-          LIMIT ?
-        ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
-      } on DatabaseException catch (_) {
-        // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
-        // expression: parameterized LIKE stays available on vendor SQLite.
+        final tables = await database.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type='table' AND name='lexicon_fts' LIMIT 1",
+        );
+        useFts = tables.isNotEmpty;
+      } catch (_) {
+        // Ignore schema lookup failures, fallback safely.
+      }
+
+      if (useFts) {
+        final sanitized = term.replaceAll('"', '""');
+        // Prevent empty strings after sanitization causing fts5 syntax errors
+        if (sanitized.trim().isEmpty) {
+          rows = await _fallback(database, term, limit);
+        } else {
+          try {
+            final phrase = '"$sanitized"*';
+            rows = await database.rawQuery('''
+              SELECT l.rowid AS search_rowid, l.id, l.surface,
+                     l.part_of_speech, l.fields_json
+              FROM lexicon_fts
+              JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
+              WHERE lexicon_fts MATCH ?
+              ORDER BY CASE
+                WHEN l.surface = ? COLLATE NOCASE THEN 0
+                WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
+                ELSE 2
+              END, bm25(lexicon_fts), length(l.surface), l.rowid
+              LIMIT ?
+            ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+          } on DatabaseException catch (_) {
+            // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
+            // expression: parameterized LIKE stays available on vendor SQLite.
+            rows = await _fallback(database, term, limit);
+          }
+        }
+      } else {
         rows = await _fallback(database, term, limit);
       }
     } else {
@@ -271,7 +336,7 @@ class FtsSearchService {
     }
     final id = row['id']?.toString() ?? '';
     final surface = row['surface']?.toString() ?? '';
-    final translation = DatabaseService.resolveLexiconTranslation(fields);
+    final translation = _resolveLexiconTranslation(fields);
     return <String, dynamic>{
       'id': id,
       'lexeme_id': id,
