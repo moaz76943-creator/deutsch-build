@@ -48,9 +48,10 @@ class PackAdmissionService {
 
       // Stream the digest in a worker. Large SQLite packs must not be read
       // into the Flutter UI isolate or buffered as a single Uint8List.
+      final stagedPath = stagedFile.path;
       final digest = await Isolate.run(
         () async => (await sha256.bind(
-          File(stagedFile.path).openRead(),
+          File(stagedPath).openRead(),
         ).first).toString(),
       );
 
