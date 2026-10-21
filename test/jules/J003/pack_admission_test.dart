@@ -304,6 +304,42 @@ void main() {
     expect(quarantine.isolatedItems.first.diagnosticReason, 'Attempted to overwrite progress database');
   });
 
+  test('v1 SQLite cannot overwrite a previously admitted v2 pack', () async {
+    final target = await createValidDatabase('safe_v2.db');
+    final original = await calculateHash(target);
+    final candidate = File('${tempDir.path}/legacy_v1.db');
+    final db = await databaseFactoryFfi.openDatabase(candidate.path);
+    await db.execute('PRAGMA user_version = 1');
+    await db.execute('CREATE TABLE data (value TEXT)');
+    await db.close();
+    final accepted = await admissionService.verifyAndAdmitPack(
+      stagedFile: candidate,
+      expectedHash: await calculateHash(candidate),
+      targetPath: target.path,
+      languageCode: 'fr',
+      allowReplacement: true,
+    );
+    expect(accepted, isFalse);
+    expect(await calculateHash(target), original);
+    expect(quarantine.isolatedItems.any(
+      (item) => item.diagnosticReason == 'Invalid schema version',
+    ), isTrue);
+  });
+
+  test('Wrong v2 language identity cannot overwrite valid content', () async {
+    final target = await createValidDatabase('safe_identity.db');
+    final original = await calculateHash(target);
+    final candidate = await createValidDatabase('wrong_identity.db');
+    final accepted = await admissionService.verifyAndAdmitPack(
+      stagedFile: candidate,
+      expectedHash: await calculateHash(candidate),
+      targetPath: target.path,
+      languageCode: 'de',
+      allowReplacement: true,
+    );
+    expect(accepted, isFalse);
+    expect(await calculateHash(target), original);
+  });
   test('Preserve the last verified pack when replacement fails (simulated)', () async {
     // AtomicDatabaseInstaller handles this because File.rename is atomic
     // If we pass an invalid source, it fails before touching target.
