@@ -106,9 +106,70 @@ class LanguagePackManager {
   String getLanguageNameInstance(String localeCode) =>
       getLanguageName(localeCode);
 
+  /// A registered language identifier is not a verified installed pack.
+  /// Unknown and malformed locales must not be silently treated as supported.
   static bool isLocalesSupported(String localeCode) {
-    if (localeCode.isEmpty) return false;
-    return true;
+    final normalized = localeCode.trim().replaceAll('_', '-').toLowerCase();
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*
+
+  static bool isLanguagesSupported(String languageCode) =>
+      isLocalesSupported(languageCode);
+  bool isLanguageSupported(String languageCode) =>
+      isLocalesSupported(languageCode);
+
+  static bool isRtlLanguage(String code) {
+    final lower = code.toLowerCase();
+    return lower.startsWith('ar') ||
+        lower.startsWith('he') ||
+        lower.startsWith('fa') ||
+        lower.startsWith('ur');
+  }
+
+  static TextDirection textDirectionFor(String code) {
+    return isRtlLanguage(code) ? TextDirection.rtl : TextDirection.ltr;
+  }
+
+  /// Opens the installed content database for [bcp47Locale].
+  /// Returns false when the locale is unknown or the pack cannot be opened.
+  /// A missing pack is not treated as mounted.
+  static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
+    final langCode = bcp47Locale.split('-').first.trim().toLowerCase();
+    if (langCode.isEmpty) return false;
+    final known = supportedLanguages.contains(langCode) ||
+        supportedBcp47Locales.contains(bcp47Locale);
+    if (!known) return false;
+    try {
+      final db = await DatabaseService.instance.getContentDb(langCode);
+      if (!db.isOpen) return false;
+      await db.rawQuery('SELECT 1');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Instance delegates لتفادي أخطاء الاستدعاء عبر الكائنات
+  List<String> get supportedLanguagesInstance => supportedLanguages;
+  List<String> get supportedLanguagesList => supportedLanguages;
+  List<String> get supportedLanguagesField => supportedLanguages;
+}
+
+extension LanguagePackManagerInstanceExt on LanguagePackManager {
+  List<String> get supportedLanguages => LanguagePackManager.supportedLanguages;
+  String getTtsLocale(String code) => LanguagePackManager.getTtsLocale(code);
+  String resolveTtsLocale(String code) =>
+      LanguagePackManager.resolveTtsLocale(code);
+  bool isLanguagesSupported(String code) =>
+      LanguagePackManager.isLanguagesSupported(code);
+  TextDirection textDirectionFor(String code) =>
+      LanguagePackManager.textDirectionFor(code);
+  bool isRtlLanguage(String code) => LanguagePackManager.isRtlLanguage(code);
+}
+)
+        .hasMatch(normalized)) {
+      return false;
+    }
+    return supportedLanguages.contains(normalized.split('-').first);
   }
 
   static bool isLanguagesSupported(String languageCode) =>
