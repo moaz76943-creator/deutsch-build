@@ -2,11 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 
-# Mock tools.agent_contract.guard globally for tests
-mock_contract = MagicMock()
-sys.modules['tools.agent_contract'] = mock_contract
-sys.modules['tools.agent_contract.guard'] = mock_contract
-
+# Replace agent_contract.guard usage with our new ScopeGuard test integration
 from tools.automation.repair_planner import (
     RepairPlanner,
     STALE_FTS5,
@@ -18,7 +14,7 @@ from tools.automation.repair_planner import (
 
 class TestRepairPlanner(unittest.TestCase):
     def setUp(self):
-        self.planner = RepairPlanner()
+        self.planner = RepairPlanner(owner="test_owner")
 
     def test_classify_known_failures(self):
         self.assertEqual(self.planner.classify_failure("Error: stale fts5 index detected"), STALE_FTS5)
@@ -35,19 +31,21 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ambiguous fix rejected"):
             self.planner.classify_failure("Security vulnerability in ambiguous dependency upgrade")
 
-    @patch('tools.agent_contract.guard.ScopeGuard')
-    def test_duplicate_attempt_prevented(self, MockGuard):
+    def test_duplicate_attempt_prevented(self):
         sig = "Error: stale fts5 index detected"
-        self.planner.generate_plan(sig)
+        self.planner.generate_plan(sig, dry_run=True)
 
         with self.assertRaisesRegex(ValueError, "Duplicate attempt blocked"):
-            self.planner.generate_plan(sig)
+            self.planner.generate_plan(sig, dry_run=True)
 
-    @patch('tools.agent_contract.guard.ScopeGuard')
-    def test_unsafe_paths_rejected(self, MockGuard):
-        # We need paths to be extracted correctly in regex
-        # The regex in repair_planner is r"([a-zA-Z0-9_\-\./]+\.[a-zA-Z0-9]+)"
-        # /etc/passwd has no extension, let's use /etc/passwd.txt
+    def test_verified_condition_allows_duplicate_attempt(self):
+        sig = "Error: stale fts5 index detected"
+        self.planner.generate_plan(sig, dry_run=True)
+
+        # Should not raise exception
+        self.planner.generate_plan(sig, dry_run=True, verified_condition=True)
+
+    def test_unsafe_paths_rejected(self):
         sig1 = "Error: stale fts5 index detected in /etc/passwd.txt"
         sig2 = "Error: corrupted artifact at ../../home/user/secret.txt"
 
@@ -56,26 +54,17 @@ class TestRepairPlanner(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsafe path detected"):
             self.planner.generate_plan(sig2)
 
-    @patch('tools.agent_contract.guard.ScopeGuard')
-    def test_invalid_ownership(self, MockGuard):
-        mock_guard_instance = MagicMock()
-        mock_context = MagicMock()
-        mock_context.__enter__.side_effect = RuntimeError("Failed to acquire lock")
-        mock_guard_instance.lease_file.return_value = mock_context
-        MockGuard.return_value = mock_guard_instance
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
+    def test_invalid_ownership(self, mock_request_ownership):
+        mock_request_ownership.return_value = False
 
         sig = "module not found: sys.py"
-        with self.assertRaisesRegex(RuntimeError, "Failed to acquire lock"):
+        with self.assertRaisesRegex(RuntimeError, "Failed to acquire lock for sys.py"):
             self.planner.generate_plan(sig, dry_run=False)
 
-    @patch('tools.agent_contract.guard.ScopeGuard')
-    def test_plan_generation_and_ownership(self, MockGuard):
-        mock_guard_instance = MagicMock()
-        mock_context = MagicMock()
-        mock_context.__enter__.return_value = None
-        mock_context.__exit__.return_value = None
-        mock_guard_instance.lease_file.return_value = mock_context
-        MockGuard.return_value = mock_guard_instance
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
+    def test_plan_generation_and_ownership(self, mock_request_ownership):
+        mock_request_ownership.return_value = True
 
         sig = "module not found: src/main.py"
         paths = ["src/main.py"]
