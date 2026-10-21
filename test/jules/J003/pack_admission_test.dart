@@ -84,6 +84,53 @@ void main() {
     expect(result2, isTrue);
   });
 
+  test('streaming SHA-256 admits a large SQLite file without a full Dart byte buffer', () async {
+    final stagedDb = await createValidDatabase('large_staged.db');
+    final db = await databaseFactoryFfi.openDatabase(stagedDb.path);
+    try {
+      // SQLite allocates the BLOB directly; the test does not load it into Dart.
+      await db.rawInsert(
+        'INSERT INTO data(value) VALUES (zeroblob(?))',
+        <Object?>[4 * 1024 * 1024],
+      );
+    } finally {
+      await db.close();
+    }
+
+    final expectedHash =
+        (await sha256.bind(stagedDb.openRead()).first).toString();
+    final targetPath = '${tempDir.path}/large_target.db';
+
+    final admitted = await admissionService.verifyAndAdmitPack(
+      stagedFile: stagedDb,
+      expectedHash: expectedHash,
+      targetPath: targetPath,
+    );
+
+    expect(admitted, isTrue);
+    final admittedFile = File(targetPath);
+    expect(await admittedFile.exists(), isTrue);
+    expect(await admittedFile.length(), greaterThan(4 * 1024 * 1024));
+    expect(
+      (await sha256.bind(admittedFile.openRead()).first).toString(),
+      expectedHash,
+    );
+  });
+
+  test('uppercase digest is accepted when checksum bytes match', () async {
+    final stagedDb = await createValidDatabase('uppercase_staged.db');
+    final checksum = await calculateHash(stagedDb);
+    final targetPath = '${tempDir.path}/uppercase_target.db';
+
+    final admitted = await admissionService.verifyAndAdmitPack(
+      stagedFile: stagedDb,
+      expectedHash: checksum.toUpperCase(),
+      targetPath: targetPath,
+    );
+    expect(admitted, isTrue);
+    expect(await File(targetPath).exists(), isTrue);
+  });
+
   test('Corrupted bytes / SQLite integrity failure', () async {
     final corruptFile = File('${tempDir.path}/corrupt.db');
     await corruptFile.writeAsBytes(List.filled(100, 0)); // Not a valid SQLite DB
