@@ -136,9 +136,10 @@ class LanguageManagerScreen extends ConsumerWidget {
     final isQuarantined = state.quarantinedCodes.contains(pack.code);
     final isActive = state.activeLanguageCode == pack.code;
     final isInstalled = state.isInstalled(pack.code);
+    final hasArchive = state.hasVerifiedArchive(pack.code);
     final isDownloading = state.isDownloading(pack.code);
     final progress = state.downloadProgress[pack.code] ?? 0.0;
-    final canDownload = pack.canDownload && !isInstalled && !isDownloading;
+    final canDownload = pack.canDownload && !isInstalled && !hasArchive && !isDownloading;
 
     final String status;
     final Color statusColor;
@@ -154,6 +155,9 @@ class LanguageManagerScreen extends ConsumerWidget {
     } else if (isInstalled) {
       status = 'مثبتة';
       statusColor = const Color(0xFF86EFAC);
+    } else if (hasArchive) {
+      status = 'أرشيف محمّل — لم يُثبّت';
+      statusColor = const Color(0xFFFCD34D);
     } else if (pack.canDownload) {
       status = 'قابلة للتنزيل';
       statusColor = const Color(0xFFFCD34D);
@@ -299,7 +303,7 @@ class LanguageManagerScreen extends ConsumerWidget {
                               'تم اختيار اللغة: ${pack.nativeName}',
                             ),
                   ),
-                if (!isInstalled)
+                if (!isInstalled && !hasArchive)
                   _actionButton(
                     icon: Icons.download_rounded,
                     label: 'تنزيل',
@@ -309,11 +313,11 @@ class LanguageManagerScreen extends ConsumerWidget {
                               () => ref
                                   .read(activeLanguageProvider.notifier)
                                   .downloadPack(pack.code),
-                              'تم حفظ الأرشيف والتحقق من سلامته.',
+                              'تم التحقق من الأرشيف؛ لم يُثبّت المحتوى بعد.',
                             )
                         : null,
                   ),
-                if (isInstalled && !isGerman && !isActive)
+                if (hasArchive && !isGerman && !isActive)
                   _actionButton(
                     icon: Icons.delete_outline_rounded,
                     label: 'حذف',
@@ -388,7 +392,7 @@ class LanguageManagerScreen extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('حذف حزمة اللغة؟'),
         content: Text(
-          'سيُحذف الأرشيف المحلي للغة ${pack.nativeName} لتحرير مساحة التخزين. لا يمكن حذف الألمانية المضمنة.',
+          'سيُحذف الأرشيف المحمّل للغة ${pack.nativeName} فقط. لن تتأثر بيانات التقدم والمراجعة.',
         ),
         actions: [
           TextButton(
@@ -406,7 +410,7 @@ class LanguageManagerScreen extends ConsumerWidget {
     await _runAction(
       context,
       () => ref.read(activeLanguageProvider.notifier).deletePack(pack.code),
-      'تم حذف الأرشيف المحلي.',
+      'تم حذف الأرشيف المحمّل.',
     );
   }
 
