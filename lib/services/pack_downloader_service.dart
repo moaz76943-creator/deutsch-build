@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import '../core/storage/pack_admission_service.dart';
 import '../core/storage/storage_quarantine.dart';
+import 'database_service.dart';
+import 'storage_migration_service.dart';
 
 enum PackDownloadState {
   requested,
@@ -20,6 +22,8 @@ enum PackDownloadState {
 
 /// خدمة إدارة وتثبيت الحزم محلياً أوفلاين بدون استدعاءات شبكة خارجية
 class PackDownloaderService {
+  static final RegExp _validLanguageCode =
+      RegExp(r'^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$');
   static final Map<String, PackDownloadState> _downloadStates = {};
   static final Map<String, StreamSubscription<List<int>>?>
       _activeSubscriptions = {};
@@ -28,14 +32,26 @@ class PackDownloaderService {
   static final Map<String, String> _eTags = {};
   static final Map<String, Completer<bool>> _activeCompleters = {};
 
-  static Future<bool> downloadPack(String languageCode) async {
-    // تحميل محلي وتثبيت فوري من قواعد البيانات الداخلية
-    await Future.delayed(const Duration(milliseconds: 50));
-    return true;
-  }
+  /// This legacy method has neither a URL nor a trusted manifest. Never
+  /// report a fabricated install. Use requestDownload with validated inputs.
+  static Future<bool> downloadPack(String languageCode) async => false;
 
+  /// Only content accepted by the canonical SQLite v2 gate is usable.
+  /// Verified downloaded archives alone are not installed language packs.
   static Future<bool> isPackDownloaded(String languageCode) async {
-    return true;
+    if (!_validLanguageCode.hasMatch(languageCode)) return false;
+    try {
+      if (languageCode != 'de' &&
+          await StorageMigrationService()
+                  .resolvePackPath('$languageCode.sqlite') ==
+              null) {
+        return false;
+      }
+      final db = await DatabaseService.instance.getContentDb(languageCode);
+      return db.isOpen;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Packs this process has marked installed. Attribution fields stay absent
@@ -88,6 +104,11 @@ class PackDownloaderService {
   static Future<bool> requestDownload(
       String languageCode, String url, String expectedHash,
       {http.Client? client}) async {
+    if (!_validLanguageCode.hasMatch(languageCode)) {
+      throw ArgumentError.value(
+        languageCode, 'languageCode', 'Invalid language-pack identifier',
+      );
+    }
     if (_downloadStates[languageCode] == PackDownloadState.requested ||
         _downloadStates[languageCode] == PackDownloadState.downloading ||
         _downloadStates[languageCode] == PackDownloadState.validating) {
