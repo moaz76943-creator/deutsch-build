@@ -48,7 +48,7 @@ void main() {
   test('Empty language ID cannot trigger a download', () async {
     await expectLater(
       PackDownloaderService.requestDownload(
-        '', 'https://example.invalid/pack', '0' * 64,
+        '', 'https://example.invalid/pack', '0000000000000000000000000000000000000000000000000000000000000000',
       ),
       throwsArgumentError,
     );
@@ -59,7 +59,7 @@ void main() {
     const malicious = '../user_progress';
     await expectLater(
       PackDownloaderService.requestDownload(
-        malicious, 'https://example.invalid/pack', '0' * 64,
+        malicious, 'https://example.invalid/pack', '0000000000000000000000000000000000000000000000000000000000000000',
       ),
       throwsArgumentError,
     );
@@ -70,7 +70,7 @@ void main() {
     for (final code in <String>[' fr', 'fr/../de', 'de.sqlite']) {
       await expectLater(
         PackDownloaderService.requestDownload(
-          code, 'https://example.invalid/pack', '0' * 64,
+          code, 'https://example.invalid/pack', '0000000000000000000000000000000000000000000000000000000000000000',
         ),
         throwsArgumentError,
       );
@@ -97,7 +97,7 @@ void main() {
         http.Response.bytes(<int>[1, 2, 3, 4], 200));
 
     final result = await PackDownloaderService.requestDownload(
-      'pl', 'https://example.invalid/pl', '0' * 64, client: client,
+      'pl', 'https://example.invalid/pl', '0000000000000000000000000000000000000000000000000000000000000000', client: client,
     );
     expect(result, isFalse);
     expect(PackDownloaderService.getDownloadState('pl'),
