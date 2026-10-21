@@ -502,11 +502,14 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
       throw StateError('Wait until the download finishes.');
     }
     if (!state.isInstalled(langCode)) {
-      throw StateError('Download and verify the pack before using it.');
+      throw StateError('A verified, installed content pack is required.');
     }
     if (langCode == state.activeLanguageCode) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_activeKey, langCode);
+    final saved = await prefs.setString(_activeKey, langCode);
+    if (!saved) {
+      throw StateError('Could not save the selected language.');
+    }
     if (!mounted) return;
     state = state.copyWith(activeLanguageCode: langCode, clearError: true);
     _ref.invalidate(vocabularyListProvider);
