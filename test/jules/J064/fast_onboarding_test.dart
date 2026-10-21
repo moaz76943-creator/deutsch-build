@@ -110,6 +110,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Rapid retry taps do not launch duplicate progress reads',
+      (WidgetTester tester) async {
+    var reads = 0;
+    final retryResult = Completer<int>();
+
+    await tester.pumpWidget(MaterialApp(
+      home: FastOnboardingScreen(readReviewCount: () {
+        reads++;
+        if (reads == 1) {
+          return Future<int>.error(const FormatException('corrupted progress'));
+        }
+        return retryResult.future;
+      }),
+    ));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('إعادة المحاولة'), findsOneWidget);
+    await tester.tap(find.text('إعادة المحاولة'));
+    await tester.tap(find.text('إعادة المحاولة'));
+    await tester.pump();
+
+    expect(reads, 2);
+    retryResult.complete(0);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(reads, 2);
+    expect(find.byType(OnboardingScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Invalid local progress recovers through the retry button',
       (WidgetTester tester) async {
     var readCalls = 0;
