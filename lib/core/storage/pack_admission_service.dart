@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
@@ -45,11 +46,15 @@ class PackAdmissionService {
         return false;
       }
 
-      // Verify SHA-256
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
+      // Stream the digest in a worker. Large SQLite packs must not be read
+      // into the Flutter UI isolate or buffered as a single Uint8List.
+      final digest = await Isolate.run(
+        () async => (await sha256.bind(
+          File(stagedFile.path).openRead(),
+        ).first).toString(),
+      );
 
-      if (digest.toString() != expectedHash) {
+      if (digest != expectedHash.toLowerCase()) {
         debugPrint("فشل التحقق: Hash غير متطابق.");
         quarantine.isolateCorruptData(
           id: stagedFile.path,
