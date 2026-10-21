@@ -52,7 +52,7 @@ void main() {
       () async {
     final storage = _ArchiveOnlyStorage();
     final container = ProviderContainer(
-      overrides: [languagePackStorageProvider.overrideWithValue(storage)],
+      overrides: [languagePackStorageProvider.overrideWith((ref) => storage)],
     );
     addTearDown(container.dispose);
 
@@ -79,7 +79,7 @@ void main() {
       () async {
     final storage = _ArchiveOnlyStorage();
     final container = ProviderContainer(
-      overrides: [languagePackStorageProvider.overrideWithValue(storage)],
+      overrides: [languagePackStorageProvider.overrideWith((ref) => storage)],
     );
     addTearDown(container.dispose);
 
