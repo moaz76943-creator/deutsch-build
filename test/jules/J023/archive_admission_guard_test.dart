@@ -65,7 +65,10 @@ void main() {
     expect(afterDownload.hasVerifiedArchive('fr'), isTrue);
     expect(afterDownload.isInstalled('fr'), isFalse);
     expect(afterDownload.activeLanguageCode, 'de');
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('language_manager.active_code.v1'), isNull);
     await expectLater(notifier.selectLanguage('fr'), throwsStateError);
+    expect(prefs.getString('language_manager.active_code.v1'), isNull);
 
     // Only a separately validated installer may admit content into the
     // installed set. This test simulates that explicit hand-off.
@@ -73,6 +76,7 @@ void main() {
     expect(container.read(activeLanguageProvider).isInstalled('fr'), isTrue);
     await notifier.selectLanguage('fr');
     expect(container.read(activeLanguageProvider).activeLanguageCode, 'fr');
+    expect(prefs.getString('language_manager.active_code.v1'), 'fr');
   });
 
   test('discarding a downloaded archive does not mark a pack installed',
