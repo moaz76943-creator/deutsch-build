@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
 import 'atomic_database_installer.dart';
+import '../../services/database_service.dart';
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
@@ -21,9 +22,13 @@ class PackAdmissionService {
     required File stagedFile,
     required String expectedHash,
     required String targetPath,
+    required String languageCode,
     bool allowReplacement = false,
   }) async {
     try {
+      if (!RegExp(r'^[a-z]{2,3}$').hasMatch(languageCode)) {
+        return false;
+      }
       if (!await stagedFile.exists()) {
         debugPrint("فشل التحقق: الملف غير موجود.");
         return false;
@@ -66,7 +71,7 @@ class PackAdmissionService {
       }
 
       // Verify SQLite integrity and schema
-      if (!await _verifySqliteIntegrity(stagedFile.path)) {
+      if (!await _verifySqliteIntegrity(stagedFile.path, languageCode)) {
         return false;
       }
 
@@ -86,7 +91,7 @@ class PackAdmissionService {
     }
   }
 
-  Future<bool> _verifySqliteIntegrity(String path) async {
+  Future<bool> _verifySqliteIntegrity(String path, String languageCode) async {
     Database? db;
     try {
       db = await dbFactory.openDatabase(
@@ -127,7 +132,7 @@ class PackAdmissionService {
       // Check schema version
       final userVersion = await db.rawQuery('PRAGMA user_version');
       final version = Sqflite.firstIntValue(userVersion) ?? 0;
-      if (version <= 0) {
+      if (version != 2) {
         debugPrint("فشل التحقق: نسخة المخطط غير صالحة.");
         quarantine.isolateCorruptData(
           id: path,
@@ -150,6 +155,10 @@ class PackAdmissionService {
         return false;
       }
 
+      // Do not publish a SQLite file that the actual content reader rejects.
+      // This shared verifier checks the v2 tables, metadata language identity,
+      // lexicon ownership, FTS5 and foreign-key consistency.
+      await DatabaseService.instance.verifyUniversalSchema(db, languageCode);
       return true;
     } catch (e) {
       debugPrint("فشل التحقق: تعذر قراءة كقاعدة بيانات SQLite - $e");
