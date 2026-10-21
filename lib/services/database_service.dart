@@ -328,9 +328,8 @@ class DatabaseService {
     return located;
   }
 
-  /// Canonical public SQLite v2 admission for immutable content packs.
-  /// Reject unknown schemas rather than attempting destructive migration.
-  @visibleForTesting
+  /// Canonical SQLite v2 admission shared by the pack installer and reader.
+  /// Reject incompatible schemas before replacing last-known-good content.
   Future<void> verifyUniversalSchema(
     Database db,
     String languageCode,
