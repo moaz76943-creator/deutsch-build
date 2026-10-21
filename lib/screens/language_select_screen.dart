@@ -54,7 +54,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'اختر لغتك الأم للبدء في تعلم الألمانية وتفسير القواعد وشروحاتها (100 لغة مدعومة)',
+                  'هذه قائمة باللغات المسجلة، ولا يعني إدراج اللغة اكتمال ترجمة الواجهة أو توفر حزمة معتمدة.',
                   style: AppTypography.body.copyWith(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 13,
@@ -66,7 +66,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                   onChanged: (val) => setState(() => _searchQuery = val),
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'ابحث عن لغتك بين 100 لغة مدعومة...',
+                    hintText: 'ابحث عن لغة مسجلة...',
                     hintStyle:
                         TextStyle(color: Colors.white.withValues(alpha: 0.4)),
                     prefixIcon: const Icon(Icons.search, color: Colors.white70),
