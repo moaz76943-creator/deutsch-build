@@ -40,14 +40,15 @@ class PackDownloaderService {
   /// Verified downloaded archives alone are not installed language packs.
   static Future<bool> isPackDownloaded(String languageCode) async {
     if (!_validLanguageCode.hasMatch(languageCode)) return false;
+    final contentLanguageCode = languageCode.split('-').first.toLowerCase();
     try {
-      if (languageCode != 'de' &&
+      if (contentLanguageCode != 'de' &&
           await StorageMigrationService()
-                  .resolvePackPath('$languageCode.sqlite') ==
+                  .resolvePackPath('$contentLanguageCode.sqlite') ==
               null) {
         return false;
       }
-      final db = await DatabaseService.instance.getContentDb(languageCode);
+      final db = await DatabaseService.instance.getContentDb(contentLanguageCode);
       return db.isOpen;
     } catch (_) {
       return false;
@@ -109,6 +110,7 @@ class PackDownloaderService {
         languageCode, 'languageCode', 'Invalid language-pack identifier',
       );
     }
+    final contentLanguageCode = languageCode.split('-').first.toLowerCase();
     if (_downloadStates[languageCode] == PackDownloadState.requested ||
         _downloadStates[languageCode] == PackDownloadState.downloading ||
         _downloadStates[languageCode] == PackDownloadState.validating) {
@@ -283,7 +285,7 @@ class PackDownloaderService {
       final support = await getApplicationSupportDirectory();
       final packsDir = Directory(path.join(support.path, 'packs'));
       await packsDir.create(recursive: true);
-      final targetPath = path.join(packsDir.path, '$languageCode.sqlite');
+      final targetPath = path.join(packsDir.path, '$contentLanguageCode.sqlite');
       bool isValid = false;
       try {
         final admission = PackAdmissionService(
@@ -294,6 +296,7 @@ class PackDownloaderService {
           stagedFile: file,
           expectedHash: expectedHash,
           targetPath: targetPath,
+          languageCode: contentLanguageCode,
           allowReplacement: true,
         );
       } catch (_) {
