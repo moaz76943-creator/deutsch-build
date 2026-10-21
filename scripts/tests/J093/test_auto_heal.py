@@ -15,6 +15,7 @@ class TestAutoHeal(unittest.TestCase):
         self.ledger_path = os.path.join(self.test_dir, ".scope_guard_ledger.json")
         self.plan_path = os.path.join(self.test_dir, "plan.json")
         self.target_file = os.path.join(self.test_dir, "target.dart")
+        self.failure_ledger_path = os.path.join(self.test_dir, ".auto_heal_failures.json")
 
         with open(self.target_file, 'w') as f:
             f.write("import 'bad_path';\n")
@@ -123,6 +124,33 @@ class TestAutoHeal(unittest.TestCase):
             mock_exit.side_effect = Exception("SystemExit")
             with self.assertRaises(Exception):
                 executor.execute()
+
+    def test_bounded_attempts_failure(self):
+        with open(self.failure_ledger_path, 'w') as f:
+            json.dump({"J093-TEST": 3}, f)
+
+        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor.failure_ledger_path = self.failure_ledger_path
+
+        with self.assertRaises(ValueError) as context:
+            executor.execute()
+        self.assertIn("Max attempts reached", str(context.exception))
+
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_record_failure(self, mock_gate):
+        mock_gate.return_value = False
+        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor.guard.ledger_path = self.ledger_path
+        executor.failure_ledger_path = self.failure_ledger_path
+
+        with self.assertRaises(SystemExit):
+            executor.execute()
+
+        self.assertTrue(os.path.exists(self.failure_ledger_path))
+        with open(self.failure_ledger_path, 'r') as f:
+            failures = json.load(f)
+        self.assertEqual(failures.get("J093-TEST"), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
