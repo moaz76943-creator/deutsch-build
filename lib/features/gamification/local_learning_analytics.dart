@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-<<<<<<< HEAD
 import '../../core/srs_scheduler.dart';
 
 enum AnalyticsWindow { days7, days30, days90 }
@@ -53,7 +52,7 @@ class LocalLearningAnalytics {
     }
 
     final currentUtc = nowUtc ?? DateTime.now().toUtc();
-    final input = {
+    final input = <String, dynamic>{
       'history': history.map((e) => e.toMap()).toList(),
       'windowDays': windowDays,
       'currentUtc': currentUtc.toIso8601String(),
@@ -73,13 +72,16 @@ class LocalLearningAnalytics {
 
   static Map<String, PairMetrics> _aggregateHistory(
       Map<String, dynamic> input) {
-    final List<dynamic> historyMaps = input['history'] ?? [];
-    final int windowDays = input['windowDays'] ?? 30;
-    final DateTime currentUtc = DateTime.parse(input['currentUtc']);
-    final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
+    final historyMaps = input['history'] as List<dynamic>? ?? <dynamic>[];
+    final windowDays = input['windowDays'] as int? ?? 30;
+    final currentUtcStr = input['currentUtc'] as String? ?? '';
+    if (currentUtcStr.isEmpty) return <String, PairMetrics>{};
+
+    final currentUtc = DateTime.parse(currentUtcStr);
+    final threshold = currentUtc.subtract(Duration(days: windowDays));
 
     // Deduplicate by reviewEventId and safely parse
-    final Map<String, Map<String, dynamic>> deduplicated = {};
+    final deduplicated = <String, Map<String, dynamic>>{};
     for (var envMap in historyMaps) {
       if (envMap is! Map) continue;
 
@@ -91,7 +93,7 @@ class LocalLearningAnalytics {
       }
     }
 
-    final Map<String, List<Map<String, dynamic>>> byPair = {};
+    final byPair = <String, List<Map<String, dynamic>>>{};
     for (var envMap in deduplicated.values) {
       final timestampStr = envMap['timestamp'];
       if (timestampStr == null || timestampStr is! String) continue;
@@ -108,20 +110,20 @@ class LocalLearningAnalytics {
         final pairKey = envMap['languagePairKey'];
         if (pairKey == null || pairKey is! String || pairKey.isEmpty) continue;
 
-        byPair.putIfAbsent(pairKey, () => []).add(envMap);
+        byPair.putIfAbsent(pairKey, () => <Map<String, dynamic>>[]).add(envMap);
       }
     }
 
-    final Map<String, PairMetrics> result = {};
+    final result = <String, PairMetrics>{};
     for (var entry in byPair.entries) {
       final pairKey = entry.key;
       final events = entry.value;
 
       int totalReviews = 0;
       int successfulReviews = 0;
-      final Set<String> uniqueCards = {};
-      final Set<String> masteredCards = {};
-      final Map<String, int> dailyReviews = {};
+      final uniqueCards = <String>{};
+      final masteredCards = <String>{};
+      final dailyReviews = <String, int>{};
 
       for (var envMap in events) {
         final ratingRaw = envMap['rating'];
@@ -144,10 +146,9 @@ class LocalLearningAnalytics {
         }
 
         final timestampStr = envMap['timestamp'] as String;
-        final timestamp = DateTime.parse(timestampStr).toUtc();
+        final dt = DateTime.parse(timestampStr).toUtc();
         // Explicitly defined local-day grouping (UTC date part only)
-        final localDayStr =
-            "${timestamp.year.toString().padLeft(4, '0')}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}";
+        final localDayStr = dt.toIso8601String().substring(0, 10);
         dailyReviews[localDayStr] = (dailyReviews[localDayStr] ?? 0) + 1;
       }
 
@@ -184,33 +185,6 @@ class LocalLearningAnalytics {
         return 'وسام المائة بطاقة المتقنة';
       }
     }
-=======
-
-/// محرك تقارير النمو وتحليل بيانات التعلم المحلية
-class LocalLearningAnalytics {
-
-  /// توليد تقرير النمو لآخر 30 يوماً
-  Future<Map<String, dynamic>> generate30DayReport() async {
-    debugPrint("جاري توليد تقرير النمو محلياً...");
-
-    // محاكاة حسابات قواعد البيانات للإتقان
-    return {
-      'mastered_cards': 120,
-      'active_domains': 3,
-      'learning_trend': 'upward',
-      'consistency_score': 85, // من 100
-    };
-  }
-
-  /// التحقق من استحقاق المستخدم لوسام جديد
-  Future<String?> checkNewBadge() async {
-    // منح وسام إذا أتقن المستخدم أكثر من 100 بطاقة فعلياً
-    final report = await generate30DayReport();
-    if (report['mastered_cards'] > 100) {
-      return 'وسام المائة بطاقة المتقنة';
-    }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return null;
   }
 }
- return null;
