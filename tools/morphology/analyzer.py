@@ -27,7 +27,11 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        eval_state = {'count': 0}
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            if eval_state['count'] > analyzer.max_evaluations:
+                return
+            eval_state['count'] += 1
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -69,7 +73,11 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        eval_state = {'count': 0}
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            if eval_state['count'] > analyzer.max_evaluations:
+                return
+            eval_state['count'] += 1
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -129,13 +137,19 @@ class GermanProfile(LanguageProfile):
         if word.endswith("n"):
             stem1 = word[:-1]
             if len(stem1) > 0:
-                for n in analyzer.lookup_nominal_form(stem1):
+                for n in analyzer.lookup_nominal_lemma(stem1):
                     results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                for n in analyzer.lookup_nominal_form(stem1):
+                    if n['number'].lower() == 'pl':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
         if word.endswith("en"):
             stem2 = word[:-2]
             if len(stem2) > 0:
-                for n in analyzer.lookup_nominal_form(stem2):
+                for n in analyzer.lookup_nominal_lemma(stem2):
                     results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                for n in analyzer.lookup_nominal_form(stem2):
+                    if n['number'].lower() == 'pl':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results
 
@@ -147,6 +161,7 @@ class MorphologyAnalyzer:
         self.profile = profile
         self.max_recursion_depth = 4
         self.max_results = 50
+        self.max_evaluations = 100
 
     def close(self):
         for db in self.dbs:
