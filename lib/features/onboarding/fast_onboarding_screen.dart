@@ -19,6 +19,7 @@ class FastOnboardingScreen extends StatefulWidget {
 class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   bool _routed = false;
   bool _hasError = false;
+  bool _isCheckingProgress = false;
 
   @override
   void initState() {
@@ -34,13 +35,14 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
   }
 
   void _retry() {
-    if (!mounted || _routed) return;
+    if (!mounted || _routed || _isCheckingProgress) return;
     setState(() => _hasError = false);
     _checkState();
   }
 
   Future<void> _checkState() async {
-    if (!mounted || _routed) return;
+    if (!mounted || _routed || _isCheckingProgress) return;
+    _isCheckingProgress = true;
     try {
       final count = await (widget.readReviewCount?.call() ??
               _loadReviewCount())
@@ -73,6 +75,8 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _hasError = true);
+    } finally {
+      _isCheckingProgress = false;
     }
   }
 
