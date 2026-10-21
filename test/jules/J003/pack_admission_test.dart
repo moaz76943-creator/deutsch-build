@@ -201,6 +201,46 @@ void main() {
     expect(quarantine.isolatedItems.first.diagnosticReason, 'Invalid schema version');
   });
 
+  test('Orphaned foreign keys reject admission and preserve installed pack',
+      () async {
+    final target = await createValidDatabase('installed_verified.db');
+    final originalHash = await calculateHash(target);
+
+    final orphaned = File('${tempDir.path}/orphaned_candidate.db');
+    final db = await databaseFactoryFfi.openDatabase(orphaned.path);
+    try {
+      await db.execute('PRAGMA foreign_keys = OFF');
+      await db.execute('PRAGMA user_version = 1');
+      await db.execute('CREATE TABLE parent (id INTEGER PRIMARY KEY)');
+      await db.execute(
+        'CREATE TABLE child (id INTEGER PRIMARY KEY, '
+        'parent_id INTEGER NOT NULL REFERENCES parent(id))',
+      );
+      await db.insert('child', {'id': 1, 'parent_id': 999});
+      expect(
+        (await db.rawQuery('PRAGMA integrity_check')).single.values.single,
+        'ok',
+      );
+      expect(await db.rawQuery('PRAGMA foreign_key_check'), isNotEmpty);
+    } finally {
+      await db.close();
+    }
+
+    final result = await admissionService.verifyAndAdmitPack(
+      stagedFile: orphaned,
+      expectedHash: await calculateHash(orphaned),
+      targetPath: target.path,
+      allowReplacement: true,
+    );
+
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems.any(
+      (item) => item.diagnosticReason == 'SQLite foreign key check failed',
+    ), isTrue);
+    expect(await calculateHash(target), originalHash);
+    expect(await File('${target.path}.tmp').exists(), isFalse);
+  });
+
   test('Enforced separation of learner data', () async {
     final stagedDb = await createValidDatabase('staged.db');
     final hash = await calculateHash(stagedDb);

@@ -109,6 +109,21 @@ class PackAdmissionService {
         return false;
       }
 
+      // SQLite integrity_check does not detect orphaned foreign keys.
+      // Reject the candidate before the atomic installer can replace a
+      // previously verified pack or expose inconsistent lexical relations.
+      final foreignKeyViolations =
+          await db.rawQuery('PRAGMA foreign_key_check');
+      if (foreignKeyViolations.isNotEmpty) {
+        debugPrint('فشل التحقق: SQLite foreign_key_check فشل.');
+        quarantine.isolateCorruptData(
+          id: path,
+          rawJson: '{"foreign_key_violations": ${foreignKeyViolations.length}}',
+          reason: 'SQLite foreign key check failed',
+        );
+        return false;
+      }
+
       // Check schema version
       final userVersion = await db.rawQuery('PRAGMA user_version');
       final version = Sqflite.firstIntValue(userVersion) ?? 0;
