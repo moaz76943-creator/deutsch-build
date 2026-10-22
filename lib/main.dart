@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+<<<<<<< HEAD
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Existing local imports
 import 'features/onboarding/fast_onboarding_screen.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
@@ -12,8 +15,7 @@ import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
 
-/// CrashLoopGuard: Protects against repeated crashes that could indicate
-/// tampering, data corruption, or unstable state. Resets after 5 minutes.
+// --- CrashLoopGuard ---
 class CrashLoopGuard {
   static const String _keyCrashCount = 'deutsch_crash_count_v1';
   static const String _keyLastCrash = 'deutsch_last_crash_v1';
@@ -57,17 +59,86 @@ class CrashLoopGuard {
   }
 }
 
-/// Safe mode UI to prevent data leaks or further corruption during recovery.
+// --- SafeModeRecoveryGate ---
 class SafeModeRecoveryGate extends StatelessWidget {
   final VoidCallback onRetry;
   final String? message;
 
   const SafeModeRecoveryGate({super.key, required this.onRetry, this.message});
+=======
+import 'features/onboarding/fast_onboarding_screen.dart';
+
+void main() async {
+  // 1. ضمان استقرار محرك الرسوميات وربط النظام
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 2. تثبيت اتجاه الشاشة وتحسين مظهر شريط الحالة
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // 3. مصيدة الأخطاء الشفافة لحماية التطبيق من الانهيار المفاجئ
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: const Color(0xFF0F172A),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
+                    SizedBox(width: 8),
+                    Text(
+                      "STARTUP ISSUE DETECTED",
+                      style: TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.exceptionAsString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: "monospace"),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.stack.toString(),
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontFamily: "monospace"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
+  // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
+  runApp(
+    const ProviderScope(
+      child: DeutschApp(),
+    ),
+  );
+}
+
+class DeutschApp extends StatelessWidget {
+  const DeutschApp({super.key});
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+<<<<<<< HEAD
       home: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
         body: SafeArea(
@@ -116,20 +187,36 @@ class SafeModeRecoveryGate extends StatelessWidget {
               ],
             ),
           ),
+=======
+      title: 'Deutsch بالعربي',
+      theme: ThemeData(
+        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        fontFamily: 'Cairo',
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF3B82F6),
+          brightness: Brightness.light,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         ),
       ),
+      // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
+      home: const FastOnboardingScreen(),
     );
   }
 }
 
 void main() async {
+  // 1. ضمان استقرار محرك الرسوميات وربط النظام
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 2. تثبيت اتجاه الشاشة وتحسين مظهر شريط الحالة
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // 3. مصيدة الأخطاء الشفافة لحماية التطبيق من الانهيار المفاجئ
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
@@ -173,6 +260,7 @@ void main() async {
     );
   };
 
+  // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
   runApp(const ResilientAppRoot());
 }
 
@@ -204,13 +292,12 @@ class DeutschApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
       ),
+      // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
       home: const FastOnboardingScreen(),
     );
   }
 }
-
-/// Resilient root that runs isolated bootstrap before entering the app.
-/// Enhances security and recovery without blocking the main thread excessively.
+// --- ResilientAppRoot ---
 class ResilientAppRoot extends StatefulWidget {
   const ResilientAppRoot({super.key});
 
@@ -242,13 +329,12 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
         return;
       }
 
-      await guard.recordFailure();
+      await guard.recordFailure(); // Optimistic failure, reset on success
 
+      // 5. Connect the canonical isolated bootstrap pipeline.
       final pipeline = IsolatedBootstrapPipeline([
         _ProductionAcceptanceStep(),
-        _SessionRecoveryStep(prefs),
-        _FeatureRegistryStep(),
-        _LifecycleRegistryStep(),
+        _SessionRecoveryStep(prefs), _FeatureRegistryStep(), _LifecycleRegistryStep(),
       ]);
 
       final results = await pipeline.runPipeline();
@@ -378,6 +464,7 @@ class _FeatureRegistryStep extends BootstrapStep {
   @override
   Future<BootstrapStepResult> execute() async {
     final registry = FeatureCapabilityRegistry.instance;
+    // Register basic features without eager loading all databases
     registry.registerFeature('core_offline', FeatureStatus.ready);
     return const BootstrapStepResult(
       stepName: 'FeatureRegistry',
@@ -392,6 +479,7 @@ class _LifecycleRegistryStep extends BootstrapStep {
 
   @override
   Future<BootstrapStepResult> execute() async {
+    // Ensuring lifecycle registry is initialized
     final lifecycle = RuntimeLifecycleRegistry.instance;
     if (lifecycle.isDisposed) {
       return const BootstrapStepResult(
