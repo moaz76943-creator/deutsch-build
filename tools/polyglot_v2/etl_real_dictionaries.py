@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import concurrent.futures
 import json
 import os
 import shutil
@@ -10,6 +11,7 @@ from create_pack_v2 import build
 SPEC_PATH = 'assets/database/master_100_languages_spec.json'
 PACKS_DIR = Path('assets/content/packs')
 MAX_SIZE = 25 * 1024 * 1024
+MANIFEST_PATH = PACKS_DIR / 'manifest.json'
 
 def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
     v2 = {
@@ -53,10 +55,14 @@ def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
         topic = fields.get('topic', 'General')
         concept_id = topic_to_concept_id[topic]
 
-        # Ensure we have required fields
-        part_of_speech = entry.get('partOfSpeech', 'noun')
-        if not part_of_speech: part_of_speech = 'noun'
-        surface = entry.get('surface', fields.get('german'))
+        # Ensure we have required fields without fabricating
+        part_of_speech = entry.get('partOfSpeech')
+        if not part_of_speech:
+            raise ValueError(f"Missing partOfSpeech in entry {entry.get('id')}")
+
+        surface = entry.get('surface')
+        if not surface:
+            raise ValueError(f"Missing surface in entry {entry.get('id')}")
 
         lemma = surface
         display_text = surface
@@ -106,6 +112,73 @@ def convert_v1_to_v2(lang_code, name_native, name_ar, v1_data):
 
     return v2
 
+def process_language(lang, packs_manifest):
+    code = lang.get('code')
+    if not code:
+        return
+
+    canonical_path = PACKS_DIR / code / "canonical" / f"{code}-1.0.0.json"
+
+    if not canonical_path.exists():
+        print(f"[{code}] SOURCE_MISSING: {canonical_path}")
+        return
+
+    pack_info = packs_manifest.get(code)
+    if not pack_info or pack_info.get('license') != 'CC BY-SA 4.0':
+        print(f"[{code}] LICENSE_BLOCKED: {canonical_path}")
+        return
+
+    try:
+        with open(canonical_path, 'r', encoding='utf-8') as f:
+            v1_data = json.load(f)
+    except Exception as e:
+        print(f"[{code}] INVALID: {canonical_path} - {e}")
+        return
+
+    lexicon = v1_data.get('lexicon', [])
+    if not lexicon:
+        print(f"[{code}] INVALID: No lexicon entries found")
+        return
+
+    print(f"[{code}] Processing {len(lexicon)} entries...")
+    try:
+        v2_data = convert_v1_to_v2(code, lang.get('native', code), lang.get('ar', code), v1_data)
+    except Exception as e:
+        print(f"[{code}] INVALID data conversion: {e}")
+        return
+
+    with tempfile.TemporaryDirectory(prefix='polyglot_factory_') as tmpdir:
+        tmp_json = Path(tmpdir) / f"{code}_v2.json"
+        tmp_json.write_text(json.dumps(v2_data, ensure_ascii=False), encoding='utf-8')
+
+        out_dir = Path(tmpdir) / "out"
+        try:
+            db_gz_path = build(str(tmp_json), str(out_dir))
+        except Exception as e:
+            print(f"[{code}] INVALID build: {e}")
+            return
+
+        size = db_gz_path.stat().st_size
+        if size > MAX_SIZE:
+            print(f"[{code}] INVALID: output size {size} exceeds {MAX_SIZE}")
+            return
+
+        bundle_dir = PACKS_DIR / code / "bundles"
+        bundle_dir.mkdir(parents=True, exist_ok=True)
+
+        dest_db = bundle_dir / f"{code}-1.0.0.pack.gz"
+        dest_sha = bundle_dir / f"{code}-1.0.0.pack.gz.sha256"
+
+        shutil.copy2(db_gz_path, dest_db)
+        shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
+
+        # Remove legacy sqlite schema files created by previous bad runs
+        legacy_sqlite = PACKS_DIR / code / "sqlite" / f"{code}-1.0.0.sqlite"
+        if legacy_sqlite.exists():
+            legacy_sqlite.unlink()
+
+        print(f"[{code}] READY: {dest_db} ({size} bytes)")
+
 def process():
     if not os.path.exists(SPEC_PATH):
         print(f"Error: {SPEC_PATH} not found.")
@@ -114,64 +187,21 @@ def process():
     with open(SPEC_PATH, 'r', encoding='utf-8') as f:
         spec = json.load(f)
 
-    languages = spec.get('languages', [])
-    for lang in languages:
-        code = lang.get('code')
-        if not code:
-            continue
-
-        canonical_path = PACKS_DIR / code / "canonical" / f"{code}-1.0.0.json"
-
-        if not canonical_path.exists():
-            print(f"[{code}] SOURCE_MISSING: {canonical_path}")
-            continue
-
+    packs_manifest = {}
+    if MANIFEST_PATH.exists():
         try:
-            with open(canonical_path, 'r', encoding='utf-8') as f:
-                v1_data = json.load(f)
+            with open(MANIFEST_PATH, 'r', encoding='utf-8') as f:
+                manifest_data = json.load(f)
+                packs_manifest = manifest_data.get('packs', {})
         except Exception as e:
-            print(f"[{code}] INVALID: {canonical_path} - {e}")
-            continue
+            print(f"Error reading manifest: {e}")
 
-        lexicon = v1_data.get('lexicon', [])
-        if not lexicon:
-            print(f"[{code}] INVALID: No lexicon entries found")
-            continue
-
-        print(f"[{code}] Processing {len(lexicon)} entries...")
-        v2_data = convert_v1_to_v2(code, lang.get('native', code), lang.get('ar', code), v1_data)
-
-        with tempfile.TemporaryDirectory(prefix='polyglot_factory_') as tmpdir:
-            tmp_json = Path(tmpdir) / f"{code}_v2.json"
-            tmp_json.write_text(json.dumps(v2_data, ensure_ascii=False), encoding='utf-8')
-
-            out_dir = Path(tmpdir) / "out"
-            try:
-                db_gz_path = build(str(tmp_json), str(out_dir))
-            except Exception as e:
-                print(f"[{code}] INVALID build: {e}")
-                continue
-
-            bundle_dir = PACKS_DIR / code / "bundles"
-            bundle_dir.mkdir(parents=True, exist_ok=True)
-
-            dest_db = bundle_dir / f"{code}-1.0.0.pack.gz"
-            dest_sha = bundle_dir / f"{code}-1.0.0.pack.gz.sha256"
-
-            shutil.copy2(db_gz_path, dest_db)
-            shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
-
-            # Remove legacy sqlite schema files created by previous bad runs
-            legacy_sqlite = PACKS_DIR / code / "sqlite" / f"{code}-1.0.0.sqlite"
-            if legacy_sqlite.exists():
-                legacy_sqlite.unlink()
-
-            size = dest_db.stat().st_size
-            if size > MAX_SIZE:
-                print(f"[{code}] INVALID: output size {size} exceeds {MAX_SIZE}")
-                sys.exit(1)
-
-            print(f"[{code}] READY: {dest_db} ({size} bytes)")
+    languages = spec.get('languages', [])
+    max_workers = min(4, (os.cpu_count() or 1))
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_language, lang, packs_manifest) for lang in languages]
+        for future in concurrent.futures.as_completed(futures):
+            future.result() # re-raise exceptions if any
 
 if __name__ == '__main__':
     process()
