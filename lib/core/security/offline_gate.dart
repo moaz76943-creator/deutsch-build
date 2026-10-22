@@ -10,7 +10,7 @@ class OfflineGate {
   }
 
   static bool authorizeUserDownload(bool explicitConsent) {
-    if (explicitConsent) {
+    if (explicitConsent && strictOfflineEnforced) {
       return true;
     }
     return false;
