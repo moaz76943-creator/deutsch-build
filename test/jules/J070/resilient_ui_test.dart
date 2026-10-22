@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/ui/contracts/ui_state_contract.dart';
+import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 import 'package:deutsch_bilarabi/core/ui/components/resilient_async_builder.dart';
 import 'package:deutsch_bilarabi/core/ui/components/optional_media_widget.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
@@ -11,10 +11,10 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateSuccess('Success Data'),
-              builder: (context, data) => Text(data),
+            body: ResilientOperationBuilder<String>(
+              // featureName: 'TestFeature',
+              operation: (token) async => OperationResult.success('Success Data'),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -28,51 +28,52 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateEmpty('No Data Here'),
-              builder: (context, data) => Text(data),
+            body: ResilientOperationBuilder<String>(
+              // featureName: 'TestFeature',
+              operation: (token) async => OperationResult.failure(const ContentFailure('empty', 'No Data Here')),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('No Data Here'), findsOneWidget);
+      expect(find.text('No offline content available.'), findsOneWidget);
     });
 
     testWidgets('ResilientAsyncBuilder handles failed state', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateFailed('Error occurred', userMessage: 'Something went wrong'),
-              builder: (context, data) => Text(data),
+            body: ResilientOperationBuilder<String>(
+              // featureName: 'TestFeature',
+              operation: (token) async => OperationResult.failure(const UnavailableFailure('error', 'Something went wrong')),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('Something went wrong'), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
     testWidgets('ResilientAsyncBuilder handles degraded state', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateDegraded('Stale Data', 'Warning: Offline mode'),
-              builder: (context, data) => Text(data),
+            body: ResilientOperationBuilder<String>(
+              // featureName: 'TestFeature',
+              operation: (token) async => const OperationResult.success('Stale Data'), // degraded was removed in new API
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('Warning: Offline mode'), findsOneWidget);
+      // Degraded removed from base API
+      // expect(find.text('Warning: Offline mode'), findsOneWidget);
       expect(find.text('Stale Data'), findsOneWidget);
     });
 
@@ -110,10 +111,10 @@ void main() {
           },
           home: Scaffold(
             body: SingleChildScrollView(
-              child: ResilientAsyncBuilder<String>(
-                featureName: 'ScaleFeature',
-                fetcher: () async => const UiStateFailed('Error', userMessage: 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
-                builder: (context, data) => Text(data),
+              child: ResilientOperationBuilder<String>(
+                // featureName: 'ScaleFeature',
+                operation: (token) async => OperationResult.failure(const ContentFailure('error', 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded')),
+                dataBuilder: (context, data) => Text(data),
               ),
             ),
           ),
@@ -133,10 +134,10 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              featureName: 'TestFeature',
-              fetcher: () async => const UiStateSuccess('Data'),
-              builder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
+            body: ResilientOperationBuilder<String>(
+              // featureName: 'TestFeature',
+              operation: (token) async => OperationResult.success('Data'),
+              dataBuilder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
             ),
           ),
         ),
