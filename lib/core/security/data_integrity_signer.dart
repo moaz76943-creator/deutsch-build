@@ -16,7 +16,7 @@ class DataIntegritySigner {
   }
 
   static bool verifyManifest(Map<String, dynamic>? manifest, String? payload) {
-    if (manifest == null || payload == null) return false;
+    if (manifest == null || payload == null || payload.isEmpty) return false;
 
     // Check for required algorithm metadata
     final algorithm = manifest['algorithm'];
@@ -28,7 +28,8 @@ class DataIntegritySigner {
 
     // Check expiration if present
     final expiresAt = manifest['expiresAt'];
-    if (expiresAt != null && expiresAt is int) {
+    if (expiresAt != null) {
+      if (expiresAt is! int) return false;
       final now = DateTime.now().millisecondsSinceEpoch;
       if (now > expiresAt) {
         return false;
