@@ -5,12 +5,14 @@ import tempfile
 import json
 import time
 import threading
+from tools.agent_contract.guard import LOCK_TTL_SECONDS
 
-def run_guard(task_id, base_sha, transition, paths, ledger_path, report_path):
+def run_guard(task_id, base_sha, transition, paths, ledger_path, report_path, result_sha="HEAD"):
     cmd = [
         "python3", "tools/agent_contract/guard.py",
         "--task-id", task_id,
         "--base-sha", base_sha,
+        "--result-sha", result_sha,
         "--transition", transition,
         "--ledger", ledger_path,
         "--report", report_path
@@ -62,6 +64,30 @@ class TestGuardConcurrency(unittest.TestCase):
 
             t1_t2_claims = [k for k, v in ledger.items() if k in ["T1", "T2"] and v.get("state") == "CLAIM"]
             self.assertEqual(len(t1_t2_claims), 1)
+
+
+    def test_crashes_and_stale_lock_recovery(self):
+        # Simulate T1 crash by writing an old timestamp to ledger
+        with open(self.ledger_path, "w") as f:
+            json.dump({
+                "T1": {
+                    "state": "ACTIVE",
+                    "paths": ["AGENTS.md"],
+                    "timestamp": time.time() - LOCK_TTL_SECONDS - 100
+                }
+            }, f)
+
+        # T2 attempts to claim AGENTS.md
+        report_path2 = os.path.join(self.temp_dir.name, "report_T2.json")
+        res, _ = run_guard("T2", "abc", "CLAIM", ["AGENTS.md"], self.ledger_path, report_path2)
+
+        self.assertEqual(res, 0, "T2 should succeed in claiming by recovering the stale lock")
+
+        with open(self.ledger_path, "r") as f:
+            ledger = json.load(f)
+            self.assertEqual(ledger["T1"]["state"], "BLOCKED")
+            self.assertIn("Stale lock recovered", ledger["T1"]["recovery_evidence"])
+            self.assertEqual(ledger["T2"]["state"], "CLAIM")
 
 if __name__ == '__main__':
     unittest.main()
