@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class MultiScriptTypography {
   static const String arabicFallback = 'Cairo'; // using existing Cairo
-  static const String hebrewFallback = 'Noto Sans Hebrew';
-  static const String devanagariFallback = 'Noto Sans Devanagari';
-  static const String ethiopicFallback = 'Noto Sans Ethiopic';
-  static const String scFallback = 'Noto Sans SC';
-  static const String jpFallback = 'Noto Sans JP';
-  static const String krFallback = 'Noto Sans KR';
-  static const String georgianFallback = 'Noto Sans Georgian';
-  static const String armenianFallback = 'Noto Sans Armenian';
+  static const String hebrewFallback = 'NotoSansHebrew';
+  static const String devanagariFallback = 'NotoSansDevanagari';
+  static const String ethiopicFallback = 'NotoSansEthiopic';
+  static const String scFallback = 'NotoSansSC';
+  static const String jpFallback = 'NotoSansJP';
+  static const String krFallback = 'NotoSansKR';
+  static const String georgianFallback = 'NotoSansGeorgian';
+  static const String armenianFallback = 'NotoSansArmenian';
 
   static List<String> getFallbacksForText(String text) {
     final fallbacks = <String>{};
@@ -88,7 +88,7 @@ class ScriptAwareText extends StatelessWidget {
       }
       return buffer.toString();
     }
-    return '';
+    return span.toPlainText();
   }
 
   @override
