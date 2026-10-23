@@ -6,6 +6,7 @@ import 'package:deutsch_bilarabi/services/cefr_classifier.dart';
 
 void main() {
   group('CefrClassifier - Legacy Methods', () {
+
     test('detectLevel returns unknown for all inputs to prevent fake A1 assignments', () {
       expect(CefrClassifier.detectLevel(1, 1), CefrLevel.unknown);
       expect(CefrClassifier.detectLevel(100, 5), CefrLevel.unknown);
@@ -99,6 +100,14 @@ void main() {
       final result = CefrClassifier.classifyWord(evidence);
       expect(result.level, CefrLevel.unknown);
       expect(result.source, EvidenceSource.unsupported);
+    });
+
+    test('Null records do not produce fake A1 assignments', () {
+      const evidence = LexicalEvidence(
+        languageCode: 'en',
+      );
+      final result = CefrClassifier.classifyWord(evidence);
+      expect(result.level, CefrLevel.unknown);
     });
   });
 
