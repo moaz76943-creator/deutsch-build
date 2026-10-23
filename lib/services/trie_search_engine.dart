@@ -1,17 +1,24 @@
+import 'package:characters/characters.dart';
+
 class TrieNode {
   final Map<String, TrieNode> children = {};
   final List<String> wordIds = [];
 }
 
 class TrieSearchEngine {
-  final TrieNode _root = TrieNode();
+  TrieNode _root = TrieNode();
+  int _nodeCount = 1;
 
-  /// تطبيع نصي عالمي يدعم اللاتينية، السلافية، والتشكيل العربي
-  static String normalizeUniversal(String text) {
-    if (text.isEmpty) return text;
-    String res = text.toLowerCase().trim();
+  final String languageCode;
+  final String? directedPairKey;
+  final int maxNodes;
+  final int maxResultsPerNode;
+  final int maxSearchResults;
+  final int maxWordGraphemes;
 
-<<<<<<< HEAD
+  static const int maxInputCodeUnits = 1024;
+  static const int maxIdCodeUnits = 256;
+
   TrieSearchEngine({
     this.languageCode = 'und',
     this.directedPairKey,
@@ -28,31 +35,15 @@ class TrieSearchEngine {
     }
   }
 
-  String normalizeForLanguage(String text, String language) {
-    if (text.isEmpty) return '';
-    final lang = language.split('-').first.toLowerCase();
-    // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
-    // Unicode lowercasing. Prefer exact keys to false cross-lexeme matches.
-    String result = (lang == 'tr' || lang == 'az')
-        ? text.trim()
-        : text.trim().toLowerCase();
-    if (lang == 'de') {
-      result = result
-          .replaceAll('ä', 'ae')
-          .replaceAll('ö', 'oe')
-          .replaceAll('ü', 'ue')
-          .replaceAll('ß', 'ss');
-    } else if (lang == 'ar') {
-      result = result.replaceAll(
-          RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
-    } else if (lang == 'he') {
-      result = result.replaceAll(
-        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
-        '',
-      );
-=======
+  static String _normalize(String text) {
+    if (text.isEmpty) return text;
+    String res = text.trim().toLowerCase();
+
     // إزالة التشكيل العربي
-    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+    res = res.replaceAll(RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
+
+    // إزالة التشكيل العبري
+    res = res.replaceAll(RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'), '');
 
     // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
     final diacritics = {
@@ -71,37 +62,34 @@ class TrieSearchEngine {
     return res;
   }
 
-  // دعم التوافق مع الكود السابق
-  String normalizeGerman(String text) => normalizeUniversal(text);
+  String normalizeForLanguage(String text, String language) {
+    if (text.isEmpty) return '';
+    final lang = language.split('-').first.toLowerCase();
 
-  void insert(String word, String id) {
-    final normalized = normalizeUniversal(word);
-    TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      current = current.children.putIfAbsent(char, () => TrieNode());
-      current.wordIds.add(id);
+    // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
+    // Unicode lowercasing. Prefer exact keys to false cross-lexeme matches.
+    if (lang == 'tr' || lang == 'az') {
+       return text.trim();
     }
-  }
 
-  List<String> searchPrefix(String prefix) {
-    final normalized = normalizeUniversal(prefix);
-    TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      if (!current.children.containsKey(char)) return [];
-      current = current.children[char]!;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    if (lang == 'de') {
+      final expanded = text.trim().toLowerCase()
+          .replaceAll('ä', 'ae')
+          .replaceAll('ö', 'oe')
+          .replaceAll('ü', 'ue')
+          .replaceAll('ß', 'ss');
+      return _normalize(expanded);
     }
-    return current.wordIds.toSet().toList();
+
+    return _normalize(text);
   }
-<<<<<<< HEAD
 
   // Legacy static entrypoints retained; universal no longer means Latin fold.
-  String normalizeUniversal(String text) =>
-      normalizeForLanguage(text, 'und');
-  String normalizeGerman(String text) =>
-      normalizeForLanguage(text, 'de');
+  static String normalizeUniversal(String text) {
+      return _normalize(text);
+  }
+
+  String normalizeGerman(String text) => normalizeForLanguage(text, 'de');
 
   bool matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
@@ -148,7 +136,7 @@ class TrieSearchEngine {
         _nodeCount++;
       }
       current = current.children[unit]!;
-      if (current.wordIds.length < maxResultsPerNode) {
+      if (!current.wordIds.contains(id) && current.wordIds.length < maxResultsPerNode) {
         current.wordIds.add(id);
       }
     }
@@ -184,6 +172,4 @@ class TrieSearchEngine {
   }
 
   int get currentNodeCount => _nodeCount;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
