@@ -80,4 +80,8 @@ flutter {
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'
+    // Enables installation of Baseline Profiles for faster startup (AOT compilation of hot paths).
+    // Typical impact: 15-40% reduction in cold startup time after first install/update.
+    // See https://developer.android.com/topic/performance/baselineprofiles
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
 }
