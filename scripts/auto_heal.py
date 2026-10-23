@@ -69,12 +69,14 @@ class ScopeGuard:
 
 
 class AutoHealExecutor:
-    def __init__(self, plan_path):
+    def __init__(self, plan_path, evidence_path=".auto_heal_evidence.json"):
         self.plan_path = plan_path
+        self.evidence_path = evidence_path
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard()
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
+        self.max_attempts = 3
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -120,15 +122,50 @@ class AutoHealExecutor:
             elif os.path.exists(path):
                 os.remove(path)
 
+    def _read_evidence(self):
+        if not os.path.exists(self.evidence_path):
+            return {}
+        try:
+            with open(self.evidence_path, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            return {}
+
+    def _write_evidence(self, data):
+        with open(self.evidence_path, 'w') as f:
+            json.dump(data, f)
+
+    def _check_and_increment_attempts(self, plan_id):
+        evidence = self._read_evidence()
+        entry = evidence.get(plan_id, {"attempts": 0, "last_error": None})
+        if entry["attempts"] >= self.max_attempts:
+            raise RuntimeError(f"BLOCKED: Max attempts ({self.max_attempts}) reached for {plan_id}.")
+
+        entry["attempts"] += 1
+        evidence[plan_id] = entry
+        self._write_evidence(evidence)
+
+    def _record_error(self, plan_id, error_msg):
+        evidence = self._read_evidence()
+        if plan_id not in evidence:
+            evidence[plan_id] = {"attempts": 1, "last_error": None}
+        evidence[plan_id]["last_error"] = str(error_msg)
+        self._write_evidence(evidence)
+
     def _run_gate(self):
         gate_script = "scripts/verify_contracts.py"
         if not os.path.exists(gate_script):
-            print("BLOCKED: J095 gate or required tools are unavailable.")
+            msg = "BLOCKED: J095 gate or required tools are unavailable."
+            print(msg)
+            plan_id = self.plan.get('plan_id', 'unknown')
+            self._record_error(plan_id, msg)
             return False
         try:
             subprocess.check_call([sys.executable, gate_script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return True
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            plan_id = self.plan.get('plan_id', 'unknown')
+            self._record_error(plan_id, f"Gate failed: {e}")
             return False
 
     def dry_run(self):
@@ -138,7 +175,15 @@ class AutoHealExecutor:
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
     def execute(self):
-        print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
+        plan_id = self.plan.get('plan_id', 'unknown')
+        print(f"Executing plan: {plan_id}")
+
+        try:
+            self._check_and_increment_attempts(plan_id)
+        except RuntimeError as e:
+            print(e)
+            sys.exit(1)
+
         self._verify_base_sha()
         paths = self.plan.get("allowed_paths", [])
 
@@ -168,6 +213,7 @@ class AutoHealExecutor:
 
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
+            self._record_error(plan_id, e)
             self.rollback()
             sys.exit(1)
 
@@ -196,6 +242,9 @@ class AutoHealExecutor:
                 raise FileNotFoundError(f"File {path} not found.")
             with open(path, 'r') as f:
                 content = f.read()
+            count = content.count(op["old_import"])
+            if count != 1:
+                raise ValueError(f"Import replacement failed: '{op['old_import']}' found {count} times (must be exactly 1).")
             content = content.replace(op["old_import"], op["new_import"])
             with open(path, 'w') as f:
                 f.write(content)
@@ -217,8 +266,10 @@ class AutoHealExecutor:
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
+                tmp_path = f"{path}.tmp"
+                with open(tmp_path, 'w') as f:
                     f.write(op.get("content", "regenerated"))
+                os.replace(tmp_path, path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
