@@ -1,8 +1,10 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** October 22, 2026
+**Last updated:** October 23, 2026
 
 **Developer:** moaz76943-creator
+
+**Public URL:** https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
 
 **Contact:** For privacy inquiries, please open an issue on the GitHub repository or contact via the app's feedback mechanism if available.
 
@@ -63,7 +65,7 @@ The app is suitable for general audiences. We do not knowingly collect data from
 
 ## Changes to This Policy
 
-We may update this policy. The latest version will always be available in the app repository and linked from the Play Store listing and within the app (Settings / About).
+We may update this policy. The latest version will always be available at the public URL above, linked from the Play Store listing and within the app (Settings / About).
 
 ## Contact
 
@@ -71,4 +73,4 @@ For questions about this privacy policy or data practices, please contact the de
 
 ---
 
-**This privacy policy is required for Google Play publication, especially due to the RECORD_AUDIO permission. Please link this document (or a hosted version) in the Play Console App content section and display a link inside the app.**
+**This privacy policy is required for Google Play publication, especially due to the RECORD_AUDIO permission. Link the public URL in the Play Console App content section and display a link inside the app.**
