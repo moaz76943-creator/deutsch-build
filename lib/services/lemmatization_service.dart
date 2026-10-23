@@ -4,9 +4,10 @@ import 'database_service.dart';
 
 /// One attested reverse-inflection hit, not a guessed morphological rule.
 class LemmaMatch {
-  const LemmaMatch({required this.lemma, this.lexiconId});
+  const LemmaMatch({required this.lemma, required this.languageCode, this.lexiconId});
 
   final String lemma;
+  final String languageCode;
   final String? lexiconId;
 }
 
@@ -73,6 +74,7 @@ class LemmatizationService {
       );
       return List<LemmaMatch>.unmodifiable(rows.map((row) => LemmaMatch(
             lemma: row['lemma']!.toString(),
+            languageCode: code,
             lexiconId: row['lexicon_id']?.toString(),
           )));
     } on DatabaseException catch (error) {
@@ -98,6 +100,7 @@ class LemmatizationService {
       limit: 2,
     );
     if (matches.isEmpty) return null;
+    // Ambiguous candidates remain distinguishable; we refuse to guess.
     if (matches.length > 1) return null;
     return matches.single.lemma;
   }
@@ -120,9 +123,13 @@ class LemmatizationService {
       languageCode: code,
       limit: maxFallbackLemmas + 1,
     );
+    // Explicitly reject fallback if ambiguous candidates are more than 1
+    // to prevent stale queries crossing boundaries and to keep senses strict.
     if (matches.length != 1) return originals;
+
     final tried = <String>{query.trim().toLowerCase()};
     for (final match in matches) {
+      if (match.languageCode != code) continue; // Prevent crossing active pairs
       final lemma = match.lemma.trim();
       if (lemma.isEmpty || !tried.add(lemma.toLowerCase())) continue;
       final results = await searchDictionary(lemma, code);
