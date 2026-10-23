@@ -13,9 +13,3 @@
 - **State & Architecture:** Clean Architecture Principles, Repository Pattern
 - **Local Storage:** SharedPreferences & JSON
 - **CI/CD:** GitHub Actions Automation
-
-## Privacy & Compliance
-
-This app is designed with privacy in mind (offline-first). See the [Privacy Policy](PRIVACY_POLICY.md) for details required by Google Play (Data safety form, RECORD_AUDIO usage for on-device pronunciation practice, etc.).
-
-**Target SDK:** 36 (meets current Google Play requirements for new apps/updates as of August 31, 2026).
