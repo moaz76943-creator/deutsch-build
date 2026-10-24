@@ -602,7 +602,11 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                           final article = row['article']?.toString().trim();
                           final translation =
                               row['translation_ar']?.toString().trim();
-                          final level = row['cefr_level']?.toString().trim();
+                          final recordedLevel =
+                              row['cefr_level']?.toString().trim();
+                          final level = const <String>{
+                            'A1', 'A2', 'B1', 'B2', 'C1', 'C2'
+                          }.contains(recordedLevel) ? recordedLevel : null;
                           final displayWord = article == null || article.isEmpty
                               ? word
                               : '$article $word';
@@ -620,9 +624,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                                   : translation,
                               textDirection: TextDirection.rtl,
                             ),
-                            trailing: level == null || level.isEmpty
+                            trailing: level == null
                                 ? null
-                                : Text(level),
+                                : Tooltip(
+                                    message: 'تصنيف الحزمة؛ ليس اعتماداً مستقلاً',
+                                    child: Text(level),
+                                  ),
                           );
                         },
                       ),
