@@ -1,3 +1,5 @@
+import 'dart:async';
+
 enum BootstrapStepStatus { success, recoverableFailure, fatalFailure }
 
 class BootstrapStepResult {
@@ -14,10 +16,13 @@ class BootstrapStepResult {
 
 abstract class BootstrapStep {
   String get name;
+  Duration get timeout => const Duration(seconds: 6);
+  bool get isCritical => true;
   Future<BootstrapStepResult> execute();
 }
 
-/// خط إقلاع معزول يمنع ابتلاع الأخطاء ويوثق حالة كل مرحلة في بدء التشغيل
+/// Isolated bootstrap pipeline that prevents error swallowing and documents each startup phase status.
+/// Timeouts protect against hangs; critical steps fail the pipeline, optional ones continue.
 class IsolatedBootstrapPipeline {
   final List<BootstrapStep> steps;
 
@@ -27,11 +32,9 @@ class IsolatedBootstrapPipeline {
     final List<BootstrapStepResult> results = [];
 
     for (final step in steps) {
+      BootstrapStepResult result;
       try {
-<<<<<<< HEAD
-        final received = await step.execute().timeout(
-              step.timeout ?? defaultStepTimeout,
-            );
+        final received = await step.execute().timeout(step.timeout);
         result = BootstrapStepResult(
           stepName: step.name,
           status: !step.isCritical &&
@@ -48,28 +51,17 @@ class IsolatedBootstrapPipeline {
               : BootstrapStepStatus.recoverableFailure,
           message: 'Phase timed out',
         );
-      } catch (_) {
+      } catch (e) {
         result = BootstrapStepResult(
           stepName: step.name,
           status: step.isCritical
               ? BootstrapStepStatus.fatalFailure
               : BootstrapStepStatus.recoverableFailure,
           message: 'Phase failed',
-=======
-        final res = await step.execute();
-        results.add(res);
-        if (res.status == BootstrapStepStatus.fatalFailure) {
-          break;
-        }
-      } catch (e) {
-        results.add(
-          BootstrapStepResult(
-            stepName: step.name,
-            status: BootstrapStepStatus.fatalFailure,
-            message: e.toString(),
-          ),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
         );
+      }
+      results.add(result);
+      if (result.status == BootstrapStepStatus.fatalFailure) {
         break;
       }
     }
