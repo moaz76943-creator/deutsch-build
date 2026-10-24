@@ -582,4 +582,91 @@ void main() {
     expect(find.textContaining('لا توجد ترجمة عربية موثقة لهذا السجل'),
         findsOneWidget);
   });
+
+
+  testWidgets('word detail dialog displays only supplied sense forms and examples',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'article': 'die',
+            'translation_ar': 'أم',
+            'sense_gloss': 'الأم في الأسرة',
+            'forms': <String>['Mütter'],
+            'examples': <String>['Die Mutter liest.'],
+            'part_of_speech': 'noun',
+            'cefr_level': 'A1',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('die Mutter'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsOneWidget);
+    expect(find.text('الأم في الأسرة'), findsOneWidget);
+    expect(find.text('Mütter'), findsOneWidget);
+    expect(find.text('Die Mutter liest.'), findsOneWidget);
+    expect(find.text('تصنيف وارد من الحزمة: A1 (ليس اعتماداً مستقلاً).'),
+        findsOneWidget);
+    expect(tester.widget<Text>(find.text('Mütter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('الأم في الأسرة')).textDirection,
+        TextDirection.rtl);
+
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('die Mutter'), findsOneWidget);
+  });
+
+  testWidgets('word details do not invent unavailable forms or CEFR evidence',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'HOME_LIVING'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Haus',
+            'cefr_level': 'C9',
+            'forms': <String, String>{'invalid': 'not a list'},
+            'examples': <Object>[123],
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('C9'), findsNothing);
+    await tester.tap(find.text('Haus'));
+    await tester.pumpAndSettle();
+    expect(find.text('لا توجد ترجمة عربية متاحة في هذا السجل.'),
+        findsOneWidget);
+    expect(find.text('لا يتوفر شرح معنى في هذا السجل.'),
+        findsOneWidget);
+    expect(find.text('لا تتوفر صيغ موثقة في هذا السجل.'),
+        findsOneWidget);
+    expect(find.text('لا تتوفر أمثلة موثقة في هذا السجل.'),
+        findsOneWidget);
+    expect(find.text('UNKNOWN — لا يوجد تصنيف مستوى معتمد لهذا السجل.'),
+        findsOneWidget);
+    expect(find.textContaining('not a list'), findsNothing);
+    expect(find.text('C9'), findsNothing);
+  });
 }
