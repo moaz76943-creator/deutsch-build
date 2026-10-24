@@ -669,4 +669,94 @@ void main() {
     expect(find.textContaining('not a list'), findsNothing);
     expect(find.text('C9'), findsNothing);
   });
+
+  testWidgets('wrong directed-pair and level rows never reach list or cards',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter', 'language_code': 'de',
+            'target_language_code': 'ar', 'cefr_level': 'A1',
+            'translation_ar': 'أم',
+          },
+          <String, dynamic>{
+            'word': 'Father', 'language_code': 'en',
+            'target_language_code': 'ar', 'cefr_level': 'A1',
+            'translation_ar': 'أب',
+          },
+          <String, dynamic>{
+            'word': 'WrongTarget', 'language_code': 'de',
+            'target_language_code': 'en', 'cefr_level': 'A1',
+            'translation_ar': 'Mother',
+          },
+          <String, dynamic>{
+            'word': 'Verwandtschaft', 'language_code': 'de',
+            'target_language_code': 'ar', 'cefr_level': 'B2',
+            'translation_ar': 'قرابة',
+          },
+          <String, dynamic>{
+            'word': '   ', 'language_code': 'de',
+            'target_language_code': 'ar', 'cefr_level': 'A1',
+            'translation_ar': 'لا ينبغي عرضها',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Father'), findsNothing);
+    expect(find.text('WrongTarget'), findsNothing);
+    expect(find.text('Verwandtschaft'), findsNothing);
+    expect(find.text('لا ينبغي عرضها'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('بطاقة 1 من 1'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+    expect(find.text('أب'), findsNothing);
+    expect(find.text('Mother'), findsNothing);
+  });
+
+  testWidgets('explicit source and translation language mismatch is rejected',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'HOME_LIVING'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'House', 'source_language_code': 'en',
+            'translation_language_code': 'ar', 'translation_ar': 'بيت',
+          },
+          <String, dynamic>{
+            'word': 'Haus', 'source_language_code': 'de',
+            'translation_language_code': 'en', 'translation_ar': 'House',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('House'), findsNothing);
+    expect(find.text('Haus'), findsNothing);
+    expect(find.textContaining('لا توجد مفردات موثقة'), findsOneWidget);
+    expect(find.byKey(const Key('topic-study-toggle')), findsNothing);
+  });
 }
