@@ -324,4 +324,47 @@ void main() {
     expect(find.text('Bus'), findsOneWidget);
   });
 
+
+  testWidgets('changing level clears previous topic search before showing rows',
+      (tester) async {
+    final section = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async => <Map<String, dynamic>>[
+      <String, dynamic>{
+        'word': cefr == 'A1' ? 'Mutter' : 'Verwandtschaft',
+        'translation_ar': cefr == 'A1' ? 'أم' : 'قرابة',
+      },
+    ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Mutter');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'B2',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byKey(const Key('topic-search')))
+        .controller!.text, isEmpty);
+    expect(find.text('Verwandtschaft'), findsOneWidget);
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsNothing);
+  });
+
 }
