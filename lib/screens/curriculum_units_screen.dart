@@ -63,7 +63,7 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   'تظهر الكلمات الموجودة فعلاً في قاعدة البيانات المحلية، '
-                  'دون تقدّم أو مستويات مفترضة. الاتجاه المتاح: الألمانية ← العربية.',
+                  'دون تقدّم أو مستويات مفترضة. الاتجاه المتاح: من الألمانية إلى العربية.',
                   style: TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ),
