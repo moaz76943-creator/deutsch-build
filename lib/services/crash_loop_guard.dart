@@ -75,12 +75,27 @@ class CrashLoopGuard {
   final DateTime Function() _clock;
   bool _safe = false;
   Future<bool>? _beginBootFuture;
+  // Serialize ledger transitions: a delayed boot write must not overwrite a
+  // later stability or recovery acknowledgement.
+  Future<void> _ledgerTail = Future<void>.value();
+
+  Future<T> _serializeLedger<T>(Future<T> Function() action) {
+    final result = _ledgerTail.then((_) => action());
+    // A failed operation must not permanently poison later recovery writes.
+    _ledgerTail = result.then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stack) {},
+    );
+    return result;
+  }
+
   bool get safeModeEnabled => _safe;
 
   // A retry or a second startup boundary in the same process must not be
   // counted as another failed Android launch. Cache the in-flight result too,
   // so simultaneous callers perform exactly one ledger transition.
-  Future<bool> beginBoot() => _beginBootFuture ??= _beginBootOnce();
+  Future<bool> beginBoot() =>
+      _beginBootFuture ??= _serializeLedger(_beginBootOnce);
 
   Future<bool> _beginBootOnce() async {
     try {
@@ -106,32 +121,37 @@ class CrashLoopGuard {
     return _safe;
   }
 
-  Future<void> markStable() async {
-    try {
-      final old = await _store.read();
-      if (old != null) {
+  Future<void> markStable() {
+    // A lifecycle event before beginBoot must never acknowledge a previous
+    // process's unfinished launch as healthy.
+    if (_beginBootFuture == null) return Future<void>.value();
+    return _serializeLedger(() async {
+      try {
+        final old = await _store.read();
+        if (old != null) {
+          await _store.write(<String, dynamic>{
+            ...old,
+            'clean': true,
+            'failures': 0,
+          });
+        }
+      } on FileSystemException {}
+    });
+  }
+
+  Future<void> exitAfterRecovery() => _serializeLedger(() async {
+        final old = await _store.read() ?? <String, dynamic>{};
         await _store.write(<String, dynamic>{
           ...old,
           'clean': true,
           'failures': 0,
+          'safe': false,
         });
-      }
-    } on FileSystemException {}
-  }
-
-  Future<void> exitAfterRecovery() async {
-    final old = await _store.read() ?? <String, dynamic>{};
-    await _store.write(<String, dynamic>{
-      ...old,
-      'clean': true,
-      'failures': 0,
-      'safe': false,
-    });
-    _safe = false;
-    // Recovery is an explicit user action; the next local boot attempt may
-    // re-check the now-clean ledger without retaining the old SAFE result.
-    _beginBootFuture = null;
-  }
+        _safe = false;
+        // Only re-arm after the successful durable recovery write. Pending
+        // stability writes cannot restore an older sticky-safe snapshot.
+        _beginBootFuture = null;
+      });
 }
 
 class SafeModeRecoveryGate extends StatefulWidget {
