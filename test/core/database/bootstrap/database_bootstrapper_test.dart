@@ -46,6 +46,14 @@ List<int> _oneCellPage({int reservedBytes = 0, int cellOffset = 480}) {
   return bytes;
 }
 
+/// SQLite header integers are unsigned, big-endian 32-bit values.
+void _writeHeaderU32(List<int> bytes, int offset, int value) {
+  bytes[offset] = (value >> 24) & 0xff;
+  bytes[offset + 1] = (value >> 16) & 0xff;
+  bytes[offset + 2] = (value >> 8) & 0xff;
+  bytes[offset + 3] = value & 0xff;
+}
+
 void main() {
   late Directory tempDir;
 
@@ -267,6 +275,61 @@ void main() {
     );
     expect(partialResult.isReady, isFalse);
     expect(partialResult.error, contains('truncated or misaligned'));
+  });
+
+  test('rejects whole-page truncation with authoritative SQLite page count',
+      () async {
+    final file = File(tempDir.path + '/missing_last_page.db');
+    final bytes = _sqlitePage();
+    _writeHeaderU32(bytes, 24, 7); // file change counter
+    _writeHeaderU32(bytes, 28, 2); // two committed database pages
+    _writeHeaderU32(bytes, 92, 7); // page count is authoritative
+    // The second 512-byte page is missing, but the file is page-aligned.
+    await file.writeAsBytes(bytes);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isFalse);
+    expect(result.error, contains('page count'));
+    expect(await file.readAsBytes(), bytes); // Never overwrite learner data.
+  });
+
+  test('accepts complete committed page count during structural preflight',
+      () async {
+    final file = File(tempDir.path + '/complete_two_pages.db');
+    final firstPage = _sqlitePage();
+    _writeHeaderU32(firstPage, 24, 7);
+    _writeHeaderU32(firstPage, 28, 2);
+    _writeHeaderU32(firstPage, 92, 7);
+    await file.writeAsBytes(<int>[
+      ...firstPage,
+      ...List<int>.filled(512, 0),
+    ]);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isTrue);
+  });
+
+  test('does not trust stale SQLite page count with mismatched counters',
+      () async {
+    final file = File(tempDir.path + '/stale_page_count.db');
+    final bytes = _sqlitePage();
+    _writeHeaderU32(bytes, 24, 7);
+    _writeHeaderU32(bytes, 28, 2);
+    _writeHeaderU32(bytes, 92, 6); // Header page count is not authoritative.
+    await file.writeAsBytes(bytes);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isTrue);
+    expect(await file.readAsBytes(), bytes);
   });
 
   test('rejects unsupported SQLite format versions', () async {
