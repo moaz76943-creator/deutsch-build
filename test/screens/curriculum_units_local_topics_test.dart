@@ -428,4 +428,157 @@ void main() {
     expect(tester.widget<TextField>(search).textDirection, TextDirection.rtl);
     expect(find.text('بيت'), findsOneWidget);
   });
+
+  testWidgets('practice cards reveal only loaded translation and reset on next',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'article': 'die',
+            'translation_ar': 'أم',
+          },
+          <String, dynamic>{
+            'word': 'Vater',
+            'article': 'der',
+            'translation_ar': 'أب',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('die Mutter'), findsOneWidget);
+    expect(find.text('أم'), findsNothing);
+    expect(find.textContaining('لا يُحفظ التقدم'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('study-source')))
+        .textDirection, TextDirection.ltr);
+
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('study-answer')))
+        .textDirection, TextDirection.rtl);
+
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pump();
+    expect(find.text('der Vater'), findsOneWidget);
+    expect(find.text('أم'), findsNothing);
+    expect(find.text('أب'), findsNothing);
+    expect(find.byKey(const Key('study-reveal')), findsOneWidget);
+  });
+
+  testWidgets('practice cards reset revealed answer when search changes',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+          <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Vater');
+    await tester.pump();
+    expect(find.text('Vater'), findsOneWidget);
+    expect(find.text('أم'), findsNothing);
+    expect(find.text('أب'), findsNothing);
+    expect(find.text('بطاقة 1 من 1'), findsOneWidget);
+    expect(find.byKey(const Key('study-reveal')), findsOneWidget);
+  });
+
+  testWidgets('pair switch removes revealed card and blocks stale content',
+      (tester) async {
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async => <Map<String, dynamic>>[
+      <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+    ];
+    final section = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'en',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pump();
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
+        findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.byKey(const Key('topic-study-toggle')), findsNothing);
+  });
+
+  testWidgets('missing translation is disclosed only after card reveal',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.textContaining('لا توجد ترجمة عربية موثقة لهذا السجل'),
+        findsNothing);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.textContaining('لا توجد ترجمة عربية موثقة لهذا السجل'),
+        findsOneWidget);
+  });
 }

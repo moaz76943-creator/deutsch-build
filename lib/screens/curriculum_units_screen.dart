@@ -182,6 +182,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool _failed = false;
   List<Map<String, dynamic>> _rows = const [];
   String _searchQuery = '';
+  // A read-only practice preview: never mutate SRS or learner progress.
+  bool _studyMode = false;
+  int _cardIndex = 0;
+  bool _showAnswer = false;
   final TextEditingController _searchController = TextEditingController();
 
   // Filter only verified rows returned by the selected directed-pair loader.
@@ -208,6 +212,103 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       return _foldSearch(headword).contains(query) ||
           _foldSearch(translation).contains(query);
     }).toList(growable: false);
+  }
+
+  Widget _buildStudyCard(List<Map<String, dynamic>> rows) {
+    // Search and request epochs reset the index before rows can change.
+    final index = _cardIndex < rows.length ? _cardIndex : 0;
+    final row = rows[index];
+    final word = (row['word'] ?? '').toString().trim();
+    final article = row['article']?.toString().trim();
+    final translation = row['translation_ar']?.toString().trim();
+    final displayWord = word.isEmpty
+        ? 'لا يتوفر نص موثق لهذه المفردة'
+        : article == null || article.isEmpty
+            ? word
+            : '$article $word';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'بطاقة ${index + 1} من ${rows.length}',
+            key: const Key('study-progress'),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'تدريب محلي فقط؛ لا يُحفظ التقدم أو تتغير مراجعات SRS.',
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Text(
+                    displayWord,
+                    key: const Key('study-source'),
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 20),
+                  if (_showAnswer)
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        translation == null || translation.isEmpty
+                            ? 'لا توجد ترجمة عربية موثقة لهذا السجل.'
+                            : translation,
+                        key: const Key('study-answer'),
+                        textDirection: TextDirection.rtl,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    FilledButton(
+                      key: const Key('study-reveal'),
+                      onPressed: () => setState(() => _showAnswer = true),
+                      child: const Text('إظهار الترجمة'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              OutlinedButton(
+                key: const Key('study-previous'),
+                onPressed: index == 0
+                    ? null
+                    : () => setState(() {
+                          _cardIndex = index - 1;
+                          _showAnswer = false;
+                        }),
+                child: const Text('السابق'),
+              ),
+              OutlinedButton(
+                key: const Key('study-next'),
+                onPressed: index + 1 >= rows.length
+                    ? null
+                    : () => setState(() {
+                          _cardIndex = index + 1;
+                          _showAnswer = false;
+                        }),
+                child: const Text('التالي'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -250,12 +351,19 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         _rows = const [];
         _loading = false;
         _failed = false;
+        _studyMode = false;
+        _cardIndex = 0;
+        _showAnswer = false;
       });
       return;
     }
     setState(() {
       _loading = true;
       _failed = false;
+      _rows = const [];
+      _studyMode = false;
+      _cardIndex = 0;
+      _showAnswer = false;
     });
     try {
       final loader = widget.loadWords ?? LocalTopicCatalog.loadSection;
@@ -287,6 +395,22 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('${widget.section.title} — ${widget.cefr}'),
+          actions: [
+            if (_supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty)
+              TextButton.icon(
+                key: const Key('topic-study-toggle'),
+                onPressed: () => setState(() {
+                  _studyMode = !_studyMode;
+                  _cardIndex = 0;
+                  _showAnswer = false;
+                }),
+                icon: Icon(_studyMode ? Icons.list : Icons.style_outlined),
+                label: Text(_studyMode ? 'قائمة المفردات' : 'بطاقات تدريب'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+          ],
           bottom: _supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty
               ? PreferredSize(
                   preferredSize: const Size.fromHeight(76),
@@ -295,7 +419,11 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                     child: TextField(
                       key: const Key('topic-search'),
                       controller: _searchController,
-                      onChanged: (value) => setState(() => _searchQuery = value),
+                      onChanged: (value) => setState(() {
+                        _searchQuery = value;
+                        _cardIndex = 0;
+                        _showAnswer = false;
+                      }),
                       textInputAction: TextInputAction.search,
                       // Keep the caret and entered text in the script's
                       // direction; the surrounding Arabic UI stays RTL.
@@ -370,7 +498,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                               ),
                             ),
                           )
-                        : ListView.separated(
+                        : _studyMode
+                            ? _buildStudyCard(matchingRows)
+                            : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: matchingRows.length,
                         separatorBuilder: (_, __) =>
