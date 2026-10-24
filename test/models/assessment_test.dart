@@ -27,6 +27,12 @@ void main() {
       expect(assessmentNormalize(' hello \t world \n '), 'hello world');
     });
 
+    test('preserves internal apostrophes and combines whitespace and punctuation', () {
+      expect(assessmentNormalize("what's up?"), "what's up");
+      expect(assessmentNormalize('  HELLO \t\n WORLD.!?  '), 'hello world');
+      expect(assessmentNormalize(' .!? '), '');
+    });
+
     test('handles empty strings', () {
       expect(assessmentNormalize(''), '');
     });
