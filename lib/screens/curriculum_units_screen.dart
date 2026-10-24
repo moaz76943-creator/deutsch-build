@@ -181,6 +181,26 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool _loading = true;
   bool _failed = false;
   List<Map<String, dynamic>> _rows = const [];
+  String _searchQuery = '';
+
+  // Filter only verified rows returned by the selected directed-pair loader.
+  // Arabic vowel marks/tatweel and German sharp-s should not block lookup.
+  static String _foldSearch(String value) => value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[\u0640\u064B-\u065F\u0670]'), '')
+      .replaceAll('ß', 'ss');
+
+  List<Map<String, dynamic>> _matchingRows() {
+    final query = _foldSearch(_searchQuery);
+    if (query.isEmpty) return _rows;
+    return _rows.where((row) {
+      final headword = "${row['article'] ?? ''} ${row['word'] ?? ''}";
+      final translation = row['translation_ar']?.toString() ?? '';
+      return _foldSearch(headword).contains(query) ||
+          _foldSearch(translation).contains(query);
+    }).toList(growable: false);
+  }
 
   @override
   void initState() {
@@ -250,10 +270,33 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final matchingRows = _matchingRows();
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: Text('${widget.section.title} — ${widget.cefr}')),
+        appBar: AppBar(
+          title: Text('${widget.section.title} — ${widget.cefr}'),
+          bottom: _supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(76),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: TextField(
+                      key: const Key('topic-search'),
+                      onChanged: (value) => setState(() => _searchQuery = value),
+                      textInputAction: TextInputAction.search,
+                      decoration: const InputDecoration(
+                        labelText: 'ابحث بالكلمة أو الترجمة',
+                        prefixIcon: Icon(Icons.search),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+        ),
         body: !_supportsDirectedPair
             ? const Center(
                 child: Padding(
@@ -296,13 +339,23 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                           ),
                         ),
                       )
-                    : ListView.separated(
+                    : matchingRows.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Text(
+                                'لا توجد نتائج مطابقة. غيّر عبارة البحث لعرض المفردات المتوفرة.',
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
                         padding: const EdgeInsets.all(16),
-                        itemCount: _rows.length,
+                        itemCount: matchingRows.length,
                         separatorBuilder: (_, __) =>
                             const Divider(height: 1),
                         itemBuilder: (context, index) {
-                          final row = _rows[index];
+                          final row = matchingRows[index];
                           final word = (row['word'] ?? '').toString();
                           final article = row['article']?.toString().trim();
                           final translation =
