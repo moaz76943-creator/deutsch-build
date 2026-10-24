@@ -60,6 +60,76 @@ void main() {
     expect(await staged.exists(), isTrue);
   });
 
+  test('staged symlink to old archive cannot destroy last-known-good',
+      () async {
+    if (Platform.isWindows) return; // Android/POSIX rename regression.
+    final target = await targetWithOldPack();
+    final staged = Link('${root.path}/stage.pack.gz');
+    await staged.create(target.path);
+    final oldBytes = await target.readAsBytes();
+
+    await expectLater(
+      storage.promoteVerifiedArchive(
+        stagedFile: File(staged.path),
+        targetFile: target,
+        expectedSize: oldBytes.length,
+        expectedHash: sha256.convert(oldBytes).toString(),
+      ),
+      throwsFormatException,
+    );
+    expect(await target.readAsBytes(), oldBytes);
+    expect(await staged.exists(), isTrue);
+  });
+
+  test('symlinked destination cannot be treated as a managed archive',
+      () async {
+    if (Platform.isWindows) return;
+    final outside = File('${root.path}/unmanaged.db');
+    final original = <int>[4, 3, 2, 1];
+    await outside.writeAsBytes(original);
+    final target = File('${root.path}/ar.pack.gz');
+    await Link(target.path).create(outside.path);
+    final staged = File('${root.path}/staged.pack.gz');
+    final bytes = <int>[9, 8, 7];
+    await staged.writeAsBytes(bytes);
+
+    await expectLater(
+      storage.promoteVerifiedArchive(
+        stagedFile: staged,
+        targetFile: target,
+        expectedSize: bytes.length,
+        expectedHash: sha256.convert(bytes).toString(),
+      ),
+      throwsFormatException,
+    );
+    expect(await outside.readAsBytes(), original);
+    expect(await Link(target.path).exists(), isTrue);
+    expect(await staged.readAsBytes(), bytes);
+  });
+
+  test('symlinked staging parent cannot bypass archive path guard', () async {
+    if (Platform.isWindows) return;
+    final target = await targetWithOldPack();
+    final actual = await root.createTemp('real-stage-');
+    final bytes = <int>[9, 8, 7];
+    await File('${actual.path}/ar.pack.gz').writeAsBytes(bytes);
+    final alias = Link('${root.path}/alias-stage');
+    await alias.create(actual.path);
+    final staged = File('${alias.path}/ar.pack.gz');
+
+    await expectLater(
+      storage.promoteVerifiedArchive(
+        stagedFile: staged,
+        targetFile: target,
+        expectedSize: bytes.length,
+        expectedHash: sha256.convert(bytes).toString(),
+      ),
+      throwsFormatException,
+    );
+    expect(await target.readAsBytes(), <int>[1, 2, 3, 4]);
+    expect(await File('${actual.path}/ar.pack.gz').readAsBytes(), bytes);
+  });
+
   test('short download cannot replace last-known-good archive', () async {
     final target = await targetWithOldPack();
     final staged = File('${root.path}/short.pack.gz');

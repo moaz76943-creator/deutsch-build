@@ -264,11 +264,25 @@ class LanguagePackStorage {
     }
   }
 
+  // A symlink can make a checksum read refer to a different file than the
+  // archive that rename() will replace. In particular, promoting a staged
+  // symlink to the destination itself destroys the last-known-good archive.
+  // Reject links at both the archive and its immediate managed directory.
+  static Future<bool> _hasArchiveSymlink(File file) async {
+    final fileType =
+        await FileSystemEntity.type(file.path, followLinks: false);
+    final parentType =
+        await FileSystemEntity.type(file.parent.path, followLinks: false);
+    return fileType == FileSystemEntityType.link ||
+        parentType == FileSystemEntityType.link;
+  }
+
   Future<Set<String>> findInstalled(List<LanguagePackMetadata> packs) async {
     final installed = <String>{'de'};
     for (final pack in packs) {
       if (pack.code == 'de' || pack.sizeBytes == null) continue;
       final file = await _packFile(pack.code);
+      if (await _hasArchiveSymlink(file)) continue;
       if (await file.exists() &&
           await file.length() == pack.sizeBytes &&
           pack.sha256Hex != null &&
@@ -288,6 +302,9 @@ class LanguagePackStorage {
     final directory = await _directory;
     await directory.create(recursive: true);
     final target = await _packFile(pack.code);
+    if (await _hasArchiveSymlink(target)) {
+      throw const FormatException('Archive target is a symbolic link.');
+    }
     final expectedHash = pack.sha256Hex!.toLowerCase();
 
     // Re-verify a cached file before considering it a successful download.
@@ -369,6 +386,10 @@ class LanguagePackStorage {
         !LanguagePackMetadata._safeDigest.hasMatch(expectedHash) ||
         !targetFile.path.endsWith('.pack.gz')) {
       throw const FormatException('Invalid archive promotion metadata.');
+    }
+    if (await _hasArchiveSymlink(stagedFile) ||
+        await _hasArchiveSymlink(targetFile)) {
+      throw const FormatException('Archive path is a symbolic link.');
     }
     if (await stagedFile.length() != expectedSize) {
       throw const FormatException('Pack size does not match the manifest.');
