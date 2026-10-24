@@ -74,6 +74,8 @@ class CrashLoopGuard {
   final BootLedgerStore _store;
   final DateTime Function() _clock;
   bool _safe = false;
+  // A failed filesystem write is not a recorded launch. Do not acknowledge it.
+  bool _bootLedgerRecorded = false;
   Future<bool>? _beginBootFuture;
   // Serialize ledger transitions: a delayed boot write must not overwrite a
   // later stability or recovery acknowledgement.
@@ -94,12 +96,30 @@ class CrashLoopGuard {
   // A retry or a second startup boundary in the same process must not be
   // counted as another failed Android launch. Cache the in-flight result too,
   // so simultaneous callers perform exactly one ledger transition.
-  Future<bool> beginBoot() =>
-      _beginBootFuture ??= _serializeLedger(_beginBootOnce);
+  Future<bool> beginBoot() {
+    final cached = _beginBootFuture;
+    if (cached != null) return cached;
+
+    late final Future<bool> attempt;
+    attempt = _serializeLedger(_beginBootOnce).then(
+      (value) => value,
+      onError: (Object error, StackTrace stack) {
+        // A transient filesystem outage must not permanently memoize an
+        // unrecorded launch. Concurrent callers still share this attempt.
+        if (identical(_beginBootFuture, attempt)) {
+          _beginBootFuture = null;
+        }
+        if (error is FileSystemException) return _safe;
+        Error.throwWithStackTrace(error, stack);
+      },
+    );
+    _beginBootFuture = attempt;
+    return attempt;
+  }
 
   Future<bool> _beginBootOnce() async {
-    try {
-      final old = await _store.read() ?? <String, dynamic>{};
+    _bootLedgerRecorded = false;
+    final old = await _store.read() ?? <String, dynamic>{};
       final now = _clock().toUtc().millisecondsSinceEpoch;
       final previous = old['started'];
       final rapid =
@@ -115,9 +135,7 @@ class CrashLoopGuard {
         'failures': failures,
         'safe': _safe,
       });
-    } on FileSystemException {
-      // Do not introduce a new boot-blocking error on storage failures.
-    }
+    _bootLedgerRecorded = true;
     return _safe;
   }
 
@@ -126,6 +144,8 @@ class CrashLoopGuard {
     // process's unfinished launch as healthy.
     if (_beginBootFuture == null) return Future<void>.value();
     return _serializeLedger(() async {
+      // beginBoot may have failed to persist while this ACK was queued.
+      if (!_bootLedgerRecorded) return;
       try {
         final old = await _store.read();
         if (old != null) {
@@ -148,6 +168,7 @@ class CrashLoopGuard {
           'safe': false,
         });
         _safe = false;
+        _bootLedgerRecorded = false;
         // Only re-arm after the successful durable recovery write. Pending
         // stability writes cannot restore an older sticky-safe snapshot.
         _beginBootFuture = null;
