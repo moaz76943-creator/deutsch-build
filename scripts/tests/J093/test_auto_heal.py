@@ -196,9 +196,9 @@ class TestAutoHeal(unittest.TestCase):
         executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         with open(self.target_file, 'rb') as f:
             before = f.read()
-        real_exists = os.path.exists
-        with patch('auto_heal.os.path.exists',
-                   side_effect=lambda path: False if path == "tools/language_pack_sqlite.py" else real_exists(path)):
+        real_isfile = os.path.isfile
+        with patch('auto_heal.os.path.isfile',
+                   side_effect=lambda path: False if path == "tools/language_pack_sqlite.py" else real_isfile(path)):
             with self.assertRaisesRegex(FileNotFoundError, "FTS5 builder"):
                 executor._apply_operation({"type": "rebuild_fts5", "path": self.target_file})
         with open(self.target_file, 'rb') as f:
