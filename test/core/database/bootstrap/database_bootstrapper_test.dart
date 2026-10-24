@@ -111,7 +111,8 @@ void main() {
 
   test('rejects a non-table B-tree root on page one', () async {
     final file = File(tempDir.path + '/invalid_root.db');
-    final bytes = List<int>.from(_sqlitePage())..[100] = 0x02;
+    final bytes = List<int>.from(_sqlitePage());
+    bytes[100] = 0x02;
     await file.writeAsBytes(bytes);
 
     final result = await DatabaseBootstrapper.verifyAndPrepare(
