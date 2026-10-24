@@ -1020,4 +1020,81 @@ void main() {
     expect(find.text('قرابة'), findsOneWidget);
   });
 
+  testWidgets('topic search finds verified inflections, senses and examples',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'sense_gloss': 'والدة الطفل',
+            'forms': <String>['Mütter'],
+            'examples': <String>['Die Mutter liest.'],
+          },
+          <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    await tester.enterText(search, 'Muetter');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Vater'), findsNothing);
+
+    await tester.enterText(search, 'والدة');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Vater'), findsNothing);
+
+    await tester.enterText(search, 'liest');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Vater'), findsNothing);
+  });
+
+  testWidgets('malformed optional search metadata never becomes a match',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'sense_gloss': <String, String>{'gloss': 'ghostneedle'},
+            'forms': <Object>[42, <String, String>{'form': 'ghostneedle'}],
+            'examples': 'ghostneedle',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    await tester.enterText(search, 'ghostneedle');
+    await tester.pump();
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+
+    await tester.enterText(search, 'Mutter');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+  });
+
 }

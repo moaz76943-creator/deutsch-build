@@ -237,14 +237,28 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .replaceAll('ü', 'ue')
       .replaceAll('ß', 'ss');
 
+  // A form or example is searchable only when the selected, verified row
+  // actually supplies a string. Bound optional arrays to keep malformed or
+  // oversized future adapters from turning a 50-row search into a UI stall.
+  static bool _listContainsSearch(Object? value, String query) {
+    if (value is! List) return false;
+    return value.take(32).whereType<String>().any(
+          (text) => _foldSearch(text).contains(query),
+        );
+  }
+
   List<Map<String, dynamic>> _matchingRows() {
     final query = _foldSearch(_searchQuery);
     if (query.isEmpty) return _rows;
     return _rows.where((row) {
       final headword = "${_safeText(row['article']) ?? ''} ${_safeText(row['word']) ?? ''}";
       final translation = _safeText(row['translation_ar']) ?? '';
+      final sense = _safeText(row['sense_gloss']);
       return _foldSearch(headword).contains(query) ||
-          _foldSearch(translation).contains(query);
+          _foldSearch(translation).contains(query) ||
+          (sense != null && _foldSearch(sense).contains(query)) ||
+          _listContainsSearch(row['forms'], query) ||
+          _listContainsSearch(row['examples'], query);
     }).toList(growable: false);
   }
 
