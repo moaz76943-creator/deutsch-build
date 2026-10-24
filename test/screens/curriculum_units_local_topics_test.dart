@@ -193,8 +193,8 @@ void main() {
       home: TopicWordsScreen(
         section: section,
         cefr: 'A1',
-        languageCode: 'ar',
-        targetLanguageCode: 'de',
+        languageCode: 'de',
+        targetLanguageCode: 'en',
         loadWords: loader,
       ),
     ));
