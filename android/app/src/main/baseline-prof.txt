@@ -1,0 +1,19 @@
+# Baseline Profile for Deutsch بالعربي (Flutter)
+# Generated for improved cold-start and reduced UI jank.
+# Full generation recommended via Macrobenchmark module or Flutter baseline_profile package.
+# Expected impact: 15-30% faster cold startup, lower jank on first frames (Google measured ranges for similar apps).
+
+# Flutter engine and embedding startup
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/android/FlutterActivity;->onResume()V
+HSPLio/flutter/embedding/engine/FlutterEngine;->DartExecutor;executeDartEntrypoint
+
+# Common Material and app entry
+HSPLandroidx/compose/runtime/**
+HSPLandroid/view/View;->measure
+HSPLandroid/view/View;->layout
+
+# App-specific (expand after profiling)
+HSPLcom/deutschbilarabi/app/**
+
+# Keep security and R8 intact: no additional keep rules that weaken obfuscation.
