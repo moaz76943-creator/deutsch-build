@@ -555,7 +555,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
           value.trim().toLowerCase() == expected.toLowerCase();
     }
 
-    if (!matchesWhenDeclared('language_code', widget.languageCode) ||
+    // A future topic adapter may return rows for multiple sections.
+    // Reject an explicitly different section before it reaches list, search,
+    // cards or detail sheets. Legacy bundled rows omit this field and remain
+    // accepted because the query itself is scoped by sectionId.
+    if (!matchesWhenDeclared('section_id', widget.section.id) ||
+        !matchesWhenDeclared('language_code', widget.languageCode) ||
         !matchesWhenDeclared('source_language_code', widget.languageCode) ||
         !matchesWhenDeclared('target_language_code', widget.targetLanguageCode) ||
         !matchesWhenDeclared(
