@@ -504,7 +504,8 @@ void main() {
 
     await tester.enterText(find.byKey(const Key('topic-search')), 'Vater');
     await tester.pump();
-    expect(find.text('Vater'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('study-source'))).data,
+        'Vater');
     expect(find.text('أم'), findsNothing);
     expect(find.text('أب'), findsNothing);
     expect(find.text('بطاقة 1 من 1'), findsOneWidget);

@@ -397,18 +397,16 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
           title: Text('${widget.section.title} — ${widget.cefr}'),
           actions: [
             if (_supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty)
-              TextButton.icon(
+              IconButton(
                 key: const Key('topic-study-toggle'),
+                tooltip: _studyMode ? 'عرض قائمة المفردات' : 'التدرب بالبطاقات',
                 onPressed: () => setState(() {
                   _studyMode = !_studyMode;
                   _cardIndex = 0;
                   _showAnswer = false;
                 }),
                 icon: Icon(_studyMode ? Icons.list : Icons.style_outlined),
-                label: Text(_studyMode ? 'قائمة المفردات' : 'بطاقات تدريب'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                ),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
           ],
           bottom: _supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty
