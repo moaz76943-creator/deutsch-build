@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -294,7 +295,10 @@ class LanguagePackStorage {
       }
     }
 
-    final temporary = File('${target.path}.partial');
+    // Stage in a unique directory on the target filesystem so concurrent
+    // downloads never share or clean up another download's partial file.
+    final stagingDirectory = await directory.createTemp('.${pack.code}-');
+    final temporary = File('${stagingDirectory.path}/${pack.code}.pack.gz');
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 12);
     try {
@@ -318,25 +322,56 @@ class LanguagePackStorage {
                 'Pack is larger than its manifest size.');
           }
           writer.add(chunk);
-          onProgress((received / pack.sizeBytes!).clamp(0.0, 1.0));
+          // 100% is reserved for a hash-verified, promoted archive.
+          onProgress((received / pack.sizeBytes!).clamp(0.0, 0.99).toDouble());
         }
         await writer.flush();
       } finally {
         await writer.close();
       }
-      if (received != pack.sizeBytes) {
-        throw const FormatException('Pack size does not match the manifest.');
-      }
-      if (await _fileDigest(temporary.path) != expectedHash) {
-        throw const FormatException('Pack checksum verification failed.');
-      }
-      if (await target.exists()) await target.delete();
-      await temporary.rename(target.path);
+      await promoteVerifiedArchive(
+        stagedFile: temporary,
+        targetFile: target,
+        expectedSize: pack.sizeBytes!,
+        expectedHash: expectedHash,
+      );
       onProgress(1);
     } finally {
       client.close(force: true);
-      if (await temporary.exists()) await temporary.delete();
+      // Cleanup is scoped to this operation's unique staging directory.
+      // Never delete the existing installed archive during error recovery.
+      try {
+        if (await stagingDirectory.exists()) {
+          await stagingDirectory.delete(recursive: true);
+        }
+      } on FileSystemException {
+        // A cleanup error cannot invalidate an already committed archive.
+      }
     }
+  }
+
+  /// Promote only fully downloaded, hash-verified bytes. Android/POSIX rename
+  /// atomically replaces the destination without a delete-before-rename gap.
+  /// If validation or rename fails, the old archive remains untouched.
+  @visibleForTesting
+  Future<void> promoteVerifiedArchive({
+    required File stagedFile,
+    required File targetFile,
+    required int expectedSize,
+    required String expectedHash,
+  }) async {
+    if (expectedSize <= 0 ||
+        !LanguagePackMetadata._safeDigest.hasMatch(expectedHash) ||
+        !targetFile.path.endsWith('.pack.gz')) {
+      throw const FormatException('Invalid archive promotion metadata.');
+    }
+    if (await stagedFile.length() != expectedSize) {
+      throw const FormatException('Pack size does not match the manifest.');
+    }
+    if (await _fileDigest(stagedFile.path) != expectedHash.toLowerCase()) {
+      throw const FormatException('Pack checksum verification failed.');
+    }
+    await stagedFile.rename(targetFile.path);
   }
 
   Future<void> delete(String code) async {
