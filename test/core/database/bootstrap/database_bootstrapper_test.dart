@@ -90,6 +90,36 @@ void main() {
     expect(result.error, isNull);
   });
 
+  test('rejects a padded SQLite signature without a page-one B-tree', () async {
+    final file = File(tempDir.path + '/padded_magic.db');
+    final bytes = List<int>.from(_sqlitePage());
+    // Page one must contain a table B-tree at byte offset 100.
+    // A padded magic string is not a usable SQLite database.
+    bytes[100] = 0;
+    await file.writeAsBytes(bytes);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isFalse);
+    expect(result.error, contains('B-tree'));
+    expect(await file.readAsBytes(), bytes);
+  });
+
+  test('rejects a non-table B-tree root on page one', () async {
+    final file = File(tempDir.path + '/invalid_root.db');
+    final bytes = List<int>.from(_sqlitePage())..[100] = 0x02;
+    await file.writeAsBytes(bytes);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isFalse);
+    expect(result.error, contains('B-tree'));
+  });
+
   test('supports the SQLite 65536-byte page-size encoding', () async {
     final file = File(tempDir.path + '/large_page.db');
     await file.writeAsBytes(_sqlitePage(pageSize: 65536));
