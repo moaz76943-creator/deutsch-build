@@ -5,11 +5,21 @@ on:
     branches:
       - main
       - staging/v2-full-platform
+    paths-ignore:
+      - 'docs/**'
+      - 'reports/**'
+      - 'tools/agents/state/**'
+      - 'README.md'
   workflow_dispatch:
+
+concurrency:
+  group: ci-integrity-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify-project:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: تحميل المستودع (Checkout)
         uses: actions/checkout@v4
