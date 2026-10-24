@@ -290,9 +290,11 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                       controller: _searchController,
                       onChanged: (value) => setState(() => _searchQuery = value),
                       textInputAction: TextInputAction.search,
+                      style: const TextStyle(color: Colors.black87),
                       decoration: const InputDecoration(
                         labelText: 'ابحث بالكلمة أو الترجمة',
-                        prefixIcon: Icon(Icons.search),
+                        labelStyle: TextStyle(color: Colors.black54),
+                        prefixIcon: Icon(Icons.search, color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(),
