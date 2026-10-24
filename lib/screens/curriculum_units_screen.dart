@@ -690,13 +690,28 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                           ? TextDirection.rtl
                           : TextDirection.ltr,
                       style: const TextStyle(color: Colors.black87),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'ابحث بالكلمة أو الترجمة',
-                        labelStyle: TextStyle(color: Colors.black54),
-                        prefixIcon: Icon(Icons.search, color: Colors.black54),
+                        labelStyle: const TextStyle(color: Colors.black54),
+                        prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                        // A one-tap reset matters on narrow phones, especially
+                        // after an empty result or while practicing a card.
+                        suffixIcon: _searchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                key: const Key('topic-search-clear'),
+                                tooltip: 'مسح البحث وإظهار المفردات',
+                                icon: const Icon(Icons.clear, color: Colors.black54),
+                                onPressed: () => setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                  _cardIndex = 0;
+                                  _resetCardAnswer();
+                                }),
+                              ),
                         filled: true,
                         fillColor: Colors.white,
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ),
@@ -750,7 +765,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                             child: Padding(
                               padding: EdgeInsets.all(24),
                               child: Text(
-                                'لا توجد نتائج مطابقة. غيّر عبارة البحث لعرض المفردات المتوفرة.',
+                                'لا توجد نتائج مطابقة ضمن المفردات المحمّلة (حتى 50 كلمة). '
+                                'امسح البحث لعرض الكلمات المتوفرة.',
                                 textAlign: TextAlign.center,
                               ),
                             ),
