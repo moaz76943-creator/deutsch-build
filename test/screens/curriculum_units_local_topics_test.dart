@@ -1313,4 +1313,52 @@ void main() {
     expect(find.text('Mutter'), findsNothing);
     expect(find.text('أم'), findsNothing);
   });
+
+  testWidgets('oversized verified forms and examples stay bounded in details',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'section_id': 'FAMILY',
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'cefr_level': 'A1',
+            'forms': List<String>.generate(80, (i) => 'form-$i'),
+            'examples': List<String>.generate(80, (i) => 'مثال-$i'),
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('form-0'), findsOneWidget);
+    expect(find.text('form-31'), findsOneWidget);
+    expect(find.text('form-32'), findsNothing);
+    expect(find.text('مثال-0'), findsOneWidget);
+    expect(find.text('مثال-31'), findsOneWidget);
+    expect(find.text('مثال-32'), findsNothing);
+    expect(find.textContaining('أول 32'), findsNWidgets(2));
+    expect(
+      tester.widget<Text>(find.text('form-0')).textDirection,
+      TextDirection.ltr,
+    );
+    expect(
+      tester.widget<Text>(find.text('مثال-0')).textDirection,
+      TextDirection.rtl,
+    );
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsOneWidget);
+  });
+
 }
