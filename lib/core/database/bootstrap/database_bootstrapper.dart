@@ -9,7 +9,14 @@ class DatabaseBootstrapResult {
 }
 
 class DatabaseBootstrapper {
-  /// التحقق من سلامة وجود قاعدة البيانات دون شروط حجم اعتباطية
+  static const int _sqliteHeaderLength = 100;
+
+  /// Read-only structural preflight for a local SQLite database.
+  ///
+  /// A matching 16-byte magic alone is not a usable database. Verify the
+  /// mandatory header fields and complete page alignment before reporting
+  /// bootstrap readiness. Pack admission still needs PRAGMA integrity_check,
+  /// schema checks, and a trusted content hash before activation.
   static Future<DatabaseBootstrapResult> verifyAndPrepare({
     required String dbPath,
     Future<void> Function()? onSeedRequired,
@@ -30,8 +37,8 @@ class DatabaseBootstrapper {
         }
       }
 
-      // An unsuccessful seeder must never turn a missing pack into READY.
-      // This is a read-only readiness check: do not delete or recreate data.
+      // A failed seeder must never turn a missing pack into READY.
+      // Do not delete, replace, or recreate existing learner data.
       if (!await file.exists()) {
         return const DatabaseBootstrapResult(
           isReady: false,
@@ -39,27 +46,67 @@ class DatabaseBootstrapper {
         );
       }
 
-      // فحص أولي لوجود ترويسة SQLite القياسية (SQLite format 3)
-      if (await file.exists()) {
-        final length = await file.length();
-        if (length < 16) {
-          return const DatabaseBootstrapResult(
-            isReady: false,
-            error: 'Database file corrupted or truncated',
-          );
-        }
+      final length = await file.length();
+      if (length < _sqliteHeaderLength) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Database file corrupted or truncated',
+        );
+      }
 
-        final raf = await file.open(mode: FileMode.read);
-        final header = await raf.read(16);
+      final raf = await file.open(mode: FileMode.read);
+      late final List<int> header;
+      try {
+        header = await raf.read(_sqliteHeaderLength);
+      } finally {
         await raf.close();
+      }
 
-        final magicString = String.fromCharCodes(header);
-        if (!magicString.startsWith('SQLite format 3')) {
-          return const DatabaseBootstrapResult(
-            isReady: false,
-            error: 'Invalid SQLite header signature',
-          );
-        }
+      if (header.length != _sqliteHeaderLength) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Database file corrupted or truncated',
+        );
+      }
+
+      if (String.fromCharCodes(header.sublist(0, 16)) !=
+          'SQLite format 3\x00') {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Invalid SQLite header signature',
+        );
+      }
+
+      // SQLite encodes a 65536-byte page size as the big-endian integer 1.
+      final rawPageSize = (header[16] << 8) | header[17];
+      final pageSize = rawPageSize == 1 ? 65536 : rawPageSize;
+      if (pageSize < 512 ||
+          pageSize > 65536 ||
+          (pageSize & (pageSize - 1)) != 0) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Invalid SQLite page size',
+        );
+      }
+
+      // Both SQLite format versions 1 (rollback journal) and 2 (WAL)
+      // are valid. Payload fractions are fixed by the SQLite file format.
+      if ((header[18] != 1 && header[18] != 2) ||
+          (header[19] != 1 && header[19] != 2) ||
+          header[21] != 64 ||
+          header[22] != 32 ||
+          header[23] != 32) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Invalid SQLite header fields',
+        );
+      }
+
+      if (length < pageSize || length % pageSize != 0) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'SQLite file truncated or misaligned',
+        );
       }
 
       return const DatabaseBootstrapResult(isReady: true);
