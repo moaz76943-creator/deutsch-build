@@ -182,6 +182,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool _failed = false;
   List<Map<String, dynamic>> _rows = const [];
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   // Filter only verified rows returned by the selected directed-pair loader.
   // Arabic vowel marks/tatweel and German sharp-s should not block lookup.
@@ -216,7 +217,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         oldWidget.languageCode != widget.languageCode ||
         oldWidget.targetLanguageCode != widget.targetLanguageCode ||
         oldWidget.loadWords != widget.loadWords) {
-      // Invalidate pending reads when the user changes topic, level or pair.
+      // Invalidate pending reads and stale filters on topic/level/pair changes.
+      _searchController.clear();
+      _searchQuery = '';
       _load();
     }
   }
@@ -224,6 +227,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   @override
   void dispose() {
     _requestId++;
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -283,6 +287,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                     child: TextField(
                       key: const Key('topic-search'),
+                      controller: _searchController,
                       onChanged: (value) => setState(() => _searchQuery = value),
                       textInputAction: TextInputAction.search,
                       decoration: const InputDecoration(
