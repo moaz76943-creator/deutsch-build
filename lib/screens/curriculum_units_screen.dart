@@ -16,10 +16,12 @@ class CurriculumUnitsScreen extends StatefulWidget {
   const CurriculumUnitsScreen({
     super.key,
     this.languageCode = 'de',
+    this.targetLanguageCode = 'ar',
     this.loadWords,
   });
 
   final String languageCode;
+  final String targetLanguageCode;
   final TopicWordsLoader? loadWords;
 
   @override
@@ -32,7 +34,10 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final supported =
+    // The bundled topic index only supports the verified de -> ar projection.
+    // A registered language or the reverse direction does not imply content.
+    final supported = widget.languageCode == 'de' &&
+        widget.targetLanguageCode == 'ar' &&
         LocalTopicCatalog.supportsBundledTopics(widget.languageCode);
 
     return Directionality(
@@ -58,7 +63,7 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   'تظهر الكلمات الموجودة فعلاً في قاعدة البيانات المحلية، '
-                  'دون تقدّم أو مستويات مفترضة.',
+                  'دون تقدّم أو مستويات مفترضة. الاتجاه المتاح: الألمانية ← العربية.',
                   style: TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ),
@@ -90,7 +95,7 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
                         child: Padding(
                           padding: EdgeInsets.all(24),
                           child: Text(
-                            'لا تتوفر أقسام محلية موثقة لهذه اللغة حالياً.',
+                            'لا تتوفر أقسام محلية موثقة لهذا الاتجاه اللغوي حالياً.',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.white70),
                           ),
@@ -113,6 +118,7 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
                                     section: section,
                                     cefr: _selectedLevel,
                                     languageCode: widget.languageCode,
+                                    targetLanguageCode: widget.targetLanguageCode,
                                     loadWords: widget.loadWords,
                                   ),
                                 ),
@@ -156,12 +162,14 @@ class TopicWordsScreen extends StatefulWidget {
     required this.section,
     required this.cefr,
     required this.languageCode,
+    this.targetLanguageCode = 'ar',
     this.loadWords,
   });
 
   final LocalTopicSection section;
   final String cefr;
   final String languageCode;
+  final String targetLanguageCode;
   final TopicWordsLoader? loadWords;
 
   @override
@@ -181,13 +189,39 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant TopicWordsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.section.id != widget.section.id ||
+        oldWidget.cefr != widget.cefr ||
+        oldWidget.languageCode != widget.languageCode ||
+        oldWidget.targetLanguageCode != widget.targetLanguageCode ||
+        oldWidget.loadWords != widget.loadWords) {
+      // Invalidate pending reads when the user changes topic, level or pair.
+      _load();
+    }
+  }
+
+  @override
   void dispose() {
     _requestId++;
     super.dispose();
   }
 
+  bool get _supportsDirectedPair =>
+      widget.languageCode == 'de' &&
+      widget.targetLanguageCode == 'ar' &&
+      LocalTopicCatalog.supportsBundledTopics(widget.languageCode);
+
   Future<void> _load() async {
     final requestId = ++_requestId;
+    if (!_supportsDirectedPair) {
+      setState(() {
+        _rows = const [];
+        _loading = false;
+        _failed = false;
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _failed = false;
@@ -220,7 +254,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(title: Text('${widget.section.title} — ${widget.cefr}')),
-        body: _loading
+        body: !_supportsDirectedPair
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text(
+                    'لا تتوفر مفردات موثقة لهذا الاتجاه اللغوي حالياً.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            : _loading
             ? const Center(child: CircularProgressIndicator())
             : _failed
                 ? Center(
