@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import fcntl
@@ -90,19 +91,23 @@ class AutoHealExecutor:
 
         if not plan.get("signature"):
             raise ValueError("Plan rejected: Missing signature or unauthenticated context.")
-        if not plan.get("base_sha"):
-            raise ValueError("Plan rejected: Missing base_sha.")
+        if not isinstance(plan.get("base_sha"), str) or not re.fullmatch(r"[0-9a-f]{40}", plan["base_sha"]):
+            raise ValueError("Plan rejected: Invalid base_sha; expected exact 40-character commit SHA.")
         if "allowed_paths" not in plan:
             plan["allowed_paths"] = []
         return plan
 
     def _verify_base_sha(self):
         try:
-            current_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-            if self.plan["base_sha"] != "any" and current_sha != self.plan["base_sha"]:
-                print(f"Warning: Current SHA {current_sha} does not match plan BASE_SHA {self.plan['base_sha']}")
-        except Exception:
-            pass
+            current_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
+            ).decode().strip()
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise RuntimeError("Cannot verify git HEAD for repair plan") from exc
+        if current_sha != self.plan["base_sha"]:
+            raise ValueError(
+                f"BASE_SHA mismatch: expected {self.plan['base_sha']}, got {current_sha}"
+            )
 
     def _backup_files(self):
         for path in self.plan.get("allowed_paths", []):
@@ -151,8 +156,8 @@ class AutoHealExecutor:
             data = {}
 
         attempts = data.get(plan_id, 0)
-        if attempts >= 3:
-            raise ValueError(f"Execution blocked: maximum attempts (3) exceeded for plan {plan_id}.")
+        if attempts >= 2:
+            raise ValueError(f"Execution blocked: maximum attempts (2) exceeded for plan {plan_id}.")
 
         data[plan_id] = attempts + 1
         with open(self.attempts_file, 'w') as f:
@@ -252,18 +257,16 @@ class AutoHealExecutor:
                 f.write(content)
 
         elif op_type == "rebuild_fts5":
-            if path:
-                # Actual logic would hook into build scripts, e.g.
-                script = "tools/language_pack_sqlite.py"
-                if os.path.exists(script):
-                    try:
-                        subprocess.check_call([sys.executable, script, "--rebuild-fts5", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    except subprocess.CalledProcessError:
-                        print(f"Failed to rebuild FTS5 for {path}")
-                else:
-                    # Simulation/Stub
-                    with open(path, 'a') as f:
-                        f.write("\n-- FTS5 Rebuilt\n")
+            if not path:
+                raise ValueError("FTS5 rebuild requires an allowed artifact path")
+            script = "tools/language_pack_sqlite.py"
+            if not os.path.isfile(script):
+                raise FileNotFoundError("FTS5 builder unavailable; refusing to mutate artifact")
+            subprocess.check_call(
+                [sys.executable, script, "--rebuild-fts5", path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
 
         elif op_type == "regenerate_artifact":
             if path:
@@ -281,7 +284,7 @@ class AutoHealExecutor:
         subprocess.check_call(["git", "checkout", "-b", branch])
         for path in self.plan.get("allowed_paths", []):
             subprocess.check_call(["git", "add", path])
-        msg = f"Fix({self.plan.get('plan_id', 'unknown')}): Auto-heal repair [skip ci]"
+        msg = f"Fix({self.plan.get('plan_id', 'unknown')}): Auto-heal repair"
         subprocess.check_call(["git", "commit", "-m", msg])
         print("Commit successful. Push must be authorized manually or by policy.")
 
