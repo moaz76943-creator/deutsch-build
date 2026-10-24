@@ -1199,4 +1199,118 @@ void main() {
     expect(calls, 1);
   });
 
+
+  testWidgets('explicit foreign section rows never enter list search or cards',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'section_id': 'HOME_LIVING',
+            'word': 'Haus',
+            'translation_ar': 'منزل',
+            'cefr_level': 'A1',
+          },
+          <String, dynamic>{
+            'section_id': 'FAMILY',
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'cefr_level': 'A1',
+          },
+          <String, dynamic>{
+            // Legacy bundled de->ar rows have no section_id.
+            'word': 'Bruder',
+            'translation_ar': 'أخ',
+            'cefr_level': 'A1',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Haus'), findsNothing);
+    expect(find.text('منزل'), findsNothing);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Haus');
+    await tester.pump();
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('topic-search')), '');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pump();
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.text('Haus'), findsNothing);
+  });
+
+  testWidgets('switching topic ignores late rows from the prior section',
+      (tester) async {
+    final pending = Completer<List<Map<String, dynamic>>>();
+    final family = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    final home = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'HOME_LIVING');
+    var calls = 0;
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) {
+      calls++;
+      if (sectionId == 'FAMILY') return pending.future;
+      return Future.value(<Map<String, dynamic>>[
+        <String, dynamic>{
+          'section_id': 'HOME_LIVING',
+          'word': 'Haus',
+          'translation_ar': 'منزل',
+          'cefr_level': 'A1',
+        },
+      ]);
+    }
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: home,
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pump();
+    expect(find.text('Haus'), findsOneWidget);
+    pending.complete(<Map<String, dynamic>>[
+      <String, dynamic>{
+        'section_id': 'FAMILY',
+        'word': 'Mutter',
+        'translation_ar': 'أم',
+        'cefr_level': 'A1',
+      },
+    ]);
+    await tester.pump();
+    expect(calls, 2);
+    expect(find.text('Haus'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+  });
 }
