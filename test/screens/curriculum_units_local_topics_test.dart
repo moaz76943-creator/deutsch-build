@@ -256,4 +256,72 @@ void main() {
     expect(find.text('Mutter'), findsNothing);
   });
 
+
+  testWidgets('local topic search matches German and unvowelled Arabic only',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'article': 'die', 'translation_ar': 'أُمّ'},
+          <String, dynamic>{'word': 'Vater', 'article': 'der', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'vAt');
+    await tester.pump();
+    expect(find.text('der Vater'), findsOneWidget);
+    expect(find.text('die Mutter'), findsNothing);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'أم');
+    await tester.pump();
+    expect(find.text('die Mutter'), findsOneWidget);
+    expect(find.text('der Vater'), findsNothing);
+    expect(tester.widget<Text>(find.text('أُمّ')).textDirection,
+        TextDirection.rtl);
+  });
+
+  testWidgets('search supports sharp-s spelling and honest no-match state',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'TRANSPORT'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Straße', 'translation_ar': 'شارع'},
+          <String, dynamic>{'word': 'Bus', 'translation_ar': 'حافلة'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'strasse');
+    await tester.pump();
+    expect(find.text('Straße'), findsOneWidget);
+    expect(find.text('Bus'), findsNothing);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'not-in-pack');
+    await tester.pump();
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
+    expect(find.text('Straße'), findsNothing);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), '');
+    await tester.pump();
+    expect(find.text('Straße'), findsOneWidget);
+    expect(find.text('Bus'), findsOneWidget);
+  });
+
 }
