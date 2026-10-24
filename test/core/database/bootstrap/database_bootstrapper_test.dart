@@ -26,6 +26,11 @@ List<int> _sqlitePage({
   bytes[23] = 32;
   // Page one must begin with a table leaf B-tree (sqlite_schema).
   bytes[100] = 0x0d;
+  // Empty leaf table: no cell pointers and content begins at page end.
+  // SQLite encodes 65536 as zero in this two-byte B-tree header field.
+  final contentStart = pageSize == 65536 ? 0 : pageSize;
+  bytes[105] = (contentStart >> 8) & 0xff;
+  bytes[106] = contentStart & 0xff;
   return bytes;
 }
 
@@ -77,7 +82,7 @@ void main() {
     );
 
     expect(result.isReady, isFalse);
-    expect(result.error, contains('truncated or misaligned'));
+    expect(result.error, contains('corrupted or truncated'));
   });
 
   test('accepts structurally complete SQLite pages for preflight', () async {
@@ -107,6 +112,45 @@ void main() {
     expect(result.isReady, isFalse);
     expect(result.error, contains('B-tree'));
     expect(await file.readAsBytes(), bytes);
+  });
+
+  test('rejects a forged B-tree marker with an uninitialized cell area',
+      () async {
+    final file = File(tempDir.path + '/forged_btree.db');
+    final bytes = List<int>.from(_sqlitePage());
+    bytes[105] = 0;
+    bytes[106] = 0;
+    await file.writeAsBytes(bytes);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isFalse);
+    expect(result.error, contains('B-tree layout'));
+    expect(await file.readAsBytes(), bytes);
+  });
+
+  test('rejects overlapping B-tree pointers, bad freeblocks and fragments',
+      () async {
+    final invalidPages = <List<int>>[
+      // 203 pointers need 406 bytes after the 108-byte leaf header.
+      List<int>.from(_sqlitePage())..[104] = 203,
+      // Freeblocks must reside within the cell-content area.
+      List<int>.from(_sqlitePage())..[102] = 108,
+      // SQLite permits at most 60 fragmented free bytes per B-tree page.
+      List<int>.from(_sqlitePage())..[107] = 61,
+    ];
+    for (var i = 0; i < invalidPages.length; i++) {
+      final file = File(tempDir.path + '/bad_btree_layout_$i.db');
+      await file.writeAsBytes(invalidPages[i]);
+      final result = await DatabaseBootstrapper.verifyAndPrepare(
+        dbPath: file.path,
+      );
+      expect(result.isReady, isFalse, reason: 'malformed layout $i');
+      expect(result.error, contains('B-tree layout'));
+      expect(await file.readAsBytes(), invalidPages[i]);
+    }
   });
 
   test('rejects a non-table B-tree root on page one', () async {
