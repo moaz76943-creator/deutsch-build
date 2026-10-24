@@ -34,6 +34,18 @@ List<int> _sqlitePage({
   return bytes;
 }
 
+/// A structurally plausible table-leaf page with one two-byte cell.
+List<int> _oneCellPage({int reservedBytes = 0, int cellOffset = 480}) {
+  final bytes = _sqlitePage();
+  bytes[20] = reservedBytes;
+  bytes[104] = 1; // one cell pointer
+  bytes[105] = 1;
+  bytes[106] = 224; // cell content begins at offset 480
+  bytes[108] = (cellOffset >> 8) & 0xff;
+  bytes[109] = cellOffset & 0xff;
+  return bytes;
+}
+
 void main() {
   late Directory tempDir;
 
@@ -150,6 +162,67 @@ void main() {
       expect(result.isReady, isFalse, reason: 'malformed layout $i');
       expect(result.error, contains('B-tree layout'));
       expect(await file.readAsBytes(), invalidPages[i]);
+    }
+  });
+
+  test('accepts a bounded table cell pointer inside the usable page',
+      () async {
+    final file = File(tempDir.path + '/one_cell.db');
+    await file.writeAsBytes(_oneCellPage());
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isTrue);
+  });
+
+  test('rejects cell pointers into header or outside the page', () async {
+    for (final offset in <int>[0, 511]) {
+      final file = File(tempDir.path + '/bad_cell_$offset.db');
+      final bytes = _oneCellPage(cellOffset: offset);
+      await file.writeAsBytes(bytes);
+
+      final result = await DatabaseBootstrapper.verifyAndPrepare(
+        dbPath: file.path,
+      );
+
+      expect(result.isReady, isFalse, reason: 'cell pointer $offset');
+      expect(result.error, contains('cell pointers'));
+      expect(await file.readAsBytes(), bytes);
+    }
+  });
+
+  test('rejects cell pointers into reserved page bytes', () async {
+    final file = File(tempDir.path + '/reserved_cell.db');
+    final bytes = _oneCellPage(reservedBytes: 16, cellOffset: 505);
+    await file.writeAsBytes(bytes);
+
+    final result = await DatabaseBootstrapper.verifyAndPrepare(
+      dbPath: file.path,
+    );
+
+    expect(result.isReady, isFalse);
+    expect(result.error, contains('cell pointers'));
+    expect(await file.readAsBytes(), bytes);
+  });
+
+  test('rejects unusable page sizes and reserved-tail overlap', () async {
+    final cases = <List<int>>[
+      _oneCellPage(reservedBytes: 33), // fewer than 480 usable bytes
+      List<int>.from(_sqlitePage())
+        ..[20] = 16
+        ..[105] = 1
+        ..[106] = 250, // cell content starts inside reserved bytes
+    ];
+    for (var i = 0; i < cases.length; i++) {
+      final file = File(tempDir.path + '/bad_reserved_$i.db');
+      await file.writeAsBytes(cases[i]);
+      final result = await DatabaseBootstrapper.verifyAndPrepare(
+        dbPath: file.path,
+      );
+      expect(result.isReady, isFalse, reason: 'reserved layout $i');
+      expect(await file.readAsBytes(), cases[i]);
     }
   });
 

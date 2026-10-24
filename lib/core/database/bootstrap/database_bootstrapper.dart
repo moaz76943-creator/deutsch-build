@@ -95,6 +95,16 @@ class DatabaseBootstrapper {
         );
       }
 
+      // The reserved tail of every page is unavailable to B-tree cells.
+      // SQLite requires at least 480 usable bytes per page.
+      final usablePageSize = pageSize - header[20];
+      if (usablePageSize < 480) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Invalid SQLite usable page size',
+        );
+      }
+
       // Both SQLite format versions 1 (rollback journal) and 2 (WAL)
       // are valid. Payload fractions are fixed by the SQLite file format.
       if ((header[18] != 1 && header[18] != 2) ||
@@ -137,10 +147,10 @@ class DatabaseBootstrapper {
           : rawCellContentStart;
       final cellPointerArrayEnd = btreeHeaderEnd + cellCount * 2;
       if (cellContentStart < cellPointerArrayEnd ||
-          cellContentStart > pageSize ||
+          cellContentStart > usablePageSize ||
           (firstFreeblock != 0 &&
               (firstFreeblock < cellContentStart ||
-                  firstFreeblock > pageSize - 4)) ||
+                  firstFreeblock > usablePageSize - 4)) ||
           header[107] > 60) {
         return const DatabaseBootstrapResult(
           isReady: false,
@@ -153,6 +163,36 @@ class DatabaseBootstrapper {
           isReady: false,
           error: 'SQLite file truncated or misaligned',
         );
+      }
+
+      // Validate the actual pointer array, not just its claimed length.
+      // Otherwise a forged pointer can address the header, an unallocated
+      // gap, or SQLite's reserved tail and still pass bootstrap.
+      if (cellCount > 0) {
+        final pointerFile = await file.open(mode: FileMode.read);
+        try {
+          await pointerFile.setPosition(btreeHeaderEnd);
+          final pointerBytes = await pointerFile.read(cellCount * 2);
+          if (pointerBytes.length != cellCount * 2) {
+            return const DatabaseBootstrapResult(
+              isReady: false,
+              error: 'Invalid SQLite page-one cell pointers',
+            );
+          }
+          final minimumCellBytes = isInterior ? 5 : 2;
+          for (var i = 0; i < pointerBytes.length; i += 2) {
+            final offset = (pointerBytes[i] << 8) | pointerBytes[i + 1];
+            if (offset < cellContentStart ||
+                offset > usablePageSize - minimumCellBytes) {
+              return const DatabaseBootstrapResult(
+                isReady: false,
+                error: 'Invalid SQLite page-one cell pointers',
+              );
+            }
+          }
+        } finally {
+          await pointerFile.close();
+        }
       }
 
       return const DatabaseBootstrapResult(isReady: true);
