@@ -1,16 +1,12 @@
+
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-<<<<<<< HEAD
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
-<<<<<<< HEAD
 import 'atomic_database_installer.dart';
-=======
-import '../database/crash_safe_snapshot_manager.dart';
-import '../security/ed25519_signature_verifier.dart';
 
->>>>>>> origin/fix/security-reconciliation-and-audit-lane01-02
+import '../security/ed25519_signature_verifier.dart';
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
@@ -21,43 +17,6 @@ class PackAdmissionService {
     required this.quarantine,
     required this.dbFactory,
   });
-
-  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256) والتحقق من SQLite
-  Future<bool> verifyAndAdmitPack({
-    required File stagedFile,
-    required String expectedHash,
-    required String targetPath,
-    bool allowReplacement = false,
-  }) async {
-=======
-
-/// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
-class PackAdmissionService {
-  
-  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256)
-  Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    try {
-<<<<<<< HEAD
-      if (!await stagedFile.exists()) {
-        debugPrint("فشل التحقق: الملف غير موجود.");
-=======
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
-      
-      if (digest.toString() == expectedHash) {
-        debugPrint("تم التحقق من الحزمة بنجاح. جاري النقل الذري...");
-        // النقل الذري (Atomic Rename) يتم هنا في التنفيذ الفعلي
-        return true;
-      }
-      debugPrint("فشل التحقق: الحزمة تالفة أو غير موثوقة.");
-      return false;
-    } catch (e) {
-      debugPrint("خطأ أثناء فحص الحزمة: \$e");
-      return false;
-    }
-  }
-<<<<<<< HEAD
 
   /// التحقق من توقيع Ed25519 الرقمي للحزمة ومطابقته لسجل المفاتيح الموثوقة (Study 06)
   Future<bool> verifyPackSignature({
@@ -97,21 +56,16 @@ class PackAdmissionService {
     }
   }
 
-  Future<bool> verifyPackIntegrity(File file, String expectedHash) async {
+  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256) والتحقق من SQLite
+  Future<bool> verifyAndAdmitPack({
+    required File stagedFile,
+    required String expectedHash,
+    required String targetPath,
+    bool allowReplacement = false,
+  }) async {
     try {
-      // 0. فحص ترويسة SQLite الرسمية لمنع الملفات التالفة أو غير المتوافقة
-      final isValidHeader = await CrashSafeSnapshotManager.verifySqliteHeader(file);
-      if (!isValidHeader) {
-        debugPrint('Pack validation failed: Invalid SQLite header signature.');
-        return false;
-      }
-
-      final bytes = await file.readAsBytes();
-      final digest = sha256.convert(bytes);
-
-      if (digest.toString() != expectedHash) {
-        debugPrint("Pack validation failed: hash mismatch.");
->>>>>>> origin/fix/security-reconciliation-and-audit-lane01-02
+      if (!await stagedFile.exists()) {
+        debugPrint("فشل التحقق: الملف غير موجود.");
         return false;
       }
 
@@ -132,17 +86,8 @@ class PackAdmissionService {
         return false;
       }
 
-      // Verify SHA-256
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
-
-      if (digest.toString() != expectedHash) {
-        debugPrint("فشل التحقق: Hash غير متطابق.");
-        quarantine.isolateCorruptData(
-          id: stagedFile.path,
-          rawJson: '{"expected": "$expectedHash", "actual": "$digest"}',
-          reason: 'SHA-256 hash mismatch',
-        );
+      // Verify SHA-256 and integrity
+      if (!await verifyPackIntegrity(stagedFile, expectedHash)) {
         return false;
       }
 
@@ -161,6 +106,45 @@ class PackAdmissionService {
 
       return result.status == DatabaseInstallStatus.installed ||
           result.status == DatabaseInstallStatus.replaced;
+    } catch (e) {
+      debugPrint("خطأ أثناء فحص الحزمة: $e");
+      return false;
+    }
+  }
+
+  Future<bool> verifyPackIntegrity(File file, String expectedHash) async {
+    try {
+
+
+
+            // 0. فحص ترويسة SQLite الرسمية لمنع الملفات التالفة أو غير المتوافقة
+      final fileLength = await file.length();
+      if (fileLength < 16) {
+        debugPrint('Pack validation failed: Invalid SQLite header signature.');
+        return false;
+      }
+
+      final headerBytes = await file.openRead(0, 16).first;
+      final headerString = String.fromCharCodes(headerBytes);
+      if (!headerString.startsWith("SQLite format 3")) {
+        debugPrint('Pack validation failed: Invalid SQLite header signature.');
+        return false;
+      }
+
+      final bytes = await file.readAsBytes();
+
+      final digest = sha256.convert(bytes);
+
+      if (digest.toString() != expectedHash) {
+        debugPrint("Pack validation failed: hash mismatch.");
+        quarantine.isolateCorruptData(
+          id: file.path,
+          rawJson: '{"expected": "$expectedHash", "actual": "$digest"}',
+          reason: 'SHA-256 hash mismatch',
+        );
+        return false;
+      }
+      return true;
     } catch (e) {
       debugPrint("خطأ أثناء فحص الحزمة: $e");
       return false;
@@ -203,6 +187,7 @@ class PackAdmissionService {
         return false;
       }
 
+
       // Verify at least one table exists (excluding sqlite_ master tables)
       final tables = await db.rawQuery(
           "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
@@ -214,6 +199,44 @@ class PackAdmissionService {
           reason: 'No data tables found',
         );
         return false;
+      }
+
+      // Verify language identity
+      if (tables.any((row) => row['name'] == 'pack_metadata')) {
+         final langResult = await db.rawQuery('SELECT languageCode FROM pack_metadata LIMIT 1');
+         if (langResult.isEmpty || langResult.first['languageCode'] == null || langResult.first['languageCode'].toString().trim().isEmpty) {
+             debugPrint("فشل التحقق: هوية اللغة مفقودة.");
+             quarantine.isolateCorruptData(
+               id: path,
+               rawJson: '{"language": "missing"}',
+               reason: 'Language identity missing',
+             );
+             return false;
+         }
+      } else {
+         debugPrint("فشل التحقق: جدول metadata مفقود.");
+         quarantine.isolateCorruptData(
+           id: path,
+           rawJson: '{"tables": "missing metadata"}',
+           reason: 'Missing metadata table for language identity',
+         );
+         return false;
+      }
+
+
+      // Check row count for data table if exists
+      if (tables.any((row) => row['name'] == 'data')) {
+          final countResult = await db.rawQuery('SELECT COUNT(*) FROM data');
+          final count = Sqflite.firstIntValue(countResult) ?? 0;
+          if (count == 0) {
+             debugPrint("فشل التحقق: جدول البيانات فارغ.");
+             quarantine.isolateCorruptData(
+               id: path,
+               rawJson: '{"rowCount": "0"}',
+               reason: 'Data table is empty',
+             );
+             return false;
+          }
       }
 
       return true;
@@ -229,6 +252,4 @@ class PackAdmissionService {
       await db?.close();
     }
   }
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
