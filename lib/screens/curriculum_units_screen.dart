@@ -189,6 +189,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool _quizMode = false;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _quizController = TextEditingController();
+  DialogRoute<void>? _detailsRoute;
+
+  // Dismiss the exact open detail route when the selected pair, level or
+  // topic changes. Never pop the underlying learning screen by mistake.
+  void _dismissStaleDetails() {
+    final route = _detailsRoute;
+    _detailsRoute = null;
+    if (route != null && route.isActive) {
+      route.navigator?.removeRoute(route);
+    }
+  }
 
   void _resetCardAnswer() {
     _showAnswer = false;
@@ -429,7 +440,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       );
     }
 
-    showDialog<void>(
+    final route = DialogRoute<void>(
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
@@ -472,6 +483,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         ),
       ),
     );
+    _detailsRoute = route;
+    Navigator.of(context, rootNavigator: true).push(route).whenComplete(() {
+      if (identical(_detailsRoute, route)) _detailsRoute = null;
+    });
   }
 
   @override
@@ -488,6 +503,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         oldWidget.languageCode != widget.languageCode ||
         oldWidget.targetLanguageCode != widget.targetLanguageCode ||
         oldWidget.loadWords != widget.loadWords) {
+      // A dialog opened for the previous selection must never keep displaying
+      // another directed pair's translation or an obsolete level's details.
+      _dismissStaleDetails();
       // Invalidate pending reads and stale filters on topic/level/pair changes.
       _searchController.clear();
       _searchQuery = '';

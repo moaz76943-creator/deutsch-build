@@ -930,4 +930,94 @@ void main() {
     await tester.pump();
     expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
   });
+  testWidgets('switching target while details are open removes stale translation',
+      (tester) async {
+    final section = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async => <Map<String, dynamic>>[
+      <String, dynamic>{
+        'word': 'Mutter',
+        'translation_ar': 'أم',
+        'forms': <String>['Mütter'],
+      },
+    ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsOneWidget);
+    expect(find.text('Mütter'), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'en',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('Mütter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
+        findsOneWidget);
+  });
+
+  testWidgets('switching level closes old detail route and loads new level',
+      (tester) async {
+    final section = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async => <Map<String, dynamic>>[
+      <String, dynamic>{
+        'word': cefr == 'A1' ? 'Mutter' : 'Verwandtschaft',
+        'translation_ar': cefr == 'A1' ? 'أم' : 'قرابة',
+        'cefr_level': cefr,
+      },
+    ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'B2',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('Verwandtschaft'), findsOneWidget);
+    expect(find.text('قرابة'), findsOneWidget);
+  });
+
 }
