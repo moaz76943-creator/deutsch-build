@@ -437,6 +437,41 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       widget.targetLanguageCode == 'ar' &&
       LocalTopicCatalog.supportsBundledTopics(widget.languageCode);
 
+  // The default SQLite query is already scoped, but injected/alternate pack
+  // readers must not leak another directed pair or a different known level.
+  // Older de->ar rows can omit target metadata; an explicit mismatch is never
+  // treated as a valid translation. Unknown CEFR remains UNKNOWN, not inferred.
+  bool _rowBelongsToSelection(Map<String, dynamic> row) {
+    final word = row['word'];
+    if (word is! String || word.trim().isEmpty) return false;
+
+    bool matchesWhenDeclared(String field, String expected) {
+      if (!row.containsKey(field)) return true;
+      final value = row[field];
+      return value is String &&
+          value.trim().toLowerCase() == expected.toLowerCase();
+    }
+
+    if (!matchesWhenDeclared('language_code', widget.languageCode) ||
+        !matchesWhenDeclared('source_language_code', widget.languageCode) ||
+        !matchesWhenDeclared('target_language_code', widget.targetLanguageCode) ||
+        !matchesWhenDeclared(
+            'translation_language_code', widget.targetLanguageCode)) {
+      return false;
+    }
+
+    final recordedLevel = row['cefr_level'];
+    if (recordedLevel is String) {
+      final normalized = recordedLevel.trim().toUpperCase();
+      if (const <String>{'A1', 'A2', 'B1', 'B2', 'C1', 'C2'}
+              .contains(normalized) &&
+          normalized != widget.cefr.toUpperCase()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Future<void> _load() async {
     final requestId = ++_requestId;
     if (!_supportsDirectedPair) {
@@ -467,7 +502,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       );
       if (!mounted || requestId != _requestId) return;
       setState(() {
-        _rows = rows;
+        _rows = rows.where(_rowBelongsToSelection).toList(growable: false);
         _loading = false;
       });
     } catch (_) {
