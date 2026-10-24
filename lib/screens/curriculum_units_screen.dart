@@ -416,10 +416,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   // This sheet reads only fields supplied by the selected local row. Missing
   // senses, forms and examples are not generated or borrowed from other pairs.
   void _showWordDetails(Map<String, dynamic> row) {
+    // A future pack can supply very large metadata arrays. Build at most 32
+    // detail widgets per field, matching the bounded optional search path.
+    // Keep an explicit disclosure rather than silently hiding extra entries.
+    const maxDetailItems = 32;
     List<String> lines(Object? value) => value is List
-        ? value.whereType<String>().map((text) => text.trim())
+        ? value.take(maxDetailItems).whereType<String>()
+            .map((text) => text.trim())
             .where((text) => text.isNotEmpty).toList(growable: false)
         : const <String>[];
+    bool hasMoreItems(Object? value) =>
+        value is List && value.length > maxDetailItems;
 
     TextDirection direction(String value) => RegExp(
           r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]',
@@ -473,10 +480,18 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                 detail('المعنى', [
                   sense ?? 'لا يتوفر شرح معنى في هذا السجل.'
                 ]),
-                detail('الصيغ والتصريفات', forms.isEmpty
-                    ? ['لا تتوفر صيغ موثقة في هذا السجل.'] : forms),
-                detail('أمثلة الاستخدام', examples.isEmpty
-                    ? ['لا تتوفر أمثلة موثقة في هذا السجل.'] : examples),
+                detail('الصيغ والتصريفات', [
+                  if (forms.isEmpty) 'لا تتوفر صيغ موثقة في هذا السجل.',
+                  ...forms,
+                  if (hasMoreItems(row['forms']))
+                    'تُعرض أول 32 خانة فقط من الصيغ المتاحة في الحزمة.',
+                ]),
+                detail('أمثلة الاستخدام', [
+                  if (examples.isEmpty) 'لا تتوفر أمثلة موثقة في هذا السجل.',
+                  ...examples,
+                  if (hasMoreItems(row['examples']))
+                    'تُعرض أول 32 خانة فقط من الأمثلة المتاحة في الحزمة.',
+                ]),
                 if (partOfSpeech != null)
                   detail('نوع الكلمة حسب الحزمة', [partOfSpeech],
                       textDirection: TextDirection.ltr),
