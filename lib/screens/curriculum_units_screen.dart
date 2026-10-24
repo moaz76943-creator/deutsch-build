@@ -190,6 +190,13 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .trim()
       .toLowerCase()
       .replaceAll(RegExp(r'[\u0640\u064B-\u065F\u0670]'), '')
+      // German digraph input must match both NFC and decomposed umlauts.
+      .replaceAll('a\u0308', 'ae')
+      .replaceAll('o\u0308', 'oe')
+      .replaceAll('u\u0308', 'ue')
+      .replaceAll('ä', 'ae')
+      .replaceAll('ö', 'oe')
+      .replaceAll('ü', 'ue')
       .replaceAll('ß', 'ss');
 
   List<Map<String, dynamic>> _matchingRows() {
@@ -290,6 +297,13 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                       controller: _searchController,
                       onChanged: (value) => setState(() => _searchQuery = value),
                       textInputAction: TextInputAction.search,
+                      // Keep the caret and entered text in the script's
+                      // direction; the surrounding Arabic UI stays RTL.
+                      textDirection: RegExp(
+                        r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]',
+                      ).hasMatch(_searchQuery)
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
                       style: const TextStyle(color: Colors.black87),
                       decoration: const InputDecoration(
                         labelText: 'ابحث بالكلمة أو الترجمة',

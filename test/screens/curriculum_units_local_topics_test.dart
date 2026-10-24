@@ -367,4 +367,65 @@ void main() {
     expect(find.textContaining('لا توجد نتائج مطابقة'), findsNothing);
   });
 
+
+  testWidgets('German umlaut digraphs and decomposed spellings find local rows',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'HOME_KITCHEN'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Käse', 'translation_ar': 'جبن'},
+          <String, dynamic>{'word': 'Brot', 'translation_ar': 'خبز'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'KAESE');
+    await tester.pump();
+    expect(find.text('Käse'), findsOneWidget);
+    expect(find.text('Brot'), findsNothing);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Ka\u0308se');
+    await tester.pump();
+    expect(find.text('Käse'), findsOneWidget);
+    expect(find.text('Brot'), findsNothing);
+  });
+
+  testWidgets('search text direction follows Arabic versus German input',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'HOME_LIVING'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Haus', 'translation_ar': 'بيت'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+    expect(tester.widget<TextField>(search).textDirection, TextDirection.ltr);
+
+    await tester.enterText(search, 'Haus');
+    await tester.pump();
+    expect(tester.widget<TextField>(search).textDirection, TextDirection.ltr);
+    expect(find.text('Haus'), findsOneWidget);
+
+    await tester.enterText(search, 'بيت');
+    await tester.pump();
+    expect(tester.widget<TextField>(search).textDirection, TextDirection.rtl);
+    expect(find.text('بيت'), findsOneWidget);
+  });
 }
