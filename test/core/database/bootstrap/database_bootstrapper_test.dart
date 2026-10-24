@@ -24,6 +24,8 @@ List<int> _sqlitePage({
   bytes[21] = 64;
   bytes[22] = 32;
   bytes[23] = 32;
+  // Page one must begin with a table leaf B-tree (sqlite_schema).
+  bytes[100] = 0x0d;
   return bytes;
 }
 
