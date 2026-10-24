@@ -111,7 +111,7 @@ class TestAutoHeal(unittest.TestCase):
         calls = mock_check_call.call_args_list
         self.assertEqual(calls[0][0][0], ["git", "checkout", "-b", "test-branch"])
         self.assertEqual(calls[1][0][0], ["git", "add", self.target_file])
-        self.assertEqual(calls[2][0][0], ["git", "commit", "-m", "Fix(J093-TEST): Auto-heal repair [skip ci]"])
+        self.assertEqual(calls[2][0][0], ["git", "commit", "-m", "Fix(J093-TEST): Auto-heal repair"])
 
     def test_scope_guard_collision(self):
         executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
@@ -144,12 +144,12 @@ class TestAutoHeal(unittest.TestCase):
         self.assertIn("J093-TEST", failures)
         self.assertEqual(len(failures["J093-TEST"]), 1)
 
-        # Simulate two more attempts
-        attempts["J093-TEST"] = 3
+        # Simulate reaching the constitutional maximum (two attempts)
+        attempts["J093-TEST"] = 2
         with open(self.attempts_file, 'w') as f:
             json.dump(attempts, f)
 
-        # 4th attempt should fail before executing
+        # 3rd attempt should fail before executing
         executor2 = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor2.guard.ledger_path = self.ledger_path
 
@@ -163,6 +163,36 @@ class TestAutoHeal(unittest.TestCase):
 
         self.assertIn("maximum attempts", str(failures2["J093-TEST"][-1]))
 
+
+    def test_base_sha_mismatch_fails_closed(self):
+        self.plan_data["base_sha"] = "a" * 40
+        with open(self.plan_path, 'w') as f:
+            json.dump(self.plan_data, f)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        with patch('auto_heal.subprocess.check_output', return_value=b"b" * 40):
+            with self.assertRaisesRegex(ValueError, "BASE_SHA mismatch"):
+                executor._verify_base_sha()
+
+    def test_base_sha_unavailable_fails_closed(self):
+        self.plan_data["base_sha"] = "a" * 40
+        with open(self.plan_path, 'w') as f:
+            json.dump(self.plan_data, f)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        with patch('auto_heal.subprocess.check_output', side_effect=FileNotFoundError("git unavailable")):
+            with self.assertRaisesRegex(RuntimeError, "Cannot verify git HEAD"):
+                executor._verify_base_sha()
+
+    def test_missing_fts_builder_does_not_modify_artifact(self):
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        with open(self.target_file, 'rb') as f:
+            before = f.read()
+        real_exists = os.path.exists
+        with patch('auto_heal.os.path.exists',
+                   side_effect=lambda path: False if path == "tools/language_pack_sqlite.py" else real_exists(path)):
+            with self.assertRaisesRegex(FileNotFoundError, "FTS5 builder"):
+                executor._apply_operation({"type": "rebuild_fts5", "path": self.target_file})
+        with open(self.target_file, 'rb') as f:
+            self.assertEqual(before, f.read())
 
     @patch('auto_heal.AutoHealExecutor._run_gate')
     def test_atomic_artifact_regeneration(self, mock_gate):
