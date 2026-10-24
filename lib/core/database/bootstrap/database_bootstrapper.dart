@@ -11,6 +11,7 @@ class DatabaseBootstrapResult {
 class DatabaseBootstrapper {
   static const int _sqliteHeaderLength = 100;
   static const int _firstPageBtreeOffset = _sqliteHeaderLength;
+  static const int _maxFirstPageBtreeHeaderLength = 12;
 
   /// Read-only structural preflight for a local SQLite database.
   ///
@@ -55,17 +56,19 @@ class DatabaseBootstrapper {
         );
       }
 
-      // Read the first byte of page one's schema B-tree as well as the
-      // standard 100-byte database header. No write handle is opened.
+      // Read the complete page-one B-tree header as well as the standard
+      // 100-byte database header. No write handle is opened.
       final raf = await file.open(mode: FileMode.read);
       late final List<int> header;
       try {
-        header = await raf.read(_firstPageBtreeOffset + 1);
+        header = await raf.read(
+          _firstPageBtreeOffset + _maxFirstPageBtreeHeaderLength);
       } finally {
         await raf.close();
       }
 
-      if (header.length != _firstPageBtreeOffset + 1) {
+      if (header.length !=
+          _firstPageBtreeOffset + _maxFirstPageBtreeHeaderLength) {
         return const DatabaseBootstrapResult(
           isReady: false,
           error: 'Database file corrupted or truncated',
@@ -114,6 +117,34 @@ class DatabaseBootstrapper {
         return const DatabaseBootstrapResult(
           isReady: false,
           error: 'Invalid SQLite page-one B-tree',
+        );
+      }
+
+      // The B-tree type byte alone can be forged in an otherwise zero-filled
+      // page. Check the cell pointer array, cell-content boundary, freeblock
+      // bounds and SQLite's maximum fragmented-free-byte count. Page one
+      // begins at offset 100; interior table pages have a 12-byte header,
+      // leaf table pages an 8-byte header.
+      final isInterior = header[_firstPageBtreeOffset] == 0x05;
+      final btreeHeaderEnd =
+          _firstPageBtreeOffset + (isInterior ? 12 : 8);
+      final firstFreeblock = (header[101] << 8) | header[102];
+      final cellCount = (header[103] << 8) | header[104];
+      final rawCellContentStart = (header[105] << 8) | header[106];
+      // A zero cell-content offset is legal only for 65536-byte pages.
+      final cellContentStart = rawCellContentStart == 0 && pageSize == 65536
+          ? 65536
+          : rawCellContentStart;
+      final cellPointerArrayEnd = btreeHeaderEnd + cellCount * 2;
+      if (cellContentStart < cellPointerArrayEnd ||
+          cellContentStart > pageSize ||
+          (firstFreeblock != 0 &&
+              (firstFreeblock < cellContentStart ||
+                  firstFreeblock > pageSize - 4)) ||
+          header[107] > 60) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Invalid SQLite page-one B-tree layout',
         );
       }
 
