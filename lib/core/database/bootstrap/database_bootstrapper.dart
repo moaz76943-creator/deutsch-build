@@ -10,6 +10,7 @@ class DatabaseBootstrapResult {
 
 class DatabaseBootstrapper {
   static const int _sqliteHeaderLength = 100;
+  static const int _firstPageBtreeOffset = _sqliteHeaderLength;
 
   /// Read-only structural preflight for a local SQLite database.
   ///
@@ -54,15 +55,17 @@ class DatabaseBootstrapper {
         );
       }
 
+      // Read the first byte of page one's schema B-tree as well as the
+      // standard 100-byte database header. No write handle is opened.
       final raf = await file.open(mode: FileMode.read);
       late final List<int> header;
       try {
-        header = await raf.read(_sqliteHeaderLength);
+        header = await raf.read(_firstPageBtreeOffset + 1);
       } finally {
         await raf.close();
       }
 
-      if (header.length != _sqliteHeaderLength) {
+      if (header.length != _firstPageBtreeOffset + 1) {
         return const DatabaseBootstrapResult(
           isReady: false,
           error: 'Database file corrupted or truncated',
@@ -99,6 +102,18 @@ class DatabaseBootstrapper {
         return const DatabaseBootstrapResult(
           isReady: false,
           error: 'Invalid SQLite header fields',
+        );
+      }
+
+      // SQLite page one stores sqlite_schema as a table B-tree. The root
+      // page type must be an interior (0x05) or leaf (0x0d) table page;
+      // padded magic/header bytes with no actual B-tree must fail closed.
+      // This remains a preflight, not a substitute for integrity_check.
+      if (header[_firstPageBtreeOffset] != 0x05 &&
+          header[_firstPageBtreeOffset] != 0x0d) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Invalid SQLite page-one B-tree',
         );
       }
 
