@@ -10,28 +10,28 @@ flutter:
     - family: Cairo
       fonts:
         - asset: assets/fonts/Cairo-Variable.ttf
-    - family: Noto Sans Hebrew
+    - family: NotoSansHebrew
       fonts:
         - asset: assets/fonts/NotoSansHebrew-Regular.ttf
-    - family: Noto Sans Devanagari
+    - family: NotoSansDevanagari
       fonts:
         - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
-    - family: Noto Sans Ethiopic
+    - family: NotoSansEthiopic
       fonts:
         - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
-    - family: Noto Sans Georgian
+    - family: NotoSansGeorgian
       fonts:
         - asset: assets/fonts/NotoSansGeorgian-Regular.ttf
-    - family: Noto Sans Armenian
+    - family: NotoSansArmenian
       fonts:
         - asset: assets/fonts/NotoSansArmenian-Regular.ttf
-    - family: Noto Sans SC
+    - family: NotoSansSC
       fonts:
         - asset: assets/fonts/NotoSansSC-Regular.ttf
-    - family: Noto Sans JP
+    - family: NotoSansJP
       fonts:
         - asset: assets/fonts/NotoSansJP-Regular.ttf
-    - family: Noto Sans KR
+    - family: NotoSansKR
       fonts:
         - asset: assets/fonts/NotoSansKR-Regular.ttf
 ```
