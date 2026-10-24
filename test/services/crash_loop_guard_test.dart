@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/services/crash_loop_guard.dart';
@@ -13,6 +14,20 @@ class MemoryLedger implements BootLedgerStore {
   Future<void> write(Map<String,dynamic> state) async {
     writes++;
     data=Map<String,dynamic>.from(state);
+  }
+}
+
+
+class FailOnceWriteLedger extends MemoryLedger {
+  bool failFirstWrite = true;
+
+  @override
+  Future<void> write(Map<String, dynamic> state) async {
+    if (failFirstWrite) {
+      failFirstWrite = false;
+      throw const FileSystemException('transient ledger write failure');
+    }
+    await super.write(state);
   }
 }
 
@@ -198,6 +213,45 @@ void main() {
     expect(store.writes, 0);
     expect(store.data!['clean'], isFalse);
     expect(store.data!['failures'], 1);
+  });
+
+  test('transient boot write failure permits retry without false stability',
+      () async {
+    final store = FailOnceWriteLedger();
+    final guard = CrashLoopGuard(
+      store: store,
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+
+    expect(await guard.beginBoot(), isFalse);
+    expect(store.data, isNull, reason: 'failed write is not a durable boot');
+    await guard.markStable();
+    expect(store.data, isNull,
+        reason: 'failed boot must not acknowledge an earlier ledger');
+
+    expect(await guard.beginBoot(), isFalse);
+    expect(store.writes, 1);
+    expect(store.data!['clean'], isFalse);
+    await guard.markStable();
+    expect(store.data!['clean'], isTrue);
+  });
+
+  test('concurrent failed boot callers can retry on the same guard', () async {
+    final store = FailOnceWriteLedger();
+    final guard = CrashLoopGuard(
+      store: store,
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+    final first = guard.beginBoot();
+    final second = guard.beginBoot();
+    expect(identical(first, second), isTrue);
+    expect(await Future.wait(<Future<bool>>[first, second]),
+        <bool>[false, false]);
+    expect(store.writes, 0);
+
+    expect(await guard.beginBoot(), isFalse);
+    expect(store.writes, 1);
+    expect(store.data!['clean'], isFalse);
   });
 
 }
