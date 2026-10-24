@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:deutsch_bilarabi/features/explore/data/local_topic_catalog.dart';
 import 'package:deutsch_bilarabi/screens/curriculum_units_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -125,4 +128,132 @@ void main() {
     expect(find.text('Haus'), findsOneWidget);
     expect(find.text('منزل'), findsOneWidget);
   });
+  testWidgets('unsupported target and reverse direction never query German content',
+      (tester) async {
+    var calls = 0;
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async {
+      calls++;
+      return <Map<String, dynamic>>[
+        <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+      ];
+    }
+
+    await tester.pumpWidget(MaterialApp(
+      home: CurriculumUnitsScreen(
+        languageCode: 'de',
+        targetLanguageCode: 'en',
+        loadWords: loader,
+      ),
+    ));
+    expect(find.textContaining('لا تتوفر أقسام محلية موثقة'), findsOneWidget);
+    expect(find.textContaining('العائلة والأسرة'), findsNothing);
+
+    await tester.pumpWidget(MaterialApp(
+      home: CurriculumUnitsScreen(
+        languageCode: 'ar',
+        targetLanguageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    expect(find.textContaining('لا تتوفر أقسام محلية موثقة'), findsOneWidget);
+    expect(find.textContaining('العائلة والأسرة'), findsNothing);
+    expect(calls, 0);
+  });
+
+  testWidgets('pair switch discards an in-flight German topic response',
+      (tester) async {
+    final pending = Completer<List<Map<String, dynamic>>>();
+    var calls = 0;
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) {
+      calls++;
+      return pending.future;
+    }
+    final section = LocalTopicCatalog.sections[1];
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: loader,
+      ),
+    ));
+    expect(calls, 1);
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'ar',
+        targetLanguageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
+        findsOneWidget);
+    expect(calls, 1);
+
+    pending.complete(<Map<String, dynamic>>[
+      <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+    ]);
+    await tester.pump();
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+  });
+
+  testWidgets('level switch keeps latest rows when older request finishes last',
+      (tester) async {
+    final first = Completer<List<Map<String, dynamic>>>();
+    final section = LocalTopicCatalog.sections[1];
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) {
+      if (cefr == 'A1') return first.future;
+      return Future.value(<Map<String, dynamic>>[
+        <String, dynamic>{
+          'word': 'Verwandtschaft',
+          'translation_ar': 'قرابة',
+          'cefr_level': 'B2',
+        },
+      ]);
+    }
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'B2',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pump();
+    expect(find.text('Verwandtschaft'), findsOneWidget);
+
+    first.complete(<Map<String, dynamic>>[
+      <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+    ]);
+    await tester.pump();
+    expect(find.text('Verwandtschaft'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+  });
+
 }
