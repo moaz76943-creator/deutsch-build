@@ -39,6 +39,8 @@ class TestAutoHeal(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
+        if os.path.exists(".auto_heal_evidence.json"):
+            os.remove(".auto_heal_evidence.json")
 
     def test_dry_run(self):
         executor = auto_heal.AutoHealExecutor(self.plan_path)
@@ -123,6 +125,64 @@ class TestAutoHeal(unittest.TestCase):
             mock_exit.side_effect = Exception("SystemExit")
             with self.assertRaises(Exception):
                 executor.execute()
+
+    def test_bounded_attempts(self):
+        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor.evidence_path = os.path.join(self.test_dir, ".auto_heal_evidence.json")
+
+        # Manually set attempts to max
+        with open(executor.evidence_path, 'w') as f:
+            json.dump({self.plan_data["plan_id"]: {"attempts": executor.max_attempts}}, f)
+
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit(1)
+            with self.assertRaises(SystemExit):
+                executor.execute()
+
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_failure_records_evidence(self, mock_gate):
+        mock_gate.return_value = False
+        executor = auto_heal.AutoHealExecutor(self.plan_path)
+        executor.guard.ledger_path = self.ledger_path
+        executor.evidence_path = os.path.join(self.test_dir, ".auto_heal_evidence.json")
+
+        with self.assertRaises(SystemExit):
+            executor.execute()
+
+        with open(executor.evidence_path, 'r') as f:
+            evidence = json.load(f)
+        self.assertEqual(evidence[self.plan_data["plan_id"]]["attempts"], 1)
+
+    def test_strict_unicity_check(self):
+        executor = auto_heal.AutoHealExecutor(self.plan_path)
+
+        # Test zero occurrences
+        with open(self.target_file, 'w') as f:
+            f.write("import 'something_else';\n")
+
+        with self.assertRaises(ValueError) as context:
+            executor._apply_operation(self.plan_data["operations"][0])
+        self.assertIn("Strict unicity check failed", str(context.exception))
+
+        # Test multiple occurrences
+        with open(self.target_file, 'w') as f:
+            f.write("import 'bad_path';\nimport 'bad_path';\n")
+
+        with self.assertRaises(ValueError) as context:
+            executor._apply_operation(self.plan_data["operations"][0])
+        self.assertIn("Strict unicity check failed", str(context.exception))
+
+    @patch('os.replace')
+    def test_atomic_write(self, mock_replace):
+        executor = auto_heal.AutoHealExecutor(self.plan_path)
+
+        # Restore target file to valid state for operation
+        with open(self.target_file, 'w') as f:
+            f.write("import 'bad_path';\n")
+
+        # It should call os.replace after writing to tmp file
+        executor._apply_operation(self.plan_data["operations"][0])
+        mock_replace.assert_called_once_with(self.target_file + ".tmp", self.target_file)
 
 if __name__ == '__main__':
     unittest.main()
