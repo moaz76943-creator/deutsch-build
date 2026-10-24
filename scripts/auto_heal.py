@@ -144,6 +144,20 @@ class AutoHealExecutor:
         for op in self.plan.get("operations", []):
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
+    @staticmethod
+    def _atomic_json_write(path, value):
+        directory = os.path.dirname(os.path.abspath(path))
+        fd, temporary = tempfile.mkstemp(prefix=".auto_heal.", suffix=".tmp", dir=directory)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                json.dump(value, stream)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
+
     def _check_and_increment_attempt(self):
         plan_id = self.plan.get('plan_id', 'unknown')
         try:
@@ -152,43 +166,49 @@ class AutoHealExecutor:
                     data = json.load(f)
             else:
                 data = {}
-        except json.JSONDecodeError:
-            data = {}
+        except (json.JSONDecodeError, UnicodeError) as exc:
+            raise ValueError("Attempt history corrupted; manual reconciliation required") from exc
 
+        if not isinstance(data, dict):
+            raise ValueError("Attempt history corrupted; expected a JSON object")
         attempts = data.get(plan_id, 0)
+        if type(attempts) is not int or attempts < 0:
+            raise ValueError("Attempt history corrupted; invalid counter")
         if attempts >= 2:
             raise ValueError(f"Execution blocked: maximum attempts (2) exceeded for plan {plan_id}.")
 
         data[plan_id] = attempts + 1
-        with open(self.attempts_file, 'w') as f:
-            json.dump(data, f)
+        self._atomic_json_write(self.attempts_file, data)
 
     def _record_failure(self, error_message):
         plan_id = self.plan.get('plan_id', 'unknown')
-        try:
-            if os.path.exists(self.failures_file):
-                with open(self.failures_file, 'r') as f:
-                    data = json.load(f)
-            else:
-                data = {}
-        except json.JSONDecodeError:
+        if os.path.exists(self.failures_file):
+            with open(self.failures_file, 'r') as stream:
+                data = json.load(stream)
+        else:
             data = {}
+        if not isinstance(data, dict):
+            raise ValueError("Failure history corrupted; expected a JSON object")
+        failures = data.setdefault(plan_id, [])
+        if not isinstance(failures, list):
+            raise ValueError("Failure history corrupted; expected a failure list")
+        failures.append(str(error_message))
+        self._atomic_json_write(self.failures_file, data)
 
-        if plan_id not in data:
-            data[plan_id] = []
-        data[plan_id].append(str(error_message))
-
-        with open(self.failures_file, 'w') as f:
-            json.dump(data, f)
+    def _record_failure_safely(self, error):
+        try:
+            self._record_failure(error)
+        except Exception as logging_error:
+            print(f"Warning: failure evidence unavailable: {type(logging_error).__name__}", file=sys.stderr)
 
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
 
         try:
             self._check_and_increment_attempt()
-        except ValueError as e:
+        except (ValueError, OSError) as e:
             print(e)
-            self._record_failure(e)
+            self._record_failure_safely(e)
             sys.exit(1)
 
         self._verify_base_sha()
@@ -197,34 +217,29 @@ class AutoHealExecutor:
         try:
             self.guard.claim(self.agent_id, paths)
             self.guard.update_status(self.agent_id, paths, "ACTIVE")
-        except ValueError as e:
+        except (ValueError, OSError) as e:
             print(f"Failed to claim leases: {e}")
-            self._record_failure(e)
+            self._record_failure_safely(e)
             sys.exit(1)
 
         self._backup_files()
-
         try:
             for op in self.plan.get("operations", []):
                 self._apply_operation(op)
 
             if not self._run_gate():
-                error_msg = "Verification failed."
-                print(f"{error_msg} Rolling back...")
-                self._record_failure(error_msg)
-                self.rollback()
-                sys.exit(1)
-
-            self.guard.update_status(self.agent_id, paths, "COMPLETE")
-            print("Execution and verification successful.")
+                raise RuntimeError("Verification failed.")
 
             if self.plan.get("commit"):
                 self._commit_changes()
-
+            self.guard.update_status(self.agent_id, paths, "COMPLETE")
+            print("Execution and verification successful.")
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
-            self._record_failure(e)
-            self.rollback()
+            try:
+                self.rollback()
+            finally:
+                self._record_failure_safely(e)
             sys.exit(1)
 
     def verify(self):
@@ -269,12 +284,20 @@ class AutoHealExecutor:
             )
 
         elif op_type == "regenerate_artifact":
-            if path:
-                os.makedirs(os.path.dirname(path), exist_ok=True)
-                temp_path = f"{path}.tmp"
-                with open(temp_path, 'w') as f:
-                    f.write(op.get("content", "regenerated"))
+            if not path:
+                raise ValueError("Artifact regeneration requires an allowed path")
+            directory = os.path.dirname(os.path.abspath(path))
+            os.makedirs(directory, exist_ok=True)
+            fd, temp_path = tempfile.mkstemp(prefix=f".{os.path.basename(path)}.", suffix=".tmp", dir=directory)
+            try:
+                with os.fdopen(fd, 'w') as stream:
+                    stream.write(op.get("content", "regenerated"))
+                    stream.flush()
+                    os.fsync(stream.fileno())
                 os.replace(temp_path, path)
+            finally:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
