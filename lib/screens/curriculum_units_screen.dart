@@ -600,11 +600,14 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     });
     try {
       final loader = widget.loadWords ?? LocalTopicCatalog.loadSection;
+      // A stalled local DB/adapter must not trap learners on an infinite
+      // spinner. The existing error state offers retry; the request epoch
+      // prevents a late result from replacing a newer pair/level selection.
       final rows = await loader(
         sectionId: widget.section.id,
         cefr: widget.cefr,
         languageCode: widget.languageCode,
-      );
+      ).timeout(const Duration(seconds: 30));
       if (!mounted || requestId != _requestId) return;
       setState(() {
         // The built-in query is bounded to 50. Enforce the same UI bound
