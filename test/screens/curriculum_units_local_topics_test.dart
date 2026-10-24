@@ -759,4 +759,74 @@ void main() {
     expect(find.textContaining('لا توجد مفردات موثقة'), findsOneWidget);
     expect(find.byKey(const Key('topic-study-toggle')), findsNothing);
   });
+
+  testWidgets('quiz compares typed recall without inventing a score and resets on next',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+          <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-quiz-toggle')));
+    await tester.pump();
+    final answer = find.byKey(const Key('study-quiz-input'));
+    expect(tester.widget<TextField>(answer).textDirection, TextDirection.rtl);
+    expect(tester.widget<Text>(find.byKey(const Key('study-source')))
+        .textDirection, TextDirection.ltr);
+    expect(find.text('أم'), findsNothing);
+    expect(tester.widget<FilledButton>(find.byKey(const Key('study-quiz-compare')))
+        .onPressed, isNull);
+
+    await tester.enterText(answer, 'أب');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-quiz-compare')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+    expect(find.textContaining('لا يوجد تصحيح آلي'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pump();
+    expect(find.text('أم'), findsNothing);
+    expect(tester.widget<TextField>(answer).controller!.text, isEmpty);
+    expect(find.text('Vater'), findsOneWidget);
+  });
+
+  testWidgets('quiz cannot compare when no reference translation exists',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-quiz-toggle')));
+    await tester.pump();
+    expect(find.byKey(const Key('study-quiz-input')), findsNothing);
+    expect(find.byKey(const Key('study-quiz-compare')), findsNothing);
+    expect(find.textContaining('لا تتوفر إجابة مرجعية'), findsOneWidget);
+    expect(find.text('لا توجد ترجمة عربية موثقة لهذا السجل.'), findsNothing);
+  });
 }

@@ -186,7 +186,14 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool _studyMode = false;
   int _cardIndex = 0;
   bool _showAnswer = false;
+  bool _quizMode = false;
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _quizController = TextEditingController();
+
+  void _resetCardAnswer() {
+    _showAnswer = false;
+    _quizController.clear();
+  }
 
   // Filter only verified rows returned by the selected directed-pair loader.
   // Arabic vowel marks/tatweel and German sharp-s should not block lookup.
@@ -242,7 +249,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             'تدريب محلي فقط؛ لا يُحفظ التقدم أو تتغير مراجعات SRS.',
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            key: const Key('study-quiz-toggle'),
+            onPressed: () => setState(() {
+              _quizMode = !_quizMode;
+              _resetCardAnswer();
+            }),
+            icon: Icon(_quizMode ? Icons.style_outlined : Icons.edit_note),
+            label: Text(_quizMode ? 'العودة للبطاقات' : 'اختبار كتابة الترجمة'),
+          ),
+          const SizedBox(height: 8),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -256,6 +273,41 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 20),
+                  if (_quizMode) ...[
+                    const Text(
+                      'اختبار مراجعة ذاتية: قارن إجابتك بالمحتوى المحلي؛ '
+                      'لا يوجد تصحيح آلي أو تسجيل لنتيجة.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    if (translation != null && translation.isNotEmpty) ...[
+                      TextField(
+                        key: const Key('study-quiz-input'),
+                        controller: _quizController,
+                        textDirection: TextDirection.rtl,
+                        textInputAction: TextInputAction.done,
+                        onChanged: (_) => setState(() => _showAnswer = false),
+                        decoration: const InputDecoration(
+                          labelText: 'اكتب الترجمة بالعربية',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (!_showAnswer)
+                        FilledButton(
+                          key: const Key('study-quiz-compare'),
+                          onPressed: _quizController.text.trim().isEmpty
+                              ? null
+                              : () => setState(() => _showAnswer = true),
+                          child: const Text('قارن بالإجابة المرجعية'),
+                        ),
+                    ] else
+                      const Text(
+                        'لا تتوفر إجابة مرجعية لهذه البطاقة؛ '
+                        'لا يمكن اختبار الترجمة دون محتوى موثق.',
+                        textAlign: TextAlign.center,
+                      ),
+                  ],
                   if (_showAnswer)
                     Semantics(
                       liveRegion: true,
@@ -268,7 +320,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                         textAlign: TextAlign.center,
                       ),
                     )
-                  else
+                  else if (!_quizMode)
                     FilledButton(
                       key: const Key('study-reveal'),
                       onPressed: () => setState(() => _showAnswer = true),
@@ -290,7 +342,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                     ? null
                     : () => setState(() {
                           _cardIndex = index - 1;
-                          _showAnswer = false;
+                          _resetCardAnswer();
                         }),
                 child: const Text('السابق'),
               ),
@@ -300,7 +352,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                     ? null
                     : () => setState(() {
                           _cardIndex = index + 1;
-                          _showAnswer = false;
+                          _resetCardAnswer();
                         }),
                 child: const Text('التالي'),
               ),
@@ -429,6 +481,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   void dispose() {
     _requestId++;
     _searchController.dispose();
+    _quizController.dispose();
     super.dispose();
   }
 
@@ -480,8 +533,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         _loading = false;
         _failed = false;
         _studyMode = false;
+        _quizMode = false;
         _cardIndex = 0;
-        _showAnswer = false;
+        _resetCardAnswer();
       });
       return;
     }
@@ -490,8 +544,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       _failed = false;
       _rows = const [];
       _studyMode = false;
+      _quizMode = false;
       _cardIndex = 0;
-      _showAnswer = false;
+      _resetCardAnswer();
     });
     try {
       final loader = widget.loadWords ?? LocalTopicCatalog.loadSection;
@@ -530,8 +585,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                 tooltip: _studyMode ? 'عرض قائمة المفردات' : 'التدرب بالبطاقات',
                 onPressed: () => setState(() {
                   _studyMode = !_studyMode;
+                  _quizMode = false;
                   _cardIndex = 0;
-                  _showAnswer = false;
+                  _resetCardAnswer();
                 }),
                 icon: Icon(_studyMode ? Icons.list : Icons.style_outlined),
                 color: Theme.of(context).colorScheme.onSurface,
@@ -548,7 +604,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                       onChanged: (value) => setState(() {
                         _searchQuery = value;
                         _cardIndex = 0;
-                        _showAnswer = false;
+                        _resetCardAnswer();
                       }),
                       textInputAction: TextInputAction.search,
                       // Keep the caret and entered text in the script's
