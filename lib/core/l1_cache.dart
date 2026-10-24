@@ -1,19 +1,14 @@
-<<<<<<< HEAD
 import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
 import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
-  L1VocabularyCache._internal();
 
-<<<<<<< HEAD
   L1VocabularyCache._internal() {
     _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
-      maxCapacity: 100,
-      maxMemoryBytes: 10 * 1024 * 1024, // 10MB budget
+      maxCapacity: 50,
+      maxMemoryBytes: 5 * 1024 * 1024, // 5MB budget based on tests
       onEvict: (key) {
         _identities.remove(key);
       },
@@ -41,6 +36,11 @@ class L1VocabularyCache {
       }
     }
     return size;
+  }
+
+  String _buildKey(String langCode, {String? direction, int? packVersion}) {
+    if (direction == null && packVersion == null) return langCode;
+    return '${langCode}_${direction ?? ''}_${packVersion ?? ''}';
   }
 
   void putWithIdentity(String langCode, List<Map<String, dynamic>> items,
@@ -81,17 +81,58 @@ class L1VocabularyCache {
     }
   }
 
-  // Legacy fallback
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache.put(langCode, List.unmodifiable(items),
+  // Legacy fallback and new arguments
+  void put(String langCode, List<Map<String, dynamic>> items, {String? direction, int? packVersion}) {
+    final key = _buildKey(langCode, direction: direction, packVersion: packVersion);
+    _memoryCache.put(key, List.unmodifiable(items),
         itemSizeBytes: _measureSize(items));
   }
 
-  List<Map<String, dynamic>>? get(String langCode) {
+  List<Map<String, dynamic>>? get(String langCode, {String? direction}) {
+    final key = _buildKey(langCode, direction: direction);
+    if (_memoryCache.containsKey(key)) return _memoryCache.get(key);
+
+    // Support the case when packVersion was used
+    for (final k in _memoryCache.keys) {
+      if (k.startsWith('${langCode}_${direction ?? ''}')) {
+        return _memoryCache.get(k);
+      }
+    }
     return _memoryCache.get(langCode);
   }
 
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
+  bool has(String langCode, {String? direction, int? packVersion}) {
+    final key = _buildKey(langCode, direction: direction, packVersion: packVersion);
+    if (_memoryCache.containsKey(key)) return true;
+
+    if (packVersion == null && direction != null) {
+      for (final k in _memoryCache.keys) {
+        if (k.startsWith('${langCode}_$direction')) {
+          return true;
+        }
+      }
+    }
+    return _memoryCache.containsKey(langCode);
+  }
+
+  void invalidateStale(String langCode, String direction, int currentPackVersion) {
+    final keysToRemove = <String>[];
+    for (final key in _memoryCache.keys) {
+      if (key.startsWith('${langCode}_$direction')) {
+        if (!key.endsWith('_$currentPackVersion')) {
+          keysToRemove.add(key);
+        }
+      }
+    }
+    for (final k in keysToRemove) {
+      _memoryCache.remove(k);
+      _identities.remove(k);
+    }
+  }
+
+  void onMemoryPressure() {
+    trimMemoryPressure();
+  }
 
   void clear() {
     _memoryCache.clear();
@@ -101,21 +142,4 @@ class L1VocabularyCache {
   void trimMemoryPressure() {
     _memoryCache.trimMemoryPressure();
   }
-=======
-  final Map<String, List<Map<String, dynamic>>> _memoryCache = {};
-
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache[langCode] = List.unmodifiable(items);
-  }
-
-  List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache[langCode];
-  }
-
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
-
-  void clear() {
-    _memoryCache.clear();
-  }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
