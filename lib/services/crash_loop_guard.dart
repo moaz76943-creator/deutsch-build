@@ -123,7 +123,13 @@ class CrashLoopGuard {
         if (identical(_beginBootFuture, attempt)) {
           _beginBootFuture = null;
         }
-        if (error is FileSystemException) return _safe;
+        if (error is FileSystemException) {
+          // An unreadable or unwritable crash ledger cannot establish that
+          // external content is safe to activate. Fail closed for this
+          // attempt, but allow a fresh retry once storage recovers.
+          _safe = true;
+          return true;
+        }
         Error.throwWithStackTrace(error, stack);
       },
     );
