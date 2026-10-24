@@ -17,7 +17,7 @@ ALLOWED_PATHS = [
 VALID_TRANSITIONS = {
     "CLAIM": ["ACTIVE", "BLOCKED", "CANCELLED"],
     "ACTIVE": ["COMPLETE", "BLOCKED", "CANCELLED"],
-    "BLOCKED": ["ACTIVE", "COMPLETE", "CANCELLED"],
+    "BLOCKED": ["CANCELLED"],
     "COMPLETE": [],
     "CANCELLED": []
 }
@@ -152,7 +152,7 @@ def process_ledger(parsed, f):
     elif parsed.transition not in ["CLAIM", "ACTIVE", "BLOCKED", "CANCELLED"]:
         report["blockers"].append(f"Invalid initial transition: {parsed.transition}")
 
-    if parsed.transition in ["CLAIM", "ACTIVE"]:
+    if parsed.transition in ["CLAIM", "ACTIVE", "COMPLETE"]:
         if is_stale_base_sha(ledger, parsed.base_sha):
             report["blockers"].append("Stale branch-base SHA detected. Base SHA is behind the latest completed merge.")
 
