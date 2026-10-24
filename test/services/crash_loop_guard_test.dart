@@ -94,10 +94,11 @@ void main() {
       await guard.beginBoot();
       now = now.add(const Duration(seconds: 1));
     }
-    expect(guard!.safeModeEnabled, isTrue);
-    await guard.exitAfterRecovery();
-    expect(guard.safeModeEnabled, isFalse);
-    expect(await guard.beginBoot(), isFalse);
+    final recoveredGuard = guard!;
+    expect(recoveredGuard.safeModeEnabled, isTrue);
+    await recoveredGuard.exitAfterRecovery();
+    expect(recoveredGuard.safeModeEnabled, isFalse);
+    expect(await recoveredGuard.beginBoot(), isFalse);
     expect(store.data!['safe'], isFalse);
     expect(store.data!['failures'], 0);
   });
