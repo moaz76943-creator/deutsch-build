@@ -208,4 +208,59 @@ void main() {
     expect(await target.readAsBytes(), <int>[1, 2, 3, 4]);
     expect(await staged.readAsBytes(), <int>[9, 9, 9]);
   });
+  test('symlinked grandparent of staged archive cannot bypass validation',
+      () async {
+    if (Platform.isWindows) return;
+    final target = await targetWithOldPack();
+    final real = await root.createTemp('real-stage-');
+    final nested = Directory('${real.path}/nested');
+    await nested.create();
+    final bytes = <int>[9, 8, 7];
+    final originalStage = File('${nested.path}/ar.pack.gz');
+    await originalStage.writeAsBytes(bytes);
+    final alias = Link('${root.path}/alias-stage');
+    await alias.create(real.path);
+    final staged = File('${alias.path}/nested/ar.pack.gz');
+
+    await expectLater(
+      storage.promoteVerifiedArchive(
+        stagedFile: staged,
+        targetFile: target,
+        expectedSize: bytes.length,
+        expectedHash: sha256.convert(bytes).toString(),
+      ),
+      throwsFormatException,
+    );
+    expect(await target.readAsBytes(), <int>[1, 2, 3, 4]);
+    expect(await originalStage.readAsBytes(), bytes);
+  });
+
+  test('symlinked grandparent of destination cannot replace external archive',
+      () async {
+    if (Platform.isWindows) return;
+    final outside = await root.createTemp('outside-');
+    final nested = Directory('${outside.path}/nested');
+    await nested.create();
+    final external = File('${nested.path}/ar.pack.gz');
+    final oldBytes = <int>[1, 2, 3, 4];
+    await external.writeAsBytes(oldBytes);
+    final alias = Link('${root.path}/alias-target');
+    await alias.create(outside.path);
+    final target = File('${alias.path}/nested/ar.pack.gz');
+    final staged = File('${root.path}/verified.pack.gz');
+    final bytes = <int>[9, 8, 7];
+    await staged.writeAsBytes(bytes);
+
+    await expectLater(
+      storage.promoteVerifiedArchive(
+        stagedFile: staged,
+        targetFile: target,
+        expectedSize: bytes.length,
+        expectedHash: sha256.convert(bytes).toString(),
+      ),
+      throwsFormatException,
+    );
+    expect(await external.readAsBytes(), oldBytes);
+    expect(await staged.readAsBytes(), bytes);
+  });
 }

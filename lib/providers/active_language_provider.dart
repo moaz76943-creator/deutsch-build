@@ -264,17 +264,20 @@ class LanguagePackStorage {
     }
   }
 
-  // A symlink can make a checksum read refer to a different file than the
-  // archive that rename() will replace. In particular, promoting a staged
-  // symlink to the destination itself destroys the last-known-good archive.
-  // Reject links at both the archive and its immediate managed directory.
+  // Reject symlinks anywhere in the archive path, not only the file and
+  // immediate parent. A symlinked grandparent can otherwise redirect reads,
+  // promotion or deletion outside managed storage while checks appear clean.
   static Future<bool> _hasArchiveSymlink(File file) async {
-    final fileType =
-        await FileSystemEntity.type(file.path, followLinks: false);
-    final parentType =
-        await FileSystemEntity.type(file.parent.path, followLinks: false);
-    return fileType == FileSystemEntityType.link ||
-        parentType == FileSystemEntityType.link;
+    var path = file.absolute.path;
+    while (true) {
+      if (await FileSystemEntity.type(path, followLinks: false) ==
+          FileSystemEntityType.link) {
+        return true;
+      }
+      final parent = File(path).parent.path;
+      if (parent == path) return false;
+      path = parent;
+    }
   }
 
   Future<Set<String>> findInstalled(List<LanguagePackMetadata> packs) async {
@@ -402,6 +405,9 @@ class LanguagePackStorage {
 
   Future<void> delete(String code) async {
     final file = await _packFile(code);
+    if (await _hasArchiveSymlink(file)) {
+      throw const FormatException('Archive path is a symbolic link.');
+    }
     if (!await file.exists()) {
       throw StateError('No managed archive exists for $code');
     }
