@@ -254,4 +254,50 @@ void main() {
     expect(store.data!['clean'], isFalse);
   });
 
+
+  test('ledger write does not destroy an interrupted legacy staging file',
+      () async {
+    final root = await Directory.systemTemp.createTemp('boot-ledger-');
+    addTearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+    final legacyStage = File('${root.path}/.rapid_boot_ledger.json.new');
+    await legacyStage.writeAsString('interrupted previous staging bytes');
+
+    final store = FileBootLedgerStore(root: root);
+    await store.write(<String, dynamic>{
+      'started': 123,
+      'clean': false,
+      'failures': 0,
+      'safe': false,
+    });
+
+    expect(await legacyStage.readAsString(),
+        'interrupted previous staging bytes');
+    expect((await store.read())?['started'], 123);
+  });
+
+  test('concurrent file ledger writes use independent temporary paths',
+      () async {
+    final root = await Directory.systemTemp.createTemp('boot-ledger-');
+    addTearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+    final writers = List<FileBootLedgerStore>.generate(
+        16, (_) => FileBootLedgerStore(root: root));
+    await Future.wait(<Future<void>>[
+      for (var i = 0; i < writers.length; i++)
+        writers[i].write(<String, dynamic>{
+          'started': i,
+          'clean': false,
+          'failures': 0,
+          'safe': false,
+        }),
+    ]);
+
+    final result = await FileBootLedgerStore(root: root).read();
+    expect(result?['started'], inInclusiveRange(0, writers.length - 1));
+    expect((await root.list().toList()).whereType<Directory>(), isEmpty);
+  });
+
 }

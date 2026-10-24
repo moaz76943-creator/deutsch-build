@@ -34,9 +34,23 @@ class FileBootLedgerStore implements BootLedgerStore {
   @override
   Future<void> write(Map<String, dynamic> state) async {
     final file = await _file();
-    final tmp = File('${file.path}.new');
-    await tmp.writeAsString(jsonEncode(state), flush: true);
-    await tmp.rename(file.path);
+    // Each writer must own its staging path. A shared .new file can be
+    // truncated or renamed by a concurrent writer, losing the boot ledger.
+    final stagingDirectory =
+        await file.parent.createTemp('.rapid_boot_ledger-');
+    try {
+      final staged = File(p.join(stagingDirectory.path, 'ledger.json'));
+      await staged.writeAsString(jsonEncode(state), flush: true);
+      await staged.rename(file.path);
+    } finally {
+      try {
+        if (await stagingDirectory.exists()) {
+          await stagingDirectory.delete(recursive: true);
+        }
+      } on FileSystemException {
+        // Cleanup failure cannot invalidate an already committed ledger.
+      }
+    }
   }
 }
 
