@@ -96,7 +96,7 @@ class TestGuard(unittest.TestCase):
         with open(self.ledger_path) as f:
             ledger = json.load(f)
             self.assertEqual(ledger["T1"]["state"], "BLOCKED")
-            self.assertIn("Stale lock recovered", ledger["T1"]["recovery_evidence"])
+            self.assertIn("Stale lock recovered after", ledger["T1"]["recovery_evidence"])
             self.assertEqual(ledger["T2"]["state"], "CLAIM")
 
     @patch('subprocess.check_call')
