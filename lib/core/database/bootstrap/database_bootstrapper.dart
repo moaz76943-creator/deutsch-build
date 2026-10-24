@@ -13,6 +13,13 @@ class DatabaseBootstrapper {
   static const int _firstPageBtreeOffset = _sqliteHeaderLength;
   static const int _maxFirstPageBtreeHeaderLength = 12;
 
+  // SQLite header fields at offsets 24, 28 and 92 are unsigned big-endian.
+  static int _headerU32(List<int> bytes, int offset) =>
+      bytes[offset] * 0x1000000 +
+      bytes[offset + 1] * 0x10000 +
+      bytes[offset + 2] * 0x100 +
+      bytes[offset + 3];
+
   /// Read-only structural preflight for a local SQLite database.
   ///
   /// A matching 16-byte magic alone is not a usable database. Verify the
@@ -162,6 +169,22 @@ class DatabaseBootstrapper {
         return const DatabaseBootstrapResult(
           isReady: false,
           error: 'SQLite file truncated or misaligned',
+        );
+      }
+
+      // SQLite header offset 28 records the committed page count only when
+      // the change counter (24) matches version-valid-for (92), and the count
+      // is nonzero. A missing *whole* final page passes alignment checks but
+      // must never be accepted as a usable offline database. Do not reject
+      // based on stale page counts while the two counters differ (e.g. after
+      // older SQLite writes); integrity_check remains the admission gate.
+      final declaredPageCount = _headerU32(header, 28);
+      if (declaredPageCount != 0 &&
+          _headerU32(header, 24) == _headerU32(header, 92) &&
+          declaredPageCount > length ~/ pageSize) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'SQLite file truncated relative to committed page count',
         );
       }
 
