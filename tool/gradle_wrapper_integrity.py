@@ -39,28 +39,40 @@ def verify_wrapper(root: Path = ROOT) -> tuple[bool, str]:
 
 
 
+_CONFLICT_MARKER = re.compile(r'^(<<<<<<<|=======|>>>>>>>)', re.M)
+
+
 def verify_distribution_properties(properties: Path, lock: Path) -> tuple[bool, str]:
     props_text = properties.read_text(encoding='utf-8')
     lock_text = lock.read_text(encoding='utf-8')
+    # Java Properties keeps the last duplicate key. A merged conflict can
+    # therefore select a different distributionUrl than the checksum beside it,
+    # and the wrapper refuses to start. Require one URL and one checksum.
+    if _CONFLICT_MARKER.search(props_text):
+        return False, 'Gradle wrapper properties contain unresolved merge conflict markers'
     version_match = re.search(r'^GRADLE_VERSION=([^\n]+)$', lock_text, re.M)
     sha_match = re.search(r'^GRADLE_DISTRIBUTION_SHA256=([0-9a-f]{64})$', lock_text, re.M)
-    url_match = re.search(r'^distributionUrl=(.+)$', props_text, re.M)
-    dist_match = re.search(r'^distributionSha256Sum=([0-9a-f]{64})$', props_text, re.M)
+    urls = re.findall(r'^distributionUrl=(.+)$', props_text, re.M)
+    sha_lines = re.findall(r'^distributionSha256Sum=(.*)$', props_text, re.M)
+    shas = re.findall(r'^distributionSha256Sum=([0-9a-f]{64})$', props_text, re.M)
     if not version_match:
         return False, 'GRADLE_VERSION is missing from toolchain.lock'
     if not sha_match:
         return False, 'GRADLE_DISTRIBUTION_SHA256 is missing or malformed'
-    if not url_match:
-        return False, 'Gradle distributionUrl is missing'
-    if not dist_match:
+    if len(urls) != 1:
+        return False, (
+            'Gradle wrapper properties must declare exactly one distributionUrl, '
+            f'found {len(urls)}'
+        )
+    if len(sha_lines) != 1 or len(shas) != 1:
         return False, 'Gradle distributionSha256Sum is missing or malformed'
-    version = version_match.group(1)
+    version = version_match.group(1).strip()
     expected_sha = sha_match.group(1)
-    url = url_match.group(1).replace('\\:', ':')
+    url = urls[0].replace('\\:', ':').strip()
     expected_url = f'https://services.gradle.org/distributions/gradle-{version}-all.zip'
     if url != expected_url:
         return False, f'Gradle distributionUrl mismatch: expected {expected_url}, found {url}'
-    actual_props_sha = dist_match.group(1)
+    actual_props_sha = shas[0]
     if actual_props_sha != expected_sha:
         return False, f'distributionSha256Sum mismatch: expected {expected_sha}, found {actual_props_sha}'
     return True, f'Gradle distribution URL and SHA-256 verified for {version}'
