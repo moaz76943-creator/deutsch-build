@@ -1424,7 +1424,8 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('topic-study-toggle')));
     await tester.pump();
-    expect(find.text('Vater'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('study-source'))).data,
+        'Vater');
     await tester.tap(find.byKey(const Key('study-reveal')));
     await tester.pump();
     expect(find.text('أب'), findsOneWidget);
