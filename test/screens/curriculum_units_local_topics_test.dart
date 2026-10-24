@@ -1361,4 +1361,84 @@ void main() {
     expect(find.text('Mutter'), findsOneWidget);
   });
 
+
+  testWidgets('clear search restores bounded local results after no match',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+          <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+    expect(find.byKey(const Key('topic-search-clear')), findsNothing);
+
+    await tester.enterText(search, 'غائب');
+    await tester.pump();
+    expect(tester.widget<TextField>(search).textDirection, TextDirection.rtl);
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
+    expect(find.textContaining('حتى 50 كلمة'), findsOneWidget);
+    final clear = find.byKey(const Key('topic-search-clear'));
+    expect(clear, findsOneWidget);
+    expect(tester.widget<IconButton>(clear).tooltip,
+        'مسح البحث وإظهار المفردات');
+
+    await tester.tap(clear);
+    await tester.pump();
+    expect(tester.widget<TextField>(search).controller!.text, isEmpty);
+    expect(tester.widget<TextField>(search).textDirection, TextDirection.ltr);
+    expect(find.byKey(const Key('topic-search-clear')), findsNothing);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Vater'), findsOneWidget);
+  });
+
+  testWidgets('clearing filtered practice resets index and revealed answer',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+          <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Vater');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('Vater'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أب'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('topic-search-clear')));
+    await tester.pump();
+    expect(find.text('بطاقة 1 من 2'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('study-source'))).data,
+        'Mutter');
+    expect(find.text('أب'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.byKey(const Key('study-reveal')), findsOneWidget);
+    expect(tester.widget<TextField>(find.byKey(const Key('topic-search')))
+        .controller!.text, isEmpty);
+  });
+
 }
