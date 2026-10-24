@@ -24,7 +24,7 @@ class TestAutoHeal(unittest.TestCase):
         self.plan_data = {
             "plan_id": "J093-TEST",
             "signature": "valid",
-            "base_sha": "any",
+            "base_sha": "a" * 40,
             "allowed_paths": [self.target_file],
             "operations": [
                 {
@@ -38,6 +38,9 @@ class TestAutoHeal(unittest.TestCase):
 
         with open(self.plan_path, 'w') as f:
             json.dump(self.plan_data, f)
+        self.git_head = patch('auto_heal.subprocess.check_output', return_value=b"a" * 40)
+        self.git_head.start()
+        self.addCleanup(self.git_head.stop)
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
@@ -163,6 +166,13 @@ class TestAutoHeal(unittest.TestCase):
 
         self.assertIn("maximum attempts", str(failures2["J093-TEST"][-1]))
 
+
+    def test_rejects_wildcard_base_sha(self):
+        self.plan_data["base_sha"] = "any"
+        with open(self.plan_path, 'w') as f:
+            json.dump(self.plan_data, f)
+        with self.assertRaisesRegex(ValueError, "Invalid base_sha"):
+            auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
 
     def test_base_sha_mismatch_fails_closed(self):
         self.plan_data["base_sha"] = "a" * 40
