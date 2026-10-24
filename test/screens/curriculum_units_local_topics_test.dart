@@ -1097,4 +1097,106 @@ void main() {
     expect(find.text('Mutter'), findsOneWidget);
   });
 
+  testWidgets('stalled topic load shows retry and never resurrects late rows',
+      (tester) async {
+    final stalled = Completer<List<Map<String, dynamic>>>();
+    var calls = 0;
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) {
+      calls++;
+      if (calls == 1) return stalled.future;
+      return Future.value(<Map<String, dynamic>>[
+        <String, dynamic>{
+          'word': 'Vater',
+          'translation_ar': 'أب',
+          'cefr_level': 'A1',
+        },
+      ]);
+    }
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: loader,
+      ),
+    ));
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 31));
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('تعذر قراءة المحتوى المحلي'), findsOneWidget);
+    expect(find.text('إعادة المحاولة'), findsOneWidget);
+
+    await tester.tap(find.text('إعادة المحاولة'));
+    await tester.pumpAndSettle();
+    expect(calls, 2);
+    expect(find.text('Vater'), findsOneWidget);
+    expect(find.text('أب'), findsOneWidget);
+
+    stalled.complete(<Map<String, dynamic>>[
+      <String, dynamic>{
+        'word': 'Mutter',
+        'translation_ar': 'أم',
+        'cefr_level': 'A1',
+      },
+    ]);
+    await tester.pump();
+    expect(find.text('Vater'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+  });
+
+  testWidgets('timeout of obsolete request cannot replace unsupported pair state',
+      (tester) async {
+    final stalled = Completer<List<Map<String, dynamic>>>();
+    var calls = 0;
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) {
+      calls++;
+      return stalled.future;
+    }
+    final section = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: loader,
+      ),
+    ));
+    expect(calls, 1);
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'en',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pump(const Duration(seconds: 31));
+    await tester.pump();
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
+        findsOneWidget);
+    expect(find.text('إعادة المحاولة'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    stalled.complete(<Map<String, dynamic>>[
+      <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+    ]);
+    await tester.pump();
+    expect(find.text('Mutter'), findsNothing);
+    expect(calls, 1);
+  });
+
 }
