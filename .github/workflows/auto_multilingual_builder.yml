@@ -1,12 +1,15 @@
 name: Multilingual Pack Builder Engine
 
 on:
-  schedule:
-    # - cron: '0 * * * *' (disabled)
+  # Manual-only: do not schedule this legacy OpenAI API-backed generator.
+  # It is NOT part of the zero-additional-billing public factory.
   workflow_dispatch:
 
 jobs:
   build-and-expand:
+    # Zero-additional-billing invariant: this legacy script calls a paid API.
+    # Keep historical code available for audit, but do not execute it.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
 
