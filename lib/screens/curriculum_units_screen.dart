@@ -311,6 +311,99 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     );
   }
 
+  // This sheet reads only fields supplied by the selected local row. Missing
+  // senses, forms and examples are not generated or borrowed from other pairs.
+  void _showWordDetails(Map<String, dynamic> row) {
+    String? available(Object? value) =>
+        value is String && value.trim().isNotEmpty ? value.trim() : null;
+
+    List<String> lines(Object? value) => value is List
+        ? value.whereType<String>().map((text) => text.trim())
+            .where((text) => text.isNotEmpty).toList(growable: false)
+        : const <String>[];
+
+    TextDirection direction(String value) => RegExp(
+          r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]',
+        ).hasMatch(value)
+            ? TextDirection.rtl
+            : TextDirection.ltr;
+
+    final word = available(row['word']);
+    final article = available(row['article']);
+    final displayWord = word == null
+        ? 'لا يتوفر نص موثق لهذه المفردة'
+        : article == null ? word : '$article $word';
+    final translation = available(row['translation_ar']);
+    final sense = available(row['sense_gloss']);
+    final forms = lines(row['forms']);
+    final examples = lines(row['examples']);
+    final partOfSpeech = available(row['part_of_speech']);
+    final recordedLevel = available(row['cefr_level']);
+    final level = const <String>{'A1', 'A2', 'B1', 'B2', 'C1', 'C2'}
+            .contains(recordedLevel)
+        ? recordedLevel!
+        : 'UNKNOWN';
+
+    Widget detail(String label, List<String> values,
+        {TextDirection? textDirection}) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            for (final value in values)
+              Text(value, textDirection: textDirection ?? direction(value)),
+          ],
+        ),
+      );
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('تفاصيل المفردة'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                detail('الكلمة', [displayWord],
+                    textDirection: TextDirection.ltr),
+                detail('الترجمة', [
+                  translation ?? 'لا توجد ترجمة عربية متاحة في هذا السجل.'
+                ], textDirection: TextDirection.rtl),
+                detail('المعنى', [
+                  sense ?? 'لا يتوفر شرح معنى في هذا السجل.'
+                ]),
+                detail('الصيغ والتصريفات', forms.isEmpty
+                    ? ['لا تتوفر صيغ موثقة في هذا السجل.'] : forms),
+                detail('أمثلة الاستخدام', examples.isEmpty
+                    ? ['لا تتوفر أمثلة موثقة في هذا السجل.'] : examples),
+                if (partOfSpeech != null)
+                  detail('نوع الكلمة حسب الحزمة', [partOfSpeech],
+                      textDirection: TextDirection.ltr),
+                detail('المستوى', [
+                  level == 'UNKNOWN'
+                      ? 'UNKNOWN — لا يوجد تصنيف مستوى معتمد لهذا السجل.'
+                      : 'تصنيف وارد من الحزمة: $level (ليس اعتماداً مستقلاً).'
+                ]),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -514,6 +607,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                               ? word
                               : '$article $word';
                           return ListTile(
+                            onTap: () => _showWordDetails(row),
                             title: Text(
                               displayWord,
                               textDirection: TextDirection.ltr,
