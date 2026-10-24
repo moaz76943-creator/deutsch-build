@@ -1,6 +1,8 @@
 package com.deutschbilarabi.app
 
+import android.content.Intent
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -8,18 +10,15 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     private lateinit var offlineVoiceProbe: AndroidOfflineVoiceCapabilityProbe
-=======
-    private lateinit var offlineVoiceCapabilityProbe: AndroidOfflineVoiceCapabilityProbe
->>>>>>> pr-151
-=======
+
     private var processTextChannel: MethodChannel? = null
     private var processTextListenerReady = false
     private var processTextInFlight = false
     private val pendingProcessText = ArrayDeque<String>()
+    private companion object {
+        const val MAX_PENDING_PROCESS_TEXT = 10
+    }
 
     private fun captureProcessText(source: Intent?) {
         if (source?.action != Intent.ACTION_PROCESS_TEXT) return
@@ -69,10 +68,6 @@ class MainActivity : FlutterActivity() {
         })
     }
 
->>>>>>> pr-179
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(
@@ -96,37 +91,29 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-<<<<<<< HEAD
         offlineVoiceProbe = AndroidOfflineVoiceCapabilityProbe(this)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
         ).setMethodCallHandler(offlineVoiceProbe)
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (::offlineVoiceProbe.isInitialized) {
-            offlineVoiceProbe.destroy()
-        }
-=======
-        offlineVoiceCapabilityProbe = AndroidOfflineVoiceCapabilityProbe(this)
-        MethodChannel(
+        // Process text channel for share/select text integration
+        processTextChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
-        ).setMethodCallHandler(offlineVoiceCapabilityProbe)
-    }
-
-    override fun onDestroy() {
-        if (::offlineVoiceCapabilityProbe.isInitialized) {
-            offlineVoiceCapabilityProbe.dispose()
+            "com.deutschbilarabi.app/process_text"
+        )
+        processTextChannel?.setMethodCallHandler { call, result ->
+            if (call.method == "ready") {
+                processTextListenerReady = true
+                dispatchPendingProcessText()
+                result.success(null)
+            } else {
+                result.notImplemented()
+            }
         }
-        super.onDestroy()
->>>>>>> pr-151
-=======
+
+        // TTS settings opener
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "com.deutsch_bilarabi.app/tts_settings",
@@ -151,9 +138,19 @@ class MainActivity : FlutterActivity() {
                 result.notImplemented()
             }
         }
->>>>>>> pr-179
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+
+        // Play Integrity
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidPlayIntegrityManager.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidPlayIntegrityManager(this))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::offlineVoiceProbe.isInitialized) {
+            offlineVoiceProbe.destroy()
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -180,7 +177,6 @@ class MainActivity : FlutterActivity() {
         if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
-<<<<<<< HEAD
         captureProcessText(intent)
     }
 
@@ -195,7 +191,5 @@ class MainActivity : FlutterActivity() {
         processTextChannel?.setMethodCallHandler(null)
         processTextChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     }
 }
