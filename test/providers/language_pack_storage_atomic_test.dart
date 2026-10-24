@@ -92,4 +92,50 @@ void main() {
     );
     expect(await target.readAsBytes(), <int>[1, 2, 3, 4]);
   });
+
+  test('manifest archive sizes are bounded before disk or network access',
+      () async {
+    LanguagePackMetadata metadata(int size) => LanguagePackMetadata(
+          code: 'ar',
+          name: 'Arabic',
+          nativeName: 'العربية',
+          sizeBytes: size,
+          packFile: 'ar-1.0.0.pack.gz',
+          sha256Hex: sha256.convert(<int>[1, 2, 3]).toString(),
+          isAvailable: true,
+        );
+
+    expect(metadata(LanguagePackMetadata.maxArchiveBytes).canDownload, isTrue);
+    expect(metadata(LanguagePackMetadata.maxArchiveBytes + 1).canDownload,
+        isFalse);
+    expect(metadata(0).canDownload, isFalse);
+
+    final progress = <double>[];
+    await expectLater(
+      storage.download(
+        metadata(LanguagePackMetadata.maxArchiveBytes + 1),
+        onProgress: progress.add,
+      ),
+      throwsStateError,
+    );
+    expect(progress, isEmpty);
+  });
+
+  test('promotion refuses an oversized manifest without touching old archive',
+      () async {
+    final target = await targetWithOldPack();
+    final staged = File('${root.path}/oversized.pack.gz');
+    await staged.writeAsBytes(<int>[9, 9, 9]);
+    await expectLater(
+      storage.promoteVerifiedArchive(
+        stagedFile: staged,
+        targetFile: target,
+        expectedSize: LanguagePackMetadata.maxArchiveBytes + 1,
+        expectedHash: sha256.convert(<int>[9, 9, 9]).toString(),
+      ),
+      throwsFormatException,
+    );
+    expect(await target.readAsBytes(), <int>[1, 2, 3, 4]);
+    expect(await staged.readAsBytes(), <int>[9, 9, 9]);
+  });
 }
