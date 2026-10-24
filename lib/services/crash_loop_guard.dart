@@ -74,8 +74,15 @@ class CrashLoopGuard {
   final BootLedgerStore _store;
   final DateTime Function() _clock;
   bool _safe = false;
+  Future<bool>? _beginBootFuture;
   bool get safeModeEnabled => _safe;
-  Future<bool> beginBoot() async {
+
+  // A retry or a second startup boundary in the same process must not be
+  // counted as another failed Android launch. Cache the in-flight result too,
+  // so simultaneous callers perform exactly one ledger transition.
+  Future<bool> beginBoot() => _beginBootFuture ??= _beginBootOnce();
+
+  Future<bool> _beginBootOnce() async {
     try {
       final old = await _store.read() ?? <String, dynamic>{};
       final now = _clock().toUtc().millisecondsSinceEpoch;
@@ -121,6 +128,9 @@ class CrashLoopGuard {
       'safe': false,
     });
     _safe = false;
+    // Recovery is an explicit user action; the next local boot attempt may
+    // re-check the now-clean ledger without retaining the old SAFE result.
+    _beginBootFuture = null;
   }
 }
 
