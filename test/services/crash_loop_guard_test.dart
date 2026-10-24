@@ -31,6 +31,19 @@ class FailOnceWriteLedger extends MemoryLedger {
   }
 }
 
+class FailOnceReadLedger extends MemoryLedger {
+  bool failFirstRead = true;
+
+  @override
+  Future<Map<String, dynamic>?> read() async {
+    if (failFirstRead) {
+      failFirstRead = false;
+      throw const FileSystemException('transient ledger read failure');
+    }
+    return super.read();
+  }
+}
+
 class PausedWriteLedger extends MemoryLedger {
   final entered = Completer<void>();
   final release = Completer<void>();
@@ -223,7 +236,9 @@ void main() {
       clock: () => DateTime.utc(2026, 10, 25),
     );
 
-    expect(await guard.beginBoot(), isFalse);
+    expect(await guard.beginBoot(), isTrue,
+        reason: 'unreadable or unwritable boot ledger must fail closed');
+    expect(guard.safeModeEnabled, isTrue);
     expect(store.data, isNull, reason: 'failed write is not a durable boot');
     await guard.markStable();
     expect(store.data, isNull,
@@ -236,6 +251,27 @@ void main() {
     expect(store.data!['clean'], isTrue);
   });
 
+  test('transient boot read failure enters safe mode until retry', () async {
+    final store = FailOnceReadLedger();
+    final guard = CrashLoopGuard(
+      store: store,
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+
+    expect(await guard.beginBoot(), isTrue,
+        reason: 'missing crash evidence cannot authorize external packs');
+    expect(guard.safeModeEnabled, isTrue);
+    expect(store.writes, 0);
+    await guard.markStable();
+    expect(store.writes, 0,
+        reason: 'an unrecorded boot cannot be acknowledged as stable');
+
+    expect(await guard.beginBoot(), isFalse);
+    expect(guard.safeModeEnabled, isFalse);
+    expect(store.writes, 1);
+    expect(store.data!['clean'], isFalse);
+  });
+
   test('concurrent failed boot callers can retry on the same guard', () async {
     final store = FailOnceWriteLedger();
     final guard = CrashLoopGuard(
@@ -246,7 +282,7 @@ void main() {
     final second = guard.beginBoot();
     expect(identical(first, second), isTrue);
     expect(await Future.wait(<Future<bool>>[first, second]),
-        <bool>[false, false]);
+        <bool>[true, true]);
     expect(store.writes, 0);
 
     expect(await guard.beginBoot(), isFalse);
