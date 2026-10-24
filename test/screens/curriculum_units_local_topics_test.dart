@@ -829,4 +829,105 @@ void main() {
     expect(find.textContaining('لا تتوفر إجابة مرجعية'), findsOneWidget);
     expect(find.text('لا توجد ترجمة عربية موثقة لهذا السجل.'), findsNothing);
   });
+
+  testWidgets('malformed lexical metadata cannot become learner content',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'article': 42,
+            'translation_ar': 123,
+            'cefr_level': 'A1',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('42 Mutter'), findsNothing);
+    expect(find.text('123'), findsNothing);
+    expect(find.text('لا توجد ترجمة عربية موثقة'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), '123');
+    await tester.pump();
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('topic-search')), '');
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-quiz-toggle')));
+    await tester.pump();
+    expect(find.byKey(const Key('study-quiz-input')), findsNothing);
+    expect(find.byKey(const Key('study-quiz-compare')), findsNothing);
+    expect(find.textContaining('لا تتوفر إجابة مرجعية'), findsOneWidget);
+  });
+
+  testWidgets('unknown CEFR is disclosed in list and practice card',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'cefr_level': 'C9',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('UNKNOWN'), findsOneWidget);
+    expect(find.text('C9'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.textContaining('لا يوجد دليل على انتماء'), findsOneWidget);
+    expect(find.text('C9'), findsNothing);
+  });
+
+  testWidgets('future loaders cannot overrun the 50-card local UI bound',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => List<Map<String, dynamic>>.generate(
+          60,
+          (i) => <String, dynamic>{
+            'word': 'Item$i',
+            'translation_ar': 'ترجمة',
+            'cefr_level': 'A1',
+          },
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('بطاقة 1 من 50'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Item59');
+    await tester.pump();
+    expect(find.textContaining('لا توجد نتائج مطابقة'), findsOneWidget);
+  });
 }

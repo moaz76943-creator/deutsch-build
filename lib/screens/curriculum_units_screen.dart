@@ -197,6 +197,22 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
 
   // Filter only verified rows returned by the selected directed-pair loader.
   // Arabic vowel marks/tatweel and German sharp-s should not block lookup.
+  // Never stringify malformed metadata into a learner-facing translation,
+  // article, search result or quiz answer.
+  static String? _safeText(Object? value) {
+    if (value is! String) return null;
+    final text = value.trim();
+    return text.isEmpty ? null : text;
+  }
+
+  static String _displayLevel(Object? value) {
+    final level = _safeText(value)?.toUpperCase();
+    return const <String>{'A1', 'A2', 'B1', 'B2', 'C1', 'C2'}
+            .contains(level)
+        ? level!
+        : 'UNKNOWN';
+  }
+
   static String _foldSearch(String value) => value
       .trim()
       .toLowerCase()
@@ -214,8 +230,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     final query = _foldSearch(_searchQuery);
     if (query.isEmpty) return _rows;
     return _rows.where((row) {
-      final headword = "${row['article'] ?? ''} ${row['word'] ?? ''}";
-      final translation = row['translation_ar']?.toString() ?? '';
+      final headword = "${_safeText(row['article']) ?? ''} ${_safeText(row['word']) ?? ''}";
+      final translation = _safeText(row['translation_ar']) ?? '';
       return _foldSearch(headword).contains(query) ||
           _foldSearch(translation).contains(query);
     }).toList(growable: false);
@@ -225,9 +241,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     // Search and request epochs reset the index before rows can change.
     final index = _cardIndex < rows.length ? _cardIndex : 0;
     final row = rows[index];
-    final word = (row['word'] ?? '').toString().trim();
-    final article = row['article']?.toString().trim();
-    final translation = row['translation_ar']?.toString().trim();
+    final word = _safeText(row['word']) ?? '';
+    final article = _safeText(row['article']);
+    final translation = _safeText(row['translation_ar']);
+    final level = _displayLevel(row['cefr_level']);
     final displayWord = word.isEmpty
         ? 'لا يتوفر نص موثق لهذه المفردة'
         : article == null || article.isEmpty
@@ -242,6 +259,14 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
           Text(
             'بطاقة ${index + 1} من ${rows.length}',
             key: const Key('study-progress'),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            level == 'UNKNOWN'
+                ? 'المستوى UNKNOWN — لا يوجد دليل على انتماء هذه المفردة إلى ${widget.cefr}.'
+                : 'المستوى حسب الحزمة: $level (ليس اعتماداً مستقلاً).',
+            key: const Key('study-cefr-evidence'),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -366,9 +391,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   // This sheet reads only fields supplied by the selected local row. Missing
   // senses, forms and examples are not generated or borrowed from other pairs.
   void _showWordDetails(Map<String, dynamic> row) {
-    String? available(Object? value) =>
-        value is String && value.trim().isNotEmpty ? value.trim() : null;
-
     List<String> lines(Object? value) => value is List
         ? value.whereType<String>().map((text) => text.trim())
             .where((text) => text.isNotEmpty).toList(growable: false)
@@ -380,21 +402,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             ? TextDirection.rtl
             : TextDirection.ltr;
 
-    final word = available(row['word']);
-    final article = available(row['article']);
+    final word = _safeText(row['word']);
+    final article = _safeText(row['article']);
     final displayWord = word == null
         ? 'لا يتوفر نص موثق لهذه المفردة'
         : article == null ? word : '$article $word';
-    final translation = available(row['translation_ar']);
-    final sense = available(row['sense_gloss']);
+    final translation = _safeText(row['translation_ar']);
+    final sense = _safeText(row['sense_gloss']);
     final forms = lines(row['forms']);
     final examples = lines(row['examples']);
-    final partOfSpeech = available(row['part_of_speech']);
-    final recordedLevel = available(row['cefr_level']);
-    final level = const <String>{'A1', 'A2', 'B1', 'B2', 'C1', 'C2'}
-            .contains(recordedLevel)
-        ? recordedLevel!
-        : 'UNKNOWN';
+    final partOfSpeech = _safeText(row['part_of_speech']);
+    final level = _displayLevel(row['cefr_level']);
 
     Widget detail(String label, List<String> values,
         {TextDirection? textDirection}) {
@@ -557,7 +575,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       );
       if (!mounted || requestId != _requestId) return;
       setState(() {
-        _rows = rows.where(_rowBelongsToSelection).toList(growable: false);
+        // The built-in query is bounded to 50. Enforce the same UI bound
+        // for injected/future readers before creating cards and search lists.
+        _rows = rows.where(_rowBelongsToSelection).take(50).toList(growable: false);
         _loading = false;
       });
     } catch (_) {
@@ -689,15 +709,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                             const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final row = matchingRows[index];
-                          final word = (row['word'] ?? '').toString();
-                          final article = row['article']?.toString().trim();
-                          final translation =
-                              row['translation_ar']?.toString().trim();
-                          final recordedLevel =
-                              row['cefr_level']?.toString().trim();
-                          final level = const <String>{
-                            'A1', 'A2', 'B1', 'B2', 'C1', 'C2'
-                          }.contains(recordedLevel) ? recordedLevel : null;
+                          final word = _safeText(row['word']) ?? '';
+                          final article = _safeText(row['article']);
+                          final translation = _safeText(row['translation_ar']);
+                          final level = _displayLevel(row['cefr_level']);
                           final displayWord = article == null || article.isEmpty
                               ? word
                               : '$article $word';
@@ -715,12 +730,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                                   : translation,
                               textDirection: TextDirection.rtl,
                             ),
-                            trailing: level == null
-                                ? null
-                                : Tooltip(
-                                    message: 'تصنيف الحزمة؛ ليس اعتماداً مستقلاً',
-                                    child: Text(level),
-                                  ),
+                            trailing: Tooltip(
+                              message: level == 'UNKNOWN'
+                                  ? 'المستوى غير موثق؛ لا يُنسب تلقائياً إلى ${widget.cefr}'
+                                  : 'تصنيف الحزمة؛ ليس اعتماداً مستقلاً',
+                              child: Text(level),
+                            ),
                           );
                         },
                       ),
