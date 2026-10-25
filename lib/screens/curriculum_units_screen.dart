@@ -31,6 +31,59 @@ class CurriculumUnitsScreen extends StatefulWidget {
 class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
   static const _levels = <String>['A1', 'A2', 'B1', 'B2'];
   String _selectedLevel = 'A1';
+  Route<void>? _activeTopicRoute;
+
+  // A topic pushed from this screen is a snapshot of one directed pair.
+  // Changing the parent pair (or replacing its reader) must invalidate that
+  // route, not leave a stale de->ar page over the new language selection.
+  void _dismissStaleTopicRoute() {
+    final route = _activeTopicRoute;
+    _activeTopicRoute = null;
+    if (route == null || !route.isActive) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navigator = route.navigator;
+      if (route.isActive && navigator != null && navigator.mounted) {
+        navigator.removeRoute(route);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant CurriculumUnitsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.languageCode != widget.languageCode ||
+        oldWidget.targetLanguageCode != widget.targetLanguageCode ||
+        oldWidget.loadWords != widget.loadWords) {
+      _dismissStaleTopicRoute();
+    }
+  }
+
+  @override
+  void dispose() {
+    _dismissStaleTopicRoute();
+    super.dispose();
+  }
+
+  void _openTopic(LocalTopicSection section) {
+    if (_activeTopicRoute?.isActive ?? false) return;
+    final selectedLevel = _selectedLevel;
+    final sourceLanguage = widget.languageCode;
+    final targetLanguage = widget.targetLanguageCode;
+    final loader = widget.loadWords;
+    final route = MaterialPageRoute<void>(
+      builder: (_) => TopicWordsScreen(
+        section: section,
+        cefr: selectedLevel,
+        languageCode: sourceLanguage,
+        targetLanguageCode: targetLanguage,
+        loadWords: loader,
+      ),
+    );
+    _activeTopicRoute = route;
+    Navigator.of(context).push(route).whenComplete(() {
+      if (identical(_activeTopicRoute, route)) _activeTopicRoute = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,17 +165,7 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
                             button: true,
                             label: '${section.title}، المستوى $_selectedLevel',
                             child: AppBaseGlassCard(
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => TopicWordsScreen(
-                                    section: section,
-                                    cefr: _selectedLevel,
-                                    languageCode: widget.languageCode,
-                                    targetLanguageCode: widget.targetLanguageCode,
-                                    loadWords: widget.loadWords,
-                                  ),
-                                ),
-                              ),
+                              onTap: () => _openTopic(section),
                               child: Row(
                                 children: [
                                   const Icon(Icons.menu_book_rounded,
