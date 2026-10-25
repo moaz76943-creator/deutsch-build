@@ -6,6 +6,8 @@ import 'package:sqflite/sqflite.dart';
 typedef ContentDatabaseOpener = Future<Database> Function(String languageCode);
 typedef DatabaseFlushHook = Future<void> Function(Database database);
 
+class _PoolFullException implements Exception {}
+
 /// Serialized, bounded LRU cache of open SQLite content databases.
 ///
 /// All opens, closes and evictions share one asynchronous mutex. Eviction
@@ -34,6 +36,13 @@ class PooledDatabaseManager {
   final LinkedHashMap<String, Database> _connections =
       LinkedHashMap<String, Database>();
   final Map<String, int> _leases = <String, int>{};
+
+  // To avoid multiple concurrent attempts to open the same DB.
+  final Map<String, Future<Database>> _pendingOpens = {};
+
+  // Waiters for when the pool is full and everything is leased.
+  final List<Completer<void>> _waiters = [];
+
   Future<void> _mutexTail = Future<void>.value();
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
@@ -60,12 +69,36 @@ class PooledDatabaseManager {
     return code;
   }
 
-  Future<Database> open(String languageCode) =>
-      _locked(() => _openLocked(_normalizeCode(languageCode)));
+  void _notifyWaiters() {
+    for (final waiter in _waiters) {
+      if (!waiter.isCompleted) {
+        waiter.complete();
+      }
+    }
+    _waiters.clear();
+  }
+
+  Future<void> _waitForLeaseRelease() async {
+    final completer = Completer<void>();
+    _waiters.add(completer);
+    await completer.future;
+  }
+
+  Future<Database> open(String languageCode) async {
+    final code = _normalizeCode(languageCode);
+    while (true) {
+      try {
+        return await _locked(() => _openLocked(code));
+      } on _PoolFullException {
+        await _waitForLeaseRelease();
+      }
+    }
+  }
 
   Future<Database> _openLocked(String code) async {
     final existing = _connections.remove(code);
     if (existing != null && existing.isOpen) {
+      // Move to end (most recently used)
       _connections[code] = existing;
       return existing;
     }
@@ -77,18 +110,33 @@ class PooledDatabaseManager {
         orElse: () => '',
       );
       if (evict.isEmpty) {
-        throw StateError('All pooled content databases are in use');
+        // Pool is full and all are leased. Throw special exception to wait.
+        throw _PoolFullException();
       }
-      await _closeLocked(evict);
+      await _closeLockedInner(evict);
     }
+
+    if (_pendingOpens.containsKey(code)) {
+      final opened = await _pendingOpens[code]!;
+      _connections.remove(code);
+      _connections[code] = opened;
+      return opened;
+    }
+
+    final completer = Completer<Database>();
+    _pendingOpens[code] = completer.future;
 
     Database? opened;
     try {
       opened = await _openConnection(code);
-    } catch (e) {
-      // If opening fails, do not add to connections, let the error propagate
+      completer.complete(opened);
+    } catch (e, st) {
+      _pendingOpens.remove(code);
+      completer.completeError(e, st);
       rethrow;
     }
+
+    _pendingOpens.remove(code);
 
     if (!opened.isOpen) {
       throw StateError('Connection for $code is already closed');
@@ -103,19 +151,28 @@ class PooledDatabaseManager {
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    final db = await _locked(() async {
-      final opened = await _openLocked(code);
-      _leases[code] = (_leases[code] ?? 0) + 1;
-      return opened;
-    });
+    Database db;
+    while (true) {
+      try {
+        db = await _locked(() async {
+          final opened = await _openLocked(code);
+          _leases[code] = (_leases[code] ?? 0) + 1;
+          return opened;
+        });
+        break;
+      } on _PoolFullException {
+        await _waitForLeaseRelease();
+      }
+    }
 
     try {
       return await action(db);
     } finally {
       await _locked(() async {
         final count = (_leases[code] ?? 1) - 1;
-        if (count == 0) {
+        if (count <= 0) {
           _leases.remove(code);
+          _notifyWaiters(); // A lease was released, pool might have free slots
         } else {
           _leases[code] = count;
         }
@@ -124,9 +181,9 @@ class PooledDatabaseManager {
   }
 
   Future<void> close(String languageCode) =>
-      _locked(() => _closeLocked(_normalizeCode(languageCode)));
+      _locked(() => _closeLockedInner(_normalizeCode(languageCode)));
 
-  Future<void> _closeLocked(String code) async {
+  Future<void> _closeLockedInner(String code) async {
     if ((_leases[code] ?? 0) != 0) {
       throw StateError('Cannot close an in-use content database: $code');
     }
@@ -142,6 +199,7 @@ class PooledDatabaseManager {
       }
       await db.close();
     }
+    _notifyWaiters();
   }
 
   /// Closes all open connections that are not currently leased by active operations.
@@ -152,7 +210,7 @@ class PooledDatabaseManager {
             .where((code) => (_leases[code] ?? 0) == 0)
             .toList(growable: false);
         for (final code in unleased) {
-          await _closeLocked(code);
+          await _closeLockedInner(code);
           closedCount++;
         }
         return closedCount;
@@ -163,7 +221,7 @@ class PooledDatabaseManager {
           throw StateError('Cannot close leased content databases');
         }
         for (final code in _connections.keys.toList(growable: false)) {
-          await _closeLocked(code);
+          await _closeLockedInner(code);
         }
       });
 }
