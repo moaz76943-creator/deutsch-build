@@ -239,4 +239,49 @@ void main() {
     expect(find.text('Schwester'), findsOneWidget);
   });
 
+  testWidgets('failed pack refresh retains last verified rows and permits retry',
+      (tester) async {
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async {
+          reads++;
+          if (reads == 2) throw StateError('transient offline read failure');
+          return <Map<String, dynamic>>[
+            <String, dynamic>{
+              'word': reads == 1 ? 'Mutter' : 'Schwester',
+              'translation_ar': reads == 1 ? 'أم' : 'أخت',
+            },
+          ];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pumpAndSettle();
+    expect(reads, 2);
+    // A transient pack-read error must not erase already verified offline data.
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('أم'), findsOneWidget);
+    expect(find.textContaining('تعذر تحديث'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pumpAndSettle();
+    expect(reads, 3);
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+    expect(tester.widget<Text>(find.text('Schwester')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أخت')).textDirection,
+        TextDirection.rtl);
+  });
+
 }
