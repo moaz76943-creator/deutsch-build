@@ -3,69 +3,11 @@ import json
 import os
 import shutil
 import subprocess
-import fcntl
-from pathlib import PurePosixPath
 import sys
 import tempfile
+from pathlib import PurePosixPath
 
-class ScopeGuard:
-    def __init__(self, ledger_path=".scope_guard_ledger.json"):
-        self.ledger_path = ledger_path
-        self.lock_fd = None
-
-    def _acquire_lock(self):
-        if not os.path.exists(self.ledger_path):
-            with open(self.ledger_path, 'w') as f:
-                json.dump({"leases": {}}, f)
-        self.lock_fd = open(self.ledger_path, 'r+')
-        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
-
-    def _release_lock(self):
-        if self.lock_fd:
-            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
-            self.lock_fd.close()
-            self.lock_fd = None
-
-    def claim(self, agent_id, paths):
-        self._acquire_lock()
-        try:
-            self.lock_fd.seek(0)
-            try:
-                data = json.load(self.lock_fd)
-            except json.JSONDecodeError:
-                data = {"leases": {}}
-
-            for path in paths:
-                p = PurePosixPath(path)
-                for leased_path, lease_info in data.get("leases", {}).items():
-                    lp = PurePosixPath(leased_path)
-                    if lease_info["status"] in ["CLAIM", "ACTIVE"] and lease_info["agent_id"] != agent_id:
-                        if p.is_relative_to(lp) or lp.is_relative_to(p):
-                            raise ValueError(f"Path collision: {path} conflicts with {leased_path}")
-            for path in paths:
-                data.setdefault("leases", {})[path] = {"agent_id": agent_id, "status": "CLAIM"}
-            self.lock_fd.seek(0)
-            self.lock_fd.truncate()
-            json.dump(data, self.lock_fd)
-        finally:
-            self._release_lock()
-
-    def update_status(self, agent_id, paths, status):
-        self._acquire_lock()
-        try:
-            self.lock_fd.seek(0)
-            try:
-                data = json.load(self.lock_fd)
-            except json.JSONDecodeError:
-                data = {"leases": {}}
-            for path in paths:
-                if path in data.get("leases", {}) and data["leases"][path]["agent_id"] == agent_id:
-                    data["leases"][path]["status"] = status
-            self.lock_fd.seek(0)
-            self.lock_fd.truncate()
-            json.dump(data, self.lock_fd)
-        finally:
-            self._release_lock()
+from tools.automation.scope_guard import ScopeGuard
 
 
 class AutoHealExecutor:
@@ -73,7 +15,7 @@ class AutoHealExecutor:
         self.plan_path = plan_path
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
-        self.guard = ScopeGuard()
+        self.guard = ScopeGuard(owner=self.agent_id)
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
 
     def __del__(self):
@@ -121,7 +63,7 @@ class AutoHealExecutor:
                 os.remove(path)
 
     def _run_gate(self):
-        gate_script = "scripts/verify_contracts.py"
+        gate_script = "tools/verification/j095_gate.py"
         if not os.path.exists(gate_script):
             print("BLOCKED: J095 gate or required tools are unavailable.")
             return False
@@ -143,8 +85,10 @@ class AutoHealExecutor:
         paths = self.plan.get("allowed_paths", [])
 
         try:
-            self.guard.claim(self.agent_id, paths)
-            self.guard.update_status(self.agent_id, paths, "ACTIVE")
+            for path in paths:
+                self.guard.add_allowed_path(path)
+                if not self.guard.request_ownership(path):
+                    raise ValueError(f"Path ownership denied for: {path}")
         except ValueError as e:
             print(f"Failed to claim leases: {e}")
             sys.exit(1)
@@ -160,7 +104,6 @@ class AutoHealExecutor:
                 self.rollback()
                 sys.exit(1)
 
-            self.guard.update_status(self.agent_id, paths, "COMPLETE")
             print("Execution and verification successful.")
 
             if self.plan.get("commit"):
@@ -181,8 +124,6 @@ class AutoHealExecutor:
     def rollback(self):
         print("Rolling back isolated repair delta...")
         self._restore_files()
-        paths = self.plan.get("allowed_paths", [])
-        self.guard.update_status(self.agent_id, paths, "CANCELLED")
 
     def _apply_operation(self, op):
         op_type = op.get("type")
@@ -217,8 +158,10 @@ class AutoHealExecutor:
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
+                tmp_path = path + '.tmp'
+                with open(tmp_path, 'w') as f:
                     f.write(op.get("content", "regenerated"))
+                os.rename(tmp_path, path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
