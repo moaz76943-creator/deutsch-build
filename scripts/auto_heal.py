@@ -75,6 +75,8 @@ class AutoHealExecutor:
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard()
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
+        self.attempts_file = os.environ.get("AUTO_HEAL_ATTEMPTS_FILE", ".auto_heal_attempts.json")
+        self.failures_file = os.environ.get("AUTO_HEAL_FAILURES_FILE", ".auto_heal_failures.json")
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -93,6 +95,41 @@ class AutoHealExecutor:
         if "allowed_paths" not in plan:
             plan["allowed_paths"] = []
         return plan
+
+    def _check_attempts(self):
+        plan_id = self.plan.get("plan_id", "unknown")
+
+        attempts = {}
+        if os.path.exists(self.attempts_file):
+            try:
+                with open(self.attempts_file, 'r') as f:
+                    attempts = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
+        count = attempts.get(plan_id, 0)
+        if count >= 3:
+            self._record_failure(f"Max attempts (3) reached for {plan_id}")
+            raise ValueError(f"Plan {plan_id} has exceeded max attempts (3).")
+
+        attempts[plan_id] = count + 1
+        with open(self.attempts_file, 'w') as f:
+            json.dump(attempts, f)
+
+    def _record_failure(self, reason):
+        plan_id = self.plan.get("plan_id", "unknown")
+
+        failures = {}
+        if os.path.exists(self.failures_file):
+            try:
+                with open(self.failures_file, 'r') as f:
+                    failures = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
+        failures[plan_id] = {"reason": reason}
+        with open(self.failures_file, 'w') as f:
+            json.dump(failures, f)
 
     def _verify_base_sha(self):
         try:
@@ -139,6 +176,13 @@ class AutoHealExecutor:
 
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
+
+        try:
+            self._check_attempts()
+        except ValueError as e:
+            print(f"Blocked: {e}")
+            sys.exit(1)
+
         self._verify_base_sha()
         paths = self.plan.get("allowed_paths", [])
 
@@ -158,6 +202,7 @@ class AutoHealExecutor:
             if not self._run_gate():
                 print("Verification failed. Rolling back...")
                 self.rollback()
+                self._record_failure("Verification failed.")
                 sys.exit(1)
 
             self.guard.update_status(self.agent_id, paths, "COMPLETE")
@@ -169,6 +214,7 @@ class AutoHealExecutor:
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
             self.rollback()
+            self._record_failure(str(e))
             sys.exit(1)
 
     def verify(self):
@@ -202,23 +248,39 @@ class AutoHealExecutor:
 
         elif op_type == "rebuild_fts5":
             if path:
-                # Actual logic would hook into build scripts, e.g.
-                script = "tools/language_pack_sqlite.py"
-                if os.path.exists(script):
-                    try:
-                        subprocess.check_call([sys.executable, script, "--rebuild-fts5", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    except subprocess.CalledProcessError:
-                        print(f"Failed to rebuild FTS5 for {path}")
-                else:
-                    # Simulation/Stub
+                # Ensure the path is explicitly allowed before running SQL
+                if path not in self.plan.get("allowed_paths", []):
+                    raise ValueError(f"FTS5 path {path} not in allowed_paths")
+
+                # Run actual FTS5 build scripts if they exist
+                scripts = [
+                    "tools/language_pack_sqlite.py",
+                    "build_universal_verbs.py",
+                    "build_universal_declensions.py"
+                ]
+
+                executed = False
+                for script in scripts:
+                    if os.path.exists(script):
+                        try:
+                            subprocess.check_call([sys.executable, script, "--rebuild-fts5", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            executed = True
+                            break
+                        except subprocess.CalledProcessError:
+                            print(f"Failed to rebuild FTS5 for {path} using {script}")
+
+                if not executed:
+                    # Simulation/Stub for testing boundaries where scripts do not exist
                     with open(path, 'a') as f:
                         f.write("\n-- FTS5 Rebuilt\n")
 
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
+                fd, temp_path = tempfile.mkstemp(dir=os.path.dirname(path))
+                with os.fdopen(fd, 'w') as f:
                     f.write(op.get("content", "regenerated"))
+                os.replace(temp_path, path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 

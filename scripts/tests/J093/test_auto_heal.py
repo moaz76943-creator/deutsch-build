@@ -15,6 +15,10 @@ class TestAutoHeal(unittest.TestCase):
         self.ledger_path = os.path.join(self.test_dir, ".scope_guard_ledger.json")
         self.plan_path = os.path.join(self.test_dir, "plan.json")
         self.target_file = os.path.join(self.test_dir, "target.dart")
+        self.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
+        self.failures_file = os.path.join(self.test_dir, ".auto_heal_failures.json")
+        os.environ["AUTO_HEAL_ATTEMPTS_FILE"] = self.attempts_file
+        os.environ["AUTO_HEAL_FAILURES_FILE"] = self.failures_file
 
         with open(self.target_file, 'w') as f:
             f.write("import 'bad_path';\n")
@@ -39,6 +43,10 @@ class TestAutoHeal(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
+        if "AUTO_HEAL_ATTEMPTS_FILE" in os.environ:
+            del os.environ["AUTO_HEAL_ATTEMPTS_FILE"]
+        if "AUTO_HEAL_FAILURES_FILE" in os.environ:
+            del os.environ["AUTO_HEAL_FAILURES_FILE"]
 
     def test_dry_run(self):
         executor = auto_heal.AutoHealExecutor(self.plan_path)
