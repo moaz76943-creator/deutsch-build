@@ -8,6 +8,8 @@ class DuplicatePreventingReviewCommandPort implements ReviewCommandPort {
   final String expectedLanguagePairKey;
 
   final Map<String, ReviewTransactionState> _transactionStates = {};
+  final Map<String, ReviewCommand> _commandsById = {};
+  final Map<String, Future<void>> _pendingWrites = {};
 
   DuplicatePreventingReviewCommandPort({
     required ReviewCommandPort delegate,
@@ -15,34 +17,56 @@ class DuplicatePreventingReviewCommandPort implements ReviewCommandPort {
   }) : _delegate = delegate;
 
   @override
-  Future<void> submit(ReviewCommand command) async {
+  Future<void> submit(ReviewCommand command) {
     final commandPairKey =
         '${command.sourceLanguageId}_${command.targetLanguageId}';
     if (commandPairKey != expectedLanguagePairKey) {
-      throw ArgumentError(
+      return Future<void>.error(ArgumentError(
         'Language pair mismatch. Expected: $expectedLanguagePairKey, Got: $commandPairKey',
+      ));
+    }
+
+    // The review ID is an immutable event identity, not merely a cache key.
+    // Checking a committed/pending flag before comparing payloads would
+    // silently discard a distinct rating or card using the same ID.
+    final original = _commandsById[command.reviewId];
+    if (original != null && !original.samePayloadAs(command)) {
+      return Future<void>.error(
+        StateError('Review ID reused with a conflicting payload'),
       );
     }
 
-    final currentState = _transactionStates[command.reviewId];
-
-    if (currentState == ReviewTransactionState.committed ||
-        currentState == ReviewTransactionState.pending) {
-      // Idempotency: skip processing if already handled or in progress
-      return;
+    if (_transactionStates[command.reviewId] ==
+        ReviewTransactionState.committed) {
+      return Future<void>.value();
     }
 
-    _transactionStates[command.reviewId] = ReviewTransactionState.pending;
+    // A duplicate must await the actual storage result, including a failure.
+    final pending = _pendingWrites[command.reviewId];
+    if (pending != null) return pending;
 
+    final completion = Completer<void>();
+    _commandsById[command.reviewId] = command;
+    _transactionStates[command.reviewId] = ReviewTransactionState.pending;
+    _pendingWrites[command.reviewId] = completion.future;
+    _submitAndTrack(command, completion);
+    return completion.future;
+  }
+
+  Future<void> _submitAndTrack(
+    ReviewCommand command,
+    Completer<void> completion,
+  ) async {
     try {
       await _delegate.submit(command);
       _transactionStates[command.reviewId] = ReviewTransactionState.committed;
-    } catch (e) {
-      // In a real scenario, we might want to differentiate between
-      // recoverable errors (e.g. network timeout) and non-recoverable (e.g. invalid data).
-      // Here, to fulfill the requirement, we'll mark as recoverable to allow retries.
+      completion.complete();
+    } catch (error, stackTrace) {
+      // Do not acknowledge an incomplete write; permit an identical retry.
       _transactionStates[command.reviewId] = ReviewTransactionState.recoverable;
-      rethrow;
+      completion.completeError(error, stackTrace);
+    } finally {
+      _pendingWrites.remove(command.reviewId);
     }
   }
 }
