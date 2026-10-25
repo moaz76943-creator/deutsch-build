@@ -54,12 +54,21 @@ class IdempotentReviewTransactionManager {
     ReviewTransactionEnvelope envelope, {
     required String activeLanguagePairKey,
   }) async {
-    // 1. Validate identity contracts
-    if (envelope.reviewEventId.isEmpty) {
+    // 1. Reject malformed review identities and grades before reserving an
+    // event ID or calling the canonical writer. The SRS grade contract is 0..3.
+    // This also permits a corrected retry with the same previously rejected ID.
+    if (envelope.reviewEventId.trim().isEmpty ||
+        envelope.reviewEventId != envelope.reviewEventId.trim() ||
+        envelope.learnerContentKey.trim().isEmpty ||
+        envelope.learnerContentKey != envelope.learnerContentKey.trim() ||
+        envelope.languagePairKey.trim().isEmpty ||
+        envelope.languagePairKey != envelope.languagePairKey.trim() ||
+        envelope.rating < 0 ||
+        envelope.rating > 3) {
       return ReviewTransactionStatus(
         envelope: envelope,
         state: TransactionState.failed,
-        error: 'Invalid reviewEventId',
+        error: 'Invalid review identity or rating (expected 0..3)',
       );
     }
 
