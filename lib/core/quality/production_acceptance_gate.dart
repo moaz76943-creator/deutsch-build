@@ -1,8 +1,19 @@
-enum GateOutcome {
-  passed,
-  failed,
-  blocked,
-  notRun,
+enum GateOutcome { passed, failed, blocked, notRun }
+
+enum PromotionEligibility { approved, degraded, blocked, notVerified }
+
+class ApprovedFeatureConfiguration {
+  final bool isOfflineSafe;
+  final bool isStorageGuarded;
+  final bool isLifecycleManaged;
+  final DateTime approvalTime;
+
+  const ApprovedFeatureConfiguration({
+    required this.isOfflineSafe,
+    required this.isStorageGuarded,
+    required this.isLifecycleManaged,
+    required this.approvalTime,
+  });
 }
 
 class AcceptanceResult {
@@ -30,60 +41,30 @@ abstract class J095VerificationContract {
   bool get isSafeModeBehaviorVerified;
 }
 
-enum PromotionEligibility {
-  approved,
-  degraded,
-  blocked,
-  notVerified,
+abstract class J025LanguageContract {
+  String get languageCode;
+  bool get hasLocalPackEvidence;
+  bool get isMetadataOnly;
 }
 
-class J095VerificationResult {
-  final GateOutcome outcome;
-  final PromotionEligibility eligibility;
-  final String reason;
+abstract class OptionalFeatureContract {
+  bool get isTtsAvailable;
+}
 
-  const J095VerificationResult({
-    required this.outcome,
-    required this.eligibility,
-    required this.reason,
+class FeatureConfiguration {
+  final List<String> verifiedLanguages;
+  final List<String> availableOptionalFeatures;
+
+  const FeatureConfiguration({
+    required this.verifiedLanguages,
+    required this.availableOptionalFeatures,
   });
 }
-
-class J025StartupContract {
-  final bool isOfflineSafe;
-  final bool isStorageGuarded;
-  final bool isLifecycleManaged;
-
-  final bool isContentCorrupted;
-  final bool isIntegrityEvidenceMissing;
-  final bool isStartupRecoveryFailed;
-  final bool isVerificationStale;
-
-  final Set<String> registeredLanguages;
-  final Set<String> verifiedDictionaries;
-
-  final bool hasOptionalAudio;
-  final bool hasExecutedTests;
-
-  const J025StartupContract({
-    required this.isOfflineSafe,
-    required this.isStorageGuarded,
-    required this.isLifecycleManaged,
-    this.isContentCorrupted = false,
-    this.isIntegrityEvidenceMissing = false,
-    this.isStartupRecoveryFailed = false,
-    this.isVerificationStale = false,
-    this.registeredLanguages = const {},
-    this.verifiedDictionaries = const {},
-    this.hasOptionalAudio = true,
-    this.hasExecutedTests = true,
-  });
-}
-
-/// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
-enum PromotionEligibility { approved, degraded, blocked, notVerified }
 
 abstract class J025StartupContract {
+  bool get isOfflineSafe;
+  bool get isStorageGuarded;
+  bool get isLifecycleManaged;
   bool get hasNewDartErrors;
   bool get hasNormalStartup;
   bool get hasSafeModeStartup;
@@ -108,16 +89,6 @@ abstract class OptionalFeatureEvidence {
   bool get isAvailable;
 }
 
-class FeatureConfiguration {
-  final List<String> verifiedLanguages;
-  final List<String> availableOptionalFeatures;
-
-  const FeatureConfiguration({
-    required this.verifiedLanguages,
-    required this.availableOptionalFeatures,
-  });
-}
-
 class ProductionAcceptanceGate {
   static FeatureConfiguration? _lastApprovedConfiguration;
   static FeatureConfiguration? get lastApprovedConfiguration =>
@@ -128,7 +99,6 @@ class ProductionAcceptanceGate {
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-<<<<<<< HEAD
     return isOfflineSafe && isStorageGuarded && isLifecycleManaged;
   }
 
@@ -200,9 +170,13 @@ class ProductionAcceptanceGate {
       approvalTime: DateTime.now(),
     );
 
-    _lastApprovedConfiguration = config;
-
     bool degraded = !optionalFeatures.isTtsAvailable;
+
+    // Also save the new v2 configuration for test compatibility
+    _lastApprovedConfiguration = FeatureConfiguration(
+      verifiedLanguages: languages.map((e) => e.languageCode).toList(),
+      availableOptionalFeatures: optionalFeatures.isTtsAvailable ? ['tts'] : [],
+    );
 
     return AcceptanceResult(
       outcome: GateOutcome.passed,
@@ -212,136 +186,44 @@ class ProductionAcceptanceGate {
     );
   }
 
-  @Deprecated('Use evaluate() instead')
   static PromotionEligibility evaluatePromotion({
-    required bool isOfflineSafe,
-    required bool isStorageGuarded,
-    required bool isLifecycleManaged,
-    required J095VerificationContract? j095contract,
-    required List<J025LanguageContract> languages,
-    required OptionalFeatureContract optionalFeatures,
-  }) {
-    final result = evaluate(
-      isOfflineSafe: isOfflineSafe,
-      isStorageGuarded: isStorageGuarded,
-      isLifecycleManaged: isLifecycleManaged,
-      j095contract: j095contract,
-      languages: languages,
-      optionalFeatures: optionalFeatures,
-    );
-
-    switch (result.outcome) {
-      case GateOutcome.passed:
-        return result.isDegraded
-            ? PromotionEligibility.degraded
-            : PromotionEligibility.approved;
-      case GateOutcome.notRun:
-        return PromotionEligibility.notVerified;
-      case GateOutcome.blocked:
-      case GateOutcome.failed:
-        return PromotionEligibility.blocked;
-    }
-  }
-=======
-    final contract = J025StartupContract(
-      isOfflineSafe: isOfflineSafe,
-      isStorageGuarded: isStorageGuarded,
-      isLifecycleManaged: isLifecycleManaged,
-    );
-    final result = evaluateReadiness(contract);
-    return result.outcome @override
-  == GateOutcome.passed;
-  }
-
-  J095VerificationResult evaluateReadiness(
-      J025StartupContract contract) {
-    if (!contract.hasExecutedTests) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.notRun,
-        eligibility: PromotionEligibility.notVerified,
-        reason: 'Verification tests have not executed.',
-      );
-    }
-
-    if (contract.isVerificationStale) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.notRun,
-        eligibility: PromotionEligibility.notVerified,
-        reason: 'Verification results are stale.',
-      );
-    }
-
-    if (contract.isIntegrityEvidenceMissing) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.blocked,
-        eligibility: PromotionEligibility.blocked,
-        reason: 'Missing integrity evidence.',
-      );
-    }
-
-    if (contract.isContentCorrupted) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.failed,
-        eligibility: PromotionEligibility.blocked,
-        reason: 'Corrupted content detected.',
-      );
-    }
-
-    if (contract.isStartupRecoveryFailed) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.failed,
-        eligibility: PromotionEligibility.blocked,
-        reason: 'Startup recovery failed.',
-      );
-    }
-
-    if (!contract.isOfflineSafe ||
-        !contract.isStorageGuarded ||
-        !contract.isLifecycleManaged) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.failed,
-        eligibility: PromotionEligibility.blocked,
-        reason: 'Mandatory infrastructure checks failed.',
-      );
-    }
-
-    bool hasUnsupportedClaims = false;
-    for (final lang in contract.registeredLanguages) {
-      if (!contract.verifiedDictionaries.contains(lang)) {
-        hasUnsupportedClaims = true;
-        break;
-      }
-    }
-
-    if (hasUnsupportedClaims) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.failed,
-        eligibility: PromotionEligibility.blocked,
-        reason: 'Unsupported language claims detected.',
-      );
-    }
-
-    if (!contract.hasOptionalAudio) {
-      return const J095VerificationResult(
-        outcome: GateOutcome.passed,
-        eligibility: PromotionEligibility.degraded,
-        reason: 'Passed with degraded optional features.',
-      );
-    }
-
-    return const J095VerificationResult(
-      outcome: GateOutcome.passed,
-      eligibility: PromotionEligibility.approved,
-      reason: 'All mandatory and optional checks passed.',
-    );
-  }
-
-  PromotionEligibility evaluatePromotion({
     J025StartupContract? startupContract,
     J095VerificationResult? verificationResult,
     List<LanguageReadinessEvidence>? languageEvidence,
     List<OptionalFeatureEvidence>? optionalFeatures,
+
+    // Legacy support to preserve public compatibility
+    @Deprecated('Use startupContract instead') bool? isOfflineSafe,
+    @Deprecated('Use startupContract instead') bool? isStorageGuarded,
+    @Deprecated('Use startupContract instead') bool? isLifecycleManaged,
+    @Deprecated('Use verificationResult instead') J095VerificationContract? j095contract,
+    @Deprecated('Use languageEvidence instead') List<J025LanguageContract>? languages,
+    @Deprecated('Use optionalFeatures instead') OptionalFeatureContract? legacyOptionalFeatures,
   }) {
+    // Legacy mode bridge
+    if (isOfflineSafe != null && isStorageGuarded != null && isLifecycleManaged != null && j095contract != null && languages != null && legacyOptionalFeatures != null) {
+      final result = evaluate(
+        isOfflineSafe: isOfflineSafe,
+        isStorageGuarded: isStorageGuarded,
+        isLifecycleManaged: isLifecycleManaged,
+        j095contract: j095contract,
+        languages: languages,
+        optionalFeatures: legacyOptionalFeatures,
+      );
+
+      switch (result.outcome) {
+        case GateOutcome.passed:
+          return result.isDegraded
+              ? PromotionEligibility.degraded
+              : PromotionEligibility.approved;
+        case GateOutcome.notRun:
+          return PromotionEligibility.notVerified;
+        case GateOutcome.blocked:
+        case GateOutcome.failed:
+          return PromotionEligibility.blocked;
+      }
+    }
+
     if (startupContract == null || verificationResult == null) {
       return PromotionEligibility.notVerified;
     }
@@ -381,7 +263,6 @@ class ProductionAcceptanceGate {
     final verifiedLangs = langs.map((e) => e.languageCode).toList();
     final availableFeatures =
         opts.where((e) => e.isAvailable).map((e) => e.featureName).toList();
->>>>>>> origin/main
 
     _lastApprovedConfiguration = FeatureConfiguration(
       verifiedLanguages: verifiedLangs,
