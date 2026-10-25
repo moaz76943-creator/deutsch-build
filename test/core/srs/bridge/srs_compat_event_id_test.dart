@@ -60,4 +60,67 @@ void main() {
         <String>['de_ar', 'ar_de']);
     expect(recorded.map((entry) => entry.rating).toList(), <int>[3, 1]);
   });
+
+  test('legacy correct grade 4 is normalized to canonical easy 3', () async {
+    final bridge = SrsCompatBridge(clock: () => DateTime.utc(2026, 10, 25));
+    const key = 'core-legacy-grade-four-20261025';
+
+    await bridge.recordReviewCompat(
+      contentKey: key,
+      rating: 4,
+      sourceIso: 'de',
+      targetIso: 'ar',
+    );
+
+    final recorded = UnifiedSrsScheduler.instance.history
+        .where((event) => event.learnerContentKey == key)
+        .single;
+    expect(recorded.rating, 3);
+    expect(recorded.languagePairKey, 'de_ar');
+  });
+
+  test('invalid grade, content and directed pair never enter SRS journal',
+      () async {
+    final bridge = SrsCompatBridge(clock: () => DateTime.utc(2026, 10, 25));
+    const key = 'core-rejected-invalid-review-20261025';
+    final initialCount = UnifiedSrsScheduler.instance.history
+        .where((event) => event.learnerContentKey == key)
+        .length;
+
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: key,
+        rating: 5,
+        sourceIso: 'de',
+        targetIso: 'ar',
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: key,
+        rating: 3,
+        sourceIso: 'de',
+        targetIso: 'de',
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: ' ',
+        rating: 3,
+        sourceIso: 'de',
+        targetIso: 'ar',
+      ),
+      throwsArgumentError,
+    );
+
+    expect(
+      UnifiedSrsScheduler.instance.history
+          .where((event) => event.learnerContentKey == key)
+          .length,
+      initialCount,
+    );
+  });
+
 }
