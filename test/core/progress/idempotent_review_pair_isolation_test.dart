@@ -249,4 +249,119 @@ void main() {
     );
     expect(commits, 1);
   });
+
+  test('concurrent identical retries wait for durable success', () async {
+    final release = Completer<void>();
+    var writes = 0;
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (_) async {
+        writes++;
+        await release.future;
+      },
+    );
+    final envelope = review('pending-success', pair: 'de_ar', at: early);
+    final first = manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+    final duplicate =
+        manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+    var duplicateFinished = false;
+    duplicate.then((_) => duplicateFinished = true);
+    await Future<void>.delayed(Duration.zero);
+    expect(duplicateFinished, isFalse,
+        reason: 'Pending persistence must never be acknowledged as complete');
+    expect(writes, 1);
+    release.complete();
+    final results = await Future.wait([first, duplicate]);
+    expect(results.every((result) => result.state == TransactionState.committed),
+        isTrue);
+    expect(writes, 1);
+  });
+
+  test('concurrent identical retries receive storage failure and can retry',
+      () async {
+    final release = Completer<void>();
+    var attempts = 0;
+    var fail = true;
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (_) async {
+        attempts++;
+        if (fail) {
+          await release.future;
+          throw StateError('temporary storage failure');
+        }
+      },
+    );
+    final envelope = review('pending-failure', pair: 'de_ar', at: early);
+    final first = manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+    final duplicate =
+        manager.commitReview(envelope, activeLanguagePairKey: 'de_ar');
+    release.complete();
+    final results = await Future.wait([first, duplicate]);
+    expect(results.every((result) => result.state == TransactionState.recoverable),
+        isTrue);
+    expect(attempts, 1);
+    fail = false;
+    expect(
+      (await manager.commitReview(envelope, activeLanguagePairKey: 'de_ar'))
+          .state,
+      TransactionState.committed,
+    );
+    expect(attempts, 2);
+  });
+
+  test('conflicting pending event ID fails without another write', () async {
+    final release = Completer<void>();
+    var writes = 0;
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (_) async {
+        writes++;
+        await release.future;
+      },
+    );
+    final first = manager.commitReview(
+      review('pending-conflict', pair: 'de_ar', at: early),
+      activeLanguagePairKey: 'de_ar',
+    );
+    final conflict = await manager.commitReview(
+      review('pending-conflict', pair: 'de_ar', at: early, rating: 1),
+      activeLanguagePairKey: 'de_ar',
+    );
+    expect(conflict.state, TransactionState.failed);
+    expect(writes, 1);
+    release.complete();
+    expect((await first).state, TransactionState.committed);
+  });
+
+  test('pending dedup survives bounded history eviction', () async {
+    final release = Completer<void>();
+    var writes = 0;
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (_) async {
+        writes++;
+        await release.future;
+      },
+    );
+    final original = review('oldest-pending', pair: 'de_ar', at: early);
+    final first = manager.commitReview(original, activeLanguagePairKey: 'de_ar');
+    final others = <Future<ReviewTransactionStatus>>[];
+    for (var index = 0; index < 1001; index++) {
+      others.add(manager.commitReview(
+        review('other-$index', pair: 'de_ar', at: early, card: 'card-$index'),
+        activeLanguagePairKey: 'de_ar',
+      ));
+    }
+    final duplicate =
+        manager.commitReview(original, activeLanguagePairKey: 'de_ar');
+    var settled = false;
+    duplicate.then((_) => settled = true);
+    await Future<void>.delayed(Duration.zero);
+    expect(settled, isFalse);
+    expect(writes, 1002,
+        reason: 'The evicted pending ID must not start a second write');
+    release.complete();
+    expect((await first).state, TransactionState.committed);
+    expect((await duplicate).state, TransactionState.committed);
+    expect((await Future.wait(others))
+        .every((result) => result.state == TransactionState.committed), isTrue);
+    expect(writes, 1002);
+  });
 }
