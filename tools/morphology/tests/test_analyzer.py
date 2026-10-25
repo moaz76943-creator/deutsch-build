@@ -118,5 +118,34 @@ class TestAnalyzer(unittest.TestCase):
 
         analyzer.close()
 
+    def test_evaluation_bounds(self):
+        tr = get_profile("tr")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], tr)
+        analyzer.max_recursion_depth = 100 # Allow deep recursion
+        # Repeating valid suffix to trigger combinatorial explosion if not bounded
+        res = analyzer.analyze("ev" + ("ler" * 200))
+        self.assertEqual(len(res), 0)
+        analyzer.close()
+
+    def test_german_reject_unverified(self):
+        # Insert a lemma and a nominal form. The nominal form should have number='pl'
+        self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Haus', 'noun', 'neu', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'pl', 'def', 'Häuser')")
+        self.ndb.commit()
+
+        de = get_profile("de")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], de)
+
+        # 'Häusern' ends in 'n', strips to 'Häuser'. 'Häuser' is a known PLURAL inflected form.
+        res1 = analyzer.analyze("Häusern")
+        self.assertEqual(len(res1), 1)
+        self.assertEqual(res1[0].lemma, "Haus")
+
+        # 'Unverifieden' ends in 'en', strips to 'Unverified'. Not a known inflected form. Should return empty.
+        res2 = analyzer.analyze("Unverifieden")
+        self.assertEqual(len(res2), 0)
+
+        analyzer.close()
+
 if __name__ == '__main__':
     unittest.main()
