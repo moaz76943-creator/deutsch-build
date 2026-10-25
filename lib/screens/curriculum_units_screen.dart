@@ -386,6 +386,14 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
+              // Practice must offer the same attested sense, forms and examples
+              // as the vocabulary list, without inventing content or grading.
+              TextButton.icon(
+                key: const Key('study-word-details'),
+                onPressed: () => _showWordDetails(row),
+                icon: const Icon(Icons.info_outline),
+                label: const Text('تفاصيل المفردة'),
+              ),
               OutlinedButton(
                 key: const Key('study-previous'),
                 onPressed: index == 0
