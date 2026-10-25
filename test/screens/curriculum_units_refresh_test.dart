@@ -599,4 +599,57 @@ void main() {
     expect(find.textContaining('المستوى حسب الحزمة: A1'), findsOneWidget);
   });
 
+  testWidgets('normalized ISO pair codes keep topic content directed',
+      (tester) async {
+    final target = ValueNotifier<String>(' AR ');
+    addTearDown(target.dispose);
+    final requestedLanguages = <String>[];
+    await tester.pumpWidget(MaterialApp(
+      home: ValueListenableBuilder<String>(
+        valueListenable: target,
+        builder: (_, selectedTarget, __) => CurriculumUnitsScreen(
+          languageCode: ' DE ',
+          targetLanguageCode: selectedTarget,
+          loadWords: ({
+            required String sectionId,
+            required String cefr,
+            required String languageCode,
+          }) async {
+            requestedLanguages.add(languageCode);
+            return <Map<String, dynamic>>[
+              <String, dynamic>{
+                'word': 'Mutter',
+                'translation_ar': 'أم',
+                'language_code': 'DE',
+                'target_language_code': 'AR',
+                'pair_id': 'DE->AR',
+                'cefr_level': 'A1',
+              },
+            ];
+          },
+        ),
+      ),
+    ));
+    await tester.tap(find.textContaining('العائلة والأسرة'));
+    await tester.pumpAndSettle();
+    expect(requestedLanguages, <String>['de']);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+
+    // Changing the directed pair must not reuse the previous de->ar snapshot.
+    target.value = ' DE ';
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.textContaining('لا تتوفر أقسام محلية موثقة'), findsOneWidget);
+    expect(requestedLanguages, <String>['de']);
+  });
+
 }
