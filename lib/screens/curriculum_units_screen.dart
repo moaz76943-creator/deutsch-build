@@ -734,7 +734,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     setState(() {
       _loading = true;
       _failed = false;
-      _rows = const [];
+      // Retain verified rows across overlapping refresh attempts. The loading
+      // state hides them, while a failed retry can restore the last snapshot.
+      _rows = previousRows;
       _studyMode = false;
       _quizMode = false;
       _cardIndex = 0;
