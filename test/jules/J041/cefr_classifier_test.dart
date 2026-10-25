@@ -70,7 +70,6 @@ void main() {
       );
 
       final result = CefrClassifier.classifyWord(evidence);
-      // Resolves to highest
       expect(result.level, CefrLevel.b2);
       expect(result.source, EvidenceSource.verifiedSource);
       expect(result.confidence, 0.8);
@@ -136,7 +135,6 @@ void main() {
       );
 
       final result = CefrClassifier.classifyExample(evidence);
-      // Max is B1, bumped by 1 level to B2 for example complexity
       expect(result.level, CefrLevel.b2);
       expect(result.source, EvidenceSource.inferredDifficulty);
       expect(result.confidence, 0.6);
@@ -149,7 +147,6 @@ void main() {
       );
 
       final result = CefrClassifier.classifyExample(evidence);
-      // Max is C2, bumped by 1 cap at C2
       expect(result.level, CefrLevel.c2);
       expect(result.source, EvidenceSource.inferredDifficulty);
     });
@@ -163,6 +160,33 @@ void main() {
       final result = CefrClassifier.classifyExample(evidence);
       expect(result.level, CefrLevel.unknown);
       expect(result.source, EvidenceSource.unsupported);
+    });
+  });
+
+  group('CefrClassifier - LexicalEntryEvidence Classification', () {
+    test('returns unknown for generic languages with no frequency profile (Spanish)', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'es',
+        frequencyRank: 500,
+      );
+
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+
+    test('classifies based on explicit source metadata', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        sourceProvidedCefr: CefrLevel.b2,
+        frequencyRank: 10,
+      );
+
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.b2);
+      expect(result.method, CefrClassificationMethod.explicit);
+      expect(result.confidence, CefrEvidenceConfidence.high);
     });
   });
 }
