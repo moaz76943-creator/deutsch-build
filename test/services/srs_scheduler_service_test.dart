@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:deutsch_bilarabi/services/srs_scheduler_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -154,5 +156,75 @@ void main() {
     expect(rows[0]['user_note'], 'retain');
     expect(rows[1]['target_language_code'], 'tr');
     expect(rows[1]['repetition_count'], 1);
+  });
+
+  test('legacy review event replays only the same immutable payload after restart',
+      () async {
+    final directory = await Directory.systemTemp.createTemp('srs-event-replay-');
+    final databasePath = '${directory.path}/progress.sqlite';
+    var db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(() async {
+      if (db.isOpen) await db.close();
+      await directory.delete(recursive: true);
+    });
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+
+    final scheduler = SrsSchedulerService();
+    final now = DateTime.utc(2026, 10, 25);
+    Future<SrsReviewSchedule> review({
+      String lexemeId = 'haus',
+      String languageCode = 'de',
+      int grade = 3,
+    }) =>
+        scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: lexemeId,
+          languageCode: languageCode,
+          grade: grade,
+          reviewedAt: now,
+          reviewEventId: 'immutable-event-1',
+        );
+
+    final first = await review();
+    expect(first.repetitionCount, 1);
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+
+    final replay = await review();
+    expect(replay.repetitionCount, 1);
+    await expectLater(review(lexemeId: 'other-card'), throwsStateError);
+    await expectLater(review(languageCode: 'ar'), throwsStateError);
+    await expectLater(review(grade: 4), throwsStateError);
+    final events = await db.query('srs_review_events');
+    expect(events, hasLength(1));
+    final rows = await db.query('srs_progress');
+    expect(rows, hasLength(1));
+    expect(rows.single['repetition_count'], 1);
+
+    // An event without its corresponding progress row is inconsistent.
+    // Never silently apply that event again after a damaged partial restore.
+    await db.delete('srs_progress',
+        where: 'lexeme_id = ? AND target_language_code = ?',
+        whereArgs: <Object>['haus', 'de']);
+    await expectLater(review(), throwsStateError);
+    expect(await db.query('srs_review_events'), hasLength(1));
+    expect(await db.query('srs_progress'), isEmpty);
   });
 }
