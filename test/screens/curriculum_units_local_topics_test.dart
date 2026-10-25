@@ -128,6 +128,49 @@ void main() {
     expect(find.text('Haus'), findsOneWidget);
     expect(find.text('منزل'), findsOneWidget);
   });
+  testWidgets('empty topic can refresh after content becomes available',
+      (tester) async {
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async {
+          reads++;
+          if (reads == 1) return <Map<String, dynamic>>[];
+          return <Map<String, dynamic>>[
+            <String, dynamic>{
+              'word': 'Mutter',
+              'translation_ar': 'أم',
+              'cefr_level': 'A1',
+            },
+          ];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(reads, 1);
+    expect(find.textContaining('لا توجد مفردات موثقة'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-empty-refresh')));
+    await tester.pumpAndSettle();
+
+    expect(reads, 2);
+    expect(find.byKey(const Key('topic-empty-refresh')), findsNothing);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('أم'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+  });
+
   testWidgets('unsupported target and reverse direction never query German content',
       (tester) async {
     var calls = 0;
