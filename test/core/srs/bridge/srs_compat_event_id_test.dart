@@ -54,11 +54,54 @@ void main() {
     expect(recorded, hasLength(32));
     expect(recorded.map((entry) => entry.reviewEventId).toSet(),
         hasLength(32));
-    expect(recorded.every((entry) => entry.timestamp == fixed), isTrue);
+    // The event timestamp, not only its ID, must remain ordered when the
+    // device clock stalls; otherwise a durable stale-review guard drops work.
+    expect(
+      recorded.map((entry) => entry.timestamp.microsecondsSinceEpoch),
+      orderedEquals(List<int>.generate(
+        32, (index) => fixed.microsecondsSinceEpoch + index,
+      )),
+    );
     expect(
       recorded.every((entry) => entry.languagePairKey == 'de_ar'),
       isTrue,
     );
+  });
+
+  test('clock rollback cannot silently discard a later review', () async {
+    final baseline = DateTime.utc(2026, 10, 25, 12);
+    final ticks = <DateTime>[
+      baseline,
+      baseline.subtract(const Duration(minutes: 2)),
+      baseline.add(const Duration(microseconds: 5)),
+    ];
+    var tick = 0;
+    final persisted = <DateTime>[];
+    final bridge = SrsCompatBridge(
+      clock: () => ticks[tick++],
+      durableWriter: (event) async {
+        // Mirrors the existing canonical stale-timestamp guard.
+        if (persisted.isNotEmpty &&
+            !event.timestamp.isAfter(persisted.last)) {
+          throw StateError('Stale review command');
+        }
+        persisted.add(event.timestamp);
+      },
+    );
+
+    for (var index = 0; index < ticks.length; index++) {
+      await bridge.recordReviewCompat(
+        contentKey: 'clock-rollback-card',
+        rating: 3,
+        sourceIso: 'de',
+        targetIso: 'ar',
+      );
+    }
+    expect(persisted, hasLength(3));
+    expect(persisted.first, baseline);
+    expect(persisted[1].microsecondsSinceEpoch,
+        baseline.microsecondsSinceEpoch + 1);
+    expect(persisted.last, baseline.add(const Duration(microseconds: 5)));
   });
 
   test('opposite directed pairs never suppress each other at one instant',
