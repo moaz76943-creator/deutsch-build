@@ -163,14 +163,23 @@ def test_termux_release_rejects_other_hosts(tmp_path):
     assert 'inside Termux' in proc.stderr
 
 
-def test_release_manifest_removes_only_unwired_transitive_notification_permission():
+def test_release_manifest_strips_unwired_notification_and_storage_permissions():
     import xml.etree.ElementTree as ET
     manifest = ET.parse(ROOT / 'android/app/src/release/AndroidManifest.xml').getroot()
     android = '{http://schemas.android.com/apk/res/android}'
     tools = '{http://schemas.android.com/tools}'
     removed = {node.attrib[android+'name'] for node in manifest.findall('uses-permission')
                if node.attrib.get(tools+'node') == 'remove'}
-    assert removed == {'android.permission.POST_NOTIFICATIONS'}
+    assert removed == {
+        'android.permission.POST_NOTIFICATIONS',
+        'android.permission.READ_EXTERNAL_STORAGE',
+        'android.permission.WRITE_EXTERNAL_STORAGE',
+        'android.permission.MANAGE_EXTERNAL_STORAGE',
+        'android.permission.READ_MEDIA_IMAGES',
+        'android.permission.READ_MEDIA_VIDEO',
+        'android.permission.READ_MEDIA_AUDIO',
+        'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
+    }
     main = ET.parse(ROOT / 'android/app/src/main/AndroidManifest.xml').getroot()
     assert any(node.attrib.get(android+'name') == 'android.permission.RECORD_AUDIO'
                for node in main.findall('uses-permission'))

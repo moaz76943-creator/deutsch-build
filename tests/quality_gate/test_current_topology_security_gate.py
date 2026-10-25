@@ -127,7 +127,10 @@ def test_android_manifest_and_root_window_are_fail_closed():
     main_permissions = manifest_permissions(MAIN_MANIFEST)
     release_permissions = manifest_permissions(RELEASE_MANIFEST)
 
-    assert set(main_permissions) == {"android.permission.RECORD_AUDIO"}
+    granted = {
+        name for name, mode in main_permissions.items() if mode != "remove"
+    }
+    assert granted == {"android.permission.RECORD_AUDIO"}
     assert "android.permission.INTERNET" not in main_permissions
     assert "android.permission.POST_NOTIFICATIONS" not in main_permissions
     assert "android.permission.INTERNET" not in release_permissions
