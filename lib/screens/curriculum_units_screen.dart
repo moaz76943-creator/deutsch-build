@@ -601,7 +601,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       // Invalidate pending reads and stale filters on topic/level/pair changes.
       _searchController.clear();
       _searchQuery = '';
-      _load();
+      _load(preservePrevious: false);
     }
   }
 
@@ -713,7 +713,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     return true;
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool preservePrevious = true}) async {
+    final previousRows = preservePrevious ? _rows : const <Map<String, dynamic>>[];
     final requestId = ++_requestId;
     if (!_supportsDirectedPair) {
       setState(() {
@@ -756,10 +757,15 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     } catch (_) {
       if (!mounted || requestId != _requestId) return;
       setState(() {
-        _rows = const [];
+        _rows = previousRows;
         _loading = false;
-        _failed = true;
+        _failed = previousRows.isEmpty;
       });
+      if (previousRows.isNotEmpty) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(
+          content: Text('تعذر تحديث المفردات المحلية؛ تعرض آخر نسخة متوفرة.'),
+        ));
+      }
     }
   }
 
