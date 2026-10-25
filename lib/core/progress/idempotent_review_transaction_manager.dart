@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
@@ -27,6 +28,8 @@ class IdempotentReviewTransactionManager {
   // A card key alone incorrectly rejects valid reverse-direction reviews.
   final LinkedHashMap<(String, String), DateTime> _lastContentTimestamps =
       LinkedHashMap();
+  // One non-throwing completion tail per active directed pair/card.
+  final Map<(String, String), Future<void>> _scopeTails = {};
   final int maxHistorySize = 1000;
 
   final Future<void> Function(ReviewTransactionEnvelope)? _persistencePort;
@@ -79,18 +82,17 @@ class IdempotentReviewTransactionManager {
       }
     }
 
-    // 4. Reject stale commands
+    // 4. Serialize writes for one directed pair/card. Without this queue,
+    // a slow older persistence call can finish after a newer review and
+    // overwrite the learner's durable schedule. Other cards and reverse
+    // directions remain independent.
     final contentScope = (envelope.languagePairKey, envelope.learnerContentKey);
-    final lastTimestamp = _lastContentTimestamps[contentScope];
-    if (lastTimestamp != null && envelope.timestamp.isBefore(lastTimestamp)) {
-      return ReviewTransactionStatus(
-        envelope: envelope,
-        state: TransactionState.failed,
-        error: 'Stale review command',
-      );
-    }
+    final predecessor = _scopeTails[contentScope];
+    final turn = Completer<void>();
+    _scopeTails[contentScope] = turn.future;
 
-    // Transition to pending
+    // Reserve the ID synchronously before yielding so duplicate submissions
+    // cannot start a second persistence call while this turn is waiting.
     var status = ReviewTransactionStatus(
       envelope: envelope,
       state: TransactionState.pending,
@@ -98,28 +100,46 @@ class IdempotentReviewTransactionManager {
     _recordStatus(envelope.reviewEventId, status);
 
     try {
-      if (_persistencePort != null) {
-        await _persistencePort!(envelope);
+      if (predecessor != null) await predecessor;
+
+      // Check staleness only after prior writes finish, not when queued.
+      final lastTimestamp = _lastContentTimestamps[contentScope];
+      if (lastTimestamp != null && envelope.timestamp.isBefore(lastTimestamp)) {
+        status = ReviewTransactionStatus(
+          envelope: envelope,
+          state: TransactionState.failed,
+          error: 'Stale review command',
+        );
+        _recordStatus(envelope.reviewEventId, status);
+        return status;
       }
 
-      // Transition to committed
-      status = ReviewTransactionStatus(
-        envelope: envelope,
-        state: TransactionState.committed,
-      );
-      _recordStatus(envelope.reviewEventId, status);
-      // Update last successful interaction timestamp for this content
-      _recordTimestamp(contentScope, envelope.timestamp);
-      return status;
-    } catch (e) {
-      // Transition to recoverable
-      status = ReviewTransactionStatus(
-        envelope: envelope,
-        state: TransactionState.recoverable,
-        error: e,
-      );
-      _recordStatus(envelope.reviewEventId, status);
-      return status;
+      try {
+        if (_persistencePort != null) {
+          await _persistencePort!(envelope);
+        }
+
+        status = ReviewTransactionStatus(
+          envelope: envelope,
+          state: TransactionState.committed,
+        );
+        _recordStatus(envelope.reviewEventId, status);
+        _recordTimestamp(contentScope, envelope.timestamp);
+        return status;
+      } catch (e) {
+        status = ReviewTransactionStatus(
+          envelope: envelope,
+          state: TransactionState.recoverable,
+          error: e,
+        );
+        _recordStatus(envelope.reviewEventId, status);
+        return status;
+      }
+    } finally {
+      if (identical(_scopeTails[contentScope], turn.future)) {
+        _scopeTails.remove(contentScope);
+      }
+      turn.complete();
     }
   }
 
