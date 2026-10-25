@@ -233,6 +233,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .trim()
       .toLowerCase()
       .replaceAll(RegExp(r'[\u0640\u064B-\u065F\u0670]'), '')
+      // Match common omitted Arabic alef hamzas in learner search only.
+      // Preserve the original text and distinct non-alef hamza letters.
+      .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
       // German digraph input must match both NFC and decomposed umlauts.
       .replaceAll('a\u0308', 'ae')
       .replaceAll('o\u0308', 'oe')

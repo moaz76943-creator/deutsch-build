@@ -332,6 +332,42 @@ void main() {
         TextDirection.rtl);
   });
 
+  testWidgets('Arabic alef variants find local translations without rewriting them',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أُمّ'},
+          <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    await tester.enterText(search, 'ام');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Vater'), findsNothing);
+    expect(find.text('أُمّ'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('أُمّ')).textDirection,
+        TextDirection.rtl);
+
+    await tester.enterText(search, 'إب');
+    await tester.pump();
+    expect(find.text('Vater'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أب'), findsOneWidget);
+    expect(tester.widget<TextField>(search).textDirection, TextDirection.rtl);
+  });
+
   testWidgets('search supports sharp-s spelling and honest no-match state',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
