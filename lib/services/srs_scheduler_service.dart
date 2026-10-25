@@ -187,6 +187,16 @@ class SrsSchedulerService {
     if (lexemeId.trim().isEmpty || languageCode.trim().isEmpty) {
       throw ArgumentError('A lexeme ID and language code are required');
     }
+    // A supplied event ID must never silently become a non-idempotent write.
+    // In particular, whitespace-only IDs previously bypassed the journal
+    // and could advance the same learner review on every retry. Preserve the
+    // existing null (legacy/no-ID) API without normalizing distinct IDs.
+    if (reviewEventId != null &&
+        (reviewEventId.trim().isEmpty ||
+            reviewEventId != reviewEventId.trim())) {
+      throw ArgumentError.value(
+        reviewEventId, 'reviewEventId', 'Invalid review event identity');
+    }
     return progressDb.transaction((txn) async {
       // Ensure review events table for idempotency
       await txn.execute('''
