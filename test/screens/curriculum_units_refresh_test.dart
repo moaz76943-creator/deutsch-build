@@ -652,4 +652,60 @@ void main() {
     expect(requestedLanguages, <String>['de']);
   });
 
+
+  testWidgets('Arabic and Persian keyboard variants search only selected pair',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Buch', 'translation_ar': 'كتاب',
+            'source_language': 'de', 'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': 'Bruder', 'translation_ar': 'أخي',
+            'pair_id': 'de->ar',
+          },
+          <String, dynamic>{
+            'word': 'Maison', 'translation_ar': 'بيت',
+            'source_language': 'fr', 'target_language': 'ar',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    // Persian kaf on an Arabic keyboard must find the attested Arabic kaf.
+    await tester.enterText(search, 'کتاب');
+    await tester.pump();
+    expect(find.text('Buch'), findsOneWidget);
+    expect(find.text('Bruder'), findsNothing);
+    expect(find.text('Maison'), findsNothing);
+    expect(tester.widget<Text>(find.text('Buch')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('كتاب')).textDirection,
+        TextDirection.rtl);
+
+    // Persian yeh must also match Arabic yeh without changing the source pair.
+    await tester.enterText(search, 'أخی');
+    await tester.pump();
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.text('Buch'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bruder'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أخي'), findsOneWidget);
+    expect(find.text('Maison'), findsNothing);
+  });
 }
