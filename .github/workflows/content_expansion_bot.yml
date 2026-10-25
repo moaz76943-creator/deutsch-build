@@ -1,8 +1,6 @@
 name: Content Expansion Bot
 
 on:
-  schedule:
-    - cron: '17 3 * * 1'
   workflow_dispatch:
     inputs:
       limit:
@@ -32,11 +30,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout main
-<<<<<<< HEAD
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-=======
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
         with:
           ref: main
           fetch-depth: 0
