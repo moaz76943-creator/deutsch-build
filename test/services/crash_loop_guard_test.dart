@@ -336,4 +336,85 @@ void main() {
     expect((await root.list().toList()).whereType<Directory>(), isEmpty);
   });
 
+
+  test('malformed crash ledger fails closed and is preserved until recovery',
+      () async {
+    final root = await Directory.systemTemp.createTemp('boot-corrupt-');
+    addTearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+    final ledger = File('${root.path}/.rapid_boot_ledger.json');
+    const damaged = '{"started":';
+    await ledger.writeAsString(damaged);
+    final store = FileBootLedgerStore(root: root);
+    final guard = CrashLoopGuard(
+      store: store,
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+
+    expect(await guard.beginBoot(), isTrue);
+    expect(guard.safeModeEnabled, isTrue);
+    expect(await ledger.readAsString(), damaged,
+        reason: 'failed boot must not overwrite crash evidence');
+
+    // Explicit recovery (after external-pack reset) may replace this
+    // non-learner ledger; ordinary startup must not.
+    await guard.exitAfterRecovery();
+    expect((await store.read())?['safe'], isFalse);
+    expect(await guard.beginBoot(), isFalse);
+    expect((await store.read())?['clean'], isFalse);
+  });
+
+  test('oversized existing ledger is not mistaken for first launch', () async {
+    final root = await Directory.systemTemp.createTemp('boot-oversize-');
+    addTearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+    final ledger = File('${root.path}/.rapid_boot_ledger.json');
+    final oversized = List<String>.filled(2049, 'x').join();
+    await ledger.writeAsString(oversized);
+    final guard = CrashLoopGuard(
+      store: FileBootLedgerStore(root: root),
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+
+    expect(await guard.beginBoot(), isTrue);
+    expect(guard.safeModeEnabled, isTrue);
+    expect(await ledger.readAsString(), oversized);
+  });
+
+  test('invalid ledger field types cannot bypass sticky safe mode', () async {
+    final root = await Directory.systemTemp.createTemp('boot-types-');
+    addTearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+    final ledger = File('${root.path}/.rapid_boot_ledger.json');
+    const invalid =
+        '{"started":1792886400000,"clean":false,"failures":2,"safe":"true"}';
+    await ledger.writeAsString(invalid);
+    final guard = CrashLoopGuard(
+      store: FileBootLedgerStore(root: root),
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+
+    expect(await guard.beginBoot(), isTrue);
+    expect(guard.safeModeEnabled, isTrue);
+    expect(await ledger.readAsString(), invalid);
+  });
+
+  test('missing ledger remains a valid first boot', () async {
+    final root = await Directory.systemTemp.createTemp('boot-missing-');
+    addTearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+    final store = FileBootLedgerStore(root: root);
+    final guard = CrashLoopGuard(
+      store: store,
+      clock: () => DateTime.utc(2026, 10, 25),
+    );
+
+    expect(await guard.beginBoot(), isFalse);
+    expect((await store.read())?['safe'], isFalse);
+    expect((await store.read())?['failures'], 0);
+  });
 }
