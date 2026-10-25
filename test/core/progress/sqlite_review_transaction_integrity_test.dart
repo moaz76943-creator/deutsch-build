@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_manager.dart';
+import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 import 'package:deutsch_bilarabi/core/progress/transaction_persistence_port.dart';
 import 'package:deutsch_bilarabi/core/progress/sqlite_review_transaction_port.dart';
 import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
@@ -142,4 +143,60 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     await expectLater(manager(db).processTransaction(command('x', version: '')),
         throwsArgumentError);
   });
+  test('rejects ambiguous BCP-47 pair identities before persistence', () async {
+    // Both invalid pairs serialize to the same underscore-delimited key.
+    await expectLater(
+      manager(db).processTransaction(command('ambiguous-source',
+          source: 'de_ar', target: 'fr')),
+      throwsArgumentError,
+    );
+    await expectLater(
+      manager(db).processTransaction(command('ambiguous-target',
+          source: 'de', target: 'ar_fr')),
+      throwsArgumentError,
+    );
+    await expectLater(
+      manager(db).processTransaction(command('ambiguous-version',
+          version: 'v_2')),
+      throwsArgumentError,
+    );
+    await expectLater(
+      manager(db).processTransaction(command('case-reflexive',
+          source: 'de', target: 'DE')),
+      throwsArgumentError,
+    );
+    final journals = await db.query('sqlite_master',
+        where: 'type = ? AND name = ?',
+        whereArgs: <Object>['table', SqliteReviewTransactionPort.tableName]);
+    expect(journals, isEmpty,
+        reason: 'Invalid pair identities must not create review events');
+  });
+
+  test('direct SQLite port cannot persist ambiguous pair identity', () async {
+    final item = command('direct-invalid', source: 'de_ar', target: 'fr');
+    final envelope = ReviewTransactionEnvelope(
+      reviewEventId: item.reviewId,
+      learnerContentKey: item.cardId,
+      rating: item.rating.index,
+      timestamp: DateTime.utc(2026, 10, 25),
+      languagePairKey: 'de_ar_fr_v2',
+    );
+    final port = SqliteReviewTransactionPort(
+        database: db, applyReview: applyReview);
+    await expectLater(
+      port.commitOnce(command: item, envelope: envelope),
+      throwsArgumentError,
+    );
+    expect(await count('de_ar_fr_v2'), 0);
+  });
+
+  test('valid hyphenated locales preserve direction and semantic version',
+      () async {
+    final item = command('valid-script-tag',
+        source: 'zh-Hant', target: 'en-US', version: '1.0.0');
+    expect(await manager(db).processTransaction(item),
+        ReviewCommitResult.committed);
+    expect(await count('zh-Hant_en-US_1.0.0'), 1);
+  });
+
 }
