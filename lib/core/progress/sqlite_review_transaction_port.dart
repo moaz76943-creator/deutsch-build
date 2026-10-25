@@ -99,6 +99,39 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
         return ReviewCommitResult.alreadyCommitted;
       }
 
+
+      // The in-memory stale guard is lost on process death. Enforce the
+      // same ordering at the durable transaction boundary, before touching
+      // progress/SRS, using only the committed journal for this exact pair,
+      // epoch and card. Never compare opposite directions or pack databases.
+      final latest = await txn.query(
+        tableName,
+        columns: <String>['occurred_at_utc'],
+        where: 'language_pair_key = ? AND source_language_id = ? '
+            'AND target_language_id = ? AND semantic_version = ? '
+            'AND pair_epoch = ? AND card_id = ?',
+        whereArgs: <Object>[
+          envelope.languagePairKey,
+          command.sourceLanguageId,
+          command.targetLanguageId,
+          command.semanticVersion,
+          command.pairEpoch,
+          command.cardId,
+        ],
+        // Dart ISO-8601 UTC uses either .mmmZ or .mmmuuuZ. Raw lexical
+        // DESC sorts .000Z after .000001Z, so compare millisecond prefix
+        // first, then prefer the longer microsecond representation.
+        orderBy: 'substr(occurred_at_utc, 1, 23) DESC, '
+            'length(occurred_at_utc) DESC, occurred_at_utc DESC',
+        limit: 1,
+      );
+      if (latest.isNotEmpty &&
+          envelope.timestamp.toUtc().isBefore(
+            DateTime.parse(latest.single['occurred_at_utc'] as String).toUtc(),
+          )) {
+        throw StateError('Stale review command after durable commit');
+      }
+
       await txn.insert(tableName, <String, Object>{
         'review_id': command.reviewId,
         'source_language_id': command.sourceLanguageId,
