@@ -73,6 +73,17 @@ class IdempotentReviewTransactionManager {
       );
     }
 
+    // Never report a review as committed when no durable writer was wired.
+    // An in-memory acknowledgement would silently lose learner progress on
+    // restart. Do not reserve the event ID or advance the stale watermark.
+    if (_persistencePort == null) {
+      return ReviewTransactionStatus(
+        envelope: envelope,
+        state: TransactionState.failed,
+        error: 'Review persistence writer unavailable',
+      );
+    }
+
     // 3. Exact retries share the eventual durable outcome, not a premature
     // pending acknowledgement. Check in-flight IDs before bounded history:
     // history eviction must not admit a second write of a pending event.
@@ -147,9 +158,7 @@ class IdempotentReviewTransactionManager {
       }
 
       try {
-        if (_persistencePort != null) {
-          await _persistencePort!(envelope);
-        }
+        await _persistencePort!(envelope);
 
         status = ReviewTransactionStatus(
           envelope: envelope,
