@@ -19,7 +19,7 @@ def executable(path, source):
 
 
 @pytest.mark.parametrize("available,status,report", [
-    (1048575, 1, "minimum"), (1048576, 0, "WARN"),
+    (1048575, 10, "minimum"), (1048576, 0, "WARN"),
     (2097152, 0, "WARN"), (3145728, 0, "OK"), (8388607, 0, "OK"),
 ])
 def test_disk_policy_boundaries(tmp_path, available, status, report):
