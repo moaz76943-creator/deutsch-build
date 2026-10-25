@@ -184,8 +184,14 @@ class SrsSchedulerService {
     String? reviewEventId,
     bool alignToCircadianDay = false,
   }) async {
-    if (lexemeId.trim().isEmpty || languageCode.trim().isEmpty) {
-      throw ArgumentError('A lexeme ID and language code are required');
+    // Persisted keys are exact identities. Accepting leading/trailing whitespace
+    // silently creates a second progress row for the same learner content.
+    // Reject malformed keys instead of trimming or migrating existing rows.
+    if (lexemeId.trim().isEmpty ||
+        languageCode.trim().isEmpty ||
+        lexemeId != lexemeId.trim() ||
+        languageCode != languageCode.trim()) {
+      throw ArgumentError('Invalid lexeme ID or language code');
     }
     // A supplied event ID must never silently become a non-idempotent write.
     // In particular, whitespace-only IDs previously bypassed the journal
