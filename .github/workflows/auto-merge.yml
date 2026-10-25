@@ -5,7 +5,7 @@ on:
     types: [labeled, reopened, ready_for_review]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   actions: read
 
