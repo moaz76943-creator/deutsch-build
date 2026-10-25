@@ -1,14 +1,33 @@
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
+/// Must complete only after the app-owned canonical learner/SRS transaction
+/// commits durably. Never use a memory-only journal or a content-pack database.
+typedef SrsDurableReviewWriter = Future<void> Function(
+  ReviewTransactionEnvelope envelope,
+);
+
 class SrsCompatBridge {
-  SrsCompatBridge({DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+  SrsCompatBridge({
+    DateTime Function()? clock,
+    SrsDurableReviewWriter? durableWriter,
+  })  : _clock = clock ?? DateTime.now,
+        _durableWriter = durableWriter;
 
   static final SrsCompatBridge instance = SrsCompatBridge();
 
   final UnifiedSrsScheduler _scheduler = UnifiedSrsScheduler.instance;
   final DateTime Function() _clock;
+  SrsDurableReviewWriter? _durableWriter;
+
+  /// Called by the canonical persistence owner after it has opened and
+  /// verified the learner database. A second owner must not replace it.
+  void bindCanonicalWriter(SrsDurableReviewWriter writer) {
+    if (_durableWriter != null) {
+      throw StateError('Canonical SRS writer already bound');
+    }
+    _durableWriter = writer;
+  }
 
   // The compatibility journal deduplicates by reviewEventId. Millisecond
   // timestamps alone silently discard rapid reviews of the same card,
@@ -39,6 +58,14 @@ class SrsCompatBridge {
       throw ArgumentError.value(rating, 'rating', 'Expected a grade from 0 to 4');
     }
 
+    // The legacy scheduler below is only an in-process projection. Without
+    // an app-owned atomic SQLite writer, returning success loses the review
+    // on process death. Fail closed rather than acknowledging phantom progress.
+    final writer = _durableWriter;
+    if (writer == null) {
+      throw StateError('Canonical SRS persistence writer is not bound');
+    }
+
     final timestamp = _clock().toUtc();
     final wallMicros = timestamp.microsecondsSinceEpoch;
     final eventMicros = wallMicros > _lastIssuedEventMicros
@@ -55,6 +82,9 @@ class SrsCompatBridge {
       languagePairKey: '${sourceIso}_${targetIso}',
     );
 
+    // The writer owns durable idempotency and the SRS/progress transaction.
+    // Do not project into the compatibility journal before it has committed.
+    await writer(envelope);
     await _scheduler.processReviewTransaction(envelope);
   }
 }
