@@ -230,10 +230,12 @@ class IdempotentReviewTransactionManager {
     // A slower in-flight commit must not roll the stale guard backwards.
     if (previous != null && timestamp.isBefore(previous)) return;
     _lastContentTimestamps.remove(contentScope);
+    // Never evict a committed watermark during this manager's lifetime.
+    // Bounded status history is safe to discard, but losing the per-card
+    // timestamp lets a delayed older review overwrite newer durable progress
+    // after the learner has reviewed more than maxHistorySize other cards.
+    // The canonical SQLite writer remains responsible for restart safety.
     _lastContentTimestamps[contentScope] = timestamp;
-    if (_lastContentTimestamps.length > maxHistorySize) {
-      _lastContentTimestamps.remove(_lastContentTimestamps.keys.first);
-    }
   }
 
   List<ReviewTransactionStatus> getRecoverableTransactions() {
