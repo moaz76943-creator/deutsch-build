@@ -708,4 +708,63 @@ void main() {
     expect(find.text('أخي'), findsOneWidget);
     expect(find.text('Maison'), findsNothing);
   });
+  testWidgets('Arabic-Indic numeral search keeps Western words and pair isolation',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': '16',
+            'translation_ar': 'ستة عشر',
+            'source_language': 'de',
+            'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': '70',
+            'translation_ar': 'سبعون',
+            'source_language': 'de',
+            'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': '99',
+            'translation_ar': 'تسعة وتسعون',
+            'source_language': 'fr',
+            'target_language': 'ar',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    // Both Arabic-Indic digit sets must match the same actual Western row.
+    for (final query in <String>['١٦', '۱۶', '16']) {
+      await tester.enterText(search, query);
+      await tester.pump();
+      expect(find.text('16'), findsOneWidget);
+      expect(find.text('70'), findsNothing);
+      expect(find.text('99'), findsNothing);
+      expect(tester.widget<Text>(find.text('16')).textDirection,
+          TextDirection.ltr);
+      expect(tester.widget<Text>(find.text('ستة عشر')).textDirection,
+          TextDirection.rtl);
+    }
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('16'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('ستة عشر'), findsOneWidget);
+    expect(find.text('99'), findsNothing);
+  });
+
 }
