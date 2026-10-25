@@ -420,4 +420,39 @@ void main() {
     expect(retry.error, isNotNull);
     expect(manager.getRecoverableTransactions(), isEmpty);
   });
+
+  test('stale guard survives bounded history and card churn', () async {
+    final persistedIds = <String>[];
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (event) async {
+        persistedIds.add(event.reviewEventId);
+      },
+    );
+    const originalCard = 'first-reviewed-card';
+    final newest = await manager.commitReview(
+      review('first-newest', pair: 'de_ar', at: late, card: originalCard),
+      activeLanguagePairKey: 'de_ar',
+    );
+    expect(newest.state, TransactionState.committed);
+
+    // Exceed the 1,000-entry status cache without ending the session.
+    // Evicting a card's last committed timestamp must not authorize
+    // an older write to overwrite its canonical SRS schedule.
+    for (var index = 0; index < 1001; index++) {
+      final result = await manager.commitReview(
+        review('churn-$index', pair: 'de_ar', at: late,
+            card: 'other-card-$index'),
+        activeLanguagePairKey: 'de_ar',
+      );
+      expect(result.state, TransactionState.committed);
+    }
+
+    final stale = await manager.commitReview(
+      review('first-stale', pair: 'de_ar', at: early, card: originalCard),
+      activeLanguagePairKey: 'de_ar',
+    );
+    expect(stale.state, TransactionState.failed);
+    expect(persistedIds, isNot(contains('first-stale')));
+  });
+
 }
