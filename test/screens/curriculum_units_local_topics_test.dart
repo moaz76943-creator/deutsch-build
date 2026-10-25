@@ -1675,4 +1675,55 @@ void main() {
     expect(find.text('Mütter'), findsNothing);
     expect(find.text('أم'), findsNothing);
   });
+
+  testWidgets('pair change with an open dialog never mutates Navigator during build',
+      (tester) async {
+    final section =
+        LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'forms': <String>['Mütter'],
+          },
+        ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mütter'), findsOneWidget);
+
+    // didUpdateWidget is invoked while the new tree is being built.
+    // A synchronous removeRoute here can assert and leave stale translation.
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'en',
+        loadWords: loader,
+      ),
+    ));
+    expect(tester.takeException(), isNull);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('Mütter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
+        findsOneWidget);
+  });
 }
