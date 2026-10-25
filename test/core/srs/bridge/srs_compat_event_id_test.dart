@@ -109,6 +109,48 @@ void main() {
     expect(recorded.languagePairKey, 'de_ar');
   });
 
+  test('ambiguous directed pair keys are rejected before durable writes',
+      () async {
+    var writes = 0;
+    final bridge = SrsCompatBridge(
+      clock: () => DateTime.utc(2026, 10, 25),
+      durableWriter: (_) async { writes++; },
+    );
+
+    // Both pairs would otherwise serialize to the same "de_ar_fr" key.
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: 'collision-card', rating: 3,
+        sourceIso: 'de_ar', targetIso: 'fr',
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: 'collision-card', rating: 3,
+        sourceIso: 'de', targetIso: 'ar_fr',
+      ),
+      throwsArgumentError,
+    );
+    // Case-only variants are the same language, not opposite directions.
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: 'collision-card', rating: 3,
+        sourceIso: 'de', targetIso: 'DE',
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      bridge.recordReviewCompat(
+        contentKey: 'collision-card', rating: 3,
+        sourceIso: 'de\\n', targetIso: 'ar',
+      ),
+      throwsArgumentError,
+    );
+    expect(writes, 0,
+        reason: 'Malformed pairs must never reach canonical persistence');
+  });
+
   test('invalid grade, content and directed pair never enter SRS journal',
       () async {
     final bridge = SrsCompatBridge(clock: () => DateTime.utc(2026, 10, 25));
