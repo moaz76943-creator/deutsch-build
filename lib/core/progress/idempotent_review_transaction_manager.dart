@@ -21,9 +21,21 @@ class ReviewTransactionStatus {
   });
 }
 
+// Keep the final result available to exact concurrent retries until the
+// underlying persistence operation finishes, even if bounded history evicts
+// the pending entry.
+class _InFlightReview {
+  final ReviewTransactionEnvelope envelope;
+  final Completer<ReviewTransactionStatus> completion =
+      Completer<ReviewTransactionStatus>();
+
+  _InFlightReview(this.envelope);
+}
+
 class IdempotentReviewTransactionManager {
   final LinkedHashMap<String, ReviewTransactionStatus> _history =
       LinkedHashMap();
+  final Map<String, _InFlightReview> _inFlight = {};
   // Keep stale-review ordering independent for each directed pair and card.
   // A card key alone incorrectly rejects valid reverse-direction reviews.
   final LinkedHashMap<(String, String), DateTime> _lastContentTimestamps =
@@ -61,24 +73,43 @@ class IdempotentReviewTransactionManager {
       );
     }
 
-    // 3. An event ID represents one immutable review. Never acknowledge a
-    // different pair, card, rating, or instant as an already committed event.
-    final existingStatus = _history[envelope.reviewEventId];
-    if (existingStatus != null) {
-      final previous = existingStatus.envelope;
-      if (previous.learnerContentKey != envelope.learnerContentKey ||
-          previous.languagePairKey != envelope.languagePairKey ||
-          previous.rating != envelope.rating ||
-          !previous.timestamp.isAtSameMomentAs(envelope.timestamp)) {
+    // 3. Exact retries share the eventual durable outcome, not a premature
+    // pending acknowledgement. Check in-flight IDs before bounded history:
+    // history eviction must not admit a second write of a pending event.
+    final inFlight = _inFlight[envelope.reviewEventId];
+    if (inFlight != null) {
+      if (!_samePayload(inFlight.envelope, envelope)) {
         return ReviewTransactionStatus(
           envelope: envelope,
           state: TransactionState.failed,
           error: 'Conflicting reviewEventId payload',
         );
       }
-      if (existingStatus.state == TransactionState.committed ||
-          existingStatus.state == TransactionState.pending) {
+      return inFlight.completion.future;
+    }
+
+    // An event ID represents one immutable review. Never acknowledge a
+    // different pair, card, rating, or instant as an already committed event.
+    final existingStatus = _history[envelope.reviewEventId];
+    if (existingStatus != null) {
+      if (!_samePayload(existingStatus.envelope, envelope)) {
+        return ReviewTransactionStatus(
+          envelope: envelope,
+          state: TransactionState.failed,
+          error: 'Conflicting reviewEventId payload',
+        );
+      }
+      if (existingStatus.state == TransactionState.committed) {
         return existingStatus;
+      }
+      // A pending entry without its completion handle is inconsistent state.
+      // Fail closed rather than telling a caller that its write succeeded.
+      if (existingStatus.state == TransactionState.pending) {
+        return ReviewTransactionStatus(
+          envelope: envelope,
+          state: TransactionState.failed,
+          error: 'Pending review missing completion state',
+        );
       }
     }
 
@@ -91,8 +122,9 @@ class IdempotentReviewTransactionManager {
     final turn = Completer<void>();
     _scopeTails[contentScope] = turn.future;
 
-    // Reserve the ID synchronously before yielding so duplicate submissions
-    // cannot start a second persistence call while this turn is waiting.
+    // Reserve the ID and its completion synchronously before yielding.
+    final reservation = _InFlightReview(envelope);
+    _inFlight[envelope.reviewEventId] = reservation;
     var status = ReviewTransactionStatus(
       envelope: envelope,
       state: TransactionState.pending,
@@ -135,13 +167,35 @@ class IdempotentReviewTransactionManager {
         _recordStatus(envelope.reviewEventId, status);
         return status;
       }
+    } catch (e) {
+      // Also settle waiters if an unexpected queue/guard failure occurs.
+      status = ReviewTransactionStatus(
+        envelope: envelope,
+        state: TransactionState.recoverable,
+        error: e,
+      );
+      _recordStatus(envelope.reviewEventId, status);
+      return status;
     } finally {
+      if (identical(_inFlight[envelope.reviewEventId], reservation)) {
+        _inFlight.remove(envelope.reviewEventId);
+      }
+      reservation.completion.complete(status);
       if (identical(_scopeTails[contentScope], turn.future)) {
         _scopeTails.remove(contentScope);
       }
       turn.complete();
     }
   }
+
+  static bool _samePayload(
+    ReviewTransactionEnvelope previous,
+    ReviewTransactionEnvelope incoming,
+  ) =>
+      previous.learnerContentKey == incoming.learnerContentKey &&
+      previous.languagePairKey == incoming.languagePairKey &&
+      previous.rating == incoming.rating &&
+      previous.timestamp.isAtSameMomentAs(incoming.timestamp);
 
   void _recordStatus(String id, ReviewTransactionStatus status) {
     if (_history.containsKey(id)) {
