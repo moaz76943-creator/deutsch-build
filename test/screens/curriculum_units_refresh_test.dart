@@ -862,9 +862,9 @@ void main() {
 
     // NBSP, narrow NBSP, tabs and zero-width spaces arrive via copy/paste.
     for (final query in <String>[
-      'Guten\\u00A0\\u00A0Morgen',
-      '\\u200BGuten\\tMorgen\\u200B',
-      'صباح\\u202F\\u202Fالخير',
+      'Guten\u00A0\u00A0Morgen',
+      '\u200BGuten\tMorgen\u200B',
+      'صباح\u202F\u202Fالخير',
     ]) {
       await tester.enterText(search, query);
       await tester.pump();
