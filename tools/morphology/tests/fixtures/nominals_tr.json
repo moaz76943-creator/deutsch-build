@@ -1,0 +1,20 @@
+{
+  "nominals": [
+    {
+      "id": "n_ev",
+      "lemma": "ev",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "n_araba",
+      "lemma": "araba",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "nominals": [
+    {
+      "id": "n_kind",
+      "lemma": "Kind",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d_kind_nom_pl",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Kinder"
+        },
+        {
+          "id": "d_kind_dat_pl",
+          "grammatical_case": "dat",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Kindern"
+        }
+      ]
+    },
+    {
+      "id": "n_tor1",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d_tor1_nom_sg",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "d_tor1_nom_pl",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Tore"
+        }
+      ]
+    },
+    {
+      "id": "n_tor2",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "masc",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d_tor2_nom_sg",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "d_tor2_nom_pl",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Toren"
+        }
+      ]
+    },
+    {
+      "id": "n_vater",
+      "lemma": "Vater",
+      "part_of_speech": "noun",
+      "gender": "masc",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d_vater_nom_sg",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Vater"
+        }
+      ]
+    }
+  ]
+}
