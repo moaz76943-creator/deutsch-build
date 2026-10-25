@@ -59,29 +59,53 @@ def is_symlink_safe(path_str):
     rel_target = rel_target.replace(os.sep, "/")
     return is_path_allowed(rel_target)
 
-def paths_overlap(p1, p2):
-    parts1 = PurePosixPath(p1).parts
-    parts2 = PurePosixPath(p2).parts
-    length = min(len(parts1), len(parts2))
-    return parts1[:length] == parts2[:length]
+class TaskLedger:
+    def __init__(self, ledger_path):
+        self.ledger_path = ledger_path
+        os.makedirs(os.path.dirname(os.path.abspath(self.ledger_path)), exist_ok=True)
+        self.f = None
+        self.ledger_data = {}
 
-def check_overlapping_claims(ledger, task_id, requested_paths, now):
-    for other_task, data in list(ledger.items()):
-        if other_task == task_id or other_task == "_metadata":
-            continue
-        if data.get("state") in ["CLAIM", "ACTIVE"]:
-            timestamp = data.get("timestamp", 0)
-            if now - timestamp > LOCK_TTL_SECONDS:
-                data["state"] = "BLOCKED"
-                data["recovery_evidence"] = f"Stale lock recovered after {now - timestamp} seconds."
+    def __enter__(self):
+        self.f = open(self.ledger_path, "a+")
+        fcntl.flock(self.f, fcntl.LOCK_EX)
+        self.f.seek(0)
+        content = self.f.read()
+        self.ledger_data = json.loads(content) if content else {}
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            self.f.seek(0)
+            self.f.truncate()
+            json.dump(self.ledger_data, self.f, indent=2)
+            self.f.write(chr(10))
+        if self.f:
+            self.f.close()
+
+    def paths_overlap(self, p1, p2):
+        parts1 = PurePosixPath(p1).parts
+        parts2 = PurePosixPath(p2).parts
+        length = min(len(parts1), len(parts2))
+        return parts1[:length] == parts2[:length]
+
+    def check_overlapping_claims(self, task_id, requested_paths, now):
+        for other_task, data in list(self.ledger_data.items()):
+            if other_task == task_id or other_task == "_metadata":
                 continue
+            if data.get("state") in ["CLAIM", "ACTIVE"]:
+                timestamp = data.get("timestamp", 0)
+                if now - timestamp > LOCK_TTL_SECONDS:
+                    data["state"] = "BLOCKED"
+                    data["recovery_evidence"] = f"Stale lock recovered after {now - timestamp} seconds."
+                    continue
 
-            other_paths = data.get("paths", [])
-            for p in requested_paths:
-                for op in other_paths:
-                    if paths_overlap(p, op):
-                        return True, f"Path {p} overlaps with {op} claimed by {other_task}"
-    return False, ""
+                other_paths = data.get("paths", [])
+                for p in requested_paths:
+                    for op in other_paths:
+                        if self.paths_overlap(p, op):
+                            return True, f"Path {p} overlaps with {op} claimed by {other_task}"
+        return False, ""
 
 def is_stale_base_sha(ledger, base_sha):
     latest_completed = ledger.get("_metadata", {}).get("latest_base_sha")
@@ -93,10 +117,8 @@ def is_stale_base_sha(ledger, base_sha):
             return True
     return False
 
-def process_ledger(parsed, f):
-    f.seek(0)
-    content = f.read()
-    ledger = json.loads(content) if content else {}
+def process_ledger(parsed, task_ledger):
+    ledger = task_ledger.ledger_data
 
     report = {
         "task_id": parsed.task_id,
@@ -141,7 +163,7 @@ def process_ledger(parsed, f):
     if parsed.transition == "COMPLETE" or parsed.transition == "ACTIVE":
         for p in report["permitted_paths"]:
             if p not in current_paths:
-                covered = any(paths_overlap(p, cp) for cp in current_paths)
+                covered = any(task_ledger.paths_overlap(p, cp) for cp in current_paths)
                 if not covered:
                     report["blockers"].append(f"File {p} modified but not originally claimed.")
 
@@ -164,7 +186,7 @@ def process_ledger(parsed, f):
                 report["blockers"].append(f"Task depends on {dep} which is in state {dep_state}")
 
     now = time.time()
-    overlap, overlap_msg = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now)
+    overlap, overlap_msg = task_ledger.check_overlapping_claims(parsed.task_id, report["permitted_paths"], now)
     if overlap:
         report["blockers"].append(overlap_msg)
 
@@ -204,21 +226,12 @@ def main(args=None):
 
     parsed = parser.parse_args(args)
 
-    os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
-
-    with open(parsed.ledger, "a+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        result_code, report, updated_ledger = process_ledger(parsed, f)
+    with TaskLedger(parsed.ledger) as task_ledger:
+        result_code, report, updated_ledger = process_ledger(parsed, task_ledger)
 
         os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
         with open(parsed.report, "w") as rf:
             json.dump(report, rf, indent=2)
-
-        f.seek(0)
-        f.truncate()
-        json.dump(updated_ledger, f, indent=2)
-        # Add a newline for posix compliance
-        f.write("\n")
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
