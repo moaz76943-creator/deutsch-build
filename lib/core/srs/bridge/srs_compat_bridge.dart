@@ -23,6 +23,22 @@ class SrsCompatBridge {
     required String sourceIso,
     required String targetIso,
   }) async {
+    if (contentKey.trim().isEmpty ||
+        contentKey != contentKey.trim() ||
+        sourceIso.trim().isEmpty ||
+        targetIso.trim().isEmpty ||
+        sourceIso != sourceIso.trim() ||
+        targetIso != targetIso.trim() ||
+        sourceIso == targetIso) {
+      throw ArgumentError('Invalid SRS content or directed pair');
+    }
+    // The legacy flashcard surface emits 4 for "correct", but canonical
+    // ReviewRating is 0..3 (easy == 3). Never persist an invalid grade.
+    final canonicalRating = rating == 4 ? 3 : rating;
+    if (canonicalRating < 0 || canonicalRating > 3) {
+      throw ArgumentError.value(rating, 'rating', 'Expected a grade from 0 to 4');
+    }
+
     final timestamp = _clock().toUtc();
     final wallMicros = timestamp.microsecondsSinceEpoch;
     final eventMicros = wallMicros > _lastIssuedEventMicros
@@ -34,7 +50,7 @@ class SrsCompatBridge {
       reviewEventId:
           'REV_${eventMicros}_${sourceIso}_${targetIso}_${contentKey}',
       learnerContentKey: contentKey,
-      rating: rating,
+      rating: canonicalRating,
       timestamp: timestamp,
       languagePairKey: '${sourceIso}_${targetIso}',
     );
