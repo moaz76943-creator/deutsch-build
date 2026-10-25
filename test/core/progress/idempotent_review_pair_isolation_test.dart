@@ -24,7 +24,7 @@ void main() {
   test('stale checks are isolated by directed pair, not just card', () async {
     final committed = <ReviewTransactionEnvelope>[];
     final manager = IdempotentReviewTransactionManager(
-      persistencePort: (event) async => committed.add(event),
+      persistencePort: (event) async { committed.add(event); },
     );
 
     final forward = await manager.commitReview(
@@ -45,7 +45,7 @@ void main() {
   test('older reviews within the same directed pair remain stale', () async {
     var commits = 0;
     final manager = IdempotentReviewTransactionManager(
-      persistencePort: (_) async => commits++,
+      persistencePort: (_) async { commits++; },
     );
     expect(
       (await manager.commitReview(
@@ -70,7 +70,7 @@ void main() {
       () async {
     var commits = 0;
     final manager = IdempotentReviewTransactionManager(
-      persistencePort: (_) async => commits++,
+      persistencePort: (_) async { commits++; },
     );
     expect(
       (await manager.commitReview(
@@ -92,7 +92,7 @@ void main() {
   test('reusing a committed ID with changed rating fails closed', () async {
     var commits = 0;
     final manager = IdempotentReviewTransactionManager(
-      persistencePort: (_) async => commits++,
+      persistencePort: (_) async { commits++; },
     );
     await manager.commitReview(
       review('rating-id', pair: 'de_ar', at: early),
@@ -109,7 +109,7 @@ void main() {
   test('an identical committed retry remains idempotent', () async {
     var commits = 0;
     final manager = IdempotentReviewTransactionManager(
-      persistencePort: (_) async => commits++,
+      persistencePort: (_) async { commits++; },
     );
     final envelope = review('retry-id', pair: 'de_ar', at: early);
     expect(
