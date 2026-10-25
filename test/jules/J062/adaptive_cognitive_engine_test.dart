@@ -45,6 +45,7 @@ void main() {
           isCorrect: true,
           recordedAt: DateTime.now(),
           targetLanguageCode: 'de',
+          isCefrVerified: true,
         ));
       }
 
@@ -64,6 +65,7 @@ void main() {
           isCorrect: true,
           recordedAt: DateTime.now(),
           targetLanguageCode: 'de',
+          isCefrVerified: true,
         ));
       }
 
@@ -120,6 +122,7 @@ void main() {
           isCorrect: true,
           recordedAt: now,
           targetLanguageCode: 'de',
+          isCefrVerified: true,
         ));
       }
 
