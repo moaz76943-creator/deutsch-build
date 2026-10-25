@@ -364,4 +364,24 @@ void main() {
         .every((result) => result.state == TransactionState.committed), isTrue);
     expect(writes, 1002);
   });
+
+  test('never acknowledges a review without a persistence writer', () async {
+    final manager = IdempotentReviewTransactionManager();
+    final envelope = review('missing-writer', pair: 'de_ar', at: early);
+
+    final first = await manager.commitReview(
+      envelope,
+      activeLanguagePairKey: 'de_ar',
+    );
+    final retry = await manager.commitReview(
+      envelope,
+      activeLanguagePairKey: 'de_ar',
+    );
+
+    expect(first.state, TransactionState.failed);
+    expect(first.error, isNotNull);
+    expect(retry.state, TransactionState.failed);
+    expect(retry.error, isNotNull);
+    expect(manager.getRecoverableTransactions(), isEmpty);
+  });
 }
