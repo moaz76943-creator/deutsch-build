@@ -63,11 +63,11 @@ void main() {
         ));
       }
 
-      final decision = engine.evaluateStateDetailed();
+      final decision = engine.evaluateStateDetailed(languagePair: 'default');
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
     });
 
-    test('Hysteresis prevents oscillating difficulty', () {
+    test('Hysteresis prevents oscillating difficulty (cleared check)', () {
       // 1. Induce high strain -> reduceExtraneousLoad
       for (int i = 0; i < 5; i++) {
         engine.observe(CognitiveMetricRecord(
@@ -81,11 +81,9 @@ void main() {
 
       expect(engine.evaluateStateDetailed().action, AdaptationAction.reduceExtraneousLoad);
 
-      // 2. Introduce a few moderate strain records. Average strain will be > 0.3 but < 0.6
-      // Let's clear and re-populate the window to easily control avgStrain
+      // Clear session bypasses hysteresis
       engine.clearSession();
       for (int i = 0; i < 5; i++) {
-         // This gives strain around 0.4 (slow, but correct, no taps)
          engine.observe(CognitiveMetricRecord(
           sessionEventId: 'mod_$i',
           contentKey: 'ck_$i',
@@ -95,8 +93,7 @@ void main() {
         ));
       }
 
-      // Because we cleared, we need to artificially induce the last action or not clear.
-      // Let's rewrite this part safely without clearing.
+      expect(engine.evaluateStateDetailed().action, AdaptationAction.maintainFlow);
     });
 
     test('Hysteresis prevents oscillating difficulty (proper flow)', () {
@@ -179,6 +176,30 @@ void main() {
 
       final decision = engine.evaluateStateDetailed();
       expect(decision.action, AdaptationAction.deepenLinguisticChallenge);
+    });
+
+    test('Easy item incorrect increases strain', () {
+      final record = CognitiveMetricRecord(
+        sessionEventId: 'ev',
+        contentKey: 'ck',
+        responseLatency: const Duration(seconds: 1),
+        isCorrect: false,
+        recordedAt: DateTime.now(),
+        reviewDifficulty: 0.1, // Easy
+      );
+      expect(record.cognitiveStrainIndex, closeTo(0.4, 0.01));
+    });
+
+    test('Hard item correct reduces strain', () {
+      final record = CognitiveMetricRecord(
+        sessionEventId: 'ev',
+        contentKey: 'ck',
+        responseLatency: const Duration(seconds: 6),
+        isCorrect: true,
+        recordedAt: DateTime.now(),
+        reviewDifficulty: 0.9, // Hard
+      );
+      expect(record.cognitiveStrainIndex, closeTo(0.3, 0.01));
     });
   });
 }
