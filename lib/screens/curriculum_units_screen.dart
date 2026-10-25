@@ -272,20 +272,16 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         : 'UNKNOWN';
   }
 
-  // Every declared alias is evidence about the same row. A valid first
-  // alias must not mask a contradictory or malformed second alias and turn
-  // an unverified CEFR assignment into a confident learner-facing badge.
+  // Conflicting or malformed declared CEFR aliases cannot justify a badge.
   static String _rowDisplayLevel(Map<String, dynamic> row) {
-    String? declared;
+    String? level;
     for (final field in const <String>['cefr_level', 'cefr', 'cefr_code']) {
       if (!row.containsKey(field)) continue;
-      final level = _displayLevel(row[field]);
-      if (level == 'UNKNOWN' || (declared != null && declared != level)) {
-        return 'UNKNOWN';
-      }
-      declared = level;
+      final next = _displayLevel(row[field]);
+      if (next == 'UNKNOWN' || (level != null && next != level)) return 'UNKNOWN';
+      level = next;
     }
-    return declared ?? 'UNKNOWN';
+    return level ?? 'UNKNOWN';
   }
 
   static String _foldSearch(String value) => value
@@ -602,7 +598,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     super.initState();
     _load();
   }
-
   @override
   void didUpdateWidget(covariant TopicWordsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -620,7 +615,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       _load(preservePrevious: false);
     }
   }
-
   @override
   void dispose() {
     _requestId++;
@@ -631,12 +625,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     _quizController.dispose();
     super.dispose();
   }
-
   bool get _supportsDirectedPair =>
       widget.languageCode == 'de' &&
       widget.targetLanguageCode == 'ar' &&
       LocalTopicCatalog.supportsBundledTopics(widget.languageCode);
-
   // The default SQLite query is already scoped, but injected/alternate pack
   // readers must not leak another directed pair or a different known level.
   // Older de->ar rows can omit target metadata; an explicit mismatch is never
@@ -644,14 +636,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool _rowBelongsToSelection(Map<String, dynamic> row) {
     final word = row['word'];
     if (word is! String || word.trim().isEmpty) return false;
-
     bool matchesWhenDeclared(String field, String expected) {
       if (!row.containsKey(field)) return true;
       final value = row[field];
       return value is String &&
           value.trim().toLowerCase() == expected.toLowerCase();
     }
-
     // A future topic adapter may return rows for multiple sections.
     // Reject an explicitly different section before it reaches list, search,
     // cards or detail sheets. Legacy bundled rows omit this field and remain
@@ -664,7 +654,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             'translation_language_code', widget.targetLanguageCode)) {
       return false;
     }
-
     // Directed-pair adapters may flatten their identity fields. An explicit
     // reverse identity must not be mistaken for a legacy de->ar row.
     if (!matchesWhenDeclared('source_language', widget.languageCode) ||
@@ -683,7 +672,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         return false;
       }
     }
-
     // Some directed-pair adapters attach a nested pair_identity contract
     // (id: "de->ar", source_language, target_language). An explicit reverse
     // or contradictory identity must never enter de->ar list/search/practice,
@@ -705,7 +693,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         return value is String &&
             value.trim().toLowerCase() == expected.toLowerCase();
       }
-
       // Validate every declared nested alias; the id alone is insufficient.
       if (!matchesPairField('language_code', widget.languageCode) ||
           !matchesPairField('source_language', widget.languageCode) ||
@@ -719,7 +706,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         return false;
       }
     }
-
     // Respect every explicit CEFR alias; an unknown level stays UNKNOWN.
     for (final field in const <String>['cefr_level', 'cefr', 'cefr_code']) {
       final level = _displayLevel(row[field]);
@@ -727,7 +713,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     }
     return true;
   }
-
   Future<void> _load({bool preservePrevious = true}) async {
     final previousRows = preservePrevious ? _rows : const <Map<String, dynamic>>[];
     final requestId = ++_requestId;
@@ -785,7 +770,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final matchingRows = _matchingRows();
