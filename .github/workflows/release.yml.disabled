@@ -1,0 +1,31 @@
+# DISABLED 2026-10-25: this workflow is outside the 30-workflow zero-billing contract.
+# GitHub Actions cannot start ubuntu-latest jobs while billing is blocked
+# (run 40148304805, job 121034297378: payments failed or spending limit reached).
+# A billing failure is not a code failure and must not be required for merge.
+# Canonical manual gates that remain: quality_gate_ci.yml, build.yml, build_apk.yml, build_aab.yml.
+# Re-enable only by restoring a classified workflow that can actually run. Do not mark it green.
+
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - name: Release APK
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

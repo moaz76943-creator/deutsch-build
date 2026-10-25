@@ -14,6 +14,7 @@ B_MANUAL_UTILITY = "B"
 C_SELF_HOSTED = "C"
 D_AUTOMATIC_OPT_IN = "D"
 E_RETIRED_HISTORICAL = "E"
+F_BUDGETED_SELF_CHECK = "F"
 
 WORKFLOW_CLASSIFICATION = {
     "agents_pulse.yml": D_AUTOMATIC_OPT_IN,
@@ -23,6 +24,7 @@ WORKFLOW_CLASSIFICATION = {
     "architectural_memory_sync.yml": D_AUTOMATIC_OPT_IN,
     "auto-merge.yml": D_AUTOMATIC_OPT_IN,
     "auto-rebase.yml": D_AUTOMATIC_OPT_IN,
+    "auto_multilingual_builder.yml": B_MANUAL_UTILITY,
     "auto_release_tagger.yml": D_AUTOMATIC_OPT_IN,
     "autonomous_arbiter_gate.yml": D_AUTOMATIC_OPT_IN,
     "build.yml": B_MANUAL_UTILITY,
@@ -41,6 +43,7 @@ WORKFLOW_CLASSIFICATION = {
     "quality_gate_ci.yml": B_MANUAL_UTILITY,
     "recovery-checkpoint.yml": D_AUTOMATIC_OPT_IN,
     "security_audit.yml": D_AUTOMATIC_OPT_IN,
+    "staging_self_check.yml": F_BUDGETED_SELF_CHECK,
     "smart_triage_labeler.yml": D_AUTOMATIC_OPT_IN,
     "sync_store_metadata.yml": B_MANUAL_UTILITY,
     "trigger_signed_build.yml": D_AUTOMATIC_OPT_IN,
@@ -139,6 +142,7 @@ def test_active_workflow_inventory_is_classified_exactly_once():
         C_SELF_HOSTED,
         D_AUTOMATIC_OPT_IN,
         E_RETIRED_HISTORICAL,
+        F_BUDGETED_SELF_CHECK,
     }
 
 
@@ -252,3 +256,22 @@ def test_pull_request_target_inventory_and_privileged_context_are_fail_closed():
     trigger = _text("trigger_signed_build.yml")
     assert "uses: actions/checkout@" not in trigger
     assert "github.event.pull_request.merged == true" in trigger
+
+
+def test_budgeted_staging_self_check_fits_private_minutes():
+    text = _text("staging_self_check.yml")
+    assert "pull_request:" in text
+    assert "staging/v2-full-platform" in text
+    assert "cancel-in-progress: true" in text
+    assert "timeout-minutes: 20" in text
+    assert "paths:" in text
+    assert "\n  schedule:" not in text
+    assert "\n  push:" not in text
+    assert "macos" not in text
+    assert "ubuntu-latest" in text
+    assert "source toolchain.lock" in text
+    assert "dart analyze lib/" in text
+    assert "flutter test --reporter compact" in text
+    assert "targetSdk 36" in text
+    assert OPT_IN not in text
+    assert text.index("flutter test --reporter compact") < text.index("gh pr merge")

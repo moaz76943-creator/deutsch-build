@@ -3,19 +3,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/bootstrap/startup_boundary.dart';
+import 'bootstrap/production_bootstrap.dart';
 import 'design_system/app_theme.dart';
 import 'features/onboarding/fast_onboarding_screen.dart';
 
 /// One entry point. Crash-loop accounting, pack admission, and session
-/// recovery live in [StartupBoundary]; this file does not open learner storage.
+/// recovery live in the production shell's startup boundary. This file does
+/// not open learner storage.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations(const [
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const DeutschApp());
+  await bootstrapDeutschApp(const DeutschApp());
 }
 
 class DeutschApp extends StatelessWidget {
@@ -40,8 +41,8 @@ class DeutschApp extends StatelessWidget {
           Locale('en'),
           Locale('de'),
         ],
-        home: const StartupBoundary(
-          child: FastOnboardingScreen(),
+        home: hostProductionShell(
+          child: const FastOnboardingScreen(),
         ),
       ),
     );

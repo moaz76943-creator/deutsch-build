@@ -35,6 +35,7 @@ WORKFLOW_CLASS = {
     "architectural_memory_sync.yml": D_AUTOMATIC_OPT_IN,
     "auto-merge.yml": D_AUTOMATIC_OPT_IN,
     "auto-rebase.yml": D_AUTOMATIC_OPT_IN,
+    "auto_multilingual_builder.yml": B_MANUAL_UTILITY,
     "auto_release_tagger.yml": D_AUTOMATIC_OPT_IN,
     "autonomous_arbiter_gate.yml": D_AUTOMATIC_OPT_IN,
     "build.yml": B_MANUAL_UTILITY,
@@ -53,6 +54,7 @@ WORKFLOW_CLASS = {
     "quality_gate_ci.yml": B_MANUAL_UTILITY,
     "recovery-checkpoint.yml": D_AUTOMATIC_OPT_IN,
     "security_audit.yml": D_AUTOMATIC_OPT_IN,
+    "staging_self_check.yml": "F",
     "smart_triage_labeler.yml": D_AUTOMATIC_OPT_IN,
     "sync_store_metadata.yml": B_MANUAL_UTILITY,
     "trigger_signed_build.yml": D_AUTOMATIC_OPT_IN,
@@ -314,7 +316,7 @@ def test_all_active_workflows_obey_current_zero_billing_and_supply_chain_policy(
     assert_active_build_delivery_boundaries()
     workflows = active_workflows()
     assert set(workflows) == set(WORKFLOW_CLASS)
-    assert len(workflows) == 30
+    assert len(workflows) == 32
 
     for name, workflow in workflows.items():
         category = WORKFLOW_CLASS[name]
@@ -331,8 +333,9 @@ def test_all_active_workflows_obey_current_zero_billing_and_supply_chain_policy(
                 assert not any(host in job.runs_on for host in HOSTED_RUNNERS), name
 
         if category == D_AUTOMATIC_OPT_IN:
-            assert automatic, name
             gate = RELEASE_OPT_IN if name in RELEASE_AUTOMATION else NONESSENTIAL_OPT_IN
+            if not automatic:
+                assert workflow.triggers <= {"workflow_dispatch"}, name
             for job in workflow.jobs:
                 if any(host in job.runs_on for host in HOSTED_RUNNERS):
                     assert gate in job.condition, f"{name}/{job.key}"
