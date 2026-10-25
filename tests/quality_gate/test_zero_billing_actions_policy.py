@@ -1,7 +1,8 @@
 """Repository contract for zero-additional-billing GitHub Actions.
 
 Every active workflow is classified exactly once. Automatic hosted-runner jobs
-must be explicitly opt-in before runner allocation. Pull-request-target jobs
+must be explicitly opt-in before runner allocation, except bounded essential
+staging/security checks. Pull-request-target jobs
 must keep privileged execution on trusted/base code and treat PR content as data.
 """
 from pathlib import Path
@@ -15,6 +16,7 @@ C_SELF_HOSTED = "C"
 D_AUTOMATIC_OPT_IN = "D"
 E_RETIRED_HISTORICAL = "E"
 F_BUDGETED_SELF_CHECK = "F"
+G_ESSENTIAL_SECURITY = "G"
 
 WORKFLOW_CLASSIFICATION = {
     "agents_pulse.yml": D_AUTOMATIC_OPT_IN,
@@ -42,7 +44,7 @@ WORKFLOW_CLASSIFICATION = {
     "project-record-sync.yml": D_AUTOMATIC_OPT_IN,
     "quality_gate_ci.yml": B_MANUAL_UTILITY,
     "recovery-checkpoint.yml": D_AUTOMATIC_OPT_IN,
-    "security_audit.yml": D_AUTOMATIC_OPT_IN,
+    "security_audit.yml": G_ESSENTIAL_SECURITY,
     "staging_self_check.yml": F_BUDGETED_SELF_CHECK,
     "smart_triage_labeler.yml": D_AUTOMATIC_OPT_IN,
     "sync_store_metadata.yml": B_MANUAL_UTILITY,
@@ -61,7 +63,6 @@ AUTO_ONLY = (
     "pr_architectural_guard.yml",
     "project-record-engineering-ci.yml",
     "project-record-recovery.yml",
-    "security_audit.yml",
     "smart_triage_labeler.yml",
 )
 
@@ -143,6 +144,7 @@ def test_active_workflow_inventory_is_classified_exactly_once():
         D_AUTOMATIC_OPT_IN,
         E_RETIRED_HISTORICAL,
         F_BUDGETED_SELF_CHECK,
+        G_ESSENTIAL_SECURITY,
     }
 
 
