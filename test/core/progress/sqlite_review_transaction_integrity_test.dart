@@ -232,4 +232,55 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     );
   });
 
+  test('durable stale guard survives restart and isolates reverse pairs', () async {
+    Future<ReviewCommitResult> persist(
+      SqliteReviewTransactionPort port,
+      String id,
+      DateTime instant, {
+      String source = 'de',
+      String target = 'ar',
+    }) {
+      final item = command(id, source: source, target: target);
+      return port.commitOnce(
+        command: item,
+        envelope: ReviewTransactionEnvelope(
+          reviewEventId: item.reviewId,
+          learnerContentKey: item.cardId,
+          rating: item.rating.index,
+          timestamp: instant,
+          languagePairKey: '${source}_${target}_v2',
+        ),
+      );
+    }
+
+    final before = SqliteReviewTransactionPort(
+        database: db, applyReview: applyReview);
+    final base = DateTime.utc(2026, 10, 25, 12);
+    final newer = base.add(const Duration(microseconds: 1));
+    expect(await persist(before, 'older-committed', base),
+        ReviewCommitResult.committed);
+    expect(await persist(before, 'newer-committed', newer),
+        ReviewCommitResult.committed);
+
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(file);
+    final after = SqliteReviewTransactionPort(
+        database: db, applyReview: applyReview);
+
+    // ISO strings ending in .000Z sort *after* .000001Z lexically.
+    // A restart must not admit an older new event based on that ordering.
+    await expectLater(
+      persist(after, 'stale-after-restart', base),
+      throwsStateError,
+    );
+    expect(await count('de_ar_v2'), 2);
+    // The same immutable event ID still deduplicates after restart.
+    expect(await persist(after, 'newer-committed', newer),
+        ReviewCommitResult.alreadyCommitted);
+    // The opposite directed pair has its own durable review sequence.
+    expect(await persist(after, 'reverse-valid', base,
+        source: 'ar', target: 'de'), ReviewCommitResult.committed);
+    expect(await count('ar_de_v2'), 1);
+  });
+
 }
