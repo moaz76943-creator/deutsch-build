@@ -70,14 +70,14 @@ class RepairPlanner:
         plan_id = str(uuid.uuid4())
 
         # Hard fail if missing
-        from tools.agent_contract.guard import ScopeGuard
-        guard = ScopeGuard(target_paths)
+        from tools.automation.scope_guard import ScopeGuard
+        guard = ScopeGuard(owner="repair_planner")
 
-        leases = []
         if not dry_run:
             for path in target_paths:
-                with guard.lease_file(path):
-                    leases.append(path)
+                guard.add_allowed_path(path)
+                if not guard.request_ownership(path):
+                    raise RuntimeError("Failed to acquire lock")
 
         return {
             "plan_id": plan_id,
