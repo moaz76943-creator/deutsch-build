@@ -644,8 +644,16 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             value.trim().toLowerCase() == expected.toLowerCase();
       }
 
+      // Alternate adapters can use *_language_code or short source/target
+      // keys inside the identity. The declared id alone is not sufficient:
+      // contradictory aliases would leak another directed pair's content.
       if (!matchesPairField('source_language', widget.languageCode) ||
-          !matchesPairField('target_language', widget.targetLanguageCode)) {
+          !matchesPairField('source_language_code', widget.languageCode) ||
+          !matchesPairField('source', widget.languageCode) ||
+          !matchesPairField('target_language', widget.targetLanguageCode) ||
+          !matchesPairField('target_language_code', widget.targetLanguageCode) ||
+          !matchesPairField('translation_language_code', widget.targetLanguageCode) ||
+          !matchesPairField('target', widget.targetLanguageCode)) {
         return false;
       }
     }
