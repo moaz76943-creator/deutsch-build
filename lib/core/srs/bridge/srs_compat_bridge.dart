@@ -28,6 +28,11 @@ class SrsCompatBridge {
   final UnifiedSrsScheduler _scheduler = UnifiedSrsScheduler.instance;
   final DateTime Function() _clock;
   SrsDurableReviewWriter? _durableWriter;
+  // Review ordering is based on the instant assigned to each submission,
+  // not the device wall clock alone. Clock rollback must not cause a newer
+  // user action to be rejected by the canonical stale-review guard.
+  // Keep this instance-local so separate bridges do not share test/owner state.
+  int? _lastAssignedTimestampMicros;
   // Keep the write order for one directed pair/card. A slow earlier write
   // must not finish after a newer one and overwrite its durable schedule.
   // This is an in-process ordering guard, not a SQLite transaction authority.
@@ -94,10 +99,21 @@ class SrsCompatBridge {
       throw StateError('Canonical SRS persistence writer is not bound');
     }
 
-    final timestamp = _clock().toUtc();
-    final wallMicros = timestamp.microsecondsSinceEpoch;
-    final eventMicros = wallMicros > _lastIssuedEventMicros
-        ? wallMicros
+    final wallMicros = _clock().toUtc().microsecondsSinceEpoch;
+    final previousMicros = _lastAssignedTimestampMicros;
+    final reviewMicros = previousMicros != null && wallMicros <= previousMicros
+        ? previousMicros + 1
+        : wallMicros;
+    _lastAssignedTimestampMicros = reviewMicros;
+    final timestamp = DateTime.fromMicrosecondsSinceEpoch(
+      reviewMicros,
+      isUtc: true,
+    );
+
+    // Keep event IDs unique across bridge instances as well as across
+    // repeated/rolled-back clock ticks. The isolate nonce covers restarts.
+    final eventMicros = reviewMicros > _lastIssuedEventMicros
+        ? reviewMicros
         : _lastIssuedEventMicros + 1;
     _lastIssuedEventMicros = eventMicros;
 
