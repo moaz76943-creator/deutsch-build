@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
@@ -19,6 +21,10 @@ class SrsCompatBridge {
   final UnifiedSrsScheduler _scheduler = UnifiedSrsScheduler.instance;
   final DateTime Function() _clock;
   SrsDurableReviewWriter? _durableWriter;
+  // Keep the write order for one directed pair/card. A slow earlier write
+  // must not finish after a newer one and overwrite its durable schedule.
+  // This is an in-process ordering guard, not a SQLite transaction authority.
+  final Map<(String, String), Future<void>> _writeTails = {};
 
   /// Called by the canonical persistence owner after it has opened and
   /// verified the learner database. A second owner must not replace it.
@@ -83,8 +89,25 @@ class SrsCompatBridge {
     );
 
     // The writer owns durable idempotency and the SRS/progress transaction.
-    // Do not project into the compatibility journal before it has committed.
-    await writer(envelope);
-    await _scheduler.processReviewTransaction(envelope);
+    // Serialize only this directed pair/card so an older in-flight review
+    // cannot overwrite a newer durable schedule. Other cards and reverse
+    // directions proceed independently.
+    final scope = (envelope.languagePairKey, envelope.learnerContentKey);
+    final predecessor = _writeTails[scope];
+    final turn = Completer<void>();
+    _writeTails[scope] = turn.future;
+    try {
+      if (predecessor != null) await predecessor;
+      // Never project or acknowledge a review before the durable write.
+      await writer(envelope);
+      await _scheduler.processReviewTransaction(envelope);
+    } finally {
+      if (identical(_writeTails[scope], turn.future)) {
+        _writeTails.remove(scope);
+      }
+      // A failed write must release later submissions without propagating
+      // its failure to their queue. The failed caller still sees its error.
+      turn.complete();
+    }
   }
 }
