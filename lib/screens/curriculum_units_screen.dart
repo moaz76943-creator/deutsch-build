@@ -814,13 +814,28 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                     ),
                   )
                 : _rows.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            'لا توجد مفردات موثقة لهذا الموضوع والمستوى '
-                            'في الحزمة المثبتة.',
-                            textAlign: TextAlign.center,
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'لا توجد مفردات موثقة لهذا الموضوع والمستوى '
+                                'في الحزمة المثبتة.',
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              // A pack can become available while this route
+                              // stays open. Re-query explicitly without
+                              // inventing a word or silently polling storage.
+                              FilledButton.icon(
+                                key: const Key('topic-empty-refresh'),
+                                onPressed: _load,
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('تحديث المحتوى المحلي'),
+                              ),
+                            ],
                           ),
                         ),
                       )
