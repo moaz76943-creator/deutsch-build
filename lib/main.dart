@@ -12,23 +12,26 @@ import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
 import 'package:deutsch_bilarabi/design_system/app_theme.dart';
+import 'package:deutsch_bilarabi/core/persistence/local_persistence_port.dart';
+import 'package:deutsch_bilarabi/core/persistence/shared_preferences_adapter.dart';
 
 /// CrashLoopGuard: Protects against repeated crashes that could indicate
 /// tampering, data corruption, or unstable state. Resets after 5 minutes.
+/// Now depends only on LocalPersistencePort for clean architecture and security.
 class CrashLoopGuard {
   static const String _keyCrashCount = 'deutsch_crash_count_v1';
   static const String _keyLastCrash = 'deutsch_last_crash_v1';
   static const int _maxCrashes = 3;
   static const Duration _resetDuration = Duration(minutes: 5);
 
-  final SharedPreferences _prefs;
+  final LocalPersistencePort _persistence;
 
-  CrashLoopGuard(this._prefs);
+  CrashLoopGuard(this._persistence);
 
   Future<void> recordFailure() async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final lastCrash = _prefs.getInt(_keyLastCrash) ?? 0;
-    int crashCount = _prefs.getInt(_keyCrashCount) ?? 0;
+    final lastCrash = await _persistence.getInt(_keyLastCrash) ?? 0;
+    int crashCount = await _persistence.getInt(_keyCrashCount) ?? 0;
 
     if (now - lastCrash < _resetDuration.inMilliseconds) {
       crashCount++;
@@ -36,19 +39,19 @@ class CrashLoopGuard {
       crashCount = 1;
     }
 
-    await _prefs.setInt(_keyLastCrash, now);
-    await _prefs.setInt(_keyCrashCount, crashCount);
+    await _persistence.setInt(_keyLastCrash, now);
+    await _persistence.setInt(_keyCrashCount, crashCount);
   }
 
   Future<void> recordSuccess() async {
-    await _prefs.remove(_keyCrashCount);
-    await _prefs.remove(_keyLastCrash);
+    await _persistence.remove(_keyCrashCount);
+    await _persistence.remove(_keyLastCrash);
   }
 
-  bool isCrashLoopDetected() {
+  Future<bool> isCrashLoopDetected() async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final lastCrash = _prefs.getInt(_keyLastCrash) ?? 0;
-    final crashCount = _prefs.getInt(_keyCrashCount) ?? 0;
+    final lastCrash = await _persistence.getInt(_keyLastCrash) ?? 0;
+    final crashCount = await _persistence.getInt(_keyCrashCount) ?? 0;
 
     if (now - lastCrash > _resetDuration.inMilliseconds) {
       return false;
@@ -200,10 +203,10 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
 
   Future<void> bootstrap() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final guard = CrashLoopGuard(prefs);
+      final persistence = await SharedPreferencesAdapter.create();
+      final guard = CrashLoopGuard(persistence);
 
-      if (guard.isCrashLoopDetected()) {
+      if (await guard.isCrashLoopDetected()) {
         setState(() {
           isSafeMode = true;
           isBootstrapping = false;
@@ -212,6 +215,9 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
       }
 
       await guard.recordFailure();
+
+      // Keep raw prefs for legacy SessionRecoveryManager during transition.
+      final prefs = await SharedPreferences.getInstance();
 
       final pipeline = IsolatedBootstrapPipeline([
         _ProductionAcceptanceStep(),
