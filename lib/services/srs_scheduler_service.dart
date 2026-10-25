@@ -161,6 +161,17 @@ class SrsSchedulerService {
     return counter;
   }
 
+  // Reject corrupt numeric progress before acknowledging a replay or
+  // overwriting a learner's durable schedule. SQLite INTEGER affinity
+  // can still store a fractional REAL after a damaged import.
+  static double _readPersistedEaseFactor(Object? value) {
+    if (value is! num || !value.isFinite || value < minimumEaseFactor) {
+      throw ArgumentError.value(
+          value, 'ease_factor', 'Invalid persisted SRS ease factor');
+    }
+    return value.toDouble();
+  }
+
   /// Atomic read-modify-write using the existing srs_progress schema.
   /// nextReviewEpoch is persisted as next_due_at, in Unix seconds.
   /// Deduplicates calls via idempotent srs_review_events table when reviewEventId is provided.
@@ -224,10 +235,9 @@ class SrsSchedulerService {
                 existing.first['repetition_count'], 'repetition_count'),
             intervalDays: _readPersistedCounter(
                 existing.first['interval_days'], 'interval_days'),
-            easeFactor: (existing.first['ease_factor'] as num).toDouble(),
-            nextReviewEpoch: existing.first['next_due_at'] is num
-                ? (existing.first['next_due_at'] as num).toInt()
-                : 0,
+            easeFactor: _readPersistedEaseFactor(existing.first['ease_factor']),
+            nextReviewEpoch: _readPersistedCounter(
+                existing.first['next_due_at'], 'next_due_at'),
           );
         }
       }
@@ -248,7 +258,7 @@ class SrsSchedulerService {
               intervalDays: _readPersistedCounter(
                 existing.first['interval_days'], 'interval_days',
               ),
-              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+              easeFactor: _readPersistedEaseFactor(existing.first['ease_factor']),
             );
 
       final reviewed = (reviewedAt != null)
@@ -256,7 +266,8 @@ class SrsSchedulerService {
           : _clockGuard.getEffectiveUtcTime();
       int? elapsedDays;
       if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
-        final lastDueEpoch = (existing.first['next_due_at'] as num).toInt();
+        final lastDueEpoch = _readPersistedCounter(
+            existing.first['next_due_at'], 'next_due_at');
         final nowEpoch = reviewed.millisecondsSinceEpoch ~/ 1000;
         if (nowEpoch > lastDueEpoch) {
           elapsedDays = (nowEpoch - lastDueEpoch) ~/ secondsPerDay + state.intervalDays;
