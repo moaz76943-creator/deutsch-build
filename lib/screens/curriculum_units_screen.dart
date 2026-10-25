@@ -272,6 +272,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         : 'UNKNOWN';
   }
 
+  static String _rowDisplayLevel(Map<String, dynamic> row) =>
+      _displayLevel(row['cefr_level'] ?? row['cefr'] ?? row['cefr_code']);
+
   static String _foldSearch(String value) => value
       .trim()
       .toLowerCase()
@@ -320,7 +323,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     final word = _safeText(row['word']) ?? '';
     final article = _safeText(row['article']);
     final translation = _safeText(row['translation_ar']);
-    final level = _displayLevel(row['cefr_level']);
+    final level = _rowDisplayLevel(row);
     final displayWord = word.isEmpty
         ? 'لا يتوفر نص موثق لهذه المفردة'
         : article == null || article.isEmpty
@@ -507,7 +510,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     final forms = lines(row['forms']);
     final examples = lines(row['examples']);
     final partOfSpeech = _safeText(row['part_of_speech']);
-    final level = _displayLevel(row['cefr_level']);
+    final level = _rowDisplayLevel(row);
 
     Widget detail(String label, List<String> values,
         {TextDirection? textDirection}) {
@@ -704,14 +707,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       }
     }
 
-    final recordedLevel = row['cefr_level'];
-    if (recordedLevel is String) {
-      final normalized = recordedLevel.trim().toUpperCase();
-      if (const <String>{'A1', 'A2', 'B1', 'B2', 'C1', 'C2'}
-              .contains(normalized) &&
-          normalized != widget.cefr.toUpperCase()) {
-        return false;
-      }
+    // Respect every explicit CEFR alias; an unknown level stays UNKNOWN.
+    for (final field in const <String>['cefr_level', 'cefr', 'cefr_code']) {
+      final level = _displayLevel(row[field]);
+      if (level != 'UNKNOWN' && level != widget.cefr.toUpperCase()) return false;
     }
     return true;
   }
@@ -966,7 +965,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                           final word = _safeText(row['word']) ?? '';
                           final article = _safeText(row['article']);
                           final translation = _safeText(row['translation_ar']);
-                          final level = _displayLevel(row['cefr_level']);
+                          final level = _rowDisplayLevel(row);
                           final displayWord = article == null || article.isEmpty
                               ? word
                               : '$article $word';
