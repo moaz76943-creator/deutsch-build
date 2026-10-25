@@ -33,8 +33,8 @@ class ScopeGuard:
             self.lock_fd.seek(0)
             try:
                 data = json.load(self.lock_fd)
-            except json.JSONDecodeError:
-                data = {"leases": {}}
+            except json.JSONDecodeError as exc:
+                raise ValueError("Scope ledger corrupted; manual reconciliation required") from exc
 
             for path in paths:
                 p = PurePosixPath(path)
@@ -57,8 +57,8 @@ class ScopeGuard:
             self.lock_fd.seek(0)
             try:
                 data = json.load(self.lock_fd)
-            except json.JSONDecodeError:
-                data = {"leases": {}}
+            except json.JSONDecodeError as exc:
+                raise ValueError("Scope ledger corrupted; manual reconciliation required") from exc
             for path in paths:
                 if path in data.get("leases", {}) and data["leases"][path]["agent_id"] == agent_id:
                     data["leases"][path]["status"] = status
@@ -222,7 +222,18 @@ class AutoHealExecutor:
             self._record_failure_safely(e)
             sys.exit(1)
 
-        self._backup_files()
+        try:
+            self._backup_files()
+        except Exception as exc:
+            # No repair operation has been applied yet. Release ownership
+            # without restoring incomplete backups over existing learner files.
+            try:
+                self.guard.update_status(self.agent_id, paths, "CANCELLED")
+            finally:
+                self._record_failure_safely(exc)
+            print(f"Backup failed; no files modified: {type(exc).__name__}")
+            sys.exit(1)
+
         try:
             for op in self.plan.get("operations", []):
                 self._apply_operation(op)
