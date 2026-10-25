@@ -11,10 +11,10 @@ class MasteryProjectionEngine {
     required List<ReviewTransactionEnvelope> events,
     int masteryThreshold = 3,
     Duration boundedReplayWindow = const Duration(days: 365),
-    DateTime? now,
+    DateTime? timestamp,
   }) {
     final languagePairKey = '${sourceLanguageId}_$targetLanguageId';
-    final currentTime = now ?? DateTime.now();
+    final currentTime = timestamp ?? DateTime.now();
     final replayCutoff = currentTime.subtract(boundedReplayWindow);
 
     // Sort events by timestamp ascending for deterministic replay.
