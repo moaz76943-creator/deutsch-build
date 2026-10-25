@@ -283,4 +283,43 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     expect(await count('ar_de_v2'), 1);
   });
 
+  test('bounded committed reads preserve microsecond ordering', () async {
+    final port = SqliteReviewTransactionPort(
+        database: db, applyReview: applyReview);
+    final atMillisecond = DateTime.utc(2026, 10, 25, 12);
+    final atMicrosecond =
+        atMillisecond.add(const Duration(microseconds: 1));
+
+    Future<void> persist(String id, DateTime instant) async {
+      final item = command(id);
+      expect(
+        await port.commitOnce(
+          command: item,
+          envelope: ReviewTransactionEnvelope(
+            reviewEventId: item.reviewId,
+            learnerContentKey: item.cardId,
+            rating: item.rating.index,
+            timestamp: instant,
+            languagePairKey: 'de_ar_v2',
+          ),
+        ),
+        ReviewCommitResult.committed,
+      );
+    }
+
+    await persist('millisecond-first', atMillisecond);
+    await persist('microsecond-newer', atMicrosecond);
+    // The raw ISO lexical sort incorrectly puts .000Z above .000001Z.
+    // A bounded analytics/history read must not hide the newer review.
+    final latest = await port.readCommittedReviews(
+      sourceLanguageId: 'de',
+      targetLanguageId: 'ar',
+      semanticVersion: 'v2',
+      limit: 1,
+    );
+    expect(latest, hasLength(1));
+    expect(latest.single.reviewEventId, 'microsecond-newer');
+    expect(latest.single.timestamp, atMicrosecond);
+  });
+
 }
