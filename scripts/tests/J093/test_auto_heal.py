@@ -217,6 +217,17 @@ class TestAutoHeal(unittest.TestCase):
             ledger = json.load(f)
         self.assertEqual(ledger["leases"][self.target_file]["status"], "CANCELLED")
 
+    def test_corrupt_scope_ledger_blocks_claim_and_status_update(self):
+        guard = auto_heal.ScopeGuard(self.ledger_path)
+        with open(self.ledger_path, 'w') as stream:
+            stream.write('{"leases":')
+        with self.assertRaisesRegex(ValueError, "Scope ledger corrupted"):
+            guard.claim("agent_A", [self.target_file])
+        with self.assertRaisesRegex(ValueError, "Scope ledger corrupted"):
+            guard.update_status("agent_A", [self.target_file], "COMPLETE")
+        with open(self.ledger_path) as stream:
+            self.assertEqual(stream.read(), '{"leases":')
+
     @patch('auto_heal.AutoHealExecutor._run_gate')
     def test_backup_failure_releases_claimed_lease(self, mock_gate):
         executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
