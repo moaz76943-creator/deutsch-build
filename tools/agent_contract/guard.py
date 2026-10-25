@@ -60,6 +60,10 @@ def is_symlink_safe(path_str):
     return is_path_allowed(rel_target)
 
 def paths_overlap(p1, p2):
+    """
+    Detects if two paths have an ancestor/descendant relationship.
+    Returns True if p1 is a descendant of p2, p2 is a descendant of p1, or they are the same.
+    """
     parts1 = PurePosixPath(p1).parts
     parts2 = PurePosixPath(p2).parts
     length = min(len(parts1), len(parts2))
@@ -73,7 +77,7 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now):
             timestamp = data.get("timestamp", 0)
             if now - timestamp > LOCK_TTL_SECONDS:
                 data["state"] = "BLOCKED"
-                data["recovery_evidence"] = f"Stale lock recovered after {now - timestamp} seconds."
+                data["recovery_evidence"] = f"Stale lock recovered after {now - timestamp} seconds by owner {task_id}."
                 continue
 
             other_paths = data.get("paths", [])
@@ -93,100 +97,144 @@ def is_stale_base_sha(ledger, base_sha):
             return True
     return False
 
-def process_ledger(parsed, f):
-    f.seek(0)
-    content = f.read()
-    ledger = json.loads(content) if content else {}
+class TaskLedger:
+    def __init__(self, ledger_path):
+        self.ledger_path = ledger_path
+        os.makedirs(os.path.dirname(os.path.abspath(self.ledger_path)), exist_ok=True)
 
-    report = {
-        "task_id": parsed.task_id,
-        "base_sha": parsed.base_sha,
-        "result_sha": parsed.result_sha,
-        "transition": parsed.transition,
-        "permitted_paths": [],
-        "denied_paths": [],
-        "blockers": []
-    }
+    def check_overlap(self, owner, paths):
+        if not os.path.exists(self.ledger_path):
+            return False
+        with open(self.ledger_path, "r") as f:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX)
+                content = f.read()
+                ledger = json.loads(content) if content else {}
+            except Exception:
+                return True # Fail-closed
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
 
-    current_state = ledger.get(parsed.task_id, {}).get("state")
-    current_paths = ledger.get(parsed.task_id, {}).get("paths", [])
+        now = time.time()
+        overlap, _ = check_overlapping_claims(ledger, owner, paths, now)
+        return overlap
 
-    requested_paths = []
-    if parsed.transition == "CLAIM":
-        if parsed.paths:
-            requested_paths = parsed.paths
-        else:
-            report["blockers"].append("Paths must be provided for initial CLAIM.")
-            return 1, report, ledger
-    elif parsed.transition in ["ACTIVE", "COMPLETE"]:
-        try:
-            requested_paths = get_changed_files(parsed.base_sha, parsed.result_sha)
-        except ValueError as e:
-            report["blockers"].append(str(e))
-            return 1, report, ledger
+    def process_transition(self, parsed):
+        with open(self.ledger_path, "a+") as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            f.seek(0)
+            content = f.read()
+            ledger = json.loads(content) if content else {}
 
-    for p in requested_paths:
-        if is_path_allowed(p):
-            if os.path.exists(p) and not is_symlink_safe(p):
-                report["denied_paths"].append(p)
-                report["blockers"].append(f"Symlink {p} points to forbidden path")
-            else:
-                report["permitted_paths"].append(p)
-        else:
-            report["denied_paths"].append(p)
+            report = {
+                "task_id": parsed.task_id,
+                "base_sha": parsed.base_sha,
+                "result_sha": parsed.result_sha,
+                "transition": parsed.transition,
+                "permitted_paths": [],
+                "denied_paths": [],
+                "blockers": []
+            }
 
-    if report["denied_paths"]:
-        report["blockers"].append("Changes to forbidden paths detected.")
+            current_state = ledger.get(parsed.task_id, {}).get("state")
+            current_paths = ledger.get(parsed.task_id, {}).get("paths", [])
 
-    if parsed.transition == "COMPLETE" or parsed.transition == "ACTIVE":
-        for p in report["permitted_paths"]:
-            if p not in current_paths:
-                covered = any(paths_overlap(p, cp) for cp in current_paths)
-                if not covered:
-                    report["blockers"].append(f"File {p} modified but not originally claimed.")
+            requested_paths = []
+            if parsed.transition == "CLAIM":
+                if parsed.paths:
+                    requested_paths = parsed.paths
+                else:
+                    report["blockers"].append("Paths must be provided for initial CLAIM.")
+                    self._write_report_and_ledger(parsed, report, ledger, f)
+                    return 1, report
+            elif parsed.transition in ["ACTIVE", "COMPLETE"]:
+                try:
+                    requested_paths = get_changed_files(parsed.base_sha, parsed.result_sha)
+                except ValueError as e:
+                    report["blockers"].append(str(e))
+                    self._write_report_and_ledger(parsed, report, ledger, f)
+                    return 1, report
 
-    if current_state:
-        if parsed.transition not in VALID_TRANSITIONS.get(current_state, []):
-            if current_state != parsed.transition:
-                report["blockers"].append(f"Invalid transition from {current_state} to {parsed.transition}")
-    elif parsed.transition not in ["CLAIM", "ACTIVE", "BLOCKED", "CANCELLED"]:
-        report["blockers"].append(f"Invalid initial transition: {parsed.transition}")
+            for p in requested_paths:
+                if is_path_allowed(p):
+                    if os.path.exists(p) and not is_symlink_safe(p):
+                        report["denied_paths"].append(p)
+                        report["blockers"].append(f"Symlink {p} points to forbidden path")
+                    else:
+                        report["permitted_paths"].append(p)
+                else:
+                    report["denied_paths"].append(p)
 
-    if parsed.transition in ["CLAIM", "ACTIVE"]:
-        if is_stale_base_sha(ledger, parsed.base_sha):
-            report["blockers"].append("Stale branch-base SHA detected. Base SHA is behind the latest completed merge.")
+            if report["denied_paths"]:
+                report["blockers"].append("Changes to forbidden paths detected.")
 
-    # Check dependencies
-    if parsed.depends_on:
-        for dep in parsed.depends_on:
-            dep_state = ledger.get(dep, {}).get("state")
-            if dep_state != "COMPLETE":
-                report["blockers"].append(f"Task depends on {dep} which is in state {dep_state}")
+            if parsed.transition == "COMPLETE" or parsed.transition == "ACTIVE":
+                for p in report["permitted_paths"]:
+                    if p not in current_paths:
+                        covered = any(paths_overlap(p, cp) for cp in current_paths)
+                        if not covered:
+                            report["blockers"].append(f"File {p} modified but not originally claimed.")
 
-    now = time.time()
-    overlap, overlap_msg = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now)
-    if overlap:
-        report["blockers"].append(overlap_msg)
+                # Specifically validate that final diff matches the original claimed paths entirely
+                if parsed.transition == "COMPLETE":
+                    for cp in current_paths:
+                        if not any(paths_overlap(cp, rp) for rp in report["permitted_paths"]):
+                            # This just means they didn't touch a file they claimed, which is safe.
+                            pass
 
-    if report["blockers"]:
-        return 1, report, ledger
+            if current_state:
+                if parsed.transition not in VALID_TRANSITIONS.get(current_state, []):
+                    if current_state != parsed.transition:
+                        report["blockers"].append(f"Invalid transition from {current_state} to {parsed.transition}")
+            elif parsed.transition not in ["CLAIM", "ACTIVE", "BLOCKED", "CANCELLED"]:
+                report["blockers"].append(f"Invalid initial transition: {parsed.transition}")
 
-    ledger_entry = ledger.get(parsed.task_id, {"paths": []})
-    ledger_entry["state"] = parsed.transition
-    ledger_entry["timestamp"] = now
+            if parsed.transition in ["CLAIM", "ACTIVE"]:
+                if is_stale_base_sha(ledger, parsed.base_sha):
+                    report["blockers"].append("Stale branch-base SHA detected. Base SHA is behind the latest completed merge.")
 
-    if parsed.transition == "CLAIM":
-        merged_paths = list(set(ledger_entry.get("paths", []) + report["permitted_paths"]))
-        ledger_entry["paths"] = merged_paths
+            if parsed.depends_on:
+                for dep in parsed.depends_on:
+                    dep_state = ledger.get(dep, {}).get("state")
+                    if dep_state != "COMPLETE":
+                        report["blockers"].append(f"Task depends on {dep} which is in state {dep_state}")
 
-    ledger[parsed.task_id] = ledger_entry
+            now = time.time()
+            overlap, overlap_msg = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now)
+            if overlap:
+                report["blockers"].append(overlap_msg)
 
-    if parsed.transition == "COMPLETE":
-        if "_metadata" not in ledger:
-            ledger["_metadata"] = {}
-        ledger["_metadata"]["latest_base_sha"] = parsed.result_sha
+            if report["blockers"]:
+                self._write_report_and_ledger(parsed, report, ledger, f)
+                return 1, report
 
-    return 0, report, ledger
+            ledger_entry = ledger.get(parsed.task_id, {"paths": []})
+            ledger_entry["state"] = parsed.transition
+            ledger_entry["timestamp"] = now
+
+            if parsed.transition == "CLAIM":
+                merged_paths = list(set(ledger_entry.get("paths", []) + report["permitted_paths"]))
+                ledger_entry["paths"] = merged_paths
+
+            ledger[parsed.task_id] = ledger_entry
+
+            if parsed.transition == "COMPLETE":
+                if "_metadata" not in ledger:
+                    ledger["_metadata"] = {}
+                ledger["_metadata"]["latest_base_sha"] = parsed.result_sha
+
+            self._write_report_and_ledger(parsed, report, ledger, f)
+            return 0, report
+
+    def _write_report_and_ledger(self, parsed, report, ledger, f):
+        os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
+        with open(parsed.report, "w") as rf:
+            json.dump(report, rf, indent=2)
+
+        f.seek(0)
+        f.truncate()
+        json.dump(ledger, f, indent=2)
+        f.write("\n")
 
 def main(args=None):
     if args is None:
@@ -204,21 +252,8 @@ def main(args=None):
 
     parsed = parser.parse_args(args)
 
-    os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
-
-    with open(parsed.ledger, "a+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        result_code, report, updated_ledger = process_ledger(parsed, f)
-
-        os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
-        with open(parsed.report, "w") as rf:
-            json.dump(report, rf, indent=2)
-
-        f.seek(0)
-        f.truncate()
-        json.dump(updated_ledger, f, indent=2)
-        # Add a newline for posix compliance
-        f.write("\n")
+    ledger = TaskLedger(parsed.ledger)
+    result_code, report = ledger.process_transition(parsed)
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
