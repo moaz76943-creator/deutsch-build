@@ -858,7 +858,35 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                 ),
               )
             : _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 12),
+                      const Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          'جارٍ قراءة المفردات المحلية...',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // A stalled local adapter should not require waiting
+                      // for its 30-second timeout before the learner retries.
+                      // _requestId already discards obsolete completions.
+                      TextButton.icon(
+                        key: const Key('topic-loading-retry'),
+                        onPressed: _load,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('إعادة المحاولة الآن'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             : _failed
                 ? Center(
                     child: Column(
