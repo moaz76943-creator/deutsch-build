@@ -543,4 +543,60 @@ void main() {
     expect(find.text('Schwester'), findsOneWidget);
     expect(find.text('أخت'), findsNothing);
   });
+
+  testWidgets('untrusted CEFR aliases remain UNKNOWN in list cards and details',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter', 'translation_ar': 'أم',
+            'cefr_level': 'A1', 'cefr_code': 'B3',
+          },
+          <String, dynamic>{
+            'word': 'Bruder', 'translation_ar': 'أخ',
+            'cefr_level': 'A1', 'cefr': 'A1',
+          },
+          <String, dynamic>{
+            'word': 'Vater', 'translation_ar': 'أب',
+            'cefr_level': 'B2',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    // Malformed evidence must not be silently upgraded to confirmed A1.
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('UNKNOWN'), findsOneWidget);
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.text('A1'), findsOneWidget);
+    expect(find.text('Vater'), findsNothing);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('المستوى UNKNOWN'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-word-details')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('UNKNOWN — لا يوجد تصنيف مستوى معتمد'),
+        findsOneWidget);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pump();
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.textContaining('المستوى حسب الحزمة: A1'), findsOneWidget);
+  });
+
 }
