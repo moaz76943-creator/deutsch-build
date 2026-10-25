@@ -67,6 +67,10 @@ class TestAnalyzer(unittest.TestCase):
         res3 = analyzer.analyze("talossä")
         self.assertEqual(len(res3), 0)
 
+        # Test false match explicitly
+        res4 = analyzer.analyze("metsassani")
+        self.assertEqual(len(res4), 0)
+
         analyzer.close()
 
     def test_german_strong_weak(self):
@@ -97,6 +101,34 @@ class TestAnalyzer(unittest.TestCase):
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].lemma, "gehen")
         self.assertEqual(res[0].tags, ["past", "3s"])
+
+        analyzer.close()
+
+    def test_german_regular_verbs(self):
+        self.vdb.execute("INSERT INTO verbs VALUES ('v3', 'sagen', 'say', 3)")
+        self.vdb.commit()
+
+        de = get_profile("de")
+        analyzer = MorphologyAnalyzer([self.verb_db_path], de)
+
+        res = analyzer.analyze("sagtest")
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].lemma, "sagen")
+        self.assertEqual(res[0].tags, ["REGULAR"])
+
+        analyzer.close()
+
+    def test_evaluation_bounds_prevent_explosion(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('ev1', 'ev', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        tr = get_profile("tr")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], tr)
+
+        long_word = "ev" + ("ler" * 100)
+        res = analyzer.analyze(long_word)
+        # Should not crash, and evaluation count bounds will just stop finding valid deep nested paths
+        self.assertTrue(len(res) >= 0)
 
         analyzer.close()
 

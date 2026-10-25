@@ -27,7 +27,11 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        eval_count = [0]
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            eval_count[0] += 1
+            if eval_count[0] > analyzer.max_evaluations:
+                return
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -69,7 +73,11 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        eval_count = [0]
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            eval_count[0] += 1
+            if eval_count[0] > analyzer.max_evaluations:
+                return
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -137,6 +145,22 @@ class GermanProfile(LanguageProfile):
                 for n in analyzer.lookup_nominal_form(stem2):
                     results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
+        for suffix in ["test", "ten", "tet", "te", "st"]:
+            if word.endswith(suffix):
+                stem = word[:-len(suffix)]
+                if len(stem) > 0:
+                    for v in analyzer.lookup_verb_lemma(stem + "en"):
+                        results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["REGULAR"]))
+                    for v in analyzer.lookup_verb_lemma(stem + "n"):
+                        results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["REGULAR"]))
+
+        for suffix in ["es", "s"]:
+            if word.endswith(suffix):
+                stem = word[:-len(suffix)]
+                if len(stem) > 0:
+                    for n in analyzer.lookup_nominal_lemma(stem):
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["GEN", "SG"]))
+
         return results
 
 class MorphologyAnalyzer:
@@ -147,6 +171,7 @@ class MorphologyAnalyzer:
         self.profile = profile
         self.max_recursion_depth = 4
         self.max_results = 50
+        self.max_evaluations = 1000
 
     def close(self):
         for db in self.dbs:
