@@ -199,4 +199,37 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     expect(await count('zh-Hant_en-US_1.0.0'), 1);
   });
 
+  test('analytics filters inconsistent stored pair components', () async {
+    final port = SqliteReviewTransactionPort(
+        database: db, applyReview: applyReview);
+    await manager(db).processTransaction(command('valid-analytics'));
+
+    // Simulate an older/corrupt row whose serialized pair key disagrees with
+    // the separately persisted source and target. Never mix it into reports.
+    await db.insert(SqliteReviewTransactionPort.tableName, <String, Object>{
+      'review_id': 'inconsistent-analytics',
+      'source_language_id': 'ar',
+      'target_language_id': 'de',
+      'semantic_version': 'v2',
+      'language_pair_key': 'de_ar_v2',
+      'pair_epoch': 9,
+      'card_id': 'card-1',
+      'facet_key': 'lexeme',
+      'rating': 2,
+      'hinted': 0,
+      'occurred_at_utc': DateTime.utc(2026, 10, 25).toIso8601String(),
+    });
+    final events = await port.readCommittedReviews(
+      sourceLanguageId: 'de', targetLanguageId: 'ar', semanticVersion: 'v2',
+    );
+    expect(events.map((event) => event.reviewEventId),
+        <String>['valid-analytics']);
+    await expectLater(
+      port.readCommittedReviews(
+          sourceLanguageId: 'de_ar', targetLanguageId: 'fr',
+          semanticVersion: 'v2'),
+      throwsArgumentError,
+    );
+  });
+
 }
