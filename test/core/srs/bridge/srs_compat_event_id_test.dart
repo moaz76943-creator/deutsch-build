@@ -151,6 +151,35 @@ void main() {
         reason: 'Malformed pairs must never reach canonical persistence');
   });
 
+  test('hyphenated language tags remain distinct in both directions',
+      () async {
+    final committedPairs = <String>[];
+    final bridge = SrsCompatBridge(
+      clock: () => DateTime.utc(2026, 10, 25),
+      durableWriter: (event) async {
+        committedPairs.add(event.languagePairKey);
+      },
+    );
+    const key = 'core-bcp47-directed-pair-20261025';
+
+    await bridge.recordReviewCompat(
+      contentKey: key, rating: 3,
+      sourceIso: 'zh-Hant', targetIso: 'en-US',
+    );
+    await bridge.recordReviewCompat(
+      contentKey: key, rating: 1,
+      sourceIso: 'en-US', targetIso: 'zh-Hant',
+    );
+
+    expect(committedPairs, <String>['zh-Hant_en-US', 'en-US_zh-Hant']);
+    expect(
+      UnifiedSrsScheduler.instance.history
+          .where((event) => event.learnerContentKey == key)
+          .map((event) => event.languagePairKey),
+      <String>['zh-Hant_en-US', 'en-US_zh-Hant'],
+    );
+  });
+
   test('invalid grade, content and directed pair never enter SRS journal',
       () async {
     final bridge = SrsCompatBridge(clock: () => DateTime.utc(2026, 10, 25));
