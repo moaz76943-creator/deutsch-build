@@ -294,6 +294,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       // Match common omitted Arabic alef hamzas in learner search only.
       // Preserve the original text and distinct non-alef hamza letters.
       .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
+      // Persian keyboard variants must match Arabic without altering stored text.
+      .replaceAll('ی', 'ي').replaceAll('ک', 'ك')
       // German digraph input must match both NFC and decomposed umlauts.
       .replaceAll('a\u0308', 'ae')
       .replaceAll('o\u0308', 'oe')
