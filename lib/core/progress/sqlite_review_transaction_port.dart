@@ -186,8 +186,13 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
       whereArgs: <Object>[
         key, sourceLanguageId, targetLanguageId, semanticVersion,
       ],
-      // Newest records first so bounded history cannot hide recent learning.
-      orderBy: 'occurred_at_utc DESC, review_id DESC',
+      // ISO UTC uses .mmmZ for whole milliseconds and .mmmuuuZ for
+      // microseconds. Lexical DESC alone places .000Z above .000001Z,
+      // hiding the newer review when a bounded history limit is applied.
+      // Match the durable stale guard's chronological ordering.
+      orderBy: 'substr(occurred_at_utc, 1, 23) DESC, '
+          'length(occurred_at_utc) DESC, occurred_at_utc DESC, '
+          'review_id DESC',
       limit: limit,
     );
     return List<ReviewTransactionEnvelope>.unmodifiable(
