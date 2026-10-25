@@ -14,6 +14,7 @@ jobs:
     name: Apply changed-file labels
     if: ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Apply labels based on changed files
         uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5
