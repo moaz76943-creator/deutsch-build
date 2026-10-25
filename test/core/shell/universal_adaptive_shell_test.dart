@@ -75,32 +75,34 @@ void main() {
     expect(tester.widget<FilledButton>(submit).onPressed, isNull);
   });
 
-  testWidgets('small viewport and 200% font scale can reach submit',
-      (tester) async {
-    await tester.binding.setSurfaceSize(const Size(320, 430));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+  for (final width in [320.0, 360.0, 393.0, 430.0]) {
+    testWidgets('$width px at 200% font scale keeps submit reachable',
+        (tester) async {
+      await tester.binding.setSurfaceSize(Size(width, 430));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(MaterialApp(
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: const TextScaler.linear(2),
+      await tester.pumpWidget(MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(2),
+          ),
+          child: child!,
         ),
-        child: child!,
-      ),
-      home: UniversalAdaptiveShell(
-        contract: scenario('small'),
-        mode: InteractionMode.kineticBlocks,
-      ),
-    ));
+        home: UniversalAdaptiveShell(
+          contract: scenario('small-$width'),
+          mode: InteractionMode.kineticBlocks,
+        ),
+      ));
 
-    final answer = find.byKey(const Key('universal_scenario_answer'));
-    await tester.enterText(answer, 'hallo');
-    final submit = find.widgetWithText(FilledButton, 'تحقق محلياً');
-    await tester.ensureVisible(submit);
-    await tester.tap(submit);
-    await tester.pumpAndSettle();
+      final answer = find.byKey(const Key('universal_scenario_answer'));
+      await tester.enterText(answer, 'hallo');
+      final submit = find.widgetWithText(FilledButton, 'تحقق محلياً');
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
 
-    expect(tester.takeException(), isNull);
-    expect(find.text('تم التحقق'), findsOneWidget);
-  });
+      expect(tester.takeException(), isNull);
+      expect(find.text('تم التحقق'), findsOneWidget);
+    });
+  }
 }
