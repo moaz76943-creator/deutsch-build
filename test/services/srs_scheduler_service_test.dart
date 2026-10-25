@@ -356,4 +356,57 @@ void main() {
         reason: 'Invalid event IDs must not mutate the durable ledger');
   });
 
+
+  test('noncanonical learner keys cannot fork existing durable progress', () async {
+    final db = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(db.close);
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    Future<SrsReviewSchedule> review(
+      String lexemeId,
+      String languageCode,
+      String eventId,
+    ) => scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: lexemeId,
+          languageCode: languageCode,
+          grade: 3,
+          reviewedAt: DateTime.utc(2026, 10, 25),
+          reviewEventId: eventId,
+        );
+
+    await review('haus', 'de', 'valid-key-review');
+    final before = (await db.query('srs_progress')).single;
+    for (final bad in <(String, String)>[
+      (' haus', 'de'),
+      ('haus ', 'de'),
+      ('haus', ' de'),
+      ('haus', 'de '),
+      ('haus\\n', 'de'),
+    ]) {
+      await expectLater(
+        review(bad.$1, bad.$2, 'bad-key-${bad.$1}-${bad.$2}'),
+        throwsArgumentError,
+      );
+    }
+    expect(await db.query('srs_progress'), <Map<String, Object?>>[before]);
+    final events = await db.query('srs_review_events');
+    expect(events, hasLength(1));
+    expect(events.single['review_event_id'], 'valid-key-review');
+  });
+
 }
