@@ -480,4 +480,67 @@ void main() {
     expect(find.text('Schwester'), findsOneWidget);
     expect(find.text('أخت'), findsNothing);
   });
+
+  testWidgets('nested pair language aliases reject reverse content in list and cards',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter', 'translation_ar': 'أم',
+            'pair_identity': <String, String>{
+              'id': 'de->ar', 'translation_language': 'de',
+            },
+          },
+          <String, dynamic>{
+            'word': 'Vater', 'translation_ar': 'أب',
+            'pair_identity': <String, String>{
+              'id': 'de->ar', 'language_code': 'ar',
+            },
+          },
+          <String, dynamic>{
+            'word': 'Bruder', 'translation_ar': 'أخ',
+            'pair_identity': <String, String>{
+              'id': 'de->ar', 'language_code': 'de',
+              'translation_language': 'ar',
+            },
+          },
+          <String, dynamic>{'word': 'Schwester', 'translation_ar': 'أخت'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('Vater'), findsNothing);
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Bruder')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أخ')).textDirection,
+        TextDirection.rtl);
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Mutter');
+    await tester.pump();
+    expect(find.text('Mutter'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-search-clear')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bruder'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أخ'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pump();
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(find.text('أخت'), findsNothing);
+  });
 }
