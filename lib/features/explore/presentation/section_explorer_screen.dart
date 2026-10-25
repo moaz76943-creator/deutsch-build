@@ -227,8 +227,11 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     if (exercises.isEmpty || !mounted) return;
 
     final ex = exercises.first;
-    final List distractors =
+    final decodedDistractors =
         jsonDecode(ex['distractors_json'] as String? ?? '[]');
+    final List<dynamic> distractors = decodedDistractors is List
+        ? decodedDistractors
+        : const <dynamic>[];
     final List<String> options = [
       ex['correct_answer'] as String,
       ...distractors.map((e) => e.toString())
@@ -430,7 +433,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                     itemBuilder: (context, index) {
                       final item = displayList[index];
                       final pos = item['part_of_speech'] ?? 'noun';
-                      final word = item['word'] ?? item['display_text'] ?? '';
+                      final word =
+                          '${item['word'] ?? item['display_text'] ?? ''}';
                       final boxLevel = item['box_level'] as int? ?? 0;
 
                       return Directionality(
@@ -495,7 +499,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                     color: Colors.indigo),
                                 tooltip: 'بدء تمرين',
                                 onPressed: () =>
-                                    openQuizDialog(item['concept_id'], word),
+                                    openQuizDialog(
+                                        '${item['concept_id']}', word),
                               ),
                             ],
                           ),

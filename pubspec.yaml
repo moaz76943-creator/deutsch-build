@@ -26,13 +26,12 @@ dependencies:
   sqlite3: '>=2.3.0 <3.0.0'
   crypto: ^3.0.7
   http: ^1.6.0
-  speech_to_text: ^7.0.0
-  flutter_secure_storage: ^9.2.2
 
   archive: any
   flutter_animate: any
   font_awesome_flutter: any
   cached_network_image: ^3.4.1
+  url_launcher: ^6.3.1
 
   synchronized: any
   characters: any
@@ -47,8 +46,23 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Runtime asset bundle only. A blanket `- assets/` entry packaged the whole
+  # tree, including unregistered font binaries and duplicate launcher PNGs.
+  # Nothing in lib/ loads those through rootBundle, and they are not declared
+  # under `fonts:`. The files stay in the repository. Offline packs, vocabulary
+  # JSON, and audio stay bundled. Locked by test/perf/asset_bundle_budget_test.dart.
   assets:
     - assets/audio/
-    - assets/data/packs/
-    - assets/data/master_vocabulary.json
-    - assets/
+    - assets/content/
+    - assets/data/
+    - assets/database/
+    - assets/i18n/
+    - assets/l10n/
+    - assets/lang_data/
+    - assets/language_packs/
+    - assets/languages/
+    - assets/local_language_databases/
+    - assets/media/
+    - assets/packs/
+    - assets/polyglot_v2/
+    - assets/schemas/

@@ -1,20 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
+import 'package:deutsch_bilarabi/core/resilience/bounded_retry_policy.dart';
 import 'package:deutsch_bilarabi/core/resilience/failure_reasons.dart';
-import 'dart:async';
+import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 
 void main() {
   group('J021 - Runtime Feature Isolation & Failure Recovery', () {
-    testWidgets('Optional feature failure correctly stops at max retries', (tester) async {
-      int initAttempts = 0;
+    testWidgets('Optional feature failure correctly stops at max retries',
+        (tester) async {
+      var initAttempts = 0;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: FeatureBoundary(
               featureName: 'Test Feature',
-              maxRetries: 2,
-              onInit: () async {
+              retryPolicy: BoundedRetryPolicy(
+                maxAttempts: 3,
+                initialDelay: Duration.zero,
+              ),
+              initializationAction: () async {
                 initAttempts++;
                 throw const MissingOfflineVoiceFailure();
               },
@@ -24,85 +30,73 @@ void main() {
         ),
       );
 
-      await tester.pump();
-
-      // Initial fail
-      expect(initAttempts, 1);
-      expect(find.text('حدث خطأ في Test Feature'), findsOneWidget);
-      expect(find.text('إعادة المحاولة'), findsOneWidget);
-
-      // Retry 1
-      await tester.tap(find.text('إعادة المحاولة'));
-      await tester.pump();
-      expect(initAttempts, 2);
-      expect(find.text('حدث خطأ في Test Feature'), findsOneWidget);
-      expect(find.text('إعادة المحاولة'), findsOneWidget);
-
-      // Retry 2 (max reached)
-      await tester.tap(find.text('إعادة المحاولة'));
-      await tester.pump();
-      expect(initAttempts, 3);
-      expect(find.text('حدث خطأ في Test Feature'), findsOneWidget);
-
-      // Since max retries = 2, we started at 0. So retry count hit 2.
-      // Button should disappear.
-      expect(find.text('إعادة المحاولة'), findsNothing);
-    });
-
-    testWidgets('Session key changes cancel ongoing operations and reject stale success', (tester) async {
-      int initAttempts = 0;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: FeatureBoundary(
-              featureName: 'Test Feature',
-              sessionKey: 'session-1',
-              onInit: () async {
-                initAttempts++;
-                // simulate slow init
-                await Future.delayed(const Duration(milliseconds: 50));
-              },
-              child: const Text('Success'),
-            ),
-          ),
-        ),
-      );
-
-      // It should be loading initially
-      expect(find.text('جاري تحديث Test Feature تلقائياً...'), findsOneWidget);
-      expect(initAttempts, 1);
-
-      // Change session key before the previous operation finishes
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: FeatureBoundary(
-              featureName: 'Test Feature',
-              sessionKey: 'session-2',
-              onInit: () async {
-                initAttempts++;
-              },
-              child: const Text('Success'),
-            ),
-          ),
-        ),
-      );
-
       await tester.pumpAndSettle();
-
-      // Should show success and initAttempts should be 2 because the first was cancelled/stale, and second completed
+      expect(initAttempts, 3);
+      expect(find.text('يعمل Test Feature بوضع محدود'), findsOneWidget);
       expect(find.text('Success'), findsOneWidget);
-      expect(initAttempts, 2);
+      expect(find.text('إعادة المحاولة'), findsOneWidget);
     });
 
-    testWidgets('Missing optional feature proper triggers fallback without crashing', (tester) async {
+    testWidgets(
+        'Session key changes cancel ongoing operations and reject stale success',
+        (tester) async {
+      final gate = Completer<void>();
+      var finished = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FeatureBoundary(
+              featureName: 'Test Feature',
+              sessionId: 'session-1',
+              retryPolicy: BoundedRetryPolicy(
+                maxAttempts: 1,
+                initialDelay: Duration.zero,
+              ),
+              initializationAction: () async {
+                await gate.future;
+                finished = true;
+              },
+              child: const Text('Success'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FeatureBoundary(
+              featureName: 'Test Feature',
+              sessionId: 'session-2',
+              child: const Text('Success'),
+            ),
+          ),
+        ),
+      );
+
+      gate.complete();
+      await tester.pump();
+      expect(finished, isTrue);
+      expect(find.text('يعمل Test Feature بوضع محدود'), findsNothing);
+      expect(find.text('Success'), findsNothing);
+    });
+
+    testWidgets(
+        'Missing optional feature proper triggers fallback without crashing',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: FeatureBoundary(
               featureName: 'Dictionary',
-              onInit: () async {
+              retryPolicy: BoundedRetryPolicy(
+                maxAttempts: 1,
+                initialDelay: Duration.zero,
+              ),
+              initializationAction: () async {
                 throw const MissingDictionaryFailure();
               },
               child: const Text('Success'),
@@ -111,48 +105,32 @@ void main() {
         ),
       );
 
-      await tester.pump();
-
-      expect(find.text('حدث خطأ في Dictionary'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('يعمل Dictionary بوضع محدود'), findsOneWidget);
+      expect(find.text('Success'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Critical errors immediately rethrow and fail-closed', (tester) async {
-      // In Flutter tests, async exceptions that escape the widget tree
-      // are caught by the Zone error handler or FlutterError.onError.
-      // We can use runZonedGuarded to catch it.
-
-      Object? caughtException;
-
-      await runZonedGuarded(() async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: FeatureBoundary(
-                featureName: 'Storage',
-                onInit: () async {
-                  throw const InvalidVaultFailure();
-                },
-                child: const Text('Success'),
-              ),
+    testWidgets('Critical errors fail closed instead of showing the child',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FeatureBoundary(
+              featureName: 'Storage',
+              initializationAction: () async {
+                throw const InvalidVaultFailure();
+              },
+              child: const Text('Success'),
             ),
           ),
-        );
-      }, (error, stack) {
-        caughtException = error;
-      });
+        ),
+      );
 
-      // Since pump() evaluates the async initialisation
-      await runZonedGuarded(() async {
-         await tester.pump();
-      }, (error, stack) {
-        caughtException ??= error;
-      });
-
-      // Expect to catch the error and for it to be an InvalidVaultFailure
-      expect(caughtException != null, true);
-      // Depending on the version of flutter, it might wrap it in FlutterErrorDetails or FlutterError
-      // Let's just check the string representation
-      expect(caughtException.toString().contains('InvalidVaultFailure'), true);
+      await tester.pumpAndSettle();
+      expect(find.text('تعذر تشغيل Storage'), findsOneWidget);
+      expect(find.text('Success'), findsNothing);
+      expect(tester.takeException(), isNull);
     });
   });
 }

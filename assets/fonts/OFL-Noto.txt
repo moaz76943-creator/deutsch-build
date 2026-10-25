@@ -1,11 +1,13 @@
-<<<<<<< HEAD
-This font is licensed under the SIL Open Font License, Version 1.1.
-=======
-Copyright 2023 The Noto Project Authors
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/armenian)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/devanagari)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/ethiopic)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/georgian)
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/hebrew)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+https://openfontlicense.org
 
 
 -----------------------------------------------------------
@@ -94,4 +96,3 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
->>>>>>> pr-51

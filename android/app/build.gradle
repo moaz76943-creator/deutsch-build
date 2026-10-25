@@ -6,6 +6,20 @@ plugins {
 
 apply from: '../release-signing.gradle'
 
+def releaseSigning = project.ext.resolveReleaseSigning()
+def hasReleaseSigning = releaseSigning.releaseStoreFile &&
+        releaseSigning.releaseStorePassword &&
+        releaseSigning.releaseKeyAlias &&
+        releaseSigning.releaseKeyPassword
+def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
+    taskName.toLowerCase().contains('release')
+}
+if (releaseTaskRequested && !hasReleaseSigning) {
+    throw new GradleException(
+        'Release signing is mandatory. Set releaseStoreFile, releaseStorePassword, releaseKeyAlias, and releaseKeyPassword.'
+    )
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -27,8 +41,7 @@ if (flutterVersionName == null) {
 android {
     signingConfigs {
         secureRelease {
-            def releaseSigning = project.ext.resolveReleaseSigning()
-            if (releaseSigning.releaseStoreFile) {
+            if (hasReleaseSigning) {
                 storeFile file(releaseSigning.releaseStoreFile)
                 storePassword releaseSigning.releaseStorePassword
                 keyAlias releaseSigning.releaseKeyAlias
