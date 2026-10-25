@@ -46,6 +46,12 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPlayIntegrityManager.CHANNEL_NAME,
         ).setMethodCallHandler(AndroidPlayIntegrityManager(this))
+
+        // Root and debugger detection
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidRootDetector.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidRootDetector(this))
     }
 
     override fun onRequestPermissionsResult(
