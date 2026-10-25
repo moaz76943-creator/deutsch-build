@@ -141,6 +141,37 @@ void main() {
     expect(middle.state, TransactionState.failed);
   });
 
+  test('recoverable same-payload review retries after storage failure',
+      () async {
+    var failStorage = true;
+    var commits = 0;
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (_) async {
+        if (failStorage) throw StateError('temporary storage failure');
+        commits++;
+      },
+    );
+    final envelope = review('recoverable-id', pair: 'de_ar', at: early);
+    expect(
+      (await manager.commitReview(
+        envelope,
+        activeLanguagePairKey: 'de_ar',
+      ))
+          .state,
+      TransactionState.recoverable,
+    );
+    failStorage = false;
+    expect(
+      (await manager.commitReview(
+        envelope,
+        activeLanguagePairKey: 'de_ar',
+      ))
+          .state,
+      TransactionState.committed,
+    );
+    expect(commits, 1);
+  });
+
   test('an identical committed retry remains idempotent', () async {
     var commits = 0;
     final manager = IdempotentReviewTransactionManager(
