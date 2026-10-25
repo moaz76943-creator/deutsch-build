@@ -207,4 +207,99 @@ void main() {
     expect(() => bridge.bindCanonicalWriter((_) async {}), throwsStateError);
   });
 
+  test('serializes same-card compatibility writes until durable completion',
+      () async {
+    final releaseFirst = Completer<void>();
+    final entered = <String>[];
+    final bridge = SrsCompatBridge(
+      clock: () => DateTime.utc(2026, 10, 25, 1),
+      durableWriter: (event) async {
+        entered.add(event.reviewEventId);
+        if (entered.length == 1) await releaseFirst.future;
+      },
+    );
+    const key = 'core-same-card-durable-order-20261025';
+
+    final first = bridge.recordReviewCompat(
+      contentKey: key, rating: 3, sourceIso: 'de', targetIso: 'ar',
+    );
+    await Future<void>.delayed(Duration.zero);
+    final second = bridge.recordReviewCompat(
+      contentKey: key, rating: 1, sourceIso: 'de', targetIso: 'ar',
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(entered, hasLength(1),
+        reason: 'A later review must not overtake an unfinished write');
+    releaseFirst.complete();
+    await Future.wait(<Future<void>>[first, second]);
+    expect(entered, hasLength(2));
+    expect(entered[0], isNot(entered[1]));
+  });
+
+  test('opposite directed pairs remain independent while one write waits',
+      () async {
+    final releaseForward = Completer<void>();
+    final enteredPairs = <String>[];
+    final bridge = SrsCompatBridge(
+      clock: () => DateTime.utc(2026, 10, 25, 1),
+      durableWriter: (event) async {
+        enteredPairs.add(event.languagePairKey);
+        if (event.languagePairKey == 'de_ar') {
+          await releaseForward.future;
+        }
+      },
+    );
+    const key = 'core-opposite-pair-durable-order-20261025';
+
+    final forward = bridge.recordReviewCompat(
+      contentKey: key, rating: 3, sourceIso: 'de', targetIso: 'ar',
+    );
+    final reverse = bridge.recordReviewCompat(
+      contentKey: key, rating: 1, sourceIso: 'ar', targetIso: 'de',
+    );
+    await reverse.timeout(const Duration(seconds: 2));
+    expect(enteredPairs, <String>['de_ar', 'ar_de']);
+    releaseForward.complete();
+    await forward;
+  });
+
+  test('failed write releases queued same-card review without false success',
+      () async {
+    final releaseFailure = Completer<void>();
+    var attempts = 0;
+    final bridge = SrsCompatBridge(
+      clock: () => DateTime.utc(2026, 10, 25, 1),
+      durableWriter: (_) async {
+        attempts++;
+        if (attempts == 1) {
+          await releaseFailure.future;
+          throw StateError('injected durable write failure');
+        }
+      },
+    );
+    const key = 'core-queued-after-durable-failure-20261025';
+
+    final first = expectLater(
+      bridge.recordReviewCompat(
+        contentKey: key, rating: 3, sourceIso: 'de', targetIso: 'ar',
+      ),
+      throwsStateError,
+    );
+    final second = bridge.recordReviewCompat(
+      contentKey: key, rating: 1, sourceIso: 'de', targetIso: 'ar',
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(attempts, 1);
+    releaseFailure.complete();
+    await first;
+    await second;
+    expect(attempts, 2);
+    expect(
+      UnifiedSrsScheduler.instance.history
+          .where((event) => event.learnerContentKey == key),
+      hasLength(1),
+      reason: 'Only the successfully committed review is projected',
+    );
+  });
+
 }
