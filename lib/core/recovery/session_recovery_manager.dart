@@ -22,6 +22,8 @@ class SessionState {
     this.recoveryAttempts = 0,
   });
 
+  bool isReviewCommitted(String reviewId) => committedReviewIds.contains(reviewId);
+
   SessionState copyWith({
     int? version,
     String? sessionId,
@@ -74,7 +76,9 @@ class SessionRecoveryManager {
   static const String _storageKey = 'deutsch_active_session_recovery_v1';
   final SharedPreferences _prefs;
 
-  SessionRecoveryManager(this._prefs);
+  final int Function()? clock;
+  final int maxRecoveryAttempts;
+  SessionRecoveryManager(this._prefs, {this.clock, this.maxRecoveryAttempts = 3});
 
   Future<void> persistSession(SessionState state) async {
     final rawJson = jsonEncode(state.toMap());
@@ -94,8 +98,7 @@ class SessionRecoveryManager {
       final state = SessionState.fromMap(decoded);
 
       // Validation
-      final nowSec = currentTimestampSec ??
-          (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      final nowSec = currentTimestampSec ?? (clock != null ? clock!() : (DateTime.now().millisecondsSinceEpoch ~/ 1000));
 
       // 1. Check max age (24 hours = 86400 seconds)
       if (nowSec - state.timestamp > 86400) {
@@ -104,7 +107,7 @@ class SessionRecoveryManager {
       }
 
       // 2. Check recovery attempts limit (max 3)
-      if (state.recoveryAttempts >= 3) {
+      if (state.recoveryAttempts >= maxRecoveryAttempts) {
         clearSession();
         return null;
       }

@@ -26,8 +26,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 1010,
-        isRouteValid: (route) => route.startsWith('/'),
+        currentTimestampSec: 1010,
+        isValidRoute: (route) => route.startsWith('/'),
       );
 
       expect(restored, isNotNull);
@@ -49,8 +49,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 2010,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 2010,
+        isValidRoute: (_) => true,
       );
 
       expect(restored, isNotNull);
@@ -72,8 +72,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'en_de_1.0',
-        currentTimestamp: 3010,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 3010,
+        isValidRoute: (_) => true,
       );
 
       expect(restored, isNull);
@@ -88,8 +88,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 4010,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 4010,
+        isValidRoute: (_) => true,
       );
 
       expect(restored, isNull);
@@ -108,8 +108,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 5010,
-        isRouteValid: (route) => route == '/quiz', // Only /quiz is valid
+        currentTimestampSec: 5010,
+        isValidRoute: (route) => route == '/quiz', // Only /quiz is valid
       );
 
       expect(restored, isNull);
@@ -129,8 +129,8 @@ void main() {
       // 86400 seconds is the max. Let's make currentTimestamp 86401 seconds later.
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 6000 + 86401,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 6000 + 86401,
+        isValidRoute: (_) => true,
       );
 
       expect(restored, isNull);
@@ -150,32 +150,32 @@ void main() {
       // Attempt 1
       var restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 7010,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 7010,
+        isValidRoute: (_) => true,
       );
       expect(restored, isNotNull);
 
       // Attempt 2
       restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 7020,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 7020,
+        isValidRoute: (_) => true,
       );
       expect(restored, isNotNull);
 
       // Attempt 3
       restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 7030,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 7030,
+        isValidRoute: (_) => true,
       );
       expect(restored, isNotNull);
 
       // Attempt 4 (should be rejected)
       restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        currentTimestamp: 7040,
-        isRouteValid: (_) => true,
+        currentTimestampSec: 7040,
+        isValidRoute: (_) => true,
       );
       expect(restored, isNull);
     });
