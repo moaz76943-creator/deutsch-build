@@ -1,10 +1,38 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('fresh isolates with a rolled-back clock cannot reuse review IDs',
+      () async {
+    // Each isolate starts with fresh static state, like a process restart.
+    // A clock-derived counter alone repeats the same durable event ID.
+    Future<String> freshIsolateEventId() => Isolate.run(() async {
+          final captured = <String>[];
+          final bridge = SrsCompatBridge(
+            clock: () => DateTime.utc(2026, 10, 25, 1),
+            durableWriter: (event) async {
+              captured.add(event.reviewEventId);
+            },
+          );
+          await bridge.recordReviewCompat(
+            contentKey: 'restart-same-clock-card',
+            rating: 3,
+            sourceIso: 'de',
+            targetIso: 'ar',
+          );
+          return captured.single;
+        });
+
+    final first = await freshIsolateEventId();
+    final afterRestart = await freshIsolateEventId();
+    expect(afterRestart, isNot(first),
+        reason: 'A reused durable review ID silently loses a new review');
+  });
+
   test('same-clock reviews of one card retain every distinct review', () async {
     final fixed = DateTime.utc(2026, 10, 25, 1, 0);
     final bridge = SrsCompatBridge(clock: () => fixed, durableWriter: (_) async {});
