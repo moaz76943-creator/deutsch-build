@@ -217,6 +217,15 @@ class TestAutoHeal(unittest.TestCase):
             ledger = json.load(f)
         self.assertEqual(ledger["leases"][self.target_file]["status"], "CANCELLED")
 
+    def test_backup_slot_never_escapes_backup_directory(self):
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        escaped = executor._backup_slot('../../outside/critical.txt')
+        normal = executor._backup_slot('/tmp/legitimate.txt')
+        root = os.path.realpath(executor.backup_dir)
+        self.assertEqual(os.path.commonpath([root, os.path.realpath(escaped)]), root)
+        self.assertEqual(os.path.commonpath([root, os.path.realpath(normal)]), root)
+        self.assertNotEqual(escaped, normal)
+
     def test_corrupt_scope_ledger_blocks_claim_and_status_update(self):
         guard = auto_heal.ScopeGuard(self.ledger_path)
         with open(self.ledger_path, 'w') as stream:
