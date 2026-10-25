@@ -257,10 +257,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     _quizController.clear();
   }
 
-  // Filter only verified rows returned by the selected directed-pair loader.
-  // Arabic vowel marks/tatweel and German sharp-s should not block lookup.
-  // Never stringify malformed metadata into a learner-facing translation,
-  // article, search result or quiz answer.
+  // Never turn malformed metadata into learner-facing lexical content.
   static String? _safeText(Object? value) {
     if (value is! String) return null;
     final text = value.trim();
@@ -292,11 +289,14 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .toLowerCase()
       .replaceAll(RegExp(r'[\u0640\u064B-\u065F\u0670]'), '')
       // Match common omitted Arabic alef hamzas in learner search only.
-      // Preserve the original text and distinct non-alef hamza letters.
       .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
-      // Persian keyboard variants must match Arabic without altering stored text.
       .replaceAll('ی', 'ي').replaceAll('ک', 'ك')
-      // German digraph input must match both NFC and decomposed umlauts.
+      // Fold Arabic-Indic digits for lookup only; never rewrite stored text.
+      .replaceAllMapped(RegExp(r'[\u0660-\u0669\u06F0-\u06F9]'), (match) {
+        final digit = match[0]!.codeUnitAt(0);
+        return String.fromCharCode(
+            48 + digit - (digit < 0x06F0 ? 0x0660 : 0x06F0));
+      })
       .replaceAll('a\u0308', 'ae')
       .replaceAll('o\u0308', 'oe')
       .replaceAll('u\u0308', 'ue')
