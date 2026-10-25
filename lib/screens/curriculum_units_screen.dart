@@ -603,6 +603,34 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       return false;
     }
 
+    // Some directed-pair adapters attach a nested pair_identity contract
+    // (id: "de->ar", source_language, target_language). An explicit reverse
+    // or contradictory identity must never enter de->ar list/search/practice,
+    // even when its legacy top-level language fields are absent. The bundled
+    // SQLite projection has no pair_identity and remains compatible.
+    if (row.containsKey('pair_identity')) {
+      final identity = row['pair_identity'];
+      if (identity is! Map) return false;
+      final pairId = identity['id'];
+      final expectedPair =
+          '${widget.languageCode.toLowerCase()}->${widget.targetLanguageCode.toLowerCase()}';
+      if (pairId is! String ||
+          pairId.trim().toLowerCase() != expectedPair) {
+        return false;
+      }
+      bool matchesPairField(String field, String expected) {
+        if (!identity.containsKey(field)) return true;
+        final value = identity[field];
+        return value is String &&
+            value.trim().toLowerCase() == expected.toLowerCase();
+      }
+
+      if (!matchesPairField('source_language', widget.languageCode) ||
+          !matchesPairField('target_language', widget.targetLanguageCode)) {
+        return false;
+      }
+    }
+
     final recordedLevel = row['cefr_level'];
     if (recordedLevel is String) {
       final normalized = recordedLevel.trim().toUpperCase();
