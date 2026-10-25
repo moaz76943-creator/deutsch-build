@@ -557,6 +557,21 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   @override
   void dispose() {
     _requestId++;
+    // The details dialog is pushed onto the root navigator. Replacing this
+    // learning screen (for example, after a pair/tab switch) does not pop
+    // that route automatically, so it could expose the previous pair's
+    // translation after its owning screen is gone. Remove it after the
+    // current frame to avoid mutating Navigator during widget disposal.
+    final staleRoute = _detailsRoute;
+    _detailsRoute = null;
+    if (staleRoute != null && staleRoute.isActive) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final navigator = staleRoute.navigator;
+        if (staleRoute.isActive && navigator != null && navigator.mounted) {
+          navigator.removeRoute(staleRoute);
+        }
+      });
+    }
     _searchController.dispose();
     _quizController.dispose();
     super.dispose();
