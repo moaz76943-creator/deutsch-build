@@ -1726,4 +1726,106 @@ void main() {
     expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
         findsOneWidget);
   });
+  testWidgets('nested pair identity rejects reverse rows without hiding legacy rows',
+      (tester) async {
+    final section =
+        LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter',
+            'translation_ar': 'أم',
+            'pair_identity': <String, String>{
+              'id': 'ar->de',
+              'source_language': 'ar',
+              'target_language': 'de',
+            },
+          },
+          <String, dynamic>{
+            'word': 'Vater',
+            'translation_ar': 'أب',
+            'pair_identity': <String, String>{
+              'id': 'de->ar',
+              'source_language': 'de',
+              'target_language': 'ar',
+            },
+          },
+          <String, dynamic>{
+            'word': 'Kind',
+            'translation_ar': 'طفل',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.text('Vater'), findsOneWidget);
+    expect(find.text('Kind'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Vater')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أب')).textDirection,
+        TextDirection.rtl);
+  });
+
+  testWidgets('malformed or contradictory nested pair metadata fails closed',
+      (tester) async {
+    final section =
+        LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Frau',
+            'translation_ar': 'امرأة',
+            'pair_identity': <String, String>{'id': 'de->ar', 'target_language': 'en'},
+          },
+          <String, dynamic>{
+            'word': 'Mann',
+            'translation_ar': 'رجل',
+            'pair_identity': <String, String>{'source_language': 'de'},
+          },
+          <String, dynamic>{
+            'word': 'Bruder',
+            'translation_ar': 'أخ',
+            'pair_identity': 'de->ar',
+          },
+          <String, dynamic>{
+            'word': 'Schwester',
+            'translation_ar': 'أخت',
+            'pair_identity': <String, String>{'id': ' DE->AR '},
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Frau'), findsNothing);
+    expect(find.text('Mann'), findsNothing);
+    expect(find.text('Bruder'), findsNothing);
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Schwester')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أخت')).textDirection,
+        TextDirection.rtl);
+  });
+
 }
