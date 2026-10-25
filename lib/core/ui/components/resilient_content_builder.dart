@@ -85,7 +85,7 @@ class _ResilientContentBuilderState<T>
             data is String ||
             data is Map ||
             data is Set) {
-          empty = (data as dynamic).isEmpty;
+          empty = (data as dynamic).isEmpty == true;
         }
 
         if (empty) {
