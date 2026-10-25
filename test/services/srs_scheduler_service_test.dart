@@ -396,7 +396,7 @@ void main() {
       ('haus ', 'de'),
       ('haus', ' de'),
       ('haus', 'de '),
-      ('haus\\n', 'de'),
+      ('haus\n', 'de'),
     ]) {
       await expectLater(
         review(bad.$1, bad.$2, 'bad-key-${bad.$1}-${bad.$2}'),
