@@ -652,7 +652,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     // Directed-pair adapters may flatten their identity fields. An explicit
     // reverse identity must not be mistaken for a legacy de->ar row.
     if (!matchesWhenDeclared('source_language', widget.languageCode) ||
-        !matchesWhenDeclared('target_language', widget.targetLanguageCode)) {
+        !matchesWhenDeclared('source', widget.languageCode) ||
+        !matchesWhenDeclared('target_language', widget.targetLanguageCode) ||
+        !matchesWhenDeclared('target', widget.targetLanguageCode) ||
+        !matchesWhenDeclared('translation_language', widget.targetLanguageCode)) {
       return false;
     }
     if (row.containsKey('pair_id')) {
