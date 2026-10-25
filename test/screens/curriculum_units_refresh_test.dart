@@ -414,4 +414,70 @@ void main() {
     expect(find.text('Mutter'), findsNothing);
   });
 
+
+  testWidgets('declared CEFR aliases cannot mix levels in topic search or cards',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter', 'translation_ar': 'أم', 'cefr': 'B2',
+          },
+          <String, dynamic>{
+            'word': 'Vater', 'translation_ar': 'أب', 'cefr_code': 'B1',
+          },
+          <String, dynamic>{
+            'word': 'Frau', 'translation_ar': 'امرأة',
+            'cefr_level': 'A1', 'cefr': 'B2',
+          },
+          <String, dynamic>{
+            'word': 'Bruder', 'translation_ar': 'أخ', 'cefr': 'A1',
+          },
+          <String, dynamic>{
+            'word': 'Schwester', 'translation_ar': 'أخت',
+            'cefr_code': 'A1',
+          },
+          <String, dynamic>{
+            'word': 'Kind', 'translation_ar': 'طفل',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    for (final rejected in <String>['Mutter', 'Vater', 'Frau']) {
+      expect(find.text(rejected), findsNothing);
+    }
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(find.text('Kind'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Bruder')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أخ')).textDirection,
+        TextDirection.rtl);
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Mutter');
+    await tester.pump();
+    expect(find.text('Mutter'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-search-clear')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bruder'), findsOneWidget);
+    expect(find.text('المستوى حسب الحزمة: A1 (ليس اعتماداً مستقلاً).'),
+        findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أخ'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pump();
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(find.text('أخت'), findsNothing);
+  });
 }
