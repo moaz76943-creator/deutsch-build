@@ -75,6 +75,8 @@ class AutoHealExecutor:
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard()
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
+        self.failure_ledger_path = ".auto_heal_failures.json"
+        self.max_attempts = 3
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -131,6 +133,30 @@ class AutoHealExecutor:
         except subprocess.CalledProcessError:
             return False
 
+    def _check_attempt_bounds(self):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        if os.path.exists(self.failure_ledger_path):
+            try:
+                with open(self.failure_ledger_path, 'r') as f:
+                    failures = json.load(f)
+                if failures.get(plan_id, 0) >= self.max_attempts:
+                    raise ValueError(f"Max attempts reached for plan {plan_id}.")
+            except json.JSONDecodeError:
+                pass
+
+    def _record_failure(self):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        failures = {}
+        if os.path.exists(self.failure_ledger_path):
+            try:
+                with open(self.failure_ledger_path, 'r') as f:
+                    failures = json.load(f)
+            except json.JSONDecodeError:
+                pass
+        failures[plan_id] = failures.get(plan_id, 0) + 1
+        with open(self.failure_ledger_path, 'w') as f:
+            json.dump(failures, f)
+
     def dry_run(self):
         print(f"Dry run for plan: {self.plan.get('plan_id', 'unknown')}")
         self._verify_base_sha()
@@ -140,6 +166,7 @@ class AutoHealExecutor:
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
         self._verify_base_sha()
+        self._check_attempt_bounds()
         paths = self.plan.get("allowed_paths", [])
 
         try:
@@ -157,6 +184,7 @@ class AutoHealExecutor:
 
             if not self._run_gate():
                 print("Verification failed. Rolling back...")
+                self._record_failure()
                 self.rollback()
                 sys.exit(1)
 
@@ -168,6 +196,7 @@ class AutoHealExecutor:
 
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
+            self._record_failure()
             self.rollback()
             sys.exit(1)
 
