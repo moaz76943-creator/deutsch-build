@@ -1,3 +1,6 @@
+# DISABLED 2026-10-25: manual duplicate outside the classified workflow set.
+# Dispatch would spend private Actions minutes. The budgeted check is staging_self_check.yml.
+
 name: Polyglot Parallel Engine (manual verified-only)
 
 on:

@@ -6,9 +6,6 @@ on:
     paths-ignore:
       - docs/project-record/runtime.json
       - docs/project-record/events.ndjson
-  # Event-driven push sync remains primary; one daily sweep repairs missed events.
-  schedule:
-    - cron: "31 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +26,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout latest main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
