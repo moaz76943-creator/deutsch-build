@@ -416,6 +416,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   // This sheet reads only fields supplied by the selected local row. Missing
   // senses, forms and examples are not generated or borrowed from other pairs.
   void _showWordDetails(Map<String, dynamic> row) {
+    // Rapid repeated taps can otherwise stack multiple dialogs. Only the
+    // latest route is tracked for invalidation, leaving older translations
+    // visible after switching the directed pair or level.
+    if (_detailsRoute?.isActive ?? false) return;
     // A future pack can supply very large metadata arrays. Build at most 32
     // detail widgets per field, matching the bounded optional search path.
     // Keep an explicit disclosure rather than silently hiding extra entries.
