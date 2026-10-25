@@ -7,8 +7,6 @@ on:
       - staging/v2-full-platform
     paths-ignore:
       - 'docs/project-record/**'
-  schedule:
-    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:
