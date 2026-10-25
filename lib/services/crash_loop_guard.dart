@@ -22,12 +22,31 @@ class FileBootLedgerStore implements BootLedgerStore {
   @override
   Future<Map<String, dynamic>?> read() async {
     final file = await _file();
-    if (!await file.exists() || await file.length() > 2048) return null;
+    // A missing ledger is a first launch. A present but damaged ledger is
+    // NOT a first launch: treating it as null silently disables safe mode.
+    if (!await file.exists()) return null;
     try {
+      if (await file.length() > 2048) {
+        throw FileSystemException('Boot ledger exceeds size limit', file.path);
+      }
       final value = jsonDecode(await file.readAsString());
-      return value is Map ? Map<String, dynamic>.from(value) : null;
+      if (value is! Map<String, dynamic>) {
+        throw FileSystemException('Malformed boot ledger', file.path);
+      }
+      final started = value['started'];
+      final failures = value['failures'];
+      if (started is! int ||
+          started < 0 ||
+          failures is! int ||
+          failures < 0 ||
+          failures > 2 ||
+          value['clean'] is! bool ||
+          value['safe'] is! bool) {
+        throw FileSystemException('Invalid boot ledger fields', file.path);
+      }
+      return Map<String, dynamic>.from(value);
     } on FormatException {
-      return null;
+      throw FileSystemException('Malformed boot ledger', file.path);
     }
   }
 
@@ -180,9 +199,20 @@ class CrashLoopGuard {
   }
 
   Future<void> exitAfterRecovery() => _serializeLedger(() async {
-        final old = await _store.read() ?? <String, dynamic>{};
+        // Explicit recovery follows a successful external-pack reset. A
+        // corrupted crash ledger must not permanently trap the user in SAFE.
+        // A genuine write failure still leaves SAFE enabled.
+        Map<String, dynamic> old;
+        try {
+          old = await _store.read() ?? <String, dynamic>{};
+        } on FileSystemException {
+          old = <String, dynamic>{};
+        }
         await _store.write(<String, dynamic>{
           ...old,
+          'started': old['started'] is int
+              ? old['started']
+              : _clock().toUtc().millisecondsSinceEpoch,
           'clean': true,
           'failures': 0,
           'safe': false,
