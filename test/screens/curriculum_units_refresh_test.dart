@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:deutsch_bilarabi/features/explore/data/local_topic_catalog.dart';
 import 'package:deutsch_bilarabi/screens/curriculum_units_screen.dart';
 import 'package:flutter/material.dart';
@@ -187,4 +189,54 @@ void main() {
         findsOneWidget);
     expect(reads, 1);
   });
+
+  testWidgets('stalled local read offers immediate retry and ignores late rows',
+      (tester) async {
+    final firstRead = Completer<List<Map<String, dynamic>>>();
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) {
+          reads++;
+          if (reads == 1) return firstRead.future;
+          return Future<List<Map<String, dynamic>>>.value([
+            <String, dynamic>{'word': 'Schwester', 'translation_ar': 'أخت'},
+          ]);
+        },
+      ),
+    ));
+    await tester.pump();
+    expect(reads, 1);
+    expect(find.text('جارٍ قراءة المفردات المحلية...'), findsOneWidget);
+    expect(find.byKey(const Key('topic-loading-retry')), findsOneWidget);
+
+    // A stalled adapter must not force a 30-second wait before another read.
+    await tester.tap(find.byKey(const Key('topic-loading-retry')));
+    await tester.pumpAndSettle();
+    expect(reads, 2);
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(find.text('أخت'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Schwester')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أخت')).textDirection,
+        TextDirection.rtl);
+
+    // The original read may complete after the replacement has succeeded.
+    firstRead.complete([
+      <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+    ]);
+    await tester.pump();
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.text('Schwester'), findsOneWidget);
+  });
+
 }
