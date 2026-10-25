@@ -37,7 +37,6 @@ class VisualVocabularyScreen extends StatelessWidget {
                 final item = items[index];
                 return AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
-<<<<<<< HEAD
                   onTap: () {
                     Navigator.push(
                       context,
@@ -68,16 +67,6 @@ class VisualVocabularyScreen extends StatelessWidget {
                       Text(item['trans']!,
                           style: const TextStyle(
                               color: Colors.white70, fontSize: 13)),
-=======
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(item['icon']!, style: const TextStyle(fontSize: 48)),
-                      const SizedBox(height: 12),
-                      Text(item['word']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(item['trans']!, style: const TextStyle(color: Colors.white70, fontSize: 13)),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                     ],
                   ),
                 );
@@ -89,7 +78,6 @@ class VisualVocabularyScreen extends StatelessWidget {
     );
   }
 }
-<<<<<<< HEAD
 
 class VisualVocabularyDetailScreen extends StatelessWidget {
   final Map<String, String> item;
@@ -142,5 +130,3 @@ class VisualVocabularyDetailScreen extends StatelessWidget {
     );
   }
 }
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
