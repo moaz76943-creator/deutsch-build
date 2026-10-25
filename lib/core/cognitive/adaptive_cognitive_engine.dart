@@ -1,14 +1,22 @@
 import 'cognitive_metric_record.dart';
 
 enum AdaptationAction {
-<<<<<<< HEAD
   maintainFlow, // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
   reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
   deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
 }
 
 sealed class AdaptationReason {
-  const AdaptationReason();
+  final String? extra;
+  const AdaptationReason([this.extra]);
+
+  String get reason {
+      final base = runtimeType.toString();
+      if (extra != null && extra!.isNotEmpty) {
+          return '$base $extra';
+      }
+      return base;
+  }
 }
 
 class FatigueDetected extends AdaptationReason {
@@ -24,11 +32,11 @@ class HysteresisCoolDown extends AdaptationReason {
 }
 
 class InsufficientData extends AdaptationReason {
-  const InsufficientData();
+  const InsufficientData({String? extra}) : super(extra);
 }
 
 class StableFlow extends AdaptationReason {
-  const StableFlow();
+  const StableFlow({String? extra}) : super(extra);
 }
 
 class AdaptationDecision {
@@ -38,18 +46,10 @@ class AdaptationDecision {
   const AdaptationDecision(this.action, this.reason);
 }
 
-=======
-  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
-  reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
-  deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
-}
-
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class AdaptiveCognitiveEngine {
   static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
-<<<<<<< HEAD
   static const String _defaultPairKey = 'default_pair';
   final Map<String, List<CognitiveMetricRecord>> _metricsByPair = {};
 
@@ -61,11 +61,13 @@ class AdaptiveCognitiveEngine {
   static const Duration _hysteresisDuration =
       Duration(minutes: 5); // 5 minutes cooldown
 
-  String _getPairKey(String? targetLanguageCode) =>
-      targetLanguageCode ?? _defaultPairKey;
+  String _getPairKey(String? targetLanguageCode, String? languagePair) {
+      if (languagePair != null) return languagePair;
+      return targetLanguageCode ?? _defaultPairKey;
+  }
 
   void observe(CognitiveMetricRecord record) {
-    final pairKey = _getPairKey(record.targetLanguageCode);
+    final pairKey = _getPairKey(record.targetLanguageCode, record.languagePair);
 
     if (!_metricsByPair.containsKey(pairKey)) {
       _metricsByPair[pairKey] = [];
@@ -83,19 +85,22 @@ class AdaptiveCognitiveEngine {
     metrics.removeWhere((m) => m.recordedAt.isBefore(cutoff));
   }
 
-  /// Evaluates detailed state with reason and pair isolation
-  AdaptationDecision evaluateDetailedState(
-      {String? targetLanguageCode, DateTime? currentTime}) {
-    final pairKey = _getPairKey(targetLanguageCode);
+  AdaptationDecision evaluateStateDetailed(
+      {String? targetLanguageCode, String? languagePair, DateTime? currentTime}) {
+    final pairKey = _getPairKey(targetLanguageCode, languagePair);
     final metrics = _metricsByPair[pairKey] ?? [];
 
     // Fallback if empty/cold-start
     if (metrics.isEmpty) {
       return const AdaptationDecision(
-          AdaptationAction.maintainFlow, InsufficientData());
+          AdaptationAction.maintainFlow, InsufficientData(extra: 'cold-start'));
     }
 
     final now = currentTime ?? DateTime.now();
+
+    // Check if CEFR is verified - we prevent deepened challenge if unverified
+    // Check latest record
+    final isCefrVerified = metrics.last.isCefrVerified;
 
     // Hysteresis check: prevent oscillating difficulty
     final lastTime = _lastActionTime[pairKey];
@@ -130,8 +135,13 @@ class AdaptiveCognitiveEngine {
       });
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        decision = const AdaptationDecision(
-            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        if (!isCefrVerified) {
+             decision = const AdaptationDecision(
+                 AdaptationAction.maintainFlow, StableFlow(extra: 'blocked: unverified'));
+        } else {
+             decision = const AdaptationDecision(
+                AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        }
       } else {
         decision = const AdaptationDecision(
             AdaptationAction.maintainFlow, StableFlow());
@@ -147,15 +157,21 @@ class AdaptiveCognitiveEngine {
     return decision;
   }
 
+  /// Evaluates detailed state with reason and pair isolation
+  AdaptationDecision evaluateDetailedState(
+      {String? targetLanguageCode, DateTime? currentTime}) {
+      return evaluateStateDetailed(targetLanguageCode: targetLanguageCode, currentTime: currentTime);
+  }
+
   /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
   /// Maintains signature for backward compatibility
   AdaptationAction evaluateState({String? targetLanguageCode}) {
     return evaluateDetailedState(targetLanguageCode: targetLanguageCode).action;
   }
 
-  void clearSession({String? targetLanguageCode}) {
-    if (targetLanguageCode != null) {
-      final pairKey = _getPairKey(targetLanguageCode);
+  void clearSession({String? targetLanguageCode, String? languagePair}) {
+    if (targetLanguageCode != null || languagePair != null) {
+      final pairKey = _getPairKey(targetLanguageCode, languagePair);
       _metricsByPair.remove(pairKey);
       _lastActionTime.remove(pairKey);
       _lastAction.remove(pairKey);
@@ -164,44 +180,5 @@ class AdaptiveCognitiveEngine {
       _lastActionTime.clear();
       _lastAction.clear();
     }
-=======
-  final List<CognitiveMetricRecord> recentMetrics = [];
-  const int windowSize = 5; // مراقبة آخر 5 تفاعلات
-
-  void observe(CognitiveMetricRecord record) {
-    recentMetrics.add(record);
-    if (recentMetrics.length > windowSize) {
-      recentMetrics.removeAt(0);
-    }
-  }
-
-  /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
-  AdaptationAction evaluateState() {
-    if (recentMetrics.isEmpty) return AdaptationAction.maintainFlow;
-
-    final avgStrain = recentMetrics
-            .map((m) => m.cognitiveStrainIndex)
-            .reduce((a, b) => a + b) /
-        recentMetrics.length;
-
-    // حالة إرهاق ذهني أو صعوبة مستمرة
-    if (avgStrain >= 0.6) {
-      return AdaptationAction.reduceExtraneousLoad;
-    }
-
-    // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
-    final allCorrect = recentMetrics.every((m) => m.isCorrect);
-    final isFast = recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
-
-    if (allCorrect && isFast && recentMetrics.length >= 3) {
-      return AdaptationAction.deepenLinguisticChallenge;
-    }
-
-    return AdaptationAction.maintainFlow;
-  }
-
-  void clearSession() {
-    recentMetrics.clear();
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }
