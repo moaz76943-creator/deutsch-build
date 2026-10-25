@@ -17,18 +17,24 @@ class _FakeDatabase extends Fake implements Database {
   ];
   @override
   Future<List<Map<String, Object?>>> rawQuery(
-    String query, [List<Object?>? arguments],
-  ) async {
+    String query, [
+    List<Object?>? arguments,
+  ]) async {
     sql.add(query);
     if (query.startsWith('PRAGMA wal_checkpoint')) return checkpoint;
     if (query == 'PRAGMA auto_vacuum') {
-      return <Map<String, Object?>>[<String, Object?>{'auto_vacuum': 2}];
+      return <Map<String, Object?>>[
+        <String, Object?>{'auto_vacuum': 2}
+      ];
     }
     if (query == 'PRAGMA freelist_count') {
-      return <Map<String, Object?>>[<String, Object?>{'freelist_count': 600}];
+      return <Map<String, Object?>>[
+        <String, Object?>{'freelist_count': 600}
+      ];
     }
     return <Map<String, Object?>>[];
   }
+
   @override
   Future<void> execute(String query, [List<Object?>? arguments]) async {
     sql.add(query);
@@ -81,6 +87,7 @@ void main() {
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
     final maintenance = SqliteMaintenanceService(
       progressDatabase: () async => database,
+      idleScheduler: const ImmediateIdleScheduler(),
       incrementalVacuumOnIdle: true,
       minimumCheckpointGap: const Duration(minutes: 10),
     );
@@ -96,6 +103,7 @@ void main() {
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
     final maintenance = SqliteMaintenanceService(
       progressDatabase: () async => database,
+      idleScheduler: const ImmediateIdleScheduler(),
       incrementalVacuumOnIdle: true,
     );
     final report = await maintenance.onIdle();
