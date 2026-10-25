@@ -143,4 +143,48 @@ void main() {
     expect(find.text('Schwester'), findsOneWidget);
     expect(find.text('أخت'), findsNothing);
   });
+
+  testWidgets('changing parent pair closes an already pushed topic route',
+      (tester) async {
+    final target = ValueNotifier<String>('ar');
+    addTearDown(target.dispose);
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: ValueListenableBuilder<String>(
+        valueListenable: target,
+        builder: (_, selectedTarget, __) => CurriculumUnitsScreen(
+          targetLanguageCode: selectedTarget,
+          loadWords: ({
+            required String sectionId,
+            required String cefr,
+            required String languageCode,
+          }) async {
+            reads++;
+            return <Map<String, dynamic>>[
+              <String, dynamic>{
+                'word': 'Mutter',
+                'translation_ar': 'أم',
+                'cefr_level': 'A1',
+              },
+            ];
+          },
+        ),
+      ),
+    ));
+    await tester.tap(find.textContaining('العائلة والأسرة'));
+    await tester.pumpAndSettle();
+    expect(reads, 1);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('أم'), findsOneWidget);
+
+    // The global pair can change while the nested topic route is still open.
+    // Its old de->ar translation must not remain on screen.
+    target.value = 'en';
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.textContaining('لا تتوفر أقسام محلية موثقة'),
+        findsOneWidget);
+    expect(reads, 1);
+  });
 }
