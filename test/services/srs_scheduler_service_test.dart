@@ -314,4 +314,46 @@ void main() {
     expect(await db.query('srs_review_events'), hasLength(1));
   });
 
+  test('whitespace event IDs cannot silently bypass idempotency', () async {
+    final db = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(db.close);
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    for (final invalidId in <String>['', '   ', 'event-with-space ']) {
+      await expectLater(
+        scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'haus',
+          languageCode: 'de',
+          grade: 3,
+          reviewedAt: DateTime.utc(2026, 10, 25),
+          reviewEventId: invalidId,
+        ),
+        throwsArgumentError,
+      );
+    }
+    expect(await db.query('srs_progress'), isEmpty);
+    final journal = await db.query(
+      'sqlite_master',
+      where: 'type = ? AND name = ?',
+      whereArgs: <Object>['table', 'srs_review_events'],
+    );
+    expect(journal, isEmpty,
+        reason: 'Invalid event IDs must not mutate the durable ledger');
+  });
+
 }
