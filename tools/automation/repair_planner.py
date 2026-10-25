@@ -17,8 +17,9 @@ TRANSFORMATIONS = {
 }
 
 class RepairPlanner:
-    def __init__(self):
+    def __init__(self, owner: str = "repair_planner"):
         self._history = {}
+        self.owner = owner
 
     def classify_failure(self, failure_signature: str) -> str:
         if re.search(r"ambiguous dependency upgrade|security vulnerability|ambiguous dependency", failure_signature, re.IGNORECASE):
@@ -56,28 +57,29 @@ class RepairPlanner:
             if path.startswith("/") or ".." in path.split("/"):
                 raise ValueError(f"Unsafe path detected: {path}")
 
-    def generate_plan(self, failure_signature: str, dry_run: bool = False) -> dict:
+    def generate_plan(self, failure_signature: str, dry_run: bool = False, verified_condition: bool = False) -> dict:
         category = self.classify_failure(failure_signature)
 
         target_paths = self._calculate_paths(category, failure_signature)
         self._validate_paths(target_paths)
 
-        if failure_signature in self._history:
+        if failure_signature in self._history and not verified_condition:
             raise ValueError("Duplicate attempt blocked")
         self._history[failure_signature] = True
 
         transformation = TRANSFORMATIONS[category]
         plan_id = str(uuid.uuid4())
 
-        # Hard fail if missing
-        from tools.agent_contract.guard import ScopeGuard
-        guard = ScopeGuard(target_paths)
+        from tools.automation.scope_guard import ScopeGuard
+        guard = ScopeGuard(self.owner)
 
-        leases = []
+        for path in target_paths:
+            guard.add_allowed_path(path)
+
         if not dry_run:
             for path in target_paths:
-                with guard.lease_file(path):
-                    leases.append(path)
+                if not guard.request_ownership(path):
+                    raise RuntimeError(f"Failed to acquire lock for {path}")
 
         return {
             "plan_id": plan_id,
