@@ -197,21 +197,38 @@ class SrsSchedulerService {
           limit: 1,
         );
         if (existingEvent.isNotEmpty) {
-          // Idempotent: already processed. Return current schedule without mutating state.
+          // The review ID is an immutable command identity, not just a
+          // duplicate counter. A replay for a different card, target language
+          // or grade must never be acknowledged as the original review.
+          final committed = existingEvent.single;
+          if (committed['lexeme_id'] != lexemeId ||
+              committed['target_language_code'] != languageCode ||
+              committed['grade'] != grade) {
+            throw StateError('Review event ID reused with a conflicting payload');
+          }
+
+          // Idempotent: return the current durable schedule without advancing
+          // it. If the progress row is missing, fail closed rather than
+          // resurrecting a committed review and risking duplicate XP/SRS.
           final existing = await txn.query(
             'srs_progress',
             where: 'lexeme_id = ? AND target_language_code = ?',
             whereArgs: <Object>[lexemeId, languageCode],
             limit: 1,
           );
-          if (existing.isNotEmpty) {
-            return SrsReviewSchedule(
-              repetitionCount: _readPersistedCounter(existing.first['repetition_count'], 'repetition_count'),
-              intervalDays: _readPersistedCounter(existing.first['interval_days'], 'interval_days'),
-              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
-              nextReviewEpoch: existing.first['next_due_at'] is num ? (existing.first['next_due_at'] as num).toInt() : 0,
-            );
+          if (existing.isEmpty) {
+            throw StateError('Committed review is missing its progress row');
           }
+          return SrsReviewSchedule(
+            repetitionCount: _readPersistedCounter(
+                existing.first['repetition_count'], 'repetition_count'),
+            intervalDays: _readPersistedCounter(
+                existing.first['interval_days'], 'interval_days'),
+            easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+            nextReviewEpoch: existing.first['next_due_at'] is num
+                ? (existing.first['next_due_at'] as num).toInt()
+                : 0,
+          );
         }
       }
 
