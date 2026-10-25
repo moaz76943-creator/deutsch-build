@@ -1,12 +1,14 @@
 import os
+import json
+import time
 import posixpath
 from pathlib import Path
 from typing import List, Optional, Union
 
 try:
-    from tools.agent_contract.guard import TaskLedger
+    from tools.agent_contract.guard import paths_overlap, LOCK_TTL_SECONDS
 except ImportError:
-    TaskLedger = None
+    paths_overlap = None
 
 
 class ScopeGuard:
@@ -24,10 +26,11 @@ class ScopeGuard:
             if repo_root is not None
             else Path(__file__).resolve().parents[2]
         )
+        state_root = os.environ.get("XDG_STATE_HOME")
+        default_root = Path(state_root) if state_root else Path.home() / ".local" / "state"
         self.ledger_path = (
-            Path(ledger_path)
-            if ledger_path is not None
-            else self.repo_root / "docs" / "project-record" / "task_ledger.json"
+            Path(ledger_path) if ledger_path is not None
+            else default_root / "deutsch-agent-contract" / "task_ledger.json"
         )
         self.allowed_paths: List[str] = []
 
@@ -62,12 +65,41 @@ class ScopeGuard:
             return False
 
     def _conflicts_with_ledger(self, rel_path: str) -> bool:
-        if TaskLedger is None or not self.ledger_path.exists():
-            return False
+        """Read-only check of an existing claim; never mistake access for a lock."""
+        if paths_overlap is None or not self.ledger_path.is_file():
+            return True
         try:
-            ledger = TaskLedger(str(self.ledger_path))
-            return ledger.check_overlap(self.owner, [rel_path])
-        except Exception:
+            with self.ledger_path.open("r", encoding="utf-8") as source:
+                ledger = json.load(source)
+            if not isinstance(ledger, dict):
+                return True
+            own = ledger.get(self.owner)
+            if not isinstance(own, dict) or own.get("state") not in ("CLAIM", "ACTIVE"):
+                return True
+            stamp = own.get("timestamp")
+            if (not isinstance(stamp, (int, float)) or
+                    time.time() - stamp > LOCK_TTL_SECONDS):
+                return True
+            paths = own.get("paths")
+            if not isinstance(paths, list) or not paths or any(not isinstance(p, str) for p in paths):
+                return True
+            if not any(paths_overlap(rel_path, path) for path in paths):
+                return True
+            for owner, entry in ledger.items():
+                if owner == "_metadata":
+                    continue
+                if not isinstance(entry, dict) or entry.get("state") not in (
+                    "CLAIM", "ACTIVE", "BLOCKED", "COMPLETE", "CANCELLED"
+                ):
+                    return True
+                claimed = entry.get("paths", [])
+                if not isinstance(claimed, list) or any(not isinstance(p, str) for p in claimed):
+                    return True
+                if (owner != self.owner and entry["state"] in ("CLAIM", "ACTIVE") and
+                        any(paths_overlap(rel_path, path) for path in claimed)):
+                    return True
+            return False
+        except (OSError, ValueError, TypeError, AttributeError):
             return True
 
     def request_ownership(self, target_path: Union[str, Path]) -> bool:

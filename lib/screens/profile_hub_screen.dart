@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../core/privacy/microphone_disclosure.dart';
 import '../design_system/design_system.dart';
-import 'offline_storage_screen.dart';
+import 'language_manager_screen.dart';
 
 class ProfileHubScreen extends StatelessWidget {
   const ProfileHubScreen({super.key});
@@ -32,14 +35,10 @@ class ProfileHubScreen extends StatelessWidget {
             const SizedBox(height: 24),
             AppBaseGlassCard(
               onTap: () {
-<<<<<<< HEAD
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => const LanguageManagerScreen()));
-=======
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineStorageScreen()));
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
               },
               child: const Row(
                 children: <Widget>[
@@ -63,6 +62,31 @@ class ProfileHubScreen extends StatelessWidget {
                   ),
                   Icon(Icons.arrow_forward_ios_rounded,
                       color: Colors.white38, size: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            AppBaseGlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('حول التطبيق',
+                      style: AppTypography.title.copyWith(color: Colors.white)),
+                  const SizedBox(height: 8),
+                  const Text(
+                    kMicrophoneDisclosureText,
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () {
+                      launchUrl(
+                        Uri.parse(kPrivacyPolicyUrl),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                    child: const Text(kPrivacyPolicyUrl),
+                  ),
                 ],
               ),
             ),
