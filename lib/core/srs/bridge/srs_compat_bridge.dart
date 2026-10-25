@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
@@ -40,6 +41,19 @@ class SrsCompatBridge {
   // including reviews in opposite language directions. Use a monotonic
   // in-process microsecond identity even when the wall clock stalls or moves
   // backwards. This does not change persisted learner progress or SRS keys.
+  // Monotonic microseconds prevent same-process collisions, but a fresh
+  // process/isolate resets that counter. If the device clock moves backwards,
+  // a clock-only ID can collide with an already committed durable review and
+  // incorrectly deduplicate new learner progress. One random 128-bit nonce
+  // per isolate distinguishes restart epochs without changing stored IDs.
+  static final String _isolateNonce = _newIsolateNonce();
+  static String _newIsolateNonce() {
+    final random = Random.secure();
+    return List<int>.generate(16, (_) => random.nextInt(256))
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
+
   static int _lastIssuedEventMicros = -1;
 
   Future<void> recordReviewCompat({
@@ -81,7 +95,7 @@ class SrsCompatBridge {
 
     final envelope = ReviewTransactionEnvelope(
       reviewEventId:
-          'REV_${eventMicros}_${sourceIso}_${targetIso}_${contentKey}',
+          'REV_${_isolateNonce}_${eventMicros}_${sourceIso}_${targetIso}_${contentKey}',
       learnerContentKey: contentKey,
       rating: canonicalRating,
       timestamp: timestamp,
