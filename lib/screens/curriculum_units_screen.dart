@@ -288,10 +288,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .trim()
       .toLowerCase()
       .replaceAll(RegExp(r'[\u0640\u064B-\u065F\u0670]'), '')
-      // Match common omitted Arabic alef hamzas in learner search only.
+      // Fold Arabic variants, bidi controls and numerals for lookup only.
       .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
       .replaceAll('ی', 'ي').replaceAll('ک', 'ك')
-      // Fold Arabic-Indic digits for lookup only; never rewrite stored text.
+      .replaceAll(RegExp(r'[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]'), '')
       .replaceAllMapped(RegExp(r'[\u0660-\u0669\u06F0-\u06F9]'), (match) {
         final digit = match[0]!.codeUnitAt(0);
         return String.fromCharCode(
