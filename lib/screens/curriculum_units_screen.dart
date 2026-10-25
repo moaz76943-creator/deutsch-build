@@ -603,6 +603,22 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       return false;
     }
 
+    // Directed-pair adapters may flatten their identity fields. An explicit
+    // reverse identity must not be mistaken for a legacy de->ar row.
+    if (!matchesWhenDeclared('source_language', widget.languageCode) ||
+        !matchesWhenDeclared('target_language', widget.targetLanguageCode)) {
+      return false;
+    }
+    if (row.containsKey('pair_id')) {
+      final pairId = row['pair_id'];
+      final expectedPair =
+          '${widget.languageCode.toLowerCase()}->${widget.targetLanguageCode.toLowerCase()}';
+      if (pairId is! String ||
+          pairId.trim().toLowerCase() != expectedPair) {
+        return false;
+      }
+    }
+
     // Some directed-pair adapters attach a nested pair_identity contract
     // (id: "de->ar", source_language, target_language). An explicit reverse
     // or contradictory identity must never enter de->ar list/search/practice,
