@@ -305,10 +305,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .replaceAll('ü', 'ue')
       .replaceAll('ß', 'ss').replaceAll(RegExp(r'[\s\u00A0\u2007\u202F\u200B]+'), ' ').trim();
 
-  // A form or example is searchable only when the selected, verified row
-  // actually supplies a string. Bound optional arrays to keep malformed or
-  // oversized future adapters from turning a 50-row search into a UI stall.
+  // Search only attested scalar strings or bounded string arrays.
   static bool _listContainsSearch(Object? value, String query) {
+    if (value is String) return _foldSearch(value).contains(query);
     if (value is! List) return false;
     return value.take(32).whereType<String>().any(
           (text) => _foldSearch(text).contains(query),
@@ -496,15 +495,15 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     // latest route is tracked for invalidation, leaving older translations
     // visible after switching the directed pair or level.
     if (_detailsRoute?.isActive ?? false) return;
-    // A future pack can supply very large metadata arrays. Build at most 32
-    // detail widgets per field, matching the bounded optional search path.
-    // Keep an explicit disclosure rather than silently hiding extra entries.
+    // Bound attested detail arrays to 32 entries; disclose truncation.
     const maxDetailItems = 32;
-    List<String> lines(Object? value) => value is List
-        ? value.take(maxDetailItems).whereType<String>()
-            .map((text) => text.trim())
-            .where((text) => text.isNotEmpty).toList(growable: false)
-        : const <String>[];
+    List<String> lines(Object? value) => value is String
+        ? (value.trim().isEmpty ? const <String>[] : <String>[value.trim()])
+        : value is List
+            ? value.take(maxDetailItems).whereType<String>()
+                .map((text) => text.trim())
+                .where((text) => text.isNotEmpty).toList(growable: false)
+            : const <String>[];
     bool hasMoreItems(Object? value) =>
         value is List && value.length > maxDetailItems;
 
