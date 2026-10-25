@@ -191,14 +191,19 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   final TextEditingController _quizController = TextEditingController();
   DialogRoute<void>? _detailsRoute;
 
-  // Dismiss the exact open detail route when the selected pair, level or
-  // topic changes. Never pop the underlying learning screen by mistake.
+  // Dismiss the exact owned route, not the underlying learning screen.
+  // didUpdateWidget runs during a build: mutating the root Navigator there
+  // can trigger a build-phase assertion. Defer removal until after the frame.
   void _dismissStaleDetails() {
     final route = _detailsRoute;
     _detailsRoute = null;
-    if (route != null && route.isActive) {
-      route.navigator?.removeRoute(route);
-    }
+    if (route == null || !route.isActive) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navigator = route.navigator;
+      if (route.isActive && navigator != null && navigator.mounted) {
+        navigator.removeRoute(route);
+      }
+    });
   }
 
   void _resetCardAnswer() {
@@ -557,21 +562,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   @override
   void dispose() {
     _requestId++;
-    // The details dialog is pushed onto the root navigator. Replacing this
-    // learning screen (for example, after a pair/tab switch) does not pop
-    // that route automatically, so it could expose the previous pair's
-    // translation after its owning screen is gone. Remove it after the
-    // current frame to avoid mutating Navigator during widget disposal.
-    final staleRoute = _detailsRoute;
-    _detailsRoute = null;
-    if (staleRoute != null && staleRoute.isActive) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final navigator = staleRoute.navigator;
-        if (staleRoute.isActive && navigator != null && navigator.mounted) {
-          navigator.removeRoute(staleRoute);
-        }
-      });
-    }
+    // A root dialog may outlive its owner on tab/page replacement.
+    // Use the same safe post-frame invalidation as pair/level changes.
+    _dismissStaleDetails();
     _searchController.dispose();
     _quizController.dispose();
     super.dispose();
