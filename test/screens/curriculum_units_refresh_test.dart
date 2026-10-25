@@ -828,4 +828,61 @@ void main() {
     await tester.pump();
     expect(find.text('أم'), findsOneWidget);
   });
+
+  testWidgets('pasted mixed Unicode spaces find verified words and cards',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Guten Morgen', 'translation_ar': 'صباح الخير',
+            'source_language': 'de', 'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': 'Gute Nacht', 'translation_ar': 'ليلة سعيدة',
+            'source_language': 'de', 'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': 'Wrong pair', 'translation_ar': 'صباح الخير',
+            'source_language': 'en', 'target_language': 'ar',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    // NBSP, narrow NBSP, tabs and zero-width spaces arrive via copy/paste.
+    for (final query in <String>[
+      'Guten\\u00A0\\u00A0Morgen',
+      '\\u200BGuten\\tMorgen\\u200B',
+      'صباح\\u202F\\u202Fالخير',
+    ]) {
+      await tester.enterText(search, query);
+      await tester.pump();
+      expect(find.text('Guten Morgen'), findsOneWidget);
+      expect(find.text('Gute Nacht'), findsNothing);
+      expect(find.text('Wrong pair'), findsNothing);
+      expect(tester.widget<Text>(find.text('Guten Morgen')).textDirection,
+          TextDirection.ltr);
+      expect(tester.widget<Text>(find.text('صباح الخير')).textDirection,
+          TextDirection.rtl);
+    }
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('Guten Morgen'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('صباح الخير'), findsOneWidget);
+    expect(find.text('Wrong pair'), findsNothing);
+  });
 }
