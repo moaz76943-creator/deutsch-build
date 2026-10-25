@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -109,19 +110,18 @@ class AutoHealExecutor:
                 f"BASE_SHA mismatch: expected {self.plan['base_sha']}, got {current_sha}"
             )
 
+    def _backup_slot(self, path):
+        # A path is evidence about the source, never a relative backup target.
+        return os.path.join(self.backup_dir, hashlib.sha256(os.fsencode(path)).hexdigest())
+
     def _backup_files(self):
         for path in self.plan.get("allowed_paths", []):
             if os.path.exists(path):
-                # Handle absolute paths safely for copying into backup_dir
-                rel_path = os.path.relpath(path, '/') if path.startswith('/') else path
-                dest = os.path.join(self.backup_dir, rel_path)
-                os.makedirs(os.path.dirname(dest), exist_ok=True)
-                shutil.copy2(path, dest)
+                shutil.copy2(path, self._backup_slot(path))
 
     def _restore_files(self):
         for path in self.plan.get("allowed_paths", []):
-            rel_path = os.path.relpath(path, '/') if path.startswith('/') else path
-            src = os.path.join(self.backup_dir, rel_path)
+            src = self._backup_slot(path)
             if os.path.exists(src):
                 shutil.copy2(src, path)
             elif os.path.exists(path):
