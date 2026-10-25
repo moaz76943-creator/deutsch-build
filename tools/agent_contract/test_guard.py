@@ -142,5 +142,36 @@ class TestGuard(unittest.TestCase):
         res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/guard.py", "--depends-on", "T1", "--ledger", self.ledger_path, "--report", self.report_path])
         self.assertEqual(res, 0)
 
+    @patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md'])
+    @patch('subprocess.check_call')
+    def test_stale_lock_lost_changes(self, mock_check_call, mock_get_changed_files):
+        # T1 claims AGENTS.md 4000 seconds ago
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}}, f)
+
+        # T2 claims AGENTS.md (recovers stale lock)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
+
+        # T2 completes
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--result-sha", "def", "--transition", "ACTIVE", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
+
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--result-sha", "def", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
+
+        # Now T1 wakes up and tries to COMPLETE with an old base-sha 'abc'
+        import subprocess
+        mock_check_call.side_effect = subprocess.CalledProcessError(1, 'git')
+
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--result-sha", "xyz", "--transition", "COMPLETE", "--ledger", self.ledger_path, "--report", self.report_path])
+
+        # T1 should be blocked because its base_sha is stale or state is blocked!
+        with open(self.report_path) as f:
+            report = json.load(f)
+            print("Blockers for T1:", report.get("blockers", []))
+
+        self.assertEqual(res, 1, "T1 should be blocked to prevent lost changes, but it succeeded!")
+
 if __name__ == '__main__':
     unittest.main()
