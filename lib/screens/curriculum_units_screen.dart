@@ -721,6 +721,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         appBar: AppBar(
           title: Text('${widget.section.title} — ${widget.cefr}'),
           actions: [
+            // Existing topics must be refreshable too: an installed pack can
+            // change while the learner remains on this route. Reuse the
+            // bounded read-only loader and its stale-request protection.
+            if (_supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty)
+              IconButton(
+                key: const Key('topic-content-refresh'),
+                tooltip: 'تحديث المفردات المحلية',
+                onPressed: _load,
+                icon: const Icon(Icons.refresh),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             if (_supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty)
               IconButton(
                 key: const Key('topic-study-toggle'),
