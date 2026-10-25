@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:deutsch_bilarabi/core/progress/idempotent_review_transaction_manager.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -104,6 +106,39 @@ void main() {
     );
     expect(conflict.state, TransactionState.failed);
     expect(commits, 1);
+  });
+
+  test('out-of-order persistence completion cannot rewind stale guard',
+      () async {
+    final releaseEarly = Completer<void>();
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (event) async {
+        if (event.reviewEventId == 'slow-early') {
+          await releaseEarly.future;
+        }
+      },
+    );
+    final slowEarly = manager.commitReview(
+      review('slow-early', pair: 'de_ar', at: early),
+      activeLanguagePairKey: 'de_ar',
+    );
+    expect(
+      (await manager.commitReview(
+        review('fast-late', pair: 'de_ar', at: late),
+        activeLanguagePairKey: 'de_ar',
+      ))
+          .state,
+      TransactionState.committed,
+    );
+    releaseEarly.complete();
+    expect((await slowEarly).state, TransactionState.committed);
+
+    final middle = await manager.commitReview(
+      review('middle', pair: 'de_ar',
+          at: early.add(const Duration(seconds: 30))),
+      activeLanguagePairKey: 'de_ar',
+    );
+    expect(middle.state, TransactionState.failed);
   });
 
   test('an identical committed retry remains idempotent', () async {
