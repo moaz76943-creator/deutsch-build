@@ -84,10 +84,10 @@ void main() {
       final dt1 = DateTime.utc(2023, 10, 1, 10, 0); // 10 AM UTC
       final dt2 = DateTime.utc(2023, 10, 1, 20, 0); // 8 PM UTC (same day)
 
-      final next1 = ledger.recordUsage('missed', now: dt1);
+      final next1 = ledger.recordUsage('missed', timestamp: dt1);
       expect(next1.remainingShields, 1);
 
-      final next2 = next1.recordUsage('missed again', now: dt2);
+      final next2 = next1.recordUsage('missed again', timestamp: dt2);
       expect(next2.remainingShields, 1); // Duplicate prevented
     });
   });
