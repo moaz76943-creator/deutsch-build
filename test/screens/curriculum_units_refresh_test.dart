@@ -347,4 +347,71 @@ void main() {
     expect(find.text('أخت'), findsNothing);
   });
 
+
+  testWidgets('retry during stalled refresh retains previously verified words',
+      (tester) async {
+    final stalled = Completer<List<Map<String, dynamic>>>();
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) {
+          reads++;
+          if (reads == 2) return stalled.future;
+          if (reads == 3) {
+            return Future<List<Map<String, dynamic>>>.error(
+                StateError('offline adapter unavailable'));
+          }
+          return Future<List<Map<String, dynamic>>>.value([
+            <String, dynamic>{
+              'word': reads == 1 ? 'Mutter' : 'Schwester',
+              'translation_ar': reads == 1 ? 'أم' : 'أخت',
+            },
+          ]);
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(reads, 1);
+    expect(find.text('Mutter'), findsOneWidget);
+
+    // A refresh stalls after valid offline content was displayed.
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pump();
+    expect(reads, 2);
+    await tester.tap(find.byKey(const Key('topic-loading-retry')));
+    await tester.pumpAndSettle();
+    expect(reads, 3);
+    // The retry failed, but it must not discard the verified prior snapshot.
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('أم'), findsOneWidget);
+    expect(find.textContaining('تعذر تحديث'), findsOneWidget);
+    expect(find.byKey(const Key('topic-content-refresh')), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+
+    // The stalled response is obsolete and must not replace retained rows.
+    stalled.complete([
+      <String, dynamic>{'word': 'Vater', 'translation_ar': 'أب'},
+    ]);
+    await tester.pump();
+    expect(find.text('Vater'), findsNothing);
+    expect(find.text('Mutter'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pumpAndSettle();
+    expect(reads, 4);
+    expect(find.text('Schwester'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+  });
+
 }
