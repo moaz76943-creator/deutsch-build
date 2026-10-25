@@ -1442,4 +1442,79 @@ void main() {
         .controller!.text, isEmpty);
   });
 
+
+  testWidgets('rapid double tap opens only one word detail route',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{'word': 'Mutter', 'translation_ar': 'أم'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    // Two taps before the first dialog's frame has been rendered.
+    await tester.tap(find.text('Mutter'));
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsOneWidget);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('Mutter'), findsOneWidget);
+  });
+
+  testWidgets('rapid taps cannot leave old-pair details after switching',
+      (tester) async {
+    final section = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async => <Map<String, dynamic>>[
+      <String, dynamic>{
+        'word': 'Mutter',
+        'translation_ar': 'أم',
+        'forms': <String>['Mütter'],
+      },
+    ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mutter'));
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: section,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'en',
+        loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('Mütter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'),
+        findsOneWidget);
+  });
+
 }
