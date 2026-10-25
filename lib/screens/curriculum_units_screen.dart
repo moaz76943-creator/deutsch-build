@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/features/explore/data/local_topic_catalog.dart';
 
+String _normalizedLanguageCode(String value) => value.trim().toLowerCase();
+
 /// Read-only topic lookup. Tests may inject a loader without opening SQLite.
 typedef TopicWordsLoader = Future<List<Map<String, dynamic>>> Function({
   required String sectionId,
@@ -67,8 +69,8 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
   void _openTopic(LocalTopicSection section) {
     if (_activeTopicRoute?.isActive ?? false) return;
     final selectedLevel = _selectedLevel;
-    final sourceLanguage = widget.languageCode;
-    final targetLanguage = widget.targetLanguageCode;
+    final sourceLanguage = _normalizedLanguageCode(widget.languageCode);
+    final targetLanguage = _normalizedLanguageCode(widget.targetLanguageCode);
     final loader = widget.loadWords;
     final route = MaterialPageRoute<void>(
       builder: (_) => TopicWordsScreen(
@@ -89,9 +91,10 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
   Widget build(BuildContext context) {
     // The bundled topic index only supports the verified de -> ar projection.
     // A registered language or the reverse direction does not imply content.
-    final supported = widget.languageCode == 'de' &&
-        widget.targetLanguageCode == 'ar' &&
-        LocalTopicCatalog.supportsBundledTopics(widget.languageCode);
+    final source = _normalizedLanguageCode(widget.languageCode);
+    final target = _normalizedLanguageCode(widget.targetLanguageCode);
+    final supported = source == 'de' && target == 'ar' &&
+        LocalTopicCatalog.supportsBundledTopics(source);
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -625,10 +628,11 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     _quizController.dispose();
     super.dispose();
   }
+  String get _sourceLanguage => _normalizedLanguageCode(widget.languageCode);
+  String get _targetLanguage => _normalizedLanguageCode(widget.targetLanguageCode);
   bool get _supportsDirectedPair =>
-      widget.languageCode == 'de' &&
-      widget.targetLanguageCode == 'ar' &&
-      LocalTopicCatalog.supportsBundledTopics(widget.languageCode);
+      _sourceLanguage == 'de' && _targetLanguage == 'ar' &&
+      LocalTopicCatalog.supportsBundledTopics(_sourceLanguage);
   // The default SQLite query is already scoped, but injected/alternate pack
   // readers must not leak another directed pair or a different known level.
   // Older de->ar rows can omit target metadata; an explicit mismatch is never
@@ -647,26 +651,26 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     // cards or detail sheets. Legacy bundled rows omit this field and remain
     // accepted because the query itself is scoped by sectionId.
     if (!matchesWhenDeclared('section_id', widget.section.id) ||
-        !matchesWhenDeclared('language_code', widget.languageCode) ||
-        !matchesWhenDeclared('source_language_code', widget.languageCode) ||
-        !matchesWhenDeclared('target_language_code', widget.targetLanguageCode) ||
+        !matchesWhenDeclared('language_code', _sourceLanguage) ||
+        !matchesWhenDeclared('source_language_code', _sourceLanguage) ||
+        !matchesWhenDeclared('target_language_code', _targetLanguage) ||
         !matchesWhenDeclared(
-            'translation_language_code', widget.targetLanguageCode)) {
+            'translation_language_code', _targetLanguage)) {
       return false;
     }
     // Directed-pair adapters may flatten their identity fields. An explicit
     // reverse identity must not be mistaken for a legacy de->ar row.
-    if (!matchesWhenDeclared('source_language', widget.languageCode) ||
-        !matchesWhenDeclared('source', widget.languageCode) ||
-        !matchesWhenDeclared('target_language', widget.targetLanguageCode) ||
-        !matchesWhenDeclared('target', widget.targetLanguageCode) ||
-        !matchesWhenDeclared('translation_language', widget.targetLanguageCode)) {
+    if (!matchesWhenDeclared('source_language', _sourceLanguage) ||
+        !matchesWhenDeclared('source', _sourceLanguage) ||
+        !matchesWhenDeclared('target_language', _targetLanguage) ||
+        !matchesWhenDeclared('target', _targetLanguage) ||
+        !matchesWhenDeclared('translation_language', _targetLanguage)) {
       return false;
     }
     if (row.containsKey('pair_id')) {
       final pairId = row['pair_id'];
       final expectedPair =
-          '${widget.languageCode.toLowerCase()}->${widget.targetLanguageCode.toLowerCase()}';
+          '${_sourceLanguage.toLowerCase()}->${_targetLanguage.toLowerCase()}';
       if (pairId is! String ||
           pairId.trim().toLowerCase() != expectedPair) {
         return false;
@@ -682,7 +686,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       if (identity is! Map) return false;
       final pairId = identity['id'];
       final expectedPair =
-          '${widget.languageCode.toLowerCase()}->${widget.targetLanguageCode.toLowerCase()}';
+          '${_sourceLanguage.toLowerCase()}->${_targetLanguage.toLowerCase()}';
       if (pairId is! String ||
           pairId.trim().toLowerCase() != expectedPair) {
         return false;
@@ -694,15 +698,15 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             value.trim().toLowerCase() == expected.toLowerCase();
       }
       // Validate every declared nested alias; the id alone is insufficient.
-      if (!matchesPairField('language_code', widget.languageCode) ||
-          !matchesPairField('source_language', widget.languageCode) ||
-          !matchesPairField('source_language_code', widget.languageCode) ||
-          !matchesPairField('source', widget.languageCode) ||
-          !matchesPairField('target_language', widget.targetLanguageCode) ||
-          !matchesPairField('target_language_code', widget.targetLanguageCode) ||
-          !matchesPairField('translation_language_code', widget.targetLanguageCode) ||
-          !matchesPairField('translation_language', widget.targetLanguageCode) ||
-          !matchesPairField('target', widget.targetLanguageCode)) {
+      if (!matchesPairField('language_code', _sourceLanguage) ||
+          !matchesPairField('source_language', _sourceLanguage) ||
+          !matchesPairField('source_language_code', _sourceLanguage) ||
+          !matchesPairField('source', _sourceLanguage) ||
+          !matchesPairField('target_language', _targetLanguage) ||
+          !matchesPairField('target_language_code', _targetLanguage) ||
+          !matchesPairField('translation_language_code', _targetLanguage) ||
+          !matchesPairField('translation_language', _targetLanguage) ||
+          !matchesPairField('target', _targetLanguage)) {
         return false;
       }
     }
@@ -747,7 +751,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       final rows = await loader(
         sectionId: widget.section.id,
         cefr: widget.cefr,
-        languageCode: widget.languageCode,
+        languageCode: _sourceLanguage,
       ).timeout(const Duration(seconds: 30));
       if (!mounted || requestId != _requestId) return;
       setState(() {
