@@ -272,8 +272,21 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         : 'UNKNOWN';
   }
 
-  static String _rowDisplayLevel(Map<String, dynamic> row) =>
-      _displayLevel(row['cefr_level'] ?? row['cefr'] ?? row['cefr_code']);
+  // Every declared alias is evidence about the same row. A valid first
+  // alias must not mask a contradictory or malformed second alias and turn
+  // an unverified CEFR assignment into a confident learner-facing badge.
+  static String _rowDisplayLevel(Map<String, dynamic> row) {
+    String? declared;
+    for (final field in const <String>['cefr_level', 'cefr', 'cefr_code']) {
+      if (!row.containsKey(field)) continue;
+      final level = _displayLevel(row[field]);
+      if (level == 'UNKNOWN' || (declared != null && declared != level)) {
+        return 'UNKNOWN';
+      }
+      declared = level;
+    }
+    return declared ?? 'UNKNOWN';
+  }
 
   static String _foldSearch(String value) => value
       .trim()
