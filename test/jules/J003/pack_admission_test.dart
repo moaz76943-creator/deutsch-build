@@ -36,7 +36,9 @@ void main() {
     final db = await databaseFactoryFfi.openDatabase(path);
     await db.execute('PRAGMA user_version = 1');
     await db.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, value TEXT)');
+    await db.execute('CREATE TABLE pack_metadata (languageCode TEXT)');
     await db.insert('data', {'value': 'test'});
+    await db.insert('pack_metadata', {'languageCode': 'ar'});
     await db.close();
     return File(path);
   }
@@ -45,9 +47,27 @@ void main() {
     final path = '${tempDir.path}/$filename';
     final db = await databaseFactoryFfi.openDatabase(path);
     await db.execute('CREATE TABLE dummy (id INTEGER)'); // to make file not empty
-    // user_version is 0 by default, no data tables (we consider 'dummy' as a table, wait no,
-    // my check says "excluding sqlite_". So 'dummy' table exists, but user_version is 0.
-    // This will fail the user_version check as expected.
+    await db.close();
+    return File(path);
+  }
+
+  Future<File> createDatabaseWithoutPackMetadata(String filename) async {
+    final path = '${tempDir.path}/$filename';
+    final db = await databaseFactoryFfi.openDatabase(path);
+    await db.execute('PRAGMA user_version = 1');
+    await db.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, value TEXT)');
+    await db.insert('data', {'value': 'test'});
+    await db.close();
+    return File(path);
+  }
+
+  Future<File> createDatabaseWithEmptyPackMetadata(String filename) async {
+    final path = '${tempDir.path}/$filename';
+    final db = await databaseFactoryFfi.openDatabase(path);
+    await db.execute('PRAGMA user_version = 1');
+    await db.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, value TEXT)');
+    await db.execute('CREATE TABLE pack_metadata (languageCode TEXT)');
+    await db.insert('data', {'value': 'test'});
     await db.close();
     return File(path);
   }
@@ -152,6 +172,38 @@ void main() {
     expect(result, isFalse);
     expect(quarantine.isolatedItems.isNotEmpty, isTrue);
     expect(quarantine.isolatedItems.first.diagnosticReason, 'Invalid schema version');
+  });
+
+  test('Missing pack_metadata table (language identity)', () async {
+    final stagedDb = await createDatabaseWithoutPackMetadata('staged.db');
+    final hash = await calculateHash(stagedDb);
+    final targetPath = '${tempDir.path}/target.db';
+
+    bool result = await admissionService.verifyAndAdmitPack(
+      stagedFile: stagedDb,
+      expectedHash: hash,
+      targetPath: targetPath,
+    );
+
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
+    expect(quarantine.isolatedItems.first.diagnosticReason, 'pack_metadata table missing');
+  });
+
+  test('Empty pack_metadata table (row counts)', () async {
+    final stagedDb = await createDatabaseWithEmptyPackMetadata('staged.db');
+    final hash = await calculateHash(stagedDb);
+    final targetPath = '${tempDir.path}/target.db';
+
+    bool result = await admissionService.verifyAndAdmitPack(
+      stagedFile: stagedDb,
+      expectedHash: hash,
+      targetPath: targetPath,
+    );
+
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
+    expect(quarantine.isolatedItems.first.diagnosticReason, 'pack_metadata table is empty');
   });
 
   test('Enforced separation of learner data', () async {
