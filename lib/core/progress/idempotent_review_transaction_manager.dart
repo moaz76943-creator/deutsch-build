@@ -23,7 +23,9 @@ class ReviewTransactionStatus {
 class IdempotentReviewTransactionManager {
   final LinkedHashMap<String, ReviewTransactionStatus> _history =
       LinkedHashMap();
-  final LinkedHashMap<String, DateTime> _lastContentTimestamps =
+  // Keep stale-review ordering independent for each directed pair and card.
+  // A card key alone incorrectly rejects valid reverse-direction reviews.
+  final LinkedHashMap<(String, String), DateTime> _lastContentTimestamps =
       LinkedHashMap();
   final int maxHistorySize = 1000;
 
@@ -56,10 +58,21 @@ class IdempotentReviewTransactionManager {
       );
     }
 
-    // 3. Reject duplicate review commands based on history LRU cache
-    if (_history.containsKey(envelope.reviewEventId)) {
-      final existingStatus = _history[envelope.reviewEventId]!;
-      // If already committed or pending, return existing status
+    // 3. An event ID represents one immutable review. Never acknowledge a
+    // different pair, card, rating, or instant as an already committed event.
+    final existingStatus = _history[envelope.reviewEventId];
+    if (existingStatus != null) {
+      final previous = existingStatus.envelope;
+      if (previous.learnerContentKey != envelope.learnerContentKey ||
+          previous.languagePairKey != envelope.languagePairKey ||
+          previous.rating != envelope.rating ||
+          !previous.timestamp.isAtSameMomentAs(envelope.timestamp)) {
+        return ReviewTransactionStatus(
+          envelope: envelope,
+          state: TransactionState.failed,
+          error: 'Conflicting reviewEventId payload',
+        );
+      }
       if (existingStatus.state == TransactionState.committed ||
           existingStatus.state == TransactionState.pending) {
         return existingStatus;
@@ -67,7 +80,8 @@ class IdempotentReviewTransactionManager {
     }
 
     // 4. Reject stale commands
-    final lastTimestamp = _lastContentTimestamps[envelope.learnerContentKey];
+    final contentScope = (envelope.languagePairKey, envelope.learnerContentKey);
+    final lastTimestamp = _lastContentTimestamps[contentScope];
     if (lastTimestamp != null && envelope.timestamp.isBefore(lastTimestamp)) {
       return ReviewTransactionStatus(
         envelope: envelope,
@@ -95,7 +109,7 @@ class IdempotentReviewTransactionManager {
       );
       _recordStatus(envelope.reviewEventId, status);
       // Update last successful interaction timestamp for this content
-      _recordTimestamp(envelope.learnerContentKey, envelope.timestamp);
+      _recordTimestamp(contentScope, envelope.timestamp);
       return status;
     } catch (e) {
       // Transition to recoverable
@@ -119,11 +133,12 @@ class IdempotentReviewTransactionManager {
     }
   }
 
-  void _recordTimestamp(String contentKey, DateTime timestamp) {
-    if (_lastContentTimestamps.containsKey(contentKey)) {
-      _lastContentTimestamps.remove(contentKey);
-    }
-    _lastContentTimestamps[contentKey] = timestamp;
+  void _recordTimestamp((String, String) contentScope, DateTime timestamp) {
+    final previous = _lastContentTimestamps[contentScope];
+    // A slower in-flight commit must not roll the stale guard backwards.
+    if (previous != null && timestamp.isBefore(previous)) return;
+    _lastContentTimestamps.remove(contentScope);
+    _lastContentTimestamps[contentScope] = timestamp;
     if (_lastContentTimestamps.length > maxHistorySize) {
       _lastContentTimestamps.remove(_lastContentTimestamps.keys.first);
     }
