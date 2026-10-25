@@ -1627,4 +1627,52 @@ void main() {
         findsOneWidget);
   });
 
+
+  testWidgets('removing learning page dismisses its root word details dialog',
+      (tester) async {
+    final showLearning = ValueNotifier<bool>(true);
+    addTearDown(showLearning.dispose);
+    final section =
+        LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
+
+    await tester.pumpWidget(MaterialApp(
+      home: ValueListenableBuilder<bool>(
+        valueListenable: showLearning,
+        builder: (context, visible, child) => visible
+            ? TopicWordsScreen(
+                section: section,
+                cefr: 'A1',
+                languageCode: 'de',
+                targetLanguageCode: 'ar',
+                loadWords: ({
+                  required String sectionId,
+                  required String cefr,
+                  required String languageCode,
+                }) async => <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'word': 'Mutter',
+                    'translation_ar': 'أم',
+                    'forms': <String>['Mütter'],
+                  },
+                ],
+              )
+            : const Scaffold(body: Text('شاشة الزوج الجديد')),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Mutter'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل المفردة'), findsOneWidget);
+    expect(find.text('Mütter'), findsOneWidget);
+
+    // Replacing the page is not equivalent to changing TopicWordsScreen's
+    // props: didUpdateWidget never runs, and the root dialog must still go.
+    showLearning.value = false;
+    await tester.pumpAndSettle();
+    expect(find.text('شاشة الزوج الجديد'), findsOneWidget);
+    expect(find.text('تفاصيل المفردة'), findsNothing);
+    expect(find.text('Mütter'), findsNothing);
+    expect(find.text('أم'), findsNothing);
+  });
 }
