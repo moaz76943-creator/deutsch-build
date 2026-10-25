@@ -123,10 +123,10 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
     required String semanticVersion,
     int limit = 50000,
   }) async {
-    if (sourceLanguageId.trim().isEmpty ||
-        targetLanguageId.trim().isEmpty ||
-        semanticVersion.trim().isEmpty ||
-        sourceLanguageId == targetLanguageId ||
+    if (!_languageTagPattern.hasMatch(sourceLanguageId) ||
+        !_languageTagPattern.hasMatch(targetLanguageId) ||
+        !_versionPattern.hasMatch(semanticVersion) ||
+        sourceLanguageId.toLowerCase() == targetLanguageId.toLowerCase() ||
         limit < 1 ||
         limit > 50000) {
       throw ArgumentError('Invalid directed pair or bounded read limit');
@@ -142,8 +142,13 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
         'occurred_at_utc',
         'language_pair_key',
       ],
-      where: 'language_pair_key = ?',
-      whereArgs: <Object>[key],
+      // A legacy/corrupt row can carry a matching serialized key but
+      // different stored components. Verify both identities on every read.
+      where: 'language_pair_key = ? AND source_language_id = ? '
+          'AND target_language_id = ? AND semantic_version = ?',
+      whereArgs: <Object>[
+        key, sourceLanguageId, targetLanguageId, semanticVersion,
+      ],
       // Newest records first so bounded history cannot hide recent learning.
       orderBy: 'occurred_at_utc DESC, review_id DESC',
       limit: limit,
