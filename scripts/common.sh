@@ -14,8 +14,9 @@ export ERR_VERIFY=14
 # Filters credential-shaped text. Callers pipe command output through this
 # before it reaches a terminal or log. The function itself never prints secrets.
 redact_secrets() {
+  local keystore_name="RELEASE_KEYSTORE_BASE64"
   sed -E \
-    -e 's/(RELEASE_KEYSTORE_BASE64=)[^[:space:]]*/\1[REDACTED]/g' \
+    -e "s/(${keystore_name}=)[^[:space:]]*/\\1[REDACTED]/g" \
     -e 's/(-----BEGIN (PRIVATE KEY|CERTIFICATE)-----).*(-----END \2-----)/[REDACTED_PEM]/g' \
     -e 's/([pP]assword=)[^[:space:]]+/\1[REDACTED]/g' \
     -e 's/(--pass[A-Za-z0-9-]*)(=|[[:space:]]+)[^[:space:]]+/\1\2[REDACTED]/g'
