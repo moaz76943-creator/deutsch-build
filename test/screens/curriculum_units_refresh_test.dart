@@ -767,4 +767,65 @@ void main() {
     expect(find.text('99'), findsNothing);
   });
 
+
+  testWidgets('bidi marks in pasted search do not hide verified directed rows',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'Mutter', 'translation_ar': 'أم',
+            'source_language': 'de', 'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': 'Vater', 'translation_ar': '\u200Fأب\u200F',
+            'source_language': 'de', 'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': 'Mother', 'translation_ar': 'أم',
+            'source_language': 'en', 'target_language': 'ar',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    // Isolate marks frequently accompany Arabic text copied from RTL apps.
+    await tester.enterText(search, '\u2067أم\u2069');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Vater'), findsNothing);
+    expect(find.text('Mother'), findsNothing);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+
+    // The reverse case also matters: stored display text may contain RLM.
+    await tester.enterText(search, 'أب');
+    await tester.pump();
+    expect(find.text('Vater'), findsOneWidget);
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('\u200Fأب\u200F'), findsOneWidget);
+
+    // German pasted with LRM/RLM must search the same selected de->ar pair.
+    await tester.enterText(search, '\u200EMutter\u200F');
+    await tester.pump();
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Mother'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('أم'), findsOneWidget);
+  });
 }
