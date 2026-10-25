@@ -217,6 +217,20 @@ class TestAutoHeal(unittest.TestCase):
             ledger = json.load(f)
         self.assertEqual(ledger["leases"][self.target_file]["status"], "CANCELLED")
 
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_backup_failure_releases_claimed_lease(self, mock_gate):
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        executor.guard.ledger_path = self.ledger_path
+        with patch('auto_heal.shutil.copy2', side_effect=OSError("unreadable source")):
+            with self.assertRaises(SystemExit):
+                executor.execute()
+        mock_gate.assert_not_called()
+        with open(self.target_file) as stream:
+            self.assertIn("bad_path", stream.read())
+        with open(self.ledger_path) as stream:
+            ledger = json.load(stream)
+        self.assertEqual(ledger["leases"][self.target_file]["status"], "CANCELLED")
+
     def test_corrupt_attempt_history_fails_closed_without_mutation(self):
         with open(self.attempts_file, 'w') as f:
             f.write('{"J093-TEST": 2')
