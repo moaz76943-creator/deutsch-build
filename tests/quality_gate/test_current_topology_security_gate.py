@@ -53,7 +53,7 @@ WORKFLOW_CLASS = {
     "project-record-sync.yml": D_AUTOMATIC_OPT_IN,
     "quality_gate_ci.yml": B_MANUAL_UTILITY,
     "recovery-checkpoint.yml": D_AUTOMATIC_OPT_IN,
-    "security_audit.yml": D_AUTOMATIC_OPT_IN,
+    "security_audit.yml": "G",
     "staging_self_check.yml": "F",
     "smart_triage_labeler.yml": D_AUTOMATIC_OPT_IN,
     "sync_store_metadata.yml": B_MANUAL_UTILITY,
