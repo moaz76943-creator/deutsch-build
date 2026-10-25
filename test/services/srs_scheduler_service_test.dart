@@ -227,4 +227,91 @@ void main() {
     expect(await db.query('srs_review_events'), hasLength(1));
     expect(await db.query('srs_progress'), isEmpty);
   });
+
+  test('fractional saved due date cannot be truncated or overwritten', () async {
+    final db = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(db.close);
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    Future<SrsReviewSchedule> review(String eventId) =>
+        scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'haus',
+          languageCode: 'de',
+          grade: 3,
+          reviewedAt: DateTime.utc(2026, 10, 25),
+          reviewEventId: eventId,
+        );
+
+    await review('durable-1');
+    // SQLite INTEGER affinity still accepts a fractional REAL.
+    await db.update(
+      'srs_progress',
+      <String, Object>{'next_due_at': 1760000000.5},
+      where: 'lexeme_id = ? AND target_language_code = ?',
+      whereArgs: <Object>['haus', 'de'],
+    );
+    final before = (await db.query('srs_progress')).single;
+    expect(before['next_due_at'], 1760000000.5);
+
+    // Neither an exact replay nor a fresh review may acknowledge/overwrite
+    // corrupt durable scheduling state.
+    await expectLater(review('durable-1'), throwsArgumentError);
+    await expectLater(review('durable-2'), throwsArgumentError);
+    expect((await db.query('srs_progress')).single, before);
+    expect(await db.query('srs_review_events'), hasLength(1));
+  });
+
+  test('replayed review rejects corrupt saved ease without changing progress',
+      () async {
+    final db = await databaseFactoryFfi.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(db.close);
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    Future<SrsReviewSchedule> review() => scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'haus',
+          languageCode: 'de',
+          grade: 3,
+          reviewedAt: DateTime.utc(2026, 10, 25),
+          reviewEventId: 'immutable-ease-1',
+        );
+    await review();
+    await db.update('srs_progress', <String, Object>{'ease_factor': 0.5},
+        where: 'lexeme_id = ? AND target_language_code = ?',
+        whereArgs: <Object>['haus', 'de']);
+    final before = (await db.query('srs_progress')).single;
+    await expectLater(review(), throwsArgumentError);
+    expect((await db.query('srs_progress')).single, before);
+    expect(await db.query('srs_review_events'), hasLength(1));
+  });
+
 }
