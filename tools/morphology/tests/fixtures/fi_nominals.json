@@ -1,0 +1,20 @@
+{
+  "nominals": [
+    {
+      "id": "fi:talo",
+      "lemma": "talo",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "fi:metsä",
+      "lemma": "metsä",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    }
+  ]
+}

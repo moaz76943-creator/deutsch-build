@@ -1,0 +1,34 @@
+{
+  "verbs": [
+    {
+      "verb_id": "de:machen",
+      "infinitive": "machen",
+      "conjugations": [
+        {
+          "conjugation_id": "c1",
+          "tense": "present",
+          "person": "1s",
+          "conjugated_form": "mache"
+        },
+        {
+          "conjugation_id": "c2",
+          "tense": "PART_PERF",
+          "person": "none",
+          "conjugated_form": "gemacht"
+        }
+      ]
+    },
+    {
+      "verb_id": "de:gehen",
+      "infinitive": "gehen",
+      "conjugations": [
+        {
+          "conjugation_id": "c3",
+          "tense": "past",
+          "person": "3s",
+          "conjugated_form": "ging"
+        }
+      ]
+    }
+  ]
+}
