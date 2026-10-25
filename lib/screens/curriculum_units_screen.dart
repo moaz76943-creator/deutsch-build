@@ -303,7 +303,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .replaceAll('ä', 'ae')
       .replaceAll('ö', 'oe')
       .replaceAll('ü', 'ue')
-      .replaceAll('ß', 'ss');
+      .replaceAll('ß', 'ss').replaceAll(RegExp(r'[\s\u00A0\u2007\u202F\u200B]+'), ' ').trim();
 
   // A form or example is searchable only when the selected, verified row
   // actually supplies a string. Bound optional arrays to keep malformed or
