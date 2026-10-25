@@ -885,4 +885,67 @@ void main() {
     expect(find.text('صباح الخير'), findsOneWidget);
     expect(find.text('Wrong pair'), findsNothing);
   });
+
+  testWidgets('attested scalar forms and examples remain searchable in details',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          <String, dynamic>{
+            'word': 'gehen',
+            'translation_ar': 'يذهب',
+            'forms': 'ich gehe',
+            'examples': 'Ich gehe nach Hause.',
+            'source_language': 'de',
+            'target_language': 'ar',
+          },
+          <String, dynamic>{
+            'word': 'go',
+            'translation_ar': 'يذهب',
+            'forms': 'I go',
+            'examples': 'I go home.',
+            'source_language': 'en',
+            'target_language': 'ar',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final search = find.byKey(const Key('topic-search'));
+
+    await tester.enterText(search, 'ich gehe');
+    await tester.pump();
+    expect(find.text('gehen'), findsOneWidget);
+    expect(find.text('go'), findsNothing);
+    expect(tester.widget<Text>(find.text('gehen')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('يذهب')).textDirection,
+        TextDirection.rtl);
+
+    await tester.tap(find.text('gehen'));
+    await tester.pumpAndSettle();
+    expect(find.text('ich gehe'), findsOneWidget);
+    expect(find.text('Ich gehe nach Hause.'), findsOneWidget);
+    expect(find.text('I go home.'), findsNothing);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(search, 'Ich gehe nach Hause.');
+    await tester.pump();
+    expect(find.text('gehen'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('study-reveal')));
+    await tester.pump();
+    expect(find.text('يذهب'), findsOneWidget);
+    expect(find.text('go'), findsNothing);
+  });
 }
