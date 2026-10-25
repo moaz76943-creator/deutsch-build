@@ -365,6 +365,42 @@ void main() {
     expect(writes, 1002);
   });
 
+
+  test('invalid ratings and malformed review identities cannot persist', () async {
+    var writes = 0;
+    final manager = IdempotentReviewTransactionManager(
+      persistencePort: (_) async { writes++; },
+    );
+    final malformed = <ReviewTransactionEnvelope>[
+      review('negative-grade', pair: 'de_ar', at: early, rating: -1),
+      review('oversized-grade', pair: 'de_ar', at: early, rating: 4),
+      review('blank-card', pair: 'de_ar', at: early, card: ' '),
+      review('untrimmed-card', pair: 'de_ar', at: early, card: ' card'),
+      review(' ', pair: 'de_ar', at: early),
+      review('untrimmed-id ', pair: 'de_ar', at: early),
+      review('blank-pair', pair: ' ', at: early),
+    ];
+
+    for (final envelope in malformed) {
+      final result = await manager.commitReview(
+        envelope,
+        activeLanguagePairKey: envelope.languagePairKey,
+      );
+      expect(result.state, TransactionState.failed,
+          reason: 'Malformed review must fail before the persistence port');
+      expect(result.error, isNotNull);
+    }
+    expect(writes, 0);
+
+    // Rejected payloads must not reserve an ID or poison a corrected retry.
+    final corrected = await manager.commitReview(
+      review('oversized-grade', pair: 'de_ar', at: early, rating: 3),
+      activeLanguagePairKey: 'de_ar',
+    );
+    expect(corrected.state, TransactionState.committed);
+    expect(writes, 1);
+  });
+
   test('never acknowledges a review without a persistence writer', () async {
     final manager = IdempotentReviewTransactionManager();
     final envelope = review('missing-writer', pair: 'de_ar', at: early);
