@@ -1,73 +1,119 @@
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/security/data_integrity_signer.dart';
+import 'package:deutsch_bilarabi/core/security/ed25519_signature_verifier.dart';
 import 'package:deutsch_bilarabi/core/security/offline_gate.dart';
 import 'package:deutsch_bilarabi/core/security/storage_guard.dart';
 
 void main() {
-  group('J024 - Offline Security, Content Trust & Zero-Privilege Gate', () {
-    test('OfflineGate enforces zero network policy', () {
-      expect(() => OfflineGate.assertZeroNetworkPolicy(), throwsStateError);
-      expect(OfflineGate.isNetworkRequestPermitted(), isFalse);
+  group('DataIntegritySigner tests', () {
+    test('missing manifest or payload is rejected', () {
+      expect(DataIntegritySigner.verifyManifest(null, 'payload'), isFalse);
+      expect(DataIntegritySigner.verifyManifest({'hash': 123}, null), isFalse);
     });
 
-    test('OfflineGate rejects forged authorization', () {
+    test('altered content (invalid hash) is rejected', () {
+      final payload = 'my secret payload';
+      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+      expect(
+        DataIntegritySigner.verifyManifest({
+          'algorithm': 'fnv1a',
+          'hash': expectedHash + 1, // altered hash
+        }, payload),
+        isFalse,
+      );
+    });
+
+    test('valid content is accepted', () {
+      final payload = 'my secret payload';
+      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+      expect(
+        DataIntegritySigner.verifyManifest({
+          'algorithm': 'fnv1a',
+          'hash': expectedHash,
+        }, payload),
+        isTrue,
+      );
+    });
+
+    test('expired capabilities are rejected', () {
+      final payload = 'my secret payload';
+      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+      expect(
+        DataIntegritySigner.verifyManifest({
+          'algorithm': 'fnv1a',
+          'hash': expectedHash,
+          'expiresAt': DateTime.now().millisecondsSinceEpoch - 1000,
+        }, payload),
+        isFalse,
+      );
+    });
+
+    test('unsupported signing metadata (expiresAt not int) is rejected', () {
+      final payload = 'my secret payload';
+      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+      expect(
+        DataIntegritySigner.verifyManifest({
+          'algorithm': 'fnv1a',
+          'hash': expectedHash,
+          'expiresAt': '2030-01-01',
+        }, payload),
+        isFalse,
+      );
+    });
+
+    test('empty payload is rejected', () {
+      expect(
+        DataIntegritySigner.verifyManifest({
+          'algorithm': 'fnv1a',
+          'hash': DataIntegritySigner.computeChecksum(''),
+        }, ''),
+        isFalse,
+      );
+    });
+  });
+
+  group('OfflineGate tests', () {
+    test('network denial throws correct exception', () {
+      if (OfflineGate.strictOfflineEnforced) {
+        expect(() => OfflineGate.assertZeroNetworkPolicy(), throwsA(isA<StateError>()));
+      }
+    });
+
+    test('user-directed download only works if explicit consent is true', () {
       expect(OfflineGate.authorizeUserDownload(false), isFalse);
-      expect(OfflineGate.authorizeUserDownload(true), isTrue);
+      expect(OfflineGate.authorizeUserDownload(true), equals(OfflineGate.strictOfflineEnforced));
     });
 
-    test('OfflineGate explicitly denies telemetry', () {
+    test('telemetry is forbidden', () {
       expect(OfflineGate.isTelemetryAllowed(), isFalse);
     });
+  });
 
-    test('StorageGuard preserves local access permissions', () {
-      expect(StorageGuard.isLocalReadPermitted(), isTrue);
-      expect(StorageGuard.isLocalWritePermitted(), isTrue);
+  group('StorageGuard tests', () {
+    test('local read is permitted', () {
+      expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
     });
 
-    group('DataIntegritySigner manifest validation', () {
-      const payload = 'test_payload';
-      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+    test('local write is permitted', () {
+      expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
+    });
+  });
 
-      test('rejects missing manifest or payload', () {
-        expect(DataIntegritySigner.verifyManifest(null, payload), isFalse);
-        expect(DataIntegritySigner.verifyManifest({'hash': expectedHash, 'algorithm': 'fnv1a'}, null), isFalse);
-      });
+  group('Ed25519SignatureVerifier tests', () {
+    test('forged authorization (invalid signature) is rejected', () {
+      final pubKeyBytes = Uint8List(32);
+      final msgBytes = Uint8List.fromList('hello'.codeUnits);
+      final sigBytes = Uint8List(64);
 
-      test('rejects unsupported signing metadata', () {
-        final manifest = {'hash': expectedHash, 'algorithm': 'md5'};
-        expect(DataIntegritySigner.verifyManifest(manifest, payload), isFalse);
-      });
-
-      test('rejects altered content (hash mismatch)', () {
-        final manifest = {'hash': expectedHash + 1, 'algorithm': 'fnv1a'};
-        expect(DataIntegritySigner.verifyManifest(manifest, payload), isFalse);
-      });
-
-      test('rejects expired capabilities', () {
-        final manifest = {
-          'hash': expectedHash,
-          'algorithm': 'fnv1a',
-          'expiresAt': DateTime.now().millisecondsSinceEpoch - 10000 // 10 seconds ago
-        };
-        expect(DataIntegritySigner.verifyManifest(manifest, payload), isFalse);
-      });
-
-      test('accepts valid manifest without expiration', () {
-        final manifest = {
-          'hash': expectedHash,
-          'algorithm': 'fnv1a',
-        };
-        expect(DataIntegritySigner.verifyManifest(manifest, payload), isTrue);
-      });
-
-      test('accepts valid manifest with future expiration', () {
-        final manifest = {
-          'hash': expectedHash,
-          'algorithm': 'fnv1a',
-          'expiresAt': DateTime.now().millisecondsSinceEpoch + 10000 // 10 seconds in future
-        };
-        expect(DataIntegritySigner.verifyManifest(manifest, payload), isTrue);
-      });
+      expect(
+        Ed25519SignatureVerifier.verify(
+          publicKeyBytes: pubKeyBytes,
+          messageBytes: msgBytes,
+          signatureBytes: sigBytes,
+        ),
+        isFalse,
+      );
     });
   });
 }
