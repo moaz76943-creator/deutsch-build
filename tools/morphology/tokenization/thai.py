@@ -36,8 +36,10 @@ class ThaiTokenizer(LanguageTokenizer):
             surface = text[start_idx:end_idx]
 
             # If no dictionary match, it falls back to a single cluster
+            is_ambiguous = False
             if longest_match_lexical_id is None:
                  lexical_id = self.lexicon.lookup(surface)
+                 is_ambiguous = lexical_id is None
             else:
                  lexical_id = longest_match_lexical_id
 
@@ -46,7 +48,7 @@ class ThaiTokenizer(LanguageTokenizer):
                 start_offset=start_idx,
                 end_offset=end_idx,
                 lexical_id=lexical_id,
-                is_ambiguous=False
+                is_ambiguous=is_ambiguous
             ))
 
             i = longest_match_end_i

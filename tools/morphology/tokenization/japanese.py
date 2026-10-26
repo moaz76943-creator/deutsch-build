@@ -58,12 +58,14 @@ class JapaneseTokenizer(LanguageTokenizer):
                  # Issue says: "Preserve Japanese script boundaries and candidate lexical decomposition without inventing readings."
                  # So we emit the matched candidates, and un-matched parts as single clusters.
 
+                 # Fallback segmentations for out-of-vocabulary (OOV) input must set the is_ambiguous flag to True
+                 is_ambiguous = longest_match_lexical_id is None
                  tokens.append(Token(
                      surface=token_surface,
                      start_offset=boundaries[chunk_start_i],
                      end_offset=boundaries[longest_match_end_i],
                      lexical_id=longest_match_lexical_id,
-                     is_ambiguous=False
+                     is_ambiguous=is_ambiguous
                  ))
                  chunk_start_i = longest_match_end_i
 
