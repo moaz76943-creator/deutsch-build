@@ -8,6 +8,7 @@ from pathlib import Path
 from create_pack_v2 import build
 
 SPEC_PATH = 'assets/database/master_100_languages_spec.json'
+MANIFEST_PATH = 'assets/content/packs/manifest.json'
 PACKS_DIR = Path('assets/content/packs')
 MAX_SIZE = 25 * 1024 * 1024
 
@@ -114,11 +115,24 @@ def process():
     with open(SPEC_PATH, 'r', encoding='utf-8') as f:
         spec = json.load(f)
 
+    manifest = {'version': '1.0.0', 'packs': {}}
+    if os.path.exists(MANIFEST_PATH):
+        with open(MANIFEST_PATH, 'r', encoding='utf-8') as f:
+            manifest = json.load(f)
+
     languages = spec.get('languages', [])
     for lang in languages:
         code = lang.get('code')
         if not code:
             continue
+
+        license = lang.get('license', 'CC BY-SA 4.0')
+        if license == 'BLOCKED':
+            print(f"[{code}] LICENSE_BLOCKED")
+            continue
+
+        native_name = lang.get('native', code)
+        ar_name = lang.get('ar', code)
 
         canonical_path = PACKS_DIR / code / "canonical" / f"{code}-1.0.0.json"
 
@@ -139,7 +153,7 @@ def process():
             continue
 
         print(f"[{code}] Processing {len(lexicon)} entries...")
-        v2_data = convert_v1_to_v2(code, lang.get('native', code), lang.get('ar', code), v1_data)
+        v2_data = convert_v1_to_v2(code, native_name, ar_name, v1_data)
 
         with tempfile.TemporaryDirectory(prefix='polyglot_factory_') as tmpdir:
             tmp_json = Path(tmpdir) / f"{code}_v2.json"
@@ -152,11 +166,16 @@ def process():
                 print(f"[{code}] INVALID build: {e}")
                 continue
 
-            bundle_dir = PACKS_DIR / code / "bundles"
+            bundle_dir = PACKS_DIR / code
             bundle_dir.mkdir(parents=True, exist_ok=True)
 
             dest_db = bundle_dir / f"{code}-1.0.0.pack.gz"
             dest_sha = bundle_dir / f"{code}-1.0.0.pack.gz.sha256"
+
+            size = Path(db_gz_path).stat().st_size
+            if size > MAX_SIZE:
+                print(f"[{code}] INVALID: output size {size} exceeds {MAX_SIZE}")
+                continue
 
             shutil.copy2(db_gz_path, dest_db)
             shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
@@ -166,12 +185,21 @@ def process():
             if legacy_sqlite.exists():
                 legacy_sqlite.unlink()
 
-            size = dest_db.stat().st_size
-            if size > MAX_SIZE:
-                print(f"[{code}] INVALID: output size {size} exceeds {MAX_SIZE}")
-                sys.exit(1)
+            if code not in manifest['packs']:
+                manifest['packs'][code] = {}
+            manifest['packs'][code]['size_bytes'] = size
+
+            with open(str(db_gz_path) + ".sha256", "r") as sha_file:
+                sha_hash = sha_file.read().split()[0]
+            manifest['packs'][code]['sha256'] = sha_hash
+            manifest['packs'][code]['total_concepts'] = len(v2_data['concepts'])
+            manifest['packs'][code]['db_version'] = "1.0.0"
 
             print(f"[{code}] READY: {dest_db} ({size} bytes)")
+
+    with open(MANIFEST_PATH, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+        f.write('\n')
 
 if __name__ == '__main__':
     process()
