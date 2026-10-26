@@ -363,4 +363,26 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     expect(latest.single.timestamp, atMicrosecond);
   });
 
+  test('corrupt committed event timestamp never acknowledges replay after restart', () async {
+    final item = command('corrupt-event-timestamp');
+    expect(await manager(db).processTransaction(item),
+        ReviewCommitResult.committed);
+    await db.update(
+      SqliteReviewTransactionPort.tableName,
+      <String, Object>{'occurred_at_utc': 'not-an-ISO-instant'},
+      where: 'review_id = ?',
+      whereArgs: <Object>[item.reviewId],
+    );
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(file);
+    // A matching ID is not proof of a valid committed review when its
+    // durable timestamp has been damaged. Never report false success.
+    await expectLater(
+      manager(db).processTransaction(item),
+      throwsStateError,
+    );
+    expect(await count('de_ar_v2'), 1);
+  });
+
+
 }
