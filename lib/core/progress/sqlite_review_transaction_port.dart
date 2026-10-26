@@ -96,6 +96,15 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
         if (!matches) {
           throw StateError('Review event ID reused with a conflicting payload');
         }
+        // An event ID alone is not evidence of a sound durable commit.
+        // A damaged timestamp must not turn a retry into a false success.
+        // This journal writes UTC ISO-8601 strings exclusively.
+        final storedInstant = row['occurred_at_utc'];
+        if (storedInstant is! String ||
+            !storedInstant.endsWith('Z') ||
+            DateTime.tryParse(storedInstant) == null) {
+          throw StateError('Committed review has invalid durable timestamp');
+        }
         return ReviewCommitResult.alreadyCommitted;
       }
 
