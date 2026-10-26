@@ -12,17 +12,6 @@ on:
   pull_request:
     branches:
       - staging/v2-full-platform
-    paths:
-      - "lib/**"
-      - "test/**"
-      - "android/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "toolchain.lock"
-      - "assets/fonts/OFL*.txt"
-      - ".github/workflows/staging_self_check.yml"
-      - ".github/workflows/auto-merge.yml"
-      - "tests/test_private_ci_merge_contract.py"
 
 permissions:
   contents: read
@@ -54,7 +43,7 @@ jobs:
           if ! changed="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" --jq '.[].filename')"; then
             echo '::warning::Changed-file lookup failed; running all Flutter gates.'
             echo 'flutter_changed=true' >> "$GITHUB_OUTPUT"
-          elif printf '%s\n' "$changed" | grep -Eq '^(lib/|test/|android/|pubspec\.yaml$|pubspec\.lock$|toolchain\.lock$|assets/fonts/OFL)'; then
+          elif printf '%s\n' "$changed" | grep -E '^(lib/|test/|android/|pubspec\.yaml$|pubspec\.lock$|toolchain\.lock$|assets/fonts/OFL)' >/dev/null; then
             echo 'flutter_changed=true' >> "$GITHUB_OUTPUT"
           else
             echo 'flutter_changed=false' >> "$GITHUB_OUTPUT"
