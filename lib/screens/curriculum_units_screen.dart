@@ -258,7 +258,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   static String? _safeText(Object? value) {
     if (value is! String) return null;
     final text = value.trim();
-    return text.isEmpty ? null : text;
+    return text.isEmpty || _foldSearch(text).isEmpty ? null : text;
   }
   static String _displayLevel(Object? value) {
     final level = _safeText(value)?.toUpperCase();
@@ -630,7 +630,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   // treated as a valid translation. Unknown CEFR remains UNKNOWN, not inferred.
   bool _rowBelongsToSelection(Map<String, dynamic> row) {
     final word = row['word'];
-    if (word is! String || word.trim().isEmpty) return false;
+    if (_safeText(word) == null) return false;
     bool matchesWhenDeclared(String field, String expected) {
       if (!row.containsKey(field)) return true;
       final value = row[field];
