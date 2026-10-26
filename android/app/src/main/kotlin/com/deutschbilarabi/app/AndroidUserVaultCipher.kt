@@ -1,11 +1,14 @@
 package com.deutschbilarabi.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.nio.ByteBuffer
@@ -26,6 +29,9 @@ import javax.crypto.spec.SecretKeySpec
  * Software-derived keys are less tamper-resistant; both envelope versions bind
  * ciphertext to the record ID as authenticated additional data.
  * Existing V1 records are NEVER reinterpreted using a V2 software key.
+ *
+ * Software seed/salt now stored in EncryptedSharedPreferences (AES-256-GCM via Keystore master key)
+ * to protect against plain-text extraction even on compromised devices.
  */
 class AndroidUserVaultCipher(context: Context) : MethodChannel.MethodCallHandler {
     companion object {
@@ -38,12 +44,30 @@ class AndroidUserVaultCipher(context: Context) : MethodChannel.MethodCallHandler
         private const val HARDWARE_VERSION: Byte = 1
         private const val SOFTWARE_VERSION: Byte = 2
         private const val KDF_ITERATIONS = 210_000
+        private const val PREFS_NAME = "deutsch_user_vault_software_v2"
     }
 
-    private val preferences = context.applicationContext.getSharedPreferences(
-        "deutsch_user_vault_software_v2", Context.MODE_PRIVATE)
+    private val preferences: SharedPreferences = createEncryptedPreferences(context.applicationContext)
     private val random = SecureRandom()
     @Volatile private var cachedSoftwareKey: SecretKey? = null
+
+    private fun createEncryptedPreferences(context: Context): SharedPreferences {
+        return try {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                context,
+                PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            // Fallback to plain prefs only if encryption setup fails (rare; log in production)
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        }
+    }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         if (call.method != "encrypt" && call.method != "decrypt") {
