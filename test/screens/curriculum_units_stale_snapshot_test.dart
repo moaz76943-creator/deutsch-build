@@ -129,7 +129,7 @@ void main() {
     expect(find.text('Haus'), findsOneWidget);
     expect(tester.widget<Text>(find.text('Haus')).textDirection,
         TextDirection.ltr);
-    expect(tester.widget<Text>(find.text('بيت')).textDirection,
+    expect(tester.widget<Text>(find.text('بيت').last).textDirection,
         TextDirection.rtl);
     await tester.tap(find.byKey(const Key('topic-study-toggle')));
     await tester.pumpAndSettle();
