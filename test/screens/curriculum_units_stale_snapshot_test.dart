@@ -586,9 +586,9 @@ void main() {
             'source_text': 'Haus',
             'target_text': 'بيت',
             'pair_identity': {'id': 'de->ar'},
-            'forms': <String>['\\u200e', '\\u061c'],
+            'forms': <String>['\u200e', '\u061c'],
             'plural_form': 'Häuser',
-            'examples': <String>['\\u200f'],
+            'examples': <String>['\u200f'],
             'example_sentence': {
               'source': 'Das Haus ist groß.',
               'target': 'البيت كبير.',
