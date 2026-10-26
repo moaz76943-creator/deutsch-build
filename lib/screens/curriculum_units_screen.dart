@@ -740,10 +740,10 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       final accepted = rows.map(_projectCanonicalRow)
           .whereType<Map<String, dynamic>>().where(_rowBelongsToSelection)
           .take(50).toList(growable: false);
-      // A nonempty response containing no usable records is a failed read,
-      // not proof that a previously verified local pack became empty.
-      if (rows.isNotEmpty && accepted.isEmpty) {
-        throw StateError('Topic reader returned only unverified rows');
+      // An empty refresh cannot silently erase a verified snapshot;
+      // a nonempty unverified response must not masquerade as an empty pack.
+      if (rows.isEmpty ? previousRows.isNotEmpty : accepted.isEmpty) {
+        throw StateError('Topic reader returned no verified rows');
       }
       setState(() {
         _rows = accepted;
