@@ -273,21 +273,22 @@ class SrsSchedulerService {
       final reviewed = (reviewedAt != null)
           ? reviewedAt.toUtc()
           : _clockGuard.getEffectiveUtcTime();
-      if (reviewEventId != null) {
-        final latestRows = await txn.rawQuery(
-          'SELECT MAX(created_at) AS latest_review_at FROM srs_review_events '
-          'WHERE lexeme_id = ? AND target_language_code = ?',
-          <Object>[lexemeId, languageCode],
-        );
-        final latest = latestRows.single['latest_review_at'];
-        if (latest != null) {
-          if (existing.isEmpty) {
-            throw StateError('Committed review is missing its progress row');
-          }
-          final latestEpoch = _readPersistedCounter(latest, 'created_at');
-          if (reviewed.millisecondsSinceEpoch ~/ 1000 < latestEpoch) {
-            throw StateError('Stale review cannot overwrite durable progress');
-          }
+      // Legacy callers may omit the event ID, but must not bypass the
+      // committed journal's stale-review or missing-progress-row guards.
+      // Only deduplication of the new event itself depends on an ID.
+      final latestRows = await txn.rawQuery(
+        'SELECT MAX(created_at) AS latest_review_at FROM srs_review_events '
+        'WHERE lexeme_id = ? AND target_language_code = ?',
+        <Object>[lexemeId, languageCode],
+      );
+      final latest = latestRows.single['latest_review_at'];
+      if (latest != null) {
+        if (existing.isEmpty) {
+          throw StateError('Committed review is missing its progress row');
+        }
+        final latestEpoch = _readPersistedCounter(latest, 'created_at');
+        if (reviewed.millisecondsSinceEpoch ~/ 1000 < latestEpoch) {
+          throw StateError('Stale review cannot overwrite durable progress');
         }
       }
 
