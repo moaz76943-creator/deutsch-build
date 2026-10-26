@@ -313,6 +313,90 @@ void main() {
   });
 
 
+  testWidgets('flat canonical rows require verified direction and languages',
+      (tester) async {
+    var reads = 0;
+    Future<List<Map<String, dynamic>>> loader({
+      required String sectionId,
+      required String cefr,
+      required String languageCode,
+    }) async {
+      reads++;
+      return <Map<String, dynamic>>[
+        {
+          'source_text': 'Zug', 'target_text': 'قطار',
+          'pair_id': 'de->ar', 'source_language': 'de',
+          'target_language': 'ar', 'cefr_level': 'A1',
+          'forms': <String>['Züge'],
+        },
+        {
+          'source_text': 'Buch', 'target_text': 'كتاب',
+          'pair_id': 'de->ar', 'source_language_code': 'de',
+          'target_language_code': 'ar',
+        },
+        {
+          'source_text': 'كتاب', 'target_text': 'Buch',
+          'pair_id': 'ar->de', 'source_language': 'ar',
+          'target_language': 'de',
+        },
+        {
+          'source_text': 'Kind', 'target_text': 'طفل',
+          'pair_id': 'de->ar', 'source_language': 'de',
+        },
+        {
+          'source_text': 'Haus', 'target_text': 'بيت',
+          'pair_id': 'de->ar', 'source_language': 'de',
+          'target_language': 'ar', 'pair_identity': {'id': 'ar->de'},
+        },
+        {'word': 'Mutter', 'translation_ar': 'أم'},
+      ];
+    }
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family, cefr: 'A1', languageCode: 'de',
+        targetLanguageCode: 'ar', loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(reads, 1);
+    for (final accepted in ['Zug', 'Buch', 'Mutter']) {
+      expect(find.text(accepted), findsOneWidget);
+    }
+    for (final rejected in ['Kind', 'Haus', 'طفل', 'بيت']) {
+      expect(find.text(rejected), findsNothing);
+    }
+    expect(tester.widget<Text>(find.text('Zug')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('قطار')).textDirection,
+        TextDirection.rtl);
+    await tester.tap(find.text('Zug'));
+    await tester.pumpAndSettle();
+    expect(find.text('Züge'), findsOneWidget);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Züge');
+    await tester.pump();
+    expect(find.text('Zug'), findsOneWidget);
+    expect(find.text('Buch'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-search-clear')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('بطاقة 1 من 3'), findsOneWidget);
+
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family, cefr: 'A1', languageCode: 'ar',
+        targetLanguageCode: 'de', loadWords: loader,
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(reads, 1);
+    expect(find.text('Zug'), findsNothing);
+    expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'), findsOneWidget);
+  });
+
   testWidgets('invalid refresh keeps last verified rows until a clean read',
       (tester) async {
     var reads = 0;
