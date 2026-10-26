@@ -296,7 +296,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       // Fold Arabic variants, bidi controls and numerals for lookup only.
       .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
       .replaceAll('ی', 'ي').replaceAll('ک', 'ك')
-      .replaceAll(RegExp(r'[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]'), '')
+      .replaceAll(RegExp(r'[\u00AD\u034F\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFE00-\uFE0F\uFEFF]'), '')
       .replaceAllMapped(RegExp(r'[\u0660-\u0669\u06F0-\u06F9]'), (match) {
         final digit = match[0]!.codeUnitAt(0);
         return String.fromCharCode(
