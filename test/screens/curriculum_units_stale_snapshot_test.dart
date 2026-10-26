@@ -204,7 +204,7 @@ void main() {
     expect(find.text('Das Haus ist groß.'), findsOneWidget);
     expect(tester.widget<Text>(find.text('Häuser')).textDirection,
         TextDirection.ltr);
-    expect(tester.widget<Text>(find.text('بيت')).textDirection,
+    expect(tester.widget<Text>(find.text('بيت').last).textDirection,
         TextDirection.rtl);
     expect(find.text('\u200F\u200B'), findsNothing);
     expect(find.text('\u061C'), findsNothing);
