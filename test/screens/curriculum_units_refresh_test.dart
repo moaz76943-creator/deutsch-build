@@ -948,4 +948,49 @@ void main() {
     expect(find.text('يذهب'), findsOneWidget);
     expect(find.text('go'), findsNothing);
   });
+
+  testWidgets('quiz shows textual comparison only for the selected directed pair',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY'),
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {'word': 'Mutter', 'translation_ar': 'أم',
+           'source_language': 'de', 'target_language': 'ar'},
+          {'word': 'Mother', 'translation_ar': 'أم',
+           'source_language': 'en', 'target_language': 'ar'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pump();
+    expect(find.text('Mother'), findsNothing);
+    expect(tester.widget<Text>(find.byKey(const Key('study-source')))
+        .textDirection, TextDirection.ltr);
+    await tester.tap(find.byKey(const Key('study-quiz-toggle')));
+    await tester.pump();
+    final input = find.byKey(const Key('study-quiz-input'));
+    expect(tester.widget<TextField>(input).textDirection, TextDirection.rtl);
+    await tester.enterText(input, 'ام');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('study-quiz-compare')));
+    await tester.pump();
+    expect(find.textContaining('مطابقة نصية'), findsOneWidget);
+    expect(find.text('أم'), findsOneWidget);
+    await tester.enterText(input, 'أبي');
+    await tester.pump();
+    expect(find.byKey(const Key('study-quiz-text-match')), findsNothing);
+    await tester.tap(find.byKey(const Key('study-quiz-compare')));
+    await tester.pump();
+    expect(find.textContaining('قد تكون صحيحة بصياغة أخرى'), findsOneWidget);
+    expect(find.text('Mother'), findsNothing);
+  });
 }
