@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/search_fusion_service.dart';
@@ -7,12 +8,8 @@ void main() {
   late Database db;
   late FtsSearchService fts;
 
-  setUpAll(() {
+  setUpAll(() async {
     sqfliteFfiInit();
-    fts = FtsSearchService();
-  });
-
-  setUp(() async {
     db = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
     await db.execute('''
       CREATE TABLE lexicon(
@@ -24,17 +21,18 @@ void main() {
     await db.execute('''
       CREATE VIRTUAL TABLE lexicon_fts USING fts5(surface, lemma, gloss, language_code);
     ''');
+    fts = FtsSearchService();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await db.close();
   });
 
   test('Polysemy: preserves identical surface forms with different ids', () async {
-    final bankRow1 = await db.insert('lexicon', {'id': '1', 'surface': 'Bank', 'fields_json': '{"lemma": "Bank"}'});
-    final bankRow2 = await db.insert('lexicon', {'id': '2', 'surface': 'Bank', 'fields_json': '{"lemma": "Bank"}'});
-    await db.insert('lexicon_fts', {'rowid': bankRow1, 'surface': 'Bank', 'lemma': 'Bank'});
-    await db.insert('lexicon_fts', {'rowid': bankRow2, 'surface': 'Bank', 'lemma': 'Bank'});
+    await db.insert('lexicon', {'id': '1', 'surface': 'Bank', 'fields_json': '{"lemma": "Bank"}'});
+    await db.insert('lexicon', {'id': '2', 'surface': 'Bank', 'fields_json': '{"lemma": "Bank"}'});
+    await db.insert('lexicon_fts', {'rowid': 1, 'surface': 'Bank', 'lemma': 'Bank'});
+    await db.insert('lexicon_fts', {'rowid': 2, 'surface': 'Bank', 'lemma': 'Bank'});
 
     final service = SearchFusionService(
       search: (q, lang, limit) => fts.searchDatabase(db, q, languageCode: lang, limit: limit)
@@ -43,8 +41,7 @@ void main() {
     final pages = await service.search(
       query: 'Bank',
       activeLanguageCode: 'de',
-      mountedLanguages: ['de'],
-      perPackLimit: 50
+      mountedLanguages: ['de']
     ).toList();
 
     final items = pages.last.items;
@@ -54,12 +51,12 @@ void main() {
   });
 
   test('CJK/Arabic/German script support', () async {
-    final arabicRow = await db.insert('lexicon', {'id': '3', 'surface': 'مرحبا', 'fields_json': '{}'});
-    final germanRow = await db.insert('lexicon', {'id': '4', 'surface': 'Haus', 'fields_json': '{}'});
-    final cjkRow = await db.insert('lexicon', {'id': '5', 'surface': '你好', 'fields_json': '{}'});
-    await db.insert('lexicon_fts', {'rowid': arabicRow, 'surface': 'مرحبا', 'lemma': 'مرحبا'});
-    await db.insert('lexicon_fts', {'rowid': germanRow, 'surface': 'Haus', 'lemma': 'Haus'});
-    await db.insert('lexicon_fts', {'rowid': cjkRow, 'surface': '你好', 'lemma': '你好'});
+    await db.insert('lexicon', {'id': '3', 'surface': 'مرحبا', 'fields_json': '{}'});
+    await db.insert('lexicon', {'id': '4', 'surface': 'Haus', 'fields_json': '{}'});
+    await db.insert('lexicon', {'id': '5', 'surface': '你好', 'fields_json': '{}'});
+    await db.insert('lexicon_fts', {'rowid': 3, 'surface': 'مرحبا', 'lemma': 'مرحبا'});
+    await db.insert('lexicon_fts', {'rowid': 4, 'surface': 'Haus', 'lemma': 'Haus'});
+    await db.insert('lexicon_fts', {'rowid': 5, 'surface': '你好', 'lemma': '你好'});
 
     final service = SearchFusionService(
       search: (q, lang, limit) => fts.searchDatabase(db, q, languageCode: lang, limit: limit)
@@ -69,8 +66,7 @@ void main() {
       final pages = await service.search(
         query: q,
         activeLanguageCode: 'de',
-        mountedLanguages: ['de'],
-        perPackLimit: 50
+        mountedLanguages: ['de']
       ).toList();
       expect(pages.last.items.length, 1);
     }
@@ -78,8 +74,8 @@ void main() {
 
   test('Ranking and pagination logic handles correctly', () async {
     for (int i = 0; i < 30; i++) {
-      final rowId = await db.insert('lexicon', {'id': 'p$i', 'surface': 'Page', 'fields_json': '{}'});
-      await db.insert('lexicon_fts', {'rowid': rowId, 'surface': 'Page', 'lemma': 'Page'});
+      await db.insert('lexicon', {'id': 'p$i', 'surface': 'Page', 'fields_json': '{}'});
+      await db.insert('lexicon_fts', {'rowid': 100 + i, 'surface': 'Page', 'lemma': 'Page'});
     }
 
     final service = SearchFusionService(
@@ -90,8 +86,7 @@ void main() {
       query: 'Page',
       activeLanguageCode: 'de',
       mountedLanguages: ['de'],
-      pageSize: 20,
-      perPackLimit: 50
+      pageSize: 20
     ).toList();
 
     final completePages = pages.where((p) => p.isComplete).toList();
