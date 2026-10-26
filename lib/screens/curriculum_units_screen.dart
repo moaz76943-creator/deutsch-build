@@ -269,7 +269,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     if (!row.containsKey('source_text') && !row.containsKey('target_text')) return row;
     final source = _safeText(row['source_text']);
     final target = _safeText(row['target_text']);
-    if (source == null || target == null || row['pair_identity'] is! Map) return null;
+    // Flat canonical rows need both declared languages and a directed pair id.
+    final flat = row['pair_id'] is String &&
+        (row['source_language'] ?? row['source_language_code']) is String &&
+        (row['target_language'] ?? row['target_language_code']) is String;
+    if (source == null || target == null ||
+        (row['pair_identity'] is! Map && !flat)) return null;
     if ((row['word'] != null && _safeText(row['word']) != source) ||
         (row['translation_ar'] != null && _safeText(row['translation_ar']) != target)) return null;
     final example = row['example_sentence'];
@@ -507,13 +512,11 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             : const <String>[];
     bool hasMoreItems(Object? value) =>
         value is List && value.length > maxDetailItems;
-
     TextDirection direction(String value) => RegExp(
           r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]',
         ).hasMatch(value)
             ? TextDirection.rtl
             : TextDirection.ltr;
-
     final word = _safeText(row['word']);
     final article = _safeText(row['article']);
     final displayWord = word == null
@@ -525,7 +528,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     final examples = lines(row['examples']);
     final partOfSpeech = _safeText(row['part_of_speech']);
     final level = _rowDisplayLevel(row);
-
     Widget detail(String label, List<String> values,
         {TextDirection? textDirection}) {
       return Padding(
@@ -540,7 +542,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         ),
       );
     }
-
     final route = DialogRoute<void>(
       context: context,
       builder: (dialogContext) => Directionality(
@@ -597,7 +598,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       if (identical(_detailsRoute, route)) _detailsRoute = null;
     });
   }
-
   @override
   void initState() {
     super.initState();
