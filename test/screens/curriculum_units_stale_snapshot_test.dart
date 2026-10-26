@@ -6,6 +6,56 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final family = LocalTopicCatalog.sections.firstWhere((s) => s.id == 'FAMILY');
 
+  testWidgets('empty refresh keeps last verified pair snapshot until retry',
+      (tester) async {
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async {
+          reads++;
+          if (reads == 2) return <Map<String, dynamic>>[];
+          return <Map<String, dynamic>>[
+            {
+              'word': 'Mutter',
+              'translation_ar': reads == 1 ? 'أم' : 'والدة',
+              'source_language': 'de',
+              'target_language': 'ar',
+            },
+          ];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(reads, 1);
+    expect(find.text('أم'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pumpAndSettle();
+    expect(reads, 2);
+    expect(find.byKey(const Key('topic-stale-warning')), findsOneWidget);
+    expect(find.text('أم'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+
+    await tester.tap(find.byKey(const Key('topic-stale-retry')));
+    await tester.pumpAndSettle();
+    expect(reads, 3);
+    expect(find.byKey(const Key('topic-stale-warning')), findsNothing);
+    expect(find.text('والدة'), findsOneWidget);
+    expect(find.text('أم'), findsNothing);
+  });
+
+
   testWidgets('failed refresh visibly marks retained rows stale until recovery',
       (tester) async {
     var reads = 0;
