@@ -660,4 +660,84 @@ void main() {
         .repetitionCount, 1);
   });
 
+
+  test('implicit review survives clock rollback after database restart',
+      () async {
+    final directory =
+        await Directory.systemTemp.createTemp('srs-clock-rollback-');
+    final databasePath = '${directory.path}/progress.sqlite';
+    var db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(() async {
+      if (db.isOpen) await db.close();
+      await directory.delete(recursive: true);
+    });
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+
+    // Simulate an already committed event newer than the restarted device
+    // clock. Its durable schedule and event must not be lost or overwritten.
+    final savedFuture = DateTime.now().toUtc().add(
+      const Duration(days: 1),
+    );
+    await SrsSchedulerService().gradeAndPersist(
+      progressDb: db,
+      lexemeId: 'clock-card',
+      languageCode: 'de',
+      grade: 3,
+      reviewedAt: savedFuture,
+      reviewEventId: 'clock-first',
+    );
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+
+    // A fresh legitimate submission has no explicit timestamp. Clamp only
+    // this case to the durable watermark instead of discarding the review.
+    final second = await SrsSchedulerService().gradeAndPersist(
+      progressDb: db,
+      lexemeId: 'clock-card',
+      languageCode: 'de',
+      grade: 3,
+      reviewEventId: 'clock-second',
+    );
+    expect(second.repetitionCount, 2);
+    final events = await db.query('srs_review_events',
+        orderBy: 'created_at ASC');
+    expect(events, hasLength(2));
+    expect(events.first['review_event_id'], 'clock-first');
+    expect(events.last['review_event_id'], 'clock-second');
+    expect((events.last['created_at'] as num).toDouble(),
+        greaterThan((events.first['created_at'] as num).toDouble()));
+
+    // A delayed command with an explicit older instant is not a new
+    // wall-clock submission and must remain blocked after the same restart.
+    await expectLater(
+      SrsSchedulerService().gradeAndPersist(
+        progressDb: db,
+        lexemeId: 'clock-card',
+        languageCode: 'de',
+        grade: 3,
+        reviewedAt: DateTime.now().toUtc(),
+        reviewEventId: 'clock-delayed',
+      ),
+      throwsStateError,
+    );
+    expect(await db.query('srs_review_events'), hasLength(2));
+    expect((await db.query('srs_progress')).single['repetition_count'], 2);
+  });
 }

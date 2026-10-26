@@ -304,7 +304,7 @@ class SrsSchedulerService {
       // process restart, and a missing progress row must not be recreated
       // when committed events already prove that the learner studied it.
       // Use the existing transaction and journal; no schema migration.
-      final reviewed = (reviewedAt != null)
+      var reviewed = (reviewedAt != null)
           ? reviewedAt.toUtc()
           : _clockGuard.getEffectiveUtcTime();
       // Legacy callers may omit the event ID, but must not bypass the
@@ -330,6 +330,17 @@ class SrsSchedulerService {
         }
         final latestMicros =
             (latest * Duration.microsecondsPerSecond).round();
+        // A fresh scheduler after process death has no prior clock anchor.
+        // For an ordinary new review (no caller-supplied instant), continue
+        // after the last durable event even if the device clock moved back.
+        // Explicitly timestamped delayed commands must still fail closed.
+        if (reviewedAt == null &&
+            reviewed.microsecondsSinceEpoch <= latestMicros) {
+          reviewed = DateTime.fromMicrosecondsSinceEpoch(
+            latestMicros + 1,
+            isUtc: true,
+          );
+        }
         if (reviewed.microsecondsSinceEpoch < latestMicros) {
           throw StateError('Stale review cannot overwrite durable progress');
         }
