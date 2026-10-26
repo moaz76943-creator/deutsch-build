@@ -627,4 +627,75 @@ void main() {
     expect(find.text('Haus'), findsOneWidget);
   });
 
+
+  testWidgets('card changes and async content states announce to assistive tech',
+      (tester) async {
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async {
+          reads++;
+          if (reads > 1) throw StateError('temporary offline read failure');
+          return <Map<String, dynamic>>[
+            {'word': 'Mutter', 'translation_ar': 'أم',
+             'source_language': 'de', 'target_language': 'ar'},
+            {'word': 'Vater', 'translation_ar': 'أب',
+             'source_language': 'de', 'target_language': 'ar'},
+            {'word': 'Mother', 'translation_ar': 'أم',
+             'source_language': 'en', 'target_language': 'ar'},
+          ];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(reads, 1);
+    expect(find.text('Mother'), findsNothing);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+
+    final card = find.byKey(const Key('study-card-announcement'));
+    expect(card, findsOneWidget);
+    var semantics = tester.widget<Semantics>(card);
+    expect(semantics.properties.liveRegion, isTrue);
+    expect(semantics.excludeSemantics, isTrue);
+    expect(semantics.properties.label, contains('بطاقة 1 من 2: Mutter'));
+    expect(tester.widget<Text>(find.byKey(const Key('study-source')))
+        .textDirection, TextDirection.ltr);
+
+    await tester.ensureVisible(find.byKey(const Key('study-next')));
+    await tester.tap(find.byKey(const Key('study-next')));
+    await tester.pumpAndSettle();
+    semantics = tester.widget<Semantics>(card);
+    expect(semantics.properties.label, contains('بطاقة 2 من 2: Vater'));
+    expect(find.text('Mother'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Text>(find.text('أم')).textDirection,
+        TextDirection.rtl);
+    await tester.enterText(find.byKey(const Key('topic-search')), 'no-match');
+    await tester.pumpAndSettle();
+    final noResults = tester.widget<Semantics>(
+        find.byKey(const Key('topic-no-results-announcement')));
+    expect(noResults.properties.liveRegion, isTrue);
+    await tester.tap(find.byKey(const Key('topic-search-clear')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pumpAndSettle();
+    expect(reads, 2);
+    final stale = tester.widget<Semantics>(
+        find.byKey(const Key('topic-stale-announcement')));
+    expect(stale.properties.liveRegion, isTrue);
+    expect(find.text('Mutter'), findsOneWidget);
+  });
+
 }

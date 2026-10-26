@@ -309,7 +309,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .replaceAll('ö', 'oe')
       .replaceAll('ü', 'ue')
       .replaceAll('ß', 'ss').replaceAll(RegExp(r'[\s\u00A0\u2007\u202F\u200B]+'), ' ').trim();
-  // Search only attested scalar strings or bounded string arrays.
   static bool _listContainsSearch(Object? value, String query) {
     if (value is String) return _foldSearch(value).contains(query);
     if (value is! List) return false;
@@ -382,12 +381,16 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Text(
-                    displayWord,
-                    key: const Key('study-source'),
-                    textDirection: TextDirection.ltr,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  Semantics(
+                    key: const Key('study-card-announcement'),
+                    liveRegion: true,
+                    excludeSemantics: true,
+                    label: 'بطاقة ${index + 1} من ${rows.length}: $displayWord',
+                    child: Text(displayWord,
+                      key: const Key('study-source'),
+                      textDirection: TextDirection.ltr,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall),
                   ),
                   const SizedBox(height: 20),
                   if (_quizMode) ...[
@@ -503,7 +506,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   void _showWordDetails(Map<String, dynamic> row) {
     if (_detailsRoute?.isActive ?? false) return;
     const maxDetailItems = 32;
-    // Treat formatting-only morphology and examples as absent, not evidence.
     List<String> lines(Object? value) => value is String
         ? <String>[value].map(_safeText).whereType<String>().toList(growable: false)
         : value is List
@@ -767,7 +769,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         appBar: AppBar(
           title: Text('${widget.section.title} — ${widget.cefr}'),
           actions: [
-            // Re-query installed packs with stale-request protection.
             if (_supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty)
               IconButton(
                 key: const Key('topic-content-refresh'),
@@ -816,8 +817,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                         labelText: 'ابحث بالكلمة أو الترجمة',
                         labelStyle: const TextStyle(color: Colors.black54),
                         prefixIcon: const Icon(Icons.search, color: Colors.black54),
-                        // A one-tap reset matters on narrow phones, especially
-                        // after an empty result or while practicing a card.
                         suffixIcon: _searchQuery.isEmpty
                             ? null
                             : IconButton(
@@ -840,14 +839,15 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                 )
               : null,
         ),
-        // Retained rows are stale until a successful pack read.
         bottomNavigationBar: _staleSnapshot && !_loading
             ? SafeArea(
                 child: MaterialBanner(
                   key: const Key('topic-stale-warning'),
-                  content: const Text(
-                    'تعذر تحديث المفردات المحلية؛ تعرض آخر نسخة متوفرة. '
-                    'قد لا تعكس الحزمة المثبتة حالياً.',
+                  content: const Semantics(
+                    key: Key('topic-stale-announcement'),
+                    liveRegion: true,
+                    child: Text('تعذر تحديث المفردات المحلية؛ تعرض آخر نسخة متوفرة. '
+                        'قد لا تعكس الحزمة المثبتة حالياً.'),
                   ),
                   actions: [
                     TextButton(
@@ -886,9 +886,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // A stalled local adapter should not require waiting
-                      // for its 30-second timeout before the learner retries.
-                      // _requestId already discards obsolete completions.
                       TextButton.icon(
                         key: const Key('topic-loading-retry'),
                         onPressed: _load,
@@ -931,9 +928,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 12),
-                              // A pack can become available while this route
-                              // stays open. Re-query explicitly without
-                              // inventing a word or silently polling storage.
                               FilledButton.icon(
                                 key: const Key('topic-empty-refresh'),
                                 onPressed: _load,
@@ -948,10 +942,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                         ? const Center(
                             child: Padding(
                               padding: EdgeInsets.all(24),
-                              child: Text(
-                                'لا توجد نتائج مطابقة ضمن المفردات المحمّلة (حتى 50 كلمة). '
-                                'امسح البحث لعرض الكلمات المتوفرة.',
-                                textAlign: TextAlign.center,
+                              child: Semantics(
+                                key: Key('topic-no-results-announcement'),
+                                liveRegion: true,
+                                child: Text('لا توجد نتائج مطابقة ضمن المفردات المحمّلة (حتى 50 كلمة). '
+                                    'امسح البحث لعرض الكلمات المتوفرة.',
+                                    textAlign: TextAlign.center),
                               ),
                             ),
                           )
