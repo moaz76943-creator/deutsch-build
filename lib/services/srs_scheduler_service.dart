@@ -50,6 +50,17 @@ class SrsSchedulerService {
   static const double minimumEaseFactor = 1.3;
   static const int secondsPerDay = 86400;
 
+  // A legacy caller without an event ID still represents a durable review.
+  // Generate an isolate/restart-independent identity so its timestamp is
+  // retained in the existing journal without pretending retries deduplicate.
+  static String _newAnonymousReviewEventId() {
+    final random = math.Random.secure();
+    final nonce = List<int>.generate(16, (_) => random.nextInt(256))
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+    return 'LEGACY_ANON_$nonce';
+  }
+
   final MonotonicClockGuard _clockGuard;
 
   SrsSchedulerService({MonotonicClockGuard? clockGuard})
@@ -203,6 +214,7 @@ class SrsSchedulerService {
       throw ArgumentError.value(
         reviewEventId, 'reviewEventId', 'Invalid review event identity');
     }
+    final durableEventId = reviewEventId ?? _newAnonymousReviewEventId();
     return progressDb.transaction((txn) async {
       // Ensure review events table for idempotency
       await txn.execute('''
@@ -346,16 +358,17 @@ class SrsSchedulerService {
         );
       }
 
-      // Record review event for idempotency & audit ledger
-      if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
-        await txn.insert('srs_review_events', <String, Object?>{
-          'review_event_id': reviewEventId.trim(),
-          'lexeme_id': lexemeId,
-          'target_language_code': languageCode,
-          'grade': grade,
-          'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
-        });
-      }
+      // Every successful review contributes to the durable stale-review
+      // watermark. Previously null-ID calls left no journal entry, allowing
+      // older anonymous writes after restart and lost-row resurrection.
+      // Only caller-supplied IDs are eligible for exact replay deduplication.
+      await txn.insert('srs_review_events', <String, Object?>{
+        'review_event_id': durableEventId,
+        'lexeme_id': lexemeId,
+        'target_language_code': languageCode,
+        'grade': grade,
+        'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
+      });
 
       return result;
     });
