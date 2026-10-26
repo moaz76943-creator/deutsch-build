@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
@@ -56,6 +57,12 @@ class VocabularyRepository {
     }
   }
 
+  /// Top-level function required for compute() isolate.
+  static List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
+    final List<dynamic> decoded = jsonDecode(jsonString);
+    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _seedAndMigrate(Database db) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -69,9 +76,9 @@ class VocabularyRepository {
       }
 
       if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
-        final List<dynamic> decoded = jsonDecode(jsonString);
-        final items =
-            decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        // Offload heavy JSON parsing to background isolate to avoid main-thread jank
+        // during first-launch seeding of large vocabulary assets.
+        final items = await compute(_parseVocabularyJson, jsonString);
         await saveVocabularyList(items);
         return items;
       }
