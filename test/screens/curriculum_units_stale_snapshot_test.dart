@@ -312,4 +312,105 @@ void main() {
     expect(find.text('كتاب'), findsOneWidget);
   });
 
+
+  testWidgets('invalid refresh keeps last verified rows until a clean read',
+      (tester) async {
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async {
+          reads++;
+          if (reads == 1) {
+            return <Map<String, dynamic>>[
+              {'word': 'Mutter', 'translation_ar': 'أم',
+               'source_language': 'de', 'target_language': 'ar'},
+            ];
+          }
+          if (reads == 2) {
+            return <Map<String, dynamic>>[
+              {'word': 'Mother', 'translation_ar': 'أم',
+               'source_language': 'en', 'target_language': 'ar'},
+              {'word': 'Vater', 'translation_ar': 'أب',
+               'source_language': 'de', 'target_language': 'en'},
+            ];
+          }
+          return <Map<String, dynamic>>[
+            {'word': 'Vater', 'translation_ar': 'أب',
+             'source_language': 'de', 'target_language': 'ar'},
+          ];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Mutter'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('topic-content-refresh')));
+    await tester.pumpAndSettle();
+    expect(reads, 2);
+    expect(find.byKey(const Key('topic-stale-warning')), findsOneWidget);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Mother'), findsNothing);
+    expect(find.text('Vater'), findsNothing);
+    expect(tester.widget<Text>(find.text('Mutter')).textDirection,
+        TextDirection.ltr);
+
+    await tester.tap(find.byKey(const Key('topic-stale-retry')));
+    await tester.pumpAndSettle();
+    expect(reads, 3);
+    expect(find.byKey(const Key('topic-stale-warning')), findsNothing);
+    expect(find.text('Mutter'), findsNothing);
+    expect(find.text('Vater'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('أب').last).textDirection,
+        TextDirection.rtl);
+  });
+
+  testWidgets('first read with only foreign-pair rows is retryable, not empty',
+      (tester) async {
+    var reads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async {
+          reads++;
+          if (reads == 1) {
+            return <Map<String, dynamic>>[
+              {'word': 'Mother', 'translation_ar': 'أم',
+               'source_language': 'en', 'target_language': 'ar'},
+            ];
+          }
+          return <Map<String, dynamic>>[
+            {'word': 'Mutter', 'translation_ar': 'أم',
+             'source_language': 'de', 'target_language': 'ar'},
+          ];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Mother'), findsNothing);
+    expect(find.textContaining('تعذر قراءة المحتوى المحلي'), findsOneWidget);
+    expect(find.byKey(const Key('topic-empty-refresh')), findsNothing);
+    expect(find.byKey(const Key('topic-stale-warning')), findsNothing);
+    await tester.tap(find.text('إعادة المحاولة'));
+    await tester.pumpAndSettle();
+    expect(reads, 2);
+    expect(find.text('Mutter'), findsOneWidget);
+    expect(find.text('Mother'), findsNothing);
+    expect(tester.widget<Text>(find.text('أم').last).textDirection,
+        TextDirection.rtl);
+  });
 }
