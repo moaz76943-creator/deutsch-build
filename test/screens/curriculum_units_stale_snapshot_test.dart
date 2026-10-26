@@ -497,4 +497,75 @@ void main() {
     expect(tester.widget<Text>(find.text('أم').last).textDirection,
         TextDirection.rtl);
   });
+
+  testWidgets('canonical examples and plural survive empty adapter placeholders',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {
+            'source_text': 'Buch',
+            'target_text': 'كتاب',
+            'pair_identity': {
+              'id': 'de->ar',
+              'source_language': 'de',
+              'target_language': 'ar',
+              'source_direction': 'ltr',
+              'target_direction': 'rtl',
+            },
+            'forms': <String>[],
+            'plural_form': 'Bücher',
+            'examples': <String>[],
+            'example_sentence': {
+              'source': 'Das Buch ist neu.',
+              'target': 'الكتاب جديد.',
+            },
+          },
+          {
+            'source_text': 'كتاب',
+            'target_text': 'Buch',
+            'pair_identity': {'id': 'ar->de'},
+            'plural_form': 'كتب',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Buch'), findsOneWidget);
+    expect(find.text('كتب'), findsNothing);
+    expect(tester.widget<Text>(find.text('Buch')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('كتاب')).textDirection,
+        TextDirection.rtl);
+
+    await tester.tap(find.text('Buch'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bücher'), findsOneWidget);
+    expect(find.text('Das Buch ist neu.'), findsOneWidget);
+    expect(find.text('الكتاب جديد.'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('الكتاب جديد.')).textDirection,
+        TextDirection.rtl);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Bücher');
+    await tester.pump();
+    expect(find.text('Buch'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('topic-search')), 'الكتاب جديد.');
+    await tester.pump();
+    expect(find.text('Buch'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-search-clear')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('study-source')), findsOneWidget);
+  });
 }
