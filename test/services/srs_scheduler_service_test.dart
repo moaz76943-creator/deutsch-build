@@ -490,4 +490,80 @@ void main() {
     expect(await db.query('srs_progress'), hasLength(1));
   });
 
+
+  test('anonymous legacy reviews persist durable stale and missing-row guards',
+      () async {
+    final directory = await Directory.systemTemp.createTemp('srs-anonymous-');
+    final databasePath = '${directory.path}/progress.sqlite';
+    var db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(() async {
+      if (db.isOpen) await db.close();
+      await directory.delete(recursive: true);
+    });
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+
+    final scheduler = SrsSchedulerService();
+    final newest = DateTime.utc(2026, 10, 25, 12);
+    Future<SrsReviewSchedule> anonymousReview(DateTime at) =>
+        scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'haus',
+          languageCode: 'de',
+          grade: 3,
+          reviewedAt: at,
+        );
+
+    // Anonymous submissions are distinct learning actions, not duplicates.
+    await anonymousReview(newest);
+    await anonymousReview(newest);
+    final beforeRestart = await db.query('srs_review_events');
+    expect(beforeRestart, hasLength(2));
+    expect(
+      beforeRestart.map((row) => row['review_event_id']).toSet(),
+      hasLength(2),
+      reason: 'Anonymous reviews need unique durable event identities',
+    );
+    expect((await db.query('srs_progress')).single['repetition_count'], 2);
+
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    final progressBefore = (await db.query('srs_progress')).single;
+    await expectLater(
+      anonymousReview(newest.subtract(const Duration(minutes: 5))),
+      throwsStateError,
+    );
+    expect((await db.query('srs_progress')).single, progressBefore);
+    expect(await db.query('srs_review_events'), hasLength(2));
+
+    // A damaged restore must not silently recreate an established streak.
+    await db.delete(
+      'srs_progress',
+      where: 'lexeme_id = ? AND target_language_code = ?',
+      whereArgs: <Object>['haus', 'de'],
+    );
+    await expectLater(
+      anonymousReview(newest.add(const Duration(minutes: 5))),
+      throwsStateError,
+    );
+    expect(await db.query('srs_progress'), isEmpty);
+    expect(await db.query('srs_review_events'), hasLength(2));
+  });
+
 }
