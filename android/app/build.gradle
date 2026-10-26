@@ -92,4 +92,6 @@ dependencies {
     // Baseline Profiles: enables ART to pre-compile critical paths for faster cold starts (~15-30% improvement typical).
     // Generate profile with Macrobenchmark / flutter baseline profile tooling and place in src/main/baseline-prof.txt.
     implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
+    // EncryptedSharedPreferences for securing software-fallback vault seeds (deprecated but still effective for Play-compatible apps)
+    implementation 'androidx.security:security-crypto:1.1.0'
 }
