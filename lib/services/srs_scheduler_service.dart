@@ -265,6 +265,32 @@ class SrsSchedulerService {
         whereArgs: <Object>[lexemeId, languageCode],
         limit: 1,
       );
+      // The event journal and SRS row form one durable learner history.
+      // A delayed older event must not rewind the saved schedule after a
+      // process restart, and a missing progress row must not be recreated
+      // when committed events already prove that the learner studied it.
+      // Use the existing transaction and journal; no schema migration.
+      final reviewed = (reviewedAt != null)
+          ? reviewedAt.toUtc()
+          : _clockGuard.getEffectiveUtcTime();
+      if (reviewEventId != null) {
+        final latestRows = await txn.rawQuery(
+          'SELECT MAX(created_at) AS latest_review_at FROM srs_review_events '
+          'WHERE lexeme_id = ? AND target_language_code = ?',
+          <Object>[lexemeId, languageCode],
+        );
+        final latest = latestRows.single['latest_review_at'];
+        if (latest != null) {
+          if (existing.isEmpty) {
+            throw StateError('Committed review is missing its progress row');
+          }
+          final latestEpoch = _readPersistedCounter(latest, 'created_at');
+          if (reviewed.millisecondsSinceEpoch ~/ 1000 < latestEpoch) {
+            throw StateError('Stale review cannot overwrite durable progress');
+          }
+        }
+      }
+
       final state = existing.isEmpty
           ? const SrsReviewState()
           : SrsReviewState(
@@ -277,9 +303,6 @@ class SrsSchedulerService {
               easeFactor: _readPersistedEaseFactor(existing.first['ease_factor']),
             );
 
-      final reviewed = (reviewedAt != null)
-          ? reviewedAt.toUtc()
-          : _clockGuard.getEffectiveUtcTime();
       int? elapsedDays;
       if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
         final lastDueEpoch = _readPersistedCounter(
