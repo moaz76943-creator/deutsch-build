@@ -15,6 +15,11 @@ class PrivateCIMergeContractTest(unittest.TestCase):
         self.assertNotIn("contents: write", text)
         self.assertNotIn("gh pr merge", text)
         self.assertIn("cancel-in-progress: true", text)
+        # All staging PRs must be eligible for the lightweight required receipt.
+        self.assertNotIn("\n    paths:", text)
+        # Avoid grep -q SIGPIPE on large paginated filename streams.
+        self.assertNotIn("| grep -Eq", text)
+        self.assertIn("| grep -E", text)
 
     def test_merge_requires_independent_review_and_exact_head_checks(self):
         text = AUTOMERGE.read_text(encoding="utf-8")
