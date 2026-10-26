@@ -31,6 +31,12 @@
 -dontwarn com.google.android.play.core.**
 -keep class com.google.android.play.core.integrity.** { *; }
 
+# === EncryptedSharedPreferences / security-crypto ===
+-keep class androidx.security.crypto.** { *; }
+-dontwarn androidx.security.crypto.**
+-keep class com.google.crypto.tink.** { *; }
+-dontwarn com.google.crypto.tink.**
+
 # === Strip debug logs in release (reduces info leakage) ===
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
