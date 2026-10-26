@@ -6,8 +6,8 @@ void main() {
   group('J005 Multi-Script Typography & Noto Fallback Engine', () {
     testWidgets('AppTypography contains fallback lists', (WidgetTester tester) async {
       expect(AppTypography.fallbackFontFamilies, isNotEmpty);
-      expect(AppTypography.fallbackFontFamilies, contains('Noto Sans Arabic'));
-      expect(AppTypography.fallbackFontFamilies, contains('Noto Sans SC'));
+      expect(AppTypography.fallbackFontFamilies, contains('NotoSansArabic'));
+      expect(AppTypography.fallbackFontFamilies, contains('NotoSansSC'));
     });
 
     testWidgets('Text styles use fontFamilyFallback correctly', (WidgetTester tester) async {
@@ -38,11 +38,11 @@ void main() {
 
       final Text textWidget = tester.widget(textFinder);
       expect(textWidget.style?.fontFamilyFallback, isNotNull);
-      expect(textWidget.style?.fontFamilyFallback, contains('Noto Sans Arabic'));
+      expect(textWidget.style?.fontFamilyFallback, contains('NotoSansArabic'));
       expect(textWidget.style?.fontFamily, 'Cairo');
     });
 
-    testWidgets('CJK rendering (Noto Sans SC fallback)', (WidgetTester tester) async {
+    testWidgets('CJK rendering (NotoSansSC fallback)', (WidgetTester tester) async {
       const cjkText = '你好，世界';
 
       await tester.pumpWidget(
@@ -63,7 +63,7 @@ void main() {
       expect(textFinder, findsOneWidget);
 
       final Text textWidget = tester.widget(textFinder);
-      expect(textWidget.style?.fontFamilyFallback, contains('Noto Sans SC'));
+      expect(textWidget.style?.fontFamilyFallback, contains('NotoSansSC'));
     });
 
     testWidgets('Devanagari rendering with Combining Marks', (WidgetTester tester) async {
@@ -87,7 +87,7 @@ void main() {
       expect(textFinder, findsOneWidget);
 
       final Text textWidget = tester.widget(textFinder);
-      expect(textWidget.style?.fontFamilyFallback, contains('Noto Sans Devanagari'));
+      expect(textWidget.style?.fontFamilyFallback, contains('NotoSansDevanagari'));
     });
   });
 }
