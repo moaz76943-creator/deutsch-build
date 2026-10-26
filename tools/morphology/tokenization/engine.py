@@ -117,7 +117,7 @@ class CJKThaiTokenizer(LanguageTokenizer):
                 start_offset = cluster_offsets[idx][0]
                 end_offset = cluster_offsets[idx + fallback_len - 1][1]
                 token_text = "".join(clusters[idx:idx+fallback_len])
-                tokens.append(Token(text=token_text, start=start_offset, end=end_offset, is_ambiguous=False))
+                tokens.append(Token(text=token_text, start=start_offset, end=end_offset, is_ambiguous=True))
                 idx += fallback_len
 
         return TokenizationResult(tokens=tokens)
