@@ -239,6 +239,27 @@ void main() {
     await expectLater(review(), throwsStateError);
     expect(await db.query('srs_review_events'), hasLength(1));
     expect(await db.query('srs_progress'), isEmpty);
+    // New fractional-second rows must compare the full recorded instant,
+    // not only their epoch second, after a database reopen.
+    final fractional = DateTime.utc(2026, 10, 25, 12, 0, 0, 250, 125);
+    Future<SrsReviewSchedule> fractionalReview(DateTime at) =>
+        scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'subsecond-card',
+          languageCode: 'de',
+          grade: 3,
+          reviewedAt: at,
+          reviewEventId: 'immutable-subsecond-event',
+        );
+    expect((await fractionalReview(fractional)).repetitionCount, 1);
+    expect((await fractionalReview(fractional)).repetitionCount, 1);
+    await expectLater(
+      fractionalReview(fractional.add(const Duration(microseconds: 1))),
+      throwsStateError,
+    );
+    final subsecondRows = await db.query('srs_progress',
+        where: 'lexeme_id = ?', whereArgs: <Object>['subsecond-card']);
+    expect(subsecondRows.single['repetition_count'], 1);
   });
 
   test('fractional saved due date cannot be truncated or overwritten', () async {
