@@ -630,10 +630,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   bool get _supportsDirectedPair =>
       _sourceLanguage == 'de' && _targetLanguage == 'ar' &&
       LocalTopicCatalog.supportsBundledTopics(_sourceLanguage);
-  // The default SQLite query is already scoped, but injected/alternate pack
-  // readers must not leak another directed pair or a different known level.
-  // Older de->ar rows can omit target metadata; an explicit mismatch is never
-  // treated as a valid translation. Unknown CEFR remains UNKNOWN, not inferred.
+  // Reject mismatched pair/level metadata from alternate readers; legacy
+  // rows may omit it, and unknown CEFR is never inferred.
   bool _rowBelongsToSelection(Map<String, dynamic> row) {
     final word = row['word'];
     if (_safeText(word) == null) return false;
@@ -737,9 +735,16 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         languageCode: _sourceLanguage,
       ).timeout(const Duration(seconds: 30));
       if (!mounted || requestId != _requestId) return;
+      final accepted = rows.map(_projectCanonicalRow)
+          .whereType<Map<String, dynamic>>().where(_rowBelongsToSelection)
+          .take(50).toList(growable: false);
+      // A nonempty response containing no usable records is a failed read,
+      // not proof that a previously verified local pack became empty.
+      if (rows.isNotEmpty && accepted.isEmpty) {
+        throw StateError('Topic reader returned only unverified rows');
+      }
       setState(() {
-                _rows = rows.map(_projectCanonicalRow).whereType<Map<String, dynamic>>()
-            .where(_rowBelongsToSelection).take(50).toList(growable: false);
+        _rows = accepted;
         _loading = false;
         _staleSnapshot = false;
       });
@@ -762,9 +767,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         appBar: AppBar(
           title: Text('${widget.section.title} — ${widget.cefr}'),
           actions: [
-            // Existing topics must be refreshable too: an installed pack can
-            // change while the learner remains on this route. Reuse the
-            // bounded read-only loader and its stale-request protection.
+            // Re-query installed packs with stale-request protection.
             if (_supportsDirectedPair && !_loading && !_failed && _rows.isNotEmpty)
               IconButton(
                 key: const Key('topic-content-refresh'),
