@@ -1,39 +1,37 @@
 import unittest
-import sqlite3
 import tempfile
 import os
 from pathlib import Path
+
 from tools.morphology.analyzer import MorphologyAnalyzer, get_profile, AnalysisResult
+from tools.morphology.build_universal_verbs import build_database as build_verbs
+from tools.morphology.build_universal_declensions import build_database as build_declensions
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 class TestAnalyzer(unittest.TestCase):
-    def setUp(self):
-        self.tmp_dir = tempfile.TemporaryDirectory()
-        self.verb_db_path = os.path.join(self.tmp_dir.name, "verbs.db")
-        self.noun_db_path = os.path.join(self.tmp_dir.name, "nouns.db")
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_dir = tempfile.TemporaryDirectory()
+        cls.verb_de_db = Path(cls.tmp_dir.name) / "verbs_de.sqlite"
+        cls.noun_de_db = Path(cls.tmp_dir.name) / "nominals_de.sqlite"
+        cls.noun_tr_db = Path(cls.tmp_dir.name) / "nominals_tr.sqlite"
+        cls.noun_fi_db = Path(cls.tmp_dir.name) / "nominals_fi.sqlite"
+        cls.noun_de_ambig_db = Path(cls.tmp_dir.name) / "nominals_de_ambig.sqlite"
 
-        self.vdb = sqlite3.connect(self.verb_db_path)
-        self.vdb.executescript("""
-            CREATE TABLE verbs (verb_id TEXT PRIMARY KEY, infinitive TEXT NOT NULL, translation_ar TEXT, frequency_rank INTEGER);
-            CREATE TABLE verb_conjugations (conjugation_id TEXT PRIMARY KEY, verb_id TEXT NOT NULL, tense TEXT NOT NULL, person TEXT NOT NULL, conjugated_form TEXT NOT NULL, FOREIGN KEY (verb_id) REFERENCES verbs(verb_id));
-        """)
-        self.ndb = sqlite3.connect(self.noun_db_path)
-        self.ndb.executescript("""
-            CREATE TABLE nominals (id TEXT PRIMARY KEY, lemma TEXT NOT NULL, part_of_speech TEXT NOT NULL, gender TEXT NOT NULL, number TEXT NOT NULL);
-            CREATE TABLE nominal_declensions (id TEXT PRIMARY KEY, nominal_id TEXT NOT NULL, grammatical_case TEXT NOT NULL, number TEXT NOT NULL, definiteness TEXT NOT NULL, inflected_form TEXT NOT NULL, FOREIGN KEY (nominal_id) REFERENCES nominals(id));
-        """)
+        build_verbs(FIXTURES_DIR / "verbs_de.json", cls.verb_de_db, overwrite=True)
+        build_declensions(FIXTURES_DIR / "nominals_de.json", cls.noun_de_db, overwrite=True)
+        build_declensions(FIXTURES_DIR / "nominals_tr.json", cls.noun_tr_db, overwrite=True)
+        build_declensions(FIXTURES_DIR / "nominals_fi.json", cls.noun_fi_db, overwrite=True)
+        build_declensions(FIXTURES_DIR / "nominals_de_ambiguous.json", cls.noun_de_ambig_db, overwrite=True)
 
-    def tearDown(self):
-        self.vdb.close()
-        self.ndb.close()
-        self.tmp_dir.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp_dir.cleanup()
 
     def test_turkish_agglutinative(self):
-        self.ndb.execute("INSERT INTO nominals VALUES ('ev1', 'ev', 'noun', 'none', 'sg')")
-        self.ndb.execute("INSERT INTO nominals VALUES ('araba1', 'araba', 'noun', 'none', 'sg')")
-        self.ndb.commit()
-
         tr = get_profile("tr")
-        analyzer = MorphologyAnalyzer([self.noun_db_path], tr)
+        analyzer = MorphologyAnalyzer([str(self.noun_tr_db)], tr)
 
         res = analyzer.analyze("evlerimizde")
         self.assertEqual(len(res), 1)
@@ -44,15 +42,15 @@ class TestAnalyzer(unittest.TestCase):
         res2 = analyzer.analyze("arabaler")
         self.assertEqual(len(res2), 0)
 
+        # False match
+        res3 = analyzer.analyze("xyzler")
+        self.assertEqual(len(res3), 0)
+
         analyzer.close()
 
     def test_finnish_agglutinative(self):
-        self.ndb.execute("INSERT INTO nominals VALUES ('talo1', 'talo', 'noun', 'none', 'sg')")
-        self.ndb.execute("INSERT INTO nominals VALUES ('metsä1', 'metsä', 'noun', 'none', 'sg')")
-        self.ndb.commit()
-
         fi = get_profile("fi")
-        analyzer = MorphologyAnalyzer([self.noun_db_path], fi)
+        analyzer = MorphologyAnalyzer([str(self.noun_fi_db)], fi)
 
         res = analyzer.analyze("talossani")
         self.assertEqual(len(res), 1)
@@ -67,21 +65,17 @@ class TestAnalyzer(unittest.TestCase):
         res3 = analyzer.analyze("talossä")
         self.assertEqual(len(res3), 0)
 
+        res4 = analyzer.analyze("xyzssäni")
+        self.assertEqual(len(res4), 0)
+
         analyzer.close()
 
     def test_german_strong_weak(self):
-        self.vdb.execute("INSERT INTO verbs VALUES ('v1', 'machen', 'make', 1)")
-        self.vdb.execute("INSERT INTO verbs VALUES ('v2', 'gehen', 'go', 2)")
-        self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c1', 'v1', 'present', '1s', 'mache')")
-        self.vdb.execute("INSERT INTO verb_conjugations VALUES ('c2', 'v2', 'past', '3s', 'ging')")
-        self.vdb.commit()
-
-        self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Kind', 'noun', 'neu', 'sg')")
-        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'pl', 'def', 'Kinder')")
-        self.ndb.commit()
-
         de = get_profile("de")
-        analyzer = MorphologyAnalyzer([self.verb_db_path, self.noun_db_path], de)
+        analyzer = MorphologyAnalyzer([
+            str(self.verb_de_db),
+            str(self.noun_de_db)
+        ], de)
 
         res = analyzer.analyze("gemacht")
         self.assertEqual(len(res), 1)
@@ -98,20 +92,15 @@ class TestAnalyzer(unittest.TestCase):
         self.assertEqual(res[0].lemma, "gehen")
         self.assertEqual(res[0].tags, ["past", "3s"])
 
+        # False match
+        res_false = analyzer.analyze("gexyz")
+        self.assertEqual(len(res_false), 0)
+
         analyzer.close()
 
     def test_ambiguous(self):
-        self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Tor', 'noun', 'neu', 'sg')")
-        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'sg', 'def', 'Tor')")
-        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'n1', 'nom', 'pl', 'def', 'Tore')")
-
-        self.ndb.execute("INSERT INTO nominals VALUES ('n2', 'Tor', 'noun', 'masc', 'sg')")
-        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d3', 'n2', 'nom', 'sg', 'def', 'Tor')")
-        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d4', 'n2', 'nom', 'pl', 'def', 'Toren')")
-        self.ndb.commit()
-
         de = get_profile("de")
-        analyzer = MorphologyAnalyzer([self.noun_db_path], de)
+        analyzer = MorphologyAnalyzer([str(self.noun_de_ambig_db)], de)
 
         res = analyzer.analyze("Toren")
         self.assertEqual(len(res), 3)
