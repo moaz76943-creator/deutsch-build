@@ -209,6 +209,19 @@ void main() {
 
     final replay = await review();
     expect(replay.repetitionCount, 1);
+    // A reused event ID cannot claim a different explicit review instant.
+    // The timestamp is part of the immutable durable event identity.
+    await expectLater(
+      scheduler.gradeAndPersist(
+        progressDb: db,
+        lexemeId: 'haus',
+        languageCode: 'de',
+        grade: 3,
+        reviewedAt: now.add(const Duration(minutes: 1)),
+        reviewEventId: 'immutable-event-1',
+      ),
+      throwsStateError,
+    );
     await expectLater(review(lexemeId: 'other-card'), throwsStateError);
     await expectLater(review(languageCode: 'ar'), throwsStateError);
     await expectLater(review(grade: 4), throwsStateError);
