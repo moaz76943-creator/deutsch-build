@@ -35,7 +35,6 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
   String _selectedLevel = 'A1';
   Route<void>? _activeTopicRoute;
 
-  // A topic pushed from this screen is a snapshot of one directed pair.
   // Changing the parent pair (or replacing its reader) must invalidate that
   // route, not leave a stale de->ar page over the new language selection.
   void _dismissStaleTopicRoute() {
@@ -226,6 +225,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   int _requestId = 0;
   bool _loading = true;
   bool _failed = false;
+  bool _staleSnapshot = false;
   List<Map<String, dynamic>> _rows = const [];
   String _searchQuery = '';
   // A read-only practice preview: never mutate SRS or learner progress.
@@ -321,7 +321,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     }).toList(growable: false);
   }
   Widget _buildStudyCard(List<Map<String, dynamic>> rows) {
-    // Search and request epochs reset the index before rows can change.
     final index = _cardIndex < rows.length ? _cardIndex : 0;
     final row = rows[index];
     final word = _safeText(row['word']) ?? '';
@@ -491,11 +490,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   // This sheet reads only fields supplied by the selected local row. Missing
   // senses, forms and examples are not generated or borrowed from other pairs.
   void _showWordDetails(Map<String, dynamic> row) {
-    // Rapid repeated taps can otherwise stack multiple dialogs. Only the
-    // latest route is tracked for invalidation, leaving older translations
-    // visible after switching the directed pair or level.
     if (_detailsRoute?.isActive ?? false) return;
-    // Bound attested detail arrays to 32 entries; disclose truncation.
     const maxDetailItems = 32;
     List<String> lines(Object? value) => value is String
         ? (value.trim().isEmpty ? const <String>[] : <String>[value.trim()])
@@ -610,11 +605,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         oldWidget.languageCode != widget.languageCode ||
         oldWidget.targetLanguageCode != widget.targetLanguageCode ||
         oldWidget.loadWords != widget.loadWords) {
-      // A dialog opened for the previous selection must never keep displaying
-      // another directed pair's translation or an obsolete level's details.
-      _dismissStaleDetails();
-      // Invalidate pending reads and stale filters on topic/level/pair changes.
-      _searchController.clear();
+          _dismissStaleDetails();
+        _searchController.clear();
       _searchQuery = '';
       _load(preservePrevious: false);
     }
@@ -622,8 +614,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   @override
   void dispose() {
     _requestId++;
-    // A root dialog may outlive its owner on tab/page replacement.
-    // Use the same safe post-frame invalidation as pair/level changes.
     _dismissStaleDetails();
     _searchController.dispose();
     _quizController.dispose();
@@ -726,6 +716,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         _rows = const [];
         _loading = false;
         _failed = false;
+        _staleSnapshot = false;
         _studyMode = false;
         _quizMode = false;
         _cardIndex = 0;
@@ -736,8 +727,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     setState(() {
       _loading = true;
       _failed = false;
-      // Retain verified rows across overlapping refresh attempts. The loading
-      // state hides them, while a failed retry can restore the last snapshot.
       _rows = previousRows;
       _studyMode = false;
       _quizMode = false;
@@ -746,9 +735,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     });
     try {
       final loader = widget.loadWords ?? LocalTopicCatalog.loadSection;
-      // A stalled local DB/adapter must not trap learners on an infinite
-      // spinner. The existing error state offers retry; the request epoch
-      // prevents a late result from replacing a newer pair/level selection.
       final rows = await loader(
         sectionId: widget.section.id,
         cefr: widget.cefr,
@@ -756,10 +742,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       ).timeout(const Duration(seconds: 30));
       if (!mounted || requestId != _requestId) return;
       setState(() {
-        // The built-in query is bounded to 50. Enforce the same UI bound
-        // for injected/future readers before creating cards and search lists.
-        _rows = rows.where(_rowBelongsToSelection).take(50).toList(growable: false);
+                _rows = rows.where(_rowBelongsToSelection).take(50).toList(growable: false);
         _loading = false;
+        _staleSnapshot = false;
       });
     } catch (_) {
       if (!mounted || requestId != _requestId) return;
@@ -767,12 +752,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         _rows = previousRows;
         _loading = false;
         _failed = previousRows.isEmpty;
+        _staleSnapshot = previousRows.isNotEmpty;
       });
-      if (previousRows.isNotEmpty) {
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(
-          content: Text('تعذر تحديث المفردات المحلية؛ تعرض آخر نسخة متوفرة.'),
-        ));
-      }
     }
   }
   @override
@@ -859,6 +840,25 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                 )
               : null,
         ),
+        // Retained rows are stale until a successful pack read.
+        bottomNavigationBar: _staleSnapshot && !_loading
+            ? SafeArea(
+                child: MaterialBanner(
+                  key: const Key('topic-stale-warning'),
+                  content: const Text(
+                    'تعذر تحديث المفردات المحلية؛ تعرض آخر نسخة متوفرة. '
+                    'قد لا تعكس الحزمة المثبتة حالياً.',
+                  ),
+                  actions: [
+                    TextButton(
+                      key: const Key('topic-stale-retry'),
+                      onPressed: _load,
+                      child: const Text('إعادة المحاولة'),
+                    ),
+                  ],
+                ),
+              )
+            : null,
         body: !_supportsDirectedPair
             ? const Center(
                 child: Padding(
