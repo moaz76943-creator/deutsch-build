@@ -492,12 +492,12 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   void _showWordDetails(Map<String, dynamic> row) {
     if (_detailsRoute?.isActive ?? false) return;
     const maxDetailItems = 32;
+    // Treat formatting-only morphology and examples as absent, not evidence.
     List<String> lines(Object? value) => value is String
-        ? (value.trim().isEmpty ? const <String>[] : <String>[value.trim()])
+        ? <String>[value].map(_safeText).whereType<String>().toList(growable: false)
         : value is List
             ? value.take(maxDetailItems).whereType<String>()
-                .map((text) => text.trim())
-                .where((text) => text.isNotEmpty).toList(growable: false)
+                .map(_safeText).whereType<String>().toList(growable: false)
             : const <String>[];
     bool hasMoreItems(Object? value) =>
         value is List && value.length > maxDetailItems;
