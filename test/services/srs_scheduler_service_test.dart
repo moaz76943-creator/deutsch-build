@@ -566,4 +566,64 @@ void main() {
     expect(await db.query('srs_review_events'), hasLength(2));
   });
 
+
+  test('subsecond stale review cannot rewind persisted SRS after restart',
+      () async {
+    final directory = await Directory.systemTemp.createTemp('srs-subsecond-');
+    final databasePath = '${directory.path}/progress.sqlite';
+    var db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(() async {
+      if (db.isOpen) await db.close();
+      await directory.delete(recursive: true);
+    });
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    final newer = DateTime.utc(2026, 10, 25, 12, 0, 0, 800);
+    final older = DateTime.utc(2026, 10, 25, 12, 0, 0, 200);
+
+    Future<SrsReviewSchedule> review(
+      String id,
+      DateTime at, {
+      String language = 'de',
+    }) => scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'haus',
+          languageCode: language,
+          grade: 3,
+          reviewedAt: at,
+          reviewEventId: id,
+        );
+
+    await review('newer-subsecond', newer);
+    final saved = (await db.query('srs_progress')).single;
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+
+    // These timestamps share an epoch second. Truncating the journal
+    // watermark to whole seconds incorrectly accepts the older review.
+    await expectLater(review('older-subsecond', older), throwsStateError);
+    expect((await db.query('srs_progress')).single, saved);
+    expect(await db.query('srs_review_events'), hasLength(1));
+    expect((await review('newer-subsecond', newer)).repetitionCount, 1);
+    expect((await review('independent-ar', older, language: 'ar'))
+        .repetitionCount, 1);
+  });
+
 }
