@@ -568,4 +568,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('study-source')), findsOneWidget);
   });
+
+  testWidgets('formatting-only adapter arrays do not hide canonical evidence',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {
+            'source_text': 'Haus',
+            'target_text': 'بيت',
+            'pair_identity': {'id': 'de->ar'},
+            'forms': <String>['\\u200e', '\\u061c'],
+            'plural_form': 'Häuser',
+            'examples': <String>['\\u200f'],
+            'example_sentence': {
+              'source': 'Das Haus ist groß.',
+              'target': 'البيت كبير.',
+            },
+          },
+          {
+            'source_text': 'بيت',
+            'target_text': 'Haus',
+            'pair_identity': {'id': 'ar->de'},
+            'plural_form': 'بيوت',
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Haus'), findsOneWidget);
+    expect(find.text('بيوت'), findsNothing);
+    expect(tester.widget<Text>(find.text('Haus')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('بيت')).textDirection,
+        TextDirection.rtl);
+    await tester.tap(find.text('Haus'));
+    await tester.pumpAndSettle();
+    expect(find.text('Häuser'), findsOneWidget);
+    expect(find.text('Das Haus ist groß.'), findsOneWidget);
+    expect(find.text('البيت كبير.'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('البيت كبير.')).textDirection,
+        TextDirection.rtl);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('topic-search')), 'Häuser');
+    await tester.pump();
+    expect(find.text('Haus'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('topic-search')), 'البيت كبير.');
+    await tester.pump();
+    expect(find.text('Haus'), findsOneWidget);
+  });
+
 }
