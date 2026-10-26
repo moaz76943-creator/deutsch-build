@@ -698,4 +698,58 @@ void main() {
     expect(find.text('Mutter'), findsOneWidget);
   });
 
+
+  testWidgets('default-ignorable format controls never create lexical evidence',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {
+            'word': '\u200C\u200D\u2060\u00AD\uFE0F',
+            'translation_ar': 'وهم',
+          },
+          {
+            'word': 'Baum',
+            'translation_ar': '\u200D\u2060\uFE0F',
+            'forms': ['\u200C\u00AD', 'Bäume'],
+            'examples': ['\u034F\u2060', 'Der Baum ist hoch.'],
+          },
+          {'word': 'Haus', 'translation_ar': 'بيت'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('وهم'), findsNothing);
+    expect(find.text('Baum'), findsOneWidget);
+    expect(find.text('Haus'), findsOneWidget);
+    expect(find.text('لا توجد ترجمة عربية موثقة'), findsOneWidget);
+    await tester.tap(find.text('Baum'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bäume'), findsOneWidget);
+    expect(find.text('Der Baum ist hoch.'), findsOneWidget);
+    expect(find.text('\u200C\u00AD'), findsNothing);
+    expect(find.text('\u034F\u2060'), findsNothing);
+    expect(tester.widget<Text>(find.text('Bäume')).textDirection,
+        TextDirection.ltr);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('بطاقة 1 من 2'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('study-quiz-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('study-quiz-input')), findsNothing);
+    expect(find.textContaining('لا تتوفر إجابة مرجعية'), findsOneWidget);
+    expect(find.byKey(const Key('study-quiz-compare')), findsNothing);
+  });
 }
