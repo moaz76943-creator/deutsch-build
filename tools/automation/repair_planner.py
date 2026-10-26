@@ -70,14 +70,19 @@ class RepairPlanner:
         plan_id = str(uuid.uuid4())
 
         # Hard fail if missing
-        from tools.agent_contract.guard import ScopeGuard
-        guard = ScopeGuard(target_paths)
+        from tools.automation.scope_guard import ScopeGuard
 
-        leases = []
+        # We need a valid owner and allowed paths to get ownership
+        # In actual usage this is passed from the environment/task context,
+        # but here we initialize the guard for the paths we calculated.
+        guard = ScopeGuard(owner="J091_REPAIR_PLANNER")
+        for path in target_paths:
+            guard.add_allowed_path(path)
+
         if not dry_run:
             for path in target_paths:
-                with guard.lease_file(path):
-                    leases.append(path)
+                if not guard.request_ownership(path):
+                    raise RuntimeError("Ownership denied by ScopeGuard")
 
         return {
             "plan_id": plan_id,
