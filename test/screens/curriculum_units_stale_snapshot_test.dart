@@ -100,4 +100,69 @@ void main() {
     expect(find.text('Vater'), findsNothing);
     expect(find.textContaining('لا تتوفر مفردات موثقة لهذا الاتجاه'), findsOneWidget);
   });
+
+  testWidgets('formatting-only headwords never become phantom cards',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {'word': '\u200F\u200B', 'translation_ar': 'وهم'},
+          {'word': '\u064B\u0640', 'translation_ar': 'وهم آخر'},
+          {'word': 'Haus', 'translation_ar': 'بيت'},
+          {'word': 'House', 'translation_ar': 'بيت',
+           'source_language': 'en', 'target_language': 'ar'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('وهم'), findsNothing);
+    expect(find.text('وهم آخر'), findsNothing);
+    expect(find.text('House'), findsNothing);
+    expect(find.text('Haus'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Haus')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('بيت')).textDirection,
+        TextDirection.rtl);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('بطاقة 1 من 1'), findsOneWidget);
+    expect(find.text('Haus'), findsOneWidget);
+  });
+
+  testWidgets('invisible-only translation cannot act as quiz reference',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {'word': 'Baum', 'translation_ar': '\u200F\u200B'},
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Baum'), findsOneWidget);
+    expect(find.text('لا توجد ترجمة عربية موثقة'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-study-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('study-quiz-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('study-quiz-input')), findsNothing);
+    expect(find.textContaining('لا تتوفر إجابة مرجعية'), findsOneWidget);
+    expect(find.byKey(const Key('study-quiz-compare')), findsNothing);
+  });
 }
