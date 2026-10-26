@@ -24,6 +24,9 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// Play Integrity cloud project number (set via gradle.properties, -P, or env ORG_GRADLE_PROJECT_CLOUD_PROJECT_NUMBER)
+def cloudProjectNumber = project.findProperty('CLOUD_PROJECT_NUMBER') ?: System.getenv('CLOUD_PROJECT_NUMBER') ?: '0'
+
 android {
     signingConfigs {
         secureRelease {
@@ -54,6 +57,10 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
         minSdkVersion flutter.minSdkVersion
@@ -61,6 +68,8 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        // Expose for Play Integrity (set CLOUD_PROJECT_NUMBER in local.properties or CI for production)
+        buildConfigField "long", "CLOUD_PROJECT_NUMBER", "${cloudProjectNumber}L"
     }
 
     buildTypes {
