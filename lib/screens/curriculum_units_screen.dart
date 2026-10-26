@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/features/explore/data/local_topic_catalog.dart';
-
 String _normalizedLanguageCode(String value) => value.trim().toLowerCase();
-
 /// Read-only topic lookup. Tests may inject a loader without opening SQLite.
 typedef TopicWordsLoader = Future<List<Map<String, dynamic>>> Function({
   required String sectionId,
   required String cefr,
   required String languageCode,
 });
-
 /// The curriculum lists topics that can be queried from the installed pack.
 /// It never invents progress, lesson counts, unlocks, or CEFR assignments.
 class CurriculumUnitsScreen extends StatefulWidget {
@@ -21,20 +17,16 @@ class CurriculumUnitsScreen extends StatefulWidget {
     this.targetLanguageCode = 'ar',
     this.loadWords,
   });
-
   final String languageCode;
   final String targetLanguageCode;
   final TopicWordsLoader? loadWords;
-
   @override
   State<CurriculumUnitsScreen> createState() => _CurriculumUnitsScreenState();
 }
-
 class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
   static const _levels = <String>['A1', 'A2', 'B1', 'B2'];
   String _selectedLevel = 'A1';
   Route<void>? _activeTopicRoute;
-
   // Changing the parent pair (or replacing its reader) must invalidate that
   // route, not leave a stale de->ar page over the new language selection.
   void _dismissStaleTopicRoute() {
@@ -48,7 +40,6 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
       }
     });
   }
-
   @override
   void didUpdateWidget(covariant CurriculumUnitsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -58,13 +49,11 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
       _dismissStaleTopicRoute();
     }
   }
-
   @override
   void dispose() {
     _dismissStaleTopicRoute();
     super.dispose();
   }
-
   void _openTopic(LocalTopicSection section) {
     if (_activeTopicRoute?.isActive ?? false) return;
     final selectedLevel = _selectedLevel;
@@ -85,7 +74,6 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
       if (identical(_activeTopicRoute, route)) _activeTopicRoute = null;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     // The bundled topic index only supports the verified de -> ar projection.
@@ -94,7 +82,6 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
     final target = _normalizedLanguageCode(widget.targetLanguageCode);
     final supported = source == 'de' && target == 'ar' &&
         LocalTopicCatalog.supportsBundledTopics(source);
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Container(
@@ -198,7 +185,6 @@ class _CurriculumUnitsScreenState extends State<CurriculumUnitsScreen> {
     );
   }
 }
-
 /// A bounded, read-only view of verified local lexical rows. No fake fallback
 /// translations, SRS writes, or cross-language pivoting occur here.
 class TopicWordsScreen extends StatefulWidget {
@@ -210,7 +196,6 @@ class TopicWordsScreen extends StatefulWidget {
     this.targetLanguageCode = 'ar',
     this.loadWords,
   });
-
   final LocalTopicSection section;
   final String cefr;
   final String languageCode;
@@ -277,6 +262,27 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       level = next;
     }
     return level ?? 'UNKNOWN';
+  }
+  // Project canonical directed-pair records into the existing read-only view.
+  // Explicit pair identity is mandatory; legacy SQLite rows remain unchanged.
+  static Map<String, dynamic>? _projectCanonicalRow(Map<String, dynamic> row) {
+    if (!row.containsKey('source_text') && !row.containsKey('target_text')) return row;
+    final source = _safeText(row['source_text']);
+    final target = _safeText(row['target_text']);
+    if (source == null || target == null || row['pair_identity'] is! Map) return null;
+    if ((row['word'] != null && _safeText(row['word']) != source) ||
+        (row['translation_ar'] != null && _safeText(row['translation_ar']) != target)) return null;
+    final example = row['example_sentence'];
+    final exampleLines = example is Map ? <String>[
+      if (_safeText(example['source']) != null) _safeText(example['source'])!,
+      if (_safeText(example['target']) != null) _safeText(example['target'])!,
+    ] : <String>[];
+    return <String, dynamic>{
+      ...row, 'word': source, 'translation_ar': target,
+      if (row['examples'] == null && exampleLines.isNotEmpty) 'examples': exampleLines,
+      if (row['forms'] == null && _safeText(row['plural_form']) != null)
+        'forms': <String>[_safeText(row['plural_form'])!],
+    };
   }
   static String _foldSearch(String value) => value
       .trim()
@@ -637,10 +643,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       return value is String &&
           value.trim().toLowerCase() == expected.toLowerCase();
     }
-    // A future topic adapter may return rows for multiple sections.
-    // Reject an explicitly different section before it reaches list, search,
-    // cards or detail sheets. Legacy bundled rows omit this field and remain
-    // accepted because the query itself is scoped by sectionId.
     if (!matchesWhenDeclared('section_id', widget.section.id) ||
         !matchesWhenDeclared('language_code', _sourceLanguage) ||
         !matchesWhenDeclared('source_language_code', _sourceLanguage) ||
@@ -649,8 +651,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
             'translation_language_code', _targetLanguage)) {
       return false;
     }
-    // Directed-pair adapters may flatten their identity fields. An explicit
-    // reverse identity must not be mistaken for a legacy de->ar row.
     if (!matchesWhenDeclared('source_language', _sourceLanguage) ||
         !matchesWhenDeclared('source', _sourceLanguage) ||
         !matchesWhenDeclared('target_language', _targetLanguage) ||
@@ -667,11 +667,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         return false;
       }
     }
-    // Some directed-pair adapters attach a nested pair_identity contract
-    // (id: "de->ar", source_language, target_language). An explicit reverse
-    // or contradictory identity must never enter de->ar list/search/practice,
-    // even when its legacy top-level language fields are absent. The bundled
-    // SQLite projection has no pair_identity and remains compatible.
     if (row.containsKey('pair_identity')) {
       final identity = row['pair_identity'];
       if (identity is! Map) return false;
@@ -688,7 +683,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         return value is String &&
             value.trim().toLowerCase() == expected.toLowerCase();
       }
-      // Validate every declared nested alias; the id alone is insufficient.
       if (!matchesPairField('language_code', _sourceLanguage) ||
           !matchesPairField('source_language', _sourceLanguage) ||
           !matchesPairField('source_language_code', _sourceLanguage) ||
@@ -697,7 +691,9 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
           !matchesPairField('target_language_code', _targetLanguage) ||
           !matchesPairField('translation_language_code', _targetLanguage) ||
           !matchesPairField('translation_language', _targetLanguage) ||
-          !matchesPairField('target', _targetLanguage)) {
+          !matchesPairField('target', _targetLanguage) ||
+          !matchesPairField('source_direction', 'ltr') ||
+          !matchesPairField('target_direction', 'rtl')) {
         return false;
       }
     }
@@ -742,7 +738,8 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       ).timeout(const Duration(seconds: 30));
       if (!mounted || requestId != _requestId) return;
       setState(() {
-                _rows = rows.where(_rowBelongsToSelection).take(50).toList(growable: false);
+                _rows = rows.map(_projectCanonicalRow).whereType<Map<String, dynamic>>()
+            .where(_rowBelongsToSelection).take(50).toList(growable: false);
         _loading = false;
         _staleSnapshot = false;
       });
