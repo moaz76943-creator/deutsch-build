@@ -236,7 +236,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _quizController = TextEditingController();
   DialogRoute<void>? _detailsRoute;
-
   // Dismiss the exact owned route, not the underlying learning screen.
   // didUpdateWidget runs during a build: mutating the root Navigator there
   // can trigger a build-phase assertion. Defer removal until after the frame.
@@ -251,19 +250,16 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       }
     });
   }
-
   void _resetCardAnswer() {
     _showAnswer = false;
     _quizController.clear();
   }
-
   // Never turn malformed metadata into learner-facing lexical content.
   static String? _safeText(Object? value) {
     if (value is! String) return null;
     final text = value.trim();
     return text.isEmpty ? null : text;
   }
-
   static String _displayLevel(Object? value) {
     final level = _safeText(value)?.toUpperCase();
     return const <String>{'A1', 'A2', 'B1', 'B2', 'C1', 'C2'}
@@ -271,7 +267,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         ? level!
         : 'UNKNOWN';
   }
-
   // Conflicting or malformed declared CEFR aliases cannot justify a badge.
   static String _rowDisplayLevel(Map<String, dynamic> row) {
     String? level;
@@ -283,7 +278,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     }
     return level ?? 'UNKNOWN';
   }
-
   static String _foldSearch(String value) => value
       .trim()
       .toLowerCase()
@@ -304,7 +298,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       .replaceAll('ö', 'oe')
       .replaceAll('ü', 'ue')
       .replaceAll('ß', 'ss').replaceAll(RegExp(r'[\s\u00A0\u2007\u202F\u200B]+'), ' ').trim();
-
   // Search only attested scalar strings or bounded string arrays.
   static bool _listContainsSearch(Object? value, String query) {
     if (value is String) return _foldSearch(value).contains(query);
@@ -313,7 +306,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
           (text) => _foldSearch(text).contains(query),
         );
   }
-
   List<Map<String, dynamic>> _matchingRows() {
     final query = _foldSearch(_searchQuery);
     if (query.isEmpty) return _rows;
@@ -328,7 +320,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
           _listContainsSearch(row['examples'], query);
     }).toList(growable: false);
   }
-
   Widget _buildStudyCard(List<Map<String, dynamic>> rows) {
     // Search and request epochs reset the index before rows can change.
     final index = _cardIndex < rows.length ? _cardIndex : 0;
@@ -342,7 +333,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
         : article == null || article.isEmpty
             ? word
             : '$article $word';
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -393,7 +383,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                   if (_quizMode) ...[
                     const Text(
                       'اختبار مراجعة ذاتية: قارن إجابتك بالمحتوى المحلي؛ '
-                      'لا يوجد تصحيح آلي أو تسجيل لنتيجة.',
+                      'المطابقة نصية فقط، ولا تُحفظ نتيجة.',
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
@@ -443,6 +433,17 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
                       onPressed: () => setState(() => _showAnswer = true),
                       child: const Text('إظهار الترجمة'),
                     ),
+                  if (_quizMode && _showAnswer && translation != null)
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        _foldSearch(_quizController.text) == _foldSearch(translation)
+                            ? 'مطابقة نصية بعد توحيد الكتابة؛ ليست تصحيحًا للمعنى.'
+                            : 'النص مختلف عن المرجع؛ قد تكون صحيحة بصياغة أخرى.',
+                        key: const Key('study-quiz-text-match'),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -487,7 +488,6 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
       ),
     );
   }
-
   // This sheet reads only fields supplied by the selected local row. Missing
   // senses, forms and examples are not generated or borrowed from other pairs.
   void _showWordDetails(Map<String, dynamic> row) {
