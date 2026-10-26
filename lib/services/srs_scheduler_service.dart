@@ -246,6 +246,28 @@ class SrsSchedulerService {
             throw StateError('Review event ID reused with a conflicting payload');
           }
 
+          // The committed review instant is immutable as well. A retry that
+          // supplies a different explicit timestamp must not be acknowledged
+          // as the original learning action. Old INTEGER-second journals
+          // cannot distinguish instants within that second; preserve their
+          // legacy replay semantics without changing the database schema.
+          final committedAt = committed['created_at'];
+          if (committedAt is! num ||
+              !committedAt.isFinite ||
+              committedAt < 0) {
+            throw StateError('Committed review has invalid timestamp');
+          }
+          if (reviewedAt != null) {
+            final attemptedMicros = reviewedAt.toUtc().microsecondsSinceEpoch;
+            final sameInstant = committedAt is int
+                ? attemptedMicros ~/ Duration.microsecondsPerSecond == committedAt
+                : (committedAt * Duration.microsecondsPerSecond).round() ==
+                    attemptedMicros;
+            if (!sameInstant) {
+              throw StateError('Review event ID reused with a conflicting timestamp');
+            }
+          }
+
           // Idempotent: return the current durable schedule without advancing
           // it. If the progress row is missing, fail closed rather than
           // resurrecting a committed review and risking duplicate XP/SRS.
