@@ -165,4 +165,60 @@ void main() {
     expect(find.textContaining('لا تتوفر إجابة مرجعية'), findsOneWidget);
     expect(find.byKey(const Key('study-quiz-compare')), findsNothing);
   });
+
+  testWidgets('invisible-only forms and examples are not presented as attested',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: TopicWordsScreen(
+        section: family,
+        cefr: 'A1',
+        languageCode: 'de',
+        targetLanguageCode: 'ar',
+        loadWords: ({
+          required String sectionId,
+          required String cefr,
+          required String languageCode,
+        }) async => <Map<String, dynamic>>[
+          {
+            'word': 'Haus', 'translation_ar': 'بيت',
+            'forms': ['\u200F\u200B', 'Häuser'],
+            'examples': ['\u061C', 'Das Haus ist groß.'],
+          },
+          {
+            'word': 'Baum', 'translation_ar': 'شجرة',
+            'forms': '\u200F\u200B', 'examples': ['\u061C', '\u064B\u0640'],
+          },
+          {
+            'word': 'House', 'translation_ar': 'بيت',
+            'source_language': 'en', 'target_language': 'ar',
+            'forms': ['English-only form'],
+          },
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('House'), findsNothing);
+    await tester.tap(find.text('Haus'));
+    await tester.pumpAndSettle();
+    expect(find.text('Häuser'), findsOneWidget);
+    expect(find.text('Das Haus ist groß.'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Häuser')).textDirection,
+        TextDirection.ltr);
+    expect(tester.widget<Text>(find.text('بيت')).textDirection,
+        TextDirection.rtl);
+    expect(find.text('\u200F\u200B'), findsNothing);
+    expect(find.text('\u061C'), findsNothing);
+    expect(find.text('English-only form'), findsNothing);
+    await tester.tap(find.text('إغلاق'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Baum'));
+    await tester.pumpAndSettle();
+    expect(find.text('لا تتوفر صيغ موثقة في هذا السجل.'), findsOneWidget);
+    expect(find.text('لا تتوفر أمثلة موثقة في هذا السجل.'), findsOneWidget);
+    expect(find.text('\u200F\u200B'), findsNothing);
+    expect(find.text('\u061C'), findsNothing);
+    expect(find.text('\u064B\u0640'), findsNothing);
+  });
+
 }
