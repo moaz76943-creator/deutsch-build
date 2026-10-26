@@ -93,11 +93,32 @@ def is_stale_base_sha(ledger, base_sha):
             return True
     return False
 
-def process_ledger(parsed, f):
-    f.seek(0)
-    content = f.read()
-    ledger = json.loads(content) if content else {}
+class TaskLedger:
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.file_obj = None
 
+    def __enter__(self):
+        os.makedirs(os.path.dirname(os.path.abspath(self.filepath)), exist_ok=True)
+        self.file_obj = open(self.filepath, "a+")
+        fcntl.flock(self.file_obj, fcntl.LOCK_EX)
+        self.file_obj.seek(0)
+        content = self.file_obj.read()
+        self.ledger = json.loads(content) if content else {}
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.file_obj:
+            if exc_type is None:
+                self.file_obj.seek(0)
+                self.file_obj.truncate()
+                json.dump(self.ledger, self.file_obj, indent=2)
+                self.file_obj.write("\n")
+                self.file_obj.flush()
+            fcntl.flock(self.file_obj, fcntl.LOCK_UN)
+            self.file_obj.close()
+
+def process_ledger(parsed, ledger):
     report = {
         "task_id": parsed.task_id,
         "base_sha": parsed.base_sha,
@@ -117,13 +138,13 @@ def process_ledger(parsed, f):
             requested_paths = parsed.paths
         else:
             report["blockers"].append("Paths must be provided for initial CLAIM.")
-            return 1, report, ledger
+            return 1, report
     elif parsed.transition in ["ACTIVE", "COMPLETE"]:
         try:
             requested_paths = get_changed_files(parsed.base_sha, parsed.result_sha)
         except ValueError as e:
             report["blockers"].append(str(e))
-            return 1, report, ledger
+            return 1, report
 
     for p in requested_paths:
         if is_path_allowed(p):
@@ -169,7 +190,7 @@ def process_ledger(parsed, f):
         report["blockers"].append(overlap_msg)
 
     if report["blockers"]:
-        return 1, report, ledger
+        return 1, report
 
     ledger_entry = ledger.get(parsed.task_id, {"paths": []})
     ledger_entry["state"] = parsed.transition
@@ -186,7 +207,7 @@ def process_ledger(parsed, f):
             ledger["_metadata"] = {}
         ledger["_metadata"]["latest_base_sha"] = parsed.result_sha
 
-    return 0, report, ledger
+    return 0, report
 
 def main(args=None):
     if args is None:
@@ -204,21 +225,12 @@ def main(args=None):
 
     parsed = parser.parse_args(args)
 
-    os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
-
-    with open(parsed.ledger, "a+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        result_code, report, updated_ledger = process_ledger(parsed, f)
+    with TaskLedger(parsed.ledger) as ledger_data:
+        result_code, report = process_ledger(parsed, ledger_data.ledger)
 
         os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
         with open(parsed.report, "w") as rf:
             json.dump(report, rf, indent=2)
-
-        f.seek(0)
-        f.truncate()
-        json.dump(updated_ledger, f, indent=2)
-        # Add a newline for posix compliance
-        f.write("\n")
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
