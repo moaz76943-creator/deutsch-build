@@ -435,7 +435,7 @@ void main() {
     ''');
     final scheduler = SrsSchedulerService();
     Future<SrsReviewSchedule> review(
-      String eventId,
+      String? eventId,
       DateTime when, {
       String language = 'de',
     }) =>
@@ -460,6 +460,9 @@ void main() {
 
     // An older distinct event must not move the saved schedule backwards.
     await expectLater(review('older-delayed', older), throwsStateError);
+    // A legacy caller with no event ID must not bypass the durable stale
+    // guard and rewind a newer committed SRS schedule after process restart.
+    await expectLater(review(null, older), throwsStateError);
     expect((await db.query('srs_progress')).single, saved);
     expect(await db.query('srs_review_events'), hasLength(1));
 
@@ -475,6 +478,12 @@ void main() {
         whereArgs: <Object>['haus', 'de']);
     await expectLater(
       review('fresh-after-lost-row', newer.add(const Duration(minutes: 5))),
+      throwsStateError,
+    );
+    // No-ID callers must also fail closed if a committed review exists but
+    // its corresponding learner progress row has disappeared.
+    await expectLater(
+      review(null, newer.add(const Duration(minutes: 6))),
       throwsStateError,
     );
     expect(await db.query('srs_review_events'), hasLength(2));
