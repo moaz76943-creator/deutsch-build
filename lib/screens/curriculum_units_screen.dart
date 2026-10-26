@@ -269,8 +269,7 @@ class _TopicWordsScreenState extends State<TopicWordsScreen> {
     if (!row.containsKey('source_text') && !row.containsKey('target_text')) return row;
     final source = _safeText(row['source_text']);
     final target = _safeText(row['target_text']);
-    bool absent(Object? v) => v == null || (v is List && v.isEmpty) ||
-        (v is String && _safeText(v) == null);
+    bool absent(Object? v) => v == null || (v is List && v.isEmpty) || (v is String && _safeText(v) == null);
     final flat = row['pair_id'] is String &&
         (row['source_language'] ?? row['source_language_code']) is String &&
         (row['target_language'] ?? row['target_language_code']) is String;
