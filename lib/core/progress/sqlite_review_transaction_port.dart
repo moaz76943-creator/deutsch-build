@@ -107,9 +107,11 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
       final latest = await txn.query(
         tableName,
         columns: <String>['occurred_at_utc'],
+        // Each SRS facet is an independent schedule for the same card.
+        // A newer meaning review must not reject an older spelling review.
         where: 'language_pair_key = ? AND source_language_id = ? '
             'AND target_language_id = ? AND semantic_version = ? '
-            'AND pair_epoch = ? AND card_id = ?',
+            'AND pair_epoch = ? AND card_id = ? AND facet_key = ?',
         whereArgs: <Object>[
           envelope.languagePairKey,
           command.sourceLanguageId,
@@ -117,6 +119,7 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
           command.semanticVersion,
           command.pairEpoch,
           command.cardId,
+          command.facetKey,
         ],
         // Dart ISO-8601 UTC uses either .mmmZ or .mmmuuuZ. Raw lexical
         // DESC sorts .000Z after .000001Z, so compare millisecond prefix

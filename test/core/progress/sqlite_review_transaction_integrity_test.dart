@@ -14,13 +14,14 @@ ReviewCommand command(
   String target = 'ar',
   String version = 'v2',
   ReviewRating rating = ReviewRating.good,
+  String facet = 'lexeme',
 }) => ReviewCommand(
   reviewId: id,
   sourceLanguageId: source,
   targetLanguageId: target,
   semanticVersion: version,
   cardId: 'card-1',
-  facetKey: 'lexeme',
+  facetKey: facet,
   pairEpoch: 9,
   rating: rating,
   hinted: false,
@@ -281,6 +282,46 @@ CREATE TABLE IF NOT EXISTS scoped_progress (
     expect(await persist(after, 'reverse-valid', base,
         source: 'ar', target: 'de'), ReviewCommitResult.committed);
     expect(await count('ar_de_v2'), 1);
+  });
+
+
+  test('durable stale guard isolates SRS facets after process restart',
+      () async {
+    Future<ReviewCommitResult> persist(
+        String id, String facet, DateTime instant) {
+      final item = command(id, facet: facet);
+      return SqliteReviewTransactionPort(
+        database: db,
+        applyReview: applyReview,
+      ).commitOnce(
+        command: item,
+        envelope: ReviewTransactionEnvelope(
+          reviewEventId: item.reviewId,
+          learnerContentKey: item.cardId,
+          rating: item.rating.index,
+          timestamp: instant,
+          languagePairKey: 'de_ar_v2',
+        ),
+      );
+    }
+
+    final newer = DateTime.utc(2026, 10, 25, 12);
+    final older = newer.subtract(const Duration(minutes: 1));
+    expect(await persist('meaning-newer', 'meaningRecall', newer),
+        ReviewCommitResult.committed);
+
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(file);
+
+    // A different facet has its own durable watermark on the same card.
+    expect(await persist('spelling-valid', 'spelling', older),
+        ReviewCommitResult.committed);
+    // The original facet must still reject an out-of-order review.
+    await expectLater(
+      persist('meaning-stale', 'meaningRecall', older),
+      throwsStateError,
+    );
+    expect(await count('de_ar_v2'), 2);
   });
 
   test('bounded committed reads preserve microsecond ordering', () async {
