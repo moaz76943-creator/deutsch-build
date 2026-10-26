@@ -409,4 +409,76 @@ void main() {
     expect(events.single['review_event_id'], 'valid-key-review');
   });
 
+  test('stale replay cannot rewind the durable SRS ledger after restart',
+      () async {
+    final directory = await Directory.systemTemp.createTemp('srs-stale-');
+    final databasePath = '${directory.path}/progress.sqlite';
+    var db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(() async {
+      if (db.isOpen) await db.close();
+      await directory.delete(recursive: true);
+    });
+    await db.execute('''
+      CREATE TABLE srs_progress (
+        lexeme_id TEXT NOT NULL,
+        target_language_code TEXT NOT NULL,
+        repetition_count INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        next_due_at INTEGER,
+        status TEXT NOT NULL DEFAULT 'learning',
+        PRIMARY KEY (lexeme_id, target_language_code)
+      )
+    ''');
+    final scheduler = SrsSchedulerService();
+    Future<SrsReviewSchedule> review(
+      String eventId,
+      DateTime when, {
+      String language = 'de',
+    }) =>
+        scheduler.gradeAndPersist(
+          progressDb: db,
+          lexemeId: 'haus',
+          languageCode: language,
+          grade: 3,
+          reviewedAt: when,
+          reviewEventId: eventId,
+        );
+
+    final newer = DateTime.utc(2026, 10, 25, 12);
+    final older = newer.subtract(const Duration(minutes: 10));
+    await review('newer-committed', newer);
+    final saved = (await db.query('srs_progress')).single;
+    await db.close();
+    db = await databaseFactoryFfi.openDatabase(
+      databasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+
+    // An older distinct event must not move the saved schedule backwards.
+    await expectLater(review('older-delayed', older), throwsStateError);
+    expect((await db.query('srs_progress')).single, saved);
+    expect(await db.query('srs_review_events'), hasLength(1));
+
+    // Exact retries remain idempotent; other language scopes are independent.
+    expect((await review('newer-committed', newer)).repetitionCount, 1);
+    expect((await review('reverse-independent', older, language: 'ar'))
+        .repetitionCount, 1);
+
+    // A partially restored database with a journal but no progress row
+    // must not reset an established learner streak on the next event.
+    await db.delete('srs_progress',
+        where: 'lexeme_id = ? AND target_language_code = ?',
+        whereArgs: <Object>['haus', 'de']);
+    await expectLater(
+      review('fresh-after-lost-row', newer.add(const Duration(minutes: 5))),
+      throwsStateError,
+    );
+    expect(await db.query('srs_review_events'), hasLength(2));
+    expect(await db.query('srs_progress'), hasLength(1));
+  });
+
 }
