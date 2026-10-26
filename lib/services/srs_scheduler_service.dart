@@ -298,8 +298,17 @@ class SrsSchedulerService {
         if (existing.isEmpty) {
           throw StateError('Committed review is missing its progress row');
         }
-        final latestEpoch = _readPersistedCounter(latest, 'created_at');
-        if (reviewed.millisecondsSinceEpoch ~/ 1000 < latestEpoch) {
+        // Existing journal rows contain integer epoch seconds. New rows may
+        // contain fractional seconds to preserve review ordering within one
+        // second; SQLite's INTEGER affinity retains fractional REAL values.
+        // Reject malformed journal timestamps rather than ignoring history.
+        if (latest is! num || !latest.isFinite || latest < 0) {
+          throw ArgumentError.value(
+              latest, 'created_at', 'Invalid persisted review timestamp');
+        }
+        final latestMicros =
+            (latest * Duration.microsecondsPerSecond).round();
+        if (reviewed.microsecondsSinceEpoch < latestMicros) {
           throw StateError('Stale review cannot overwrite durable progress');
         }
       }
@@ -367,7 +376,10 @@ class SrsSchedulerService {
         'lexeme_id': lexemeId,
         'target_language_code': languageCode,
         'grade': grade,
-        'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
+        // Preserve subsecond ordering without changing the existing table.
+        // Legacy INTEGER epoch-second rows remain readable and comparable.
+        'created_at':
+            reviewed.microsecondsSinceEpoch / Duration.microsecondsPerSecond,
       });
 
       return result;
