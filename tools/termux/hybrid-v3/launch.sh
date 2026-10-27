@@ -1,6 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Polyglot hybrid room v3: two isolated repo workers, restartable, zero paid fallback.
 set -Eeuo pipefail
+umask 077
 
 ROOT="$HOME/polyglot-rooms/hybrid-v3"
 PRIVATE='moaz76943-creator/deutsch-build'
@@ -34,7 +35,22 @@ if [[ "${1:-}" == '--self-test' ]]; then
   [[ "$(models_from "$f" | wc -l | tr -d ' ')" == '3' ]]
   [[ "$(models_from "$f" | head -1)" == 'opencode/glm-5.3-flash-free' ]]
   ! models_from "$f" | grep -q 'opencode/paid'
-  echo 'SELF_TEST PASS: known-first, actually-listed, free-only'
+  # Exercise the exact provider-error classifier extracted from the worker
+  # template. These checks do not call an API or spend model quota.
+  fn="$(mktemp)"; trap 'rm -f "$f" "$fn"' EXIT
+  sed -n '/^model_terminal_error() {/,/^}/p' "$0" > "$fn"
+  bash -n "$fn"
+  source "$fn"
+  printf '%s\n' 'Error: Upstream request failed: Model is unavailable.' > "$f"
+  model_terminal_error "$f" 1
+  model_terminal_error "$f" 0
+  printf '%s\n' 'Error: rate limit exceeded (429)' > "$f"
+  model_terminal_error "$f" 0
+  printf '%s\n' 'The quota may be exhausted but code is valid.' > "$f"
+  if model_terminal_error "$f" 0; then echo 'SELF_TEST FAIL: ordinary prose misclassified' >&2; exit 1; fi
+  printf '%s\n' 'Error: syntax failed in code, unrelated to provider' > "$f"
+  if model_terminal_error "$f" 1; then echo 'SELF_TEST FAIL: code error misclassified' >&2; exit 1; fi
+  echo 'SELF_TEST PASS: free models and terminal provider-error failover'
   exit 0
 fi
 
@@ -64,6 +80,20 @@ ensure_repo() {
 }
 ensure_repo "$PRIVATE" 'staging/v2-full-platform' "$ROOT/private"
 ensure_repo "$PUBLIC" 'main' "$ROOT/public"
+
+# Do not discard existing agent work. Before restart, save tracked diffs
+# locally for recovery; untracked files remain untouched in their worktrees.
+for lane in private public; do
+  dir="$ROOT/$lane"
+  if [[ -n "$(git -C "$dir" status --porcelain --untracked-files=normal)" ]]; then
+    stamp="$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$ROOT/recovery/$lane"
+    git -C "$dir" status --porcelain --untracked-files=all > "$ROOT/recovery/$lane/status-$stamp.txt"
+    git -C "$dir" diff --binary > "$ROOT/recovery/$lane/unstaged-$stamp.patch"
+    git -C "$dir" diff --cached --binary > "$ROOT/recovery/$lane/staged-$stamp.patch"
+    log "PRESERVED existing $lane edits, tracked diff receipts at recovery/$lane/$stamp"
+  fi
+done
 
 version="$(opencode --version 2>&1 | head -1)"
 if [[ "$version" =~ ^v?1\. ]]; then
@@ -132,7 +162,7 @@ PROMPT
 
 model_terminal_error() {
   local file="$1" exit_code="$2"
-  local regex='(quota.*(exceeded|reached)|rate.?limit|429|resource_exhausted|payment required|insufficient credits|model.*not.*found|provider.*unavailable|api.?key.*missing|unauthorized|authentication.*failed|503|overloaded|model.?unavailable)'
+  local regex='(quota.{0,100}(exceeded|reached)|rate.?limit|429|resource_exhausted|payment required|insufficient credits|model.{0,60}not.{0,20}found|model[[:space:]]+(is[[:space:]]+)?unavailable|upstream request failed.{0,120}unavailable|provider.{0,80}unavailable|api.?key.{0,30}missing|unauthorized|authentication.{0,40}failed|503|overloaded)'
   # Nonzero exits: allow the next free model if any provider/quota signature exists.
   if (( exit_code != 0 )); then
     grep -Eiq "$regex" "$file"
@@ -140,7 +170,7 @@ model_terminal_error() {
   fi
   # OpenCode v1 may exit zero after a provider failure. Treat only a TERMINAL
   # explicit error line as fatal; normal agent prose mentioning 'quota' is not.
-  tail -n 18 "$file" | grep -Eiq "(^|[[:space:]])(Error:|ERROR:|ProviderError:|APIError:|429[[:space:]])[[:space:]]*$regex|^Error:.*$regex"
+  tail -n 24 "$file" | grep -Ei '^[[:space:]]*(Error:|ProviderError:|APIError:)' | grep -Eiq "$regex"
 }
 start="$(date +%s)"
 no_progress=0
@@ -162,14 +192,14 @@ for (( pass=1; pass<=20; pass++ )); do
     rc=$?
     set -e
     printf 'EXIT pass=%s model=%s rc=%s\n' "$pass" "$model" "$rc" >> "$status"
-    if model_terminal_error "$file" "$rc"; then
-      printf 'MODEL_ERROR terminal_provider_error; try_next_free=%s\n' "$model" >> "$status"
-      continue
-    fi
     if (( rc == 124 )); then
       echo 'PASS_TIMEOUT: worktree preserved for next pass' >> "$status"
       done_pass=1
       break
+    fi
+    if model_terminal_error "$file" "$rc"; then
+      printf 'MODEL_ERROR terminal_provider_error; try_next_free=%s\n' "$model" >> "$status"
+      continue
     fi
     if (( rc != 0 )); then
       printf 'FATAL rc=%s; recent output:\n' "$rc" >> "$status"
