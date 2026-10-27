@@ -2,6 +2,8 @@ import re
 import uuid
 import sys
 
+from tools.automation.scope_guard import ScopeGuard
+
 STALE_FTS5 = "STALE_FTS5"
 CORRUPTED_ARTIFACT = "CORRUPTED_ARTIFACT"
 RESOLVABLE_IMPORT = "RESOLVABLE_IMPORT"
@@ -69,15 +71,16 @@ class RepairPlanner:
         transformation = TRANSFORMATIONS[category]
         plan_id = str(uuid.uuid4())
 
-        # Hard fail if missing
-        from tools.agent_contract.guard import ScopeGuard
-        guard = ScopeGuard(target_paths)
+        guard = ScopeGuard(owner="RepairPlanner")
+        for p in target_paths:
+            guard.add_allowed_path(p)
 
         leases = []
         if not dry_run:
             for path in target_paths:
-                with guard.lease_file(path):
-                    leases.append(path)
+                if not guard.request_ownership(path):
+                    raise RuntimeError("Failed to acquire lock")
+                leases.append(path)
 
         return {
             "plan_id": plan_id,
