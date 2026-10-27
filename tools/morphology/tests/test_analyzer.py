@@ -114,7 +114,48 @@ class TestAnalyzer(unittest.TestCase):
         analyzer = MorphologyAnalyzer([self.noun_db_path], de)
 
         res = analyzer.analyze("Toren")
-        self.assertEqual(len(res), 3)
+        self.assertEqual(len(res), 2)
+
+        analyzer.close()
+
+    def test_unicode_combining_marks(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('talo1', 'talo', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        fi = get_profile("fi")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], fi)
+
+        decomposed_word = 'talo' + 's' + 's' + 'a' + '\u0308' # talossä (although ä breaks vowel harmony, we just test surface preservation here, wait let's use talossa which is valid)
+        # Ah, 'a' doesn't have a combining diaeresis to make 'ä'. 'a\u0308' is 'ä'.
+        # Wait, the rule is vowel harmony. 'talossa' has back vowels.
+        # Let's use metsässäni -> metsä + ssä + ni
+        # metsä = m + e + t + s + a + \u0308
+        decomposed_word = 'metsa\u0308ssa\u0308ni'
+        self.ndb.execute("INSERT INTO nominals VALUES ('metsä1', 'metsä', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        res = analyzer.analyze(decomposed_word)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].surface, decomposed_word)
+        self.assertEqual(res[0].lemma, "metsä")
+
+        analyzer.close()
+
+    def test_german_false_match(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Mädchen', 'noun', 'neu', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'sg', 'def', 'Mädchen')")
+        self.ndb.commit()
+
+        de = get_profile("de")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], de)
+
+        res = analyzer.analyze("Mädchen")
+        # Should match the nominal declension directly.
+        # It should NOT match as DAT PL by stripping -n or -en, because 'Mädchen' has number='sg'.
+
+        tags = [tuple(r.tags) for r in res]
+        self.assertIn(('nom', 'sg', 'def'), tags)
+        self.assertNotIn(('DAT', 'PL'), tags)
 
         analyzer.close()
 
