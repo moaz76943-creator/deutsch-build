@@ -156,8 +156,7 @@ void main() {
       final key = l1Cache.generateKey('de', 'ar', '1.0.0');
 
       // Create a giant array to exceed 15MB limit.
-      // 150000 items * ~150 bytes = ~22.5MB
-      final hugeList = List.generate(150000, (i) => {'word': 'very_long_word_$i'});
+      final hugeList = List.generate(350000, (i) => {'word': 'very_long_word_$i'});
 
       l1Cache.put(key, hugeList);
 

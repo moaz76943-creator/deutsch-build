@@ -1,22 +1,18 @@
-<<<<<<< HEAD
 import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
 import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
-  L1VocabularyCache._internal();
 
-<<<<<<< HEAD
   L1VocabularyCache._internal() {
     _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
-      maxCapacity: 100,
-      maxMemoryBytes: 10 * 1024 * 1024, // 10MB budget
+      maxCapacity: 20,
+      maxMemoryBytes: 15 * 1024 * 1024, // 15MB budget
       onEvict: (key) {
         _identities.remove(key);
       },
+      sizeEstimator: (k, v) => _measureSize(v),
     );
   }
 
@@ -43,6 +39,10 @@ class L1VocabularyCache {
     return size;
   }
 
+  String generateKey(String language, String direction, String contentVersion) {
+    return '${language}_${direction}_$contentVersion';
+  }
+
   void putWithIdentity(String langCode, List<Map<String, dynamic>> items,
       CacheIdentity identity) {
     // Check if stale
@@ -56,14 +56,14 @@ class L1VocabularyCache {
       }
     }
 
-    _invalidateStale(identity);
+    _invalidateStaleIdentity(identity);
 
-    final size = _measureSize(items);
-    _memoryCache.put(langCode, List.unmodifiable(items), itemSizeBytes: size);
-    _identities[langCode] = identity;
+    if (_memoryCache.put(langCode, List.unmodifiable(items))) {
+        _identities[langCode] = identity;
+    }
   }
 
-  void _invalidateStale(CacheIdentity newIdentity) {
+  void _invalidateStaleIdentity(CacheIdentity newIdentity) {
     final keysToRemove = <String>[];
     for (final entry in _identities.entries) {
       final id = entry.value;
@@ -81,17 +81,120 @@ class L1VocabularyCache {
     }
   }
 
-  // Legacy fallback
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache.put(langCode, List.unmodifiable(items),
-        itemSizeBytes: _measureSize(items));
+  void invalidateStaleVersions(String activeVersion) {
+    final keysToRemove = <String>[];
+    // use memoryCache keys as identities could be empty in legacy fallback mode
+    for (final key in _memoryCache.keys) {
+      if (key.split('_').length >= 3) { // It's a generated key
+         if (key.split('_').last != activeVersion) {
+            keysToRemove.add(key);
+         }
+      } else if (_identities.containsKey(key)) {
+         if (_identities[key]!.contentVersion != activeVersion) {
+             keysToRemove.add(key);
+         }
+      }
+    }
+
+    for (final k in keysToRemove) {
+      _memoryCache.remove(k);
+      _identities.remove(k);
+    }
   }
 
-  List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache.get(langCode);
+  // Legacy fallback and other overloads
+  void put(String key, List<Map<String, dynamic>> items, {String? direction, int? packVersion, int? requestEpoch, int? activeEpoch}) {
+    if (requestEpoch != null && activeEpoch != null && requestEpoch < activeEpoch) {
+      return; // reject stale asynchronous update
+    }
+
+    String finalKey = key;
+    if (direction != null && packVersion != null) {
+      finalKey = generateKey(key, direction, packVersion.toString());
+    }
+
+    if (_memoryCache.put(finalKey, List.unmodifiable(items))) {
+       if (direction != null) {
+           _identities[finalKey] = CacheIdentity(language: key, direction: direction, pairEpoch: activeEpoch ?? 0, contentVersion: packVersion?.toString() ?? 'unknown');
+       }
+    }
   }
 
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
+  List<Map<String, dynamic>>? get(String key, {String? direction, int? packVersion}) {
+    String finalKey = key;
+    if (direction != null && packVersion != null) {
+      finalKey = generateKey(key, direction, packVersion.toString());
+    } else if (direction != null) {
+        if (!_memoryCache.containsKey(finalKey)) {
+             for(var id in _identities.values){
+                 if(id.language == key && id.direction == direction){
+                     return _memoryCache.get(_identities.entries.firstWhere((e)=>e.value==id).key);
+                 }
+             }
+        }
+    }
+
+    // ensure no cross pair retrieval
+    if (direction != null) {
+        if (_identities.containsKey(finalKey)) {
+            if (_identities[finalKey]!.direction != direction) {
+                return null;
+            }
+        } else {
+            // trying to check identities for older signature
+            for(var id in _identities.values){
+                if(id.language == key && id.direction != direction){
+                    return null; // found wrong direction
+                }
+            }
+        }
+    }
+    return _memoryCache.get(finalKey);
+  }
+
+  bool has(String key, {String? direction, int? packVersion}) {
+    String finalKey = key;
+    if (direction != null && packVersion != null) {
+      finalKey = generateKey(key, direction, packVersion.toString());
+    } else if (direction != null) {
+        if (!_memoryCache.containsKey(finalKey)) {
+             for(var id in _identities.values){
+                 if(id.language == key && id.direction == direction){
+                     return _memoryCache.containsKey(_identities.entries.firstWhere((e)=>e.value==id).key);
+                 }
+             }
+        }
+    }
+
+    // ensure no cross pair retrieval
+    if (direction != null) {
+        if (_identities.containsKey(finalKey)) {
+            if (_identities[finalKey]!.direction != direction) {
+                return false;
+            }
+        } else {
+            for(var id in _identities.values){
+                if(id.language == key && id.direction != direction){
+                    return false; // found wrong direction
+                }
+            }
+        }
+    }
+    return _memoryCache.containsKey(finalKey);
+  }
+
+  void invalidateStale(String lang, String direction, int packVersion) {
+    final keysToRemove = <String>[];
+    for (final key in _memoryCache.keys) {
+      if (key.startsWith('${lang}_') && key != generateKey(lang, direction, packVersion.toString())) {
+         keysToRemove.add(key);
+      }
+    }
+    for (final k in keysToRemove) {
+      _memoryCache.remove(k);
+      _identities.remove(k);
+    }
+  }
 
   void clear() {
     _memoryCache.clear();
@@ -101,21 +204,10 @@ class L1VocabularyCache {
   void trimMemoryPressure() {
     _memoryCache.trimMemoryPressure();
   }
-=======
-  final Map<String, List<Map<String, dynamic>>> _memoryCache = {};
 
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache[langCode] = List.unmodifiable(items);
+  void onMemoryPressure() {
+      _memoryCache.onMemoryPressure();
   }
 
-  List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache[langCode];
-  }
-
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
-
-  void clear() {
-    _memoryCache.clear();
-  }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  int get currentMemoryBytes => _memoryCache.currentMemoryBytes;
 }
