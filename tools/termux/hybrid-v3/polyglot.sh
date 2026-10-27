@@ -64,7 +64,7 @@ enter_lane() {
   dir="$(lane_dir "$lane")"
   cd "$dir"
   echo "Entered $lane: $PWD"
-  exec bash -i
+  bash -i
 }
 watch_lane() {
   local lane="$1" sess
