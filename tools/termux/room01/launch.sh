@@ -77,7 +77,7 @@ Workspace ROOT is NOT a git repository. Work only under ./private and ./public.
 
 Read live HEAD, relevant AGENTS.md, SESSION_OPERATING_CONTRACT, relevant PRs and checks. Never edit another worker's owned files or branch. Respect MASTER CONSTITUTION v9, data safety, legal rights, real branch protections, exact-head checks and independent approvals. No force pushes, deleting work, paid resources, secret exposure, or unauthorized changes to repository visibility.
 
-In this pass complete up to THREE coherent, independent real repairs/PR resolutions, not three new documents:
+In this pass complete up to FIVE coherent, independent real repairs/PR resolutions, not five new documents. Persist each 1–3 fix batch to GitHub before starting another:
 1. Find and repair actual private CI merge blockers (notably PR #541, if still open). Distinguish no-runner infrastructure failure from source/test errors. Do not bypass existing checks to fabricate green.
 2. Diagnose/fix existing public merge coordinator and PR gate problems, respecting one-writer/approved.json. Advance ready open PRs through authorized existing merger. For superseded PRs compare replacement code/tests and close with evidence only.
 3. If CI blocks that lane, complete independent public Python/SQLite factory QA/dispatcher issues. Source ledger, licenses, pack SHA256 and PRAGMA integrity/foreign-key checks remain required; never manufacture approved content.
@@ -154,8 +154,21 @@ export OPENCODE_CONFIG="$ROOT/opencode.json"
 mapfile -t models < "$ROOT/free-models.txt"
 count="${#models[@]}"
 [[ "$count" -gt 0 ]] || exit 1
-# Repeat the same source task with a fresh live-state inspection each pass; never share a session with the TUI.
-for (( pass=1; pass<=12; pass++ )); do
+
+# Bounded multi-hour execution; failure evidence survives tmux exit.
+MAX_WALL_SECONDS=$((8 * 3600))
+start_epoch="$(date +%s)"
+status_log="$ROOT/logs/worker-status.log"
+printf 'START %s free_models=%s max_hours=8\n' "$(date -Is)" "$count" >> "$status_log"
+trap 'code=$?; printf "END %s exit=%s pass=%s\n" "$(date -Is)" "$code" "${pass:-0}" >> "$status_log"' EXIT
+
+# Each pass revisits live GitHub state and inspects preserved local edits.
+for (( pass=1; pass<=64; pass++ )); do
+  now="$(date +%s)"
+  if (( now - start_epoch >= MAX_WALL_SECONDS )); then
+    echo 'STOP: maximum eight-hour wall clock budget reached.' | tee -a "$status_log"
+    break
+  fi
   [[ ! -f "$ROOT/STOP" ]] || break
   completed=0
   for (( offset=0; offset<count; offset++ )); do
@@ -165,28 +178,35 @@ for (( pass=1; pass<=12; pass++ )); do
     log="$ROOT/logs/pass-${pass}-${stamp}-model-${index}.log"
     echo "PASS=$pass MODEL=$model START=$(date -Is)" | tee -a "$log"
     set +e
-    timeout --signal=TERM --kill-after=20s 50m opencode run --model "$model" --file "$ROOT/ROOM.md" \
+    timeout --signal=TERM --kill-after=20s 45m opencode run --auto --model "$model" --file "$ROOT/ROOM.md" \
       "Execute the next unowned, high-value batch of 1-3 repairs and authorized PR merges from ROOM.md. Inspect live GitHub state and the local worktree first; resume any partial work. Push verified work as soon as a batch is complete. End with exact receipts. Do not stop at a plan." 2>&1 | tee -a "$log"
     code=${PIPESTATUS[0]}
     set -e
     echo "EXIT_CODE=$code" | tee -a "$log"
-    if (( code == 124 || code == 137 )); then
-      echo 'Execution timed out/killed. Preserve work; stop and inspect.' | tee -a "$log"
+    if (( code == 124 )); then
+      echo 'PASS_TIMED_OUT: prior state preserved; next pass must inspect worktree before edits.' | tee -a "$log" "$status_log"
+      completed=1
+      break
+    fi
+    if (( code == 137 )); then
+      echo 'FATAL: process killed; stop and inspect local state before retry.' | tee -a "$log" "$status_log"
       exit "$code"
     fi
-    if grep -Eiq 'rate.?limit|quota.?exceeded|HTTP[ :]+429|error[ :]+429|payment.?required|insufficient.?credits|model.?unavailable|usage.?limit|context.?length.?exceeded' "$log"; then
-      echo 'Free model quota or context exhausted; trying next free model.' | tee -a "$log"
+    if grep -Eiq 'rate.?limit|quota.?exceeded|HTTP[ :]+429|error[ :]+429|payment.?required|insufficient.?credits|model.?unavailable|model.*not.*found|unauthoriz|not authenticated|no api key|provider.*error|too many requests|resource_exhausted|status.?code.?503|service unavailable|context.?length.?exceeded' "$log"; then
+      echo 'MODEL_UNAVAILABLE: trying next verified free model.' | tee -a "$log" "$status_log"
       continue
     fi
     if (( code != 0 )); then
-      echo 'Non-quota error. Stop to avoid repeat loops; preserve work.' | tee -a "$log"
+      echo 'FATAL_NON_MODEL_ERROR: stop without repeating an identical broken command.' | tee -a "$log" "$status_log"
+      tail -n 25 "$log" >&2
       exit "$code"
     fi
+    echo "PASS_OK $pass $(date -Is) model=$model" | tee -a "$status_log"
     completed=1
     break
   done
   if (( ! completed )); then
-    echo 'All discovered free models exhausted; stopping without paid fallback.'
+    echo 'ALL_FREE_MODELS_UNAVAILABLE: stopping without a paid fallback.' | tee -a "$status_log"
     break
   fi
   sleep 15
@@ -209,7 +229,7 @@ if tmux has-session -t "$WORKER" 2>/dev/null; then
   echo "Worker already running: tmux attach -t $WORKER"
 else
   tmux new-session -d -s "$WORKER" -c "$ROOT" "$ROOT/worker.sh"
-  echo "STARTED: $WORKER"
+  echo "STARTED: $WORKER (confirm using worker-status.log, not the STARTED message)"
 fi
 printf '%s\n' \
   "WATCH: tmux attach -t $WORKER" \
