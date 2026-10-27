@@ -31,7 +31,7 @@ void main() {
         expectedLanguagePairKey: 'de_ar',
         isValidRoute: (route) => route == '/trainer',
         isPackAvailable: (pair) => true,
-        currentTimestampSec: nowSec + 10,
+        currentTimestamp: nowSec + 10,
       );
 
       expect(restored, isNotNull);
@@ -56,7 +56,7 @@ void main() {
 
       final restored = manager.restoreSession(
         expectedLanguagePairKey: 'de_ar',
-        currentTimestampSec: nowSec + 10,
+        currentTimestamp: nowSec + 10,
       );
 
       expect(restored, isNull);
@@ -76,7 +76,7 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        currentTimestampSec: nowSec,
+        currentTimestamp: nowSec,
       );
 
       expect(restored, isNull);
@@ -96,7 +96,7 @@ void main() {
 
       final restored = manager.restoreSession(
         isValidRoute: (route) => false,
-        currentTimestampSec: nowSec,
+        currentTimestamp: nowSec,
       );
 
       expect(restored, isNull);
@@ -117,7 +117,7 @@ void main() {
 
       final restored = manager.restoreSession(
         isPackAvailable: (pair) => false,
-        currentTimestampSec: nowSec,
+        currentTimestamp: nowSec,
       );
 
       expect(restored, isNull);
@@ -137,7 +137,7 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        currentTimestampSec: nowSec,
+        currentTimestamp: nowSec,
       );
 
       expect(restored, isNull);
@@ -157,7 +157,7 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        currentTimestampSec: nowSec,
+        currentTimestamp: nowSec,
       );
 
       expect(restored?.recoveryAttempts, 2);
@@ -181,7 +181,7 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        currentTimestampSec: nowSec,
+        currentTimestamp: nowSec,
       );
 
       expect(restored, isNotNull);
