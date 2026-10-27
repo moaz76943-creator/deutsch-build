@@ -1,7 +1,6 @@
 abstract class OperationFailure {
   final String code;
   final String message;
-<<<<<<< HEAD
   final Object? cause;
 
   const OperationFailure(this.code, this.message, [this.cause]);
@@ -29,17 +28,6 @@ class CancelledFailure extends OperationFailure {
 
 class IncompatibleVersionFailure extends OperationFailure {
   const IncompatibleVersionFailure(super.code, super.message, [super.cause]);
-=======
-  const OperationFailure(this.code, this.message);
-}
-
-class StorageFailure extends OperationFailure {
-  const StorageFailure(super.code, super.message);
-}
-
-class ContentFailure extends OperationFailure {
-  const ContentFailure(super.code, super.message);
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
 
 class OperationResult<T> {
@@ -50,7 +38,6 @@ class OperationResult<T> {
   const OperationResult.failure(this._failure) : _data = null;
 
   bool get isSuccess => _failure == null;
-<<<<<<< HEAD
 
   T get data {
     if (!isSuccess) throw Exception('Cannot access data of a failed result');
@@ -81,8 +68,4 @@ class OperationResult<T> {
   factory OperationResult.incompatibleVersion(String code, String message,
           [Object? cause]) =>
       OperationResult.failure(IncompatibleVersionFailure(code, message, cause));
-=======
-  T get data => _data!;
-  OperationFailure get failure => _failure!;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
