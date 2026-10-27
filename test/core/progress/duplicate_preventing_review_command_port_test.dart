@@ -120,7 +120,7 @@ void main() {
       delegate: delegate,
       expectedLanguagePairKey: 'de_ar',
     );
-    final reverse = ReviewCommand(
+    const reverse = ReviewCommand(
       reviewId: 'reverse',
       sourceLanguageId: 'ar',
       targetLanguageId: 'de',
