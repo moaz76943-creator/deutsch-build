@@ -57,6 +57,7 @@ void main() {
     final submit = find.widgetWithText(FilledButton, 'تحقق محلياً');
 
     await tester.enterText(answer, 'hallo');
+    await tester.pump();
     await tester.ensureVisible(submit);
     await tester.tap(submit);
     await tester.pumpAndSettle();
@@ -96,6 +97,7 @@ void main() {
 
       final answer = find.byKey(const Key('universal_scenario_answer'));
       await tester.enterText(answer, 'hallo');
+      await tester.pump();
       final submit = find.widgetWithText(FilledButton, 'تحقق محلياً');
       await tester.ensureVisible(submit);
       await tester.tap(submit);
