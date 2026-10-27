@@ -46,10 +46,15 @@ class VocabularyRepository {
         return seeded;
       }
 
-      final results = records.map((row) {
-        final jsonStr = row['json_data'] as String;
-        return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
-      }).toList();
+      // Offload JSON decoding of stored items to background isolate when list is non-trivial
+      // to prevent main-thread jank during vocabulary screen entry or refresh.
+      final jsonStrings = records.map((row) => row['json_data'] as String).toList();
+      final List<Map<String, dynamic>> results;
+      if (jsonStrings.length > 50) {
+        results = await compute(_decodeVocabularyRecords, jsonStrings);
+      } else {
+        results = _decodeVocabularyRecords(jsonStrings);
+      }
       _offlineCache = results;
       return results;
     } catch (_) {
@@ -61,6 +66,13 @@ class VocabularyRepository {
   static List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
     final List<dynamic> decoded = jsonDecode(jsonString);
     return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Top-level function to decode a list of JSON strings from DB records on isolate.
+  static List<Map<String, dynamic>> _decodeVocabularyRecords(List<String> jsonStrings) {
+    return jsonStrings.map((jsonStr) {
+      return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+    }).toList();
   }
 
   Future<List<Map<String, dynamic>>> _seedAndMigrate(Database db) async {
