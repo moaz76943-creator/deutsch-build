@@ -89,9 +89,14 @@ PR_TARGET_PERMISSION_CEILING = {
         "issues": "write",
         "pull-requests": "write",
     },
+    # Guarded auto-merge needs contents:write to squash-merge an approved PR
+    # and actions:read to verify exact-head/base run receipts. It is safe under
+    # pull_request_target because the trusted job performs no checkout and
+    # reads no untrusted-head source (asserted below).
     "auto-merge.yml": {
-        "contents": "read",
+        "contents": "write",
         "pull-requests": "write",
+        "actions": "read",
     },
     "auto_release_tagger.yml": {
         "contents": "write",
@@ -394,6 +399,38 @@ def test_pull_request_target_workflows_never_execute_untrusted_head_and_use_leas
             assert "Validate trusted actor" in earlier_names, (
                 f"{name}/{step.name}: custom secret available before trust validation"
             )
+
+
+def test_auto_merge_merjob_never_executes_repository_code_when_writing_contents():
+    workflow = active_workflows()["auto-merge.yml"]
+    assert "pull_request_target" in workflow.triggers
+    text = workflow.path.read_text(encoding="utf-8")
+    # contents:write is only used by the guarded squash merge; the trusted
+    # pull_request_target context must not materialize any repository source.
+    assert "actions/checkout" not in text
+    merge_steps = [
+        step
+        for job in workflow.jobs
+        for step in job.steps
+        if "gh pr merge" in step.run
+    ]
+    assert merge_steps, "squash merge step missing"
+    for step in merge_steps:
+        run = step.run
+        assert "--squash" in run
+        assert "gh pr merge --merge" not in run
+        if "--match-head-commit" in run:
+            assert "gh pr merge --auto" not in run
+        else:
+            # Legacy guarded auto-merge: GitHub itself serializes behind
+            # required checks via --auto against branch protection.
+            assert "gh pr merge --auto --squash" in run
+    # Elevated merge receipts (new guarded version) are asserted when present.
+    if "reviewDecision" in text:
+        assert "runs?head_sha=" in text
+        assert "security_audit.yml" in text
+        assert "staging_self_check.yml" in text
+        assert "--match-head-commit" in text
 
 
 def test_legacy_security_audit_is_only_a_compatibility_notice():
