@@ -112,7 +112,8 @@ progress() {
   git rev-parse HEAD
   git branch --show-current
   git status --porcelain --untracked-files=normal
-  gh pr list -R "$repo" --state all --limit 30 --json number,state,headRefOid,mergedAt 2>/dev/null || true
+  # Do not count unrelated agents' PR movements as this worker's progress.
+  gh pr list -R "$repo" --head "$(git branch --show-current)" --state all --limit 10 --json number,state,headRefOid,mergedAt 2>/dev/null || true
 }
 
 read -r -d '' instructions <<PROMPT || true
@@ -129,6 +130,18 @@ fi)
 In this pass process up to FOUR independent verified fixes/PR resolutions. Within the pass, for each 1-3 coherent fixes: diagnose, implement minimum diff, relevant tests, commit and push immediately to an existing authorized PR branch or open a scoped non-Draft PR; squash merge only if required checks, independent reviews and GitHub branch protection genuinely pass. Verify target SHA and merged=true. If blocked, record a precise blocker in existing PR and switch to another independent eligible issue. Close historical/superseded PRs only after comparing evidence. Do not create new coordinators, ledgers, fake PASS, or generic reports. Finish with TASK_ID/STATUS, PR/SHA, actual tests, next action. Do not stop after a plan.
 PROMPT
 
+model_terminal_error() {
+  local file="$1" exit_code="$2"
+  local regex='(quota.*(exceeded|reached)|rate.?limit|429|resource_exhausted|payment required|insufficient credits|model.*not.*found|provider.*unavailable|api.?key.*missing|unauthorized|authentication.*failed|503|overloaded|model.?unavailable)'
+  # Nonzero exits: allow the next free model if any provider/quota signature exists.
+  if (( exit_code != 0 )); then
+    grep -Eiq "$regex" "$file"
+    return $?
+  fi
+  # OpenCode v1 may exit zero after a provider failure. Treat only a TERMINAL
+  # explicit error line as fatal; normal agent prose mentioning 'quota' is not.
+  tail -n 18 "$file" | grep -Eiq "(^|[[:space:]])(Error:|ERROR:|ProviderError:|APIError:|429[[:space:]])[[:space:]]*$regex|^Error:.*$regex"
+}
 start="$(date +%s)"
 no_progress=0
 for (( pass=1; pass<=20; pass++ )); do
@@ -149,8 +162,8 @@ for (( pass=1; pass<=20; pass++ )); do
     rc=$?
     set -e
     printf 'EXIT pass=%s model=%s rc=%s\n' "$pass" "$model" "$rc" >> "$status"
-    if grep -Eiq '(quota|rate.?limit|429|resource_exhausted|payment required|insufficient credits|model.*not.*found|provider.*unavailable|API.?key.*missing|unauthorized|authentication.*failed|503|overloaded|model.?unavailable)' "$file"; then
-      printf 'MODEL_ERROR try_next_free=%s\n' "$model" >> "$status"
+    if model_terminal_error "$file" "$rc"; then
+      printf 'MODEL_ERROR terminal_provider_error; try_next_free=%s\n' "$model" >> "$status"
       continue
     fi
     if (( rc == 124 )); then
