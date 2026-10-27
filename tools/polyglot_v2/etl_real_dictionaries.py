@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from create_pack_v2 import build
 
-SPEC_PATH = 'assets/database/master_100_languages_spec.json'
+SPEC_PATH = 'assets/content/packs/manifest.json'
 PACKS_DIR = Path('assets/content/packs')
 MAX_SIZE = 25 * 1024 * 1024
 
@@ -114,10 +114,11 @@ def process():
     with open(SPEC_PATH, 'r', encoding='utf-8') as f:
         spec = json.load(f)
 
-    languages = spec.get('languages', [])
-    for lang in languages:
-        code = lang.get('code')
-        if not code:
+    packs = spec.get('packs', {})
+    for code, pack_info in packs.items():
+        license_str = pack_info.get('license', '')
+        if 'CC' not in license_str:
+            print(f"[{code}] LICENSE_BLOCKED")
             continue
 
         canonical_path = PACKS_DIR / code / "canonical" / f"{code}-1.0.0.json"
@@ -138,8 +139,17 @@ def process():
             print(f"[{code}] INVALID: No lexicon entries found")
             continue
 
+        display_name = v1_data.get('pack', {}).get('displayName', '')
+        if ' (' not in display_name or not display_name.endswith(')'):
+            print(f"[{code}] INVALID: missing or invalid displayName format")
+            continue
+
+        parts = display_name.split(' (')
+        name_native = parts[0]
+        name_ar = parts[1][:-1]
+
         print(f"[{code}] Processing {len(lexicon)} entries...")
-        v2_data = convert_v1_to_v2(code, lang.get('native', code), lang.get('ar', code), v1_data)
+        v2_data = convert_v1_to_v2(code, name_native, name_ar, v1_data)
 
         with tempfile.TemporaryDirectory(prefix='polyglot_factory_') as tmpdir:
             tmp_json = Path(tmpdir) / f"{code}_v2.json"
