@@ -32,6 +32,14 @@ class PrivateCIMergeContractTest(unittest.TestCase):
         self.assertIn("--match-head-commit", text)
         self.assertNotIn("gh pr merge --merge", text)
 
+    def test_merge_gate_retriggers_on_new_commits_reviews_and_receipts(self):
+        text = AUTOMERGE.read_text(encoding="utf-8")
+        self.assertIn("types: [labeled, reopened, ready_for_review, synchronize]", text)
+        self.assertIn("pull_request_review:", text)
+        self.assertIn("workflow_run:", text)
+        self.assertIn('workflows: ["Staging self-check", "Security Audit"]', text)
+        self.assertIn("author_association", text)
+
     def test_security_scan_is_independent_and_targets_pr_head(self):
         text = SECURITY.read_text(encoding="utf-8")
         self.assertIn("github.event.pull_request.head.sha || github.sha", text)

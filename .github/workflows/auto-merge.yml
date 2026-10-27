@@ -2,7 +2,12 @@ name: Guarded Auto Merge
 
 on:
   pull_request_target:
-    types: [labeled, reopened, ready_for_review]
+    types: [labeled, reopened, ready_for_review, synchronize]
+  pull_request_review:
+    types: [submitted]
+  workflow_run:
+    workflows: ["Staging self-check", "Security Audit"]
+    types: [completed]
 
 permissions:
   contents: write
@@ -10,36 +15,66 @@ permissions:
   actions: read
 
 concurrency:
-  group: guarded-auto-merge-${{ github.event.pull_request.base.ref }}
+  group: guarded-auto-merge-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
   enable-auto-merge:
     if: >-
       vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
-      (github.event.pull_request.base.ref == 'main' || github.event.pull_request.base.ref == 'staging/v2-full-platform') &&
-      github.event.pull_request.draft == false &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      contains(github.event.pull_request.labels.*.name, 'automerge') &&
       (
-        github.event.pull_request.author_association == 'OWNER' ||
-        github.event.pull_request.author_association == 'MEMBER' ||
-        github.event.pull_request.author_association == 'COLLABORATOR'
+        github.event_name != 'workflow_run' ||
+        github.event.workflow_run.pull_requests[0].base.ref == 'staging/v2-full-platform' ||
+        github.event.workflow_run.pull_requests[0].base.ref == 'main'
       )
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - name: Resolve pull request
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          case "$GITHUB_EVENT_NAME" in
+            pull_request_target|pull_request_review)
+              number="$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")"
+              ;;
+            workflow_run)
+              number="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
+              ;;
+            *)
+              echo '::notice::Unsupported event; merge not attempted.'
+              exit 0
+              ;;
+          esac
+          if [[ -z "$number" ]]; then
+            echo '::notice::No pull request associated with this event; merge not attempted.'
+            exit 0
+          fi
+          printf 'number=%s\nurl=https://github.com/%s/pull/%s\n' \
+            "$number" "$GITHUB_REPOSITORY" "$number" >> "$GITHUB_OUTPUT"
+
       - name: Verify exact-head gates, then squash
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
           set -Eeuo pipefail
 
           # The event may be stale after another agent edits the PR.
           current="$(gh pr view "$PR_URL" --json state,isDraft,isCrossRepository,baseRefName,headRefOid,reviewDecision,labels)"
+          author_assoc="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.author_association // "NONE"')"
+          case "$author_assoc" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *)
+              echo '::notice::Author is not trusted; merge not attempted.'
+              exit 0
+              ;;
+          esac
           pr_state="$(jq -r '.state' <<< "$current")"
           draft="$(jq -r '.isDraft' <<< "$current")"
           cross_repo="$(jq -r '.isCrossRepository' <<< "$current")"
