@@ -47,6 +47,11 @@ done
 command -v opencode >/dev/null 2>&1 || { echo 'ERROR: OpenCode absent. Install a verified Termux-compatible build first.' >&2; exit 1; }
 gh auth status >/dev/null 2>&1 || { echo 'ERROR: run gh auth login to access the private app repository.' >&2; exit 1; }
 
+if tmux has-session -t polyglot-r01 2>/dev/null; then
+  echo 'ERROR: legacy tmux session polyglot-r01 is still running. Stop it safely before starting the hybrid worker in the same workspace.' >&2
+  exit 1
+fi
+
 mkdir -p "$ROOT/logs"
 chmod 700 "$ROOT" "$ROOT/logs"
 check_repo() {
