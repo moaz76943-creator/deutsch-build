@@ -229,7 +229,16 @@ if tmux has-session -t "$WORKER" 2>/dev/null; then
   echo "Worker already running: tmux attach -t $WORKER"
 else
   tmux new-session -d -s "$WORKER" -c "$ROOT" "$ROOT/worker.sh"
-  echo "STARTED: $WORKER (confirm using worker-status.log, not the STARTED message)"
+  sleep 3
+  if tmux has-session -t "$WORKER" 2>/dev/null; then
+    echo "RUNNING: $WORKER (check progress using worker-status.log)"
+  else
+    echo "STOPPED_EARLY: worker terminated; last errors:" >&2
+    [[ ! -f "$ROOT/logs/worker-status.log" ]] || tail -n 12 "$ROOT/logs/worker-status.log" >&2
+    recent="$(ls -t "$ROOT"/logs/pass-*.log 2>/dev/null | head -1 || true)"
+    [[ -z "$recent" ]] || tail -n 35 "$recent" >&2
+    exit 1
+  fi
 fi
 printf '%s\n' \
   "WATCH: tmux attach -t $WORKER" \
