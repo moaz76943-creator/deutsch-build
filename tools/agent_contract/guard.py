@@ -25,6 +25,32 @@ VALID_TRANSITIONS = {
 REPO_ROOT = os.path.abspath(os.getcwd())
 LOCK_TTL_SECONDS = 3600
 
+
+class TaskLedger:
+    def __init__(self, ledger_path):
+        self.ledger_path = ledger_path
+        self.lock_path = ledger_path + ".lock"
+        self.lock_fd = None
+
+    def acquire(self):
+        self.lock_fd = open(self.lock_path, "w")
+        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
+        if os.path.exists(self.ledger_path):
+            with open(self.ledger_path, "r") as f:
+                return f.read()
+        return ""
+
+    def commit(self, data):
+        tmp_path = self.ledger_path + ".tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(data, f, indent=2)
+            f.write("\n")
+        os.rename(tmp_path, self.ledger_path)
+        if self.lock_fd:
+            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
+            self.lock_fd.close()
+            self.lock_fd = None
+
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
     try:
@@ -93,9 +119,7 @@ def is_stale_base_sha(ledger, base_sha):
             return True
     return False
 
-def process_ledger(parsed, f):
-    f.seek(0)
-    content = f.read()
+def process_ledger(parsed, content):
     ledger = json.loads(content) if content else {}
 
     report = {
@@ -206,19 +230,24 @@ def main(args=None):
 
     os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
 
-    with open(parsed.ledger, "a+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        result_code, report, updated_ledger = process_ledger(parsed, f)
+    ledger_manager = TaskLedger(parsed.ledger)
+    content = ledger_manager.acquire()
+
+    try:
+        result_code, report, updated_ledger = process_ledger(parsed, content)
 
         os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
         with open(parsed.report, "w") as rf:
             json.dump(report, rf, indent=2)
 
-        f.seek(0)
-        f.truncate()
-        json.dump(updated_ledger, f, indent=2)
-        # Add a newline for posix compliance
-        f.write("\n")
+        ledger_manager.commit(updated_ledger)
+    except Exception as e:
+        # If an exception happens, still release lock gracefully
+        if ledger_manager.lock_fd:
+            fcntl.flock(ledger_manager.lock_fd, fcntl.LOCK_UN)
+            ledger_manager.lock_fd.close()
+            ledger_manager.lock_fd = None
+        raise e
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
