@@ -1,5 +1,32 @@
 # Performance Improvements Log
 
+## 2026-10-27: Isolate-based Vocabulary DB Decoding (UI Jank)
+
+### Issue
+When loading an already-seeded vocabulary list from SQLite, `getVocabularyList` performed `jsonDecode` + mapping for every row on the main isolate. For lists of 100+ items this can cause frame drops when entering vocabulary-related screens.
+
+### Change
+- Added top-level `_decodeVocabularyRecords` and switched the load path to `compute` when `jsonStrings.length > 50`.
+- Decoding now runs on a background isolate for larger collections; small lists stay synchronous to avoid isolate overhead.
+- In-memory `_offlineCache` still populated for subsequent calls.
+- No change to schema, security, or persistence semantics.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Main-thread time to decode N items | O(N) jsonDecode on UI thread | Isolate spawn + transfer (N>50) | 20-150 ms saved on main (depends on N and device) |
+| UI jank on vocab screen entry | Possible drops if list large | Smoother | Reduced jank |
+| Memory | Same | Same (cache unchanged) | Neutral |
+
+### How to measure
+1. Populate DB with 200+ vocabulary items, open vocabulary journal / flashcards, capture CPU profiler around `getVocabularyList`.
+2. Compare main-thread JSON decode slices before/after.
+3. Frame timing in DevTools Timeline or Perfetto.
+
+Security note: No permissions, integrity, or encryption changes. compute() is standard Flutter isolate API. Threshold avoids unnecessary isolate cost on tiny lists.
+
+---
+
 ## 2026-10-26: Isolate-based Vocabulary JSON Seeding (UI Jank / Startup)
 
 ### Issue
@@ -60,5 +87,6 @@ Cold start latency is critical for user retention. Flutter apps can benefit sign
 - Generate full baseline profile via Macrobenchmark module covering onboarding → dashboard.
 - Audit large ListView(children:) for conversion to ListView.builder if lists grow.
 - Add WorkManager for any background sync (currently offline-first).
+- Further lazy-load feature screens and heavy providers.
 
 Security note: No changes to permissions, integrity checks, or proguard keep rules. ProfileInstaller is official AndroidX.
