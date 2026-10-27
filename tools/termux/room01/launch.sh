@@ -162,6 +162,21 @@ status_log="$ROOT/logs/worker-status.log"
 printf 'START %s free_models=%s max_hours=8\n' "$(date -Is)" "$count" >> "$status_log"
 trap 'code=$?; printf "END %s exit=%s pass=%s\n" "$(date -Is)" "$code" "${pass:-0}" >> "$status_log"' EXIT
 
+# Minimal progress fingerprint prevents repeated no-op calls to free models.
+# Captures local edits and the recent remote PR state, not the agent's claims.
+progress_fingerprint() {
+  local lane repo
+  for lane in private public; do
+    git -C "$ROOT/$lane" branch --show-current
+    git -C "$ROOT/$lane" rev-parse HEAD
+    git -C "$ROOT/$lane" status --short --untracked-files=normal
+  done
+  for repo in moaz76943-creator/deutsch-build moaz76943-creator/-offline-packs-store; do
+    gh pr list --repo "$repo" --state all --limit 20 --json number,state,headRefOid,mergedAt 2>/dev/null || true
+  done
+}
+no_progress=0
+
 # Each pass revisits live GitHub state and inspects preserved local edits.
 for (( pass=1; pass<=64; pass++ )); do
   now="$(date +%s)"
@@ -170,6 +185,7 @@ for (( pass=1; pass<=64; pass++ )); do
     break
   fi
   [[ ! -f "$ROOT/STOP" ]] || break
+  before="$(progress_fingerprint | sha256sum | cut -d' ' -f1)"
   completed=0
   for (( offset=0; offset<count; offset++ )); do
     index=$(( (pass - 1 + offset) % count ))
@@ -208,6 +224,18 @@ for (( pass=1; pass<=64; pass++ )); do
   if (( ! completed )); then
     echo 'ALL_FREE_MODELS_UNAVAILABLE: stopping without a paid fallback.' | tee -a "$status_log"
     break
+  fi
+  after="$(progress_fingerprint | sha256sum | cut -d' ' -f1)"
+  if [[ "$after" == "$before" ]]; then
+    no_progress=$((no_progress + 1))
+    echo "NO_VERIFIABLE_PROGRESS pass=$pass count=$no_progress" | tee -a "$status_log"
+    if (( no_progress >= 2 )); then
+      echo 'STOP: two unchanged passes; inspect logs before using more free-model quota.' | tee -a "$status_log"
+      break
+    fi
+  else
+    no_progress=0
+    echo "WORKTREE_OR_PR_CHANGED pass=$pass (verify receipts in GitHub)" | tee -a "$status_log"
   fi
   sleep 15
 done
