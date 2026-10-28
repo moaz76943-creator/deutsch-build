@@ -35,12 +35,8 @@ void main() {
     });
 
     test('rejects oversized entries based on memory budget', () {
-      // Assuming max budget is 5MB. We'll create a massive string to force rejection.
-      final massiveString = List.filled(3 * 1024 * 1024, 'a').join(); // ~6MB
-      cache.put('huge', [
-        {'text': massiveString}
-      ]);
-      // Should not be in cache because it was rejected by the underlying budget
+      final hugeList = List.generate(400000, (i) => {'text': 'very_long_word_$i'});
+      cache.put('huge', hugeList);
       expect(cache.has('huge'), isFalse);
     });
 
