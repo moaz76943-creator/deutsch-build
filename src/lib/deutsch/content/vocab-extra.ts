@@ -1208,4 +1208,315 @@ export const vocabExtra: VocabExtraItem[] = [
     exampleDe: 'Wir schließen die Tür abends.',
     exampleAr: 'نغلق الباب في المساء.'
   }
+,
+{
+    id: 'v-extra-76',
+    type: 'verb',
+    level: 'A1',
+    de: 'antworten',
+    ar: 'يجيب',
+    conjugations: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'geantwortet',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich antworte auf die Frage.',
+    exampleAr: 'أجيب على السؤال.'
+  },
+  {
+    id: 'v-extra-77',
+    type: 'verb',
+    level: 'A1',
+    de: 'finden',
+    ar: 'يجد',
+    conjugations: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie: 'finden',
+      präteritum: 'fand',
+      perfekt: 'gefunden',
+      aux: 'haben'
+    },
+    exampleDe: 'Wo findest du das Buch?',
+    exampleAr: 'أين تجد الكتاب؟'
+  },
+  {
+    id: 'v-extra-78',
+    type: 'verb',
+    level: 'A2',
+    de: 'denken',
+    ar: 'يفكر',
+    conjugations: {
+      ich: 'denke',
+      du: 'denkst',
+      er: 'denkt',
+      wir: 'denken',
+      ihr: 'denkt',
+      sie: 'denken',
+      präteritum: 'dachte',
+      perfekt: 'gedacht',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich denke an meine Familie.',
+    exampleAr: 'أفكر في عائلتي.'
+  },
+  {
+    id: 'v-extra-79',
+    type: 'verb',
+    level: 'A1',
+    de: 'warten',
+    ar: 'ينتظر',
+    conjugations: {
+      ich: 'warte',
+      du: 'wartest',
+      er: 'wartet',
+      wir: 'warten',
+      ihr: 'wartet',
+      sie: 'warten',
+      präteritum: 'wartete',
+      perfekt: 'gewartet',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir warten auf den Bus.',
+    exampleAr: 'نحن ننتظر الحافلة.'
+  },
+  {
+    id: 'v-extra-80',
+    type: 'verb',
+    level: 'A1',
+    de: 'lachen',
+    ar: 'يضحك',
+    conjugations: {
+      ich: 'lache',
+      du: 'lachst',
+      er: 'lacht',
+      wir: 'lachen',
+      ihr: 'lacht',
+      sie: 'lachen',
+      präteritum: 'lachte',
+      perfekt: 'gelacht',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder lachen laut.',
+    exampleAr: 'الأطفال يضحكون بصوت عالٍ.'
+  },
+  {
+    id: 'v-extra-81',
+    type: 'verb',
+    level: 'A2',
+    de: 'kochen',
+    ar: 'يطبخ',
+    conjugations: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'gekocht',
+      aux: 'haben'
+    },
+    exampleDe: 'Meine Mutter kocht das Abendessen.',
+    exampleAr: 'أمي تطبخ العشاء.'
+  },
+  {
+    id: 'v-extra-82',
+    type: 'verb',
+    level: 'A2',
+    de: 'fahren',
+    ar: 'يقود / يسافر',
+    conjugations: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'gefahren',
+      aux: 'sein'
+    },
+    exampleDe: 'Ich fahre mit dem Zug nach Berlin.',
+    exampleAr: 'أسافر بالقطار إلى برلين.'
+  },
+  {
+    id: 'v-extra-83',
+    type: 'verb',
+    level: 'A1',
+    de: 'stehen',
+    ar: 'يقف',
+    conjugations: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'gestanden',
+      aux: 'haben'
+    },
+    exampleDe: 'Das Auto steht vor dem Haus.',
+    exampleAr: 'السيارة تقف أمام المنزل.'
+  },
+  {
+    id: 'v-extra-84',
+    type: 'verb',
+    level: 'A2',
+    de: 'beginnen',
+    ar: 'يبدأ',
+    conjugations: {
+      ich: 'beginne',
+      du: 'beginnst',
+      er: 'beginnt',
+      wir: 'beginnen',
+      ihr: 'beginnt',
+      sie: 'beginnen',
+      präteritum: 'begann',
+      perfekt: 'begonnen',
+      aux: 'haben'
+    },
+    exampleDe: 'Der Unterricht beginnt um acht Uhr.',
+    exampleAr: 'يبدأ الدرس في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-85',
+    type: 'verb',
+    level: 'A1',
+    de: 'sitzen',
+    ar: 'يجلس',
+    conjugations: {
+      ich: 'sitze',
+      du: 'sitzt',
+      er: 'sitzt',
+      wir: 'sitzen',
+      ihr: 'sitzt',
+      sie: 'sitzen',
+      präteritum: 'saß',
+      perfekt: 'gesessen',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir sitzen im Café.',
+    exampleAr: 'نحن نجلس في المقهى.'
+  },
+  {
+    id: 'v-extra-86',
+    type: 'noun',
+    level: 'A1',
+    de: 'Apotheke',
+    article: 'die',
+    plural: 'Apotheken',
+    ar: 'صيدلية',
+    exampleDe: 'Ich gehe zur Apotheke.',
+    exampleAr: 'أذهب إلى الصيدلية.'
+  },
+  {
+    id: 'v-extra-87',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bahnhof',
+    article: 'der',
+    plural: 'Bahnhöfe',
+    ar: 'محطة قطار',
+    exampleDe: 'Der Bahnhof ist groß.',
+    exampleAr: 'محطة القطار كبيرة.'
+  },
+  {
+    id: 'v-extra-88',
+    type: 'noun',
+    level: 'A1',
+    de: 'Supermarkt',
+    article: 'der',
+    plural: 'Supermärkte',
+    ar: 'سوبر ماركت',
+    exampleDe: 'Wir kaufen im Supermarkt ein.',
+    exampleAr: 'نحن نتسوق في السوبر ماركت.'
+  },
+  {
+    id: 'v-extra-89',
+    type: 'noun',
+    level: 'A1',
+    de: 'Geld',
+    article: 'das',
+    plural: '—',
+    ar: 'مال',
+    exampleDe: 'Ich habe kein Geld mehr.',
+    exampleAr: 'لم يعد لدي مال.'
+  },
+  {
+    id: 'v-extra-90',
+    type: 'noun',
+    level: 'A1',
+    de: 'Zeit',
+    article: 'die',
+    plural: 'Zeiten',
+    ar: 'وقت',
+    exampleDe: 'Hast du Zeit heute?',
+    exampleAr: 'هل لديك وقت اليوم؟'
+  },
+  {
+    id: 'v-extra-91',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tag',
+    article: 'der',
+    plural: 'Tage',
+    ar: 'يوم',
+    exampleDe: 'Heute ist ein schöner Tag.',
+    exampleAr: 'اليوم يوم جميل.'
+  },
+  {
+    id: 'v-extra-92',
+    type: 'noun',
+    level: 'A1',
+    de: 'Nacht',
+    article: 'die',
+    plural: 'Nächte',
+    ar: 'ليل',
+    exampleDe: 'Gute Nacht!',
+    exampleAr: 'تصبح على خير!'
+  },
+  {
+    id: 'v-extra-93',
+    type: 'noun',
+    level: 'A1',
+    de: 'Woche',
+    article: 'die',
+    plural: 'Wochen',
+    ar: 'أسبوع',
+    exampleDe: 'Nächste Woche habe ich Urlaub.',
+    exampleAr: 'الأسبوع القادم لدي إجازة.'
+  },
+  {
+    id: 'v-extra-94',
+    type: 'noun',
+    level: 'A2',
+    de: 'Stadt',
+    article: 'die',
+    plural: 'Städte',
+    ar: 'مدينة',
+    exampleDe: 'Berlin ist eine große Stadt.',
+    exampleAr: 'برلين مدينة كبيرة.'
+  },
+  {
+    id: 'v-extra-95',
+    type: 'noun',
+    level: 'A1',
+    de: 'Straße',
+    article: 'die',
+    plural: 'Straßen',
+    ar: 'شارع',
+    exampleDe: 'Die Straße ist lang.',
+    exampleAr: 'الشارع طويل.'
+  }
 ];

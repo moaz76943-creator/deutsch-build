@@ -43,3 +43,17 @@ Status: COMPLETE
 - Preview: kept on approved port 6014 (preview-proxy active, no new process started).
 
 Status: COMPLETE
+## Session: 2026-10-29 01:04 +03 (hourly Grok Build)
+
+- Read AGENTS.md and project instructions. Auth/DB remain OFF.
+- Ran `npm test` (test-vocab-extra.js): PASS with 75 items, unique IDs.
+- Added 20 new A1/A2 items in `src/lib/deutsch/content/vocab-extra.ts` (IDs v-extra-76 to v-extra-95):
+  - Verbs with full conjugations (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): antworten, finden, denken, warten, lachen, kochen, fahren, stehen, beginnen, sitzen.
+  - Nouns with article (der/die/das) and plural: Apotheke (die/Apotheken), Bahnhof (der/Bahnhöfe), Supermarkt (der/Supermärkte), Geld (das/—), Zeit (die/Zeiten), Tag (der/Tage), Nacht (die/Nächte), Woche (die/Wochen), Stadt (die/Städte), Straße (die/Straßen).
+  - Natural German example sentences + accurate Arabic translations.
+- All IDs unique (no repeats). No automatic deletion of similar items.
+- Tests re-run: PASS (95 items, 95 unique IDs). Includes required präteritum and article der.
+- No bugs found requiring failing tests. Content integrity maintained. Offline-only learning system preserved.
+- Preview: kept on approved port (preview-proxy active, no new process started).
+
+Status: COMPLETE
