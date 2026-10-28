@@ -896,5 +896,316 @@ export const vocabExtra: VocabExtraItem[] = [
     ar: 'فكرة',
     exampleDe: 'Das ist eine gute Idee!',
     exampleAr: 'هذه فكرة جيدة!'
+  },
+  // New items session 2026-10-28 19:04 +03
+  {
+    id: 'v-extra-56',
+    type: 'verb',
+    level: 'A1',
+    de: 'schlafen',
+    ar: 'ينام',
+    conjugations: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'geschlafen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich schlafe acht Stunden pro Nacht.',
+    exampleAr: 'أنام ثماني ساعات كل ليلة.'
+  },
+  {
+    id: 'v-extra-57',
+    type: 'verb',
+    level: 'A1',
+    de: 'wohnen',
+    ar: 'يسكن / يعيش',
+    conjugations: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'gewohnt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir wohnen in Berlin.',
+    exampleAr: 'نحن نسكن في برلين.'
+  },
+  {
+    id: 'v-extra-58',
+    type: 'verb',
+    level: 'A1',
+    de: 'spielen',
+    ar: 'يلعب',
+    conjugations: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'gespielt',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder spielen im Park.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-59',
+    type: 'verb',
+    level: 'A2',
+    de: 'helfen',
+    ar: 'يساعد',
+    conjugations: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie: 'helfen',
+      präteritum: 'half',
+      perfekt: 'geholfen',
+      aux: 'haben'
+    },
+    exampleDe: 'Kannst du mir bitte helfen?',
+    exampleAr: 'هل يمكنك مساعدتي من فضلك؟'
+  },
+  {
+    id: 'v-extra-60',
+    type: 'verb',
+    level: 'A1',
+    de: 'lesen',
+    ar: 'يقرأ',
+    conjugations: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie: 'lesen',
+      präteritum: 'las',
+      perfekt: 'gelesen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich lese jeden Abend ein Buch.',
+    exampleAr: 'أقرأ كتاباً كل مساء.'
+  },
+  {
+    id: 'v-extra-61',
+    type: 'verb',
+    level: 'A1',
+    de: 'schreiben',
+    ar: 'يكتب',
+    conjugations: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'geschrieben',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie schreibt eine E-Mail an ihren Freund.',
+    exampleAr: 'هي تكتب بريداً إلكترونياً إلى صديقها.'
+  },
+  {
+    id: 'v-extra-62',
+    type: 'verb',
+    level: 'A1',
+    de: 'hören',
+    ar: 'يسمع / يستمع',
+    conjugations: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'gehört',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir hören Musik im Auto.',
+    exampleAr: 'نحن نستمع إلى الموسيقى في السيارة.'
+  },
+  {
+    id: 'v-extra-63',
+    type: 'verb',
+    level: 'A2',
+    de: 'fragen',
+    ar: 'يسأل',
+    conjugations: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'gefragt',
+      aux: 'haben'
+    },
+    exampleDe: 'Darf ich dich etwas fragen?',
+    exampleAr: 'هل يمكنني أن أسألك شيئاً؟'
+  },
+  {
+    id: 'v-extra-64',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    article: 'der',
+    plural: 'Tische',
+    ar: 'طاولة',
+    exampleDe: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة مصنوعة من الخشب.'
+  },
+  {
+    id: 'v-extra-65',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stuhl',
+    article: 'der',
+    plural: 'Stühle',
+    ar: 'كرسي',
+    exampleDe: 'Bitte setz dich auf den Stuhl.',
+    exampleAr: 'من فضلك اجلس على الكرسي.'
+  },
+  {
+    id: 'v-extra-66',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    article: 'die',
+    plural: 'Türen',
+    ar: 'باب',
+    exampleDe: 'Die Tür ist offen.',
+    exampleAr: 'الباب مفتوح.'
+  },
+  {
+    id: 'v-extra-67',
+    type: 'noun',
+    level: 'A1',
+    de: 'Fenster',
+    article: 'das',
+    plural: 'Fenster',
+    ar: 'نافذة',
+    exampleDe: 'Das Fenster ist groß und hell.',
+    exampleAr: 'النافذة كبيرة ومضيئة.'
+  },
+  {
+    id: 'v-extra-68',
+    type: 'noun',
+    level: 'A1',
+    de: 'Apfel',
+    article: 'der',
+    plural: 'Äpfel',
+    ar: 'تفاحة',
+    exampleDe: 'Ich esse gerne einen Apfel.',
+    exampleAr: 'أحب أن آكل تفاحة.'
+  },
+  {
+    id: 'v-extra-69',
+    type: 'noun',
+    level: 'A1',
+    de: 'Milch',
+    article: 'die',
+    plural: '—',
+    ar: 'حليب',
+    exampleDe: 'Die Milch ist kalt.',
+    exampleAr: 'الحليب بارد.'
+  },
+  {
+    id: 'v-extra-70',
+    type: 'noun',
+    level: 'A1',
+    de: 'Kaffee',
+    article: 'der',
+    plural: 'Kaffees',
+    ar: 'قهوة',
+    exampleDe: 'Möchtest du eine Tasse Kaffee?',
+    exampleAr: 'هل تريد فنجان قهوة؟'
+  },
+  {
+    id: 'v-extra-71',
+    type: 'noun',
+    level: 'A1',
+    de: 'Kind',
+    article: 'das',
+    plural: 'Kinder',
+    ar: 'طفل',
+    exampleDe: 'Das Kind spielt mit dem Ball.',
+    exampleAr: 'الطفل يلعب بالكرة.'
+  },
+  {
+    id: 'v-extra-72',
+    type: 'noun',
+    level: 'A2',
+    de: 'Hund',
+    article: 'der',
+    plural: 'Hunde',
+    ar: 'كلب',
+    exampleDe: 'Der Hund bellt laut.',
+    exampleAr: 'الكلب ينبح بصوت عالٍ.'
+  },
+  {
+    id: 'v-extra-73',
+    type: 'noun',
+    level: 'A2',
+    de: 'Katze',
+    article: 'die',
+    plural: 'Katzen',
+    ar: 'قطة',
+    exampleDe: 'Die Katze schläft auf dem Sofa.',
+    exampleAr: 'القطة تنام على الأريكة.'
+  },
+  {
+    id: 'v-extra-74',
+    type: 'verb',
+    level: 'A2',
+    de: 'öffnen',
+    ar: 'يفتح',
+    conjugations: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'geöffnet',
+      aux: 'haben'
+    },
+    exampleDe: 'Bitte öffne das Fenster.',
+    exampleAr: 'من فضلك افتح النافذة.'
+  },
+  {
+    id: 'v-extra-75',
+    type: 'verb',
+    level: 'A2',
+    de: 'schließen',
+    ar: 'يغلق',
+    conjugations: {
+      ich: 'schließe',
+      du: 'schließt',
+      er: 'schließt',
+      wir: 'schließen',
+      ihr: 'schließt',
+      sie: 'schließen',
+      präteritum: 'schloss',
+      perfekt: 'geschlossen',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir schließen die Tür abends.',
+    exampleAr: 'نغلق الباب في المساء.'
   }
 ];
