@@ -43,6 +43,28 @@ jobs:
               ;;
             workflow_run)
               number="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
+
+              # GitHub may omit the associated PR list.
+              # Resolve using the exact run commit.
+              if [[ -z "$number" ]]; then
+                run_head="$(jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH")"
+
+                if [[ "$run_head" =~ ^[0-9a-f]{40}$ ]]; then
+                  candidates="$(gh api "repos/$GITHUB_REPOSITORY/commits/$run_head/pulls?per_page=100")"
+
+                  number="$(jq -r --arg sha "$run_head" '
+                    [.[] | select(
+                      .state == "open"
+                      and .head.sha == $sha
+                      and (
+                        .base.ref == "main"
+                        or .base.ref == "staging/v2-full-platform"
+                      )
+                    ) | .number]
+                    | if length == 1 then .[0] else empty end
+                  ' <<< "$candidates")"
+                fi
+              fi
               ;;
             *)
               echo '::notice::Unsupported event; merge not attempted.'
@@ -57,6 +79,7 @@ jobs:
             "$number" "$GITHUB_REPOSITORY" "$number" >> "$GITHUB_OUTPUT"
 
       - name: Verify exact-head gates, then squash
+        if: steps.pr.outputs.number != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

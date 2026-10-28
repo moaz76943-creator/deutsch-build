@@ -9,6 +9,15 @@ SECURITY = ROOT / ".github/workflows/security_audit.yml"
 
 
 class PrivateCIMergeContractTest(unittest.TestCase):
+    def test_workflow_run_missing_pr_is_safe(self):
+        text = AUTOMERGE.read_text(encoding="utf-8")
+        self.assertIn(
+            "commits/$run_head/pulls", text
+        )
+        self.assertIn(
+            "if: steps.pr.outputs.number != ''", text
+        )
+
     def test_ci_is_read_only_and_never_merges_on_one_green_check(self):
         text = STAGING.read_text(encoding="utf-8")
         self.assertIn("contents: read", text)
