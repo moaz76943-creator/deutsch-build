@@ -11,11 +11,13 @@ class AndroidOfflineVoiceCapabilityProbe {
       if (voices == null) return [];
 
       final List<String> locales = [];
-      for (final voice in voices) {
-        if (voice is Map) {
-          final locale = voice['locale'] as String?;
-          if (locale != null) {
-            locales.add(locale);
+      if (voices is Iterable) {
+        for (final voice in voices) {
+          if (voice is Map) {
+            final locale = voice['locale'] as String?;
+            if (locale != null) {
+              locales.add(locale);
+            }
           }
         }
       }
