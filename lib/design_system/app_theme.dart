@@ -3,95 +3,128 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
-  static ThemeData lightTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    fontFamily: 'Cairo',
-    colorScheme: ColorScheme.light(
-      primary: AppColors.primary,
-      onPrimary: Colors.white,
-      secondary: AppColors.secondary,
-      onSecondary: Colors.white,
-      tertiary: AppColors.tertiary,
-      surface: AppColors.lightSurface,
-      onSurface: const Color(0xFF1C1B1F),
-      background: AppColors.lightBackground,
-      onBackground: const Color(0xFF1C1B1F),
-      error: const Color(0xFFB3261E),
-      onError: Colors.white,
-    ),
-    scaffoldBackgroundColor: AppColors.lightBackground,
-    textTheme: _textTheme,
-    appBarTheme: const AppBarTheme(
-      elevation: 0,
-      centerTitle: true,
-      backgroundColor: Colors.transparent,
-      foregroundColor: Color(0xFF1C1B1F),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(48, 48), // Accessibility: min touch target
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    ),
-    // Ensure good contrast and scaling support via theme
-  );
+  // Seed colors tuned for German learning (trust + energy) while staying MD3-friendly.
+  static const Color _lightSeed = Color(0xFF365AA8);
+  static const Color _darkSeed = Color(0xFFAFC6FF);
 
-  static ThemeData darkTheme = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    fontFamily: 'Cairo',
-    colorScheme: ColorScheme.dark(
-      primary: AppColors.primaryDark,
-      onPrimary: const Color(0xFF001B3D),
-      secondary: AppColors.secondaryDark,
-      onSecondary: const Color(0xFF003733),
-      tertiary: AppColors.tertiaryDark,
-      surface: AppColors.darkSurface,
-      onSurface: const Color(0xFFE6E1E5),
-      background: AppColors.darkBackground,
-      onBackground: const Color(0xFFE6E1E5),
-      error: const Color(0xFFF2B8B5),
-      onError: const Color(0xFF601410),
-    ),
-    scaffoldBackgroundColor: AppColors.darkBackground,
-    textTheme: _textTheme,
-    appBarTheme: const AppBarTheme(
-      elevation: 0,
-      centerTitle: true,
-      backgroundColor: Colors.transparent,
-      foregroundColor: Color(0xFFE6E1E5),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(48, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    ),
-  );
+  static ThemeData get lightTheme => _buildTheme(Brightness.light, _lightSeed);
+  static ThemeData get darkTheme => _buildTheme(Brightness.dark, _darkSeed);
 
-  static TextTheme get _textTheme => TextTheme(
-    displayLarge: AppTypography.display.copyWith(fontSize: 32),
-    displayMedium: AppTypography.display.copyWith(fontSize: 28),
-    headlineLarge: AppTypography.h1.copyWith(fontSize: 24),
-    headlineMedium: AppTypography.h1.copyWith(fontSize: 22),
+  static ThemeData _buildTheme(Brightness brightness, Color seed) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+      // Dynamic contrast helpers for better a11y
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    );
+
+    final isDark = brightness == Brightness.dark;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      fontFamily: 'Cairo',
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      textTheme: _textTheme.apply(
+        bodyColor: colorScheme.onSurface,
+        displayColor: colorScheme.onSurface,
+      ),
+      // Accessibility: larger default touch targets + clear focus
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      splashFactory: InkSparkle.splashFactory, // Smoother MD3 ripples
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(), // Smoother shared-axis style
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0.5,
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        titleTextStyle: AppTypography.title.copyWith(
+          color: colorScheme.onSurface,
+          fontSize: 20,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 0,
+          textStyle: AppTypography.label.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      cardTheme: CardTheme(
+        elevation: isDark ? 1 : 0.5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: colorScheme.surfaceContainer,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          return AppTypography.label.copyWith(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w600 : FontWeight.w500,
+          );
+        }),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      // Better dark mode contrast
+      dividerTheme: DividerThemeData(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+    );
+  }
+
+  static TextTheme get _textTheme => const TextTheme(
+    displayLarge: AppTypography.display,
+    displayMedium: AppTypography.display,
+    headlineLarge: AppTypography.h1,
+    headlineMedium: AppTypography.h1,
     titleLarge: AppTypography.title,
     titleMedium: AppTypography.h2,
     bodyLarge: AppTypography.body,
-    bodyMedium: AppTypography.body.copyWith(fontSize: 14),
-    labelLarge: AppTypography.label.copyWith(fontSize: 14),
+    bodyMedium: AppTypography.body,
+    labelLarge: AppTypography.label,
     labelMedium: AppTypography.label,
     labelSmall: AppTypography.caption,
   );
 
-  /// Optional: Dynamic color support for Android 12+
-  static ThemeData withDynamicColor(ColorScheme dynamicScheme, bool isDark) {
+  /// Dynamic color (Material You) for Android 12+.
+  /// Usage in MaterialApp: theme: AppTheme.withDynamic(dynamicLight, false), etc.
+  static ThemeData withDynamic(ColorScheme dynamicScheme, bool isDark) {
     final base = isDark ? darkTheme : lightTheme;
     return base.copyWith(
       colorScheme: dynamicScheme,
       scaffoldBackgroundColor: dynamicScheme.surface,
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: dynamicScheme.surface,
+        foregroundColor: dynamicScheme.onSurface,
+      ),
     );
   }
 }
