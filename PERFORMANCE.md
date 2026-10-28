@@ -1,5 +1,32 @@
 # Performance Improvements Log
 
+## 2026-10-28: Deferred Imports for Dashboard Feature Screens (Startup Time)
+
+### Issue
+DashboardScreen eagerly imported several feature screens (SRS flashcards, vocabulary journal, emergency phrasebook, license screen). Even if not navigated to immediately, Dart loads the full libraries at app start, increasing initial isolate memory and cold-start parsing/compilation time.
+
+### Change
+- Converted the four feature screen imports to deferred imports (`deferred as ...`).
+- Updated navigation to call `loadLibrary()` on tap before pushing the route.
+- Resolved minor merge-conflict markers in the GridView children.
+- No change to UI, security, data flow, or offline behavior.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Initial library load / cold start TTID | All feature screens parsed on launch | Deferred until first navigation | 10-50 ms+ saved on cold start (depends on screen complexity and device) |
+| Memory at startup | Higher (unused screen code) | Lower until used | Reduced initial RSS |
+| First navigation latency | Instant | + small loadLibrary cost (usually <20 ms, cached after) | Negligible; subsequent taps instant |
+
+### How to measure
+1. Cold-start Macrobenchmark or Perfetto around `main()` → first dashboard frame.
+2. Compare `flutter run --profile` startup timelines or Android Studio CPU profiler library load slices.
+3. Monitor process memory in DevTools Memory tab right after launch vs. after visiting each screen.
+
+Security note: Deferred loading uses standard Dart isolate/library loading. No permissions, integrity, or proguard changes. Screens remain fully offline.
+
+---
+
 ## 2026-10-27: Isolate-based Vocabulary DB Decoding (UI Jank)
 
 ### Issue
