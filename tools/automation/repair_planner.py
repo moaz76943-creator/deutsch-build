@@ -16,9 +16,12 @@ TRANSFORMATIONS = {
     MANIFEST_MISMATCH: "update_manifest"
 }
 
+from tools.automation.scope_guard import ScopeGuard
+
 class RepairPlanner:
-    def __init__(self):
+    def __init__(self, allowed_paths: list[str] = None):
         self._history = {}
+        self.allowed_paths = allowed_paths if allowed_paths is not None else []
 
     def classify_failure(self, failure_signature: str) -> str:
         if re.search(r"ambiguous dependency upgrade|security vulnerability|ambiguous dependency", failure_signature, re.IGNORECASE):
@@ -70,14 +73,16 @@ class RepairPlanner:
         plan_id = str(uuid.uuid4())
 
         # Hard fail if missing
-        from tools.agent_contract.guard import ScopeGuard
-        guard = ScopeGuard(target_paths)
+        guard = ScopeGuard(owner="repair_planner")
+        for allowed in self.allowed_paths:
+            guard.add_allowed_path(allowed)
 
         leases = []
         if not dry_run:
             for path in target_paths:
-                with guard.lease_file(path):
-                    leases.append(path)
+                if not guard.request_ownership(path):
+                    raise RuntimeError("Failed to acquire lock")
+                leases.append(path)
 
         return {
             "plan_id": plan_id,
