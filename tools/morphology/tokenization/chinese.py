@@ -60,6 +60,9 @@ class ChineseTokenizer(LanguageTokenizer):
                  longest_match_surface = text[start_idx:boundaries[longest_match_end_i]]
                  longest_match_lexical_id = self.lexicon.lookup(longest_match_surface)
                  ambiguous = True
+            elif longest_match_lexical_id is None:
+                 # Unknown fallback character should be marked ambiguous according to test
+                 ambiguous = True
 
             # If there's more than one valid match of length > 1, it's potentially ambiguous
             if len(valid_match_lengths) > 1:
