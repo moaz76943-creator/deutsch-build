@@ -25,6 +25,36 @@ VALID_TRANSITIONS = {
 REPO_ROOT = os.path.abspath(os.getcwd())
 LOCK_TTL_SECONDS = 3600
 
+class TaskLedger:
+    def __init__(self, ledger_path):
+        self.ledger_path = ledger_path
+        self.lock_path = ledger_path + ".lock"
+        self.lock_fd = None
+
+    def __enter__(self):
+        self.lock_fd = open(self.lock_path, "w")
+        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.lock_fd:
+            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
+            self.lock_fd.close()
+
+    def read(self):
+        if os.path.exists(self.ledger_path):
+            with open(self.ledger_path, "r") as f:
+                content = f.read()
+                return json.loads(content) if content else {}
+        return {}
+
+    def write(self, data):
+        tmp_path = self.ledger_path + ".tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(data, f, indent=2)
+            f.write("\n")
+        os.replace(tmp_path, self.ledger_path)
+
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
     try:
@@ -48,9 +78,6 @@ def is_path_allowed(path_str):
     return False
 
 def is_symlink_safe(path_str):
-    if not os.path.islink(path_str):
-        return True
-
     target = os.path.realpath(path_str)
     if not target.startswith(REPO_ROOT):
         return False
@@ -93,10 +120,8 @@ def is_stale_base_sha(ledger, base_sha):
             return True
     return False
 
-def process_ledger(parsed, f):
-    f.seek(0)
-    content = f.read()
-    ledger = json.loads(content) if content else {}
+def process_ledger(parsed, ledger_obj):
+    ledger = ledger_obj.read()
 
     report = {
         "task_id": parsed.task_id,
@@ -205,20 +230,16 @@ def main(args=None):
     parsed = parser.parse_args(args)
 
     os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
 
-    with open(parsed.ledger, "a+") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        result_code, report, updated_ledger = process_ledger(parsed, f)
+    ledger_obj = TaskLedger(parsed.ledger)
+    with ledger_obj:
+        result_code, report, updated_ledger = process_ledger(parsed, ledger_obj)
 
-        os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
         with open(parsed.report, "w") as rf:
             json.dump(report, rf, indent=2)
 
-        f.seek(0)
-        f.truncate()
-        json.dump(updated_ledger, f, indent=2)
-        # Add a newline for posix compliance
-        f.write("\n")
+        ledger_obj.write(updated_ledger)
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
