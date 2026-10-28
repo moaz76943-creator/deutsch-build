@@ -594,5 +594,307 @@ export const vocabExtra: VocabExtraItem[] = [
     ar: 'مال',
     exampleDe: 'Das Geld reicht nicht.',
     exampleAr: 'المال لا يكفي.'
+  },
+  // New A1/A2 items added 2026-10-28 session
+  {
+    id: 'v-extra-36',
+    type: 'verb',
+    level: 'A1',
+    de: 'machen',
+    ar: 'يفعل / يصنع',
+    conjugations: {
+      ich: 'mache',
+      du: 'machst',
+      er: 'macht',
+      wir: 'machen',
+      ihr: 'macht',
+      sie: 'machen',
+      präteritum: 'machte',
+      perfekt: 'gemacht',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich mache meine Hausaufgaben.',
+    exampleAr: 'أنا أفعل واجباتي المنزلية.'
+  },
+  {
+    id: 'v-extra-37',
+    type: 'verb',
+    level: 'A1',
+    de: 'essen',
+    ar: 'يأكل',
+    conjugations: {
+      ich: 'esse',
+      du: 'isst',
+      er: 'isst',
+      wir: 'essen',
+      ihr: 'esst',
+      sie: 'essen',
+      präteritum: 'aß',
+      perfekt: 'gegessen',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir essen zusammen zu Abend.',
+    exampleAr: 'نحن نأكل العشاء معاً.'
+  },
+  {
+    id: 'v-extra-38',
+    type: 'verb',
+    level: 'A1',
+    de: 'trinken',
+    ar: 'يشرب',
+    conjugations: {
+      ich: 'trinke',
+      du: 'trinkst',
+      er: 'trinkt',
+      wir: 'trinken',
+      ihr: 'trinkt',
+      sie: 'trinken',
+      präteritum: 'trank',
+      perfekt: 'getrunken',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich trinke Kaffee am Morgen.',
+    exampleAr: 'أشرب القهوة في الصباح.'
+  },
+  {
+    id: 'v-extra-39',
+    type: 'verb',
+    level: 'A2',
+    de: 'sprechen',
+    ar: 'يتحدث',
+    conjugations: {
+      ich: 'spreche',
+      du: 'sprichst',
+      er: 'spricht',
+      wir: 'sprechen',
+      ihr: 'sprecht',
+      sie: 'sprechen',
+      präteritum: 'sprach',
+      perfekt: 'gesprochen',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie spricht gut Deutsch.',
+    exampleAr: 'هي تتحدث الألمانية جيداً.'
+  },
+  {
+    id: 'v-extra-40',
+    type: 'verb',
+    level: 'A2',
+    de: 'verstehen',
+    ar: 'يفهم',
+    conjugations: {
+      ich: 'verstehe',
+      du: 'verstehst',
+      er: 'versteht',
+      wir: 'verstehen',
+      ihr: 'versteht',
+      sie: 'verstehen',
+      präteritum: 'verstand',
+      perfekt: 'verstanden',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich verstehe die Frage nicht.',
+    exampleAr: 'أنا لا أفهم السؤال.'
+  },
+  {
+    id: 'v-extra-41',
+    type: 'noun',
+    level: 'A1',
+    de: 'Haus',
+    article: 'das',
+    plural: 'Häuser',
+    ar: 'بيت / منزل',
+    exampleDe: 'Das Haus ist neu und schön.',
+    exampleAr: 'البيت جديد وجميل.'
+  },
+  {
+    id: 'v-extra-42',
+    type: 'noun',
+    level: 'A1',
+    de: 'Auto',
+    article: 'das',
+    plural: 'Autos',
+    ar: 'سيارة',
+    exampleDe: 'Mein Auto ist blau.',
+    exampleAr: 'سيارتي زرقاء.'
+  },
+  {
+    id: 'v-extra-43',
+    type: 'noun',
+    level: 'A1',
+    de: 'Buch',
+    article: 'das',
+    plural: 'Bücher',
+    ar: 'كتاب',
+    exampleDe: 'Ich lese ein interessantes Buch.',
+    exampleAr: 'أنا أقرأ كتاباً مثيراً للاهتمام.'
+  },
+  {
+    id: 'v-extra-44',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schule',
+    article: 'die',
+    plural: 'Schulen',
+    ar: 'مدرسة',
+    exampleDe: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'تبدأ المدرسة في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-45',
+    type: 'noun',
+    level: 'A1',
+    de: 'Freundin',
+    article: 'die',
+    plural: 'Freundinnen',
+    ar: 'صديقة',
+    exampleDe: 'Meine Freundin kommt aus Ägypten.',
+    exampleAr: 'صديقتي تأتي من مصر.'
+  },
+  {
+    id: 'v-extra-46',
+    type: 'verb',
+    level: 'A2',
+    de: 'arbeiten',
+    ar: 'يعمل',
+    conjugations: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'gearbeitet',
+      aux: 'haben'
+    },
+    exampleDe: 'Er arbeitet in einem Büro.',
+    exampleAr: 'هو يعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-47',
+    type: 'verb',
+    level: 'A1',
+    de: 'lernen',
+    ar: 'يتعلم',
+    conjugations: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'gelernt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir lernen Deutsch zusammen.',
+    exampleAr: 'نحن نتعلم الألمانية معاً.'
+  },
+  {
+    id: 'v-extra-48',
+    type: 'noun',
+    level: 'A2',
+    de: 'Familie',
+    article: 'die',
+    plural: 'Familien',
+    ar: 'عائلة',
+    exampleDe: 'Meine Familie wohnt in Kairo.',
+    exampleAr: 'عائلتي تسكن في القاهرة.'
+  },
+  {
+    id: 'v-extra-49',
+    type: 'noun',
+    level: 'A2',
+    de: 'Wasser',
+    article: 'das',
+    plural: 'Wässer',
+    ar: 'ماء',
+    exampleDe: 'Ich trinke viel Wasser.',
+    exampleAr: 'أشرب كثيراً من الماء.'
+  },
+  {
+    id: 'v-extra-50',
+    type: 'noun',
+    level: 'A1',
+    de: 'Mann',
+    article: 'der',
+    plural: 'Männer',
+    ar: 'رجل',
+    exampleDe: 'Der Mann liest die Zeitung.',
+    exampleAr: 'الرجل يقرأ الجريدة.'
+  },
+  {
+    id: 'v-extra-51',
+    type: 'noun',
+    level: 'A1',
+    de: 'Frau',
+    article: 'die',
+    plural: 'Frauen',
+    ar: 'امرأة',
+    exampleDe: 'Die Frau kocht das Essen.',
+    exampleAr: 'المرأة تطبخ الطعام.'
+  },
+  {
+    id: 'v-extra-52',
+    type: 'verb',
+    level: 'A2',
+    de: 'kaufen',
+    ar: 'يشتري',
+    conjugations: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'gekauft',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز من السوبرماركت.'
+  },
+  {
+    id: 'v-extra-53',
+    type: 'verb',
+    level: 'A1',
+    de: 'sehen',
+    ar: 'يرى',
+    conjugations: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'gesehen',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir sehen einen Film heute Abend.',
+    exampleAr: 'سنشاهد فيلماً هذا المساء.'
+  },
+  {
+    id: 'v-extra-54',
+    type: 'noun',
+    level: 'A2',
+    de: 'Problem',
+    article: 'das',
+    plural: 'Probleme',
+    ar: 'مشكلة',
+    exampleDe: 'Es gibt ein kleines Problem.',
+    exampleAr: 'هناك مشكلة صغيرة.'
+  },
+  {
+    id: 'v-extra-55',
+    type: 'noun',
+    level: 'A2',
+    de: 'Idee',
+    article: 'die',
+    plural: 'Ideen',
+    ar: 'فكرة',
+    exampleDe: 'Das ist eine gute Idee!',
+    exampleAr: 'هذه فكرة جيدة!'
   }
 ];
