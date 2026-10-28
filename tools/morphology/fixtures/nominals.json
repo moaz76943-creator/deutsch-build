@@ -1,0 +1,107 @@
+{
+  "nominals": [
+    {
+      "id": "de:Kind",
+      "lemma": "Kind",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "de:Kind:nom:pl:def",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Kinder"
+        }
+      ]
+    },
+    {
+      "id": "de:Apfel",
+      "lemma": "Apfel",
+      "part_of_speech": "noun",
+      "gender": "masc",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "de:Apfel:nom:sg:def",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Apfel"
+        },
+        {
+          "id": "de:Apfel:nom:pl:def",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Äpfel"
+        }
+      ]
+    },
+    {
+      "id": "tr:ev",
+      "lemma": "ev",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "tr:ev:nom:sg:ind",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "ind",
+          "inflected_form": "ev"
+        }
+      ]
+    },
+    {
+      "id": "tr:araba",
+      "lemma": "araba",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "tr:araba:nom:sg:ind",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "ind",
+          "inflected_form": "araba"
+        }
+      ]
+    },
+    {
+      "id": "fi:talo",
+      "lemma": "talo",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "fi:talo:nom:sg:ind",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "ind",
+          "inflected_form": "talo"
+        }
+      ]
+    },
+    {
+      "id": "fi:metsä",
+      "lemma": "metsä",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "fi:metsä:nom:sg:ind",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "ind",
+          "inflected_form": "metsä"
+        }
+      ]
+    }
+  ]
+}
