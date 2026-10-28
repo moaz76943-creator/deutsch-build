@@ -1,11 +1,8 @@
 package com.deutschbilarabi.app.J037
 
-<<<<<<< HEAD
-import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
@@ -13,7 +10,6 @@ import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.Locale
-import com.deutschbilarabi.app.AndroidOfflineVoiceCapabilityProbe
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -47,11 +43,5 @@ class AndroidOfflineVoiceCapabilityProbeTest {
 
         assertEquals(1, offlineVoices.size)
         assertEquals("de-DE", offlineVoices[0])
-=======
-// Test implementation placeholder to avoid compile-time dependencies that require gradle changes.
-
-class AndroidOfflineVoiceCapabilityProbeTest {
-    fun testNothing() {
->>>>>>> pr-151
     }
 }

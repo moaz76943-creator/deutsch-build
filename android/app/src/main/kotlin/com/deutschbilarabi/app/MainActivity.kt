@@ -9,6 +9,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
+    private lateinit var offlineVoiceCapabilityProbe: AndroidOfflineVoiceCapabilityProbe
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -40,6 +41,13 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
+
+        // Offline voice capability probe
+        offlineVoiceCapabilityProbe = AndroidOfflineVoiceCapabilityProbe(this)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME,
+        ).setMethodCallHandler(offlineVoiceCapabilityProbe)
 
         // Play Integrity API for app and device attestation (required for production integrity protection)
         MethodChannel(
@@ -78,5 +86,12 @@ class MainActivity : FlutterActivity() {
         if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
+    }
+
+    override fun onDestroy() {
+        if (::offlineVoiceCapabilityProbe.isInitialized) {
+            offlineVoiceCapabilityProbe.dispose()
+        }
+        super.onDestroy()
     }
 }
