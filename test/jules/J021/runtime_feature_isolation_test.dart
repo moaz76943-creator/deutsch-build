@@ -3,6 +3,7 @@ import 'package:deutsch_bilarabi/core/resilience/resilient_feature_executor.dart
 import 'package:deutsch_bilarabi/core/resilience/recovery_outcome.dart';
 import 'package:deutsch_bilarabi/core/concurrency/cancellation_token.dart';
 import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
+import 'package:deutsch_bilarabi/core/resilience/failure_categorization.dart';
 
 void main() {
   group('ResilientFeatureExecutor', () {

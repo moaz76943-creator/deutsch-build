@@ -18,18 +18,23 @@ void main() {
 
     expect(find.text('الميزة تعمل بشكل سليم'), findsOneWidget);
   });
+
   testWidgets('critical async initialization is reported, never hidden as optional', (tester) async {
+    Object? caughtException;
     await tester.pumpWidget(MaterialApp(
       home: FeatureBoundary(
         featureName: 'storage',
-        onInitialize: () async {
+        initializationAction: () async {
           throw const StorageFailure('integrity', 'critical data store failure');
+        },
+        onCriticalFailure: (err, stack) {
+          caughtException = err;
         },
         child: const Text('ready'),
       ),
     ));
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isA<StorageFailure>());
+    expect(caughtException, isA<StorageFailure>());
     expect(find.text('ready'), findsNothing);
   });
 
