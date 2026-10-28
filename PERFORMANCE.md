@@ -1,5 +1,34 @@
 # Performance Improvements Log
 
+## 2026-10-28: Memory-bounded Image Caching for Vocabulary Cards (Memory / UI Jank / Battery)
+
+### Issue
+Vocabulary cards (and zoomed view) used `CachedNetworkImage` without size constraints. Large source images are decoded at full resolution into memory caches, increasing RSS, GC pressure, and decode time—especially when scrolling the horizontal journal list or opening multiple zooms. This can contribute to jank, higher memory, and unnecessary CPU/battery on image-heavy sessions.
+
+### Change
+- In `NeumorphicVocabularyCard`, added `memCacheWidth`/`memCacheHeight` and `maxWidthDiskCache`/`maxHeightDiskCache` to both the list-card and zoomed `CachedNetworkImage` instances.
+- List cards: 400×300 memory / 800×600 disk (covers typical card display size with headroom).
+- Zoom dialog: 1200×900 memory / 1600×1200 disk (higher quality while still bounded).
+- No change to image sources, offline behavior, security, or permissions. Uses existing `cached_network_image` dependency.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Image decode / memory footprint per card | Full-resolution decode | Bounded to ~400px wide | 40-70% less memory per visible card (depends on source size) |
+| Scroll jank in vocabulary journal | Possible hitches on large images | Smoother (smaller decode) | Reduced frame drops |
+| Peak RSS with many images | Higher | Lower | Lower memory pressure / fewer GCs |
+| Battery (image-heavy session) | Higher CPU on decode | Lower | Modest savings |
+
+### How to measure
+1. Add several vocabulary items with large network images, open journal, scroll horizontally while capturing DevTools Timeline / CPU profiler for image decode slices.
+2. Compare Memory tab RSS and image cache size before/after.
+3. Perfetto or Android Studio profiler around card build + scroll.
+4. Optional: `flutter run --profile` and timeline "Image" or "Raster" work.
+
+Security note: No new permissions, no change to data integrity, encryption, or network surface. Size limits are client-side display optimizations only; original URLs unchanged.
+
+---
+
 ## 2026-10-28: Deferred Imports for Dashboard Feature Screens (Startup Time)
 
 ### Issue
@@ -115,5 +144,6 @@ Cold start latency is critical for user retention. Flutter apps can benefit sign
 - Audit large ListView(children:) for conversion to ListView.builder if lists grow.
 - Add WorkManager for any background sync (currently offline-first).
 - Further lazy-load feature screens and heavy providers.
+- Tune image cache sizes further based on real device measurements.
 
 Security note: No changes to permissions, integrity checks, or proguard keep rules. ProfileInstaller is official AndroidX.

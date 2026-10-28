@@ -38,6 +38,11 @@ class NeumorphicVocabularyCard extends StatelessWidget {
                       imageUrl: imageUrl,
                       fit: BoxFit.contain,
                       width: MediaQuery.of(context).size.width * 0.8,
+                      // Higher quality for zoom; still bounded to avoid extreme memory spikes
+                      memCacheWidth: 1200,
+                      memCacheHeight: 900,
+                      maxWidthDiskCache: 1600,
+                      maxHeightDiskCache: 1200,
                       placeholder: (context, url) =>
                           const CircularProgressIndicator(),
                       errorWidget: (context, url, error) => const Icon(
@@ -98,6 +103,12 @@ class NeumorphicVocabularyCard extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
+                      // Limit decoded size for list cards: reduces memory pressure,
+                      // faster decode, less jank when many cards are visible/scrolling.
+                      memCacheWidth: 400,
+                      memCacheHeight: 300,
+                      maxWidthDiskCache: 800,
+                      maxHeightDiskCache: 600,
                       placeholder: (context, url) =>
                           const Center(child: CircularProgressIndicator()),
                       errorWidget: (context, url, error) => const Center(
