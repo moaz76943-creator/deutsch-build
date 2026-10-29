@@ -26,6 +26,37 @@ VALID_TRANSITIONS = {
 REPO_ROOT = str(Path(__file__).resolve().parents[2])
 LOCK_TTL_SECONDS = 3600
 
+<<<<<<< HEAD
+class TaskLedger:
+    def __init__(self, ledger_path):
+        self.ledger_path = ledger_path
+        self.lock_path = ledger_path + ".lock"
+        self.lock_fd = None
+
+    def __enter__(self):
+        self.lock_fd = open(self.lock_path, "w")
+        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.lock_fd:
+            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
+            self.lock_fd.close()
+
+    def read(self):
+        if os.path.exists(self.ledger_path):
+            with open(self.ledger_path, "r") as f:
+                content = f.read()
+                return json.loads(content) if content else {}
+        return {}
+
+    def write(self, data):
+        tmp_path = self.ledger_path + ".tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(data, f, indent=2)
+            f.write("\n")
+        os.replace(tmp_path, self.ledger_path)
+=======
 
 def default_state_dir():
     """Keep mutable agent state outside the source-controlled repository."""
@@ -50,6 +81,7 @@ def write_json_atomic(path, value):
         if os.path.exists(temporary):
             os.unlink(temporary)
 
+>>>>>>> origin/staging/v2-full-platform
 
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
@@ -79,6 +111,11 @@ def is_path_allowed(path_str):
         ):
             return False
 
+<<<<<<< HEAD
+def is_symlink_safe(path_str):
+    target = os.path.realpath(path_str)
+    if not target.startswith(REPO_ROOT):
+=======
         root = Path(REPO_ROOT).resolve()
         candidate = root
         for component in path.parts:
@@ -88,6 +125,7 @@ def is_path_allowed(path_str):
                 return False
         return candidate.resolve().is_relative_to(root)
     except (OSError, RuntimeError, ValueError):
+>>>>>>> origin/staging/v2-full-platform
         return False
 
 def paths_overlap(p1, p2):
@@ -125,6 +163,10 @@ def is_stale_base_sha(ledger, base_sha):
             return True
     return False
 
+<<<<<<< HEAD
+def process_ledger(parsed, ledger_obj):
+    ledger = ledger_obj.read()
+=======
 def process_ledger(parsed, f):
     f.seek(0)
     content = f.read()
@@ -135,6 +177,7 @@ def process_ledger(parsed, f):
                 (key != "_metadata" and value.get("state") not in states)
                 for key, value in ledger.items())):
         raise ValueError("invalid_ledger_schema")
+>>>>>>> origin/staging/v2-full-platform
 
     report = {
         "task_id": parsed.task_id,
@@ -238,6 +281,19 @@ def main(args=None):
 
     parsed = parser.parse_args(args)
 
+<<<<<<< HEAD
+    os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
+
+    ledger_obj = TaskLedger(parsed.ledger)
+    with ledger_obj:
+        result_code, report, updated_ledger = process_ledger(parsed, ledger_obj)
+
+        with open(parsed.report, "w") as rf:
+            json.dump(report, rf, indent=2)
+
+        ledger_obj.write(updated_ledger)
+=======
     ledger_path = Path(parsed.ledger)
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
     # A persistent sibling lock remains valid across atomic inode replacements.
@@ -262,6 +318,7 @@ def main(args=None):
         write_json_atomic(parsed.report, report)
         if result_code == 0:
             write_json_atomic(ledger_path, updated_ledger)
+>>>>>>> origin/staging/v2-full-platform
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)
