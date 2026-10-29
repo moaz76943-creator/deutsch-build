@@ -8,8 +8,6 @@ class VocabularyRepository {
   static const String _key = 'vocabulary_list';
   static const String _legacyKey = 'custom_vocabulary';
 
-  List<Map<String, dynamic>> _offlineCache = [];
-
   Future<Database> _getDb() async {
     final db = await DatabaseService.instance.progressDb;
     await db.execute('''
@@ -24,35 +22,29 @@ class VocabularyRepository {
         json_data TEXT NOT NULL
       )
     ''');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
     return db;
   }
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
-      final db = await _getDb().timeout(const Duration(seconds: 5));
+      final db = await _getDb();
       final List<Map<String, dynamic>> records = await db.query(
         'vocabulary_items',
         orderBy: 'rowid ASC',
-      ).timeout(const Duration(seconds: 5));
+      );
 
       if (records.isEmpty) {
-        final seeded = await _seedAndMigrate(db);
-        _offlineCache = seeded;
-        return seeded;
+        return await _seedAndMigrate(db);
       }
 
-      final results = records.map((row) {
+      return records.map((row) {
         final jsonStr = row['json_data'] as String;
         return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
       }).toList();
-      _offlineCache = results;
-      return results;
     } catch (_) {
-      return _offlineCache;
+      return [];
     }
   }
 
@@ -63,19 +55,13 @@ class VocabularyRepository {
 
       if (jsonString == null || jsonString.isEmpty || jsonString == '[]') {
         try {
-          jsonString =
-              await rootBundle.loadString('assets/data/master_vocabulary.json');
+          jsonString = await rootBundle.loadString('assets/data/master_vocabulary.json');
         } catch (_) {}
       }
 
       if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
-        final decoded = jsonDecode(jsonString);
-        if (decoded is! List) return _offlineCache;
-        final List<dynamic> decodedList = decoded;
-        final items =
-            decodedList
-                .map((e) => Map<String, dynamic>.from(e as Map))
-                .toList();
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         await saveVocabularyList(items);
         return items;
       }
@@ -100,9 +86,7 @@ class VocabularyRepository {
             'meaning': (item['meaning'] ?? '').toString(),
             'interval': item['interval'] is int ? item['interval'] : 0,
             'repetitions': item['repetitions'] is int ? item['repetitions'] : 0,
-            'ease_factor': item['easeFactor'] is num
-                ? (item['easeFactor'] as num).toDouble()
-                : 2.5,
+            'ease_factor': item['easeFactor'] is num ? (item['easeFactor'] as num).toDouble() : 2.5,
             'json_data': jsonEncode(item),
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
@@ -131,9 +115,7 @@ class VocabularyRepository {
         limit: 1,
       );
       if (res.isNotEmpty) {
-        final decodedJson = jsonDecode(res.first['json_data'] as String);
-        if (decodedJson is! Map) return false;
-        final map = Map<String, dynamic>.from(decodedJson);
+        final map = Map<String, dynamic>.from(jsonDecode(res.first['json_data'] as String));
         map['interval'] = interval;
         map['repetitions'] = repetitions;
         map['easeFactor'] = easeFactor;
@@ -171,9 +153,7 @@ class VocabularyRepository {
           'meaning': (item['meaning'] ?? '').toString(),
           'interval': item['interval'] is int ? item['interval'] : 0,
           'repetitions': item['repetitions'] is int ? item['repetitions'] : 0,
-          'ease_factor': item['easeFactor'] is num
-              ? (item['easeFactor'] as num).toDouble()
-              : 2.5,
+          'ease_factor': item['easeFactor'] is num ? (item['easeFactor'] as num).toDouble() : 2.5,
           'json_data': jsonEncode(item),
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -205,9 +185,8 @@ class VocabularyRepository {
     for (var item in items) {
       final String front = item['languageCode'] == 'de'
           ? '${item['article']} ${item['word']}'
-          : '${item['word']}';
-      final String back =
-          '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
+          : item['word'];
+      final String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
       buffer.writeln('$front\t$back');
     }
     return buffer.toString();
@@ -220,9 +199,9 @@ class VocabularyRepository {
     Map<String, int> fields = {};
 
     for (var item in items) {
-      final String l = '${item['languageCode'] ?? 'de'}';
+      String l = item['languageCode'] ?? 'de';
       langs[l] = (langs[l] ?? 0) + 1;
-      final String f = '${item['semanticField'] ?? 'عام'}';
+      String f = item['semanticField'] ?? 'عام';
       fields[f] = (fields[f] ?? 0) + 1;
     }
 
@@ -241,12 +220,8 @@ class VocabularyRepository {
 
   Future<bool> importBackupJson(String jsonString) async {
     try {
-      final decoded = jsonDecode(jsonString);
-      if (decoded is! List) return false;
-      final List<dynamic> decodedList = decoded;
-      final items = decodedList
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
+      final List<dynamic> decoded = jsonDecode(jsonString);
+      final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       return await saveVocabularyList(items);
     } catch (_) {
       return false;

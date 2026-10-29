@@ -1,61 +1,26 @@
-import 'dart:async';
+import 'package:flutter/foundation.dart';
 
-/// Master Constitution Section 10 Compliant CPU Worker:
-/// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
-/// execution timeout watchdog, and safe resource disposal to prevent leaks.
+/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
 class PersistentCpuWorker {
-  int _activeGeneration = 0;
-  bool _isDisposed = false;
-  Completer<dynamic>? _pendingCompleter;
+  static final PersistentCpuWorker instance = PersistentCpuWorker._init();
+  
+  PersistentCpuWorker._init();
 
-  int get currentGeneration => _activeGeneration;
-  bool get isDisposed => _isDisposed;
-
-  /// Submits an asynchronous CPU task. Only the latest generation result is accepted.
-  Future<T?> executeTask<T>({
-    required Future<T> Function() computation,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    if (_isDisposed) {
-      throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
-    }
-
-    final generation = ++_activeGeneration;
-    final completer = Completer<T?>();
-    _pendingCompleter = completer;
-
-    try {
-      final result = await computation().timeout(timeout, onTimeout: () {
-        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
-      });
-
-      // Latest-Wins policy: drop result if generation has advanced
-      if (_isDisposed || generation != _activeGeneration) {
-        return null;
-      }
-
-      completer.complete(result);
-      return result;
-    } catch (e, st) {
-      if (generation == _activeGeneration && !completer.isCompleted) {
-        completer.completeError(e, st);
-      }
-      return null;
-    }
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
+    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
+    return await compute(_heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
 
-  /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
-  void cancelActiveOperations() {
-    _activeGeneration++;
-    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
-      _pendingCompleter!.complete(null);
-      _pendingCompleter = null;
-    }
-  }
-
-  /// Safe disposal freeing all worker references and cancelling subscriptions
-  void dispose() {
-    _isDisposed = true;
-    cancelActiveOperations();
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  static double _heavySrsMath(Map<String, dynamic> data) {
+    double ease = data['ease'] as double;
+    int rating = data['rating'] as int;
+    
+    // معادلة الحفظ والمراجعة المتباعدة
+    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
+    if (newEase < 1.3) newEase = 1.3;
+    
+    return newEase;
   }
 }
