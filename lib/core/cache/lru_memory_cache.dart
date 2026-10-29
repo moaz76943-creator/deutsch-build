@@ -1,88 +1,126 @@
 import 'dart:collection';
 
-class _SizedCacheEntry<V> {
-  const _SizedCacheEntry(this.value, this.bytes);
-  final V value;
-  final int bytes;
-}
-
-/// Deterministic LRU admission against entry-count and estimated-byte limits.
-/// The size estimator runs only on admission: values MUST be immutable while
-/// resident so mutation cannot invalidate the accounting contract.
 class LruMemoryCache<K, V> {
+  final int maxCapacity;
+<<<<<<< HEAD
+  final int? maxMemoryBytes;
+  final void Function(K)? onEvict;
+
+  final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
+  final Map<K, int> _sizes = {};
+
+  int _currentMemoryBytes = 0;
+
   LruMemoryCache({
     this.maxCapacity = 200,
-    this.maxMemoryBudget,
-    this.sizeEstimator,
-  }) {
-    if (maxCapacity <= 0 ||
-        (maxMemoryBudget != null &&
-            (maxMemoryBudget! <= 0 || sizeEstimator == null))) {
-      throw ArgumentError('Invalid cache capacity, budget, or estimator');
-    }
-  }
+    this.maxMemoryBytes,
+    this.onEvict,
+  });
+=======
+  final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
 
-  final int maxCapacity;
-  final int? maxMemoryBudget;
-  final int Function(K, V)? sizeEstimator;
-  final LinkedHashMap<K, _SizedCacheEntry<V>> _cache =
-      LinkedHashMap<K, _SizedCacheEntry<V>>();
-  int _currentMemory = 0;
+  LruMemoryCache({this.maxCapacity = 200});
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   V? get(K key) {
-    final entry = _cache.remove(key);
-    if (entry == null) return null;
-    _cache[key] = entry;
-    return entry.value;
+    if (!_cache.containsKey(key)) return null;
+    final value = _cache.remove(key) as V;
+    _cache[key] = value;
+    return value;
   }
 
-  bool put(K key, V value) {
-    final bytes = sizeEstimator?.call(key, value) ?? 0;
-    if (bytes < 0 || (maxMemoryBudget != null && bytes > maxMemoryBudget!)) {
-      return false;
+<<<<<<< HEAD
+  void put(K key, V value, {int itemSizeBytes = 0}) {
+    if (maxMemoryBytes != null && itemSizeBytes > maxMemoryBytes!) {
+      return; // Reject oversized item without caching
     }
-    final old = _cache.remove(key);
-    if (old != null) _currentMemory -= old.bytes;
-    _cache[key] = _SizedCacheEntry<V>(value, bytes);
-    _currentMemory += bytes;
-    _trim(maxCapacity, maxMemoryBudget);
-    return true;
+
+    if (_cache.containsKey(key)) {
+      _currentMemoryBytes -= _sizes[key] ?? 0;
+      _cache.remove(key);
+    }
+
+    _cache[key] = value;
+    _sizes[key] = itemSizeBytes;
+    _currentMemoryBytes += itemSizeBytes;
+
+    _evictToFit();
   }
 
-  void _trim(int targetCapacity, int? targetBudget) {
+  void remove(K key) {
+    if (_cache.containsKey(key)) {
+      _currentMemoryBytes -= _sizes[key] ?? 0;
+      _cache.remove(key);
+      _sizes.remove(key);
+    }
+  }
+
+  void _evictToFit() {
+    while (_cache.isNotEmpty &&
+        (_cache.length > maxCapacity ||
+            (maxMemoryBytes != null &&
+                _currentMemoryBytes > maxMemoryBytes!))) {
+      final firstKey = _cache.keys.first;
+      _currentMemoryBytes -= _sizes[firstKey] ?? 0;
+      _cache.remove(firstKey);
+      _sizes.remove(firstKey);
+      if (onEvict != null) {
+        onEvict!(firstKey);
+      }
+    }
+  }
+
+  void trimMemoryPressure() {
+    if (_cache.isEmpty) return;
+
+    final targetCapacity = maxCapacity ~/ 2;
+    int targetMemory = maxMemoryBytes != null ? maxMemoryBytes! ~/ 2 : 0;
+
     while (_cache.isNotEmpty &&
         (_cache.length > targetCapacity ||
-            (targetBudget != null && _currentMemory > targetBudget))) {
-      _removeOldest();
+            (maxMemoryBytes != null && _currentMemoryBytes > targetMemory))) {
+      final firstKey = _cache.keys.first;
+      _currentMemoryBytes -= _sizes[firstKey] ?? 0;
+      _cache.remove(firstKey);
+      _sizes.remove(firstKey);
+      if (onEvict != null) {
+        onEvict!(firstKey);
+      }
     }
-  }
-
-  void _removeOldest() {
-    final oldest = _cache.keys.first;
-    _currentMemory -= _cache.remove(oldest)!.bytes;
-  }
-
-  bool remove(K key) {
-    final removed = _cache.remove(key);
-    if (removed == null) return false;
-    _currentMemory -= removed.bytes;
-    return true;
-  }
-
-  void onMemoryPressure() {
-    _trim(maxCapacity ~/ 2, maxMemoryBudget == null
-        ? null
-        : maxMemoryBudget! ~/ 2);
   }
 
   int get length => _cache.length;
-  int get currentMemory => _currentMemory;
-  Iterable<K> get keys => _cache.keys;
-
-  bool containsKey(K key) => _cache.containsKey(key);
+  int get currentMemoryBytes => _currentMemoryBytes;
 
   void clear() {
+    final keys = List<K>.from(_cache.keys);
     _cache.clear();
-    _currentMemory = 0;
+    _sizes.clear();
+    _currentMemoryBytes = 0;
+    if (onEvict != null) {
+      for (final key in keys) {
+        onEvict!(key);
+      }
+    }
   }
+
+  bool containsKey(K key) => _cache.containsKey(key);
 }
+=======
+  void put(K key, V value) {
+    if (_cache.containsKey(key)) {
+      _cache.remove(key);
+    } else if (_cache.length >= maxCapacity) {
+      final firstKey = _cache.keys.first;
+      _cache.remove(firstKey);
+    }
+    _cache[key] = value;
+  }
+
+  int get length => _cache.length;
+
+  void clear() => _cache.clear();
+
+  bool containsKey(K key) => _cache.containsKey(key);
+}
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957

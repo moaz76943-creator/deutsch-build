@@ -139,9 +139,7 @@ class SearchFusionService {
       responses[answer.languageCode] = answer.rows;
       final ranked = _fuse(responses, active, term.toLowerCase());
       final complete = responses.length == languages.length;
-      final count = complete
-          ? (ranked.length + pageSize - 1) ~/ pageSize
-          : 1;
+      final count = complete ? (ranked.length + pageSize - 1) ~/ pageSize : 1;
       for (var page = 0; page < count; page++) {
         final start = page * pageSize;
         final end = (start + pageSize < ranked.length)
@@ -181,20 +179,22 @@ class SearchFusionService {
         final language = _normalizeCode(
           (row['language_code'] ?? code).toString(),
         );
-        final surface = (row['surface'] ?? row['display_text'] ?? '')
-            .toString().trim();
+        final surface =
+            (row['surface'] ?? row['display_text'] ?? '').toString().trim();
         if (surface.isEmpty) continue;
         final lemma = (row['lemma'] ?? surface).toString().trim();
-        final key = language + '|' + lemma.toLowerCase();
-        final translation = (row['translation_ar'] ?? '')
-            .toString().toLowerCase();
-        final tier = language == activeLanguage && surface.toLowerCase() == query
-            ? 0
-            : lemma.toLowerCase() == query
-                ? 1
-                : (translation.contains(query) || surface.toLowerCase() == query)
-                    ? 2
-                    : 3;
+        final key = '$language|${lemma.toLowerCase()}';
+        final translation =
+            (row['translation_ar'] ?? '').toString().toLowerCase();
+        final tier =
+            language == activeLanguage && surface.toLowerCase() == query
+                ? 0
+                : lemma.toLowerCase() == query
+                    ? 1
+                    : (translation.contains(query) ||
+                            surface.toLowerCase() == query)
+                        ? 2
+                        : 3;
         final candidate = gathered.putIfAbsent(
           key,
           () => _AccumulatedHit(key, row, tier),
@@ -210,13 +210,15 @@ class SearchFusionService {
       }
     }
 
-    final hits = gathered.values.map((candidate) => FusedSearchHit(
-      key: candidate.key,
-      word: candidate.word,
-      score: candidate.score,
-      matchTier: candidate.matchTier,
-      contributingPacks: candidate.packs.length,
-    )).toList(growable: false);
+    final hits = gathered.values
+        .map((candidate) => FusedSearchHit(
+              key: candidate.key,
+              word: candidate.word,
+              score: candidate.score,
+              matchTier: candidate.matchTier,
+              contributingPacks: candidate.packs.length,
+            ))
+        .toList(growable: false);
     hits.sort((a, b) {
       final tier = a.matchTier.compareTo(b.matchTier);
       if (tier != 0) return tier;
