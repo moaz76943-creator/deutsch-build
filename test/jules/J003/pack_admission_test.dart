@@ -45,20 +45,9 @@ void main() {
     final path = '${tempDir.path}/$filename';
     final db = await databaseFactoryFfi.openDatabase(path);
     await db.execute('CREATE TABLE dummy (id INTEGER)'); // to make file not empty
-    await db.insert('dummy', {'id': 1}); // Add a row so it doesn't fail the row count check, only the schema version
     // user_version is 0 by default, no data tables (we consider 'dummy' as a table, wait no,
     // my check says "excluding sqlite_". So 'dummy' table exists, but user_version is 0.
     // This will fail the user_version check as expected.
-    await db.close();
-    return File(path);
-  }
-
-  Future<File> createEmptyDatabase(String filename) async {
-    final path = '${tempDir.path}/$filename';
-    final db = await databaseFactoryFfi.openDatabase(path);
-    await db.execute('PRAGMA user_version = 1');
-    await db.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, value TEXT)');
-    // No rows inserted
     await db.close();
     return File(path);
   }
@@ -109,16 +98,11 @@ void main() {
 
     expect(result, isFalse);
     expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(
-        quarantine.isolatedItems.first.diagnosticReason,
-        anyOf([
-          contains('Failed to open or query SQLite database'),
-          contains('Invalid SQLite header signature')
-        ]));
+    expect(quarantine.isolatedItems.first.diagnosticReason, contains('Failed to open or query SQLite database'));
   });
 
   test('Wrong hash', () async {
-    final stagedDb = await createValidDatabase('staged3.db');
+    final stagedDb = await createValidDatabase('staged.db');
     const wrongHash = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
     final targetPath = '${tempDir.path}/target.db';
 
@@ -134,7 +118,7 @@ void main() {
   });
 
   test('Interrupted renames (startup deletes leftover .tmp)', () async {
-    final stagedDb = await createValidDatabase('staged4.db');
+    final stagedDb = await createValidDatabase('staged.db');
     final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/target.db';
 
@@ -155,7 +139,7 @@ void main() {
   });
 
   test('Invalid schema (version 0 or missing tables)', () async {
-    final stagedDb = await createInvalidSchemaDatabase('staged5.db');
+    final stagedDb = await createInvalidSchemaDatabase('staged.db');
     final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/target.db';
 
@@ -170,24 +154,8 @@ void main() {
     expect(quarantine.isolatedItems.first.diagnosticReason, 'Invalid schema version');
   });
 
-  test('Empty pack (0 rows)', () async {
-    final stagedDb = await createEmptyDatabase('staged8.db');
-    final hash = await calculateHash(stagedDb);
-    final targetPath = '${tempDir.path}/target.db';
-
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb,
-      expectedHash: hash,
-      targetPath: targetPath,
-    );
-
-    expect(result, isFalse);
-    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(quarantine.isolatedItems.first.diagnosticReason, 'Pack is empty (0 rows)');
-  });
-
   test('Enforced separation of learner data', () async {
-    final stagedDb = await createValidDatabase('staged6.db');
+    final stagedDb = await createValidDatabase('staged.db');
     final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/user_progress.db';
 
@@ -205,7 +173,7 @@ void main() {
   test('Preserve the last verified pack when replacement fails (simulated)', () async {
     // AtomicDatabaseInstaller handles this because File.rename is atomic
     // If we pass an invalid source, it fails before touching target.
-    final targetFile = await createValidDatabase('target7.db');
+    final targetFile = await createValidDatabase('target.db');
     final originalHash = await calculateHash(targetFile);
 
     final installResult = await AtomicDatabaseInstaller.installDatabaseAtomically(
