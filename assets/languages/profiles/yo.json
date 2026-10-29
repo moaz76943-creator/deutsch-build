@@ -1,0 +1,21 @@
+{
+  "isoCode": "yo",
+  "autonym": "Èdè Yorùbá",
+  "englishName": "Yoruba",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Isolating",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "tonesCount": 3,
+    "subDotDiacritics": true
+  }
+}

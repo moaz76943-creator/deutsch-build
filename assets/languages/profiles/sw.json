@@ -1,0 +1,21 @@
+{
+  "isoCode": "sw",
+  "autonym": "Kiswahili",
+  "englishName": "Swahili",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "nounClassesCount": 18,
+    "hasAgglutinativeConcord": true,
+    "subjectObjectVerbPrefixing": true
+  }
+}

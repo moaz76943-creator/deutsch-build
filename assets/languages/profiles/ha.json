@@ -1,0 +1,21 @@
+{
+  "isoCode": "ha",
+  "autonym": "Hausa",
+  "englishName": "Hausa",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin (Boko)",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "tonesCount": 2,
+    "hasHookedLetters": true
+  }
+}
