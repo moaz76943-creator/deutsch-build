@@ -33,58 +33,33 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
   }
 
   Future<void> _initSpeech() async {
-    try {
-      final available = await _speech.initialize(
-        onStatus: (status) {
-          if (!mounted) return;
-          setState(() {
-            _isListening = status == 'listening';
-          });
-        },
-        onError: (error) {
-          if (!mounted) return;
-          setState(() {
-            _feedback = 'Error: ${error.errorMsg}';
-          });
-        },
-      );
-      if (!mounted) return;
-      if (!available) {
-        setState(() => _feedback = 'Speech recognition not available on this device');
-      }
-    } catch (_) {
-      if (!mounted) return;
+    bool available = await _speech.initialize(
+      onStatus: (status) => setState(() {
+        _isListening = status == 'listening';
+      }),
+      onError: (error) => setState(() {
+        _feedback = 'Error: ${error.errorMsg}';
+      }),
+    );
+    if (!available) {
       setState(() => _feedback = 'Speech recognition not available on this device');
     }
   }
 
   Future<void> _initTts() async {
-    try {
-      await _tts.setLanguage('de-DE');
-      await _tts.setSpeechRate(0.5);
-    } catch (_) {
-      // Model audio is optional. Recognition and the target phrase stay usable.
-    }
+    await _tts.setLanguage('de-DE');
+    await _tts.setSpeechRate(0.5);
   }
 
   Future<void> _loadProgress() async {
-    try {
-      // Encrypted storage for progress to prevent tampering.
-      await _secureStorage.read(key: 'pronunciation_streak');
-    } catch (_) {
-      // A missing or locked keystore must not block practice.
-    }
+    // Encrypted storage for progress to prevent tampering
+    final saved = await _secureStorage.read(key: 'pronunciation_streak');
+    // Use saved data if available
   }
 
   Future<void> _startListening() async {
-    if (!_speech.isAvailable) {
-      if (!mounted) return;
-      setState(() => _feedback = 'Speech recognition not available on this device');
-      return;
-    }
     if (!_isListening) {
-      try {
-        await _speech.listen(
+      await _speech.listen(
         onResult: (result) {
           setState(() {
             _recognizedText = result.recognizedWords;
@@ -95,10 +70,6 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
         localeId: 'de_DE',
         listenMode: stt.ListenMode.confirmation,
       );
-      } catch (_) {
-        if (!mounted) return;
-        setState(() => _feedback = 'Speech recognition not available on this device');
-      }
     }
   }
 
@@ -119,14 +90,8 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
   }
 
   Future<void> _saveProgress(bool success) async {
-    try {
-      await _secureStorage.write(
-        key: 'last_practice',
-        value: DateTime.now().toIso8601String(),
-      );
-    } catch (_) {
-      // Practice feedback stays on screen when the keystore write fails.
-    }
+    await _secureStorage.write(key: 'last_practice', value: DateTime.now().toIso8601String());
+    // Backend logic would verify integrity here in production
   }
 
   Future<void> _speakTarget() async {
@@ -168,8 +133,8 @@ class _PronunciationCoachScreenState extends ConsumerState<PronunciationCoachScr
 
   @override
   void dispose() {
-    _speech.stop().catchError((Object _) {});
-    _tts.stop().catchError((Object _) {});
+    _speech.stop();
+    _tts.stop();
     super.dispose();
   }
 }
