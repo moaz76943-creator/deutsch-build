@@ -2,13 +2,9 @@ class CognitiveMetricRecord {
   final String sessionEventId;
   final String contentKey;
   final Duration responseLatency; // زمن الإجابة بدقة
-  final int hesitationTaps; // عدد مرات التردد أو تغيير الخيار
+  final int hesitationTaps;        // عدد مرات التردد أو تغيير الخيار
   final bool isCorrect;
   final DateTime recordedAt;
-  final String? targetLanguageCode;
-  final String? languagePair;
-  final bool isCefrVerified;
-  final double? reviewDifficulty;
 
   const CognitiveMetricRecord({
     required this.sessionEventId,
@@ -17,53 +13,26 @@ class CognitiveMetricRecord {
     this.hesitationTaps = 0,
     required this.isCorrect,
     required this.recordedAt,
-    this.targetLanguageCode,
-    this.languagePair,
-    this.isCefrVerified = true,
-    this.reviewDifficulty,
   });
 
   /// حساب مؤشر الجهد الإدراكي (من 0.0 إلى 1.0)
   double get cognitiveStrainIndex {
     double strain = 0.0;
-
-    // Normalize negative values safely
-    final latencyMs =
-        responseLatency.inMilliseconds < 0 ? 0 : responseLatency.inMilliseconds;
-    final taps = hesitationTaps < 0 ? 0 : hesitationTaps;
-
-    // Normalize reviewDifficulty, defaults to 0 if null, clamp negative to 0
-    final difficulty = reviewDifficulty != null
-        ? (reviewDifficulty!.isNaN ? 1.0 : (reviewDifficulty! < 0 ? 0.0 : reviewDifficulty!))
-        : 0.0;
-
     // استجابة بطيئة تزيد عن 5 ثوانٍ تشير إلى إجهاد أو صعوبة
-    if (latencyMs > 5000) {
+    if (responseLatency.inMilliseconds > 5000) {
       strain += 0.4;
-    } else if (latencyMs > 3000) {
+    } else if (responseLatency.inMilliseconds > 3000) {
       strain += 0.2;
     }
 
     // التردد أثناء الإجابة
-    if (taps > 1) {
+    if (hesitationTaps > 1) {
       strain += 0.3;
     }
 
     // الخطأ في الإجابة
     if (!isCorrect) {
       strain += 0.3;
-    }
-
-    // Add effect of pre-existing review difficulty if present, capped contribution
-    if (difficulty > 0.7) {
-      strain += 0.2;
-    } else if (difficulty > 0.4) {
-      strain += 0.1;
-    }
-
-    // Check for NaN if strain was a double from other calcs
-    if (strain.isNaN) {
-      return 1.0; // Fail-safe fallback to high strain on NaN
     }
 
     return strain.clamp(0.0, 1.0);
