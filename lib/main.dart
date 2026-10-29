@@ -11,6 +11,7 @@ import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
+import 'package:deutsch_bilarabi/design_system/app_theme.dart';
 
 /// CrashLoopGuard: Protects against repeated crashes that could indicate
 /// tampering, data corruption, or unstable state. Resets after 5 minutes.
@@ -68,6 +69,9 @@ class SafeModeRecoveryGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
         body: SafeArea(
@@ -194,16 +198,9 @@ class DeutschApp extends StatelessWidget {
         Locale('en'),
         Locale('de'),
       ],
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.blue,
-        fontFamily: 'Cairo',
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3B82F6),
-          brightness: Brightness.light,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Respect system dark mode for better UX and accessibility
       home: const FastOnboardingScreen(),
     );
   }
@@ -299,6 +296,9 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
     if (isBootstrapping) {
       return const MaterialApp(
         debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: Scaffold(
           backgroundColor: Color(0xFFF8FAFC),
           body: Center(
