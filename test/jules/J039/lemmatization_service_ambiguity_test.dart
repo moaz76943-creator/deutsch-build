@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/services/lemmatization_service.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
-import '../../support/lexeme_fixture_db.dart';
 
 void main() {
   setUpAll(() {
@@ -15,9 +13,9 @@ void main() {
     late LemmatizationService service;
 
     setUp(() async {
-      final db = await openLexemeFixtureDb();
-      addTearDown(db.close);
-      service = LemmatizationService(openContentDb: (_) async => db);
+      service = LemmatizationService();
+
+      final db = await DatabaseService.instance.contentDb;
 
       // Insert ambiguous candidates
       final batch = db.batch();

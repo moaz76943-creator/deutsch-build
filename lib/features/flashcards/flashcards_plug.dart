@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
-import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
-
 import 'models.dart';
 import 'card_physics_helper.dart';
 
@@ -39,7 +37,6 @@ class FlashcardsPlug implements FeaturePlug {
     required int rating,
     String sourceIso = 'de',
     String targetIso = 'ar',
-    ReviewCommandPort? commandPort,
   }) async {
     if (commandPort != null) {
       ReviewRating enumRating;
@@ -82,14 +79,50 @@ class FlashcardsPlug implements FeaturePlug {
   }
 }
 
+class _FlashcardsContainer extends StatelessWidget {
+  final FlashcardData? card;
+  final ReviewCommandPort? commandPort;
+
+  const _FlashcardsContainer()
+      : commandPort = null,
+        card = null;
+
+  @override
+  Widget build(BuildContext context) {
+    if (card != null) {
+      return FlashcardWidget(
+        card: card!,
+        onReviewed: (cardId, rating, sourceIso, targetIso) =>
+            FlashcardsPlug.dispatchReview(
+                cardId: cardId,
+                rating: rating,
+                sourceIso: sourceIso,
+                targetIso: targetIso,
+                commandPort: commandPort),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'جاهز للتعلم التكيفي',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FlashcardsContainer extends StatefulWidget {
   final List<FlashcardItem> items;
   final VoidCallback? onComplete;
 
   const _FlashcardsContainer({
     required this.items,
-    this.onComplete,
-  });
+  }) : onComplete = null;
 
   @override
   State<_FlashcardsContainer> createState() => _FlashcardsContainerState();

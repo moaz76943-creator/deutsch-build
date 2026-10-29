@@ -12,8 +12,8 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: AccessibleMultilingualText(
-              text: 'القطار',
-              languageCode: 'ar',
+              'القطار',
+              bcp47Code: 'ar',
               semanticLabel: 'Train',
             ),
           ),
@@ -58,25 +58,21 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 150, // Small width to trigger ResilientTextContainer
               // Using a flexible container so Column doesn't force infinite width in Row
-              child: BidiLexiconView(
-                sourceText: entry.sourceMeaning,
-                sourceLanguageCode: 'ar',
-                targetText: entry.targetTerm,
-                targetLanguageCode: 'de',
-                partOfSpeech: entry.partOfSpeech,
-              ),
+              child: BidiLexiconView(entry: entry),
             ),
           ),
         ),
       );
 
       expect(find.textContaining('der Zug'), findsOneWidget);
-      expect(find.textContaining('القطار'), findsOneWidget);
+      expect(find.textContaining('القطار'), findsWidgets); // Meaning + Translation
+      expect(find.textContaining('Der Zug fährt ab.'), findsOneWidget);
+      expect(find.textContaining('القطار يغادر.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -94,15 +90,9 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: BidiLexiconView(
-              sourceText: entry.sourceMeaning,
-              sourceLanguageCode: 'ar',
-              targetText: entry.targetTerm,
-              targetLanguageCode: 'de',
-              partOfSpeech: entry.partOfSpeech,
-            ),
+            body: BidiLexiconView(entry: entry),
           ),
         ),
       );

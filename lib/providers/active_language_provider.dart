@@ -122,15 +122,13 @@ class ActiveLanguageState {
     required Map<String, double> downloadProgress,
     required Set<String> downloadingCodes,
     Set<String> quarantinedCodes = const <String>{},
-    Set<String> verifiedArchiveCodes = const <String>{},
     required this.isLoadingCatalog,
     this.errorMessage,
   })  : remotePacks = List.unmodifiable(remotePacks),
         installedCodes = Set.unmodifiable(installedCodes),
         downloadProgress = Map.unmodifiable(downloadProgress),
         downloadingCodes = Set.unmodifiable(downloadingCodes),
-        quarantinedCodes = Set.unmodifiable(quarantinedCodes),
-        verifiedArchiveCodes = Set.unmodifiable(verifiedArchiveCodes);
+        quarantinedCodes = Set.unmodifiable(quarantinedCodes);
 
   factory ActiveLanguageState.initial() => ActiveLanguageState(
         activeLanguageCode: 'de',
@@ -147,8 +145,6 @@ class ActiveLanguageState {
   final Map<String, double> downloadProgress;
   final Set<String> downloadingCodes;
   final Set<String> quarantinedCodes;
-  /// SHA-256 checked downloads only; never proof of installed SQLite content.
-  final Set<String> verifiedArchiveCodes;
   final bool isLoadingCatalog;
   final String? errorMessage;
 
@@ -156,7 +152,6 @@ class ActiveLanguageState {
       !quarantinedCodes.contains(code) &&
       (code == 'de' || installedCodes.contains(code));
   bool isDownloading(String code) => downloadingCodes.contains(code);
-  bool hasVerifiedArchive(String code) => verifiedArchiveCodes.contains(code);
 
   /// Keep installed packs visible even when the network catalog is unavailable.
   List<LanguagePackMetadata> get visiblePacks {
@@ -175,7 +170,7 @@ class ActiveLanguageState {
         isAvailable: true,
       ),
     );
-    for (final code in {...installedCodes, ...verifiedArchiveCodes}) {
+    for (final code in installedCodes) {
       entries.putIfAbsent(
         code,
         () => LanguagePackMetadata(
@@ -205,7 +200,6 @@ class ActiveLanguageState {
     Map<String, double>? downloadProgress,
     Set<String>? downloadingCodes,
     Set<String>? quarantinedCodes,
-    Set<String>? verifiedArchiveCodes,
     bool? isLoadingCatalog,
     String? errorMessage,
     bool clearError = false,
@@ -217,16 +211,13 @@ class ActiveLanguageState {
       downloadProgress: downloadProgress ?? this.downloadProgress,
       downloadingCodes: downloadingCodes ?? this.downloadingCodes,
       quarantinedCodes: quarantinedCodes ?? this.quarantinedCodes,
-      verifiedArchiveCodes: verifiedArchiveCodes ?? this.verifiedArchiveCodes,
       isLoadingCatalog: isLoadingCatalog ?? this.isLoadingCatalog,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 }
 
-/// Isolated pack archive storage. Even findInstalled only verifies archived
-/// bytes; callers must NOT treat the result as mounted content databases.
-/// This does not claim to import database rows;
+/// Isolated pack archive storage. This does not claim to import database rows;
 /// that integration belongs to the parallel database/downloader track.
 class LanguagePackStorage {
   Future<Directory> get _directory async {
@@ -425,13 +416,13 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
       if (cachedManifest != null && mounted) {
         final cachedPacks = LanguagePackMetadata.parseManifest(cachedManifest);
         await CrashLoopGuard.waitForIntegrityWindow();
-        final archives = await _storage.findInstalled(cachedPacks);
+        final installed = await _storage.findInstalled(cachedPacks);
         if (mounted) {
           state = state.copyWith(
             remotePacks: cachedPacks,
-            verifiedArchiveCodes: {...archives}..remove('de'),
+            installedCodes: {...installed, 'de'},
             activeLanguageCode:
-                savedActive != null && state.isInstalled(savedActive)
+                savedActive != null && installed.contains(savedActive)
                     ? savedActive
                     : 'de',
           );
@@ -451,11 +442,12 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
       final raw = await _storage.fetchManifest();
       final packs = LanguagePackMetadata.parseManifest(raw);
       await CrashLoopGuard.waitForIntegrityWindow();
-      final archives = await _storage.findInstalled(packs);
+      final found = await _storage.findInstalled(packs);
       if (!mounted) return;
+      final existing = {...state.installedCodes, ...found, 'de'};
       state = state.copyWith(
         remotePacks: packs,
-        verifiedArchiveCodes: {...archives}..remove('de'),
+        installedCodes: existing,
         isLoadingCatalog: false,
       );
       // Cache is best-effort and must not invalidate a verified catalog.
@@ -502,14 +494,11 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
       throw StateError('Wait until the download finishes.');
     }
     if (!state.isInstalled(langCode)) {
-      throw StateError('A verified, installed content pack is required.');
+      throw StateError('Download and verify the pack before using it.');
     }
     if (langCode == state.activeLanguageCode) return;
     final prefs = await SharedPreferences.getInstance();
-    final saved = await prefs.setString(_activeKey, langCode);
-    if (!saved) {
-      throw StateError('Could not save the selected language.');
-    }
+    await prefs.setString(_activeKey, langCode);
     if (!mounted) return;
     state = state.copyWith(activeLanguageCode: langCode, clearError: true);
     _ref.invalidate(vocabularyListProvider);
@@ -541,10 +530,8 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
         }
       });
       if (!mounted) return;
-      // Download success proves archive integrity, NOT SQLite pack admission.
-      // Only the verified installer may call updateInstalledList().
       state = state.copyWith(
-        verifiedArchiveCodes: {...state.verifiedArchiveCodes, langCode},
+        installedCodes: {...state.installedCodes, langCode},
       );
     } catch (error) {
       if (mounted) {
@@ -577,7 +564,7 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
     await _storage.delete(langCode);
     if (!mounted) return;
     state = state.copyWith(
-      verifiedArchiveCodes: {...state.verifiedArchiveCodes}..remove(langCode),
+      installedCodes: {...state.installedCodes}..remove(langCode),
       clearError: true,
     );
   }

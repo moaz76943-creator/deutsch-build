@@ -117,9 +117,6 @@ void main() {
             ),
           ),
         );
-        // MaterialApp animates theme changes. The contrast colors are the
-        // settled theme, not the first in-flight frame.
-        await tester.pump(const Duration(milliseconds: 250));
 
         final isDark = brightness == Brightness.dark;
         final expectedTextColor = isDark ? Colors.white : Colors.black;

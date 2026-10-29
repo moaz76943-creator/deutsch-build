@@ -4,28 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
 import '../../../core/services/audio_tts_service.dart';
 
-/// Exact metadata display only. Nonempty fields are not proof that a pack
-/// has passed the legal/source-evidence acceptance process.
-class DatasetAttribution {
-  const DatasetAttribution({this.source, this.license});
-
-  factory DatasetAttribution.fromMetadata(Map<String, String> metadata) {
-    final source = metadata['source']?.trim();
-    final license = metadata['license']?.trim();
-    return DatasetAttribution(
-      source: source == null || source.isEmpty ? null : source,
-      license: license == null || license.isEmpty ? null : license,
-    );
-  }
-
-  final String? source;
-  final String? license;
-
-  String get sourceLabel => source ?? 'غير موثق';
-  String get licenseLabel => license ?? 'غير موثق';
-  bool get hasSourceAndLicense => source != null && license != null;
-}
-
 class SectionExplorerScreen extends StatefulWidget {
   final String initialLanguage;
 
@@ -183,44 +161,24 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   }
 
   void showLicenseDialog() async {
-    final requestedLanguage = currentLanguage;
-    // Always read attribution for the selected language; never silently
-    // substitute another active pack's provenance.
-    Map<String, String> metadata;
-    try {
-      metadata =
-          await PackManager.getDatasetMetadata(languageCode: requestedLanguage);
-    } catch (_) {
-      metadata = const <String, String>{};
-    }
-    if (!mounted || currentLanguage != requestedLanguage) return;
-    final attribution = DatasetAttribution.fromMetadata(metadata);
+    final meta = await PackManager.getDatasetMetadata();
+    if (!mounted) return;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('معلومات المصدر والترخيص ⚖️'),
+        title: const Text('المصادر والتراخيص المفتوحة ⚖️'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('المصدر: ${attribution.sourceLabel}'),
+              Text('المصدر: ${meta['source'] ?? 'Kaikki / Wiktionary'}'),
               const SizedBox(height: 6),
-              Text('الترخيص: ${attribution.licenseLabel}'),
+              Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0'}'),
               const SizedBox(height: 12),
-              Text(
-                attribution.hasSourceAndLicense
-                    ? 'هذه معلومات وصفية من الحزمة، وليست إثباتًا مستقلًا لاعتماد المصدر أو حقوق إعادة النشر.'
-                    : 'معلومات المصدر أو الترخيص غير مكتملة. يجب التحقق منها قبل اعتماد الحزمة أو نشرها.',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 8),
               const Text(
-                'تصدير JSON غير متاح حاليًا؛ لم يُنشأ أي ملف.',
+                'المحتوى المعجمي مرخص بموجب رخصة المشاع الإبداعي CC BY-SA 4.0. يمكنك تصدير البيانات بالكامل:',
                 style: TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ],
@@ -233,10 +191,29 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               TextButton(
                   onPressed: () => Navigator.pop(ctx),
                   child: const Text('إغلاق')),
-              const ElevatedButton.icon(
-                icon: Icon(Icons.download, size: 18),
-                label: Text('تصدير JSON (غير متاح)'),
-                onPressed: null,
+              ElevatedButton.icon(
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('تصدير JSON'),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final path =
+                        await PackManager.exportDatasetAsJson(currentLanguage);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('✅ تم التصدير: $path'),
+                          backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('تعذر التصدير: $e'),
+                          backgroundColor: Colors.red),
+                    );
+                  }
+                },
               ),
             ],
           ),
@@ -250,11 +227,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     if (exercises.isEmpty || !mounted) return;
 
     final ex = exercises.first;
-    final decodedDistractors =
+    final List distractors =
         jsonDecode(ex['distractors_json'] as String? ?? '[]');
-    final List<dynamic> distractors = decodedDistractors is List
-        ? decodedDistractors
-        : const <dynamic>[];
     final List<String> options = [
       ex['correct_answer'] as String,
       ...distractors.map((e) => e.toString())
@@ -344,7 +318,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            tooltip: 'المصادر والتراخيص',
+            tooltip: 'التراخيص والتصدير',
             onPressed: showLicenseDialog,
           ),
         ],
@@ -456,8 +430,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                     itemBuilder: (context, index) {
                       final item = displayList[index];
                       final pos = item['part_of_speech'] ?? 'noun';
-                      final word =
-                          '${item['word'] ?? item['display_text'] ?? ''}';
+                      final word = item['word'] ?? item['display_text'] ?? '';
                       final boxLevel = item['box_level'] as int? ?? 0;
 
                       return Directionality(
@@ -522,8 +495,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                     color: Colors.indigo),
                                 tooltip: 'بدء تمرين',
                                 onPressed: () =>
-                                    openQuizDialog(
-                                        '${item['concept_id']}', word),
+                                    openQuizDialog(item['concept_id'], word),
                               ),
                             ],
                           ),

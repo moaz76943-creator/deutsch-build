@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../services/database_service.dart';
-import '../services/language_pack_manager.dart';
 
 /// The content-pack schema stores idioms against the stable `lexicon.id`.
 class IdiomEntry {
@@ -200,8 +199,7 @@ class _IdiomsViewState extends State<IdiomsView> {
         if (entries.isEmpty) return const SizedBox.shrink();
 
         final theme = Theme.of(context);
-        final sourceDirection =
-            LanguagePackManager.isRtlLanguage(widget.languageCode)
+        final sourceDirection = isRtlLanguage(widget.languageCode)
             ? TextDirection.rtl
             : TextDirection.ltr;
         return Card(

@@ -1,20 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  /// Canonical light theme for entrypoint and feature shells.
-  static ThemeData get lightTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      fontFamily: 'Cairo',
-      scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF3B82F6),
-        brightness: Brightness.light,
-      ),
-    );
-  }
-
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,

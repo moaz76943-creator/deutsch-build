@@ -13,7 +13,7 @@ void main() {
 
     test('prevents duplicate freezes on the same day in local time', () {
       var ledger = const StreakFreezeLedger();
-      final now = DateTime(2026, 6, 15, 12);
+      final now = DateTime.now();
       ledger = ledger.recordUsage('missed day', timestamp: now);
       ledger = ledger.recordUsage('another reason', timestamp: now.add(const Duration(hours: 1)));
 

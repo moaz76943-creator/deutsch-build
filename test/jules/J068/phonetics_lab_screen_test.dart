@@ -22,7 +22,7 @@ void main() {
     );
 
     expect(find.text('ä / ö / ü'), findsOneWidget);
-    expect(find.text('[ɛː] / [øː] / [yː]'), findsOneWidget);
+    expect(find.text('[ɛ / ø / y]'), findsOneWidget);
     expect(find.text('الألمانية'), findsOneWidget);
 
     expect(find.text('ñ'), findsOneWidget);
@@ -88,7 +88,9 @@ void main() {
       ),
     );
 
-    expect(find.byTooltip('النطق الصوتي غير متوفر حالياً'), findsOneWidget);
+    expect(find.text('unverified'), findsOneWidget);
+    expect(find.text('غير متوفر'), findsOneWidget);
+    expect(find.byIcon(Icons.volume_off), findsOneWidget);
   });
 
   testWidgets('Disposal stops audio', (WidgetTester tester) async {

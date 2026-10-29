@@ -24,6 +24,7 @@ void main() {
   testWidgets('phrase options announce accessible button intent',
       (tester) async {
     final handle = tester.ensureSemantics();
+    addTearDown(handle.dispose);
     await tester.pumpWidget(
       const MaterialApp(home: EmergencyPhrasebookScreen()),
     );
@@ -33,7 +34,6 @@ void main() {
       matching: find.byType(Semantics),
     );
     expect(semanticsWidgets, findsWidgets);
-    handle.dispose();
   });
 
   testWidgets('detail remains overflow-safe on a narrow RTL scaled screen',
