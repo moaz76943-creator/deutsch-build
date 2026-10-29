@@ -1,0 +1,21 @@
+{
+  "isoCode": "uz",
+  "autonym": "Oʻzbekcha",
+  "englishName": "Uzbek",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 6,
+  "caseNames": ["Bosh", "Qaratqich", "Tushum", "Joʻnalish", "Oʻrin-payt", "Chiqish"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasAgglutinativeSuffixes": true,
+    "zeroGrammaticalGender": true
+  }
+}
