@@ -12,7 +12,7 @@ void main() {
     });
 
     test('safe cold-start behavior when no history exists', () {
-      final decision = engine.evaluateStateDetailed(targetLanguageCode: 'de');
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
       expect(decision.action, AdaptationAction.maintainFlow);
       expect(decision.reason, isA<InsufficientData>());
     });
@@ -30,7 +30,7 @@ void main() {
         ));
       }
 
-      final decision = engine.evaluateStateDetailed(targetLanguageCode: 'de');
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
       expect(decision.reason, isA<FatigueDetected>());
     });
@@ -45,11 +45,10 @@ void main() {
           isCorrect: true,
           recordedAt: DateTime.now(),
           targetLanguageCode: 'de',
-          isCefrVerified: true,
         ));
       }
 
-      final decision = engine.evaluateStateDetailed(targetLanguageCode: 'de');
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
       expect(decision.action, AdaptationAction.deepenLinguisticChallenge);
       expect(decision.reason, isA<ConsistentMastery>());
     });
@@ -65,12 +64,11 @@ void main() {
           isCorrect: true,
           recordedAt: DateTime.now(),
           targetLanguageCode: 'de',
-          isCefrVerified: true,
         ));
       }
 
       // 'es' should still be in a cold-start state
-      final esDecision = engine.evaluateStateDetailed(targetLanguageCode: 'es');
+      final esDecision = engine.evaluateDetailedState(targetLanguageCode: 'es');
       expect(esDecision.action, AdaptationAction.maintainFlow);
       expect(esDecision.reason, isA<InsufficientData>());
     });
@@ -86,7 +84,7 @@ void main() {
         targetLanguageCode: 'de',
       ));
 
-      final decision = engine.evaluateStateDetailed(targetLanguageCode: 'de');
+      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
       // Should not crash, and a single item should result in stable flow or sufficient data
       expect(decision.action, AdaptationAction.maintainFlow);
       expect(decision.reason, isA<StableFlow>());
@@ -109,7 +107,7 @@ void main() {
       }
 
       // Initial decision should be reduce load
-      final decision1 = engine.evaluateStateDetailed(targetLanguageCode: 'de', currentTime: now);
+      final decision1 = engine.evaluateDetailedState(targetLanguageCode: 'de', currentTime: now);
       expect(decision1.action, AdaptationAction.reduceExtraneousLoad);
 
       // Now add 5 fast/correct answers immediately after (without time passing)
@@ -122,17 +120,16 @@ void main() {
           isCorrect: true,
           recordedAt: now,
           targetLanguageCode: 'de',
-          isCefrVerified: true,
         ));
       }
 
       // Should be blocked by hysteresis (return the previous state's action + HysteresisCoolDown)
-      final decision2 = engine.evaluateStateDetailed(targetLanguageCode: 'de', currentTime: now.add(const Duration(minutes: 1)));
+      final decision2 = engine.evaluateDetailedState(targetLanguageCode: 'de', currentTime: now.add(const Duration(minutes: 1)));
       expect(decision2.action, AdaptationAction.reduceExtraneousLoad);
       expect(decision2.reason, isA<HysteresisCoolDown>());
 
       // After 6 minutes, it should allow change to deepen challenge
-      final decision3 = engine.evaluateStateDetailed(targetLanguageCode: 'de', currentTime: now.add(const Duration(minutes: 6)));
+      final decision3 = engine.evaluateDetailedState(targetLanguageCode: 'de', currentTime: now.add(const Duration(minutes: 6)));
       expect(decision3.action, AdaptationAction.deepenLinguisticChallenge);
       expect(decision3.reason, isA<ConsistentMastery>());
     });
