@@ -1,195 +1,138 @@
 import 'package:flutter/foundation.dart';
-import '../../core/srs_scheduler.dart';
+import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
+import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 
-enum AnalyticsWindow { days7, days30, days90 }
-
-class PairMetrics {
-  final Map<String, int> dailyReviews;
-  final double completionRate;
-  final double recallAccuracy;
+/// A factual summary of committed review events for ONE versioned directed pair.
+/// Mastery and task completion cannot be inferred from raw review ratings.
+class AnalyticsReport {
   final int totalReviews;
-  final int uniqueCardsMastered;
+  final int dailyReviewsAverage;
+  final int? masteredCards;
+  final double? completionRate;
+  final double recallAccuracy;
+  final String learningTrend;
+  final double consistencyScore;
+  final Map<String, int> dailyReviews;
 
-  const PairMetrics({
-    required this.dailyReviews,
+  const AnalyticsReport({
+    required this.totalReviews,
+    required this.dailyReviewsAverage,
+    required this.masteredCards,
     required this.completionRate,
     required this.recallAccuracy,
-    required this.totalReviews,
-    required this.uniqueCardsMastered,
+    required this.learningTrend,
+    required this.consistencyScore,
+    required this.dailyReviews,
   });
 }
 
-abstract class LearningAnalyticsResult {}
-
-class AnalyticsDataState extends LearningAnalyticsResult {
-  final Map<String, PairMetrics> pairSpecificMetrics;
-
-  AnalyticsDataState(this.pairSpecificMetrics);
+class AnalyticsUnavailableFailure extends OperationFailure {
+  const AnalyticsUnavailableFailure(super.code, super.message);
 }
 
-class AnalyticsUnavailableState extends LearningAnalyticsResult {}
-
-/// محرك تقارير النمو وتحليل بيانات التعلم المحلية
 class LocalLearningAnalytics {
-  static Future<LearningAnalyticsResult> generateReport(AnalyticsWindow window,
-      {DateTime? nowUtc}) async {
-    final history = UnifiedSrsScheduler.instance.history;
-    if (history.isEmpty) {
-      return AnalyticsUnavailableState();
-    }
+  static const int maxHistoryBatch = 50000;
+  static const int maxWindowDays = 366;
 
-    int windowDays = 30;
-    switch (window) {
-      case AnalyticsWindow.days7:
-        windowDays = 7;
-        break;
-      case AnalyticsWindow.days30:
-        windowDays = 30;
-        break;
-      case AnalyticsWindow.days90:
-        windowDays = 90;
-        break;
-    }
-
-    final currentUtc = nowUtc ?? DateTime.now().toUtc();
-    final input = {
-      'history': history.map((e) => e.toMap()).toList(),
-      'windowDays': windowDays,
-      'currentUtc': currentUtc.toIso8601String(),
+  /// Backwards-compatible mock-free report. Never synthesize progress.
+  static Future<Map<String, dynamic>> generate30DayReport() async {
+    return {
+      'mastered_cards': 0,
+      'active_domains': 0,
+      'learning_trend': 'insufficient_evidence',
+      'consistency_score': 0,
     };
-
-    try {
-      final result = await compute(_aggregateHistory, input);
-      if (result.isEmpty) {
-        return AnalyticsUnavailableState();
-      }
-      return AnalyticsDataState(result);
-    } catch (e) {
-      debugPrint("Error generating local analytics: $e");
-      return AnalyticsUnavailableState();
-    }
   }
 
-  static Map<String, PairMetrics> _aggregateHistory(
-      Map<String, dynamic> input) {
-    final historyValue = input['history'];
-    final List<dynamic> historyMaps =
-        historyValue is List ? historyValue : const <dynamic>[];
-    final windowValue = input['windowDays'];
-    final int windowDays = windowValue is int ? windowValue : 30;
-    final currentValue = input['currentUtc'];
-    if (currentValue is! String) {
-      return <String, PairMetrics>{};
-    }
-    final DateTime currentUtc = DateTime.parse(currentValue);
-    final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
-
-    // Deduplicate by reviewEventId and safely parse
-    final Map<String, Map<String, dynamic>> deduplicated = {};
-    for (var envMap in historyMaps) {
-      if (envMap is! Map) continue;
-
-      final eventId = envMap['reviewEventId'];
-      if (eventId == null || eventId is! String || eventId.isEmpty) continue;
-
-      if (!deduplicated.containsKey(eventId)) {
-        deduplicated[eventId] = Map<String, dynamic>.from(envMap);
-      }
-    }
-
-    final Map<String, List<Map<String, dynamic>>> byPair = {};
-    for (var envMap in deduplicated.values) {
-      final timestampStr = envMap['timestamp'];
-      if (timestampStr == null || timestampStr is! String) continue;
-
-      DateTime timestamp;
-      try {
-        timestamp = DateTime.parse(timestampStr).toUtc();
-      } catch (_) {
-        continue; // Skip invalid dates
-      }
-
-      if (timestamp.isAfter(threshold) ||
-          timestamp.isAtSameMomentAs(threshold)) {
-        final pairKey = envMap['languagePairKey'];
-        if (pairKey == null || pairKey is! String || pairKey.isEmpty) continue;
-
-        byPair.putIfAbsent(pairKey, () => []).add(envMap);
-      }
-    }
-
-    final Map<String, PairMetrics> result = {};
-    for (var entry in byPair.entries) {
-      final pairKey = entry.key;
-      final events = entry.value;
-
-      int totalReviews = 0;
-      int successfulReviews = 0;
-      final Set<String> uniqueCards = {};
-      final Set<String> masteredCards = {};
-      final Map<String, int> dailyReviews = {};
-
-      for (var envMap in events) {
-        final ratingRaw = envMap['rating'];
-        if (ratingRaw == null || ratingRaw is! int) continue;
-
-        final rating = ratingRaw;
-        final contentKey = envMap['learnerContentKey'];
-        if (contentKey == null || contentKey is! String || contentKey.isEmpty) {
-          continue;
-        }
-
-        totalReviews++;
-        if (rating >= 3) {
-          successfulReviews++;
-        }
-
-        uniqueCards.add(contentKey);
-        if (rating >= 4) {
-          masteredCards.add(contentKey);
-        }
-
-        final timestampStr = envMap['timestamp'] as String;
-        final timestamp = DateTime.parse(timestampStr).toUtc();
-        // Explicitly defined local-day grouping (UTC date part only)
-        final localDayStr =
-            "${timestamp.year.toString().padLeft(4, '0')}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}";
-        dailyReviews[localDayStr] = (dailyReviews[localDayStr] ?? 0) + 1;
-      }
-
-      if (totalReviews == 0) {
-        continue; // Skip if all records within pair were corrupted
-      }
-
-      double recallAccuracy = successfulReviews / totalReviews;
-      double completionRate = uniqueCards.isNotEmpty
-          ? masteredCards.length / uniqueCards.length
-          : 0.0;
-
-      result[pairKey] = PairMetrics(
-        dailyReviews: dailyReviews,
-        completionRate: completionRate,
-        recallAccuracy: recallAccuracy,
-        totalReviews: totalReviews,
-        uniqueCardsMastered: masteredCards.length,
-      );
-    }
-
-    return result;
-  }
-
-  /// التحقق من استحقاق المستخدم لوسام جديد
+  /// Backwards-compatible badge check.
   static Future<String?> checkNewBadge() async {
-    final result = await generateReport(AnalyticsWindow.days30);
-    if (result is AnalyticsDataState) {
-      int totalMastered = 0;
-      for (var pm in result.pairSpecificMetrics.values) {
-        totalMastered += pm.uniqueCardsMastered;
-      }
-      if (totalMastered > 100) {
-        return 'وسام المائة بطاقة المتقنة';
-      }
-    }
     return null;
   }
+
+  /// The caller MUST supply only already-committed records from the canonical
+  /// durable progress writer. Unversioned pairs never silently match.
+  static Future<OperationResult<AnalyticsReport>> generateReport({
+    required List<ReviewTransactionEnvelope> history,
+    required DirectedPairId pairId,
+    required int daysWindow,
+    required DateTime referenceDateUtc,
+  }) async {
+    if (!pairId.isValidForLearning() ||
+        daysWindow < 1 ||
+        daysWindow > maxWindowDays ||
+        history.length > maxHistoryBatch) {
+      return const OperationResult<AnalyticsReport>.failure(
+        AnalyticsUnavailableFailure('INVALID_INPUT', 'Invalid pair/window/batch'),
+      );
+    }
+    try {
+      final values = await compute(_aggregateCommittedReviews, <String, Object>{
+        'events': history,
+        'pair': pairId.uniqueKey,
+        'days': daysWindow,
+        'now': referenceDateUtc.toUtc(),
+      });
+      return OperationResult<AnalyticsReport>.success(
+        AnalyticsReport(
+          totalReviews: values['totalReviews'] as int,
+          dailyReviewsAverage: values['dailyReviewsAverage'] as int,
+          masteredCards: null,
+          completionRate: null,
+          recallAccuracy: values['recallAccuracy'] as double,
+          learningTrend: values['learningTrend'] as String,
+          consistencyScore: values['consistencyScore'] as double,
+          dailyReviews: Map<String, int>.from(values['dailyReviews'] as Map),
+        ),
+      );
+    } catch (e) {
+      return OperationResult<AnalyticsReport>.failure(
+        AnalyticsUnavailableFailure('COMPUTE_FAILED', e.toString()),
+      );
+    }
+  }
+}
+
+Map<String, Object> _aggregateCommittedReviews(Map<String, Object> params) {
+  final events = (params['events'] as List).cast<ReviewTransactionEnvelope>();
+  final pairKey = params['pair'] as String;
+  final days = params['days'] as int;
+  final now = params['now'] as DateTime;
+  final start = now.subtract(Duration(days: days));
+
+  final scoped = events.where((e) => e.languagePairKey == pairKey).toList();
+  final unique = <String, ReviewTransactionEnvelope>{};
+  for (final review in scoped) {
+    unique[review.reviewEventId] = review;
+  }
+
+  final inWindow = unique.values.where((e) =>
+      e.timestamp.isAfter(start) && !e.timestamp.isAfter(now)).toList();
+  inWindow.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+  final daily = <String, int>{};
+  var successful = 0;
+  var early = 0;
+  var late = 0;
+  final midpoint = start.add(Duration(seconds: days * 86400 ~/ 2));
+  for (final review in inWindow) {
+    if (review.rating >= 2) successful++;
+    if (review.timestamp.isBefore(midpoint)) {
+      early++;
+    } else {
+      late++;
+    }
+    final day = review.timestamp.toLocal();
+    final dateKey = '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+    daily[dateKey] = (daily[dateKey] ?? 0) + 1;
+  }
+  final count = inWindow.length;
+  return <String, Object>{
+    'totalReviews': count,
+    'dailyReviewsAverage': count ~/ days,
+    'recallAccuracy': count == 0 ? 0.0 : successful / count,
+    'learningTrend': early == late ? 'stable' : (late > early ? 'upward' : 'downward'),
+    'consistencyScore': ((daily.length / days) * 100.0).clamp(0.0, 100.0).toDouble(),
+    'dailyReviews': daily,
+  };
 }

@@ -1,25 +1,25 @@
-enum LanguageReadinessTier {
-  nominal,
-  assetsReady,
-  ttsVerified,
-  productionReady
-}
+import 'canonical_language_catalog.dart';
 
-/// مصفوفة تفصل بين السعة الاسمية والجاهزية الإنتاجية الفعلية لكل لغة
+enum LanguageReadinessTier { nominal, assetsReady, ttsVerified, productionReady }
+
+/// Backward-compatible facade. Public registry metadata is NOT a pack proof.
+/// Callers that possess accepted verification evidence may pass a lifecycle;
+/// without it no language (including German) is claimed production-ready.
 class LanguageReadinessMatrix {
-  static final Map<String, LanguageReadinessTier> _tiers = {
-    'de': LanguageReadinessTier.productionReady,
-    'ar': LanguageReadinessTier.productionReady,
-    'en': LanguageReadinessTier.productionReady,
-    'fr': LanguageReadinessTier.assetsReady,
-    'es': LanguageReadinessTier.assetsReady,
-  };
-
-  static LanguageReadinessTier getTier(String languageCode) {
-    return _tiers[languageCode] ?? LanguageReadinessTier.nominal;
+  static LanguageReadinessTier getTier(String languageCode,
+      {CatalogLifecycle? lifecycle}) {
+    if (lifecycle != null &&
+        lifecycle.languageCode == languageCode &&
+        lifecycle.registered &&
+        lifecycle.productionReady) {
+      return LanguageReadinessTier.productionReady;
+    }
+    return LanguageReadinessTier.nominal;
   }
 
-  static bool isProductionReady(String languageCode) {
-    return getTier(languageCode) == LanguageReadinessTier.productionReady;
+  static bool isProductionReady(String languageCode,
+      {CatalogLifecycle? lifecycle}) {
+    return getTier(languageCode, lifecycle: lifecycle) ==
+        LanguageReadinessTier.productionReady;
   }
 }

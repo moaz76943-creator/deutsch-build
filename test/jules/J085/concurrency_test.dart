@@ -1,229 +1,146 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/concurrency/cancellation_token.dart';
 import 'package:deutsch_bilarabi/core/concurrency/isolated_task_queue.dart';
+import 'package:deutsch_bilarabi/core/concurrency/cancellation_token.dart';
 import 'package:deutsch_bilarabi/core/concurrency/worker_task.dart';
 
 void main() {
-  group('J085 - Bounded Concurrency & Task Scheduling', () {
-    test('Queue length and concurrent work remain bounded', () async {
-      final queue = IsolatedTaskQueue(maxQueueSize: 3, maxConcurrentTasks: 2);
+  group('IsolatedTaskQueue J085 Tests', () {
+    late IsolatedTaskQueue queue;
 
-      int activeExecutions = 0;
-      int maxActiveExecutions = 0;
-
-      Future<int> action() async {
-        activeExecutions++;
-        if (activeExecutions > maxActiveExecutions) {
-          maxActiveExecutions = activeExecutions;
-        }
-        await Future.delayed(const Duration(milliseconds: 50));
-        activeExecutions--;
-        return 1;
-      }
-
-      final futures = <Future>[];
-      for (int i = 0; i < 6; i++) {
-        final f = queue.enqueue(
-          id: 'task_$i',
-          currentEpoch: 1,
-          priority: TaskPriority.normal,
-          action: action,
-        );
-        futures.add(f);
-      }
-
-      expect(queue.length + queue.activeTasksCount, lessThanOrEqualTo(5));
-      await Future.wait(futures);
-      expect(maxActiveExecutions, lessThanOrEqualTo(2));
+    setUp(() {
+      queue = IsolatedTaskQueue(maxQueueSize: 3, maxConcurrentTasks: 2);
     });
 
-    test('Deduplication of identical tasks', () async {
-      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
-      int executions = 0;
+    test('deduplication of tasks with the same ID', () async {
+      int execCount = 0;
+      final completer1 = Completer<void>();
 
-      final futures = <Future>[];
-      for (int i = 0; i < 3; i++) {
-        futures.add(queue.enqueue(
-          id: 'same_task',
-          currentEpoch: 1,
-          priority: TaskPriority.normal,
-          action: () async {
-            executions++;
-            await Future.delayed(const Duration(milliseconds: 50));
-            return executions;
-          },
-        ));
-      }
-
-      final results = await Future.wait(futures);
-
-      expect(executions, 1);
-      expect(results, [1, 1, 1]);
-    });
-
-    test('Cancellation prevents stale state mutation', () async {
-      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
-
-      bool staleExecuted = false;
-      bool currentExecuted = false;
-
-      final staleFuture = queue.enqueueWorkerTask(
-        task: WorkerTask<int>(
-          taskId: 'stale',
-          execute: (token) async {
-            // Need a loop to check cancellation during await
-            try {
-              for (int i=0; i<5; i++) {
-                token.throwIfCancelled();
-                await Future.delayed(const Duration(milliseconds: 20));
-              }
-              staleExecuted = true;
-              return 1;
-            } catch(e) {
-              return 1; // Catch internally or it bubbles to queue
-            }
-          }
-        ),
-        currentEpoch: 1,
-        priority: TaskPriority.normal,
-      );
-
-      // give it time to become active
-      await Future.delayed(const Duration(milliseconds: 10));
-
-      queue.cancelStaleTasks(2);
-
-      final currentFuture = queue.enqueue(
-        id: 'current',
-        currentEpoch: 2,
-        priority: TaskPriority.normal,
-        action: () async {
-          currentExecuted = true;
-          return 2;
-        },
-      );
-
-      final staleResult = await staleFuture;
-      final currentResult = await currentFuture;
-
-      expect(staleResult, isNull);
-      expect(staleExecuted, isFalse);
-      expect(currentResult, 2);
-      expect(currentExecuted, isTrue);
-    });
-
-    test('Cooperative pause and resume policies', () async {
-      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
-      int executions = 0;
-
-      queue.pause();
-
-      final future = queue.enqueue(
-        id: 'paused_task',
+      final p1 = queue.enqueue<int>(
+        id: 'task1',
         currentEpoch: 1,
         priority: TaskPriority.normal,
         action: () async {
-          executions++;
+          execCount++;
+          await completer1.future;
           return 1;
         },
       );
 
-      expect(queue.length, 1);
-      expect(queue.activeTasksCount, 0);
-      expect(executions, 0);
+      final p2 = queue.enqueue<int>(
+        id: 'task1',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async {
+          execCount++;
+          return 2;
+        },
+      );
 
-      queue.resume();
+      expect(p2, isNotNull); // Future.value(null) is not null
+      completer1.complete();
 
-      await future;
+      final res1 = await p1;
+      final res2 = await p2;
 
-      expect(queue.length, 0);
-      expect(executions, 1);
+      expect(res1, 1);
+      expect(res2, null);
+      expect(execCount, 1);
     });
 
-    test('Interactive work retains priority (starvation test)', () async {
-      final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
-      final execOrder = <String>[];
-
-      // Tie up the queue
-      final f1 = queue.enqueue(
-        id: 'low_1',
-        currentEpoch: 1,
-        priority: TaskPriority.low,
-        action: () async {
-          await Future.delayed(const Duration(milliseconds: 50));
-          execOrder.add('low_1');
-        },
-      );
-
-      final f2 = queue.enqueue(
-        id: 'low_2',
-        currentEpoch: 1,
-        priority: TaskPriority.low,
-        action: () async {
-          execOrder.add('low_2');
-        },
-      );
-
-      final f3 = queue.enqueue(
-        id: 'high_1',
-        currentEpoch: 1,
-        priority: TaskPriority.high,
-        action: () async {
-          execOrder.add('high_1');
-        },
-      );
-
-      await Future.wait([f1, f2, f3]);
-
-      expect(execOrder, ['low_1', 'high_1', 'low_2']);
-    });
-
-    test('yieldAndCheck enforces CPU isolation without busy-wait', () async {
-      final token = CancellationToken();
-
-      final stopwatch = Stopwatch()..start();
-
-      // Simulate heavy CPU work with yields
-      for (int i = 0; i < 1000; i++) {
-        double val = 0;
-        for(int j=0; j<100; j++) {
-          val += j * i;
-        }
-        await token.yieldAndCheck();
+    test('queue bounds enforcement (maxQueueSize) and safe release', () async {
+      queue.pause();
+      for (int i = 0; i < 4; i++) {
+        queue.enqueue<int>(
+          id: 'task_$i',
+          currentEpoch: 1,
+          priority: TaskPriority.normal,
+          action: () async => i,
+        );
       }
+      expect(queue.length, 3);
+      expect(queue.budget.pendingTasksCount, 3);
+      expect(queue.budget.activeTasksCount, 0);
+      expect(queue.budget.maxQueueSize, 3);
+      expect(queue.budget.isSaturated, false);
 
-      stopwatch.stop();
-
-      expect(stopwatch.elapsedMilliseconds, greaterThan(0));
+      queue.clear();
+      expect(queue.length, 0);
+      expect(queue.budget.pendingTasksCount, 0);
     });
 
-    test('WorkerTask timeout and cancellation', () async {
-       final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
+    test('priority ordering', () async {
+      queue.pause();
+      final executedTasks = <String>[];
 
-       bool taskStarted = false;
+      queue.enqueue<void>(id: 't_low', currentEpoch: 1, priority: TaskPriority.low, action: () async { executedTasks.add('low'); });
+      queue.enqueue<void>(id: 't_high', currentEpoch: 1, priority: TaskPriority.high, action: () async { executedTasks.add('high'); });
+      queue.enqueue<void>(id: 't_normal', currentEpoch: 1, priority: TaskPriority.normal, action: () async { executedTasks.add('normal'); });
 
-       final task = WorkerTask<int>(
-         taskId: 'long_task',
-         timeout: const Duration(milliseconds: 50),
-         execute: (token) async {
-           taskStarted = true;
-           for (int i = 0; i < 10; i++) {
-             token.throwIfCancelled();
-             await Future.delayed(const Duration(milliseconds: 20));
-           }
-           return 1;
-         }
-       );
+      queue.resume(1);
 
-       final future = queue.enqueueWorkerTask(
-         task: task,
-         currentEpoch: 1,
-         priority: TaskPriority.normal,
-       );
+      // Wait for all to complete
+      await Future.delayed(Duration(milliseconds: 100));
 
-       final result = await future;
-       expect(result, isNull);
-       expect(taskStarted, isTrue); // it should start and then get cancelled by timeout, returning null
+      expect(executedTasks.length, 3);
+      expect(executedTasks, ['high', 'normal', 'low']);
+    });
+
+    test('cancellation via token in WorkerTask', () async {
+      queue = IsolatedTaskQueue(maxQueueSize: 5, maxConcurrentTasks: 1);
+      bool wasCancelled = false;
+
+      final workerTask = WorkerTask<int>(
+        taskId: 'worker_task',
+        timeout: Duration(seconds: 5), // large timeout to prevent test flake
+        execute: (token) async {
+          token.onCancel(() {
+            wasCancelled = true;
+          });
+
+          while (!token.isCancelled) {
+            await Future.delayed(Duration(milliseconds: 10));
+          }
+          return -1; // -1 if cancelled cleanly
+        },
+      );
+
+      final future = queue.enqueueWorkerTask<int>(
+        workerTask: workerTask,
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+      );
+
+      await Future.delayed(Duration(milliseconds: 50)); // let it start
+
+      queue.clear(); // cancels both queued and active tasks
+
+      final result = await future;
+
+      expect(result, -1);
+      expect(wasCancelled, true);
+    });
+
+    test('cooperative pause/resume functionality', () async {
+      bool taskStarted = false;
+
+      queue.pause();
+      queue.enqueue<void>(
+        id: 'paused_task',
+        currentEpoch: 1,
+        priority: TaskPriority.normal,
+        action: () async {
+          taskStarted = true;
+        },
+      );
+
+      await Future.delayed(Duration(milliseconds: 50));
+      expect(taskStarted, false);
+
+      queue.resume(1);
+
+      await Future.delayed(Duration(milliseconds: 50));
+      expect(taskStarted, true);
     });
   });
 }

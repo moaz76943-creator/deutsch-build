@@ -27,18 +27,20 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final backupFile =
-          File('${directory.path}/deutsch_backup_$timestamp.json');
+      final backupFile = File('${directory.path}/deutsch_backup_$timestamp.json');
       await backupFile.writeAsString(jsonEncode(data));
 
+      if (!mounted) return;
       setState(() {
-        _statusMessage =
-            'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
+        _statusMessage = 'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _statusMessage = 'فشل تصدير النسخة: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -53,20 +55,15 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           .toList();
 
       if (files.isEmpty) {
+        if (!mounted) return;
         setState(() => _statusMessage = 'لا توجد نسخ احتياطية سابقة محلياً.');
         return;
       }
 
-      files
-          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
       final latest = files.first;
       final raw = await latest.readAsString();
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        setState(() => _statusMessage = 'ملف النسخة الاحتياطية غير صالح.');
-        return;
-      }
-      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded);
+      final Map<String, dynamic> data = jsonDecode(raw);
 
       final prefs = await SharedPreferences.getInstance();
       for (final entry in data.entries) {
@@ -84,13 +81,17 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         }
       }
 
+      if (!mounted) return;
       setState(() {
         _statusMessage = 'تمت استعادة البيانات بنجاح من:\n${latest.path}';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _statusMessage = 'فشل استعادة البيانات: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

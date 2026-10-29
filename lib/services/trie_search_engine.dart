@@ -29,10 +29,8 @@ class TrieSearchEngine {
     this.maxSearchResults = 50,
     this.maxWordGraphemes = 256,
   }) {
-    if (maxNodes < 2 ||
-        maxResultsPerNode < 1 ||
-        maxSearchResults < 1 ||
-        maxWordGraphemes < 1) {
+    if (maxNodes < 2 || maxResultsPerNode < 1 ||
+        maxSearchResults < 1 || maxWordGraphemes < 1) {
       throw ArgumentError('Trie bounds must be positive');
     }
   }
@@ -45,26 +43,18 @@ class TrieSearchEngine {
     String result = (lang == 'tr' || lang == 'az')
         ? text.trim()
         : text.trim().toLowerCase();
-    // 'und' is the default multilingual index used by prefix search. Apply
-    // each script fold there; a specific language keeps only its own fold.
-    final foldGerman = lang == 'de' || lang == 'und';
-    final foldArabic = lang == 'ar' || lang == 'und';
-    final foldHebrew = lang == 'he' || lang == 'und';
-    if (foldGerman) {
-      result = result
-          .replaceAll('ä', 'ae')
+    if (lang == 'de') {
+      result = result.replaceAll('ä', 'ae')
           .replaceAll('ö', 'oe')
           .replaceAll('ü', 'ue')
           .replaceAll('ß', 'ss');
-    }
-    if (foldArabic) {
+    } else if (lang == 'ar') {
+      result = result.replaceAll(RegExp(
+        r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'
+      ), '');
+    } else if (lang == 'he') {
       result = result.replaceAll(
-          RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
-    }
-    if (foldHebrew) {
-      result = result.replaceAll(
-        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
-        '',
+        RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'), '',
       );
     }
     return result;
@@ -79,13 +69,10 @@ class TrieSearchEngine {
   bool _matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
-  /// Returns false when the word cannot be indexed at all.
-  /// A word that exceeds [maxNodes] is indexed only for the prefix that fits.
+  /// Returns false on capacity limits. A failed insert makes NO partial path.
   bool tryInsert(String word, String id, {String? pairKey}) {
-    if (!_matchesScope(pairKey) ||
-        id.isEmpty ||
-        word.length > maxInputCodeUnits ||
-        id.length > maxIdCodeUnits) {
+    if (!_matchesScope(pairKey) || id.isEmpty ||
+        word.length > maxInputCodeUnits || id.length > maxIdCodeUnits) {
       return false;
     }
     final normalized = normalizeForLanguage(word, languageCode);
@@ -93,31 +80,40 @@ class TrieSearchEngine {
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
 
-    var current = _root;
-    var indexed = false;
+    // Preflight both capacity dimensions before touching the index.
+    TrieNode? cursor = _root;
+    var missingNodes = 0;
     for (final unit in units) {
-      final existing = current.children[unit];
-      if (existing != null) {
-        if (!existing.wordIds.contains(id) &&
-            existing.wordIds.length >= maxResultsPerNode) {
-          return indexed;
-        }
-        current = existing;
+      if (cursor == null) {
+        missingNodes++;
       } else {
-        if (_nodeCount >= maxNodes) break;
-        final created = TrieNode();
-        current.children[unit] = created;
-        _nodeCount++;
-        current = created;
+        final child = cursor.children[unit];
+        if (child == null) {
+          missingNodes++;
+          cursor = null;
+        } else {
+          cursor = child;
+          if (!cursor.wordIds.contains(id) &&
+              cursor.wordIds.length >= maxResultsPerNode) {
+            return false;
+          }
+        }
       }
-      if (!current.wordIds.contains(id) &&
-          current.wordIds.length >= maxResultsPerNode) {
-        return indexed;
-      }
-      current.wordIds.add(id);
-      indexed = true;
     }
-    return indexed;
+    if (_nodeCount + missingNodes > maxNodes) return false;
+
+    var current = _root;
+    for (final unit in units) {
+      if (!current.children.containsKey(unit)) {
+        current.children[unit] = TrieNode();
+        _nodeCount++;
+      }
+      current = current.children[unit]!;
+      if (current.wordIds.length < maxResultsPerNode) {
+        current.wordIds.add(id);
+      }
+    }
+    return true;
   }
 
   // Retains original void API for current callers.

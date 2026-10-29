@@ -9,9 +9,7 @@ class MigrationJournal {
 
   void recordMigration(String id) {
     if (!hasMigrated(id)) {
-      _records.add(MigrationRecord(
-          DateTime.now().millisecondsSinceEpoch.toString(),
-          DateTime.now().millisecondsSinceEpoch));
+      _records.add(MigrationRecord(id, DateTime.now().millisecondsSinceEpoch));
     }
   }
 

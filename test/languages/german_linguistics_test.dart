@@ -10,6 +10,8 @@ import 'package:deutsch_bilarabi/core/linguistics/cefr_estimator.dart';
 import 'package:deutsch_bilarabi/core/catalog/directed_readiness_engine.dart';
 import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
 import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
+import 'package:deutsch_bilarabi/languages/german/gender_engine.dart';
+import 'package:deutsch_bilarabi/languages/german/verb_conjugator.dart';
 
 void main() {
   group('GermanAdjectiveDeclensionEngine Tests (Study 62)', () {
@@ -339,6 +341,95 @@ void main() {
       // Revoking: back to missing directed evidence
       engine.revokeDirectedPair(pair);
       expect(engine.resolvePair(pair).state, PairReadinessState.missingDirectedEvidence);
+    });
+  });
+
+  group('GermanGenderEngine Tests (Study 38)', () {
+    test('Documented exceptions with verified articles', () {
+      expect(GermanGenderEngine.resolveGender('Fenster').gender, GermanGender.neuter);
+      expect(GermanGenderEngine.resolveGender('Fenster').definiteArticle, 'das');
+      expect(GermanGenderEngine.resolveGender('Fenster').isDocumentedException, isTrue);
+
+      expect(GermanGenderEngine.resolveGender('Zimmer').gender, GermanGender.neuter);
+      expect(GermanGenderEngine.resolveGender('Mutter').gender, GermanGender.feminine);
+      expect(GermanGenderEngine.resolveGender('Mutter').definiteArticle, 'die');
+
+      expect(GermanGenderEngine.resolveGender('Mädchen').gender, GermanGender.neuter);
+      expect(GermanGenderEngine.resolveGender('Junge').gender, GermanGender.masculine);
+      expect(GermanGenderEngine.resolveGender('Streik').gender, GermanGender.masculine);
+      expect(GermanGenderEngine.resolveGender('Reichtum').gender, GermanGender.masculine);
+    });
+
+    test('Nominalized infinitives are neuter (das)', () {
+      expect(GermanGenderEngine.resolveGender('Essen').gender, GermanGender.neuter);
+      expect(GermanGenderEngine.resolveGender('Essen').definiteArticle, 'das');
+      expect(GermanGenderEngine.resolveGender('Leben').gender, GermanGender.neuter);
+      expect(GermanGenderEngine.resolveGender('Lernen').gender, GermanGender.neuter);
+    });
+
+    test('Standard suffix rules for feminine, masculine, neuter', () {
+      expect(GermanGenderEngine.resolveGender('Zeitung').gender, GermanGender.feminine);
+      expect(GermanGenderEngine.resolveGender('Freiheit').gender, GermanGender.feminine);
+      expect(GermanGenderEngine.resolveGender('Möglichkeit').gender, GermanGender.feminine);
+      expect(GermanGenderEngine.resolveGender('Optimismus').gender, GermanGender.masculine);
+      expect(GermanGenderEngine.resolveGender('Dokument').gender, GermanGender.neuter);
+    });
+  });
+
+  group('GermanVerbConjugator Tests (Studies 50 & 56)', () {
+    test('Regular verb conjugation: lernen', () {
+      final res = GermanVerbConjugator.conjugate('lernen');
+      expect(res.isSeparable, isFalse);
+      expect(res.presentForms[GermanPronoun.ich], 'lerne');
+      expect(res.presentForms[GermanPronoun.du], 'lernst');
+      expect(res.presentForms[GermanPronoun.erSieEs], 'lernt');
+      expect(res.presentForms[GermanPronoun.wir], 'lernen');
+      expect(res.presentForms[GermanPronoun.ihr], 'lernt');
+      expect(res.presentForms[GermanPronoun.sieSie], 'lernen');
+      expect(res.pastParticiple, 'gelernt');
+      expect(res.auxiliary, 'haben');
+    });
+
+    test('Stem vowel changes (Vokalwechsel): e->i, e->ie, a->ä', () {
+      final helfen = GermanVerbConjugator.conjugate('helfen');
+      expect(helfen.presentForms[GermanPronoun.du], 'hilfst');
+      expect(helfen.presentForms[GermanPronoun.erSieEs], 'hilft');
+      expect(helfen.pastParticiple, 'geholfen');
+
+      final sehen = GermanVerbConjugator.conjugate('sehen');
+      expect(sehen.presentForms[GermanPronoun.du], 'siehst');
+      expect(sehen.presentForms[GermanPronoun.erSieEs], 'sieht');
+      expect(sehen.pastParticiple, 'gesehen');
+
+      final fahren = GermanVerbConjugator.conjugate('fahren');
+      expect(fahren.presentForms[GermanPronoun.du], 'fährst');
+      expect(fahren.presentForms[GermanPronoun.erSieEs], 'fährt');
+      expect(fahren.auxiliary, 'sein'); // movement verb
+      expect(fahren.pastParticiple, 'gefahren');
+    });
+
+    test('Auxiliary and modal verbs', () {
+      final sein = GermanVerbConjugator.conjugate('sein');
+      expect(sein.presentForms[GermanPronoun.ich], 'bin');
+      expect(sein.presentForms[GermanPronoun.du], 'bist');
+      expect(sein.presentForms[GermanPronoun.erSieEs], 'ist');
+      expect(sein.presentForms[GermanPronoun.wir], 'sind');
+      expect(sein.pastParticiple, 'gewesen');
+
+      final koennen = GermanVerbConjugator.conjugate('können');
+      expect(koennen.presentForms[GermanPronoun.ich], 'kann');
+      expect(koennen.presentForms[GermanPronoun.erSieEs], 'kann');
+    });
+
+    test('Separable verbs: aufstehen', () {
+      final res = GermanVerbConjugator.conjugate('aufstehen');
+      expect(res.isSeparable, isTrue);
+      expect(res.prefix, 'auf');
+      expect(res.baseVerb, 'stehen');
+      expect(res.presentForms[GermanPronoun.ich], 'aufstehe');
+      expect(res.mainClauseV2Forms[GermanPronoun.ich], 'stehe ... auf');
+      expect(res.pastParticiple, 'aufgestanden');
+      expect(res.auxiliary, 'sein');
     });
   });
 }

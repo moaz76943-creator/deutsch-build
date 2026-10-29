@@ -82,7 +82,7 @@ void main() {
       expect(rows, hasLength(1), reason: entry.key);
       expect(rows.single['word'], entry.value);
       expect(rows.single['language_code'], entry.key);
-      expect(rows.single['lexeme_id'], 'lex.${entry.key}.1');
+      expect(rows.single['lexeme_id'], 'lex.' + entry.key + '.1');
     }
   });
 
