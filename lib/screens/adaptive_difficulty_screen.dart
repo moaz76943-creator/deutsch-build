@@ -5,7 +5,8 @@ class AdaptiveDifficultyScreen extends StatefulWidget {
   const AdaptiveDifficultyScreen({super.key});
 
   @override
-  State<AdaptiveDifficultyScreen> createState() => _AdaptiveDifficultyScreenState();
+  State<AdaptiveDifficultyScreen> createState() =>
+      _AdaptiveDifficultyScreenState();
 }
 
 class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
@@ -34,14 +35,20 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('تفعيل التكيّف التلقائي', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('تفعيل التكيّف التلقائي',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('تعديل فترات البطاقات بناءً على أخطائك', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          Text('تعديل فترات البطاقات بناءً على أخطائك',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _adaptiveActive,
                         activeThumbColor: const Color(0xFF38BDF8),
@@ -60,7 +67,11 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('حساسية الخوارزمية للكلمات الصعبة', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text('حساسية الخوارزمية للكلمات الصعبة',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       Slider(
                         value: _sensitivityLevel,
@@ -73,7 +84,10 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                         },
                       ),
                       const SizedBox(height: 6),
-                      const Text('كلما زادت الحساسية، قام النظام بتكرار الكلمات الصعبة بشكل أسرع في جلساتك.', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      const Text(
+                          'كلما زادت الحساسية، قام النظام بتكرار الكلمات الصعبة بشكل أسرع في جلساتك.',
+                          style:
+                              TextStyle(color: Colors.white54, fontSize: 12)),
                     ],
                   ),
                 ),

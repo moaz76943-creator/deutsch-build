@@ -30,7 +30,8 @@ class DatabaseIntegrityService {
         clearQuarantine(code);
         return true;
       }
-      await quarantine(code, StateError('SQLite quick_check did not return ok'));
+      await quarantine(
+          code, StateError('SQLite quick_check did not return ok'));
     } catch (error) {
       await quarantine(code, error);
     }
@@ -69,7 +70,7 @@ class DatabaseIntegrityService {
       if (closeMounted != null) await closeMounted();
       if (reinstall != null) await reinstall();
       final db = await remount();
-      return checkMountedPack(languageCode, db);
+      return await checkMountedPack(languageCode, db);
     } catch (error) {
       await quarantine(languageCode, error);
       return false;

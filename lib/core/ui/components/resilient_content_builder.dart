@@ -5,7 +5,8 @@ import '../tokens/app_spacing.dart';
 
 typedef ContentWidgetBuilder<T> = Widget Function(BuildContext context, T data);
 typedef StateWidgetBuilder = Widget Function(BuildContext context);
-typedef ErrorWidgetBuilder = Widget Function(BuildContext context, Object error);
+typedef ErrorWidgetBuilder = Widget Function(
+    BuildContext context, Object error);
 
 class ResilientContentBuilder<T> extends StatefulWidget {
   final Future<T> Function() fetcher;
@@ -30,10 +31,12 @@ class ResilientContentBuilder<T> extends StatefulWidget {
   });
 
   @override
-  State<ResilientContentBuilder<T>> createState() => _ResilientContentBuilderState<T>();
+  State<ResilientContentBuilder<T>> createState() =>
+      _ResilientContentBuilderState<T>();
 }
 
-class _ResilientContentBuilderState<T> extends State<ResilientContentBuilder<T>> {
+class _ResilientContentBuilderState<T>
+    extends State<ResilientContentBuilder<T>> {
   ContentState _state = ContentState.loading;
   T? _data;
   Object? _error;
@@ -70,14 +73,19 @@ class _ResilientContentBuilderState<T> extends State<ResilientContentBuilder<T>>
 
       setState(() {
         _timeoutTimer?.cancel();
-        if (_state != ContentState.loading) return; // Prevent overwriting timeout
+        if (_state != ContentState.loading) {
+          return; // Prevent overwriting timeout
+        }
         _data = data;
 
         bool empty = false;
         if (widget.isEmpty != null) {
-            empty = widget.isEmpty!(data);
-        } else if (data is List || data is String || data is Map || data is Set) {
-            empty = (data as dynamic).isEmpty;
+          empty = widget.isEmpty!(data);
+        } else if (data is List ||
+            data is String ||
+            data is Map ||
+            data is Set) {
+          empty = (data as dynamic).isEmpty;
         }
 
         if (empty) {
@@ -91,10 +99,13 @@ class _ResilientContentBuilderState<T> extends State<ResilientContentBuilder<T>>
       _timeoutTimer?.cancel();
 
       setState(() {
-        if (_state != ContentState.loading) return; // Prevent overwriting timeout
+        if (_state != ContentState.loading) {
+          return; // Prevent overwriting timeout
+        }
         _error = e;
         // Simple heuristic for corrupted data
-        if (e.toString().toLowerCase().contains('corrupt') || e is FormatException) {
+        if (e.toString().toLowerCase().contains('corrupt') ||
+            e is FormatException) {
           _state = ContentState.corrupted;
         } else {
           _state = ContentState.failed;
@@ -109,14 +120,17 @@ class _ResilientContentBuilderState<T> extends State<ResilientContentBuilder<T>>
       case ContentState.loading:
         return widget.loadingBuilder?.call(context) ?? _buildDefaultLoading();
       case ContentState.ready:
-      case ContentState.degraded: // Treats degraded as ready for this component's scope
+      case ContentState
+            .degraded: // Treats degraded as ready for this component's scope
         return widget.builder(context, _data as T);
       case ContentState.empty:
         return widget.emptyBuilder?.call(context) ?? _buildDefaultEmpty();
       case ContentState.corrupted:
-        return widget.corruptBuilder?.call(context, _error!) ?? _buildDefaultError('Data Corrupted');
+        return widget.corruptBuilder?.call(context, _error!) ??
+            _buildDefaultError('Data Corrupted');
       case ContentState.failed:
-        return widget.errorBuilder?.call(context, _error!) ?? _buildDefaultError('Operation Failed');
+        return widget.errorBuilder?.call(context, _error!) ??
+            _buildDefaultError('Operation Failed');
     }
   }
 

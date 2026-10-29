@@ -25,7 +25,8 @@ class ContentErrorState extends StatelessWidget {
     if (compact) {
       return Center(
         child: IconButton(
-          icon: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+          icon: Icon(Icons.error_outline,
+              color: Theme.of(context).colorScheme.error),
           onPressed: onRetry,
           tooltip: 'إعادة المحاولة',
         ),

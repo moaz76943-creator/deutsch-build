@@ -76,7 +76,8 @@ class _InnovationHubScreenState extends State<InnovationHubScreen> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _pragmaticFeedback = 'Gib mir das Wasser: صحيحة نحوياً لكنها فظة في هذا السياق!';
+                      _pragmaticFeedback =
+                          'Gib mir das Wasser: صحيحة نحوياً لكنها فظة في هذا السياق!';
                     });
                   },
                   child: const Text('Gib mir das Wasser.'),
@@ -84,14 +85,17 @@ class _InnovationHubScreenState extends State<InnovationHubScreen> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _pragmaticFeedback = 'Könnten Sie mir bitte...: ممتازة! تحقق قمة اللباقة الرسمية.';
+                      _pragmaticFeedback =
+                          'Könnten Sie mir bitte...: ممتازة! تحقق قمة اللباقة الرسمية.';
                     });
                   },
-                  child: const Text('Könnten Sie mir bitte etwas Wasser geben?'),
+                  child:
+                      const Text('Könnten Sie mir bitte etwas Wasser geben?'),
                 ),
                 if (_pragmaticFeedback.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(_pragmaticFeedback, style: const TextStyle(color: Colors.teal)),
+                  Text(_pragmaticFeedback,
+                      style: const TextStyle(color: Colors.teal)),
                 ]
               ],
             ),
@@ -109,10 +113,12 @@ class _InnovationHubScreenState extends State<InnovationHubScreen> {
                     hintText: 'مثال: Ein Ding gegen den Regen...',
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: (val) => setState(() => _circumlocutionInput = val),
+                  onChanged: (val) =>
+                      setState(() => _circumlocutionInput = val),
                 ),
                 const SizedBox(height: 6),
-                Text('الاستراتيجية: ${_circumlocutionInput.isEmpty ? "بانتظار الوصف البديل" : "تم رصد وصف وظيفي بديل ناجح!"}'),
+                Text(
+                    'الاستراتيجية: ${_circumlocutionInput.isEmpty ? "بانتظار الوصف البديل" : "تم رصد وصف وظيفي بديل ناجح!"}'),
               ],
             ),
           ),
@@ -125,11 +131,16 @@ class _InnovationHubScreenState extends State<InnovationHubScreen> {
               children: [
                 SegmentedButton<String>(
                   segments: const [
-                    ButtonSegment(value: 'sentence_a', label: Text('Nur ich habe Anna eingeladen')),
-                    ButtonSegment(value: 'sentence_b', label: Text('Ich habe nur Anna eingeladen')),
+                    ButtonSegment(
+                        value: 'sentence_a',
+                        label: Text('Nur ich habe Anna eingeladen')),
+                    ButtonSegment(
+                        value: 'sentence_b',
+                        label: Text('Ich habe nur Anna eingeladen')),
                   ],
                   selected: {_meaningShiftMode},
-                  onSelectionChanged: (set) => setState(() => _meaningShiftMode = set.first),
+                  onSelectionChanged: (set) =>
+                      setState(() => _meaningShiftMode = set.first),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -146,7 +157,10 @@ class _InnovationHubScreenState extends State<InnovationHubScreen> {
     );
   }
 
-  Widget _buildCard({required String title, required String subtitle, required Widget content}) {
+  Widget _buildCard(
+      {required String title,
+      required String subtitle,
+      required Widget content}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -154,8 +168,11 @@ class _InnovationHubScreenState extends State<InnovationHubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+            Text(title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(subtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 13)),
             const Divider(),
             content,
           ],

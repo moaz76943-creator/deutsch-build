@@ -31,7 +31,7 @@ void main() {
     }
   });
 
-  Future<File> _createValidDatabase(String filename) async {
+  Future<File> createValidDatabase(String filename) async {
     final path = '${tempDir.path}/$filename';
     final db = await databaseFactoryFfi.openDatabase(path);
     await db.execute('PRAGMA user_version = 1');
@@ -41,7 +41,7 @@ void main() {
     return File(path);
   }
 
-  Future<File> _createInvalidSchemaDatabase(String filename) async {
+  Future<File> createInvalidSchemaDatabase(String filename) async {
     final path = '${tempDir.path}/$filename';
     final db = await databaseFactoryFfi.openDatabase(path);
     await db.execute('CREATE TABLE dummy (id INTEGER)'); // to make file not empty
@@ -52,14 +52,14 @@ void main() {
     return File(path);
   }
 
-  Future<String> _calculateHash(File file) async {
+  Future<String> calculateHash(File file) async {
     final bytes = await file.readAsBytes();
     return sha256.convert(bytes).toString();
   }
 
   test('Valid admission and replacement', () async {
-    final stagedDb = await _createValidDatabase('staged.db');
-    final hash = await _calculateHash(stagedDb);
+    final stagedDb = await createValidDatabase('staged.db');
+    final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/target.db';
 
     // Install
@@ -72,8 +72,8 @@ void main() {
     expect(await File(targetPath).exists(), isTrue);
 
     // Replace
-    final stagedDb2 = await _createValidDatabase('staged2.db');
-    final hash2 = await _calculateHash(stagedDb2);
+    final stagedDb2 = await createValidDatabase('staged2.db');
+    final hash2 = await calculateHash(stagedDb2);
 
     bool result2 = await admissionService.verifyAndAdmitPack(
       stagedFile: stagedDb2,
@@ -87,7 +87,7 @@ void main() {
   test('Corrupted bytes / SQLite integrity failure', () async {
     final corruptFile = File('${tempDir.path}/corrupt.db');
     await corruptFile.writeAsBytes(List.filled(100, 0)); // Not a valid SQLite DB
-    final hash = await _calculateHash(corruptFile);
+    final hash = await calculateHash(corruptFile);
     final targetPath = '${tempDir.path}/target.db';
 
     bool result = await admissionService.verifyAndAdmitPack(
@@ -102,8 +102,8 @@ void main() {
   });
 
   test('Wrong hash', () async {
-    final stagedDb = await _createValidDatabase('staged.db');
-    final wrongHash = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    final stagedDb = await createValidDatabase('staged.db');
+    const wrongHash = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
     final targetPath = '${tempDir.path}/target.db';
 
     bool result = await admissionService.verifyAndAdmitPack(
@@ -118,8 +118,8 @@ void main() {
   });
 
   test('Interrupted renames (startup deletes leftover .tmp)', () async {
-    final stagedDb = await _createValidDatabase('staged.db');
-    final hash = await _calculateHash(stagedDb);
+    final stagedDb = await createValidDatabase('staged.db');
+    final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/target.db';
 
     // Simulate a leftover .tmp file
@@ -139,8 +139,8 @@ void main() {
   });
 
   test('Invalid schema (version 0 or missing tables)', () async {
-    final stagedDb = await _createInvalidSchemaDatabase('staged.db');
-    final hash = await _calculateHash(stagedDb);
+    final stagedDb = await createInvalidSchemaDatabase('staged.db');
+    final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/target.db';
 
     bool result = await admissionService.verifyAndAdmitPack(
@@ -155,8 +155,8 @@ void main() {
   });
 
   test('Enforced separation of learner data', () async {
-    final stagedDb = await _createValidDatabase('staged.db');
-    final hash = await _calculateHash(stagedDb);
+    final stagedDb = await createValidDatabase('staged.db');
+    final hash = await calculateHash(stagedDb);
     final targetPath = '${tempDir.path}/user_progress.db';
 
     bool result = await admissionService.verifyAndAdmitPack(
@@ -173,8 +173,8 @@ void main() {
   test('Preserve the last verified pack when replacement fails (simulated)', () async {
     // AtomicDatabaseInstaller handles this because File.rename is atomic
     // If we pass an invalid source, it fails before touching target.
-    final targetFile = await _createValidDatabase('target.db');
-    final originalHash = await _calculateHash(targetFile);
+    final targetFile = await createValidDatabase('target.db');
+    final originalHash = await calculateHash(targetFile);
 
     final installResult = await AtomicDatabaseInstaller.installDatabaseAtomically(
       sourcePath: '${tempDir.path}/non_existent.db',
@@ -184,6 +184,6 @@ void main() {
 
     expect(installResult.status, DatabaseInstallStatus.failed);
     expect(await targetFile.exists(), isTrue);
-    expect(await _calculateHash(targetFile), originalHash); // Unchanged
+    expect(await calculateHash(targetFile), originalHash); // Unchanged
   });
 }
