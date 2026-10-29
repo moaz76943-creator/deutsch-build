@@ -43,8 +43,8 @@ class FileReminderStorage implements ReminderStorage {
     try {
       final content = await _file.readAsString();
       final data = jsonDecode(content);
-      if (data['nextReminder'] != null) {
-        return DateTime.parse(data['nextReminder']);
+      if (data is Map && data['nextReminder'] is String) {
+        return DateTime.parse(data['nextReminder'] as String);
       }
     } catch (_) {
       // Return null on parsing errors

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-<<<<<<< HEAD
 import '../../core/srs_scheduler.dart';
 
 enum AnalyticsWindow { days7, days30, days90 }
@@ -73,9 +72,22 @@ class LocalLearningAnalytics {
 
   static Map<String, PairMetrics> _aggregateHistory(
       Map<String, dynamic> input) {
-    final List<dynamic> historyMaps = input['history'] ?? [];
-    final int windowDays = input['windowDays'] ?? 30;
-    final DateTime currentUtc = DateTime.parse(input['currentUtc']);
+<<<<<<< HEAD
+    final List<dynamic> historyMaps = input['history'] as List<dynamic>? ?? <dynamic>[];
+    final int windowDays = input['windowDays'] as int? ?? 30;
+    final DateTime currentUtc = DateTime.parse(input['currentUtc'] as String);
+=======
+    final historyValue = input['history'];
+    final List<dynamic> historyMaps =
+        historyValue is List ? historyValue : const <dynamic>[];
+    final windowValue = input['windowDays'];
+    final int windowDays = windowValue is int ? windowValue : 30;
+    final currentValue = input['currentUtc'];
+    if (currentValue is! String) {
+      return <String, PairMetrics>{};
+    }
+    final DateTime currentUtc = DateTime.parse(currentValue);
+>>>>>>> origin/staging/v2-full-platform
     final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
 
     // Deduplicate by reviewEventId and safely parse
@@ -184,33 +196,6 @@ class LocalLearningAnalytics {
         return 'وسام المائة بطاقة المتقنة';
       }
     }
-=======
-
-/// محرك تقارير النمو وتحليل بيانات التعلم المحلية
-class LocalLearningAnalytics {
-
-  /// توليد تقرير النمو لآخر 30 يوماً
-  Future<Map<String, dynamic>> generate30DayReport() async {
-    debugPrint("جاري توليد تقرير النمو محلياً...");
-
-    // محاكاة حسابات قواعد البيانات للإتقان
-    return {
-      'mastered_cards': 120,
-      'active_domains': 3,
-      'learning_trend': 'upward',
-      'consistency_score': 85, // من 100
-    };
-  }
-
-  /// التحقق من استحقاق المستخدم لوسام جديد
-  Future<String?> checkNewBadge() async {
-    // منح وسام إذا أتقن المستخدم أكثر من 100 بطاقة فعلياً
-    final report = await generate30DayReport();
-    if (report['mastered_cards'] > 100) {
-      return 'وسام المائة بطاقة المتقنة';
-    }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return null;
   }
 }
- return null;

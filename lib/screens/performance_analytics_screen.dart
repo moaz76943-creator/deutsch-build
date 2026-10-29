@@ -97,7 +97,6 @@ class PerformanceAnalyticsScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-<<<<<<< HEAD
             Expanded(
               flex: 2,
               child: Text(
@@ -119,10 +118,6 @@ class PerformanceAnalyticsScreen extends StatelessWidget {
                 style: TextStyle(color: color, fontSize: 12),
               ),
             ),
-=======
-            Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600))),
-            Text('${(progress * 100).toInt()}% نسبة الخطأ', style: TextStyle(color: color, fontSize: 12)),
->>>>>>> origin/staging/v2-full-platform-9617688105299726044
           ],
         ),
         const SizedBox(height: 6),

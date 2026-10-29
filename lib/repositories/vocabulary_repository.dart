@@ -1,5 +1,7 @@
+<<<<<<< HEAD
+$(cat /tmp/vocab_repo_new.dart)
+=======
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
@@ -46,33 +48,15 @@ class VocabularyRepository {
         return seeded;
       }
 
-      // Offload JSON decoding of stored items to background isolate when list is non-trivial
-      // to prevent main-thread jank during vocabulary screen entry or refresh.
-      final jsonStrings = records.map((row) => row['json_data'] as String).toList();
-      final List<Map<String, dynamic>> results;
-      if (jsonStrings.length > 50) {
-        results = await compute(_decodeVocabularyRecords, jsonStrings);
-      } else {
-        results = _decodeVocabularyRecords(jsonStrings);
-      }
+      final results = records.map((row) {
+        final jsonStr = row['json_data'] as String;
+        return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+      }).toList();
       _offlineCache = results;
       return results;
     } catch (_) {
       return _offlineCache;
     }
-  }
-
-  /// Top-level function required for compute() isolate.
-  static List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
-    final List<dynamic> decoded = jsonDecode(jsonString);
-    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-  }
-
-  /// Top-level function to decode a list of JSON strings from DB records on isolate.
-  static List<Map<String, dynamic>> _decodeVocabularyRecords(List<String> jsonStrings) {
-    return jsonStrings.map((jsonStr) {
-      return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
-    }).toList();
   }
 
   Future<List<Map<String, dynamic>>> _seedAndMigrate(Database db) async {
@@ -88,9 +72,13 @@ class VocabularyRepository {
       }
 
       if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
-        // Offload heavy JSON parsing to background isolate to avoid main-thread jank
-        // during first-launch seeding of large vocabulary assets.
-        final items = await compute(_parseVocabularyJson, jsonString);
+        final decoded = jsonDecode(jsonString);
+        if (decoded is! List) return _offlineCache;
+        final List<dynamic> decodedList = decoded;
+        final items =
+            decodedList
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
         await saveVocabularyList(items);
         return items;
       }
@@ -146,8 +134,9 @@ class VocabularyRepository {
         limit: 1,
       );
       if (res.isNotEmpty) {
-        final map = Map<String, dynamic>.from(
-            jsonDecode(res.first['json_data'] as String));
+        final decodedJson = jsonDecode(res.first['json_data'] as String);
+        if (decodedJson is! Map) return false;
+        final map = Map<String, dynamic>.from(decodedJson);
         map['interval'] = interval;
         map['repetitions'] = repetitions;
         map['easeFactor'] = easeFactor;
@@ -219,7 +208,7 @@ class VocabularyRepository {
     for (var item in items) {
       final String front = item['languageCode'] == 'de'
           ? '${item['article']} ${item['word']}'
-          : item['word'];
+          : '${item['word']}';
       final String back =
           '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
       buffer.writeln('$front\t$back');
@@ -234,9 +223,9 @@ class VocabularyRepository {
     Map<String, int> fields = {};
 
     for (var item in items) {
-      String l = item['languageCode'] ?? 'de';
+      final String l = '${item['languageCode'] ?? 'de'}';
       langs[l] = (langs[l] ?? 0) + 1;
-      String f = item['semanticField'] ?? 'عام';
+      final String f = '${item['semanticField'] ?? 'عام'}';
       fields[f] = (fields[f] ?? 0) + 1;
     }
 
@@ -255,9 +244,12 @@ class VocabularyRepository {
 
   Future<bool> importBackupJson(String jsonString) async {
     try {
-      final List<dynamic> decoded = jsonDecode(jsonString);
-      final items =
-          decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final decoded = jsonDecode(jsonString);
+      if (decoded is! List) return false;
+      final List<dynamic> decodedList = decoded;
+      final items = decodedList
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
       return await saveVocabularyList(items);
     } catch (_) {
       return false;
@@ -282,3 +274,4 @@ class VocabularyRepository {
     };
   }
 }
+>>>>>>> origin/staging/v2-full-platform

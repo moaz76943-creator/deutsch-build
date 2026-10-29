@@ -1,16 +1,11 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-<<<<<<< HEAD
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
-<<<<<<< HEAD
 import 'atomic_database_installer.dart';
-=======
-import '../database/crash_safe_snapshot_manager.dart';
-import '../security/ed25519_signature_verifier.dart';
-
->>>>>>> origin/fix/security-reconciliation-and-audit-lane01-02
+import '../../services/database_service.dart';
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
@@ -27,91 +22,15 @@ class PackAdmissionService {
     required File stagedFile,
     required String expectedHash,
     required String targetPath,
+    required String languageCode,
     bool allowReplacement = false,
   }) async {
-=======
-
-/// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
-class PackAdmissionService {
-
-  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256)
-  Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     try {
-<<<<<<< HEAD
+      if (!RegExp(r'^[a-z]{2,3}$').hasMatch(languageCode)) {
+        return false;
+      }
       if (!await stagedFile.exists()) {
         debugPrint("فشل التحقق: الملف غير موجود.");
-=======
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
-
-      if (digest.toString() == expectedHash) {
-        debugPrint("تم التحقق من الحزمة بنجاح. جاري النقل الذري...");
-        // النقل الذري (Atomic Rename) يتم هنا في التنفيذ الفعلي
-        return true;
-      }
-      debugPrint("فشل التحقق: الحزمة تالفة أو غير موثوقة.");
-      return false;
-    } catch (e) {
-      debugPrint("خطأ أثناء فحص الحزمة: \$e");
-      return false;
-    }
-  }
-<<<<<<< HEAD
-
-  /// التحقق من توقيع Ed25519 الرقمي للحزمة ومطابقته لسجل المفاتيح الموثوقة (Study 06)
-  Future<bool> verifyPackSignature({
-    required File packFile,
-    required String signatureHex,
-    required String publicKeyHex,
-  }) async {
-    try {
-      if (!PackTrustRegistry.isKeyTrusted(publicKeyHex)) {
-        debugPrint('Pack signature validation failed: Public key is untrusted or insecure test vector.');
-        return false;
-      }
-
-      final pubBytes = PackTrustRegistry.hexToBytes(publicKeyHex);
-      final sigBytes = PackTrustRegistry.hexToBytes(signatureHex);
-      if (pubBytes == null || sigBytes == null) {
-        debugPrint('Pack signature validation failed: Malformed hex in key or signature.');
-        return false;
-      }
-
-      final messageBytes = await packFile.readAsBytes();
-      final isValid = Ed25519SignatureVerifier.verify(
-        publicKeyBytes: pubBytes,
-        messageBytes: messageBytes,
-        signatureBytes: sigBytes,
-      );
-
-      if (!isValid) {
-        debugPrint('Pack signature validation failed: Invalid cryptographic signature.');
-        return false;
-      }
-
-      return true;
-    } catch (e) {
-      debugPrint('Pack signature validation exception: $e');
-      return false;
-    }
-  }
-
-  Future<bool> verifyPackIntegrity(File file, String expectedHash) async {
-    try {
-      // 0. فحص ترويسة SQLite الرسمية لمنع الملفات التالفة أو غير المتوافقة
-      final isValidHeader = await CrashSafeSnapshotManager.verifySqliteHeader(file);
-      if (!isValidHeader) {
-        debugPrint('Pack validation failed: Invalid SQLite header signature.');
-        return false;
-      }
-
-      final bytes = await file.readAsBytes();
-      final digest = sha256.convert(bytes);
-
-      if (digest.toString() != expectedHash) {
-        debugPrint("Pack validation failed: hash mismatch.");
->>>>>>> origin/fix/security-reconciliation-and-audit-lane01-02
         return false;
       }
 
@@ -132,11 +51,16 @@ class PackAdmissionService {
         return false;
       }
 
-      // Verify SHA-256
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
+      // Stream the digest in a worker. Large SQLite packs must not be read
+      // into the Flutter UI isolate or buffered as a single Uint8List.
+      final stagedPath = stagedFile.path;
+      final digest = await Isolate.run(
+        () async => (await sha256.bind(
+          File(stagedPath).openRead(),
+        ).first).toString(),
+      );
 
-      if (digest.toString() != expectedHash) {
+      if (digest != expectedHash.toLowerCase()) {
         debugPrint("فشل التحقق: Hash غير متطابق.");
         quarantine.isolateCorruptData(
           id: stagedFile.path,
@@ -147,7 +71,7 @@ class PackAdmissionService {
       }
 
       // Verify SQLite integrity and schema
-      if (!await verifySqliteIntegrity(stagedFile.path)) {
+      if (!await _verifySqliteIntegrity(stagedFile.path, languageCode)) {
         return false;
       }
 
@@ -167,7 +91,7 @@ class PackAdmissionService {
     }
   }
 
-  Future<bool> verifySqliteIntegrity(String path) async {
+  Future<bool> _verifySqliteIntegrity(String path, String languageCode) async {
     Database? db;
     try {
       db = await dbFactory.openDatabase(
@@ -190,10 +114,25 @@ class PackAdmissionService {
         return false;
       }
 
+      // SQLite integrity_check does not detect orphaned foreign keys.
+      // Reject the candidate before the atomic installer can replace a
+      // previously verified pack or expose inconsistent lexical relations.
+      final foreignKeyViolations =
+          await db.rawQuery('PRAGMA foreign_key_check');
+      if (foreignKeyViolations.isNotEmpty) {
+        debugPrint('فشل التحقق: SQLite foreign_key_check فشل.');
+        quarantine.isolateCorruptData(
+          id: path,
+          rawJson: '{"foreign_key_violations": ${foreignKeyViolations.length}}',
+          reason: 'SQLite foreign key check failed',
+        );
+        return false;
+      }
+
       // Check schema version
       final userVersion = await db.rawQuery('PRAGMA user_version');
       final version = Sqflite.firstIntValue(userVersion) ?? 0;
-      if (version <= 0) {
+      if (version != 2) {
         debugPrint("فشل التحقق: نسخة المخطط غير صالحة.");
         quarantine.isolateCorruptData(
           id: path,
@@ -216,6 +155,10 @@ class PackAdmissionService {
         return false;
       }
 
+      // Do not publish a SQLite file that the actual content reader rejects.
+      // This shared verifier checks the v2 tables, metadata language identity,
+      // lexicon ownership, FTS5 and foreign-key consistency.
+      await DatabaseService.instance.verifyUniversalSchema(db, languageCode);
       return true;
     } catch (e) {
       debugPrint("فشل التحقق: تعذر قراءة كقاعدة بيانات SQLite - $e");
@@ -229,6 +172,4 @@ class PackAdmissionService {
       await db?.close();
     }
   }
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
