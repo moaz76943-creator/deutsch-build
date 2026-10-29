@@ -1,0 +1,22 @@
+{
+  "isoCode": "ru",
+  "autonym": "Русский",
+  "englishName": "Russian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Cyrillic",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 6,
+  "caseNames": ["Именительный", "Родительный", "Дательный", "Винительный", "Творительный", "Предложный"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": false,
+    "hasAnimacyDistinction": true,
+    "hasVerbalAspectPairs": true,
+    "freeWordOrder": true
+  }
+}
