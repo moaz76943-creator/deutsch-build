@@ -1,0 +1,22 @@
+{
+  "isoCode": "th",
+  "autonym": "ไทย",
+  "englishName": "Thai",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Thai",
+  "typology": "SVO",
+  "morphologyType": "Isolating",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "tonesCount": 5,
+    "hasScriptioContinua": true,
+    "hasClassifiers": true
+  }
+}
