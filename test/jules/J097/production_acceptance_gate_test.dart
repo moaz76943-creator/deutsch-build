@@ -8,20 +8,11 @@ class MockJ025StartupContract implements J025StartupContract {
   final bool hasNormalStartup;
   @override
   final bool hasSafeModeStartup;
-  @override
-  final bool isLifecycleManaged;
-  @override
-  final bool isOfflineSafe;
-  @override
-  final bool isStorageGuarded;
 
   MockJ025StartupContract({
     this.hasNewDartErrors = false,
     this.hasNormalStartup = true,
     this.hasSafeModeStartup = true,
-    this.isLifecycleManaged = true,
-    this.isOfflineSafe = true,
-    this.isStorageGuarded = true,
   });
 }
 
