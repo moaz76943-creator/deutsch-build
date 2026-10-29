@@ -42,38 +42,46 @@ class AchievementCardRenderer {
       <stop offset="0%" stop-color="#00f2fe"/>
       <stop offset="100%" stop-color="#4facfe"/>
     </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
   </defs>
 
   <!-- Background Surface -->
   <rect width="1200" height="630" fill="url(#bgGrad)" rx="24"/>
   <rect x="2" y="2" width="1196" height="626" fill="none" stroke="#252a36" stroke-width="2" rx="22"/>
 
-  <!-- Brand Header -->
+  <!-- Brand Top Header -->
   <text x="60" y="80" fill="#4facfe" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" letter-spacing="2">POLYGLOT SOVEREIGN</text>
   <text x="60" y="115" fill="#8892b0" font-family="system-ui, -apple-system, sans-serif" font-size="16">100-Language Sovereign Core • Zero Telemetry</text>
 
-  <!-- Title -->
+  <!-- Main Achievement Trophy Title -->
   <text x="60" y="210" fill="url(#goldGrad)" font-family="system-ui, -apple-system, sans-serif" font-size="44" font-weight="900">$escapedTitle</text>
   <text x="60" y="260" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600">Learner: @$escapedHandle</text>
 
   <!-- Metrics Grid -->
+  <!-- Box 1: CEFR Level -->
   <rect x="60" y="320" width="240" height="180" fill="#141822" rx="16" stroke="#252a36" stroke-width="1.5"/>
   <text x="90" y="370" fill="#8892b0" font-family="system-ui, -apple-system, sans-serif" font-size="18">CEFR Mastery</text>
   <text x="90" y="450" fill="url(#cyanGrad)" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="900">${payload.cefrLevel}</text>
 
+  <!-- Box 2: Streak Days -->
   <rect x="330" y="320" width="240" height="180" fill="#141822" rx="16" stroke="#252a36" stroke-width="1.5"/>
   <text x="360" y="370" fill="#8892b0" font-family="system-ui, -apple-system, sans-serif" font-size="18">Streak Flame</text>
   <text x="360" y="450" fill="url(#goldGrad)" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="900">${payload.streakDays}🔥</text>
 
+  <!-- Box 3: Words Mastered -->
   <rect x="600" y="320" width="260" height="180" fill="#141822" rx="16" stroke="#252a36" stroke-width="1.5"/>
   <text x="630" y="370" fill="#8892b0" font-family="system-ui, -apple-system, sans-serif" font-size="18">Mastered Lexicon</text>
   <text x="630" y="450" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="54" font-weight="900">${payload.masteredWordsCount}</text>
 
+  <!-- Box 4: Retention Rate -->
   <rect x="890" y="320" width="250" height="180" fill="#141822" rx="16" stroke="#252a36" stroke-width="1.5"/>
   <text x="920" y="370" fill="#8892b0" font-family="system-ui, -apple-system, sans-serif" font-size="18">FSRS Retention</text>
   <text x="920" y="450" fill="#2ed573" font-family="system-ui, -apple-system, sans-serif" font-size="54" font-weight="900">$retentionPercent%</text>
 
-  <!-- Footer -->
+  <!-- Bottom Verification Footer -->
   <text x="60" y="565" fill="#57606f" font-family="system-ui, -apple-system, sans-serif" font-size="16">Target Language: ${payload.targetLanguage.toUpperCase()} • Authenticated via Local Merkle Tree</text>
 </svg>''';
   }
