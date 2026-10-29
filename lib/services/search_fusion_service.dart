@@ -77,7 +77,6 @@ class SearchFusionService {
 
   static const int rrfK = 60;
   final MountedPackSearch _search;
-  int _searchGeneration = 0;
 
   Stream<SearchFusionPage> search({
     required String query,
@@ -86,7 +85,6 @@ class SearchFusionService {
     int pageSize = 20,
     int perPackLimit = 80,
   }) async* {
-    final currentGeneration = ++_searchGeneration;
     if (pageSize < 1 || pageSize > 100) {
       throw RangeError.range(pageSize, 1, 100, 'pageSize');
     }
@@ -106,10 +104,7 @@ class SearchFusionService {
     }
     final languages = <String>{};
     for (final language in mountedLanguages) {
-      final code = _normalizeCode(language);
-      if (code == active) {
-        languages.add(code);
-      }
+      languages.add(_normalizeCode(language));
     }
     if (languages.isEmpty) {
       yield const SearchFusionPage(
@@ -141,8 +136,6 @@ class SearchFusionService {
 
     final responses = <String, List<Map<String, dynamic>>>{};
     await for (final answer in events.stream) {
-      if (currentGeneration != _searchGeneration) return;
-
       responses[answer.languageCode] = answer.rows;
       final ranked = _fuse(responses, active, term.toLowerCase());
       final complete = responses.length == languages.length;
@@ -186,32 +179,22 @@ class SearchFusionService {
         final language = _normalizeCode(
           (row['language_code'] ?? code).toString(),
         );
-        // Prevent inappropriate reverse-pair result reuse by strictly scoping to the active language.
-        if (language != activeLanguage) continue;
-
         final surface =
             (row['surface'] ?? row['display_text'] ?? '').toString().trim();
         if (surface.isEmpty) continue;
         final lemma = (row['lemma'] ?? surface).toString().trim();
-
-        final id = (row['lexeme_id'] ?? row['id'] ?? lemma).toString();
-        final key = '$language|$id';
-
+        final key = '$language|${lemma.toLowerCase()}';
         final translation =
             (row['translation_ar'] ?? '').toString().toLowerCase();
-
-        final tier = surface.toLowerCase() == query
-            ? 0
-            : lemma.toLowerCase() == query
-                ? 1
-                : translation == query
-                    ? 2
-                    : (surface.toLowerCase().startsWith(query) || lemma.toLowerCase().startsWith(query))
-                        ? 3
-                        : translation.contains(query)
-                            ? 4
-                            : 5;
-
+        final tier =
+            language == activeLanguage && surface.toLowerCase() == query
+                ? 0
+                : lemma.toLowerCase() == query
+                    ? 1
+                    : (translation.contains(query) ||
+                            surface.toLowerCase() == query)
+                        ? 2
+                        : 3;
         final candidate = gathered.putIfAbsent(
           key,
           () => _AccumulatedHit(key, row, tier),
