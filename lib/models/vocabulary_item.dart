@@ -21,7 +21,6 @@ class VocabularyItem {
   final String morphologicalTree;
   final String morphophonemicBridge;
   final String politenessRegister; // مؤشر مستويات الخطاب والطبقات الاجتماعية (رسمي، مهني، يومي)
-  final String imageUrl;
 
   VocabularyItem({
     required this.word,
@@ -46,7 +45,6 @@ class VocabularyItem {
     this.morphologicalTree = '',
     this.morphophonemicBridge = '',
     this.politenessRegister = 'محايد / يومي',
-    this.imageUrl = '',
   });
 
   bool get isReviewDue => interval <= 1;
@@ -102,7 +100,6 @@ class VocabularyItem {
       morphologicalTree: morphologicalTree,
       morphophonemicBridge: morphophonemicBridge,
       politenessRegister: politenessRegister,
-      imageUrl: imageUrl,
     );
   }
 
@@ -130,7 +127,6 @@ class VocabularyItem {
       'morphologicalTree': morphologicalTree,
       'morphophonemicBridge': morphophonemicBridge,
       'politenessRegister': politenessRegister,
-      'Image_URL': imageUrl,
     };
   }
 
@@ -158,7 +154,6 @@ class VocabularyItem {
       morphologicalTree: json['morphologicalTree'] as String? ?? '',
       morphophonemicBridge: json['morphophonemicBridge'] as String? ?? '',
       politenessRegister: json['politenessRegister'] as String? ?? 'محايد / يومي',
-      imageUrl: json['Image_URL'] as String? ?? '',
     );
   }
 }
