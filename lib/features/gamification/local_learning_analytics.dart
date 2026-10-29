@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+<<<<<<< HEAD
 import '../../core/srs_scheduler.dart';
 
 enum AnalyticsWindow { days7, days30, days90 }
@@ -52,7 +53,7 @@ class LocalLearningAnalytics {
     }
 
     final currentUtc = nowUtc ?? DateTime.now().toUtc();
-    final input = <String, dynamic>{
+    final input = {
       'history': history.map((e) => e.toMap()).toList(),
       'windowDays': windowDays,
       'currentUtc': currentUtc.toIso8601String(),
@@ -72,12 +73,9 @@ class LocalLearningAnalytics {
 
   static Map<String, PairMetrics> _aggregateHistory(
       Map<String, dynamic> input) {
-    final historyMapsRaw = input['history'];
-    final List<dynamic> historyMaps = historyMapsRaw is List ? historyMapsRaw : [];
-    final windowDaysRaw = input['windowDays'];
-    final int windowDays = windowDaysRaw is int ? windowDaysRaw : 30;
-    final currentUtcRaw = input['currentUtc'];
-    final DateTime currentUtc = currentUtcRaw is String ? DateTime.parse(currentUtcRaw) : DateTime.now().toUtc();
+    final List<dynamic> historyMaps = input['history'] ?? [];
+    final int windowDays = input['windowDays'] ?? 30;
+    final DateTime currentUtc = DateTime.parse(input['currentUtc']);
     final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
 
     // Deduplicate by reviewEventId and safely parse
@@ -174,28 +172,6 @@ class LocalLearningAnalytics {
     return result;
   }
 
-  /// توليد تقرير النمو لآخر 30 يوماً (Legacy wrapper)
-  Future<Map<String, dynamic>> generate30DayReport() async {
-    debugPrint("جاري توليد تقرير النمو محلياً...");
-    final result = await generateReport(AnalyticsWindow.days30);
-    if (result is AnalyticsDataState && result.pairSpecificMetrics.isNotEmpty) {
-      final metrics = result.pairSpecificMetrics.values.first;
-      return {
-        'mastered_cards': metrics.uniqueCardsMastered,
-        'active_domains': 3, // Legacy, unused
-        'learning_trend': 'upward', // Legacy
-        'consistency_score': (metrics.completionRate * 100).toInt(),
-      };
-    }
-
-    return {
-      'mastered_cards': 0,
-      'active_domains': 0,
-      'learning_trend': 'flat',
-      'consistency_score': 0,
-    };
-  }
-
   /// التحقق من استحقاق المستخدم لوسام جديد
   static Future<String?> checkNewBadge() async {
     final result = await generateReport(AnalyticsWindow.days30);
@@ -208,6 +184,33 @@ class LocalLearningAnalytics {
         return 'وسام المائة بطاقة المتقنة';
       }
     }
+=======
+
+/// محرك تقارير النمو وتحليل بيانات التعلم المحلية
+class LocalLearningAnalytics {
+
+  /// توليد تقرير النمو لآخر 30 يوماً
+  Future<Map<String, dynamic>> generate30DayReport() async {
+    debugPrint("جاري توليد تقرير النمو محلياً...");
+
+    // محاكاة حسابات قواعد البيانات للإتقان
+    return {
+      'mastered_cards': 120,
+      'active_domains': 3,
+      'learning_trend': 'upward',
+      'consistency_score': 85, // من 100
+    };
+  }
+
+  /// التحقق من استحقاق المستخدم لوسام جديد
+  Future<String?> checkNewBadge() async {
+    // منح وسام إذا أتقن المستخدم أكثر من 100 بطاقة فعلياً
+    final report = await generate30DayReport();
+    if (report['mastered_cards'] > 100) {
+      return 'وسام المائة بطاقة المتقنة';
+    }
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return null;
   }
 }
+ return null;
