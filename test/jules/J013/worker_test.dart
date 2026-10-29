@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/worker/persistent_cpu_worker.dart';
+import 'package:flutter/widgets.dart';
 
 void main() {
   late PersistentCpuWorker worker;
 
   setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     worker = PersistentCpuWorker.instance;
     worker.reset();
   });
@@ -23,24 +25,38 @@ void main() {
 
   group('PersistentCpuWorker - Bounded Execution & Failures', () {
     test('throws WorkerQueueExhaustedException when queue is full', () async {
-      worker.setMaxQueueSize(2);
+      // If maxQueueSize is 0, then we can only take maxConcurrentTasks (which is 4) jobs.
+      worker.setMaxQueueSize(0);
 
-      // Start 2 jobs that will take some time
+      // Start 4 jobs that will become active
       final future1 = worker.calculateNewEaseFactor(2.5, 4);
       final future2 = worker.calculateNewEaseFactor(2.5, 4);
+      final future3 = worker.calculateNewEaseFactor(2.5, 4);
+      final future4 = worker.calculateNewEaseFactor(2.5, 4);
 
-      // The 3rd job should immediately throw due to queue exhaustion
-      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<WorkerQueueExhaustedException>()));
+      // The 5th job should immediately throw due to queue exhaustion
+      bool threw = false;
+      try {
+        await worker.calculateNewEaseFactor(2.5, 4);
+      } catch (e) {
+        threw = true;
+        expect(e, isA<WorkerQueueExhaustedException>());
+      }
+      expect(threw, isTrue);
 
       // Wait for completion
-      await Future.wait([future1, future2]);
+      await Future.wait([future1, future2, future3, future4]);
     });
 
     test('worker failure propagates correctly', () async {
-      expect(
-        () => worker.calculateNewEaseFactor(-1.0, 4),
-        throwsA(isA<ArgumentError>()),
-      );
+      bool threw = false;
+      try {
+        await worker.calculateNewEaseFactor(-1.0, 4);
+      } catch (e) {
+        threw = true;
+        expect(e, isA<ArgumentError>());
+      }
+      expect(threw, isTrue);
     });
   });
 
@@ -53,7 +69,14 @@ void main() {
       worker.cancelCurrentGeneration();
 
       // The job should complete but throw WorkerCancelledException before returning
-      expect(() => future, throwsA(isA<WorkerCancelledException>()));
+      bool threw = false;
+      try {
+        await future;
+      } catch (e) {
+        threw = true;
+        expect(e, isA<WorkerCancelledException>());
+      }
+      expect(threw, isTrue);
     });
 
     test('dispose cancels jobs and prevents new ones', () async {
@@ -64,10 +87,24 @@ void main() {
       worker.dispose();
 
       // The running job should be cancelled
-      expect(() => future, throwsA(isA<WorkerCancelledException>()));
+      bool threw = false;
+      try {
+        await future;
+      } catch (e) {
+        threw = true;
+        expect(e, isA<WorkerCancelledException>());
+      }
+      expect(threw, isTrue);
 
       // New jobs should be rejected
-      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<StateError>()));
+      threw = false;
+      try {
+        await worker.calculateNewEaseFactor(2.5, 4);
+      } catch (e) {
+        threw = true;
+        expect(e, isA<StateError>());
+      }
+      expect(threw, isTrue);
     });
   });
 

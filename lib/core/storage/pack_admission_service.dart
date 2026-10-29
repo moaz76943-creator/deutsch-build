@@ -1,11 +1,16 @@
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+<<<<<<< HEAD
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
+<<<<<<< HEAD
 import 'atomic_database_installer.dart';
-
+=======
+import '../database/crash_safe_snapshot_manager.dart';
 import '../security/ed25519_signature_verifier.dart';
+
+>>>>>>> origin/fix/security-reconciliation-and-audit-lane01-02
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
@@ -17,6 +22,43 @@ class PackAdmissionService {
     required this.dbFactory,
   });
 
+  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256) والتحقق من SQLite
+  Future<bool> verifyAndAdmitPack({
+    required File stagedFile,
+    required String expectedHash,
+    required String targetPath,
+    bool allowReplacement = false,
+  }) async {
+=======
+
+/// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
+class PackAdmissionService {
+  
+  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256)
+  Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    try {
+<<<<<<< HEAD
+      if (!await stagedFile.exists()) {
+        debugPrint("فشل التحقق: الملف غير موجود.");
+=======
+      final bytes = await stagedFile.readAsBytes();
+      final digest = sha256.convert(bytes);
+      
+      if (digest.toString() == expectedHash) {
+        debugPrint("تم التحقق من الحزمة بنجاح. جاري النقل الذري...");
+        // النقل الذري (Atomic Rename) يتم هنا في التنفيذ الفعلي
+        return true;
+      }
+      debugPrint("فشل التحقق: الحزمة تالفة أو غير موثوقة.");
+      return false;
+    } catch (e) {
+      debugPrint("خطأ أثناء فحص الحزمة: \$e");
+      return false;
+    }
+  }
+<<<<<<< HEAD
+
   /// التحقق من توقيع Ed25519 الرقمي للحزمة ومطابقته لسجل المفاتيح الموثوقة (Study 06)
   Future<bool> verifyPackSignature({
     required File packFile,
@@ -25,16 +67,14 @@ class PackAdmissionService {
   }) async {
     try {
       if (!PackTrustRegistry.isKeyTrusted(publicKeyHex)) {
-        debugPrint(
-            'Pack signature validation failed: Public key is untrusted or insecure test vector.');
+        debugPrint('Pack signature validation failed: Public key is untrusted or insecure test vector.');
         return false;
       }
 
       final pubBytes = PackTrustRegistry.hexToBytes(publicKeyHex);
       final sigBytes = PackTrustRegistry.hexToBytes(signatureHex);
       if (pubBytes == null || sigBytes == null) {
-        debugPrint(
-            'Pack signature validation failed: Malformed hex in key or signature.');
+        debugPrint('Pack signature validation failed: Malformed hex in key or signature.');
         return false;
       }
 
@@ -46,8 +86,7 @@ class PackAdmissionService {
       );
 
       if (!isValid) {
-        debugPrint(
-            'Pack signature validation failed: Invalid cryptographic signature.');
+        debugPrint('Pack signature validation failed: Invalid cryptographic signature.');
         return false;
       }
 
@@ -58,16 +97,21 @@ class PackAdmissionService {
     }
   }
 
-  /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256) والتحقق من SQLite
-  Future<bool> verifyAndAdmitPack({
-    required File stagedFile,
-    required String expectedHash,
-    required String targetPath,
-    bool allowReplacement = false,
-  }) async {
+  Future<bool> verifyPackIntegrity(File file, String expectedHash) async {
     try {
-      if (!await stagedFile.exists()) {
-        debugPrint("فشل التحقق: الملف غير موجود.");
+      // 0. فحص ترويسة SQLite الرسمية لمنع الملفات التالفة أو غير المتوافقة
+      final isValidHeader = await CrashSafeSnapshotManager.verifySqliteHeader(file);
+      if (!isValidHeader) {
+        debugPrint('Pack validation failed: Invalid SQLite header signature.');
+        return false;
+      }
+
+      final bytes = await file.readAsBytes();
+      final digest = sha256.convert(bytes);
+
+      if (digest.toString() != expectedHash) {
+        debugPrint("Pack validation failed: hash mismatch.");
+>>>>>>> origin/fix/security-reconciliation-and-audit-lane01-02
         return false;
       }
 
@@ -85,13 +129,6 @@ class PackAdmissionService {
           rawJson: '{"path": "$targetPath"}',
           reason: 'Attempted to overwrite progress database',
         );
-        return false;
-      }
-
-      // 0. فحص ترويسة SQLite الرسمية لمنع الملفات التالفة أو غير المتوافقة
-      final isValidHeader = await _verifySqliteHeader(stagedFile);
-      if (!isValidHeader) {
-        debugPrint('Pack validation failed: Invalid SQLite header signature.');
         return false;
       }
 
@@ -192,16 +229,6 @@ class PackAdmissionService {
       await db?.close();
     }
   }
-
-  static Future<bool> _verifySqliteHeader(File file) async {
-    try {
-      final raf = await file.open(mode: FileMode.read);
-      final bytes = await raf.read(16);
-      await raf.close();
-      final header = String.fromCharCodes(bytes);
-      return header == 'SQLite format 3\x00';
-    } catch (e) {
-      return false;
-    }
-  }
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
