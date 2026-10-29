@@ -25,33 +25,9 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
     final result = data.map((e) => Map<String, dynamic>.from(e)).toList();
     // Bundled German pack is not tracked by the download registry.
     if (!result.any((e) => e['languageCode'] == 'de')) {
-        result.insert(0, {
-          'languageCode': 'de',
-          'version': '1.0.0',
-          'packId': 'de-bundled',
-          'bundled': true,
-          'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
-          'revisionTimestamp': '2026-10-12T00:00:00Z',
-          'sourceRevision': '2026-10-12',
-          'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators',
-          'licenseId': 'CC-BY-SA-4.0 / GFDL-1.3',
-          'license': 'CC BY-SA 4.0 / GFDL-1.3',
-          'licenseName': 'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
-          'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/ & https://www.gnu.org/licenses/fdl-1.3.html',
-          'attribution': {
-            'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
-            'revisionTimestamp': '2026-10-12T00:00:00Z',
-            'sourceRevision': '2026-10-12',
-            'licenseId': 'CC-BY-SA-4.0 / GFDL-1.3',
-            'license': 'CC BY-SA 4.0 / GFDL-1.3',
-            'licenseName': 'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
-            'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/ & https://www.gnu.org/licenses/fdl-1.3.html',
-            'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators',
-            'modifications': 'Curated, normalized, phonetically transcribed, and translated to Arabic',
-            'copyrightNotice': 'Copyright (c) 2026 Wiktionary contributors, Kaikki.org, Deutsch-Build curators'
-          }
-        });
-      }
+      result.insert(0, {'languageCode': 'de', 'version': '1.0.0',
+        'packId': 'de-bundled', 'bundled': true});
+    }
     return result;
   }
 
@@ -90,7 +66,7 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
       }
       return null;
     }
-    final license = _s(lookup(['license', 'licenseName', 'licenseId']));
+    final license = _s(lookup(['licenseId', 'license', 'licenseName']));
     final licenseUrl = _s(lookup(['licenseUrl', 'licenseUri']));
     final cc = RegExp(r'\bcc[\s-]*by[\s-]*sa[\s-]*4\.0\b',
       caseSensitive: false).hasMatch(license) ||

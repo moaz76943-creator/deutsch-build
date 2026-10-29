@@ -188,7 +188,7 @@ class SearchFusionService {
         final key = language + '|' + lemma.toLowerCase();
         final translation = (row['translation_ar'] ?? '')
             .toString().toLowerCase();
-        final tier = language == activeLanguage && surface.toLowerCase() == query
+        final tier = language == active && surface.toLowerCase() == query
             ? 0
             : lemma.toLowerCase() == query
                 ? 1

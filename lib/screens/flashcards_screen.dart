@@ -9,6 +9,7 @@ import '../services/hybrid_audio_service.dart';
 import '../core/srs/review_command_port.dart';
 import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
+import '../services/fts_search_service.dart';
 import '../widgets/bidi_lexicon_view.dart';
 import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
@@ -16,10 +17,18 @@ import '../widgets/phonetic_ipa_view.dart';
 import '../widgets/resilient_text_container.dart';
 import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
-/// Review only scheduled-due cards and never-reviewed content entries.
-Future<List<Map<String, dynamic>>> loadFlashcardsSafe(
-  String targetLangCode,
-) => DatabaseService.instance.loadDueFlashcards(targetLangCode);
+/// Open the installed content pack instead of displaying demonstration words.
+Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
+  try {
+    return await FtsSearchService().searchDictionary(
+      '',
+      targetLangCode,
+      limit: 20,
+    );
+  } catch (_) {
+    return DatabaseService.instance.searchDictionary('', targetLangCode);
+  }
+}
 
 class FlashcardsScreen extends ConsumerStatefulWidget {
   const FlashcardsScreen({super.key});
@@ -37,7 +46,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
   List<Map<String, dynamic>> _cards = <Map<String, dynamic>>[];
   String _languageCode = 'de';
   int _cardIndex = 0;
-  int _completedCount = 0;
   int _loadGeneration = 0;
   bool _isLoading = false;
   bool _hasStarted = false;
@@ -95,7 +103,6 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     setState(() {
       _languageCode = languageCode;
       _isLoading = true;
-      _completedCount = 0;
       _isFlipped = false;
       _failedRating = null;
       _error = null;
@@ -229,11 +236,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     if (!mounted) return;
     setState(() {
       if (generation == _loadGeneration) {
-        // A successfully graded card is not due again in this session.
-        _cards = List<Map<String, dynamic>>.from(_cards)
-          ..removeAt(_cardIndex);
-        _cardIndex = _cards.isEmpty ? 0 : _cardIndex % _cards.length;
-        _completedCount++;
+        _cardIndex = (_cardIndex + 1) % _cards.length;
         _isFlipped = false;
       }
       _isSubmitting = false;
@@ -248,8 +251,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
         unawaited(_loadCards(next));
       }
     });
-    final totalReviews = _completedCount + _cards.length;
-    final progress = totalReviews == 0 ? 0.0 : _completedCount / totalReviews;
+    final progress = _cards.isEmpty ? 0.0 : (_cardIndex + 1) / _cards.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -281,9 +283,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                   ? const Center(child: CircularProgressIndicator())
                   : _cards.isEmpty
                       ? Center(
-                          child: Text(_error ?? (_completedCount > 0
-                              ? 'اكتملت مراجعات اليوم.'
-                              : 'لا توجد بطاقات مستحقة للمراجعة اليوم.')),
+                          child: Text(_error ?? 'لا توجد بطاقات في الحزمة المثبّتة.'),
                         )
                       : GestureDetector(
                           onTap: _toggleFlip,
