@@ -98,7 +98,7 @@ void main() {
     });
 
     test('Rejects stale session beyond max age', () async {
-      const maxAgeMs = 24 * 60 * 60 * 1000;
+      final maxAgeMs = 24 * 60 * 60 * 1000;
       final session = SessionState(
         sessionId: 'sess_stale',
         currentRoute: '/quiz',
