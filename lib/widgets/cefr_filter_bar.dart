@@ -20,8 +20,7 @@ class CefrFilterBar extends StatelessWidget {
   final ValueChanged<VocabularyCefrFilter> onChanged;
   final bool enabled;
 
-  static const List<VocabularyCefrFilter> _filters =
-      <VocabularyCefrFilter>[
+  static const List<VocabularyCefrFilter> _filters = <VocabularyCefrFilter>[
     VocabularyCefrFilter.all,
     VocabularyCefrFilter.a1,
     VocabularyCefrFilter.a2,
@@ -89,8 +88,7 @@ class CefrFilterBar extends StatelessWidget {
                     description,
                     style: TextStyle(
                       color: scheme.onSurface,
-                      fontWeight:
-                          active ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 ],
@@ -126,14 +124,10 @@ class CefrFilterBar extends StatelessWidget {
   ) =>
       switch (filter) {
         VocabularyCefrFilter.all => scheme.onSurfaceVariant,
-        VocabularyCefrFilter.a1 =>
-          CefrClassifier.getLevelColor(CefrLevel.a1),
-        VocabularyCefrFilter.a2 =>
-          CefrClassifier.getLevelColor(CefrLevel.a2),
-        VocabularyCefrFilter.b1 =>
-          CefrClassifier.getLevelColor(CefrLevel.b1),
-        VocabularyCefrFilter.b2 =>
-          CefrClassifier.getLevelColor(CefrLevel.b2),
+        VocabularyCefrFilter.a1 => CefrClassifier.getLevelColor(CefrLevel.a1),
+        VocabularyCefrFilter.a2 => CefrClassifier.getLevelColor(CefrLevel.a2),
+        VocabularyCefrFilter.b1 => CefrClassifier.getLevelColor(CefrLevel.b1),
+        VocabularyCefrFilter.b2 => CefrClassifier.getLevelColor(CefrLevel.b2),
         VocabularyCefrFilter.advanced =>
           CefrClassifier.getLevelColor(CefrLevel.c1),
       };

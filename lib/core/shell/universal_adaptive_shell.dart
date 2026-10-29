@@ -20,7 +20,8 @@ class UniversalAdaptiveShell extends StatefulWidget {
 class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
   final String _currentInput = '';
   ContractEvaluationResult? _result;
-  bool _showLinguisticDetails = false; // الكشف التدريجي (Progressive Disclosure)
+  bool _showLinguisticDetails =
+      false; // الكشف التدريجي (Progressive Disclosure)
 
   void _submitEvaluation() {
     setState(() {
@@ -49,7 +50,8 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
                 const SizedBox(height: 16),
                 Text(
                   'سيناريو [${contract.scenarioId}] غير متاح حالياً.',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
@@ -67,12 +69,15 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${contract.languagePair.sourceIso.toUpperCase()} ➔ ${contract.languagePair.targetIso.toUpperCase()}'),
+        title: Text(
+            '${contract.languagePair.sourceIso.toUpperCase()} ➔ ${contract.languagePair.targetIso.toUpperCase()}'),
         actions: [
           IconButton(
-            icon: Icon(_showLinguisticDetails ? Icons.info : Icons.info_outline),
+            icon:
+                Icon(_showLinguisticDetails ? Icons.info : Icons.info_outline),
             tooltip: 'تفاصيل لسانية',
-            onPressed: () => setState(() => _showLinguisticDetails = !_showLinguisticDetails),
+            onPressed: () => setState(
+                () => _showLinguisticDetails = !_showLinguisticDetails),
           ),
         ],
       ),
@@ -89,16 +94,21 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('معرّف السيناريو: ${contract.scenarioId}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('معرّف السيناريو: ${contract.scenarioId}',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     Text(
                       'القدرات المستهدفة: ${contract.requiredCapabilities.map((e) => e.name).join(", ")}',
-                      style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.blueGrey),
                     ),
                   ],
                 ),
               ),
-              crossFadeState: _showLinguisticDetails ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              crossFadeState: _showLinguisticDetails
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 200),
             ),
 
@@ -121,7 +131,8 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
                 height: 50,
                 child: FilledButton(
                   onPressed: _currentInput.isEmpty ? null : _submitEvaluation,
-                  child: const Text('تحقق محلياً', style: TextStyle(fontSize: 16)),
+                  child:
+                      const Text('تحقق محلياً', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ),
@@ -163,7 +174,9 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: Text(
-            _currentInput.isEmpty ? 'انقر على العناصر لإضافتها...' : _currentInput,
+            _currentInput.isEmpty
+                ? 'انقر على العناصر لإضافتها...'
+                : _currentInput,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -209,12 +222,16 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
       color: isSuccess ? Colors.green.shade50 : Colors.red.shade50,
       child: Row(
         children: [
-          Icon(isSuccess ? Icons.check_circle : Icons.error, color: isSuccess ? Colors.green : Colors.red),
+          Icon(isSuccess ? Icons.check_circle : Icons.error,
+              color: isSuccess ? Colors.green : Colors.red),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               res.feedback,
-              style: TextStyle(color: isSuccess ? Colors.green.shade900 : Colors.red.shade900, fontSize: 13),
+              style: TextStyle(
+                  color:
+                      isSuccess ? Colors.green.shade900 : Colors.red.shade900,
+                  fontSize: 13),
             ),
           ),
         ],

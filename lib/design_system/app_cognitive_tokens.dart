@@ -2,9 +2,9 @@ import 'package:flutter/services.dart';
 
 class AppCognitiveTokens {
   static const Color masculineColor = Color(0xFF2563EB); // أزرق للمذكر
-  static const Color feminineColor = Color(0xFFDC2626);  // أحمر للمؤنث
-  static const Color neuterColor = Color(0xFF16A34A);    // أخضر للمحايد
-  static const Color neutralColor = Color(0xFF6B7280);   // رمادي عام
+  static const Color feminineColor = Color(0xFFDC2626); // أحمر للمؤنث
+  static const Color neuterColor = Color(0xFF16A34A); // أخضر للمحايد
+  static const Color neutralColor = Color(0xFF6B7280); // رمادي عام
 
   static const Color derColor = masculineColor;
   static const Color dieColor = feminineColor;

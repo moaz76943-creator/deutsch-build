@@ -1,167 +1,147 @@
 import 'dart:async';
-import 'dart:collection';
 
-/// An ownership token. Its disposed state is kept on the token itself instead
-/// of in the global registry, so releasing thousands of screens stays O(active).
-class LifecycleOwner {
-  bool _disposed = false;
-  bool get isDisposed => _disposed;
-}
+<<<<<<< HEAD
+import 'package:flutter/foundation.dart';
 
-class _LifecycleEntry {
-  _LifecycleEntry(this.dispose, this.owner);
-  final FutureOr<void> Function() dispose;
-  final Object? owner;
-}
-
-/// Tracks temporary UI resources; never owns persistent learner data.
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+/// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
-  static const int maxTrackedResources = 4096;
-  static const int maxLegacyOwnerTombstones = 256;
-  static const Duration disposerTimeout = Duration(seconds: 5);
-
-  final List<_LifecycleEntry> _entries = <_LifecycleEntry>[];
-  final LinkedHashSet<Object> _legacyDisposedOwners = LinkedHashSet<Object>();
-  final List<void Function()> _memoryPressureListeners = <void Function()>[];
-  bool _isDisposed = false;
+<<<<<<< HEAD
+  final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
+  final Set<String> _disposedOwners = {};
+  final bool _isDisposed = false;
 
   bool get isDisposed => _isDisposed;
-  int get trackedResourceCount => _entries.length;
-  int get legacyTombstoneCount => _legacyDisposedOwners.length;
 
-  void registerSubscription(
-    StreamSubscription<dynamic> subscription, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(subscription.cancel, owner: owner ?? ownerKey);
+  bool isOwnerDisposed(String owner) {
+    return _isDisposed || _disposedOwners.contains(owner);
   }
 
-  void registerTimer(
-    Timer timer, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(timer.cancel, owner: owner ?? ownerKey);
+  void registerSubscription(StreamSubscription<dynamic> sub,
+      {String owner = 'global'}) {
+    registerCleanup(() => sub.cancel(), owner: owner);
   }
 
-  void registerCleanupCallback(
-    FutureOr<void> Function() callback, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(callback, owner: owner ?? ownerKey);
+  void registerTimer(Timer timer, {String owner = 'global'}) {
+    registerCleanup(() {
+      timer.cancel();
+    }, owner: owner);
   }
 
-  void registerResource(
-    FutureOr<void> Function() onDispose, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    final effectiveOwner = owner ?? ownerKey;
-    if (_isDisposed ||
-        (effectiveOwner is LifecycleOwner && effectiveOwner.isDisposed) ||
-        (effectiveOwner != null && _legacyDisposedOwners.contains(effectiveOwner))) {
-      _disposeLate(onDispose);
+  void registerCleanup(FutureOr<void> Function() cleanup,
+      {String owner = 'global'}) {
+    if (isOwnerDisposed(owner)) {
+      _safeCleanup(cleanup);
       return;
     }
-    if (_entries.length >= maxTrackedResources) {
-      _disposeLate(onDispose);
-      throw StateError('Lifecycle resource capacity exceeded');
-    }
-    _entries.add(_LifecycleEntry(onDispose, effectiveOwner));
+    _cleanups.putIfAbsent(owner, () => []).add(cleanup);
   }
 
-  void registerMemoryPressureListener(void Function() listener) {
-    if (_isDisposed) return;
-    _memoryPressureListeners.add(listener);
+  Future<void> disposeOwner(String owner) async {
+    if (isOwnerDisposed(owner)) return;
+    _disposedOwners.add(owner);
+    await disposeOwnerResources(owner);
+=======
+  final List<StreamSubscription<dynamic>> subscriptions = [];
+  final List<Timer> timers = [];
+  bool isDisposed = false;
+
+  void registerSubscription(StreamSubscription<dynamic> sub) {
+    if (isDisposed) {
+      sub.cancel();
+      return;
+    }
+    subscriptions.add(sub);
   }
 
-  void unregisterMemoryPressureListener(void Function() listener) {
-    _memoryPressureListeners.remove(listener);
-  }
-
-  void notifyMemoryPressure() {
-    if (_isDisposed) return;
-    for (final listener in List<void Function()>.from(_memoryPressureListeners)) {
-      try {
-        listener();
-      } catch (_) {}
+  void registerTimer(Timer timer) {
+    if (isDisposed) {
+      timer.cancel();
+      return;
     }
-  }
-
-  Future<void> disposeOwner(String ownerKey) => disposeByOwner(ownerKey);
-
-  Future<void> disposeByOwner(Object owner) async {
-    if (_isDisposed) return;
-    if (owner is LifecycleOwner) {
-      owner._disposed = true;
-    } else {
-      // Bounded fallback for old primitive owner IDs.
-      _legacyDisposedOwners.remove(owner);
-      _legacyDisposedOwners.add(owner);
-      if (_legacyDisposedOwners.length > maxLegacyOwnerTombstones) {
-        _legacyDisposedOwners.remove(_legacyDisposedOwners.first);
-      }
-    }
-
-    final disposing = <_LifecycleEntry>[];
-    _entries.removeWhere((entry) {
-      if (identical(entry.owner, owner) || entry.owner == owner) {
-        disposing.add(entry);
-        return true;
-      }
-      return false;
-    });
-    for (final entry in disposing.reversed) {
-      await _safeDispose(entry.dispose);
-    }
+    timers.add(timer);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> disposeAll() async {
-    if (_isDisposed) return;
-    _isDisposed = true;
-    final disposing = _entries.reversed.toList(growable: false);
-    _entries.clear();
-    _legacyDisposedOwners.clear();
-    for (final entry in disposing) {
-      if (entry.owner is LifecycleOwner) {
-        (entry.owner! as LifecycleOwner)._disposed = true;
+    isDisposed = true;
+<<<<<<< HEAD
+
+    final owners = _cleanups.keys.toList().reversed;
+    for (final owner in owners) {
+      if (!_disposedOwners.contains(owner)) {
+        _disposedOwners.add(owner);
+        await disposeOwnerResources(owner);
       }
-      await _safeDispose(entry.dispose);
     }
+
+    _cleanups.clear();
   }
 
-  Future<void> _safeDispose(FutureOr<void> Function() disposer) async {
-    try {
-      await Future<void>.sync(disposer).timeout(disposerTimeout);
-    } catch (_) {
-      // One invalid resource must not prevent independent resource cleanup.
+  Future<void> disposeOwnerResources(String owner) async {
+    final cleanups = _cleanups[owner];
+    if (cleanups == null || cleanups.isEmpty) return;
+
+    // LIFO order for deterministic shutdown
+    final callbacks = cleanups.reversed.toList();
+    _cleanups.remove(owner); // clear before execution to handle race conditions
+
+    for (final cleanup in callbacks) {
+      await safeCleanup(cleanup);
+=======
+    for (final timer in timers) {
+      timer.cancel();
     }
+    timers.clear();
+
+    for (final sub in subscriptions) {
+      await sub.cancel();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    }
+    subscriptions.clear();
   }
 
-  void _disposeLate(FutureOr<void> Function() disposer) {
+<<<<<<< HEAD
+  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
-      final result = disposer();
+      final result = cleanup();
       if (result is Future) {
-        result.timeout(disposerTimeout).then<void>((_) {},
-            onError: (Object _, StackTrace __) {});
+        // Enforce a bounded cleanup timeout, e.g., 5 seconds.
+        await result.timeout(const Duration(seconds: 5));
       }
-    } catch (_) {
-      // A synchronous late disposer is also best-effort.
+    } catch (e, stackTrace) {
+      // Ensure one failing disposer does not skip remaining cleanups.
+      // Log or handle the exception safely here.
+      debugPrint('RuntimeLifecycleRegistry: Cleanup error: $e\n$stackTrace');
     }
   }
 
-  /// Tests only. Not a production lifecycle resurrection API.
-  void resetForTesting() {
-    _entries.clear();
-    _legacyDisposedOwners.clear();
-    _memoryPressureListeners.clear();
-    _isDisposed = false;
+  T? guard<T>(T Function() callback, {String owner = 'global'}) {
+    if (isOwnerDisposed(owner)) {
+      return null;
+    }
+    return callback();
   }
 
-  void reset() => resetForTesting();
+  Future<T?> guardFuture<T>(Future<T> future, {String owner = 'global'}) async {
+    final result = await future;
+    if (isOwnerDisposed(owner)) {
+      return null;
+    }
+    return result;
+  }
+
+  @visibleForTesting
+  void resetForTest() {
+    _cleanups.clear();
+    _disposedOwners.clear();
+    isDisposed = false;
+  }
+=======
+  bool get isDisposed => isDisposed;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
