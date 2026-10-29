@@ -1,0 +1,21 @@
+{
+  "isoCode": "ne",
+  "autonym": "नेपाली",
+  "englishName": "Nepali",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Devanagari",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 3,
+  "caseNames": ["Direct", "Oblique", "Ergative-Instrumental"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasHonorificLevels": true,
+    "hasErgativeMarker": true,
+    "hasPostpositions": true
+  }
+}
