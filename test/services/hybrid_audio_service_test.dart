@@ -48,7 +48,7 @@ void main() {
     String? locale;
     final unavailable = HybridAudioService(
       voiceProbe: (_) async => false,
-      speechPlayback: (_, __) async => throw StateError('must not speak'),
+      speechPlayback: (_, _) async => throw StateError('must not speak'),
     );
     expect(await unavailable.playAudio(
       text: 'Merhaba', languageCode: 'tr', ipa: 'mɛɾhaba',

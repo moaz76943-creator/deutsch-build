@@ -114,22 +114,31 @@ class WordDeepDiveSheet extends StatelessWidget {
   }
 
   static Map<String, dynamic> _fields(Map<String, dynamic> data) {
-    final supplied = data['fields'];
-    if (supplied is Map) {
-      return supplied.map((key, value) => MapEntry(key.toString(), value));
-    }
+    final resolved = <String, dynamic>{};
     final serialized = data['fields_json'];
     if (serialized is String && serialized.isNotEmpty) {
       try {
         final decoded = jsonDecode(serialized);
         if (decoded is Map) {
-          return decoded.map((key, value) => MapEntry(key.toString(), value));
+          for (final entry in decoded.entries) {
+            if (entry.value != null) {
+              resolved[entry.key.toString()] = entry.value;
+            }
+          }
         }
       } on FormatException {
-        // Malformed optional metadata must never hide the headword.
+        // A corrupt optional JSON field never prevents rendering the lemma.
       }
     }
-    return <String, dynamic>{};
+    final supplied = data['fields'];
+    if (supplied is Map) {
+      for (final entry in supplied.entries) {
+        if (entry.value != null) {
+          resolved[entry.key.toString()] = entry.value;
+        }
+      }
+    }
+    return resolved;
   }
 
   static String? _first(Iterable<Object?> options) {
@@ -282,7 +291,8 @@ class WordDeepDiveSheet extends StatelessWidget {
                     ArticleBadge(article: displayArticle),
                   if (pos.isNotEmpty)
                     Chip(label: Text(pos)),
-                  NounClassifierView(
+                  if (classifier.isNotEmpty)
+                    NounClassifierView(
                     noun: displayWord,
                     languageCode: lang,
                     partOfSpeech: pos,
