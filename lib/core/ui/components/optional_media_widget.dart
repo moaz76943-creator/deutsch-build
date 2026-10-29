@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import '../../../design_system/design_system.dart';
+import '../contracts/ui_state_contract.dart';
 import 'resilient_async_builder.dart';
 
 class OptionalMediaWidget extends StatelessWidget {
@@ -21,15 +22,16 @@ class OptionalMediaWidget extends StatelessWidget {
     this.fallbackIcon,
   });
 
-    Future<Uint8List?> _loadMedia() async {
+  Future<UiState<Uint8List>> _loadMedia() async {
     try {
       final data = await fetcher();
       if (data == null || data.isEmpty) {
-        return null;
+        return const UiStateEmpty('Media missing');
       }
-      return data;
-    } catch (e) {
-      throw Exception('Failed to load media');
+      return UiStateSuccess(data);
+    } catch (e, st) {
+      return UiStateFailed(e,
+          stackTrace: st, userMessage: 'Failed to load media');
     }
   }
 
@@ -39,9 +41,9 @@ class OptionalMediaWidget extends StatelessWidget {
       width: width,
       height: height,
       child: ResilientAsyncBuilder<Uint8List>(
-
-        futureBuilder: (token) => _loadMedia(),
-        dataBuilder: (context, data) {
+        featureName: 'Optional Media',
+        fetcher: _loadMedia,
+        builder: (context, data) {
           return Image.memory(
             data,
             fit: fit,
@@ -52,7 +54,7 @@ class OptionalMediaWidget extends StatelessWidget {
         },
         emptyBuilder: (context, message) =>
             _buildFallback(context, isError: false),
-        errorBuilder: (context, error, stackTrace) =>
+        errorBuilder: (context, error) =>
             _buildFallback(context, isError: true),
       ),
     );
