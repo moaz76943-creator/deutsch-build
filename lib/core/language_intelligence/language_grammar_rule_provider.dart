@@ -14,23 +14,6 @@ enum GrammaticalCategory {
   preposition,
   particle,
   unknown,
-<<<<<<< HEAD
-}
-
-enum GrammaticalNumber {
-  singular,
-  dual,
-  plural,
-  none,
-  unknown,
-}
-
-enum GrammaticalPerson {
-  first,
-  second,
-  third,
-  none,
-  unknown,
 }
 
 enum GrammaticalCase {
@@ -40,79 +23,93 @@ enum GrammaticalCase {
   genitive,
   instrumental,
   prepositional,
-  vocative,
   locative,
+  vocative,
   ablative,
+  ergative,
+  absolutive,
   none,
-  unknown,
 }
 
-enum Tense {
+enum GrammaticalNumber {
+  singular,
+  dual,
+  plural,
+  none,
+}
+
+enum GrammaticalPerson {
+  first,
+  second,
+  third,
+  none,
+}
+
+enum GrammaticalTense {
   past,
   present,
   future,
   none,
-  unknown,
 }
 
-enum Aspect {
+enum GrammaticalAspect {
   perfective,
   imperfective,
   continuous,
   none,
-  unknown,
 }
 
-enum Mood {
+enum GrammaticalMood {
   indicative,
   subjunctive,
   imperative,
   conditional,
   optative,
+  jussive,
   none,
-  unknown,
 }
 
-class GrammarCapabilityProfile {
-  final bool hasGender;
-  final bool hasCases;
-  final bool hasNumber;
-  final bool hasPerson;
-  final bool hasTense;
-  final bool hasAspect;
-  final bool hasMood;
-  final bool hasRootPatternMorphology;
-  final bool isAgglutinative;
-  final bool isAnalytic;
-  final bool hasNounClasses;
+enum GrammarFeature {
+  gender,
+  nounClasses,
+  grammaticalCase,
+  number,
+  agreement,
+  tense,
+  aspect,
+  mood,
+  person,
+  rootPattern,
+  inflectional,
+  agglutinative,
+  analytic,
+}
 
-  const GrammarCapabilityProfile({
-    this.hasGender = false,
-    this.hasCases = false,
-    this.hasNumber = false,
-    this.hasPerson = false,
-    this.hasTense = false,
-    this.hasAspect = false,
-    this.hasMood = false,
-    this.hasRootPatternMorphology = false,
-    this.isAgglutinative = false,
-    this.isAnalytic = false,
-    this.hasNounClasses = false,
+class GrammarProfile {
+  final Set<GrammarFeature> supportedFeatures;
+  final Set<GrammaticalCase> supportedCases;
+  final Set<GrammaticalGender> supportedGenders;
+  final Set<GrammaticalNumber> supportedNumbers;
+
+  const GrammarProfile({
+    this.supportedFeatures = const {},
+    this.supportedCases = const {},
+    this.supportedGenders = const {},
+    this.supportedNumbers = const {},
   });
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+
+  bool supportsFeature(GrammarFeature feature) => supportedFeatures.contains(feature);
+  bool supportsCase(GrammaticalCase gCase) => supportedCases.contains(gCase);
+  bool supportsGender(GrammaticalGender gender) => supportedGenders.contains(gender);
+  bool supportsNumber(GrammaticalNumber number) => supportedNumbers.contains(number);
 }
 
 abstract class LanguageGrammarRuleProvider {
   String get languageCode;
 
-<<<<<<< HEAD
-  /// Returns the grammar capability profile for the specific language
-  GrammarCapabilityProfile get capabilityProfile =>
-      const GrammarCapabilityProfile();
+  /// الملف التعريفي للقواعد النحوية المدعومة في هذه اللغة
+  GrammarProfile get profile => const GrammarProfile();
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   /// استنتاج الجنس النحوي للكلمة
   GrammaticalGender determineGender(String word, {String? article});
 
@@ -122,66 +119,14 @@ abstract class LanguageGrammarRuleProvider {
   /// التحقق مما إذا كانت الأداة مطابقة للكلمة
   bool isValidArticle(String word, String article);
 
-  // New capabilities returning nullable values if the language doesn't support them
-  // or unknown if supported but not determined.
+  // الخصائص النحوية الموسعة (بالقيمة الافتراضية للغات التي لا تدعمها)
+  GrammaticalCase determineCase(String word, {String? context}) => GrammaticalCase.none;
+  GrammaticalNumber determineNumber(String word, {String? context}) => GrammaticalNumber.none;
+  GrammaticalPerson determinePerson(String word, {String? context}) => GrammaticalPerson.none;
+  GrammaticalTense determineTense(String word, {String? context}) => GrammaticalTense.none;
+  GrammaticalAspect determineAspect(String word, {String? context}) => GrammaticalAspect.none;
+  GrammaticalMood determineMood(String word, {String? context}) => GrammaticalMood.none;
 
-  /// Determine the grammatical number
-  GrammaticalNumber? determineNumber(String word) {
-    if (!capabilityProfile.hasNumber) return null;
-    return GrammaticalNumber.unknown;
-  }
-
-  /// Determine the grammatical person
-  GrammaticalPerson? determinePerson(String word) {
-    if (!capabilityProfile.hasPerson) return null;
-    return GrammaticalPerson.unknown;
-  }
-
-  /// Determine the grammatical case
-  GrammaticalCase? determineCase(String word, {String? context}) {
-    if (!capabilityProfile.hasCases) return null;
-    return GrammaticalCase.unknown;
-  }
-
-  /// Determine the tense
-  Tense? determineTense(String word) {
-    if (!capabilityProfile.hasTense) return null;
-    return Tense.unknown;
-  }
-
-  /// Determine the aspect
-  Aspect? determineAspect(String word) {
-    if (!capabilityProfile.hasAspect) return null;
-    return Aspect.unknown;
-  }
-
-  /// Determine the mood
-  Mood? determineMood(String word) {
-    if (!capabilityProfile.hasMood) return null;
-    return Mood.unknown;
-  }
-
-  /// Extract root for Semitic languages
-  String? extractRoot(String word) {
-    if (!capabilityProfile.hasRootPatternMorphology) return null;
-    return null;
-  }
-
-  /// Extract pattern for Semitic languages
-  String? extractPattern(String word) {
-    if (!capabilityProfile.hasRootPatternMorphology) return null;
-    return null;
-  }
-
-  /// Extract affixes for agglutinative languages
-  List<String>? extractAffixes(String word) {
-    if (!capabilityProfile.isAgglutinative) return null;
-    return [];
-  }
-
-  /// Determine noun class
-  String? determineNounClass(String word) {
-    if (!capabilityProfile.hasNounClasses) return null;
-    return null;
-  }
+  /// التحقق من دعم خاصية معينة
+  bool supportsFeature(GrammarFeature feature) => profile.supportsFeature(feature);
 }

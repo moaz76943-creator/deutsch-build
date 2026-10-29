@@ -1,34 +1,17 @@
 import 'cognitive_metric_record.dart';
 
 enum AdaptationAction {
-<<<<<<< HEAD
-  maintainFlow, // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
+  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
   reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
   deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
 }
 
-sealed class AdaptationReason {
-  const AdaptationReason();
-}
-
-class FatigueDetected extends AdaptationReason {
-  const FatigueDetected();
-}
-
-class ConsistentMastery extends AdaptationReason {
-  const ConsistentMastery();
-}
-
-class HysteresisCoolDown extends AdaptationReason {
-  const HysteresisCoolDown();
-}
-
-class InsufficientData extends AdaptationReason {
-  const InsufficientData();
-}
-
-class StableFlow extends AdaptationReason {
-  const StableFlow();
+enum AdaptationReason {
+  coldStart,
+  sustainedStrain,
+  excellentFlow,
+  recovering,
+  defaultFlow,
 }
 
 class AdaptationDecision {
@@ -38,170 +21,91 @@ class AdaptationDecision {
   const AdaptationDecision(this.action, this.reason);
 }
 
-=======
-  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
-  reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
-  deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
-}
-
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class AdaptiveCognitiveEngine {
   static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
-<<<<<<< HEAD
-  static const String _defaultPairKey = 'default_pair';
-  final Map<String, List<CognitiveMetricRecord>> _metricsByPair = {};
+  final Map<String, List<CognitiveMetricRecord>> _metricsHistory = {};
+  static const int _windowSize = 5; // مراقبة آخر 5 تفاعلات
 
-  // Hysteresis tracking
-  final Map<String, DateTime> _lastActionTime = {};
-  final Map<String, AdaptationAction> _lastAction = {};
-
-  static const int _windowSize = 20; // Bound history to 20 items per pair
-  static const Duration _hysteresisDuration =
-      Duration(minutes: 5); // 5 minutes cooldown
-
-  String _getPairKey(String? targetLanguageCode) =>
-      targetLanguageCode ?? _defaultPairKey;
-
-  void observe(CognitiveMetricRecord record) {
-    final pairKey = _getPairKey(record.targetLanguageCode);
-
-    if (!_metricsByPair.containsKey(pairKey)) {
-      _metricsByPair[pairKey] = [];
+  void observe(CognitiveMetricRecord record, {String languagePairKey = 'default'}) {
+    // Drop malformed/extreme records (e.g. latency > 1 hour)
+    if (record.responseLatency.inHours > 1) {
+      return;
     }
 
-    final metrics = _metricsByPair[pairKey]!;
-    metrics.add(record);
+    final pairKey = record.languagePairKey != 'default' ? record.languagePairKey : languagePairKey;
+    _metricsHistory.putIfAbsent(pairKey, () => []);
+    _metricsHistory[pairKey]!.add(record);
 
-    if (metrics.length > _windowSize) {
-      metrics.removeAt(0);
-    }
-
-    // Idempotent daily cleanup: remove records older than 24 hours for this pair
-    final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 24));
-    metrics.removeWhere((m) => m.recordedAt.isBefore(cutoff));
-  }
-
-  /// Evaluates detailed state with reason and pair isolation
-  AdaptationDecision evaluateDetailedState(
-      {String? targetLanguageCode, DateTime? currentTime}) {
-    final pairKey = _getPairKey(targetLanguageCode);
-    final metrics = _metricsByPair[pairKey] ?? [];
-
-    // Fallback if empty/cold-start
-    if (metrics.isEmpty) {
-      return const AdaptationDecision(
-          AdaptationAction.maintainFlow, InsufficientData());
-    }
-
-    final now = currentTime ?? DateTime.now();
-
-    // Hysteresis check: prevent oscillating difficulty
-    final lastTime = _lastActionTime[pairKey];
-    if (lastTime != null && now.difference(lastTime) < _hysteresisDuration) {
-      final lastAct = _lastAction[pairKey] ?? AdaptationAction.maintainFlow;
-      return AdaptationDecision(lastAct, const HysteresisCoolDown());
-    }
-
-    // Determine state from recent metrics (last 5 for actual logic, while preserving 20 for history)
-    final recentWindow =
-        metrics.length > 5 ? metrics.sublist(metrics.length - 5) : metrics;
-
-    final sumStrain = recentWindow.map((m) {
-      final strain = m.cognitiveStrainIndex;
-      return strain.isNaN ? 1.0 : strain;
-    }).reduce((a, b) => a + b);
-
-    final avgStrain = sumStrain / recentWindow.length;
-
-    AdaptationDecision decision;
-
-    // حالة إرهاق ذهني أو صعوبة مستمرة
-    if (avgStrain >= 0.6) {
-      decision = const AdaptationDecision(
-          AdaptationAction.reduceExtraneousLoad, FatigueDetected());
-    } else {
-      // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
-      final allCorrect = recentWindow.every((m) => m.isCorrect);
-      final isFast = recentWindow.every((m) {
-        final latency = m.responseLatency.inMilliseconds;
-        return latency >= 0 && latency < 2000;
-      });
-
-      if (allCorrect && isFast && recentWindow.length >= 3) {
-        decision = const AdaptationDecision(
-            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
-      } else {
-        decision = const AdaptationDecision(
-            AdaptationAction.maintainFlow, StableFlow());
-      }
-    }
-
-    // Update hysteresis state if decision changes
-    if (_lastAction[pairKey] != decision.action) {
-      _lastAction[pairKey] = decision.action;
-      _lastActionTime[pairKey] = now;
-    }
-
-    return decision;
-  }
-
-  /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
-  /// Maintains signature for backward compatibility
-  AdaptationAction evaluateState({String? targetLanguageCode}) {
-    return evaluateDetailedState(targetLanguageCode: targetLanguageCode).action;
-  }
-
-  void clearSession({String? targetLanguageCode}) {
-    if (targetLanguageCode != null) {
-      final pairKey = _getPairKey(targetLanguageCode);
-      _metricsByPair.remove(pairKey);
-      _lastActionTime.remove(pairKey);
-      _lastAction.remove(pairKey);
-    } else {
-      _metricsByPair.clear();
-      _lastActionTime.clear();
-      _lastAction.clear();
-    }
-=======
-  final List<CognitiveMetricRecord> recentMetrics = [];
-  const int windowSize = 5; // مراقبة آخر 5 تفاعلات
-
-  void observe(CognitiveMetricRecord record) {
-    recentMetrics.add(record);
-    if (recentMetrics.length > windowSize) {
-      recentMetrics.removeAt(0);
+    if (_metricsHistory[pairKey]!.length > _windowSize) {
+      _metricsHistory[pairKey]!.removeAt(0);
     }
   }
 
-  /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
-  AdaptationAction evaluateState() {
-    if (recentMetrics.isEmpty) return AdaptationAction.maintainFlow;
+  final Map<String, AdaptationAction> _previousActions = {};
+
+  AdaptationDecision evaluateDecision({String languagePairKey = 'default'}) {
+    final recentMetrics = _metricsHistory[languagePairKey] ?? [];
+
+    if (recentMetrics.isEmpty) {
+      _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
+      return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.coldStart);
+    }
 
     final avgStrain = recentMetrics
             .map((m) => m.cognitiveStrainIndex)
             .reduce((a, b) => a + b) /
         recentMetrics.length;
 
+    final prevAction = _previousActions[languagePairKey] ?? AdaptationAction.maintainFlow;
+
+    // Hysteresis: If we were reducing load, require significantly better metrics to escape.
+    if (prevAction == AdaptationAction.reduceExtraneousLoad) {
+      if (avgStrain < 0.3) {
+        // Recovered
+        _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
+        return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.recovering);
+      }
+      return const AdaptationDecision(AdaptationAction.reduceExtraneousLoad, AdaptationReason.sustainedStrain);
+    }
+
     // حالة إرهاق ذهني أو صعوبة مستمرة
     if (avgStrain >= 0.6) {
-      return AdaptationAction.reduceExtraneousLoad;
+      _previousActions[languagePairKey] = AdaptationAction.reduceExtraneousLoad;
+      return const AdaptationDecision(AdaptationAction.reduceExtraneousLoad, AdaptationReason.sustainedStrain);
     }
 
     // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
     final allCorrect = recentMetrics.every((m) => m.isCorrect);
     final isFast = recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
 
-    if (allCorrect && isFast && recentMetrics.length >= 3) {
-      return AdaptationAction.deepenLinguisticChallenge;
+    // Any signs of struggle drop deepened challenge immediately (Hysteresis for Deepen)
+    if (prevAction == AdaptationAction.deepenLinguisticChallenge && (!allCorrect || !isFast || avgStrain > 0.1)) {
+       _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
+       return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.recovering);
     }
 
-    return AdaptationAction.maintainFlow;
+    if (allCorrect && isFast && recentMetrics.length >= 3) {
+      _previousActions[languagePairKey] = AdaptationAction.deepenLinguisticChallenge;
+      return const AdaptationDecision(AdaptationAction.deepenLinguisticChallenge, AdaptationReason.excellentFlow);
+    }
+
+    _previousActions[languagePairKey] = AdaptationAction.maintainFlow;
+    return const AdaptationDecision(AdaptationAction.maintainFlow, AdaptationReason.defaultFlow);
   }
 
-  void clearSession() {
-    recentMetrics.clear();
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
+  AdaptationAction evaluateState({String languagePairKey = 'default'}) {
+    // For backward compatibility
+    return evaluateDecision(languagePairKey: languagePairKey).action;
+  }
+
+  void clearSession({String languagePairKey = 'default'}) {
+    if (languagePairKey == 'default' && _metricsHistory.keys.length == 1 && _metricsHistory.containsKey('default')) {
+       _metricsHistory.clear();
+    } else {
+       _metricsHistory.remove(languagePairKey);
+    }
   }
 }

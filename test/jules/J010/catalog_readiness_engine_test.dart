@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
 import 'package:deutsch_bilarabi/core/catalog/catalog_readiness_engine.dart';
+import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
 
 void main() {
   late CatalogReadinessEngine engine;

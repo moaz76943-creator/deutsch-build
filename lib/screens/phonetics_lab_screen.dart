@@ -1,125 +1,145 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
-import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
-import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
-=======
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
-class PhoneticsLabScreen extends StatelessWidget {
+class PhoneticEntry {
+  final String grapheme;
+  final String? ipa;
+  final String? transliteration;
+  final String description;
+  final String languageName;
+  final String bcp47Locale;
+  final bool hasVerifiedAudio;
+
+  const PhoneticEntry({
+    required this.grapheme,
+    this.ipa,
+    this.transliteration,
+    required this.description,
+    required this.languageName,
+    required this.bcp47Locale,
+    required this.hasVerifiedAudio,
+  });
+
+  String? get sanitizedIpa {
+    if (ipa == null) return null;
+    if (!ipa!.startsWith('/') || !ipa!.endsWith('/')) {
+      return 'Invalid IPA format detected';
+    }
+    return ipa;
+  }
+}
+
+class PhoneticsLabScreen extends StatefulWidget {
   const PhoneticsLabScreen({super.key});
 
   @override
-<<<<<<< HEAD
   State<PhoneticsLabScreen> createState() => _PhoneticsLabScreenState();
 }
 
 class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
-  int? _currentlyPlayingIndex;
-  bool _isPlaying = false;
-  double _speechRate = 0.9;
-
-  final List<Map<String, dynamic>> _sounds = [
-    {
-      "symbol": "ä / ö / ü",
-      "ipa": "[ɛː] / [øː] / [yː]",
-      "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية",
-      "lang": "الألمانية",
-      "langCode": "de-DE",
-      "hasAudio": true
-    },
-    {
-      "symbol": "ñ",
-      "ipa": "[ɲ]",
-      "desc": "حرف النون المضخم في اللغة الإسبانية",
-      "lang": "الإسبانية",
-      "langCode": "es-ES",
-      "hasAudio": true
-    },
-    {
-      "symbol": "ğ",
-      "ipa": "[ɰ]",
-      "desc": "الحرف الصامت أو الناعم في اللغة التركية",
-      "lang": "التركية",
-      "langCode": "tr-TR",
-      "hasAudio": false
-    },
+  final List<PhoneticEntry> sounds = const [
+    PhoneticEntry(
+      grapheme: "ä / ö / ü",
+      ipa: "/ɛ/ /ø/ /y/",
+      transliteration: "ae / oe / ue",
+      description: "حروف الإمالة (Umlaut) وكيفية تدوير الشفاه بالألمانية",
+      languageName: "الألمانية",
+      bcp47Locale: "de-DE",
+      hasVerifiedAudio: true,
+    ),
+    PhoneticEntry(
+      grapheme: "ñ",
+      ipa: "/ɲ/",
+      transliteration: "ny",
+      description: "حرف النون المضخم في اللغة الإسبانية",
+      languageName: "الإسبانية",
+      bcp47Locale: "es-ES",
+      hasVerifiedAudio: true,
+    ),
+    PhoneticEntry(
+      grapheme: "ğ",
+      ipa: "/ː/",
+      transliteration: "gh",
+      description: "الحرف الصامت أو الناعم في اللغة التركية",
+      languageName: "التركية",
+      bcp47Locale: "tr-TR",
+      hasVerifiedAudio: false,
+    ),
+    PhoneticEntry(
+      grapheme: "ض",
+      ipa: "/dˤ/",
+      transliteration: "d",
+      description: "حرف الضاد المفخم في اللغة العربية",
+      languageName: "العربية",
+      bcp47Locale: "ar-SA",
+      hasVerifiedAudio: true,
+    ),
+    PhoneticEntry(
+      grapheme: "long text",
+      ipa: "invalid",
+      transliteration: "test",
+      description: "This is an extremely long description that should properly wrap within the constrained space of the phonetic entry tile. It shouldn't overflow or cause a rendering error in the list view layout.",
+      languageName: "English",
+      bcp47Locale: "en-US",
+      hasVerifiedAudio: true,
+    ),
   ];
+
+  int? _playingIndex;
+  bool _isPlaying = false;
 
   @override
   void dispose() {
-    OfflineAudioPool().stop();
+    OfflineAudioDispatcher.stopCurrentAudio();
     super.dispose();
   }
 
-  Future<void> _playAudio(int index) async {
+  Future<void> _play(int index, double speed) async {
     if (_isPlaying) {
-      OfflineAudioPool().stop();
-      if (_currentlyPlayingIndex == index) {
-        setState(() {
-          _isPlaying = false;
-          _currentlyPlayingIndex = null;
-        });
-        return;
-      }
+      OfflineAudioDispatcher.stopCurrentAudio();
     }
-
-    setState(() {
-      _isPlaying = true;
-      _currentlyPlayingIndex = index;
-    });
-
-    final item = _sounds[index];
-    await OfflineAudioDispatcher.speakText(
-      text: item['symbol'] as String,
-      bcp47Locale: item['langCode'] as String,
-      speechRate: _speechRate,
-    );
+    final entry = sounds[index];
+    if (!entry.hasVerifiedAudio) return;
 
     if (mounted) {
       setState(() {
-        if (_currentlyPlayingIndex == index) {
-          _isPlaying = false;
-          _currentlyPlayingIndex = null;
-        }
+        _playingIndex = index;
+        _isPlaying = true;
+      });
+    }
+
+    await OfflineAudioDispatcher.speakText(
+      text: entry.grapheme,
+      bcp47Locale: entry.bcp47Locale,
+      speechRate: speed,
+    );
+
+    if (mounted && _playingIndex == index) {
+      setState(() {
+        _isPlaying = false;
+        _playingIndex = null;
       });
     }
   }
 
-  void _toggleSpeed() {
-    setState(() {
-      _speechRate = _speechRate == 0.9 ? 0.45 : 0.9;
-    });
+  void _stop() {
+    OfflineAudioDispatcher.stopCurrentAudio();
+    if (mounted) {
+      setState(() {
+        _isPlaying = false;
+        _playingIndex = null;
+      });
+    }
   }
 
   @override
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-  @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> sounds = [
-      {"symbol": "ä / ö / ü", "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية", "lang": "الألمانية"},
-      {"symbol": "ñ", "desc": "حرف النون المضخم في اللغة الإسبانية", "lang": "الإسبانية"},
-      {"symbol": "ğ", "desc": "الحرف الصامت أو الناعم في اللغة التركية", "lang": "التركية"},
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('معمل تدريب الصوتيات ومخارج الحروف'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _speechRate == 0.9 ? Icons.speed : Icons.speed_outlined,
-              semanticLabel: 'تغيير سرعة النطق',
-            ),
-            onPressed: _toggleSpeed,
-          )
-        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -128,130 +148,133 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
-<<<<<<< HEAD
-              itemCount: _sounds.length,
-              itemBuilder: (context, index) {
-                final item = _sounds[index];
-                final hasAudio = item['hasAudio'] as bool;
-                final isCurrentPlaying =
-                    _currentlyPlayingIndex == index && _isPlaying;
-
-=======
               itemCount: sounds.length,
               itemBuilder: (context, index) {
                 final item = sounds[index];
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-<<<<<<< HEAD
-                            color:
-                                const Color(0xFF34D399).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-=======
-                            color: const Color(0xFF34D399).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            item['symbol']!,
-                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-<<<<<<< HEAD
-                                item['symbol'] as String,
-                                style: const TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Directionality(
-                                textDirection: TextDirection.ltr,
-=======
-                                item['lang']!,
-                                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
-                                child: Text(
-                                  item['ipa'] as String,
-                                  style: const TextStyle(
-                                      color: Color(0xFF6EE7B7), fontSize: 14),
+                final isCurrentPlaying = _playingIndex == index && _isPlaying;
+
+                return Semantics(
+                  label: 'صوت ${item.grapheme} في ${item.languageName}',
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    child: AppBaseGlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF34D399).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Text(
+                                    item.grapheme,
+                                    style: const TextStyle(color: Color(0xFF34D399), fontSize: 24, fontWeight: FontWeight.bold),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                item['desc']!,
-                                style: AppTypography.body.copyWith(color: Colors.white, fontSize: 14),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      item.languageName,
+                                      style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.description,
+                                      style: AppTypography.body.copyWith(color: Colors.white, fontSize: 14),
+                                    ),
+                                    if (item.sanitizedIpa != null) ...[
+                                      const SizedBox(height: 8),
+                                      Wrap(
+                                        spacing: 8,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Directionality(
+                                              textDirection: TextDirection.ltr,
+                                              child: Text(
+                                                'IPA: ${item.sanitizedIpa}',
+                                                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontFamily: 'monospace'),
+                                              ),
+                                            ),
+                                          ),
+                                          if (item.transliteration != null)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Directionality(
+                                                textDirection: TextDirection.ltr,
+                                                child: Text(
+                                                  'Trans: ${item.transliteration}',
+                                                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                    if (!item.hasVerifiedAudio)
+                                      const Padding(
+                                        padding: EdgeInsets.only(top: 8.0),
+                                        child: Text(
+                                          'النطق غير متوفر حالياً',
+                                          style: TextStyle(color: Colors.orangeAccent, fontSize: 12),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-<<<<<<< HEAD
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Semantics(
-                            label: item['desc'] as String,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  item['lang'] as String,
-                                  style: const TextStyle(
-                                      color: Color(0xFF38BDF8), fontSize: 12),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['desc'] as String,
-                                  style: AppTypography.body.copyWith(
-                                      color: Colors.white, fontSize: 14),
-                                ),
+                          if (item.hasVerifiedAudio) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                if (isCurrentPlaying)
+                                  IconButton(
+                                    icon: const Icon(Icons.stop, color: Colors.redAccent),
+                                    onPressed: _stop,
+                                    tooltip: 'إيقاف',
+                                  )
+                                else ...[
+                                  IconButton(
+                                    icon: const Icon(Icons.play_arrow, color: Color(0xFF34D399)),
+                                    onPressed: () => _play(index, 1.0),
+                                    tooltip: 'تشغيل',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.slow_motion_video, color: Color(0xFF38BDF8)),
+                                    onPressed: () => _play(index, 0.5),
+                                    tooltip: 'تشغيل ببطء',
+                                  ),
+                                ]
                               ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        if (hasAudio)
-                          AppAudioButton(
-                            onPressed: () => _playAudio(index),
-                            semanticLabel: 'استمع للفظ الصحيح',
-                            isActive: isCurrentPlaying,
-                            icon: isCurrentPlaying
-                                ? FontAwesomeIcons.stop
-                                : FontAwesomeIcons.volumeHigh,
-                          )
-                        else
-                          const Tooltip(
-                            message: 'النطق الصوتي غير متوفر حالياً',
-                            child: Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: FaIcon(
-                                FontAwesomeIcons.microphoneSlash,
-                                color: Colors.white38,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-                      ],
+                          ]
+                        ],
+                      ),
                     ),
                   ),
-                )
-              }
-return null;,
+                );
+              },
             ),
           ),
         ),

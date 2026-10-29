@@ -24,7 +24,7 @@ void main() {
 
       await recoveryManager.persistSession(session);
 
-      final restored = recoveryManager.restoreSession(
+      final restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 1010,
         isRouteValid: (route) => route.startsWith('/'),
@@ -47,7 +47,7 @@ void main() {
 
       await recoveryManager.persistSession(session);
 
-      final restored = recoveryManager.restoreSession(
+      final restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 2010,
         isRouteValid: (_) => true,
@@ -70,7 +70,7 @@ void main() {
 
       await recoveryManager.persistSession(session);
 
-      final restored = recoveryManager.restoreSession(
+      final restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'en_de_1.0',
         currentTimestamp: 3010,
         isRouteValid: (_) => true,
@@ -86,7 +86,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       recoveryManager = SessionRecoveryManager(prefs);
 
-      final restored = recoveryManager.restoreSession(
+      final restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 4010,
         isRouteValid: (_) => true,
@@ -106,7 +106,7 @@ void main() {
 
       await recoveryManager.persistSession(session);
 
-      final restored = recoveryManager.restoreSession(
+      final restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 5010,
         isRouteValid: (route) => route == '/quiz', // Only /quiz is valid
@@ -127,7 +127,7 @@ void main() {
       await recoveryManager.persistSession(session);
 
       // 86400 seconds is the max. Let's make currentTimestamp 86401 seconds later.
-      final restored = recoveryManager.restoreSession(
+      final restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 6000 + 86401,
         isRouteValid: (_) => true,
@@ -148,7 +148,7 @@ void main() {
       await recoveryManager.persistSession(session);
 
       // Attempt 1
-      var restored = recoveryManager.restoreSession(
+      var restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 7010,
         isRouteValid: (_) => true,
@@ -156,7 +156,7 @@ void main() {
       expect(restored, isNotNull);
 
       // Attempt 2
-      restored = recoveryManager.restoreSession(
+      restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 7020,
         isRouteValid: (_) => true,
@@ -164,7 +164,7 @@ void main() {
       expect(restored, isNotNull);
 
       // Attempt 3
-      restored = recoveryManager.restoreSession(
+      restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 7030,
         isRouteValid: (_) => true,
@@ -172,7 +172,7 @@ void main() {
       expect(restored, isNotNull);
 
       // Attempt 4 (should be rejected)
-      restored = recoveryManager.restoreSession(
+      restored = await recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
         currentTimestamp: 7040,
         isRouteValid: (_) => true,

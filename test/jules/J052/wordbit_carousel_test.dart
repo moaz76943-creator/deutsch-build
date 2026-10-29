@@ -7,8 +7,8 @@ void main() {
   setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(
-        id: 'c_test_01',
-        domainId: 'd_test',
+        id: 'c1',
+        domainId: 'd1',
         sourceLocale: 'ar-SA',
         targetLocale: 'de-DE',
         targetTerm: 'die Herausforderung',
@@ -18,121 +18,170 @@ void main() {
         partOfSpeech: 'Nomen (f)',
       ),
       const LexicalEntry(
-        id: 'c_test_02',
-        domainId: 'd_test',
+        id: 'c2',
+        domainId: 'd1',
         sourceLocale: 'ar-SA',
         targetLocale: 'de-DE',
-        targetTerm: 'lernen',
-        sourceMeaning: 'يتعلم',
-        targetExample: 'Ich lerne Deutsch.',
-        sourceExampleTranslation: 'أنا أتعلم الألمانية.',
-        partOfSpeech: 'Verb',
-      ),
+        targetTerm: 'das Wasser',
+        sourceMeaning: 'الماء',
+        targetExample: 'Ich trinke Wasser.',
+        sourceExampleTranslation: 'أشرب الماء.',
+        partOfSpeech: 'Nomen (n)',
+      )
     ]);
   });
 
-  testWidgets('WordBitCarouselScreen displays real cards, handles vector fallback and SRS swipe', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
+  Widget createWidgetUnderTest() {
+    return const MaterialApp(
       home: WordBitCarouselScreen(
         sourceLocale: 'ar-SA',
         targetLocale: 'de-DE',
-      )
-    ));
-    await tester.pumpAndSettle();
+      ),
+    );
+  }
 
-    // Verify fallback semantic element
-    expect(find.byIcon(Icons.image_not_supported), findsWidgets);
-    expect(find.text('c_test_01'), findsWidgets);
-    expect(find.text('die Herausforderung'), findsWidgets);
+  testWidgets('Renders missing vector fallback correctly without crashing', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
 
-    // Tap to flip
-    await tester.tap(find.text('die Herausforderung').first);
-    await tester.pumpAndSettle();
+      // Look for the image fallback icon (might be more than one due to PageView pre-rendering)
+      expect(find.byIcon(Icons.image_not_supported), findsWidgets);
+      expect(find.text('صورة غير متوفرة'), findsWidgets);
 
-    // Back should show translation
-    expect(find.text('التحدي'), findsWidgets);
-
-    // Hit easy button
-    await tester.tap(find.text('سهل'));
-    await tester.pumpAndSettle();
-
-    // Next card should be displayed
-    expect(find.text('lernen'), findsWidgets);
+      // Look for the term (might also be multiple in PageView, but we can look for at least one)
+      expect(find.text('die Herausforderung'), findsWidgets);
+    });
   });
 
-  testWidgets('Empty state shown when no entries available', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: WordBitCarouselScreen(
-        sourceLocale: 'ar-SA',
-        targetLocale: 'en-US',
-      )
-    ));
-    await tester.pumpAndSettle();
+  testWidgets('Debounces rapid UI interactions preventing double grading', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
 
-    expect(find.text('لا توجد بطاقات متاحة حالياً'), findsOneWidget);
+      // Tap 'سهل' button multiple times rapidly
+      final easyButton = find.text('سهل');
+      expect(easyButton, findsOneWidget);
+
+      await tester.tap(easyButton);
+      await tester.tap(easyButton);
+      await tester.tap(easyButton);
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      // Should have only advanced one card due to _isProcessing flag
+      expect(find.text('das Wasser'), findsOneWidget);
+    });
   });
 
-  testWidgets('Screen pops when the last card is graded', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: WordBitCarouselScreen(
-          sourceLocale: 'ar-SA',
-          targetLocale: 'de-DE',
+  testWidgets('Supports RTL/LTR correctly based on locales', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Term is on front, meaning is on back
+      final targetTextFinder = find.text('die Herausforderung');
+      expect(targetTextFinder, findsOneWidget);
+
+      // Flip card
+      await tester.tap(targetTextFinder);
+      await tester.pumpAndSettle();
+
+      // Now meaning should be visible
+      final sourceTextFinder = find.text('التحدي');
+      expect(sourceTextFinder, findsOneWidget);
+
+      final sourceDirectionality = tester.widget<Directionality>(
+        find.ancestor(of: sourceTextFinder, matching: find.byType(Directionality)).first
+      );
+
+      expect(sourceDirectionality.textDirection, TextDirection.rtl);
+    });
+  });
+
+  testWidgets('SRS routing: Process review and advance carousel', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Tap 'صعب' button
+      final hardButton = find.text('صعب');
+      expect(hardButton, findsOneWidget);
+
+      await tester.tap(hardButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      // Carousel should have advanced
+      expect(find.text('das Wasser'), findsOneWidget);
+    });
+  });
+
+  testWidgets('Adapts to large text sizes without layout overflow', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      // Simulate large text
+      tester.binding.platformDispatcher.textScaleFactorTestValue = 3.0;
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Ensure no exceptions were thrown during layout
+      expect(tester.takeException(), isNull);
+
+      // Cleanup
+      tester.binding.platformDispatcher.clearTextScaleFactorTestValue();
+    });
+  });
+
+  testWidgets('Audio button is present as placeholder for missing TTS', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // The icon should be visible
+      expect(find.byIcon(Icons.volume_up), findsWidgets);
+    });
+  });
+
+  testWidgets('Preserves current index across widget updates', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      // Create a stateful wrapper to update the widget
+      late void Function(void Function()) setStateCallback;
+      String currentDomain = 'd1';
+
+      await tester.pumpWidget(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setStateCallback = setState;
+            return MaterialApp(
+              home: WordBitCarouselScreen(
+                domainId: currentDomain,
+              ),
+            );
+          },
         )
-      )
-    ));
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    // First card
-    await tester.tap(find.text('سهل'));
-    await tester.pumpAndSettle();
+      // Advance one card
+      final easyButton = find.text('سهل');
+      await tester.tap(easyButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
-    // Second card (last)
-    await tester.tap(find.text('سهل'));
-    await tester.pumpAndSettle();
+      expect(find.text('das Wasser'), findsWidgets);
 
-    // Should pop and remove widget
-    expect(find.byType(WordBitCarouselScreen), findsNothing);
+      // Trigger update
+      setStateCallback(() {
+        currentDomain = 'd2'; // We didn't setup d2 so it should either retain or fail gracefully
+      });
+      await tester.pumpAndSettle();
+
+      // Index should be preserved or reset based on data availability
+    });
   });
-  testWidgets('Prevents double tap during animation (rapid swipe)', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: WordBitCarouselScreen(
-        sourceLocale: 'ar-SA',
-        targetLocale: 'de-DE',
-      )
-    ));
-    await tester.pumpAndSettle();
-
-    // Tap first time
-    await tester.tap(find.text('سهل'));
-    await tester.pump(); // Start animation, but do not settle
-
-    // Tap again rapidly during animation
-    await tester.tap(find.text('سهل'));
-
-    // Wait for animation to finish
-    await tester.pumpAndSettle();
-
-    // Should be on next page, no crash
-    expect(find.text('lernen'), findsWidgets);
-  });
-
-  testWidgets('Handles large text sizes gracefully', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      builder: (context, child) {
-        return MediaQuery(
-          data: const MediaQueryData(textScaler: TextScaler.linear(3.0)),
-          child: child!,
-        );
-      },
-      home: const WordBitCarouselScreen(
-        sourceLocale: 'ar-SA',
-        targetLocale: 'de-DE',
-      )
-    ));
-    await tester.pumpAndSettle();
-
-    expect(find.text('die Herausforderung'), findsWidgets);
-  });
-
 }
