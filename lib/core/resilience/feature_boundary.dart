@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../architecture/operation_result.dart';
 import 'bounded_retry_policy.dart';
+import 'failure_reasons.dart';
 import 'feature_recovery_outcome.dart';
 
 class FeatureBoundary extends StatefulWidget {
@@ -23,6 +25,17 @@ class FeatureBoundary extends StatefulWidget {
     this.retryPolicy,
     this.sessionId,
   });
+
+  /// Critical storage and vault failures leave the boundary. Optional
+  /// failures stay in the degraded UI and must not be rethrown from here.
+  static void report(BuildContext context, Object error) {
+    if (context.findAncestorStateOfType<_FeatureBoundaryState>() == null) {
+      throw StateError('FeatureBoundary.report requires a FeatureBoundary');
+    }
+    if (error is StorageFailure || error is CriticalIntegrityFailure) {
+      throw error;
+    }
+  }
 
   @override
   State<FeatureBoundary> createState() => _FeatureBoundaryState();
@@ -112,7 +125,11 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
   }
 
   static Widget _defaultDegraded(
-      BuildContext context, String featureName, FeatureFailureReason reason) {
+    BuildContext context,
+    String featureName,
+    FeatureFailureReason reason, {
+    VoidCallback? onRetry,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -129,6 +146,13 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
                 color: Colors.orange.shade700,
               ),
             ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: onRetry,
+                child: const Text('إعادة المحاولة'),
+              ),
+            ],
           ],
         ),
       ),
@@ -152,7 +176,11 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       return Column(mainAxisSize: MainAxisSize.min, children: [
         widget.degradedBuilder?.call(context, degradedOutcome.reason) ??
             _defaultDegraded(
-                context, widget.featureName, degradedOutcome.reason),
+              context,
+              widget.featureName,
+              degradedOutcome.reason,
+              onRetry: _runInitialization,
+            ),
         Flexible(child: widget.child),
       ]);
     }

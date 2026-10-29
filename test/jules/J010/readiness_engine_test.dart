@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/catalog/directed_readiness_engine.dart';
-import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
 
 void main() {
   group('DirectedReadinessEngine', () {

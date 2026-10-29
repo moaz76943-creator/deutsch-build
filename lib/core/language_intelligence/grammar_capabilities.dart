@@ -1,3 +1,6 @@
+/// Capabilities a directed-pair grammar profile can declare.
+/// Inflection enums live on [LanguageGrammarRuleProvider] so the two
+/// libraries do not define the same type twice.
 enum GrammarCapability {
   gender,
   caseSystem,
@@ -12,55 +15,4 @@ enum GrammarCapability {
   inflectional,
   agglutinative,
   analytic,
-}
-
-enum GrammaticalNumber {
-  singular,
-  dual,
-  plural,
-  none,
-}
-
-enum GrammaticalCase {
-  nominative,
-  accusative,
-  dative,
-  genitive,
-  instrumental,
-  prepositional,
-  vocative,
-  locative,
-  ergative,
-  absolutive,
-  none,
-}
-
-enum GrammaticalPerson {
-  first,
-  second,
-  third,
-  none,
-}
-
-enum GrammaticalTense {
-  past,
-  present,
-  future,
-  none,
-}
-
-enum GrammaticalAspect {
-  perfective,
-  imperfective,
-  continuous,
-  none,
-}
-
-enum GrammaticalMood {
-  indicative,
-  subjunctive,
-  imperative,
-  conditional,
-  optative,
-  none,
 }

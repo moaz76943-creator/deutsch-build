@@ -38,7 +38,7 @@ class RecoveryOutcomeHelper {
     if (error is StorageFailure ||
         errorString.contains('storageintegrity') ||
         errorString.contains('invalidvault')) {
-      return RecoveryBlocked(
+      return const RecoveryBlocked(
         FeatureFailureReason.storageIntegrity,
         'Critical storage or vault integrity failure.',
       );
@@ -46,7 +46,7 @@ class RecoveryOutcomeHelper {
 
     // Optional / Degraded failures
     if (error is ContentFailure || errorString.contains('dictionary')) {
-      return RecoveryDegraded(
+      return const RecoveryDegraded(
         FeatureFailureReason.missingOptionalDictionary,
         'Missing content or dictionary. Feature degraded.',
       );
@@ -54,14 +54,14 @@ class RecoveryOutcomeHelper {
 
     if (errorString.contains('offline voice') ||
         errorString.contains('voice')) {
-      return RecoveryDegraded(
+      return const RecoveryDegraded(
         FeatureFailureReason.missingOfflineVoice,
         'Missing offline voice. Feature degraded.',
       );
     }
 
     if (errorString.contains('timeout') || errorString.contains('network')) {
-      return RecoveryDegraded(
+      return const RecoveryDegraded(
         FeatureFailureReason.networkTimeout,
         'Network timeout. Feature degraded to offline mode.',
       );

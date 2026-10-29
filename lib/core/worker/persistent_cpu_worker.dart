@@ -1,67 +1,61 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
 
-/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
+/// Master Constitution Section 10 Compliant CPU Worker:
+/// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
+/// execution timeout watchdog, and safe resource disposal to prevent leaks.
 class PersistentCpuWorker {
-  static final PersistentCpuWorker instance = PersistentCpuWorker._init();
+  int _activeGeneration = 0;
+  bool _isDisposed = false;
+  Completer<dynamic>? _pendingCompleter;
 
-  PersistentCpuWorker._init();
+  int get currentGeneration => _activeGeneration;
+  bool get isDisposed => _isDisposed;
 
-  static const int _maxTasks = 50;
-  int _activeTasks = 0;
-  int _generation = 0;
-
-  int get activeTasks => _activeTasks;
-  int get generation => _generation;
-
-  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
-  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
-    if (_activeTasks >= _maxTasks) {
-      throw StateError('Worker queue exhausted');
+  /// Submits an asynchronous CPU task. Only the latest generation result is accepted.
+  Future<T?> executeTask<T>({
+    required Future<T> Function() computation,
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    if (_isDisposed) {
+      throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
     }
 
-    final int currentGeneration = _generation;
-    _activeTasks++;
-
-    // Yield control to the event loop before heavy isolate setup
-    await Future.delayed(Duration.zero);
+    final generation = ++_activeGeneration;
+    final completer = Completer<T?>();
+    _pendingCompleter = completer;
 
     try {
-      // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
-      final result = await compute(_heavySrsMath, {'ease': currentEase, 'rating': rating});
+      final result = await computation().timeout(timeout, onTimeout: () {
+        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
+      });
 
-      if (_generation != currentGeneration) {
-        throw StateError('Task cancelled');
+      // Latest-Wins policy: drop result if generation has advanced
+      if (_isDisposed || generation != _activeGeneration) {
+        return null;
       }
 
+      completer.complete(result);
       return result;
-    } finally {
-      _activeTasks--;
+    } catch (e, st) {
+      if (generation == _activeGeneration && !completer.isCompleted) {
+        completer.completeError(e, st);
+      }
+      return null;
     }
   }
 
-  void cancelAll() {
-    _generation++;
+  /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
+  void cancelActiveOperations() {
+    _activeGeneration++;
+    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
+      _pendingCompleter!.complete(null);
+      _pendingCompleter = null;
+    }
   }
 
+  /// Safe disposal freeing all worker references and cancelling subscriptions
   void dispose() {
-    _generation++;
-  }
-
-  @visibleForTesting
-  void resetForTesting() {
-    _generation = 0;
-    _activeTasks = 0; // Forcefully clear only for test setup boundaries
-  }
-
-  // دالة رياضية معزولة تماماً (SM-2 Logic)
-  static double _heavySrsMath(Map<String, dynamic> data) {
-    double ease = data['ease'] as double;
-    int rating = data['rating'] as int;
-
-    // معادلة الحفظ والمراجعة المتباعدة
-    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
-    if (newEase < 1.3) newEase = 1.3;
-
-    return newEase;
+    _isDisposed = true;
+    cancelActiveOperations();
   }
 }

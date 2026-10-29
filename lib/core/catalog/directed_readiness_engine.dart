@@ -48,7 +48,8 @@ class DirectedReadinessEngine {
 
   // Bounded cache, max 50 items
   final int _maxCacheSize = 50;
-  final LinkedHashMap<LanguagePair, PairReadinessState> _pairCache = LinkedHashMap();
+  final LinkedHashMap<LanguagePair, PairReadinessState> _pairCache =
+      LinkedHashMap();
 
   void submitPackForEvaluation({
     required String packCode,
@@ -70,8 +71,10 @@ class DirectedReadinessEngine {
   }
 
   void _invalidateCacheForLanguage(String languageCode) {
-    final keysToRemove = _pairCache.keys.where((pair) =>
-        pair.sourceIso == languageCode || pair.targetIso == languageCode).toList();
+    final keysToRemove = _pairCache.keys
+        .where((pair) =>
+            pair.sourceIso == languageCode || pair.targetIso == languageCode)
+        .toList();
     for (final key in keysToRemove) {
       _pairCache.remove(key);
     }
@@ -98,17 +101,20 @@ class DirectedReadinessEngine {
   void authorizeDirectedPair(String sourceIso, String targetIso) {
     final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
     _supportedPairs.add(pair);
-    _pairCache.remove(pair); // Invalidate in cache just in case it was cached as unsupported
+    _pairCache.remove(
+        pair); // Invalidate in cache just in case it was cached as unsupported
   }
 
   PairReadinessState _computeReadiness(String sourceIso, String targetIso) {
     if (sourceIso == targetIso) {
-      return IdenticalPairState('Source and target languages are identical: $sourceIso');
+      return IdenticalPairState(
+          'Source and target languages are identical: $sourceIso');
     }
 
     final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
     if (!_supportedPairs.contains(pair)) {
-      return UnsupportedPairState('Directed language pair ${sourceIso} -> ${targetIso} is not authorized for learning.');
+      return UnsupportedPairState(
+          'Directed language pair $sourceIso -> $targetIso is not authorized for learning.');
     }
 
     final sourceState = _checkLanguage(sourceIso, 'Source');
@@ -122,11 +128,14 @@ class DirectedReadinessEngine {
 
   PairReadinessState _checkLanguage(String iso, String role) {
     if (!LanguageRegistry.supportedLanguages.containsKey(iso.toLowerCase())) {
-      return UnregisteredLanguageState('$role language "$iso" is not registered.');
+      return UnregisteredLanguageState(
+          '$role language "$iso" is not registered.');
     }
 
-    if (LanguageReadinessMatrix.getTier(iso) != LanguageReadinessTier.productionReady) {
-      return UnverifiedLanguageState('$role language "$iso" is not verified for production.');
+    if (LanguageReadinessMatrix.getTier(iso) !=
+        LanguageReadinessTier.productionReady) {
+      return UnverifiedLanguageState(
+          '$role language "$iso" is not verified for production.');
     }
 
     final packResult = _packStatus[iso];
@@ -135,7 +144,8 @@ class DirectedReadinessEngine {
     }
 
     if (packResult.status != PackGateStatus.approved) {
-      return InvalidPackState('$role language "$iso" pack is invalid: ${packResult.reason ?? packResult.status.name}');
+      return InvalidPackState(
+          '$role language "$iso" pack is invalid: ${packResult.reason ?? packResult.status.name}');
     }
 
     return const ReadyState();

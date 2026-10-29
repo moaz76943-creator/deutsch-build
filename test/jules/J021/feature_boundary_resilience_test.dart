@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
-import 'package:deutsch_bilarabi/core/resilience/feature_recovery_outcome.dart';
 import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 import 'package:deutsch_bilarabi/core/resilience/bounded_retry_policy.dart';
 
@@ -31,13 +30,13 @@ void main() {
           home: Scaffold(
             body: FeatureBoundary(
               featureName: 'Dictionary',
-              child: const Text('Success Data'),
               initializationAction: () async {
                 throw const ContentFailure(
                     'MISSING_DICT', 'Missing optional dictionary');
               },
               retryPolicy: BoundedRetryPolicy(
                   maxAttempts: 1, initialDelay: Duration.zero),
+              child: const Text('Success Data'),
             ),
           ),
         ),
@@ -80,13 +79,13 @@ void main() {
           home: Scaffold(
             body: FeatureBoundary(
               featureName: 'Network',
-              child: const Text('Success Data'),
               initializationAction: () async {
                 attempts++;
                 throw Exception('Network timeout');
               },
               retryPolicy: BoundedRetryPolicy(
                   maxAttempts: 3, initialDelay: Duration.zero),
+              child: const Text('Success Data'),
             ),
           ),
         ),
@@ -108,7 +107,6 @@ void main() {
               key: boundaryKey,
               featureName: 'Session',
               sessionId: 'session_1',
-              child: const Text('Success Data'),
               initializationAction: () async {
                 await Future.delayed(const Duration(milliseconds: 100));
                 operationFinished = true;
@@ -116,6 +114,7 @@ void main() {
               },
               retryPolicy: BoundedRetryPolicy(
                   maxAttempts: 1, initialDelay: Duration.zero),
+              child: const Text('Success Data'),
             ),
           ),
         ),
@@ -129,9 +128,9 @@ void main() {
               key: boundaryKey,
               featureName: 'Session',
               sessionId: 'session_2',
-              child: const Text('Success Data'),
               retryPolicy: BoundedRetryPolicy(
                   maxAttempts: 1, initialDelay: Duration.zero),
+              child: const Text('Success Data'),
             ),
           ),
         ),

@@ -43,45 +43,52 @@ abstract class UniversalGrammarProvider implements LanguageGrammarRuleProvider {
 
   // Capability-guarded properties
 
-  GrammaticalNumber determineNumber(String word) {
-    if (!profile.supports(GrammarCapability.number)) return GrammaticalNumber.none;
+  @override
+  GrammaticalNumber? determineNumber(String word) {
+    if (!profile.supports(GrammarCapability.number)) return null;
     return extractNumber(word);
   }
 
   GrammaticalNumber extractNumber(String word) => GrammaticalNumber.none;
 
-  GrammaticalCase determineCase(String word) {
-    if (!profile.supports(GrammarCapability.caseSystem)) return GrammaticalCase.none;
-    return extractCase(word);
+  @override
+  GrammaticalCase? determineCase(String word, {String? context}) {
+    if (!profile.supports(GrammarCapability.caseSystem)) return null;
+    return extractCase(word, context: context);
   }
 
-  GrammaticalCase extractCase(String word) => GrammaticalCase.none;
+  GrammaticalCase extractCase(String word, {String? context}) =>
+      GrammaticalCase.none;
 
-  GrammaticalPerson determinePerson(String word) {
-    if (!profile.supports(GrammarCapability.person)) return GrammaticalPerson.none;
+  @override
+  GrammaticalPerson? determinePerson(String word) {
+    if (!profile.supports(GrammarCapability.person)) return null;
     return extractPerson(word);
   }
 
   GrammaticalPerson extractPerson(String word) => GrammaticalPerson.none;
 
-  GrammaticalTense determineTense(String word) {
-    if (!profile.supports(GrammarCapability.tense)) return GrammaticalTense.none;
+  @override
+  Tense? determineTense(String word) {
+    if (!profile.supports(GrammarCapability.tense)) return null;
     return extractTense(word);
   }
 
-  GrammaticalTense extractTense(String word) => GrammaticalTense.none;
+  Tense extractTense(String word) => Tense.none;
 
-  GrammaticalAspect determineAspect(String word) {
-    if (!profile.supports(GrammarCapability.aspect)) return GrammaticalAspect.none;
+  @override
+  Aspect? determineAspect(String word) {
+    if (!profile.supports(GrammarCapability.aspect)) return null;
     return extractAspect(word);
   }
 
-  GrammaticalAspect extractAspect(String word) => GrammaticalAspect.none;
+  Aspect extractAspect(String word) => Aspect.none;
 
-  GrammaticalMood determineMood(String word) {
-    if (!profile.supports(GrammarCapability.mood)) return GrammaticalMood.none;
+  @override
+  Mood? determineMood(String word) {
+    if (!profile.supports(GrammarCapability.mood)) return null;
     return extractMood(word);
   }
 
-  GrammaticalMood extractMood(String word) => GrammaticalMood.none;
+  Mood extractMood(String word) => Mood.none;
 }

@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'storage_quarantine.dart';
 import 'atomic_database_installer.dart';
+import '../../services/database_service.dart';
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
@@ -20,9 +22,13 @@ class PackAdmissionService {
     required File stagedFile,
     required String expectedHash,
     required String targetPath,
+    required String languageCode,
     bool allowReplacement = false,
   }) async {
     try {
+      if (!RegExp(r'^[a-z]{2,3}$').hasMatch(languageCode)) {
+        return false;
+      }
       if (!await stagedFile.exists()) {
         debugPrint("فشل التحقق: الملف غير موجود.");
         return false;
@@ -45,11 +51,16 @@ class PackAdmissionService {
         return false;
       }
 
-      // Verify SHA-256
-      final bytes = await stagedFile.readAsBytes();
-      final digest = sha256.convert(bytes);
-      
-      if (digest.toString() != expectedHash) {
+      // Stream the digest in a worker. Large SQLite packs must not be read
+      // into the Flutter UI isolate or buffered as a single Uint8List.
+      final stagedPath = stagedFile.path;
+      final digest = await Isolate.run(
+        () async => (await sha256.bind(
+          File(stagedPath).openRead(),
+        ).first).toString(),
+      );
+
+      if (digest != expectedHash.toLowerCase()) {
         debugPrint("فشل التحقق: Hash غير متطابق.");
         quarantine.isolateCorruptData(
           id: stagedFile.path,
@@ -60,7 +71,7 @@ class PackAdmissionService {
       }
 
       // Verify SQLite integrity and schema
-      if (!await _verifySqliteIntegrity(stagedFile.path)) {
+      if (!await _verifySqliteIntegrity(stagedFile.path, languageCode)) {
         return false;
       }
 
@@ -72,14 +83,15 @@ class PackAdmissionService {
         allowReplacement: allowReplacement,
       );
 
-      return result.status == DatabaseInstallStatus.installed || result.status == DatabaseInstallStatus.replaced;
+      return result.status == DatabaseInstallStatus.installed ||
+          result.status == DatabaseInstallStatus.replaced;
     } catch (e) {
       debugPrint("خطأ أثناء فحص الحزمة: $e");
       return false;
     }
   }
 
-  Future<bool> _verifySqliteIntegrity(String path) async {
+  Future<bool> _verifySqliteIntegrity(String path, String languageCode) async {
     Database? db;
     try {
       db = await dbFactory.openDatabase(
@@ -91,7 +103,8 @@ class PackAdmissionService {
 
       // Check integrity
       final integrityCheck = await db.rawQuery('PRAGMA integrity_check');
-      if (integrityCheck.isEmpty || integrityCheck.first.values.first.toString().toLowerCase() != 'ok') {
+      if (integrityCheck.isEmpty ||
+          integrityCheck.first.values.first.toString().toLowerCase() != 'ok') {
         debugPrint("فشل التحقق: SQLite integrity_check فشل.");
         quarantine.isolateCorruptData(
           id: path,
@@ -101,10 +114,25 @@ class PackAdmissionService {
         return false;
       }
 
+      // SQLite integrity_check does not detect orphaned foreign keys.
+      // Reject the candidate before the atomic installer can replace a
+      // previously verified pack or expose inconsistent lexical relations.
+      final foreignKeyViolations =
+          await db.rawQuery('PRAGMA foreign_key_check');
+      if (foreignKeyViolations.isNotEmpty) {
+        debugPrint('فشل التحقق: SQLite foreign_key_check فشل.');
+        quarantine.isolateCorruptData(
+          id: path,
+          rawJson: '{"foreign_key_violations": ${foreignKeyViolations.length}}',
+          reason: 'SQLite foreign key check failed',
+        );
+        return false;
+      }
+
       // Check schema version
       final userVersion = await db.rawQuery('PRAGMA user_version');
       final version = Sqflite.firstIntValue(userVersion) ?? 0;
-      if (version <= 0) {
+      if (version != 2) {
         debugPrint("فشل التحقق: نسخة المخطط غير صالحة.");
         quarantine.isolateCorruptData(
           id: path,
@@ -116,8 +144,7 @@ class PackAdmissionService {
 
       // Verify at least one table exists (excluding sqlite_ master tables)
       final tables = await db.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-      );
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
       if (tables.isEmpty) {
         debugPrint("فشل التحقق: لا توجد جداول بيانات.");
         quarantine.isolateCorruptData(
@@ -128,6 +155,10 @@ class PackAdmissionService {
         return false;
       }
 
+      // Do not publish a SQLite file that the actual content reader rejects.
+      // This shared verifier checks the v2 tables, metadata language identity,
+      // lexicon ownership, FTS5 and foreign-key consistency.
+      await DatabaseService.instance.verifyUniversalSchema(db, languageCode);
       return true;
     } catch (e) {
       debugPrint("فشل التحقق: تعذر قراءة كقاعدة بيانات SQLite - $e");
