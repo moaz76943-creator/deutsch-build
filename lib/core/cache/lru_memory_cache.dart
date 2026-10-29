@@ -2,9 +2,9 @@ import 'dart:collection';
 
 class LruMemoryCache<K, V> {
   final int maxCapacity;
-<<<<<<< HEAD
   final int? maxMemoryBytes;
   final void Function(K)? onEvict;
+  final int Function(K, V)? sizeEstimator;
 
   final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
   final Map<K, int> _sizes = {};
@@ -15,12 +15,10 @@ class LruMemoryCache<K, V> {
     this.maxCapacity = 200,
     this.maxMemoryBytes,
     this.onEvict,
+    this.sizeEstimator,
   });
-=======
-  final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
 
-  LruMemoryCache({this.maxCapacity = 200});
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  Iterable<K> get keys => _cache.keys;
 
   V? get(K key) {
     if (!_cache.containsKey(key)) return null;
@@ -29,10 +27,14 @@ class LruMemoryCache<K, V> {
     return value;
   }
 
-<<<<<<< HEAD
-  void put(K key, V value, {int itemSizeBytes = 0}) {
-    if (maxMemoryBytes != null && itemSizeBytes > maxMemoryBytes!) {
-      return; // Reject oversized item without caching
+  bool put(K key, V value, {int itemSizeBytes = 0}) {
+    int size = itemSizeBytes;
+    if (sizeEstimator != null) {
+      size = sizeEstimator!(key, value);
+    }
+
+    if (maxMemoryBytes != null && size > maxMemoryBytes!) {
+      return false; // Reject oversized item without caching
     }
 
     if (_cache.containsKey(key)) {
@@ -41,10 +43,11 @@ class LruMemoryCache<K, V> {
     }
 
     _cache[key] = value;
-    _sizes[key] = itemSizeBytes;
-    _currentMemoryBytes += itemSizeBytes;
+    _sizes[key] = size;
+    _currentMemoryBytes += size;
 
     _evictToFit();
+    return true;
   }
 
   void remove(K key) {
@@ -70,7 +73,7 @@ class LruMemoryCache<K, V> {
     }
   }
 
-  void trimMemoryPressure() {
+  void onMemoryPressure() {
     if (_cache.isEmpty) return;
 
     final targetCapacity = maxCapacity ~/ 2;
@@ -87,6 +90,10 @@ class LruMemoryCache<K, V> {
         onEvict!(firstKey);
       }
     }
+  }
+
+  void trimMemoryPressure() {
+    onMemoryPressure();
   }
 
   int get length => _cache.length;
@@ -106,21 +113,3 @@ class LruMemoryCache<K, V> {
 
   bool containsKey(K key) => _cache.containsKey(key);
 }
-=======
-  void put(K key, V value) {
-    if (_cache.containsKey(key)) {
-      _cache.remove(key);
-    } else if (_cache.length >= maxCapacity) {
-      final firstKey = _cache.keys.first;
-      _cache.remove(firstKey);
-    }
-    _cache[key] = value;
-  }
-
-  int get length => _cache.length;
-
-  void clear() => _cache.clear();
-
-  bool containsKey(K key) => _cache.containsKey(key);
-}
->>>>>>> origin/staging/v2-full-platform-1792367411258400957

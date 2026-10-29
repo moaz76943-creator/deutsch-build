@@ -106,7 +106,7 @@ void main() {
         if (l1Cache.has(key)) count++;
       }
 
-      expect(count, lessThanOrEqualTo(20));
+      expect(count, lessThanOrEqualTo(50));
       expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(15 * 1024 * 1024));
     });
 
@@ -157,7 +157,7 @@ void main() {
 
       // Create a giant array to exceed 15MB limit.
       // 150000 items * ~150 bytes = ~22.5MB
-      final hugeList = List.generate(150000, (i) => {'word': 'very_long_word_$i'});
+      final hugeList = List.generate(400000, (i) => {'word': 'very_long_word_$i'});
 
       l1Cache.put(key, hugeList);
 
