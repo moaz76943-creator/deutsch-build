@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
@@ -7,6 +8,8 @@ import 'package:sqflite/sqflite.dart';
 class VocabularyRepository {
   static const String _key = 'vocabulary_list';
   static const String _legacyKey = 'custom_vocabulary';
+
+  List<Map<String, dynamic>> _offlineCache = [];
 
   Future<Database> _getDb() async {
     final db = await DatabaseService.instance.progressDb;
@@ -22,30 +25,54 @@ class VocabularyRepository {
         json_data TEXT NOT NULL
       )
     ''');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
     return db;
   }
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
-      final db = await _getDb();
+      final db = await _getDb().timeout(const Duration(seconds: 5));
       final List<Map<String, dynamic>> records = await db.query(
         'vocabulary_items',
         orderBy: 'rowid ASC',
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (records.isEmpty) {
-        return await _seedAndMigrate(db);
+        final seeded = await _seedAndMigrate(db);
+        _offlineCache = seeded;
+        return seeded;
       }
 
-      return records.map((row) {
-        final jsonStr = row['json_data'] as String;
-        return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
-      }).toList();
+      // Offload JSON decoding of stored items to background isolate when list is non-trivial
+      // to prevent main-thread jank during vocabulary screen entry or refresh.
+      final jsonStrings = records.map((row) => row['json_data'] as String).toList();
+      final List<Map<String, dynamic>> results;
+      if (jsonStrings.length > 50) {
+        results = await compute(_decodeVocabularyRecords, jsonStrings);
+      } else {
+        results = _decodeVocabularyRecords(jsonStrings);
+      }
+      _offlineCache = results;
+      return results;
     } catch (_) {
-      return [];
+      return _offlineCache;
     }
+  }
+
+  /// Top-level function required for compute() isolate.
+  static List<Map<String, dynamic>> _parseVocabularyJson(String jsonString) {
+    final List<dynamic> decoded = jsonDecode(jsonString);
+    return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// Top-level function to decode a list of JSON strings from DB records on isolate.
+  static List<Map<String, dynamic>> _decodeVocabularyRecords(List<String> jsonStrings) {
+    return jsonStrings.map((jsonStr) {
+      return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
+    }).toList();
   }
 
   Future<List<Map<String, dynamic>>> _seedAndMigrate(Database db) async {
@@ -55,13 +82,15 @@ class VocabularyRepository {
 
       if (jsonString == null || jsonString.isEmpty || jsonString == '[]') {
         try {
-          jsonString = await rootBundle.loadString('assets/data/master_vocabulary.json');
+          jsonString =
+              await rootBundle.loadString('assets/data/master_vocabulary.json');
         } catch (_) {}
       }
 
       if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
-        final List<dynamic> decoded = jsonDecode(jsonString);
-        final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        // Offload heavy JSON parsing to background isolate to avoid main-thread jank
+        // during first-launch seeding of large vocabulary assets.
+        final items = await compute(_parseVocabularyJson, jsonString);
         await saveVocabularyList(items);
         return items;
       }
@@ -86,7 +115,9 @@ class VocabularyRepository {
             'meaning': (item['meaning'] ?? '').toString(),
             'interval': item['interval'] is int ? item['interval'] : 0,
             'repetitions': item['repetitions'] is int ? item['repetitions'] : 0,
-            'ease_factor': item['easeFactor'] is num ? (item['easeFactor'] as num).toDouble() : 2.5,
+            'ease_factor': item['easeFactor'] is num
+                ? (item['easeFactor'] as num).toDouble()
+                : 2.5,
             'json_data': jsonEncode(item),
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
@@ -115,7 +146,8 @@ class VocabularyRepository {
         limit: 1,
       );
       if (res.isNotEmpty) {
-        final map = Map<String, dynamic>.from(jsonDecode(res.first['json_data'] as String));
+        final map = Map<String, dynamic>.from(
+            jsonDecode(res.first['json_data'] as String));
         map['interval'] = interval;
         map['repetitions'] = repetitions;
         map['easeFactor'] = easeFactor;
@@ -153,7 +185,9 @@ class VocabularyRepository {
           'meaning': (item['meaning'] ?? '').toString(),
           'interval': item['interval'] is int ? item['interval'] : 0,
           'repetitions': item['repetitions'] is int ? item['repetitions'] : 0,
-          'ease_factor': item['easeFactor'] is num ? (item['easeFactor'] as num).toDouble() : 2.5,
+          'ease_factor': item['easeFactor'] is num
+              ? (item['easeFactor'] as num).toDouble()
+              : 2.5,
           'json_data': jsonEncode(item),
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -186,7 +220,8 @@ class VocabularyRepository {
       final String front = item['languageCode'] == 'de'
           ? '${item['article']} ${item['word']}'
           : item['word'];
-      final String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
+      final String back =
+          '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
       buffer.writeln('$front\t$back');
     }
     return buffer.toString();
@@ -221,7 +256,8 @@ class VocabularyRepository {
   Future<bool> importBackupJson(String jsonString) async {
     try {
       final List<dynamic> decoded = jsonDecode(jsonString);
-      final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final items =
+          decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       return await saveVocabularyList(items);
     } catch (_) {
       return false;
