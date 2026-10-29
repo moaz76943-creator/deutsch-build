@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/concurrency/isolated_task_queue.dart';
+import 'package:deutsch_bilarabi/core/concurrency/cancellation_token.dart';
 import 'package:deutsch_bilarabi/core/concurrency/worker_task.dart';
 
 void main() {
@@ -8,15 +10,17 @@ void main() {
       final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
       final executed = <String>[];
 
+      // Pause to ensure all are queued before processing
       queue.pause();
 
       queue.enqueue(id: 't1_low', currentEpoch: 1, priority: TaskPriority.low, action: () async { executed.add('low'); return 'low'; });
       queue.enqueue(id: 't2_high', currentEpoch: 1, priority: TaskPriority.high, action: () async { executed.add('high'); return 'high'; });
       queue.enqueue(id: 't3_normal', currentEpoch: 1, priority: TaskPriority.normal, action: () async { executed.add('normal'); return 'normal'; });
 
-      queue.resume();
+      queue.resume(1);
 
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      // Wait for queue to process
+      await Future.delayed(const Duration(milliseconds: 100));
 
       expect(executed, ['high', 'normal', 'low']);
     });
@@ -29,7 +33,7 @@ void main() {
       Future<void> simulatedWork() async {
         active++;
         if (active > maxActive) maxActive = active;
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         active--;
       }
 
@@ -40,7 +44,8 @@ void main() {
         queue.enqueue(id: 'w4', currentEpoch: 1, priority: TaskPriority.normal, action: simulatedWork),
       ];
 
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      // Allow initial tasks to start
+      await Future.delayed(const Duration(milliseconds: 10));
 
       expect(queue.activeTasksCount, 2);
       expect(queue.length, 2);
@@ -74,7 +79,7 @@ void main() {
 
       expect(queue.length, 1);
 
-      queue.resume();
+      queue.resume(1);
       await f1;
       await f2;
 
@@ -93,10 +98,10 @@ void main() {
         action: () async { executed = true; return true; }
       );
 
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
       expect(executed, isFalse);
 
-      queue.resume();
+      queue.resume(1);
       await future;
 
       expect(executed, isTrue);
@@ -116,6 +121,7 @@ void main() {
         action: () async { oldTaskExecuted = true; return 'old'; }
       );
 
+      // Cancel stale tasks for epoch 2
       queue.cancelStaleTasks(2);
 
       final f2 = queue.enqueue(
@@ -125,7 +131,7 @@ void main() {
         action: () async { newTaskExecuted = true; return 'new'; }
       );
 
-      queue.resume();
+      queue.resume(2);
 
       await Future.wait([f1 as Future<dynamic>, f2 as Future<dynamic>]);
 
@@ -136,25 +142,26 @@ void main() {
     test('Epoch change cancels actively running stale tasks', () async {
        final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
        bool isCancelled = false;
+       final token = CancellationToken();
 
-       queue.enqueueWorkerTask(
-          task: WorkerTask<String>(
-            taskId: 'long_running',
-            execute: (token) async {
-               await Future<void>.delayed(const Duration(milliseconds: 100));
-               isCancelled = token.isCancelled;
-               return 'done';
-            }
-          ),
+       queue.enqueue(
+          id: 'long_running',
           currentEpoch: 1,
           priority: TaskPriority.normal,
+          token: token,
+          action: () async {
+             await Future.delayed(const Duration(milliseconds: 100));
+             isCancelled = token.isCancelled;
+             return 'done';
+          }
        );
 
-       await Future<void>.delayed(const Duration(milliseconds: 10));
+       // Allow task to start running
+       await Future.delayed(const Duration(milliseconds: 10));
 
-       queue.cancelStaleTasks(2);
+       queue.cancelStaleTasks(2); // this should cancel the token
 
-       await Future<void>.delayed(const Duration(milliseconds: 150));
+       await Future.delayed(const Duration(milliseconds: 150));
        expect(isCancelled, isTrue);
     });
 
@@ -165,7 +172,7 @@ void main() {
         taskId: 'timeout_task',
         timeout: const Duration(milliseconds: 50),
         execute: (token) async {
-          await Future<void>.delayed(const Duration(milliseconds: 200));
+          await Future.delayed(const Duration(milliseconds: 200));
           token.throwIfCancelled();
           return 'done';
         }
@@ -177,34 +184,34 @@ void main() {
         task: workerTask
       );
 
-      final result = await future;
-      expect(result, isNull);
+      expect(
+        () async => await future,
+        throwsA(isA<TimeoutException>())
+      );
     });
 
     test('Clear cancels all tasks', () async {
       final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
-      bool isCancelled = false;
+      bool executed = false;
+      final token = CancellationToken();
 
-      queue.enqueueWorkerTask(
-        task: WorkerTask<String>(
-          taskId: 'c1',
-          execute: (token) async {
-            await Future<void>.delayed(const Duration(milliseconds: 100));
-            isCancelled = token.isCancelled;
-            return 'done';
-          }
-        ),
+      queue.pause();
+      queue.enqueue(
+        id: 'c1',
         currentEpoch: 1,
         priority: TaskPriority.normal,
+        token: token,
+        action: () async { executed = true; return true; }
       );
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
 
       queue.clear();
       expect(queue.length, 0);
+      expect(token.isCancelled, isTrue);
 
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      expect(isCancelled, isTrue);
+      queue.resume(1);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(executed, isFalse);
     });
   });
 }

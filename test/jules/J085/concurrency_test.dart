@@ -16,12 +16,12 @@ void main() {
         if (activeExecutions > maxActiveExecutions) {
           maxActiveExecutions = activeExecutions;
         }
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         activeExecutions--;
         return 1;
       }
 
-      final futures = <Future<dynamic>>[];
+      final futures = <Future>[];
       for (int i = 0; i < 6; i++) {
         final f = queue.enqueue(
           id: 'task_$i',
@@ -41,7 +41,7 @@ void main() {
       final queue = IsolatedTaskQueue(maxConcurrentTasks: 1);
       int executions = 0;
 
-      final futures = <Future<dynamic>>[];
+      final futures = <Future>[];
       for (int i = 0; i < 3; i++) {
         futures.add(queue.enqueue(
           id: 'same_task',
@@ -49,7 +49,7 @@ void main() {
           priority: TaskPriority.normal,
           action: () async {
             executions++;
-            await Future<void>.delayed(const Duration(milliseconds: 50));
+            await Future.delayed(const Duration(milliseconds: 50));
             return executions;
           },
         ));
@@ -75,7 +75,7 @@ void main() {
             try {
               for (int i=0; i<5; i++) {
                 token.throwIfCancelled();
-                await Future<void>.delayed(const Duration(milliseconds: 20));
+                await Future.delayed(const Duration(milliseconds: 20));
               }
               staleExecuted = true;
               return 1;
@@ -89,7 +89,7 @@ void main() {
       );
 
       // give it time to become active
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 10));
 
       queue.cancelStaleTasks(2);
 
@@ -150,7 +150,7 @@ void main() {
         currentEpoch: 1,
         priority: TaskPriority.low,
         action: () async {
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
           execOrder.add('low_1');
         },
       );
@@ -185,9 +185,9 @@ void main() {
 
       // Simulate heavy CPU work with yields
       for (int i = 0; i < 1000; i++) {
-        // val
+        double val = 0;
         for(int j=0; j<100; j++) {
-          // j*i
+          val += j * i;
         }
         await token.yieldAndCheck();
       }
@@ -209,7 +209,7 @@ void main() {
            taskStarted = true;
            for (int i = 0; i < 10; i++) {
              token.throwIfCancelled();
-             await Future<void>.delayed(const Duration(milliseconds: 20));
+             await Future.delayed(const Duration(milliseconds: 20));
            }
            return 1;
          }
