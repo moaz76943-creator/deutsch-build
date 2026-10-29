@@ -1,93 +1,26 @@
 import 'package:flutter/material.dart';
+import '../core/lexical_repository.dart';
+import 'lexicon_rich_details.dart';
+import 'resilient_text_container.dart';
 
-/// Whether [langCode] normally uses right-to-left script direction.
-///
-/// Accepts a primary language subtag or a locale tag such as `ar-JO` or
-/// `fa_IR`. The legacy aliases `iw` (Hebrew) and `ji` (Yiddish) are supported.
-bool isRtlLanguage(String langCode) {
-  const rtlLanguages = <String>{
-    'ar', // Arabic
-    'he', 'iw', // Hebrew
-    'ur', // Urdu
-    'fa', // Persian
-    'yi', 'ji', // Yiddish
-    'sd', // Sindhi
-    'ps', // Pashto
-    'dv', // Divehi
-  };
-
-  final primaryLanguage = langCode
-      .trim()
-      .toLowerCase()
-      .split(RegExp(r'[-_]'))
-      .first;
-
-  return rtlLanguages.contains(primaryLanguage);
-}
-
-/// Isolate a field's text from surrounding bidirectional content.
-///
-/// FSI and PDI are invisible Unicode formatting characters; they do not
-/// replace an explicit paragraph [TextDirection].
-String _isolateBidi(String value) {
-  if (value.isEmpty) return value;
-  return '\u2068$value\u2069';
-}
-
-/// Displays a lexicon source word and an explanation in separate BiDi contexts.
-///
-/// The source uses its language's native direction, while the explanation
-/// follows the ambient interface [Directionality]. Each text field is wrapped
-/// with Unicode FSI/PDI isolation to stop mixed-script text and punctuation
-/// from influencing adjacent content.
+/// A complete view for a lexical entry, safely rendering BiDi and rich text,
+/// preventing overflow using [ResilientTextContainer].
 class BidiLexiconView extends StatelessWidget {
+  final LexicalEntry entry;
+  final EdgeInsetsGeometry padding;
+
   const BidiLexiconView({
     super.key,
-    required this.sourceWord,
-    required this.sourceLanguageCode,
-    required this.targetExplanation,
-    this.sourceStyle,
-    this.explanationStyle,
+    required this.entry,
+    this.padding = const EdgeInsets.all(16.0),
   });
-
-  final String sourceWord;
-  final String sourceLanguageCode;
-  final String targetExplanation;
-  final TextStyle? sourceStyle;
-  final TextStyle? explanationStyle;
 
   @override
   Widget build(BuildContext context) {
-    final sourceDirection = isRtlLanguage(sourceLanguageCode)
-        ? TextDirection.rtl
-        : TextDirection.ltr;
-    final interfaceDirection = Directionality.of(context);
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(
-              _isolateBidi(sourceWord),
-              textDirection: sourceDirection,
-              textAlign: TextAlign.start,
-              style: sourceStyle ?? textTheme.titleLarge,
-              semanticsLabel: sourceWord,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isolateBidi(targetExplanation),
-              textDirection: interfaceDirection,
-              textAlign: TextAlign.start,
-              style: explanationStyle ?? textTheme.bodyMedium,
-              semanticsLabel: targetExplanation,
-            ),
-          ],
-        ),
+    return Padding(
+      padding: padding,
+      child: ResilientTextContainer(
+        child: LexiconRichDetails(entry: entry),
       ),
     );
   }

@@ -1,220 +1,92 @@
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:crypto/crypto.dart';
-import 'package:flutter/services.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
-
-  static const String germanGoldenSha256 =
-      '359b7e31e06a9c79218e9c8340343529cb3b68d2d4ddac7822880f1c5bfee366';
-  static const String _germanAssetPath =
-      'assets/content/packs/de/sqlite/de-1.0.0.sqlite';
-  static const String _germanDatabaseFileName = 'polyglot_content_v2.db';
-  static const int _maxCachedContentDatabases = 3;
-
+  static Database? _contentDb;
   static Database? _progressDb;
-  final LinkedHashMap<String, Database> _contentDbs =
-      LinkedHashMap<String, Database>();
-  final Map<String, Future<Database>> _pendingContentOpens =
-      <String, Future<Database>>{};
 
   DatabaseService._init();
 
-  // Backward-compatible default content database getter.
-  Future<Database> get contentDb => getContentDb();
-
-  Future<Database> getContentDb([String? languageCode]) {
-    final code = _normalizeLanguageCode(languageCode);
-    final cached = _contentDbs.remove(code);
-    if (cached != null && cached.isOpen) {
-      _contentDbs[code] = cached;
-      return Future<Database>.value(cached);
-    }
-
-    final pending = _pendingContentOpens[code];
-    if (pending != null) {
-      return pending;
-    }
-
-    final operation = _openContentDb(code);
-    _pendingContentOpens[code] = operation;
-    return operation.whenComplete(() {
-      _pendingContentOpens.remove(code);
-    });
+  // 1. قاعدة المحتوى (اللغات، الكلمات، الأمثلة)
+  Future<Database> get contentDb async {
+    if (_contentDb != null) return _contentDb!;
+    _contentDb = await _initContentDb('polyglot_content_v2.db');
+    return _contentDb!;
   }
 
-  // User progress remains physically and logically isolated from content packs.
+  // 2. قاعدة تقدم المستخدم (SRS Progress) - مفصولة لحماية البيانات
   Future<Database> get progressDb async {
     if (_progressDb != null) return _progressDb!;
     _progressDb = await _initProgressDb('user_progress_v2.db');
     return _progressDb!;
   }
 
-  Future<Database> _openContentDb(String languageCode) async {
-    final databasePath = languageCode == 'de'
-        ? await _ensureGermanDatabase()
-        : await _installedPackPath(languageCode);
+  Future<Database> _initContentDb(String fileName) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, fileName);
 
-    final db = await openDatabase(
-      databasePath,
-      readOnly: true,
-      singleInstance: false,
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        // جداول المحتوى (لـ 100 لغة)
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS language_profiles (
+           language_code TEXT PRIMARY KEY,
+           name_native TEXT NOT NULL,
+           name_ar TEXT NOT NULL,
+           direction TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS concepts (
+           concept_id TEXT PRIMARY KEY,
+           category TEXT NOT NULL,
+           cefr_level TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS lexemes (
+           lexeme_id TEXT PRIMARY KEY,
+           concept_id TEXT NOT NULL,
+           language_code TEXT NOT NULL,
+           lemma TEXT NOT NULL,
+           display_text TEXT NOT NULL,
+           article TEXT,
+           plural TEXT,
+           gender TEXT,
+           grammar_json TEXT DEFAULT '{}'
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS examples (
+           example_id TEXT PRIMARY KEY,
+           concept_id TEXT NOT NULL,
+           language_code TEXT NOT NULL,
+           sentence TEXT NOT NULL,
+           translation_ar TEXT
+          )
+        ''');
+
+        // زرع بيانات مبدئية لكي يعمل المعجم فوراً
+        await _seedInitialData(db);
+      },
     );
-
-    try {
-      await _verifyUniversalSchema(db, languageCode);
-    } catch (_) {
-      await db.close();
-      rethrow;
-    }
-
-    _contentDbs[languageCode] = db;
-    await _evictLeastRecentlyUsedContentDb(except: languageCode);
-    return db;
-  }
-
-  Future<String> _ensureGermanDatabase() async {
-    final dbRoot = await getDatabasesPath();
-    final target = File(path.join(dbRoot, _germanDatabaseFileName));
-
-    if (await target.exists()) {
-      final installedHash = await _sha256File(target);
-      if (_constantTimeHexEquals(installedHash, germanGoldenSha256)) {
-        return target.path;
-      }
-    }
-
-    final assetData = await rootBundle.load(_germanAssetPath);
-    final assetBytes = assetData.buffer.asUint8List(
-      assetData.offsetInBytes,
-      assetData.lengthInBytes,
-    );
-    final assetHash = sha256.convert(assetBytes).toString();
-    if (!_constantTimeHexEquals(assetHash, germanGoldenSha256)) {
-      throw StateError(
-        'Bundled German database does not match the Golden baseline. '
-        'Expected $germanGoldenSha256, got $assetHash.',
-      );
-    }
-
-    await Directory(dbRoot).create(recursive: true);
-    final staged = File('${target.path}.installing');
-    if (await staged.exists()) {
-      await staged.delete();
-    }
-    await staged.writeAsBytes(assetBytes, flush: true);
-    await _verifySqliteHeader(staged);
-    await _replaceAtomically(staged, target);
-    return target.path;
-  }
-
-  Future<String> _installedPackPath(String languageCode) async {
-    final support = await getApplicationSupportDirectory();
-    final file = File(
-      path.join(support.path, 'packs', '$languageCode.sqlite'),
-    );
-    if (!await file.exists()) {
-      throw StateError('Language pack $languageCode is not installed');
-    }
-    return file.path;
-  }
-
-  Future<void> _verifyUniversalSchema(
-    Database db,
-    String languageCode,
-  ) async {
-    final rows = await db.rawQuery('''
-      SELECT name, type
-      FROM sqlite_master
-      WHERE name IN ('metadata', 'lexicon', 'concepts', 'grammar', 'lexemes', 'examples')
-    ''');
-    final names = rows
-        .map((row) => row['name'])
-        .whereType<String>()
-        .toSet();
-    const required = <String>{
-      'metadata',
-      'lexicon',
-      'concepts',
-      'grammar',
-      'lexemes',
-      'examples',
-    };
-    if (!names.containsAll(required)) {
-      throw StateError(
-        'Content database $languageCode does not satisfy the universal schema contract',
-      );
-    }
-
-    final metadataRows = await db.rawQuery(
-      "SELECT value FROM metadata WHERE key = 'languageCode' LIMIT 1",
-    );
-    if (metadataRows.isNotEmpty) {
-      final storedCode = metadataRows.first['value']?.toString().toLowerCase();
-      if (storedCode != null &&
-          _normalizeLanguageCode(storedCode) != languageCode) {
-        throw StateError(
-          'Content database language mismatch: expected $languageCode, got $storedCode',
-        );
-      }
-    }
-  }
-
-  Future<void> _evictLeastRecentlyUsedContentDb({
-    required String except,
-  }) async {
-    while (_contentDbs.length > _maxCachedContentDatabases) {
-      final oldestKey = _contentDbs.keys.first;
-      if (oldestKey == except && _contentDbs.length > 1) {
-        final retained = _contentDbs.remove(oldestKey)!;
-        _contentDbs[oldestKey] = retained;
-        continue;
-      }
-      final database = _contentDbs.remove(oldestKey);
-      if (database != null && database.isOpen) {
-        await database.close();
-      }
-    }
-  }
-
-  Future<void> closeContentDb([String? languageCode]) async {
-    final code = _normalizeLanguageCode(languageCode);
-    final pending = _pendingContentOpens[code];
-    if (pending != null) {
-      try {
-        await pending;
-      } catch (_) {}
-    }
-    final database = _contentDbs.remove(code);
-    if (database != null && database.isOpen) {
-      await database.close();
-    }
-  }
-
-  Future<void> closeAllContentDbs() async {
-    final databases = _contentDbs.values.toList(growable: false);
-    _contentDbs.clear();
-    for (final database in databases) {
-      if (database.isOpen) {
-        await database.close();
-      }
-    }
   }
 
   Future<Database> _initProgressDb(String fileName) async {
     final dbPath = await getDatabasesPath();
-    final databasePath = path.join(dbPath, fileName);
+    final path = join(dbPath, fileName);
 
     return await openDatabase(
-      databasePath,
+      path,
       version: 1,
       onCreate: (db, version) async {
+        // جدول التكرار المتباعد (SuperMemo-2)
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
            lexeme_id TEXT PRIMARY KEY,
@@ -230,66 +102,52 @@ class DatabaseService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> searchDictionary(
-    String query,
-    String langCode,
-  ) async {
-    final code = _normalizeLanguageCode(langCode);
-    final db = await getContentDb(code);
-    final trimmedQuery = query.trim();
-    final rows = trimmedQuery.isEmpty
-        ? await db.rawQuery('''
-            SELECT id, surface, part_of_speech, fields_json
-            FROM lexicon
-            LIMIT 20
-          ''')
-        : await db.rawQuery('''
-            SELECT id, surface, part_of_speech, fields_json
-            FROM lexicon
-            WHERE surface LIKE ? OR fields_json LIKE ?
-            LIMIT 20
-          ''', <Object?>['%$trimmedQuery%', '%$trimmedQuery%']);
-
-    return rows.map((row) => _unpackLexiconRow(row, code)).toList();
-  }
-
-  Map<String, dynamic> _unpackLexiconRow(
-    Map<String, Object?> row,
-    String languageCode,
-  ) {
-    Map<String, dynamic> fields = <String, dynamic>{};
-    final rawFields = row['fields_json'];
-    if (rawFields is String && rawFields.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(rawFields);
-        if (decoded is Map) {
-          fields = Map<String, dynamic>.from(decoded);
-        }
-      } catch (_) {}
+  // دالة البحث في المعجم الفوري
+  Future<List<Map<String, dynamic>>> searchDictionary(String query, String langCode) async {
+    final db = await contentDb;
+    if (query.isEmpty) {
+      return await db.rawQuery('''
+        SELECT l.*, e.sentence, e.translation_ar
+        FROM lexemes l
+        LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
+        WHERE l.language_code = ?
+        LIMIT 20
+      ''', [langCode]);
     }
 
-    final id = row['id']?.toString() ?? '';
-    final surface = row['surface']?.toString() ?? '';
-    final lemma = fields['lemma']?.toString() ?? surface;
-    final translation = fields['translation_ar'] ?? fields['translation'];
-    final sentence = fields['sentence'] ?? fields['example'];
+    return await db.rawQuery('''
+      SELECT l.*, e.sentence, e.translation_ar
+      FROM lexemes l
+      LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
+      WHERE l.language_code = ? AND (l.lemma LIKE ? OR l.display_text LIKE ? OR e.translation_ar LIKE ?)
+      LIMIT 20
+    ''', [langCode, '%$query%', '%$query%', '%$query%']);
+  }
 
-    return <String, dynamic>{
-      'id': id,
-      'lexeme_id': id,
-      'concept_id': id,
-      'language_code': languageCode,
-      'surface': surface,
-      'display_text': surface,
-      'part_of_speech': row['part_of_speech'],
-      'lemma': lemma,
-      'article': fields['article'],
-      'plural': fields['plural'],
-      'translation_ar': translation,
-      'sentence': sentence,
-      'fields_json': rawFields,
-      'fields': fields,
-    };
+  // إدخال بيانات تجريبية (مفاهيم الحياة اليومية)
+  Future<void> _seedInitialData(Database db) async {
+    final batch = db.batch();
+
+    // إدخال اللغات
+    batch.insert('language_profiles', {'language_code': 'de', 'name_native': 'Deutsch', 'name_ar': 'الألمانية', 'direction': 'ltr'});
+    batch.insert('language_profiles', {'language_code': 'ar', 'name_native': 'العربية', 'name_ar': 'العربية', 'direction': 'rtl'});
+
+    // إدخال المفاهيم
+    batch.insert('concepts', {'concept_id': 'daily.water', 'category': 'daily', 'cefr_level': 'A1'});
+    batch.insert('concepts', {'concept_id': 'daily.book', 'category': 'daily', 'cefr_level': 'A1'});
+    batch.insert('concepts', {'concept_id': 'daily.car', 'category': 'daily', 'cefr_level': 'A1'});
+
+    // إدخال الكلمات (ألماني)
+    batch.insert('lexemes', {'lexeme_id': 'lex.de.water', 'concept_id': 'daily.water', 'language_code': 'de', 'lemma': 'Wasser', 'display_text': 'das Wasser', 'article': 'das', 'gender': 'n'});
+    batch.insert('lexemes', {'lexeme_id': 'lex.de.book', 'concept_id': 'daily.book', 'language_code': 'de', 'lemma': 'Buch', 'display_text': 'das Buch', 'article': 'das', 'plural': 'Bücher', 'gender': 'n'});
+    batch.insert('lexemes', {'lexeme_id': 'lex.de.car', 'concept_id': 'daily.car', 'language_code': 'de', 'lemma': 'Auto', 'display_text': 'das Auto', 'article': 'das', 'plural': 'Autos', 'gender': 'n'});
+
+    // إدخال الأمثلة
+    batch.insert('examples', {'example_id': 'ex.de.water', 'concept_id': 'daily.water', 'language_code': 'de', 'sentence': 'Ich trinke Wasser.', 'translation_ar': 'أشرب الماء.'});
+    batch.insert('examples', {'example_id': 'ex.de.book', 'concept_id': 'daily.book', 'language_code': 'de', 'sentence': 'Ich lese ein Buch.', 'translation_ar': 'أقرأ كتاباً.'});
+    batch.insert('examples', {'example_id': 'ex.de.car', 'concept_id': 'daily.car', 'language_code': 'de', 'sentence': 'Das Auto ist schnell.', 'translation_ar': 'السيارة سريعة.'});
+
+    await batch.commit(noResult: true);
   }
 
   Future<void> updateSrsProgressAtomic({
@@ -307,70 +165,5 @@ class DatabaseService {
         )
       ''', [lexemeId, languageCode, lexemeId, status]);
     });
-  }
-
-  static String _normalizeLanguageCode(String? value) {
-    final normalized = (value ?? 'de').trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
-      throw ArgumentError.value(value, 'languageCode', 'Invalid language code');
-    }
-    return normalized.split('-').first == 'de' ? 'de' : normalized;
-  }
-
-  static Future<void> _verifySqliteHeader(File file) async {
-    final raf = await file.open(mode: FileMode.read);
-    try {
-      final header = await raf.read(16);
-      if (header.length < 16 ||
-          !String.fromCharCodes(header).startsWith('SQLite format 3')) {
-        throw StateError('Bundled German asset is not a valid SQLite database');
-      }
-    } finally {
-      await raf.close();
-    }
-  }
-
-  static Future<void> _replaceAtomically(File staged, File target) async {
-    final backup = File('${target.path}.bak');
-    if (await backup.exists()) {
-      await backup.delete();
-    }
-
-    final hadTarget = await target.exists();
-    if (hadTarget) {
-      await target.rename(backup.path);
-    }
-    try {
-      await staged.rename(target.path);
-      if (await backup.exists()) {
-        await backup.delete();
-      }
-    } catch (_) {
-      if (await staged.exists()) {
-        await staged.delete();
-      }
-      if (await backup.exists() && !await target.exists()) {
-        await backup.rename(target.path);
-      }
-      rethrow;
-    }
-  }
-
-  static Future<String> _sha256File(File file) async {
-    final digest = await sha256.bind(file.openRead()).first;
-    return digest.toString();
-  }
-
-  static bool _constantTimeHexEquals(String left, String right) {
-    final a = left.toLowerCase();
-    final b = right.toLowerCase();
-    if (a.length != b.length) {
-      return false;
-    }
-    var difference = 0;
-    for (var index = 0; index < a.length; index++) {
-      difference |= a.codeUnitAt(index) ^ b.codeUnitAt(index);
-    }
-    return difference == 0;
   }
 }
