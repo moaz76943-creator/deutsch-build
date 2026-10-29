@@ -8,7 +8,8 @@ class LicenseAttributionScreen extends StatefulWidget {
   const LicenseAttributionScreen({super.key, this.installedPacksLoader});
   final Future<List<Map<String, dynamic>>> Function()? installedPacksLoader;
   @override
-  State<LicenseAttributionScreen> createState() => _LicenseAttributionScreenState();
+  State<LicenseAttributionScreen> createState() =>
+      _LicenseAttributionScreenState();
 }
 
 class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
@@ -25,64 +26,71 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
     final result = data.map((e) => Map<String, dynamic>.from(e)).toList();
     // Bundled German pack is not tracked by the download registry.
     if (!result.any((e) => e['languageCode'] == 'de')) {
-        result.insert(0, {
-          'languageCode': 'de',
-          'version': '1.0.0',
-          'packId': 'de-bundled',
-          'bundled': true,
+      result.insert(0, {
+        'languageCode': 'de',
+        'version': '1.0.0',
+        'packId': 'de-bundled',
+        'bundled': true,
+        'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
+        'revisionTimestamp': '2026-10-12T00:00:00Z',
+        'sourceRevision': '2026-10-12',
+        'contributors':
+            'Wiktionary community, Kaikki.org, Deutsch-Build curators',
+        'licenseId': 'CC-BY-SA-4.0 / GFDL-1.3',
+        'license': 'CC BY-SA 4.0 / GFDL-1.3',
+        'licenseName':
+            'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
+        'licenseUrl':
+            'https://creativecommons.org/licenses/by-sa/4.0/ & https://www.gnu.org/licenses/fdl-1.3.html',
+        'attribution': {
           'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
           'revisionTimestamp': '2026-10-12T00:00:00Z',
           'sourceRevision': '2026-10-12',
-          'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators',
           'licenseId': 'CC-BY-SA-4.0 / GFDL-1.3',
           'license': 'CC BY-SA 4.0 / GFDL-1.3',
-          'licenseName': 'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
-          'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/ & https://www.gnu.org/licenses/fdl-1.3.html',
-          'attribution': {
-            'source': 'Wiktionary / Kaikki curated German-Arabic lexical dataset',
-            'revisionTimestamp': '2026-10-12T00:00:00Z',
-            'sourceRevision': '2026-10-12',
-            'licenseId': 'CC-BY-SA-4.0 / GFDL-1.3',
-            'license': 'CC BY-SA 4.0 / GFDL-1.3',
-            'licenseName': 'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
-            'licenseUrl': 'https://creativecommons.org/licenses/by-sa/4.0/ & https://www.gnu.org/licenses/fdl-1.3.html',
-            'contributors': 'Wiktionary community, Kaikki.org, Deutsch-Build curators',
-            'modifications': 'Curated, normalized, phonetically transcribed, and translated to Arabic',
-            'copyrightNotice': 'Copyright (c) 2026 Wiktionary contributors, Kaikki.org, Deutsch-Build curators'
-          }
-        });
-      }
+          'licenseName':
+              'Creative Commons Attribution-ShareAlike 4.0 International / GFDL 1.3',
+          'licenseUrl':
+              'https://creativecommons.org/licenses/by-sa/4.0/ & https://www.gnu.org/licenses/fdl-1.3.html',
+          'contributors':
+              'Wiktionary community, Kaikki.org, Deutsch-Build curators',
+          'modifications':
+              'Curated, normalized, phonetically transcribed, and translated to Arabic',
+          'copyrightNotice':
+              'Copyright (c) 2026 Wiktionary contributors, Kaikki.org, Deutsch-Build curators'
+        }
+      });
+    }
     return result;
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('تراخيص وإسناد حزم اللغات')),
-    body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: packs,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('تعذر قراءة التراخيص: ' +
-              snapshot.error.toString()));
-        }
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return ListView(padding: const EdgeInsets.all(16), children: [
-          const Text('تظهر فقط معلومات المصدر المحفوظة محلياً. '
-              'يجب استكمال أي إسناد ناقص قبل نشر الحزمة.'),
-          const SizedBox(height: 12),
-          for (final pack in snapshot.data!) _pack(pack),
-        ]);
-      },
-    ),
-  );
+        appBar: AppBar(title: const Text('تراخيص وإسناد حزم اللغات')),
+        body: FutureBuilder<List<Map<String, dynamic>>>(
+          future: packs,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                  child: Text('تعذر قراءة التراخيص: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return ListView(padding: const EdgeInsets.all(16), children: [
+              const Text('تظهر فقط معلومات المصدر المحفوظة محلياً. '
+                  'يجب استكمال أي إسناد ناقص قبل نشر الحزمة.'),
+              const SizedBox(height: 12),
+              for (final pack in snapshot.data!) _pack(pack),
+            ]);
+          },
+        ),
+      );
 
   Widget _pack(Map<String, dynamic> pack) {
     final raw = pack['attribution'];
-    final details = raw is Map
-        ? Map<String, dynamic>.from(raw)
-        : <String, dynamic>{};
+    final details =
+        raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
     Object? lookup(List<String> keys) {
       for (final key in keys) {
         if (details[key] != null) return details[key];
@@ -90,44 +98,69 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
       }
       return null;
     }
+
     final license = _s(lookup(['license', 'licenseName', 'licenseId']));
     final licenseUrl = _s(lookup(['licenseUrl', 'licenseUri']));
-    final cc = RegExp(r'\bcc[\s-]*by[\s-]*sa[\s-]*4\.0\b',
-      caseSensitive: false).hasMatch(license) ||
-      licenseUrl.contains('/licenses/by-sa/4.0');
+    final cc = RegExp(r'\bcc[\s-]*by[\s-]*sa[\s-]*4\.0\b', caseSensitive: false)
+            .hasMatch(license) ||
+        licenseUrl.contains('/licenses/by-sa/4.0');
     final providedText = _s(lookup(['licenseText', 'fullLicenseText']));
-    final legal = providedText.isNotEmpty ? providedText
-        : cc ? ccBySa40LegalText : '';
+    final legal = providedText.isNotEmpty
+        ? providedText
+        : cc
+            ? ccBySa40LegalText
+            : '';
     final code = _s(pack['languageCode']);
     final source = _s(lookup(['sourceUrl', 'upstreamUrl', 'source']));
-    final revision = _s(lookup(['revisionTimestamp', 'sourceRevisionTimestamp',
-        'sourceRevisionAt', 'revisionDate', 'sourceRevision']));
+    final revision = _s(lookup([
+      'revisionTimestamp',
+      'sourceRevisionTimestamp',
+      'sourceRevisionAt',
+      'revisionDate',
+      'sourceRevision'
+    ]));
     final copyright = _s(lookup(['copyrightNotice', 'copyright']));
     final modifications = _s(lookup(['modifications', 'changeNotice']));
-    final contributors = _names(lookup(['contributors', 'authors', 'creators']));
-    final missing = source.isEmpty || revision.isEmpty ||
-        contributors.isEmpty || license.isEmpty;
-    return Card(key: ValueKey('attribution-' + code),
+    final contributors =
+        _names(lookup(['contributors', 'authors', 'creators']));
+    final missing = source.isEmpty ||
+        revision.isEmpty ||
+        contributors.isEmpty ||
+        license.isEmpty;
+    return Card(
+      key: ValueKey('attribution-$code'),
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(padding: const EdgeInsets.all(12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('حزمة ' + code.toUpperCase() + ' • ' + _s(pack['version']),
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-          if (missing) const Text('تحذير: بيانات الإسناد غير مكتملة في سجل الحزمة.',
-            style: TextStyle(color: Colors.deepOrange)),
+          Text('حزمة ${code.toUpperCase()} • ${_s(pack['version'])}',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          if (missing)
+            const Text('تحذير: بيانات الإسناد غير مكتملة في سجل الحزمة.',
+                style: TextStyle(color: Colors.deepOrange)),
           _line('المصدر', source),
           _line('المساهمون', contributors.join('، ')),
           _line('مراجعة المصدر', revision),
           _line('حقوق النشر', copyright),
           _line('التعديلات', modifications),
           _line('الرخصة', license),
-          _line('رابط الرخصة', licenseUrl.isNotEmpty ? licenseUrl :
-              cc ? ccBySa40Url : ''),
+          _line(
+              'رابط الرخصة',
+              licenseUrl.isNotEmpty
+                  ? licenseUrl
+                  : cc
+                      ? ccBySa40Url
+                      : ''),
           if (legal.isNotEmpty)
-            ExpansionTile(key: ValueKey('legalcode-' + code),
-              title: const Text('النص القانوني الكامل للرخصة (Offline)'),
-              children: [Padding(padding: const EdgeInsets.all(8),
-                child: SelectableText(legal, textDirection: TextDirection.ltr))])
+            ExpansionTile(
+                key: ValueKey('legalcode-$code'),
+                title: const Text('النص القانوني الكامل للرخصة (Offline)'),
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: SelectableText(legal,
+                          textDirection: TextDirection.ltr))
+                ])
           else
             const Text('النص الكامل للرخصة غير متاح محلياً لهذه الحزمة.'),
         ]),
@@ -136,28 +169,30 @@ class _LicenseAttributionScreenState extends State<LicenseAttributionScreen> {
   }
 
   static Widget _line(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 3),
-    child: Text(label + ': ' + (value.isEmpty ? 'غير موثق' : value)),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Text('$label: ${value.isEmpty ? 'غير موثق' : value}'),
+      );
   static String _s(Object? value) => value is String ? value.trim() : '';
   static List<String> _names(Object? value) {
     if (value is String && value.trim().isNotEmpty) return [value.trim()];
     if (value is! List) return const [];
-    return value.map((e) {
-      if (e is String) return e.trim();
-      if (e is Map) return _s(e['name'] ?? e['username']);
-      return '';
-    }).where((name) => name.isNotEmpty).toList(growable: false);
+    return value
+        .map((e) {
+          if (e is String) return e.trim();
+          if (e is Map) return _s(e['name'] ?? e['username']);
+          return '';
+        })
+        .where((name) => name.isNotEmpty)
+        .toList(growable: false);
   }
 }
 
 const String ccBySa40Url =
-  'https://creativecommons.org/licenses/by-sa/4.0/legalcode.en';
+    'https://creativecommons.org/licenses/by-sa/4.0/legalcode.en';
 // Vendored official Creative Commons plaintext, for completely offline access.
 // Original: creativecommons/creativecommons.org docroot/legalcode/by-sa_4.0.txt
 const String ccBySa40LegalText = r'''Attribution-ShareAlike 4.0 International
 
-=======================================================================
 
 Creative Commons Corporation ("Creative Commons") is not a law firm and
 does not provide legal services or legal advice. Distribution of
@@ -209,7 +244,6 @@ exhaustive, and do not form part of our licenses.
      for the public:
     wiki.creativecommons.org/Considerations_for_licensees
 
-=======================================================================
 
 Creative Commons Attribution-ShareAlike 4.0 International Public
 License
@@ -562,7 +596,6 @@ Section 8 -- Interpretation.
      processes of any jurisdiction or authority.
 
 
-=======================================================================
 
 Creative Commons is not a party to its public
 licenses. Notwithstanding, Creative Commons may elect to apply one of
