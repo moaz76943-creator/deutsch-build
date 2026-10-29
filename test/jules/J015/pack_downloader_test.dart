@@ -81,7 +81,7 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       final success = await PackDownloaderService.requestDownload(
         'de-DE',
@@ -96,7 +96,7 @@ void main() {
 
     test('Resumable transfer with simulated network interruption', () async {
       int requestCount = 0;
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       final client = MockClient((request) async {
         requestCount++;
@@ -127,7 +127,7 @@ void main() {
       final file = File('./pack_es-ES.tmp');
       await file.writeAsBytes([1, 2]);
 
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       final client = MockClient((request) async {
         requestCount++;
@@ -165,7 +165,7 @@ void main() {
         );
       });
 
-      const wrongExpectedHash = '0000000000000000000000000000000000000000000000000000000000000000';
+      final wrongExpectedHash = '0000000000000000000000000000000000000000000000000000000000000000';
 
       final success = await PackDownloaderService.requestDownload(
         'ru-RU',
@@ -181,7 +181,7 @@ void main() {
     test('Cancellation of download', () async {
       final client = SlowMockClient();
 
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       // Start the download
       final futureSuccess = PackDownloaderService.requestDownload(
@@ -209,7 +209,7 @@ void main() {
     test('Prevention of duplicate concurrent downloads', () async {
       final client = DuplicateMockClient();
 
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       // Start first download
       final future1 = PackDownloaderService.requestDownload(
@@ -245,7 +245,7 @@ void main() {
       final file = File('./pack_tr-TR.tmp');
       await file.writeAsBytes([1, 2]); // Simulate left-over file from previous app run
 
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       final client = MockClient((request) async {
         requestCount++;
@@ -293,7 +293,7 @@ void main() {
       final dir = Directory('./pack_it-IT.tmp');
       await dir.create();
 
-      const expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
+      final expectedHash = '9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a';
 
       final client = MockClient((request) async {
         return http.Response.bytes(
