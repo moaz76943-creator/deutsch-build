@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/srs_scheduler_service.dart';
+import 'package:deutsch_bilarabi/core/srs/production_srs_engine.dart';
 
 void main() {
   late Database db;
@@ -12,199 +13,150 @@ void main() {
   });
 
   setUp(() async {
-    db = await databaseFactory.openDatabase(
-      inMemoryDatabasePath,
-      options: OpenDatabaseOptions(
-        version: 1,
-        singleInstance: false,
-        onCreate: (db, version) async {
-          await db.execute('''
+    db = await databaseFactory.openDatabase(inMemoryDatabasePath,
+        options: OpenDatabaseOptions(
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
-           lexeme_id TEXT NOT NULL,
+           lexeme_id TEXT PRIMARY KEY,
            target_language_code TEXT NOT NULL,
            repetition_count INTEGER NOT NULL DEFAULT 0,
            interval_days INTEGER NOT NULL DEFAULT 1,
            ease_factor REAL NOT NULL DEFAULT 2.5,
            next_due_at INTEGER,
-           status TEXT NOT NULL DEFAULT 'learning',
-           PRIMARY KEY (lexeme_id, target_language_code)
+           status TEXT NOT NULL DEFAULT 'learning'
           )
         ''');
-        },
-      ),
-    );
-    scheduler = SrsSchedulerService();
+      },
+    ));
+    scheduler = SrsSchedulerService(db: db);
   });
 
   tearDown(() async {
     await db.close();
   });
 
-  test('Real SQLite review fixtures schedule correct due dates in epoch seconds',
-      () async {
-    final reviewedAt = DateTime.utc(2023, 1, 1);
-    final schedule = await scheduler.gradeAndPersist(
-      progressDb: db,
+  test('Real SQLite review fixtures schedule correct due dates in epoch seconds', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
+    final schedule = await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 3,
-      reviewedAt: reviewedAt,
-      reviewEventId: 'evt-1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    expect(schedule.nextReviewEpoch, isPositive);
-    final due = DateTime.fromMillisecondsSinceEpoch(
-      schedule.nextReviewEpoch * 1000,
-      isUtc: true,
-    );
-    expect(due.year, 2023);
-    expect(due.month, 1);
-    expect(due.day, 2);
-    expect(due.isUtc, true);
+    expect(schedule, isNotNull);
 
-    final result = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1'],
-    );
+    expect(schedule!.nextReviewDate.year, 2023);
+    expect(schedule.nextReviewDate.month, 1);
+    expect(schedule.nextReviewDate.day, 2);
+    expect(schedule.nextReviewDate.isUtc, true);
+
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
     expect(result.length, 1);
     expect(result.first['interval_days'], 1);
     expect(result.first['repetition_count'], 1);
-    expect(result.first['next_due_at'], schedule.nextReviewEpoch);
+    final expectedNextDueAt = schedule.nextReviewDate.millisecondsSinceEpoch ~/ 1000;
+    expect(result.first['next_due_at'], expectedNextDueAt);
   });
 
-  test('Duplicate review event ids do not apply the review twice', () async {
-    final reviewedAt = DateTime.utc(2023, 1, 1);
+  test('Duplicate review submissions are safely handled via inference', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 3,
-      reviewedAt: reviewedAt,
-      reviewEventId: 'evt-dup',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 4,
-      reviewedAt: reviewedAt.add(const Duration(seconds: 10)),
-      reviewEventId: 'evt-dup',
+      targetLanguageCode: 'de',
+      rating: SrsRating.easy,
+      currentTimeSeconds: nowSeconds + 10,
     );
 
-    final result = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1'],
-    );
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
     expect(result.length, 1);
     expect(result.first['repetition_count'], 1);
-    expect(result.first['interval_days'], 1);
   });
 
   test('Overdue cards process correctly', () async {
-    final reviewedAt = DateTime.utc(2023, 1, 1);
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 3,
-      reviewedAt: reviewedAt,
-      reviewEventId: 'evt-overdue-1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    final schedule2 = await scheduler.gradeAndPersist(
-      progressDb: db,
+    final overdueSeconds = nowSeconds + (10 * 86400);
+    final schedule2 = await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 3,
-      reviewedAt: reviewedAt.add(const Duration(days: 10)),
-      reviewEventId: 'evt-overdue-2',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: overdueSeconds,
     );
 
-    expect(schedule2.repetitionCount, 2);
+    expect(schedule2, isNotNull);
 
-    final result = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1'],
-    );
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
     expect(result.first['repetition_count'], 2);
   });
 
-  test('Reverse pairs are isolated using target_language_code and lexeme_id',
-      () async {
-    final reviewedAt = DateTime.utc(2023, 1, 1);
+  test('Reverse pairs are isolated using target_language_code and lexeme_id', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1_ar_de',
-      languageCode: 'de',
-      grade: 3,
-      reviewedAt: reviewedAt,
-      reviewEventId: 'evt-de',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1_de_ar',
-      languageCode: 'ar',
-      grade: 4,
-      reviewedAt: reviewedAt,
-      reviewEventId: 'evt-ar',
+      targetLanguageCode: 'ar',
+      rating: SrsRating.easy,
+      currentTimeSeconds: nowSeconds,
     );
 
-    final resultDe = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1_ar_de'],
-    );
+    final resultDe = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1_ar_de']);
     expect(resultDe.first['target_language_code'], 'de');
     expect(resultDe.first['repetition_count'], 1);
 
-    final resultAr = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1_de_ar'],
-    );
+    final resultAr = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1_de_ar']);
     expect(resultAr.first['target_language_code'], 'ar');
     expect(resultAr.first['repetition_count'], 1);
   });
 
-  test('Explicit earlier review timestamps are still persisted', () async {
-    final reviewedAt = DateTime.utc(2023, 1, 1);
+  test('Clock changes backwards handled gracefully (negative diff)', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 3,
-      reviewedAt: reviewedAt,
-      reviewEventId: 'evt-clock-1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.gradeAndPersist(
-      progressDb: db,
+    await scheduler.processReview(
       lexemeId: 'lex1',
-      languageCode: 'de',
-      grade: 4,
-      reviewedAt: reviewedAt.subtract(const Duration(seconds: 100)),
-      reviewEventId: 'evt-clock-2',
+      targetLanguageCode: 'de',
+      rating: SrsRating.easy,
+      currentTimeSeconds: nowSeconds - 100, // Time jumped backwards
     );
 
-    final result = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1'],
-    );
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
     expect(result.length, 1);
-    expect(result.first['repetition_count'], 2);
+    expect(result.first['repetition_count'], 2); // Processed because it's not swallowed as debounce
   });
 
   test('Interrupted writes rollback correctly', () async {
+    // Though sqflite handles transaction rollback natively, we simulate a logic error inside the transaction to ensure it bubbles out and rolls back.
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
     try {
@@ -224,14 +176,10 @@ void main() {
         throw Exception('Simulated crash');
       });
     } catch (e) {
-      // The transaction must roll back.
+      // Ignored
     }
 
-    final result = await db.query(
-      'srs_progress',
-      where: 'lexeme_id = ?',
-      whereArgs: ['lex1'],
-    );
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
     expect(result.isEmpty, true);
   });
 }

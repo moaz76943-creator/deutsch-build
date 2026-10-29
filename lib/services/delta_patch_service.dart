@@ -67,10 +67,8 @@ class DeltaPatchService {
     }
 
     final before = await _sha(databaseFile);
-    if (baseExpected != null) {
-      if (baseExpected is! String || !_same(before, baseExpected)) {
-        throw StateError('Base SHA-256 mismatch');
-      }
+    if (baseExpected != null && !_same(before, baseExpected)) {
+      throw StateError('Base SHA-256 mismatch');
     }
     final staged = File('${databaseFile.path}.delta-staging');
     if (await staged.exists()) {

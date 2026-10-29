@@ -1,6 +1,9 @@
-import 'dart:async';
-
 <<<<<<< HEAD
+import 'dart:async';
+import 'dart:collection';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
 class WorkerQueueExhaustedException implements Exception {
   final String message;
   WorkerQueueExhaustedException([this.message = "Worker queue is full"]);
@@ -15,15 +18,7 @@ class WorkerCancelledException implements Exception {
   String toString() => message;
 }
 
-// ComputeCallback from flutter/foundation expects (Q message) => R or Future<R>
-// But we can simplify to Function(Q) if we want, or just stick to ComputeCallback<Q, R>
-
-// Interface for Dart compute to avoid type issues when unpacking
-abstract class _TaskRunner {
-  Future<void> run(PersistentCpuWorker worker, int currentGeneration);
-}
-
-class _QueuedTask<Q, R> implements _TaskRunner {
+class _QueuedTask<Q, R> {
   final ComputeCallback<Q, R> task;
   final Q message;
   final Completer<R> completer;
@@ -35,34 +30,6 @@ class _QueuedTask<Q, R> implements _TaskRunner {
     required this.completer,
     required this.generation,
   });
-
-  @override
-  Future<void> run(PersistentCpuWorker worker, int currentGeneration) async {
-    if (generation != currentGeneration) {
-      if (!completer.isCompleted) {
-        completer.completeError(WorkerCancelledException());
-      }
-      return;
-    }
-
-    try {
-      final result = await compute<Q, R>(task, message);
-
-      if (generation == worker.currentGeneration) {
-        if (!completer.isCompleted) {
-          completer.complete(result);
-        }
-      } else {
-        if (!completer.isCompleted) {
-          completer.completeError(WorkerCancelledException());
-        }
-      }
-    } catch (e, st) {
-      if (!completer.isCompleted) {
-        completer.completeError(e, st);
-      }
-    }
-  }
 }
 
 class PersistentCpuWorker with WidgetsBindingObserver {
@@ -73,9 +40,7 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   int _activeJobs = 0;
   int _generation = 0;
-  int get currentGeneration => _generation;
-
-  final Queue<_TaskRunner> _queue = Queue<_TaskRunner>();
+  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
@@ -106,13 +71,9 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   void cancelAll() {
     _generation++;
-    // Since we now store _TaskRunner, we don't have direct access to the completers here
-    // but they will be failed when `run` is called or we can fail them now if we expose a cancel method
     for (final task in _queue) {
-      if (task is _QueuedTask) {
-        if (!task.completer.isCompleted) {
-          task.completer.completeError(WorkerCancelledException());
-        }
+      if (!task.completer.isCompleted) {
+        task.completer.completeError(WorkerCancelledException());
       }
     }
     _queue.clear();
@@ -149,12 +110,49 @@ class PersistentCpuWorker with WidgetsBindingObserver {
       return;
     }
 
-    final task = _queue.removeFirst();
+    final queuedTask = _queue.removeFirst();
+    _unpackAndExecute(queuedTask);
+  }
+
+  void _unpackAndExecute(dynamic task) {
+    if (task is _QueuedTask) {
+      _executeQueuedTask(task);
+    }
+  }
+
+  void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
+    if (queuedTask.generation != _generation) {
+      if (!queuedTask.completer.isCompleted) {
+        queuedTask.completer.completeError(WorkerCancelledException());
+      }
+      _pump();
+      return;
+    }
+
     _activeJobs++;
 
     Future.microtask(() async {
       try {
-        await task.run(this, _generation);
+        // Do not pass `queuedTask` or anything referencing Completer into compute.
+        // Copy task and message to local vars to avoid capturing `this` or `queuedTask`.
+        // To be completely safe from capturing the current context, we should pass the task directly
+        // back to compute if it's already a static top-level function, but if it is a closure we might still have problems.
+        // Dart's compute expects a top-level or static function.
+        final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
+
+        if (queuedTask.generation == _generation) {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.complete(result);
+          }
+        } else {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.completeError(WorkerCancelledException());
+          }
+        }
+      } catch (e, st) {
+        if (!queuedTask.completer.isCompleted) {
+          queuedTask.completer.completeError(e, st);
+        }
       } finally {
         _activeJobs--;
         _pump();
@@ -162,77 +160,40 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     });
   }
 
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
   Future<double> calculateNewEaseFactor(double currentEase, int rating) {
     return executeTask<Map<String, dynamic>, double>(
         _heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
 
-  static double _heavySrsMath(Map<String, dynamic> data) {
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  static double _heavySrsMath(dynamic rawData) {
+    final data = rawData as Map<String, dynamic>;
+=======
+import 'package:flutter/foundation.dart';
+
+/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
+class PersistentCpuWorker {
+  final PersistentCpuWorker instance = PersistentCpuWorker._init();
+
+  PersistentCpuWorker._init();
+
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
+    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
+    return await compute(heavySrsMath, {'ease': currentEase, 'rating': rating});
+  }
+
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  double heavySrsMath(Map<String, dynamic> data) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
 
+    // معادلة الحفظ والمراجعة المتباعدة
     double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
 
     return newEase;
-=======
-/// Master Constitution Section 10 Compliant CPU Worker:
-/// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
-/// execution timeout watchdog, and safe resource disposal to prevent leaks.
-class PersistentCpuWorker {
-  int _activeGeneration = 0;
-  bool _isDisposed = false;
-  Completer<dynamic>? _pendingCompleter;
-
-  int get currentGeneration => _activeGeneration;
-  bool get isDisposed => _isDisposed;
-
-  /// Submits an asynchronous CPU task. Only the latest generation result is accepted.
-  Future<T?> executeTask<T>({
-    required Future<T> Function() computation,
-    Duration timeout = const Duration(seconds: 5),
-  }) async {
-    if (_isDisposed) {
-      throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
-    }
-
-    final generation = ++_activeGeneration;
-    final completer = Completer<T?>();
-    _pendingCompleter = completer;
-
-    try {
-      final result = await computation().timeout(timeout, onTimeout: () {
-        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
-      });
-
-      // Latest-Wins policy: drop result if generation has advanced
-      if (_isDisposed || generation != _activeGeneration) {
-        return null;
-      }
-
-      completer.complete(result);
-      return result;
-    } catch (e, st) {
-      if (generation == _activeGeneration && !completer.isCompleted) {
-        completer.completeError(e, st);
-      }
-      return null;
-    }
-  }
-
-  /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
-  void cancelActiveOperations() {
-    _activeGeneration++;
-    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
-      _pendingCompleter!.complete(null);
-      _pendingCompleter = null;
-    }
-  }
-
-  /// Safe disposal freeing all worker references and cancelling subscriptions
-  void dispose() {
-    _isDisposed = true;
-    cancelActiveOperations();
->>>>>>> origin/staging/v2-full-platform
   }
 }
