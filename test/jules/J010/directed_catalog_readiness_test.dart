@@ -17,7 +17,7 @@ void main() {
     });
 
     test('resolvePairStatus rejects identical languages', () {
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'en', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'en', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUnavailable>());
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('resolvePairStatus rejects unregistered source language', () {
-      const pair = DirectedPairId(sourceLocale: 'xx', targetLocale: 'de', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'xx', targetLocale: 'de', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUnavailable>());
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('resolvePairStatus rejects unregistered target language', () {
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'xx', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'xx', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUnavailable>());
@@ -42,7 +42,7 @@ void main() {
 
     test('resolvePairStatus prevents silent pivots (neither source nor target production ready)', () {
       // es and fr are assetsReady according to LanguageReadinessMatrix
-      const pair = DirectedPairId(sourceLocale: 'es', targetLocale: 'fr', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'es', targetLocale: 'fr', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUnavailable>());
@@ -52,14 +52,14 @@ void main() {
     test('resolvePairStatus permits reverse pairs (source not production ready, but target is)', () {
       // es is assetsReady, de is productionReady
       readiness.markInstalled('de', 100, 'valid_checksum');
-      const pair = DirectedPairId(sourceLocale: 'es', targetLocale: 'de', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'es', targetLocale: 'de', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUsable>());
     });
 
     test('resolvePairStatus rejects when target pack is missing', () {
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUnavailable>());
@@ -69,7 +69,7 @@ void main() {
     test('resolvePairStatus rejects when target pack is rejected by gate', () {
       // Missing checksum
       readiness.markInstalled('de', 100, '');
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUnavailable>());
@@ -78,7 +78,7 @@ void main() {
 
     test('resolvePairStatus returns PairUsable for valid A->B setup', () {
       readiness.markInstalled('de', 100, 'valid_checksum');
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
       final result = readiness.resolvePairStatus(pair);
 
       expect(result, isA<PairUsable>());
@@ -87,10 +87,10 @@ void main() {
     test('A->B is separate from B->A', () {
       readiness.markInstalled('de', 100, 'valid_checksum');
 
-      const pairAB = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+      final pairAB = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
       expect(readiness.resolvePairStatus(pairAB), isA<PairUsable>());
 
-      const pairBA = DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0');
+      final pairBA = DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0');
       // B->A fails because en pack is not installed
       final resultBA = readiness.resolvePairStatus(pairBA);
       expect(resultBA, isA<PairUnavailable>());
@@ -99,7 +99,7 @@ void main() {
 
     test('invalidatePack resets readiness', () {
       readiness.markInstalled('de', 100, 'valid_checksum');
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
 
       expect(readiness.resolvePairStatus(pair), isA<PairUsable>());
 
@@ -119,7 +119,7 @@ void main() {
 
       // Check one specific dynamically added language.
       // Assuming 'lang_50' is nominal (not production ready)
-      const pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'lang_50', semanticVersion: '1.0');
+      final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'lang_50', semanticVersion: '1.0');
       final result1 = readiness.resolvePairStatus(pair);
       expect(result1, isA<PairUnavailable>());
       expect((result1 as PairUnavailable).reason, UnavailableReason.targetMissingPack);
