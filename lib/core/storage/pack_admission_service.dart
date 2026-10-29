@@ -33,7 +33,7 @@ class PackAdmissionService {
 
 /// بوابة الفحص الأمني للحزم لمنع دخول ملفات تالفة أو خبيثة
 class PackAdmissionService {
-  
+
   /// التحقق من سلامة الحزمة قبل اعتمادها (SHA-256)
   Future<bool> verifyAndAdmitPack(File stagedFile, String expectedHash) async {
 >>>>>>> origin/staging/v2-full-platform-1792367411258400957
@@ -44,7 +44,7 @@ class PackAdmissionService {
 =======
       final bytes = await stagedFile.readAsBytes();
       final digest = sha256.convert(bytes);
-      
+
       if (digest.toString() == expectedHash) {
         debugPrint("تم التحقق من الحزمة بنجاح. جاري النقل الذري...");
         // النقل الذري (Atomic Rename) يتم هنا في التنفيذ الفعلي
