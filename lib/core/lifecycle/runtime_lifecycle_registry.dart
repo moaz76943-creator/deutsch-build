@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
@@ -17,8 +16,10 @@ class RuntimeLifecycleRegistry {
     return _isDisposed || _disposedOwners.contains(owner);
   }
 
-  void registerSubscription(StreamSubscription<dynamic> sub,
-      {String owner = 'global'}) {
+  void registerSubscription(
+    StreamSubscription<dynamic> sub, {
+    String owner = 'global',
+  }) {
     registerCleanup(() => sub.cancel(), owner: owner);
   }
 
@@ -28,10 +29,12 @@ class RuntimeLifecycleRegistry {
     }, owner: owner);
   }
 
-  void registerCleanup(FutureOr<void> Function() cleanup,
-      {String owner = 'global'}) {
+  void registerCleanup(
+    FutureOr<void> Function() cleanup, {
+    String owner = 'global',
+  }) {
     if (isOwnerDisposed(owner)) {
-      _safeCleanup(cleanup);
+      safeCleanup(cleanup);
       return;
     }
     _cleanups.putIfAbsent(owner, () => []).add(cleanup);
@@ -40,25 +43,24 @@ class RuntimeLifecycleRegistry {
   Future<void> disposeOwner(String owner) async {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
-    await _disposeOwnerResources(owner);
+    await disposeOwnerResources(owner);
   }
 
   Future<void> disposeAll() async {
-    if (_isDisposed) return;
     _isDisposed = true;
 
     final owners = _cleanups.keys.toList().reversed;
     for (final owner in owners) {
       if (!_disposedOwners.contains(owner)) {
         _disposedOwners.add(owner);
-        await _disposeOwnerResources(owner);
+        await disposeOwnerResources(owner);
       }
     }
 
     _cleanups.clear();
   }
 
-  Future<void> _disposeOwnerResources(String owner) async {
+  Future<void> disposeOwnerResources(String owner) async {
     final cleanups = _cleanups[owner];
     if (cleanups == null || cleanups.isEmpty) return;
 
@@ -67,11 +69,11 @@ class RuntimeLifecycleRegistry {
     _cleanups.remove(owner); // clear before execution to handle race conditions
 
     for (final cleanup in callbacks) {
-      await _safeCleanup(cleanup);
+      await safeCleanup(cleanup);
     }
   }
 
-  Future<void> _safeCleanup(FutureOr<void> Function() cleanup) async {
+  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
       if (result is Future) {

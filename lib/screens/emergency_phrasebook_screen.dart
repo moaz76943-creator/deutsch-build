@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
+<<<<<<< HEAD
 String _emergencyPhraseHeroTag(Map<String, String> phrase) =>
     'emergency_phrase_${phrase['title'] ?? ''}';
 
 /// Offline phrases remain bundled; opening details never triggers a download.
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class EmergencyPhrasebookScreen extends StatelessWidget {
   const EmergencyPhrasebookScreen({super.key});
 
@@ -39,17 +42,17 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
         child: SafeArea(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: phrases.length,
-            itemBuilder: (context, index) {
-              final item = phrases[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Semantics(
-                  button: true,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView.builder(
+              itemCount: phrases.length,
+              itemBuilder: (context, index) {
+                final item = phrases[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
                   child: AppBaseGlassCard(
                     padding: const EdgeInsets.all(16),
+<<<<<<< HEAD
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -99,11 +102,26 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
+=======
+                    child: Row(
+                      children: <Widget>[
+                        Text(item['icon']!, style: const TextStyle(fontSize: 32)),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(item['title']!, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text(item['trans']!, style: const TextStyle(color: Color(0xFF34D399), fontSize: 14)),
+                            ],
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                           ),
                         ],
                       ),
                     ),
                   ),
+<<<<<<< HEAD
                 ),
               );
             },
@@ -139,55 +157,65 @@ class EmergencyPhrasebookDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 24,
+=======
+                );
+              },
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
             ),
-            children: [
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Hero(
-                          tag: _emergencyPhraseHeroTag(item),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Text(
-                              item['icon'] ?? '',
-                              style: const TextStyle(fontSize: 76),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          item['title'] ?? '',
-                          textDirection: TextDirection.rtl,
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          style: const TextStyle(
-                            color: Color(0xFF38BDF8),
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          item['trans'] ?? '',
-                          textDirection: TextDirection.ltr,
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          style: const TextStyle(
-                            color: Color(0xFF34D399),
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
+          ),
+        ),
+      ),
+    )
+  }
+}
+
+class EmergencyPhrasebookDetailScreen extends StatelessWidget {
+  final Map<String, String> item;
+
+  const EmergencyPhrasebookDetailScreen({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(item['title']!),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
+        child: SafeArea(
+          child: Center(
+            child: AppBaseGlassCard(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Hero(
+                    tag: 'emergency_phrase_${item['title']}',
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Text(item['icon']!,
+                          style: const TextStyle(fontSize: 96)),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  Text(item['title']!,
+                      style: const TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  Text(item['trans']!,
+                      style: const TextStyle(
+                          color: Color(0xFF34D399), fontSize: 18),
+                      textAlign: TextAlign.center),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
