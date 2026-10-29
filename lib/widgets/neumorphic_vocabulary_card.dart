@@ -8,11 +8,11 @@ class NeumorphicVocabularyCard extends StatelessWidget {
   final Widget? child;
 
   const NeumorphicVocabularyCard({
-    super.key,
+    Key? key,
     required this.imageUrl,
     required this.heroTag,
     this.child,
-  });
+  }) : super(key: key);
 
   void _showZoomedImage(BuildContext context) {
     showDialog(
@@ -24,7 +24,7 @@ class NeumorphicVocabularyCard extends StatelessWidget {
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: Colors.black.withOpacity(0.5),
               ),
             ),
             GestureDetector(
@@ -38,12 +38,8 @@ class NeumorphicVocabularyCard extends StatelessWidget {
                       imageUrl: imageUrl,
                       fit: BoxFit.contain,
                       width: MediaQuery.of(context).size.width * 0.8,
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) => const Icon(
-                          Icons.error,
-                          size: 50,
-                          color: Colors.white),
+                      placeholder: (context, url) => const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => const Icon(Icons.error, size: 50, color: Colors.white),
                     ),
                   ),
                 ),
@@ -70,13 +66,13 @@ class NeumorphicVocabularyCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.6),
+              color: Colors.black.withOpacity(0.6),
               offset: const Offset(4, 4),
               blurRadius: 10,
               spreadRadius: 1,
             ),
             BoxShadow(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.white.withOpacity(0.05),
               offset: const Offset(-4, -4),
               blurRadius: 10,
               spreadRadius: 1,
@@ -98,10 +94,8 @@ class NeumorphicVocabularyCard extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => const Center(
-                          child: Icon(Icons.error, color: Colors.white54)),
+                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.error, color: Colors.white54)),
                     ),
                   ),
                 ),
@@ -109,8 +103,7 @@ class NeumorphicVocabularyCard extends StatelessWidget {
             else
               const Expanded(
                 child: Center(
-                  child: Icon(Icons.image_not_supported,
-                      size: 50, color: Colors.white24),
+                  child: Icon(Icons.image_not_supported, size: 50, color: Colors.white24),
                 ),
               ),
             if (child != null)

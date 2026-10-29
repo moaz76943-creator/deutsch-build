@@ -1,52 +1,70 @@
-import '../architecture/directed_pair_id.dart';
 import '../srs/review_command_port.dart';
 import 'review_transaction_envelope.dart';
-import 'transaction_persistence_port.dart';
+import 'transaction_state.dart';
 
-/// Validates the immutable review contract before forwarding to one durable
-/// transaction authority. Never independently updates progress or SRS.
 class ReviewTransactionManager {
-  final TransactionPersistencePort persistencePort;
-  final DateTime Function() clock;
+  final Map<String, TransactionState> _transactions = {};
 
-  ReviewTransactionManager(this.persistencePort, {DateTime Function()? clock})
-      : clock = clock ?? DateTime.now;
+  String _deriveLanguagePairKey(ReviewCommand command) {
+    return '${command.sourceLanguageId}_${command.targetLanguageId}';
+  }
 
-  Future<ReviewCommitResult> processTransaction(ReviewCommand command) async {
-    final pair = DirectedPairId(
-      sourceLocale: command.sourceLanguageId,
-      targetLocale: command.targetLanguageId,
-      semanticVersion: command.semanticVersion,
-    );
-    if (command.reviewId.trim().isEmpty ||
-        command.cardId.trim().isEmpty ||
-        command.facetKey.trim().isEmpty ||
-        command.sourceLanguageId != command.sourceLanguageId.trim() ||
-        command.targetLanguageId != command.targetLanguageId.trim() ||
-        command.semanticVersion.trim().isEmpty ||
-        command.semanticVersion != command.semanticVersion.trim() ||
-        !pair.isValidForLearning() ||
-        command.pairEpoch < 0) {
-      throw ArgumentError('Invalid review event, version, or directed pair');
+  void restoreHistory(List<ReviewTransactionEnvelope> history) {
+    for (final envelope in history) {
+      _transactions[envelope.reviewEventId] = TransactionCommitted(envelope);
     }
+  }
+
+  TransactionState getTransactionState(String reviewEventId) {
+    return _transactions[reviewEventId] ?? TransactionRecoverable(Exception('Not found')); // Just for querying if needed, or maybe just exposing the map
+  }
+
+  Future<TransactionState> executeTransaction(
+    ReviewCommand command,
+    Future<void> Function(ReviewTransactionEnvelope) commitFn,
+  ) async {
+    if (command.reviewId.isEmpty) {
+      return TransactionFailed(ArgumentError('reviewId cannot be empty'));
+    }
+
+    final languagePairKey = _deriveLanguagePairKey(command);
+
+    final existingState = _transactions[command.reviewId];
+
+    if (existingState is TransactionPending) {
+      return TransactionFailed(StateError('Transaction already pending'));
+    }
+
+    if (existingState is TransactionCommitted) {
+      if (existingState.envelope.languagePairKey == languagePairKey) {
+        return existingState; // Idempotent success
+      } else {
+        return TransactionFailed(
+            StateError('Transaction already committed for a different language pair'));
+      }
+    }
+
+    _transactions[command.reviewId] = TransactionPending();
+
     final envelope = ReviewTransactionEnvelope(
       reviewEventId: command.reviewId,
       learnerContentKey: command.cardId,
       rating: command.rating.index,
-      timestamp: clock().toUtc(),
-      languagePairKey: pair.uniqueKey,
+      timestamp: DateTime.now(), // Or we could inject time
+      languagePairKey: languagePairKey,
     );
-    return persistencePort.commitOnce(command: command, envelope: envelope);
-  }
-}
 
-/// Adapt the verified atomic manager to widgets without exposing DB internals.
-class DurableReviewCommandPort implements ReviewCommandPort {
-  final ReviewTransactionManager manager;
-  const DurableReviewCommandPort(this.manager);
-
-  @override
-  Future<void> submit(ReviewCommand command) async {
-    await manager.processTransaction(command);
+    try {
+      await commitFn(envelope);
+      final committedState = TransactionCommitted(envelope);
+      _transactions[command.reviewId] = committedState;
+      return committedState;
+    } catch (e) {
+      // Depending on the error we could return Recoverable or Failed
+      // For now, let's treat general exceptions as Recoverable so they can be retried
+      final recoverableState = TransactionRecoverable(e);
+      _transactions[command.reviewId] = recoverableState;
+      return recoverableState;
+    }
   }
 }
