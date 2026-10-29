@@ -1,0 +1,21 @@
+{
+  "isoCode": "syc",
+  "autonym": "ܣܘܪܝܝܐ",
+  "englishName": "Classical Syriac",
+  "scriptDirection": "rtl",
+  "scriptFamily": "Syriac",
+  "typology": "VSO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": true,
+  "features": {
+    "threeNounStates": ["Absolute", "Construct", "Emphatic"],
+    "rootAndPatternMorphology": true,
+    "isRtl": true
+  }
+}

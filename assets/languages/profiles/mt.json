@@ -1,0 +1,22 @@
+{
+  "isoCode": "mt",
+  "autonym": "Malti",
+  "englishName": "Maltese",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin (Maltese: ċ, ġ, għ, ħ, ż)",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": true,
+  "features": {
+    "rootAndPatternMorphology": true,
+    "hasBrokenPlurals": true,
+    "hasDefiniteArticlePrefix": true,
+    "uniqueLatinSemiticLanguage": true
+  }
+}
