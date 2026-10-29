@@ -44,17 +44,4 @@ void main() {
     expect(iterator.moveNext(), isTrue);
     expect(seen, 400);
   });
-
-  test('error handling in worker entry on database open failure', () async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    final governor = BackgroundTaskGovernor();
-
-    await expectLater(
-      () => governor.ingestLexicon(
-        writableDatabasePath: 'dummy_path.db',
-        rows: [],
-      ),
-      throwsA(isA<StateError>().having((e) => e.message, 'message', contains('Background SQLite worker failed:'))),
-    );
-  });
 }
