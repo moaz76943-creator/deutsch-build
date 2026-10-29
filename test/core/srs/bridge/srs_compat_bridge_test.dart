@@ -1,19 +1,38 @@
+import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/features/spaced_repetition.dart';
 
 void main() {
-  group('SRS Authority Unification Tests', () {
-    test('توجيه استدعاء SpacedRepetitionService القديم دون انهيار أو كتابة ظل', () async {
-      final service = SpacedRepetitionService.instance;
-
-      expect(
-        () async => await service.submitResult(
-          cardId: 'VOCAB-DE-001',
-          isCorrect: true,
-          difficulty: 2,
+  group('SRS compatibility persistence contract', () {
+    test('unbound compatibility bridge cannot acknowledge a review', () async {
+      final bridge = SrsCompatBridge();
+      await expectLater(
+        bridge.recordReviewCompat(
+          contentKey: 'VOCAB-DE-001',
+          rating: 2,
+          sourceIso: 'de',
+          targetIso: 'ar',
         ),
-        returnsNormally,
+        throwsStateError,
       );
+    });
+
+    test('bound bridge acknowledges only after canonical writer completes',
+        () async {
+      final events = <String>[];
+      final bridge = SrsCompatBridge(
+        durableWriter: (event) async {
+          expect(event.rating, 2);
+          expect(event.languagePairKey, 'de_ar');
+          events.add(event.reviewEventId);
+        },
+      );
+      await bridge.recordReviewCompat(
+        contentKey: 'VOCAB-DE-001',
+        rating: 2,
+        sourceIso: 'de',
+        targetIso: 'ar',
+      );
+      expect(events, hasLength(1));
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../core/audio/bcp47_locale_registry.dart';
 import 'database_service.dart';
 
 class LanguagePackManager {
@@ -98,7 +99,27 @@ class LanguagePackManager {
         'zh'
       ];
 
-  static String getTtsLocale(String languageCode) => languageCode;
+  /// BCP-47 tag for an installed language. Unsupported tags are empty so
+  /// speech never starts for a code the catalog does not know.
+  static String getTtsLocale(String languageCode) {
+    final normalized = languageCode.trim().replaceAll('_', '-');
+    if (normalized.isEmpty) return '';
+    final parts =
+        normalized.split('-').where((part) => part.isNotEmpty).toList();
+    if (parts.isEmpty) return '';
+    final primary = parts.first.toLowerCase();
+    final knownTag = supportedBcp47Locales.any(
+      (tag) => tag.toLowerCase() == normalized.toLowerCase(),
+    );
+    if (!supportedLanguages.contains(primary) && !knownTag) return '';
+    if (parts.length == 1) {
+      return Bcp47LocaleRegistry.getBcp47Locale(primary) ?? normalized;
+    }
+    final tag = '$primary-${parts[1].toUpperCase()}';
+    return Bcp47LocaleRegistry.getFallbackLocale(tag) ??
+        Bcp47LocaleRegistry.getBcp47Locale(primary) ??
+        normalized;
+  }
 
   /// BCP-47 tag used by TTS. Stateless, so both static and instance callers
   /// resolve the same catalog value.
@@ -109,8 +130,7 @@ class LanguagePackManager {
   /// Registration does not imply an installed or production-ready pack.
   static bool isLocalesSupported(String localeCode) {
     final normalized = localeCode.trim().replaceAll('_', '-').toLowerCase();
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$')
-        .hasMatch(normalized)) {
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
       return false;
     }
     return supportedLanguages.contains(normalized.split('-').first);
