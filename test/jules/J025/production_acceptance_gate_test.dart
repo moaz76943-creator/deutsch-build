@@ -2,141 +2,133 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
 void main() {
-  group('ProductionAcceptanceGate', () {
-    test('verifyAppReadiness remains backward compatible', () {
-      expect(
-        ProductionAcceptanceGate.verifyAppReadiness(
-          isOfflineSafe: true,
-          isStorageGuarded: true,
-          isLifecycleManaged: true,
-        ),
-        isTrue,
-      );
-
-      expect(
-        ProductionAcceptanceGate.verifyAppReadiness(
-          isOfflineSafe: false,
-          isStorageGuarded: true,
-          isLifecycleManaged: true,
-        ),
-        isFalse,
-      );
+  group('ProductionAcceptanceGate Tests', () {
+    test('missing verificationTime returns notRun/notVerified', () {
+      final evidence = AcceptanceEvidence();
+      final result = ProductionAcceptanceGate.evaluate(evidence);
+      expect(result.outcome, GateOutcome.notRun);
+      expect(result.state, EligibilityState.notVerified);
     });
 
-    test('Missing integrity evidence blocks acceptance', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        isIntegrityEvidenceMissing: true,
+    test('stale verificationTime returns failed/blocked', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now.subtract(const Duration(minutes: 31)),
       );
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.blocked);
+    });
 
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+    test('future verificationTime returns failed/blocked', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now.add(const Duration(minutes: 5)),
+      );
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.blocked);
+    });
+
+    test('missing mandatory evidence returns failed/blocked', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now,
+        isOfflineSafe: true,
+        // isStorageGuarded missing
+        isLifecycleManaged: true,
+        isDatabaseIntact: true,
+        isContentReady: true,
+      );
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.state, EligibilityState.blocked);
+    });
+
+    test('false mandatory evidence returns blocked/blocked', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now,
+        isOfflineSafe: true,
+        isStorageGuarded: false, // Explicit failure
+        isLifecycleManaged: true,
+        isDatabaseIntact: true,
+        isContentReady: true,
+      );
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
       expect(result.outcome, GateOutcome.blocked);
-      expect(result.eligibility, PromotionEligibility.blocked);
+      expect(result.state, EligibilityState.blocked);
     });
 
-    test('Corrupted content fails acceptance', () {
-      final contract = J025StartupContract(
+    test('fully verified evidence returns passed/approved', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now,
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        isContentCorrupted: true,
+        isDatabaseIntact: true,
+        isContentReady: true,
+        optionalAudioAvailable: true,
+        claimedLanguages: ['de', 'ar'],
       );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.eligibility, PromotionEligibility.blocked);
-    });
-
-    test('Failed startup recovery fails acceptance', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        isStartupRecoveryFailed: true,
-      );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.eligibility, PromotionEligibility.blocked);
-    });
-
-    test('Missing infrastructure fails acceptance', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: false,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-      );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.eligibility, PromotionEligibility.blocked);
-    });
-
-    test('Unexecuted tests mark as not run', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        hasExecutedTests: false,
-      );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.notRun);
-      expect(result.eligibility, PromotionEligibility.notVerified);
-    });
-
-    test('Stale verification marks as not run', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        isVerificationStale: true,
-      );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.notRun);
-      expect(result.eligibility, PromotionEligibility.notVerified);
-    });
-
-    test('Unsupported language claims fail acceptance', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        registeredLanguages: {'en', 'de', 'fr'},
-        verifiedDictionaries: {'en', 'de'},
-      );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.eligibility, PromotionEligibility.blocked);
-    });
-
-    test('Missing optional audio results in degraded but passed acceptance', () {
-      final contract = J025StartupContract(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        hasOptionalAudio: false,
-      );
-
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
       expect(result.outcome, GateOutcome.passed);
-      expect(result.eligibility, PromotionEligibility.degraded);
+      expect(result.state, EligibilityState.approved);
+      expect(result.readyLanguages, containsAll(['de', 'ar']));
     });
 
-    test('Successful pass', () {
-      final contract = J025StartupContract(
+    test('fully verified evidence without audio returns passed/degraded', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now,
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        isDatabaseIntact: true,
+        isContentReady: true,
+        optionalAudioAvailable: false, // Missing audio
+        claimedLanguages: ['de'],
+      );
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
+      expect(result.outcome, GateOutcome.passed);
+      expect(result.state, EligibilityState.degraded);
+      expect(result.readyLanguages, ['de']);
+    });
+
+    test('claimed languages not production ready are filtered out', () {
+      final now = DateTime.now();
+      final evidence = AcceptanceEvidence(
+        verificationTime: now,
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        isDatabaseIntact: true,
+        isContentReady: true,
+        optionalAudioAvailable: true,
+        claimedLanguages: ['de', 'fr', 'es', 'ar'],
+      );
+      final result = ProductionAcceptanceGate.evaluate(evidence, now: now);
+      expect(result.outcome, GateOutcome.passed);
+      expect(result.state, EligibilityState.approved);
+      // 'de' and 'ar' are production ready. 'fr' and 'es' are assetsReady/nominal.
+      expect(result.readyLanguages, ['de', 'ar']);
+    });
+
+    test('verifyAppReadiness fallback logic', () {
+      final result1 = ProductionAcceptanceGate.verifyAppReadiness(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
       );
+      expect(result1, isTrue);
 
-      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
-      expect(result.outcome, GateOutcome.passed);
-      expect(result.eligibility, PromotionEligibility.approved);
+      final result2 = ProductionAcceptanceGate.verifyAppReadiness(
+        isOfflineSafe: true,
+        isStorageGuarded: false,
+        isLifecycleManaged: true,
+      );
+      expect(result2, isFalse);
     });
   });
 }
