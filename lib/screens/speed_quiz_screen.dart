@@ -77,7 +77,7 @@ class _SpeedQuizScreenState extends State<SpeedQuizScreen> {
                   child: Column(
                     children: <Widget>[
                       Text(
-                        _currentQuestion['question']! as String,
+                        _currentQuestion['question']!,
                         style: AppTypography.display
                             .copyWith(color: Colors.white, fontSize: 22),
                         textAlign: TextAlign.center,
@@ -87,9 +87,7 @@ class _SpeedQuizScreenState extends State<SpeedQuizScreen> {
                 ),
                 const SizedBox(height: 24),
                 ...List.generate(4, (index) {
-                  final String option =
-                      (_currentQuestion['options'] as List<dynamic>)[index]
-                          as String;
+                  final String option = _currentQuestion['options'][index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ElevatedButton(

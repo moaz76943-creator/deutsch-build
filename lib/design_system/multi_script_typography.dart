@@ -1,49 +1,133 @@
 import 'package:flutter/material.dart';
 
-/// MultiScriptTypography - Master Constitution Section 10 & PR #505 Compliant.
-/// Prevents missing glyph ("tofu" box) errors across 100 languages by injecting
-/// canonical multi-script font fallbacks (Arabic, CJK, Devanagari, Latin).
 class MultiScriptTypography {
-  /// Universal fallback chain ensuring glyph resolution across major script families
-  static const List<String> canonicalFontFallback = <String>[
-    'Noto Sans',
-    'Noto Sans Arabic',
-    'Noto Sans JP',
-    'Noto Sans KR',
-    'Noto Sans SC',
-    'Noto Sans Devanagari',
-    'Roboto',
-    'sans-serif',
-  ];
+  static const String arabicFallback = 'Cairo'; // using existing Cairo
+  static const String hebrewFallback = 'Noto Sans Hebrew';
+  static const String devanagariFallback = 'Noto Sans Devanagari';
+  static const String ethiopicFallback = 'Noto Sans Ethiopic';
+  static const String scFallback = 'Noto Sans SC';
+  static const String jpFallback = 'Noto Sans JP';
+  static const String krFallback = 'Noto Sans KR';
+  static const String georgianFallback = 'Noto Sans Georgian';
+  static const String armenianFallback = 'Noto Sans Armenian';
 
-  /// Builds a responsive TextStyle with guaranteed font fallback injection
-  static TextStyle createTextStyle({
-    double? fontSize,
-    FontWeight? fontWeight,
-    Color? color,
-    double? height,
-    List<String>? customFallback,
-  }) {
-    return TextStyle(
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      color: color,
-      height: height,
-      fontFamilyFallback: customFallback ?? canonicalFontFallback,
-    );
+  static List<String> getFallbacksForText(String text) {
+    final fallbacks = <String>{};
+
+    for (final rune in text.runes) {
+      if ((rune >= 0x0600 && rune <= 0x06FF) ||
+          (rune >= 0x0750 && rune <= 0x077F) ||
+          (rune >= 0x08A0 && rune <= 0x08FF)) {
+        fallbacks.add(arabicFallback);
+      } else if (rune >= 0x0590 && rune <= 0x05FF) {
+        fallbacks.add(hebrewFallback);
+      } else if (rune >= 0x0900 && rune <= 0x097F) {
+        fallbacks.add(devanagariFallback);
+      } else if ((rune >= 0x1200 && rune <= 0x137F) ||
+          (rune >= 0x1380 && rune <= 0x139F) ||
+          (rune >= 0x2D80 && rune <= 0x2DDF)) {
+        fallbacks.add(ethiopicFallback);
+      } else if (rune >= 0x10A0 && rune <= 0x10FF) {
+        fallbacks.add(georgianFallback);
+      } else if (rune >= 0x0530 && rune <= 0x058F) {
+        fallbacks.add(armenianFallback);
+      } else if ((rune >= 0x3040 && rune <= 0x309F) ||
+          (rune >= 0x30A0 && rune <= 0x30FF)) {
+        fallbacks.add(jpFallback);
+      } else if ((rune >= 0xAC00 && rune <= 0xD7AF) ||
+          (rune >= 0x1100 && rune <= 0x11FF) ||
+          (rune >= 0x3130 && rune <= 0x318F)) {
+        fallbacks.add(krFallback);
+      } else if ((rune >= 0x4E00 && rune <= 0x9FFF) ||
+          (rune >= 0x3400 && rune <= 0x4DBF) ||
+          (rune >= 0x20000 && rune <= 0x2A6DF)) {
+        fallbacks.add(scFallback);
+      }
+    }
+
+    return fallbacks.toList();
+  }
+}
+
+class ScriptAwareText extends StatelessWidget {
+  final String? data;
+  final InlineSpan? textSpan;
+  final TextStyle? style;
+  final TextAlign? textAlign;
+  final TextDirection? textDirection;
+  final int? maxLines;
+  final TextOverflow? overflow;
+
+  const ScriptAwareText(
+    String this.data, {
+    super.key,
+    this.style,
+    this.textAlign,
+    this.textDirection,
+    this.maxLines,
+    this.overflow,
+  }) : textSpan = null;
+
+  const ScriptAwareText.rich(
+    InlineSpan this.textSpan, {
+    super.key,
+    this.style,
+    this.textAlign,
+    this.textDirection,
+    this.maxLines,
+    this.overflow,
+  }) : data = null;
+
+  String _extractText(InlineSpan span) {
+    if (span is TextSpan) {
+      final buffer = StringBuffer(span.text ?? '');
+      if (span.children != null) {
+        for (final child in span.children!) {
+          buffer.write(_extractText(child));
+        }
+      }
+      return buffer.toString();
+    }
+    return '';
   }
 
-  /// Injects universal font fallbacks across the entire ThemeData TextTheme
-  static TextTheme applyFallbackToTheme(TextTheme baseTheme) {
-    return baseTheme.copyWith(
-      displayLarge: baseTheme.displayLarge?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      displayMedium: baseTheme.displayMedium?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      headlineMedium: baseTheme.headlineMedium?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      titleLarge: baseTheme.titleLarge?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      titleMedium: baseTheme.titleMedium?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      bodyLarge: baseTheme.bodyLarge?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      bodyMedium: baseTheme.bodyMedium?.copyWith(fontFamilyFallback: canonicalFontFallback),
-      labelLarge: baseTheme.labelLarge?.copyWith(fontFamilyFallback: canonicalFontFallback),
-    );
+  @override
+  Widget build(BuildContext context) {
+    final textContent =
+        data ?? (textSpan != null ? _extractText(textSpan!) : '');
+    final fallbacks = MultiScriptTypography.getFallbacksForText(textContent);
+
+    TextStyle effectiveStyle = style ?? const TextStyle();
+    if (fallbacks.isNotEmpty) {
+      final existingFallbacks = effectiveStyle.fontFamilyFallback ?? [];
+      final newFallbacks = <String>[...existingFallbacks];
+      for (final fallback in fallbacks) {
+        if (!newFallbacks.contains(fallback)) {
+          newFallbacks.add(fallback);
+        }
+      }
+      effectiveStyle =
+          effectiveStyle.copyWith(fontFamilyFallback: newFallbacks);
+    }
+
+    if (data != null) {
+      return Text(
+        data!,
+        style: effectiveStyle,
+        textAlign: textAlign,
+        textDirection: textDirection,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
+    } else {
+      return Text.rich(
+        textSpan!,
+        style: effectiveStyle,
+        textAlign: textAlign,
+        textDirection: textDirection,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
+    }
   }
 }
