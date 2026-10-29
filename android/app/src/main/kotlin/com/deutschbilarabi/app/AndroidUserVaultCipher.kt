@@ -140,21 +140,10 @@ class AndroidUserVaultCipher(context: Context) : MethodChannel.MethodCallHandler
     }
 
     private fun isHardwareBacked(key: SecretKey): Boolean = try {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            false
-        } else {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) false else {
             val info = SecretKeyFactory.getInstance("AES", "AndroidKeyStore")
                 .getKeySpec(key, KeyInfo::class.java) as KeyInfo
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val level = info.securityLevel
-                level == KeyProperties.SECURITY_LEVEL_TRUSTED_ENVIRONMENT ||
-                    level == KeyProperties.SECURITY_LEVEL_STRONGBOX ||
-                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        level == KeyProperties.SECURITY_LEVEL_UNKNOWN_SECURE)
-            } else {
-                @Suppress("DEPRECATION")
-                info.isInsideSecureHardware
-            }
+            info.isInsideSecureHardware
         }
     } catch (_: GeneralSecurityException) {
         false
