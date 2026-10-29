@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/services/trie_search_engine.dart';
 
 void main() {
   test('Arabic normalization and search', () {
-    final engine = TrieSearchEngine();
+    final engine = TrieSearchEngine(languageCode: 'ar');
     engine.insert('مُعَلِّم', 'lex.ar.teacher');
 
     // Search without diacritics
@@ -11,7 +11,7 @@ void main() {
   });
 
   test('Hebrew normalization and search', () {
-    final engine = TrieSearchEngine();
+    final engine = TrieSearchEngine(languageCode: 'he');
     engine.insert('שָׁלוֹם', 'lex.he.shalom'); // Shalom with niqqud
 
     expect(engine.searchPrefix('שלו'), contains('lex.he.shalom'));

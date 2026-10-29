@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/ui/contracts/ui_state.dart';
+import 'package:deutsch_bilarabi/core/ui/contracts/ui_state_contract.dart';
 import 'package:deutsch_bilarabi/core/ui/components/resilient_async_builder.dart';
-import 'package:deutsch_bilarabi/core/ui/components/resilient_media_content.dart';
-import 'package:deutsch_bilarabi/core/ui/components/content_cancellation_token.dart';
+import 'package:deutsch_bilarabi/core/ui/components/optional_media_widget.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
-import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 
 void main() {
   group('Resilient UI Components', () {
@@ -14,8 +12,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (ContentCancellationToken token) => Future.value('Success Data'),
-              dataBuilder: (context, data) => Text(data),
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateSuccess('Success Data'),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -30,9 +29,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (ContentCancellationToken token) => Future.value(null),
-              emptyMessage: 'No Data Here',
-              dataBuilder: (context, data) => Text(data),
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateEmpty('No Data Here'),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -47,42 +46,43 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (ContentCancellationToken token) => Future.error(Exception('Something went wrong')),
-              dataBuilder: (context, data) => Text(data),
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateFailed('Error occurred', userMessage: 'Something went wrong'),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('Unable to load content.'), findsOneWidget);
+      expect(find.text('Something went wrong'), findsOneWidget);
     });
 
-    testWidgets('ResilientOperationBuilder handles degraded state', (WidgetTester tester) async {
+    testWidgets('ResilientAsyncBuilder handles degraded state', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientOperationBuilder<String>(
-              operation: (ContentCancellationToken token) async {
-                  return OperationResult<String>.failure(ContentFailure('ui_operation_failure', 'Warning: Offline mode'));
-              },
-              dataBuilder: (context, data) => Text(data),
+            body: ResilientAsyncBuilder<String>(
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateDegraded('Stale Data', 'Warning: Offline mode'),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('No offline content available.'), findsOneWidget);
+      expect(find.text('Warning: Offline mode'), findsOneWidget);
+      expect(find.text('Stale Data'), findsOneWidget);
     });
 
-    testWidgets('ResilientMediaContent falls back correctly when media missing', (WidgetTester tester) async {
+    testWidgets('OptionalMediaWidget falls back correctly when media missing', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResilientMediaContent(
-              mediaFetcher: (ContentCancellationToken token) async => null,
-              fallbackSemanticLabel: 'A beautiful tree',
+            body: OptionalMediaWidget(
+              fetcher: () async => null,
+              semanticLabel: 'A beautiful tree',
               width: 100,
               height: 100,
             ),
@@ -91,6 +91,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+      expect(find.text('A beautiful tree'), findsOneWidget);
       expect(find.byIcon(Icons.image_not_supported), findsOneWidget);
     });
 
@@ -110,8 +111,9 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: ResilientAsyncBuilder<String>(
-                futureBuilder: (ContentCancellationToken token) async => throw Exception('A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
-                dataBuilder: (context, data) => Text(data),
+                featureName: 'ScaleFeature',
+                fetcher: () async => const UiStateFailed('Error', userMessage: 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
+                builder: (context, data) => Text(data),
               ),
             ),
           ),
@@ -132,8 +134,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (ContentCancellationToken token) async => 'Data',
-              dataBuilder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateSuccess('Data'),
+              builder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
             ),
           ),
         ),

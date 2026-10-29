@@ -5,7 +5,6 @@ import 'package:deutsch_bilarabi/core/ui/components/resilient_async_builder.dart
 import 'package:deutsch_bilarabi/core/ui/states/content_loading_state.dart';
 import 'package:deutsch_bilarabi/core/ui/states/content_error_state.dart';
 import 'package:deutsch_bilarabi/core/ui/states/content_empty_state.dart';
-import 'package:deutsch_bilarabi/core/ui/components/content_cancellation_token.dart';
 
 void main() {
   group('Resilient UI Components Tests', () {
@@ -66,21 +65,21 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (ContentCancellationToken token) => Future.value('Success Data'),
-              dataBuilder: (context, data) => Text(data),
+              futureFactory: () => Future.value('Success Data'),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
       // Initially loading
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(ContentLoadingState), findsOneWidget);
 
       await tester.pumpAndSettle();
 
       // Data is loaded
       expect(find.text('Success Data'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byType(ContentLoadingState), findsNothing);
     });
 
     testWidgets('ResilientAsyncBuilder handles error state', (WidgetTester tester) async {
@@ -88,8 +87,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (ContentCancellationToken token) => Future.error(Exception('Failed to load')),
-              dataBuilder: (context, data) => Text(data),
+              futureFactory: () => Future.error(Exception('Failed to load')),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -97,27 +96,26 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.byType(ContentErrorState), findsOneWidget);
     });
 
     testWidgets('ResilientAsyncBuilder handles future updates (didUpdateWidget)', (WidgetTester tester) async {
-      Widget buildTestWidget(Future<String> Function(ContentCancellationToken) factory, Object requestKey) {
+      Widget buildTestWidget(Future<String> Function() factory) {
         return MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              requestKey: requestKey,
-              futureBuilder: factory,
-              dataBuilder: (context, data) => Text(data),
+              futureFactory: factory,
+              builder: (context, data) => Text(data),
             ),
           ),
         );
       }
 
-      await tester.pumpWidget(buildTestWidget((t) => Future.value('First Data'), 1));
+      await tester.pumpWidget(buildTestWidget(() => Future.value('First Data')));
       await tester.pumpAndSettle();
       expect(find.text('First Data'), findsOneWidget);
 
-      await tester.pumpWidget(buildTestWidget((t) => Future.value('Second Data'), 2));
+      await tester.pumpWidget(buildTestWidget(() => Future.value('Second Data')));
       await tester.pumpAndSettle();
       expect(find.text('Second Data'), findsOneWidget);
     });
