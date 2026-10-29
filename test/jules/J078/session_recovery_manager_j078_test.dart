@@ -21,15 +21,12 @@ void main() {
       };
       await prefs.setString('deutsch_active_session_recovery_v1', jsonEncode(legacyData));
 
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000, // Valid age
-      );
-      final restored = manager.restoreSession();
+      final manager = SessionRecoveryManager(prefs);
+      final restored = manager.restoreSession(currentTimestampSec: 1000000 + 1000);
 
       expect(restored, isNotNull);
       expect(restored?.sessionId, 'legacy_123');
-      expect(restored?.sourceLocale, '');
+      expect(restored?.languagePairKey, isNull);
       expect(restored?.committedReviewIds, isEmpty);
     });
 
@@ -41,13 +38,10 @@ void main() {
         timestamp: 1000000,
         committedReviewIds: ['rev_1', 'rev_2'],
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-      );
+      final manager = SessionRecoveryManager(prefs);
 
       await manager.persistSession(session);
-      final restored = manager.restoreSession();
+      final restored = manager.restoreSession(currentTimestampSec: 1000000 + 1000);
 
       expect(restored?.committedReviewIds, containsAll(['rev_1', 'rev_2']));
     });
@@ -58,19 +52,15 @@ void main() {
         currentRoute: '/quiz/trainer',
         lastItemIndex: 0,
         timestamp: 1000000,
-        sourceLocale: 'de',
-        targetLocale: 'ar',
+        languagePairKey: 'de_ar_1.0',
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-      );
+      final manager = SessionRecoveryManager(prefs);
 
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        expectedSourceLocale: 'en',
-        expectedTargetLocale: 'ar',
+        expectedLanguagePairKey: 'en_ar_1.0',
+        currentTimestampSec: 1000000 + 1000,
       );
 
       expect(restored, isNull);
@@ -83,36 +73,33 @@ void main() {
         lastItemIndex: 0,
         timestamp: 1000000,
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-      );
+      final manager = SessionRecoveryManager(prefs);
 
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
         isValidRoute: (route) => route == '/valid_route',
+        currentTimestampSec: 1000000 + 1000,
       );
 
       expect(restored, isNull);
     });
 
     test('Rejects stale session beyond max age', () async {
-      const maxAgeMs = 24 * 60 * 60 * 1000;
+      const maxAgeSec = 24 * 60 * 60;
       final session = SessionState(
         sessionId: 'sess_stale',
         currentRoute: '/quiz',
         lastItemIndex: 0,
         timestamp: 1000000,
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + maxAgeMs + 1000, // 1 second past max age
-      );
+      final manager = SessionRecoveryManager(prefs);
 
       await manager.persistSession(session);
 
-      final restored = manager.restoreSession();
+      final restored = manager.restoreSession(
+        currentTimestampSec: 1000000 + maxAgeSec + 1000, // 1000 seconds past max age
+      );
 
       expect(restored, isNull);
     });
@@ -124,24 +111,24 @@ void main() {
         lastItemIndex: 0,
         timestamp: 1000000,
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-        maxRecoveryAttempts: 2,
-      );
+      final manager = SessionRecoveryManager(prefs);
 
       await manager.persistSession(session);
 
       // Attempt 1
-      var restored = manager.restoreSession();
+      var restored = manager.restoreSession(currentTimestampSec: 1000000 + 1000);
       expect(restored, isNotNull);
 
       // Attempt 2
-      restored = manager.restoreSession();
+      restored = manager.restoreSession(currentTimestampSec: 1000000 + 1000);
       expect(restored, isNotNull);
 
-      // Attempt 3 (Should fail)
-      restored = manager.restoreSession();
+      // Attempt 3
+      restored = manager.restoreSession(currentTimestampSec: 1000000 + 1000);
+      expect(restored, isNotNull);
+
+      // Attempt 4 (Should fail because limit is >= 3 in our logic)
+      restored = manager.restoreSession(currentTimestampSec: 1000000 + 1000);
       expect(restored, isNull);
     });
   });
