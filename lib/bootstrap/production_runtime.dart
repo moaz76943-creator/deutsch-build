@@ -1,418 +1,92 @@
-import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart';
+import '../services/crash_loop_guard.dart';
+import '../services/database_service.dart';
+import '../services/user_vault_security_service.dart';
 
-import '../core/agents/agents.dart';
-import '../core/content_contract.dart';
-import '../core/curriculum/canonical_curriculum_50.dart';
-import '../core/curriculum/curriculum_models.dart';
-import '../features/audio/data/audio_manifest_catalog.dart';
-import '../language/german/german_language_pack.dart';
-import '../language/german/bundled_german_pack_downloader.dart';
-import '../models/content.dart';
-import '../models/learner.dart';
-import '../models/pack_security_runtime_config.dart';
-import '../services/active_pack_runtime_provider.dart';
-import '../services/grammar_hub_service.dart';
-import '../services/pack_database_key_store.dart';
-import '../services/pack_database_security.dart';
-import '../services/pack_manager_service.dart';
-import '../services/preferences_service.dart';
-import '../ui/bridge/agent_ui_bridge.dart';
-
+/// Coordinates the services that still exist after the historical runtime
+/// modules were removed. It does not open learner storage on the first frame
+/// and it does not start a second crash-loop count.
 final class ProductionRuntimeCoordinator {
-  SystemAgentRuntime? _systemAgentRuntime;
+  ProductionRuntimeCoordinator({
+    SqlCipherPackDatabaseSecurity? packSecurity,
+    DatabaseService? contentDatabase,
+  })  : packSecurity = packSecurity ?? const SqlCipherPackDatabaseSecurity(),
+        _contentDatabase = contentDatabase ?? DatabaseService.instance;
 
-  Future<SystemAgentRuntime> startSystemAgents(
-    PreferencesService preferences,
-  ) async {
-    final runtime = await SystemAgentRuntime.start(
-      memoryStore: _PreferencesMemoryAgentStore(preferences),
-    );
-    _systemAgentRuntime = runtime;
-    return runtime;
-  }
+  final SqlCipherPackDatabaseSecurity packSecurity;
+  final DatabaseService _contentDatabase;
 
-  Future<AudioManifestCatalog> loadGermanAudioCatalog() =>
-      _loadGermanAudioCatalog();
+  /// Progress records stay on the Android keystore vault cipher.
+  VaultCipher get progressCipher => packSecurity.cipher;
 
-  bool needsPlacementOnboarding(
-    LearnerState state, {
-    required int canonicalXp,
-  }) =>
-      _needsPlacementOnboarding(
-        state,
-        canonicalXp: canonicalXp,
-      );
+  /// Preference-only boot flag. CrashLoopGuard.beginBoot stays on the startup
+  /// boundary so this read cannot double-count a launch.
+  Future<void> noteFirstFrame() => SystemAgentRuntime.start();
 
-  int placementStartTaskOrder(LearnerState state) =>
-      _placementStartTaskOrder(state);
-
-  Future<ResolvedCorpusSession> resolveActiveCorpusSession(
-    PreferencesService preferences,
-  ) =>
-      _resolveActiveCorpusSession(preferences);
-
-  Future<void> seedMemoryOnce({
-    required SystemAgentRuntime runtime,
-    required LearnerState state,
-  }) =>
-      _seedMemoryOnce(runtime: runtime, state: state);
-
-  Future<void> dispatchRecoveryError({
-    required Object error,
-    required String context,
-    required bool fatal,
-  }) async {
-    final runtime = _systemAgentRuntime;
-    if (runtime == null || runtime.isClosed) return;
-    try {
-      await runtime.reportError(
-        context: context,
-        errorType: error.runtimeType.toString(),
-        message: error.toString(),
-        fatal: fatal,
-      );
-    } on Object {
-      return;
-    }
-  }
-
-  Future<void> shutdownActivatedRuntime({
-    required SystemAgentRuntime runtime,
-    required AgentUIBridge bridge,
-  }) async {
-    await bridge.close();
-    await runtime.close();
-    if (identical(_systemAgentRuntime, runtime)) {
-      _systemAgentRuntime = null;
-    }
-  }
-
-  Future<void> closeSystemAgents(SystemAgentRuntime runtime) async {
-    await runtime.close().catchError((_) {});
-    if (identical(_systemAgentRuntime, runtime)) {
-      _systemAgentRuntime = null;
-    }
+  /// Explicit content activation. Cold start does not call this.
+  Future<void> activateContentPack({String languageCode = 'de'}) {
+    return ActivePackRuntimeProvider(
+      database: _contentDatabase,
+      languageCode: languageCode,
+    ).resolve();
   }
 }
 
-Future<AudioManifestCatalog> _loadGermanAudioCatalog() async {
-  try {
-    final raw = await rootBundle.loadString(
-      'content/german/audio_manifest.json',
-    );
-    return AudioManifestCatalog.parse(raw);
-  } on Object {
-    return AudioManifestCatalog.empty();
-  }
+/// Reads the existing boot-pending flag. It does not write the crash ledger.
+final class SystemAgentRuntime {
+  const SystemAgentRuntime();
+
+  static Future<void> start() => CrashLoopGuard.verifyBootState();
 }
 
-bool _needsPlacementOnboarding(
-  LearnerState state, {
-  required int canonicalXp,
-}) =>
-    state.placementHistory.isEmpty &&
-    state.attempts.isEmpty &&
-    state.assessmentHistory.isEmpty &&
-    state.learned.isEmpty &&
-    state.reviewCards.isEmpty &&
-    canonicalXp == 0;
+/// Opens the current content database and refuses an unbounded first page.
+final class ActivePackRuntimeProvider {
+  ActivePackRuntimeProvider({
+    DatabaseService? database,
+    this.languageCode = 'de',
+  }) : _database = database ?? DatabaseService.instance;
 
-int _placementStartTaskOrder(LearnerState state) {
-  for (final record in state.placementHistory) {
-    if (record.curriculumStartLevel == null) continue;
-    return record.recommendedStartTaskOrder.clamp(1, 50).toInt();
-  }
-  return 1;
-}
+  final DatabaseService _database;
+  final String languageCode;
 
-final class ResolvedCorpusSession {
-  const ResolvedCorpusSession({
-    required this.resolution,
-    required this.initialCorpus,
-  });
+  /// Content search already pages at most 50 rows. The production window is
+  /// the ceiling those pages must fit inside.
+  static const int contentPageCap = 50;
 
-  final RuntimePackResolution resolution;
-  final List<LearningContent> initialCorpus;
-}
-
-Future<void> _ensureBundledGermanPackActive(
-  PackManagerService manager,
-) async {
-  if (manager.activePackId == 'de') return;
-
-  if (manager.activePackId != null) {
-    throw StateError(
-      'A different language pack is active. '
-      'Refusing to override the existing selection.',
-    );
-  }
-
-  if (manager.installedFor('de') != null) {
-    await manager.setActivePack('de');
-    return;
-  }
-
-  final packDirectory = Directory(
-    p.join(manager.rootDirectory.path, 'packs', 'de'),
-  );
-
-  if (await packDirectory.exists()) {
-    throw StateError(
-      'Unregistered German pack directory exists. '
-      'Manual recovery is required.',
-    );
-  }
-
-  final rawCatalog = await rootBundle.loadString(
-    'assets/content/packs/de/catalog.json',
-  );
-
-  final manifest = await manager.loadManifestJson(rawCatalog);
-  final descriptor = manifest.packById('de');
-
-  if (descriptor == null) {
-    throw StateError('German pack not present in signed catalog.');
-  }
-
-  await manager.install(descriptor);
-
-  if (manager.activePackId != 'de') {
-    await manager.setActivePack('de');
-  }
-
-  if (manager.activePackId != 'de') {
-    throw StateError('German pack activation failed.');
-  }
-}
-
-Future<ResolvedCorpusSession> _resolveActiveCorpusSession(
-  PreferencesService prefs,
-) async {
-  const initialWindowSize = 128;
-
-  final databaseRoot = await getDatabasesPath();
-  final languagePack = const GermanLanguagePack();
-  final packSecurity = PackSecurityRuntimeConfig.fromEnvironment();
-  final manifestVerifier = PackManifestVerifiers.fromSingleBase64Key(
-    keyId: packSecurity.manifestKeyId,
-    publicKeyBase64: packSecurity.manifestPublicKeyBase64,
-  );
-  final packDatabaseKeyStore = AndroidKeystorePackDatabaseKeyStore();
-  const packDatabaseSecurity = SqlCipherPackDatabaseSecurity();
-
-  final packManager = PackManagerService(
-    prefs,
-    manifestVerifier: manifestVerifier,
-    databaseKeyStore: packDatabaseKeyStore,
-    databaseCipher: packDatabaseSecurity,
-    downloader: const BundledGermanPackDownloader(),
-    rootDirectory: Directory(
-      p.join(databaseRoot, 'offline_language_packs'),
-    ),
-  );
-
-  await _ensureBundledGermanPackActive(packManager);
-
-  final resolution = await ActivePackRuntimeProvider(
-    packManager: packManager,
-    languagePack: languagePack,
-    embeddedGrammar: GrammarHubService(),
-    databaseKeyStore: packDatabaseKeyStore,
-    databaseOpener: packDatabaseSecurity,
-  ).resolve();
-
-  final repository = resolution.corpusRepository;
-  if (repository == null) {
-    await resolution.grammarHubService.close();
-    throw StateError(
-      'indexed_corpus_unavailable:'
-      '${resolution.state.fallbackReason ?? 'unknown'}',
-    );
-  }
-
-  final verification = repository.verification;
-  if (!verification.hasExpectedCardinality) {
-    await resolution.closeCorpus();
-    await resolution.grammarHubService.close();
-    throw StateError('indexed_corpus_cardinality_mismatch');
-  }
-
-  final page = await repository.fetchPage(
-    limit: initialWindowSize,
-  );
-  if (page.isEmpty) {
-    await resolution.closeCorpus();
-    await resolution.grammarHubService.close();
-    throw StateError('indexed_corpus_initial_window_empty');
-  }
-
-  final initialCorpus = page
-      .map(
-        (item) => ContentItem(
-          id: item.id,
-          german: item.german,
-          arabic: item.arabic,
-          sentence: item.sentence,
-          sentenceAr: item.sentenceAr,
-          topic: item.topic,
-          skill: item.skill,
-          article: item.article,
-          plural: item.plural,
-          accepted: item.accepted,
-        ),
-      )
-      .cast<LearningContent>()
-      .toList(growable: false);
-
-  return ResolvedCorpusSession(
-    resolution: resolution,
-    initialCorpus: List<LearningContent>.unmodifiable(initialCorpus),
-  );
-}
-
-Future<void> _seedMemoryOnce({
-  required SystemAgentRuntime runtime,
-  required LearnerState state,
-}) async {
-  if (runtime.memorySnapshot.tasks.isNotEmpty ||
-      runtime.memorySnapshot.weaknesses.isNotEmpty ||
-      state.attempts.isEmpty) {
-    return;
-  }
-
-  final recentAttempts = state.attempts.length <= 300
-      ? state.attempts
-      : state.attempts.sublist(state.attempts.length - 300);
-  final aggregates = <String, _SeedTaskAggregate>{};
-
-  for (final attempt in recentAttempts) {
-    final task = _taskForSkill(attempt.skill);
-    final aggregate = aggregates.putIfAbsent(
-      task.id,
-      () => _SeedTaskAggregate(task),
-    );
-    aggregate.record(attempt);
-
-    if (!attempt.correct) {
-      runtime.recordMistake(
-        taskId: task.id,
-        weaknessKey: _weaknessKey(attempt),
-        weight: attempt.hinted ? 2 : 1,
-        occurredAtEpochMs: attempt.at.millisecondsSinceEpoch,
+  Future<void> resolve() async {
+    const initialWindowSize = 128;
+    if (initialWindowSize < contentPageCap) {
+      throw StateError(
+        'Active pack window is smaller than the content page.',
       );
     }
-  }
-
-  for (final aggregate in aggregates.values) {
-    final score = aggregate.total == 0
-        ? 0.0
-        : aggregate.correct / aggregate.total;
-    runtime.recordProgress(
-      taskId: aggregate.task.id,
-      score: score,
-      completed:
-          aggregate.total >= 2 && score >= aggregate.task.masteryThreshold,
-      attempts: aggregate.total,
-      occurredAtEpochMs: aggregate.latestEpochMs,
-    );
-  }
-
-  for (final assessment in state.assessmentHistory.take(20)) {
-    for (final weakSkill in assessment.weakSkills) {
-      final task = _taskForSkill(weakSkill);
-      runtime.recordMistake(
-        taskId: task.id,
-        weaknessKey: 'assessment:${weakSkill.trim().toLowerCase()}',
-        weight: 2,
-        occurredAtEpochMs: assessment.at.millisecondsSinceEpoch,
-      );
-    }
-  }
-
-  await runtime.flushMemory();
-}
-
-CurriculumTask _taskForSkill(String rawSkill) {
-  final skill = rawSkill.trim().toLowerCase();
-
-  for (final task in CanonicalCurriculum50.tasks) {
-    if (task.skill.toLowerCase() == skill) return task;
-  }
-
-  if (skill.contains('listen')) {
-    return CanonicalCurriculum50.tasks
-        .firstWhere((task) => task.skill == 'listening');
-  }
-  if (skill.contains('speak') || skill.contains('production')) {
-    return CanonicalCurriculum50.tasks
-        .firstWhere((task) => task.skill == 'speaking');
-  }
-  if (skill.contains('writ')) {
-    return CanonicalCurriculum50.tasks
-        .firstWhere((task) => task.skill == 'writing');
-  }
-  if (skill.contains('gram')) {
-    return CanonicalCurriculum50.tasks
-        .firstWhere((task) => task.skill == 'grammar');
-  }
-  if (skill.contains('read')) {
-    return CanonicalCurriculum50.tasks
-        .firstWhere((task) => task.skill == 'reading');
-  }
-  if (skill.contains('vocab') || skill.contains('recall')) {
-    return CanonicalCurriculum50.tasks
-        .firstWhere((task) => task.skill == 'vocabulary');
-  }
-
-  return CanonicalCurriculum50.tasks[47];
-}
-
-String _weaknessKey(Attempt attempt) {
-  final skill = attempt.skill.trim().toLowerCase();
-  final item = attempt.itemId.trim().toLowerCase();
-  final facet = attempt.facetType.name;
-  final raw = '$skill:$item:$facet';
-  return raw.length <= 160 ? raw : raw.substring(0, 160);
-}
-
-final class _PreferencesMemoryAgentStore implements MemoryAgentStore {
-  const _PreferencesMemoryAgentStore(this.preferences);
-
-  final PreferencesService preferences;
-
-  @override
-  Future<String?> read() async =>
-      preferences.readSystemMemoryAgentState();
-
-  @override
-  Future<void> write(String encoded) async {
-    final written =
-        await preferences.writeSystemMemoryAgentState(encoded);
-    if (!written) {
-      throw StateError('Memory agent storage write failed.');
-    }
+    await _database.getContentDb(languageCode);
   }
 }
 
-final class _SeedTaskAggregate {
-  _SeedTaskAggregate(this.task);
+/// Names the keystore vault that actually wraps progress ciphertext.
+final class AndroidKeystorePackDatabaseKeyStore {
+  const AndroidKeystorePackDatabaseKeyStore();
 
-  final CurriculumTask task;
-  int total = 0;
-  int correct = 0;
-  int latestEpochMs = 0;
-
-  void record(Attempt attempt) {
-    total += 1;
-    if (attempt.correct) correct += 1;
-    final occurredAt = attempt.at.millisecondsSinceEpoch;
-    if (occurredAt > latestEpochMs) {
-      latestEpochMs = occurredAt;
-    }
-  }
+  VaultCipher cipher() => const AndroidKeystoreVaultCipher();
 }
 
+/// Historical pack-security name. Encryption delegates to
+/// [AndroidKeystoreVaultCipher]; this is not a second SQLCipher stack and it
+/// never generates a new key for existing ciphertext.
+final class SqlCipherPackDatabaseSecurity {
+  const SqlCipherPackDatabaseSecurity({
+    AndroidKeystorePackDatabaseKeyStore? keyStore,
+  }) : _keyStore = keyStore ?? const AndroidKeystorePackDatabaseKeyStore();
+
+  final AndroidKeystorePackDatabaseKeyStore _keyStore;
+
+  VaultCipher get cipher => _keyStore.cipher();
+
+  Future<Uint8List> encrypt(String recordId, Uint8List plaintext) =>
+      cipher.encrypt(recordId, plaintext);
+
+  Future<Uint8List> decrypt(String recordId, Uint8List ciphertext) =>
+      cipher.decrypt(recordId, ciphertext);
+}
