@@ -36,7 +36,7 @@ void main() {
       // Let's check 'zh-TW'. It maps to 'zh-TW'. Fallback for 'zh-TW' is 'zh-CN'.
       expect(Bcp47LocaleRegistry.resolveCandidates('zh-TW'), ['zh-TW', 'zh-CN']);
 
-      expect(Bcp47LocaleRegistry.resolveCandidates('invalid'), <String>[]);
+      expect(Bcp47LocaleRegistry.resolveCandidates('invalid'), []);
     });
 
     test('100-ID completeness check', () {

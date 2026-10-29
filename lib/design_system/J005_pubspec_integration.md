@@ -10,28 +10,28 @@ flutter:
     - family: Cairo
       fonts:
         - asset: assets/fonts/Cairo-Variable.ttf
-    - family: Noto Sans Hebrew
+    - family: NotoSansHebrew
       fonts:
-        - asset: assets/fonts/NotoSansHebrew-Regular.ttf
-    - family: Noto Sans Devanagari
+        - asset: assets/fonts/NotoSansHebrew.ttf
+    - family: NotoSansDevanagari
       fonts:
-        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
-    - family: Noto Sans Ethiopic
+        - asset: assets/fonts/NotoSansDevanagari.ttf
+    - family: NotoSansEthiopic
       fonts:
-        - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
-    - family: Noto Sans Georgian
+        - asset: assets/fonts/NotoSansEthiopic.ttf
+    - family: NotoSansGeorgian
       fonts:
-        - asset: assets/fonts/NotoSansGeorgian-Regular.ttf
-    - family: Noto Sans Armenian
+        - asset: assets/fonts/NotoSansGeorgian.ttf
+    - family: NotoSansArmenian
       fonts:
-        - asset: assets/fonts/NotoSansArmenian-Regular.ttf
-    - family: Noto Sans SC
+        - asset: assets/fonts/NotoSansArmenian.ttf
+    - family: NotoSansSC
       fonts:
-        - asset: assets/fonts/NotoSansSC-Regular.ttf
-    - family: Noto Sans JP
+        - asset: assets/fonts/NotoSansSC.ttf
+    - family: NotoSansJP
       fonts:
-        - asset: assets/fonts/NotoSansJP-Regular.ttf
-    - family: Noto Sans KR
+        - asset: assets/fonts/NotoSansJP.ttf
+    - family: NotoSansKR
       fonts:
-        - asset: assets/fonts/NotoSansKR-Regular.ttf
+        - asset: assets/fonts/NotoSansKR.ttf
 ```

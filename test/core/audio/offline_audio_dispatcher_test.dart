@@ -1,27 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
 
-import 'package:flutter/services.dart';
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  // Mock MethodChannel for flutter_tts to avoid MissingPluginException
-  const MethodChannel channel = MethodChannel('flutter_tts');
-
-  setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-      if (methodCall.method == 'awaitSpeakCompletion') return 1;
-      if (methodCall.method == 'setLanguage') {
-        if (methodCall.arguments == 'zz-ZZ') return 0;
-        return 1;
-      }
-      if (methodCall.method == 'speak') return 1;
-      if (methodCall.method == 'stop') return 1;
-      if (methodCall.method == 'setSpeechRate') return 1;
-      return null;
-    });
-  });
 
   test('OfflineAudioDispatcher prevents stale callbacks on fast stops', () async {
     // We expect the speakText to return false on stop before completion,
