@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 
 /// محرك تقارير النمو وتحليل بيانات التعلم المحلية
 class LocalLearningAnalytics {
-
+  
   /// توليد تقرير النمو لآخر 30 يوماً
   static Future<Map<String, dynamic>> generate30DayReport() async {
     debugPrint("جاري توليد تقرير النمو محلياً...");
-
+    
     // محاكاة حسابات قواعد البيانات للإتقان
     return {
       'mastered_cards': 120,
