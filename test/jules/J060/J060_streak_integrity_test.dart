@@ -10,16 +10,16 @@ void main() {
       const ledger = StreakFreezeLedger();
       final now = DateTime(2023, 10, 15, 12, 0);
 
-      final l1 = ledger.recordUsage('missed day', now: now);
+      final l1 = ledger.recordUsage('missed day', timestamp: now);
       expect(l1.remainingShields, 1);
 
       // Attempt repeated freeze on same day, different hour
-      final l2 = l1.recordUsage('missed day again', now: DateTime(2023, 10, 15, 23, 0));
+      final l2 = l1.recordUsage('missed day again', timestamp: DateTime(2023, 10, 15, 23, 0));
       expect(l2.remainingShields, 1); // should not consume another shield
       expect(l2.usageHistory.length, 1);
 
       // Next day allows consumption
-      final l3 = l2.recordUsage('missed next day', now: DateTime(2023, 10, 16, 8, 0));
+      final l3 = l2.recordUsage('missed next day', timestamp: DateTime(2023, 10, 16, 8, 0));
       expect(l3.remainingShields, 0);
       expect(l3.usageHistory.length, 2);
     });
@@ -32,8 +32,8 @@ void main() {
 
 
       // This test ensures it relies on the provided DateTime's year/month/day.
-      final l1 = ledger.recordUsage('tz1', now: DateTime(2023, 10, 15, 23, 0));
-      final l2 = l1.recordUsage('tz2', now: DateTime(2023, 10, 16, 1, 0));
+      final l1 = ledger.recordUsage('tz1', timestamp: DateTime(2023, 10, 15, 23, 0));
+      final l2 = l1.recordUsage('tz2', timestamp: DateTime(2023, 10, 16, 1, 0));
 
       expect(l2.remainingShields, 0); // Consumes both since they are different days
     });
