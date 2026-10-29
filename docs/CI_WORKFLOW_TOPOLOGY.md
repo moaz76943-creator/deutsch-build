@@ -2,7 +2,7 @@
 
 This inventory is the cost/ownership map for the 30 active `.github/workflows/*.yml` files at the Task 2 baseline. It does not change branch-protection required checks and does not authorize any external provider.
 
-Classes: **A** manual release, **B** manual utility, **C** self-hosted, **D** automatic but explicitly opt-in, **E** retired/historical, **F** bounded staging self-check, **G** essential security audit.
+Classes: **A** manual release, **B** manual utility, **C** self-hosted, **D** automatic but explicitly opt-in, **E** retired/historical.
 
 | Workflow | Class | Owner | Purpose | Trigger | Cost boundary |
 | --- | --- | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ Classes: **A** manual release, **B** manual utility, **C** self-hosted, **D** au
 | `project-record-sync.yml` | D | Project record | Reconcile/update repository project record | push + schedule + manual | automatic events require central nonessential opt-in; manual remains explicit |
 | `quality_gate_ci.yml` | B | Quality engineering | Manual hosted fallback for canonical quality gate | manual | GitHub-hosted runner only after explicit dispatch |
 | `recovery-checkpoint.yml` | D | Recovery engineering | Capture bounded recovery checkpoint | push + schedule + manual | automatic events require central nonessential opt-in; manual remains explicit |
-| `security_audit.yml` | G | Security engineering | Offline-first policy, OSV and fetched-history Gitleaks scan | PR + dependency-lock push | mandatory bounded Linux job, 15-minute cap; no paid runner, schedule or billing change; incomplete/skipped scans fail closed |
+| `security_audit.yml` | D | Security engineering | Run offline-first security contract | PR + push | central nonessential opt-in |
 | `smart_triage_labeler.yml` | D | Repository triage | Apply changed-file labels through pinned labeler action | PR-target | central nonessential opt-in; metadata-only privileged operation |
 | `sync_store_metadata.yml` | B | Store operations | Validate/generate metadata and optionally upload listings | manual | GitHub-hosted runner/service-account access only after explicit dispatch and upload input |
 | `trigger_signed_build.yml` | D | Legacy release-provider bridge | Trigger Codemagic signed AAB after merged PR | merged PR-target | separate release-automation opt-in; dormant by default; Codemagic is noncanonical |

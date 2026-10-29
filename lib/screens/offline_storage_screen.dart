@@ -95,7 +95,7 @@ class _OfflineStorageScreenState extends State<OfflineStorageScreen> {
                       children: <Widget>[
                         CircleAvatar(
                           backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          child: Text((pack['code'] as String).toUpperCase(),
+                          child: Text(pack['code'].toUpperCase(),
                               style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
@@ -105,7 +105,7 @@ class _OfflineStorageScreenState extends State<OfflineStorageScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Text(pack['name'] as String,
+                              Text(pack['name'],
                                   style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -113,14 +113,14 @@ class _OfflineStorageScreenState extends State<OfflineStorageScreen> {
                               const SizedBox(height: 4),
                               if (pack['status'] == 'downloading')
                                 LinearProgressIndicator(
-                                  value: pack['progress'] as double?,
+                                  value: pack['progress'],
                                   backgroundColor: Colors.white24,
                                   valueColor:
                                       const AlwaysStoppedAnimation<Color>(
                                           Color(0xFF38BDF8)),
                                 )
                               else
-                                Text(pack['size'] as String,
+                                Text(pack['size'],
                                     style: const TextStyle(
                                         color: Colors.white60, fontSize: 12)),
                             ],
