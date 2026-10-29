@@ -28,7 +28,7 @@ void main() {
     final georgianStyle = AppTypography.getSafeStyle(georgianIdentity);
     expect(georgianStyle.fontFamilyFallback, contains('NotoSansGeorgian'));
 
-    const cairoIdentity = LanguageIdentity(
+    final cairoIdentity = LanguageIdentity(
       languageCode: 'ar',
       writingDirection: WritingDirection.rtl,
       typographyProfile: 'cairo',

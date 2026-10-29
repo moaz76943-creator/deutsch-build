@@ -15,8 +15,7 @@ class LeitnerCardState {
     required this.nextReviewEpoch,
     this.easeFactor = 2.5,
     this.consecutiveSuccesses = 0,
-  })  : assert(easeFactor >= 0, 'easeFactor cannot be negative or NaN'),
-        assert(consecutiveSuccesses >= 0, 'consecutiveSuccesses cannot be negative');
+  });
 
   bool get isDueForReview =>
       DateTime.now().millisecondsSinceEpoch >= nextReviewEpoch;
