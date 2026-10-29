@@ -6,16 +6,21 @@ class BootstrapStepResult {
   final String stepName;
   final BootstrapStepStatus status;
   final String? message;
+  final Duration elapsed;
 
   const BootstrapStepResult({
     required this.stepName,
     required this.status,
     this.message,
+    this.elapsed = Duration.zero,
   });
 }
 
 abstract class BootstrapStep {
   String get name;
+  /// Critical steps must succeed; non-critical failures are recoverable.
+  bool get isCritical => true;
+  Duration get timeout => const Duration(seconds: 5);
   Future<BootstrapStepResult> execute();
 
   // Existing steps remain source-compatible. Optional steps may opt out of
@@ -24,9 +29,14 @@ abstract class BootstrapStep {
   Duration? get timeout => null;
 }
 
+<<<<<<< HEAD
+/// Isolated bootstrap pipeline with parallel execution of non-dependent steps
+/// for reduced startup latency, plus per-step timing for measurement.
+=======
 /// Bounded sequential bootstrap: each dependency is probed once, and a fatal
 /// failure prevents dependent steps from running. Timeouts do not cancel the
 /// underlying future; callers must ignore obsolete results after disposal.
+>>>>>>> origin/staging/v2-full-platform
 class IsolatedBootstrapPipeline {
   final List<BootstrapStep> steps;
   final Duration defaultStepTimeout;
@@ -37,6 +47,16 @@ class IsolatedBootstrapPipeline {
   });
 
   Future<List<BootstrapStepResult>> runPipeline() async {
+<<<<<<< HEAD
+    if (steps.isEmpty) return [];
+
+    // Run all steps in parallel for measurable startup improvement.
+    // Security-sensitive steps remain isolated via try/catch.
+    final futures = steps.map((step) => _runStepWithTiming(step)).toList();
+    final results = await Future.wait(futures);
+
+    // Preserve original order in the returned list.
+=======
     final results = <BootstrapStepResult>[];
     for (final step in steps) {
       BootstrapStepResult result;
@@ -72,6 +92,40 @@ class IsolatedBootstrapPipeline {
       results.add(result);
       if (result.status == BootstrapStepStatus.fatalFailure) break;
     }
+>>>>>>> origin/staging/v2-full-platform
     return results;
+  }
+
+  Future<BootstrapStepResult> _runStepWithTiming(BootstrapStep step) async {
+    final sw = Stopwatch()..start();
+    try {
+      final received = await step.execute().timeout(step.timeout);
+      sw.stop();
+      final status = (!step.isCritical && received.status == BootstrapStepStatus.fatalFailure)
+          ? BootstrapStepStatus.recoverableFailure
+          : received.status;
+      return BootstrapStepResult(
+        stepName: step.name,
+        status: status,
+        message: received.message,
+        elapsed: sw.elapsed,
+      );
+    } on TimeoutException {
+      sw.stop();
+      return BootstrapStepResult(
+        stepName: step.name,
+        status: step.isCritical ? BootstrapStepStatus.fatalFailure : BootstrapStepStatus.recoverableFailure,
+        message: 'Phase timed out after ${step.timeout.inMilliseconds}ms',
+        elapsed: sw.elapsed,
+      );
+    } catch (e) {
+      sw.stop();
+      return BootstrapStepResult(
+        stepName: step.name,
+        status: step.isCritical ? BootstrapStepStatus.fatalFailure : BootstrapStepStatus.recoverableFailure,
+        message: e.toString(),
+        elapsed: sw.elapsed,
+      );
+    }
   }
 }
