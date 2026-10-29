@@ -14,7 +14,7 @@ void main() {
     test('Safe cold-start behavior', () {
       final decision = engine.evaluateStateDetailed(languagePair: 'en-de');
       expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason, contains('cold-start'));
+      expect(decision.reason, isA<InsufficientData>());
     });
 
     test('Isolated language pairs', () {
@@ -63,7 +63,7 @@ void main() {
         ));
       }
 
-      final decision = engine.evaluateStateDetailed();
+      final decision = engine.evaluateStateDetailed(languagePair: 'default');
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
     });
 
@@ -94,9 +94,6 @@ void main() {
           recordedAt: DateTime.now(),
         ));
       }
-
-      // Because we cleared, we need to artificially induce the last action or not clear.
-      // Let's rewrite this part safely without clearing.
     });
 
     test('Hysteresis prevents oscillating difficulty (proper flow)', () {
@@ -128,7 +125,7 @@ void main() {
       // and 0.4 > 0.3, we should stay in reduceExtraneousLoad (hysteresis).
       final decision = engine.evaluateStateDetailed();
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
-      expect(decision.reason, contains('Hysteresis'));
+      expect(decision.reason, isA<HysteresisCoolDown>());
     });
 
     test('Noisy metrics (negative latency/taps)', () {
@@ -140,11 +137,12 @@ void main() {
         isCorrect: true,
         recordedAt: DateTime.now(),
         reviewDifficulty: double.nan,
+        languagePair: 'noise_pair',
       ));
 
       // With negatives clamped to 0, latency is 0 (< 2000), correct is true.
       // Since window size is 1 (< 3), it will maintainFlow, but importantly won't crash or give NaN strain
-      final decision = engine.evaluateStateDetailed();
+      final decision = engine.evaluateStateDetailed(languagePair: 'noise_pair');
       expect(decision.action, AdaptationAction.maintainFlow);
     });
 
@@ -162,7 +160,7 @@ void main() {
 
       final decision = engine.evaluateStateDetailed();
       expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason, contains('blocked: unverified'));
+      expect(decision.reason, isA<BlockedUnverified>());
     });
 
     test('CEFR verified allows deepening', () {
