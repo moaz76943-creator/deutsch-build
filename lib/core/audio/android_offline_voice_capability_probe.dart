@@ -8,7 +8,7 @@ class AndroidOfflineVoiceCapabilityProbe {
   Future<List<String>> getVerifiedOfflineLocales() async {
     try {
       final voices = await _tts.getVoices;
-      if (voices is! List) return [];
+      if (voices == null) return [];
 
       final List<String> locales = [];
       for (final voice in voices) {

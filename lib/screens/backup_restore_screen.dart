@@ -61,12 +61,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
       final latest = files.first;
       final raw = await latest.readAsString();
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        setState(() => _statusMessage = 'ملف النسخة الاحتياطية غير صالح.');
-        return;
-      }
-      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded);
+      final Map<String, dynamic> data = jsonDecode(raw);
 
       final prefs = await SharedPreferences.getInstance();
       for (final entry in data.entries) {
