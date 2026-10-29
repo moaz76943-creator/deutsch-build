@@ -270,13 +270,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-<<<<<<< HEAD
                       const Text('🌐 لغة التعلم النشطة:',
                           style:
                               TextStyle(color: Colors.white70, fontSize: 12)),
-=======
-                      const Expanded(child: Text('🌐 لغة التعلم النشطة:', style: TextStyle(color: Colors.white70, fontSize: 12))),
->>>>>>> origin/staging/v2-full-platform-9617688105299726044
                       DropdownButton<String>(
                         value: _selectedLanguage,
                         dropdownColor: const Color(0xFF0F172A),

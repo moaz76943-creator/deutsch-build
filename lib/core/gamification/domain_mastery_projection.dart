@@ -95,7 +95,7 @@ class DomainMasteryProjection {
         introducedCardCount: 0,
         recalledCardCount: 0,
         masteredCardCount: 0,
-        dueCardCount: 0, // Simplified for this task
+        dueCardCount: 0,
         lastEvidenceUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         masteryRevision: 1,
       );
@@ -110,14 +110,11 @@ class DomainMasteryProjection {
         lastEvidence = event.timestamp;
       }
 
-      // Determine rating threshold for success
       // If rating >= 3, it's a recall success.
       if (event.rating >= 3) {
         cardSuccessCount[event.learnerContentKey] =
             (cardSuccessCount[event.learnerContentKey] ?? 0) + 1;
       } else {
-        // Reset or just don't increment? Let's just track successful recalls
-        // For actual SRS it would reset, but let's assume we just need to see if it reached a threshold
         cardSuccessCount[event.learnerContentKey] = 0;
       }
     }
@@ -128,10 +125,9 @@ class DomainMasteryProjection {
 
     for (final count in cardSuccessCount.values) {
       if (count > 0) recalled++;
-      if (count >= 3) mastered++; // Threshold for mastery: 3 successful recalls in a row
+      if (count >= 3) mastered++;
     }
 
-    // clamp
     introduced = introduced.clamp(0, eligibleCardCount);
     recalled = recalled.clamp(0, eligibleCardCount);
     mastered = mastered.clamp(0, eligibleCardCount);
