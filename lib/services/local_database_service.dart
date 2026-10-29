@@ -4,7 +4,7 @@ import 'package:path/path.dart';
 class LocalDatabaseService {
   static final LocalDatabaseService instance = LocalDatabaseService._init();
   static Database? _database;
-
+  
   LocalDatabaseService._init();
 
   Future<Database> get database async {
@@ -16,7 +16,7 @@ class LocalDatabaseService {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-
+    
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
