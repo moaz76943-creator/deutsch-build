@@ -11,13 +11,13 @@ void main() {
     });
 
     test('Arabic Tashkeel', () {
-      final engine = TrieSearchEngine(languageCode: 'ar');
+      final engine = TrieSearchEngine();
       engine.insert('مُعَلِّم', '1');
       expect(engine.searchPrefix('معل'), ['1']);
     });
 
     test('Hebrew Niqqud', () {
-      final engine = TrieSearchEngine(languageCode: 'he');
+      final engine = TrieSearchEngine();
       engine.insert('שָׁלוֹם', '1'); // Shalom with Niqqud
       expect(engine.searchPrefix('שלום'), ['1']);
     });
