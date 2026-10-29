@@ -22,16 +22,6 @@ class ReviewCommand {
     required this.rating,
     required this.hinted,
   });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ReviewCommand &&
-          runtimeType == other.runtimeType &&
-          reviewId == other.reviewId;
-
-  @override
-  int get hashCode => reviewId.hashCode;
 }
 
 abstract interface class ReviewCommandPort {
