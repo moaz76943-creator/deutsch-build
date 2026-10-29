@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-import 'package:flutter/foundation.dart';
->>>>>>> origin/staging/v2-full-platform
 import 'package:flutter/services.dart';
 
 /// Client-side Play Integrity API wrapper.

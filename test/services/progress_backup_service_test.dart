@@ -16,8 +16,7 @@ class _FakeCipher implements VaultCipher {
 
   @override
   Future<Uint8List> decrypt(String id, Uint8List data) async =>
-      Uint8List.fromList(
-          data.skip(29).map((value) => value ^ 0x55).toList());
+      Uint8List.fromList(data.skip(29).map((value) => value ^ 0x55));
 }
 
 void main() {
