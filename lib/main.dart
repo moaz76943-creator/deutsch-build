@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'features/onboarding/fast_onboarding_screen.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
+import 'package:deutsch_bilarabi/core/bootstrap/integrity_bootstrap_step.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
@@ -218,6 +219,7 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
         _SessionRecoveryStep(prefs),
         _FeatureRegistryStep(),
         _LifecycleRegistryStep(),
+        IntegrityBootstrapStep(), // Play Integrity attestation for anti-modding and feature gating
       ]);
 
       final results = await pipeline.runPipeline();
