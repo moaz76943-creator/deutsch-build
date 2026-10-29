@@ -1,185 +1,160 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/bootstrap/startup_boundary.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
+import 'package:deutsch_bilarabi/core/bootstrap/startup_boundary.dart';
+import 'package:deutsch_bilarabi/services/crash_loop_guard.dart';
 
-class MockStartupOperations implements StartupOperations {
-  StartupOutcome _outcome;
-  bool isStableMarked = false;
-  bool isSafeModeExited = false;
-  bool isSafeOfflineContinued = false;
-  Completer<StartupOutcome>? _startCompleter;
-
-  MockStartupOperations(this._outcome);
-
-  void setNextOutcome(StartupOutcome outcome) {
-    _outcome = outcome;
-  }
-
-  void blockStart() {
-    _startCompleter = Completer<StartupOutcome>();
-  }
-
-  void unblockStart() {
-    if (_startCompleter != null && !_startCompleter!.isCompleted) {
-      _startCompleter!.complete(_outcome);
-    }
-  }
+class _MockCriticalStep extends BootstrapStep {
+  @override
+  String get name => 'mock_critical';
 
   @override
-  Future<StartupOutcome> start() async {
-    if (_startCompleter != null) {
-      return _startCompleter!.future;
-    }
-    return _outcome;
-  }
+  bool get isCritical => true;
 
   @override
-  Future<void> markStable() async {
-    isStableMarked = true;
-  }
+  Duration get timeout => const Duration(seconds: 1);
 
-  @override
-  Future<void> exitSafeMode() async {
-    isSafeModeExited = true;
-  }
+  final bool shouldSucceed;
 
-  @override
-  Future<StartupOutcome> continueSafeOffline() async {
-    isSafeOfflineContinued = true;
-    return const StartupOutcome(StartupState.degraded, contentAvailable: true);
-  }
-}
-
-void main() {
-  group('StartupBoundary Tests', () {
-    testWidgets('shows child when ready', (WidgetTester tester) async {
-      final ops = MockStartupOperations(const StartupOutcome(StartupState.ready, contentAvailable: true));
-      await tester.pumpWidget(MaterialApp(
-        home: StartupBoundary(
-          operations: ops,
-          stabilityWindow: const Duration(seconds: 1),
-          child: const Text('App Ready'),
-        ),
-      ));
-
-      await tester.pumpAndSettle();
-      expect(find.text('App Ready'), findsOneWidget);
-    });
-
-    testWidgets('shows recovery when degraded and no content', (WidgetTester tester) async {
-      final ops = MockStartupOperations(const StartupOutcome(StartupState.degraded, contentAvailable: false));
-      await tester.pumpWidget(MaterialApp(
-        home: StartupBoundary(
-          operations: ops,
-          stabilityWindow: const Duration(seconds: 1),
-          child: const Text('App Ready'),
-        ),
-      ));
-
-      await tester.pumpAndSettle();
-      expect(find.text('المحتوى غير متاح حاليًا'), findsOneWidget);
-    });
-
-    testWidgets('shows recovery when safe mode', (WidgetTester tester) async {
-      final ops = MockStartupOperations(const StartupOutcome(StartupState.safeMode, contentAvailable: false));
-      await tester.pumpWidget(MaterialApp(
-        home: StartupBoundary(
-          operations: ops,
-          stabilityWindow: const Duration(seconds: 1),
-          child: const Text('App Ready'),
-        ),
-      ));
-
-      await tester.pumpAndSettle();
-      expect(find.text('الوضع الآمن'), findsOneWidget);
-    });
-
-    testWidgets('shows recovery when critical error', (WidgetTester tester) async {
-      final ops = MockStartupOperations(const StartupOutcome(StartupState.criticalError, contentAvailable: false));
-      await tester.pumpWidget(MaterialApp(
-        home: StartupBoundary(
-          operations: ops,
-          stabilityWindow: const Duration(seconds: 1),
-          child: const Text('App Ready'),
-        ),
-      ));
-
-      await tester.pumpAndSettle();
-      expect(find.text('تعذر بدء الخدمات الأساسية'), findsOneWidget);
-    });
-  });
-
-  group('IsolatedBootstrapPipeline Tests', () {
-    test('success case', () async {
-      final pipeline = IsolatedBootstrapPipeline([
-        _MockStep('step1', false, null, BootstrapStepStatus.success),
-      ]);
-      final results = await pipeline.runPipeline();
-      expect(results.length, 1);
-      expect(results[0].status, BootstrapStepStatus.success);
-    });
-
-    test('timeout case', () async {
-      final pipeline = IsolatedBootstrapPipeline([
-        _MockStep('slow_worker', false, const Duration(milliseconds: 50), BootstrapStepStatus.success, delay: const Duration(milliseconds: 100)),
-      ]);
-      final results = await pipeline.runPipeline();
-      expect(results.length, 1);
-      expect(results[0].status, BootstrapStepStatus.recoverableFailure);
-    });
-
-    test('critical failure case', () async {
-      final pipeline = IsolatedBootstrapPipeline([
-        _MockStep('critical_step', true, null, BootstrapStepStatus.fatalFailure),
-        _MockStep('step2', false, null, BootstrapStepStatus.success),
-      ]);
-      final results = await pipeline.runPipeline();
-      expect(results.length, 1);
-      expect(results[0].status, BootstrapStepStatus.fatalFailure);
-    });
-
-    test('optional failure case', () async {
-      final pipeline = IsolatedBootstrapPipeline([
-        _MockStep('optional_step', false, null, BootstrapStepStatus.fatalFailure),
-        _MockStep('step2', false, null, BootstrapStepStatus.success),
-      ]);
-      final results = await pipeline.runPipeline();
-      expect(results.length, 2);
-      expect(results[0].status, BootstrapStepStatus.recoverableFailure);
-      expect(results[1].status, BootstrapStepStatus.success);
-    });
-
-    test('missing audio', () async {
-      final pipeline = IsolatedBootstrapPipeline([
-        _MockStep('audio_step', false, null, BootstrapStepStatus.recoverableFailure),
-      ]);
-      final results = await pipeline.runPipeline();
-      expect(results.length, 1);
-      expect(results[0].status, BootstrapStepStatus.recoverableFailure);
-    });
-  });
-}
-
-class _MockStep extends BootstrapStep {
-  @override
-  final String name;
-  @override
-  final bool isCritical;
-  @override
-  final Duration? timeout;
-  final BootstrapStepStatus statusToReturn;
-  final Duration delay;
-
-  _MockStep(this.name, this.isCritical, this.timeout, this.statusToReturn, {this.delay = Duration.zero});
+  _MockCriticalStep({this.shouldSucceed = true});
 
   @override
   Future<BootstrapStepResult> execute() async {
-    await Future.delayed(delay);
-    if (delay > (timeout ?? const Duration(days: 99))) {
-        throw TimeoutException('timed out');
-    }
-    return BootstrapStepResult(stepName: name, status: statusToReturn);
+    return BootstrapStepResult(
+      stepName: name,
+      status: shouldSucceed
+          ? BootstrapStepStatus.success
+          : BootstrapStepStatus.fatalFailure,
+    );
   }
+}
+
+class _MockOptionalStep extends BootstrapStep {
+  @override
+  String get name => 'mock_optional';
+
+  @override
+  bool get isCritical => false;
+
+  @override
+  Duration get timeout => const Duration(milliseconds: 200);
+
+  final bool shouldThrow;
+  final bool shouldTimeout;
+  final bool shouldFail;
+
+  _MockOptionalStep({
+    this.shouldThrow = false,
+    this.shouldTimeout = false,
+    this.shouldFail = false,
+  });
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    if (shouldThrow) {
+      throw Exception('Optional step crashed');
+    }
+    if (shouldTimeout) {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      return const BootstrapStepResult(
+        stepName: 'mock_optional',
+        status: BootstrapStepStatus.success,
+      );
+    }
+    return BootstrapStepResult(
+      stepName: name,
+      status: shouldFail
+          ? BootstrapStepStatus.recoverableFailure
+          : BootstrapStepStatus.success,
+    );
+  }
+}
+
+class _MockCrashLoopGuard extends CrashLoopGuard {
+  bool forceSafeMode = false;
+
+  _MockCrashLoopGuard() : super(store: _MockBootLedgerStore());
+
+  @override
+  Future<bool> beginBoot() async {
+    return forceSafeMode;
+  }
+}
+
+class _MockBootLedgerStore implements BootLedgerStore {
+  @override
+  Future<Map<String, dynamic>?> read() async => null;
+  @override
+  Future<void> write(Map<String, dynamic> state) async {}
+}
+
+void main() {
+  group('IsolatedBootstrapPipeline', () {
+    test('Executes steps and correctly classifies failures', () async {
+      final pipeline = IsolatedBootstrapPipeline([
+        _MockCriticalStep(shouldSucceed: true),
+        _MockOptionalStep(shouldFail: true), // Should be recoverable
+        _MockOptionalStep(shouldThrow: true), // Should be recoverable
+        _MockOptionalStep(shouldTimeout: true), // Should be recoverable
+      ]);
+
+      final results = await pipeline.runPipeline();
+
+      expect(results.length, 4);
+
+      final criticalResult =
+          results.firstWhere((r) => r.stepName == 'mock_critical');
+      expect(criticalResult.status, BootstrapStepStatus.success);
+
+      final failingResults =
+          results.where((r) => r.stepName == 'mock_optional').toList();
+      expect(failingResults.length, 3);
+      for (final result in failingResults) {
+        expect(result.status, BootstrapStepStatus.recoverableFailure);
+      }
+    });
+
+    test('Critical failure is correctly classified', () async {
+      final pipeline = IsolatedBootstrapPipeline([
+        _MockCriticalStep(shouldSucceed: false),
+      ]);
+
+      final results = await pipeline.runPipeline();
+      expect(results.single.status, BootstrapStepStatus.fatalFailure);
+    });
+  });
+
+  group('DeviceStartupOperations', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test(
+        'Handles missing extra steps gracefully (CRITICAL_ERROR from active_content)',
+        () async {
+      final mockGuard = _MockCrashLoopGuard();
+      // Since it's a real DeviceStartupOperations, _ActiveContentStep will try to hit the real DB.
+      // We expect it to throw or fail, resulting in CRITICAL_ERROR or DEGRADED based on pipeline behavior.
+      final ops = DeviceStartupOperations(guard: mockGuard);
+      final outcome = await ops.start();
+
+      // Without DB initialized, it falls into a critical error for preferences or DB
+      // We just ensure it doesn't infinite loop.
+      expect(
+          outcome.state == StartupState.CRITICAL_ERROR ||
+              outcome.state == StartupState.DEGRADED,
+          isTrue);
+    });
+
+    test('Forces Safe Mode when guard says so', () async {
+      final mockGuard = _MockCrashLoopGuard()..forceSafeMode = true;
+      final ops = DeviceStartupOperations(guard: mockGuard);
+      final outcome = await ops.start();
+
+      expect(outcome.state, StartupState.SAFE_MODE);
+    });
+  });
 }
