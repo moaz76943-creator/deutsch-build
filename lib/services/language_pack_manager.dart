@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart' show TextDirection;
-import 'database_service.dart';
 
 /// BCP-47 metadata for up to 100 target languages.
 /// Registration is not proof that a TTS voice or offline content pack exists.
@@ -146,6 +145,13 @@ class LanguagePackManager {
     'ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi',
   };
 
+  // Historical compatibility only; this list does NOT attest that a pack
+  // actually exists on disk, nor that a voice is installed.
+  static const Set<String> _legacyPackLocales = {
+    'de-DE', 'ar-SA', 'en-US', 'fr-FR',
+    'es-ES', 'tr-TR', 'ru-RU', 'zh-CN',
+  };
+
   static const Map<String, String> _languageNames = {
     'de-DE': 'الألمانية (Deutsch)',
     'ar-SA': 'العربية',
@@ -232,38 +238,9 @@ class LanguagePackManager {
   String getLanguageNameInstance(String localeCode) =>
       getLanguageName(localeCode);
 
-  /// Resolve a content identity independently of the TTS voice locale.
-  /// A nondefault region or explicit script is never silently replaced by
-  /// a different language pack (e.g. zh-Hant must not open zh).
-  static String? resolveContentLanguageCode(String bcp47Locale) {
-    final normalized = bcp47Locale.trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$')
-        .hasMatch(normalized)) {
-      return null;
-    }
-    final rawBase = normalized.split('-').first;
-    final base = _aliases[rawBase] ?? rawBase;
-    final defaultTtsLocale = ttsLocales[base]?.toLowerCase();
-    if (defaultTtsLocale == null) return null;
-    final contentTag = '$base${normalized.substring(rawBase.length)}';
-    if (contentTag == base || contentTag == defaultTtsLocale) {
-      return base;
-    }
-    return contentTag;
-  }
-  /// An offline pack is mounted only after SQLite opens read-only and passes
-  /// DatabaseService's schema and integrity gates. No network fallback.
+  /// Compatibility with the original eight-locale stub. Do not use this as
+  /// proof that an actual offline pack was downloaded or mounted.
   static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
-    final contentCode = resolveContentLanguageCode(bcp47Locale);
-    if (contentCode == null) return false;
-    try {
-      await DatabaseService.instance.withContentDb<void>(
-        contentCode, (db) async {},
-      );
-      return true;
-    } catch (_) {
-      // Missing, corrupt or incompatible packs must not be advertised as ready.
-      return false;
-    }
+    return _legacyPackLocales.contains(resolveTtsLocale(bcp47Locale));
   }
 }

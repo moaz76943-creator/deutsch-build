@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
@@ -128,11 +129,6 @@ class DatabaseService {
     final dbRoot = await getDatabasesPath();
     final target = File(path.join(dbRoot, _germanDatabaseFileName));
 
-    // Recover a verified last-known-good file after interrupted promotion.
-    if (await recoverVerifiedBundledBackup(target, germanGoldenSha256)) {
-      return target.path;
-    }
-
     if (await target.exists()) {
       final installedHash = await _sha256File(target);
       if (_constantTimeHexEquals(installedHash, germanGoldenSha256)) {
@@ -163,6 +159,7 @@ class DatabaseService {
     await _replaceAtomically(staged, target);
     return target.path;
   }
+
   Future<String> _installedPackPath(String languageCode) async {
     final located = await StorageMigrationService()
         .resolvePackPath('$languageCode.sqlite');
@@ -174,6 +171,7 @@ class DatabaseService {
 
   /// Canonical public SQLite v2 admission for immutable content packs.
   /// Reject unknown schemas rather than attempting destructive migration.
+  @visibleForTesting
   Future<void> verifyUniversalSchema(
     Database db,
     String languageCode,
@@ -250,10 +248,6 @@ class DatabaseService {
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
 
-  /// Closes unleased background SQLite connections under memory pressure.
-  Future<int> trimUnleasedContentConnections() =>
-      _contentPool.closeUnleased();
-
   Future<File> migrateContentPack(
     String filename, {
     required PackStorageLocation destination,
@@ -268,11 +262,6 @@ class DatabaseService {
     return await openDatabase(
       databasePath,
       version: 2,
-      onConfigure: (db) async {
-        await db.rawQuery('PRAGMA journal_mode = WAL;');
-        await db.execute('PRAGMA busy_timeout = 5000;');
-        await db.execute('PRAGMA foreign_keys = ON;');
-      },
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
@@ -284,19 +273,6 @@ class DatabaseService {
             next_due_at INTEGER,
             status TEXT NOT NULL DEFAULT 'learning',
             PRIMARY KEY (lexeme_id, target_language_code)
-          )
-        ''');
-        await db.execute('''
-          CREATE INDEX IF NOT EXISTS idx_srs_due_covering
-          ON srs_progress(target_language_code, next_due_at, lexeme_id)
-        ''');
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS srs_review_events (
-            review_event_id TEXT PRIMARY KEY,
-            lexeme_id TEXT NOT NULL,
-            target_language_code TEXT NOT NULL,
-            grade INTEGER NOT NULL,
-            created_at INTEGER NOT NULL
           )
         ''');
       },
@@ -330,21 +306,6 @@ class DatabaseService {
             'ALTER TABLE srs_progress_migration RENAME TO srs_progress',
           );
         }
-      },
-      onOpen: (db) async {
-        await db.execute('''
-          CREATE INDEX IF NOT EXISTS idx_srs_due_covering
-          ON srs_progress(target_language_code, next_due_at, lexeme_id)
-        ''');
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS srs_review_events (
-            review_event_id TEXT PRIMARY KEY,
-            lexeme_id TEXT NOT NULL,
-            target_language_code TEXT NOT NULL,
-            grade INTEGER NOT NULL,
-            created_at INTEGER NOT NULL
-          )
-        ''');
       },
     );
   }
@@ -383,53 +344,6 @@ class DatabaseService {
       'rows': rows.map((row) => Map<String, Object?>.from(row))
           .toList(growable: false),
     });
-  }
-
-  /// One language-scoped, bounded daily queue from the active progress ledger.
-  /// Immutable content packs and writable user progress stay in separate DBs.
-  /// Fetch only requested-language due cards, even for mixed-language packs.
-  /// No content mutation and at most 50 requested IDs per query.
-  @visibleForTesting
-  static Future<List<Map<String, Object?>>> queryDueFlashcardRows(
-    Database db,
-    String languageCode,
-    List<String> dueIds,
-  ) async {
-    if (dueIds.length > 50) {
-      throw RangeError.range(dueIds.length, 0, 50, 'dueIds.length');
-    }
-    if (dueIds.isEmpty) return <Map<String, Object?>>[];
-    final code = _normalizeLanguageCode(languageCode);
-    final placeholders = List<String>.filled(dueIds.length, '?').join(',');
-    return db.rawQuery(
-      'SELECT id, surface, part_of_speech, fields_json '
-      'FROM lexicon WHERE language_code = ? AND id IN (' +
-          placeholders + ')',
-      <Object?>[code, ...dueIds],
-    );
-  }
-
-  /// Language filtering must precede paging; a global OFFSET can leak or
-  /// skip items when a content DB carries lexemes for multiple languages.
-  @visibleForTesting
-  static Future<List<Map<String, Object?>>> queryFlashcardPage(
-    Database db,
-    String languageCode, {
-    required int limit,
-    required int offset,
-  }) async {
-    if (limit < 1 || limit > 128) {
-      throw RangeError.range(limit, 1, 128, 'limit');
-    }
-    if (offset < 0) {
-      throw RangeError.range(offset, 0, null, 'offset');
-    }
-    final code = _normalizeLanguageCode(languageCode);
-    return db.rawQuery('''
-      SELECT id, surface, part_of_speech, fields_json
-      FROM lexicon WHERE language_code = ?
-      ORDER BY rowid LIMIT ? OFFSET ?
-    ''', <Object?>[code, limit, offset]);
   }
 
   /// One language-scoped, bounded daily queue from the active progress ledger.
@@ -490,7 +404,12 @@ class DatabaseService {
     final cards = <Map<String, dynamic>>[];
     await withContentDb<void>(code, (db) async {
       if (dueIds.isNotEmpty) {
-        final rows = await queryDueFlashcardRows(db, code, dueIds);
+        final placeholders = List<String>.filled(dueIds.length, '?').join(',');
+        final rows = await db.rawQuery(
+          'SELECT id, surface, part_of_speech, fields_json '
+          'FROM lexicon WHERE id IN (' + placeholders + ')',
+          dueIds,
+        );
         final byId = <String, Map<String, Object?>>{
           for (final row in rows) row['id'].toString(): row,
         };
@@ -500,17 +419,20 @@ class DatabaseService {
         }
       }
 
-      // Page within this language; never materialize an entire dictionary.
+      // Fill remaining slots only with never-reviewed cards. Paging avoids
+      // materializing the entire dictionary or an unbounded SQL IN clause.
       const pageSize = 128;
       var offset = 0;
       while (cards.length < limit) {
-        final rows = await queryFlashcardPage(
-          db, code, limit: pageSize, offset: offset,
-        );
+        final rows = await db.rawQuery('''
+          SELECT id, surface, part_of_speech, fields_json
+          FROM lexicon ORDER BY rowid LIMIT ? OFFSET ?
+        ''', <Object?>[pageSize, offset]);
         if (rows.isEmpty) break;
         offset += rows.length;
 
-        final reviewedOnPage = vaultActive ? reviewedIds : <String>{};
+        final reviewedOnPage =
+            vaultActive ? reviewedIds : <String>{};
         if (!vaultActive) {
           final ids = rows.map((row) => row['id'].toString()).toList();
           final placeholders = List<String>.filled(ids.length, '?').join(',');
@@ -646,8 +568,6 @@ class DatabaseService {
     required String languageCode,
     required int grade,
     DateTime? reviewedAt,
-    String? reviewEventId,
-    bool alignToCircadianDay = false,
   }) async {
     if (await _progressVault.isOperationalActive) {
       return _progressVault.gradeOperationalSrs(
@@ -655,14 +575,8 @@ class DatabaseService {
         grade: grade, reviewedAt: reviewedAt);
     }
     return SrsSchedulerService().gradeAndPersist(
-      progressDb: await progressDb,
-      lexemeId: lexemeId,
-      languageCode: languageCode,
-      grade: grade,
-      reviewedAt: reviewedAt,
-      reviewEventId: reviewEventId,
-      alignToCircadianDay: alignToCircadianDay,
-    );
+      progressDb: await progressDb, lexemeId: lexemeId,
+      languageCode: languageCode, grade: grade, reviewedAt: reviewedAt);
   }
 
   Future<void> saveBookmark({
@@ -779,36 +693,6 @@ class DatabaseService {
     } finally {
       await raf.close();
     }
-  }
-
-  /// Recover only bytes matching the immutable bundled-content digest.
-  /// On interruption the backup remains at the same private directory.
-  @visibleForTesting
-  static Future<bool> recoverVerifiedBundledBackup(
-    File target,
-    String expectedSha256,
-  ) async {
-    final backup = File('${target.path}.bak');
-    if (!await backup.exists()) return false;
-
-    final backupHash = await _sha256File(backup);
-    if (!_constantTimeHexEquals(backupHash, expectedSha256)) {
-      return false;
-    }
-
-    if (await target.exists()) {
-      final installedHash = await _sha256File(target);
-      if (_constantTimeHexEquals(installedHash, expectedSha256)) {
-        // Promotion succeeded before the interruption; this is a stale copy.
-        await backup.delete();
-        return false;
-      }
-      // A verified backup is authoritative over a corrupt installed target.
-      await target.delete();
-    }
-
-    await backup.rename(target.path);
-    return true;
   }
 
   static Future<void> _replaceAtomically(File staged, File target) async {

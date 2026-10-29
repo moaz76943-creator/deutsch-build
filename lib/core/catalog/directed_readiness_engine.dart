@@ -36,7 +36,6 @@ class DirectedPairStatus {
 class DirectedPairReadinessEngine {
   static final RegExp _validLocaleTag =
       RegExp(r'^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$');
-  static const Set<String> _supportedCoreLocales = <String>{'de', 'ar', 'en'};
   final int maxCachedPairs;
   final int maxCachedPacks;
 
@@ -44,8 +43,6 @@ class DirectedPairReadinessEngine {
       LinkedHashMap<String, LanguagePackGateResult>();
   final LinkedHashMap<DirectedPairId, DirectedPairStatus> _pairCache =
       LinkedHashMap<DirectedPairId, DirectedPairStatus>();
-  final LinkedHashSet<DirectedPairId> _admittedPairs =
-      LinkedHashSet<DirectedPairId>();
 
   DirectedPairReadinessEngine({
     this.maxCachedPairs = 100,
@@ -54,13 +51,6 @@ class DirectedPairReadinessEngine {
     if (maxCachedPairs <= 0 || maxCachedPacks <= 0) {
       throw ArgumentError('Cache capacities must be positive');
     }
-  }
-
-  bool _isLocaleSupported(String locale) {
-    return _supportedCoreLocales.contains(locale) ||
-        _packStatusCache.containsKey(locale) ||
-        LanguageReadinessMatrix.getTier(locale) ==
-            LanguageReadinessTier.productionReady;
   }
 
   DirectedPairStatus resolvePair(DirectedPairId pair) {
@@ -94,10 +84,12 @@ class DirectedPairReadinessEngine {
     if (!pair.isValidForLearning()) {
       return const DirectedPairStatus(PairReadinessState.invalidPair, 'Invalid pair identity');
     }
-    if (!_isLocaleSupported(pair.sourceLocale)) {
+    if (LanguageReadinessMatrix.getTier(pair.sourceLocale) !=
+        LanguageReadinessTier.productionReady) {
       return const DirectedPairStatus(PairReadinessState.unsupportedSource, 'Source not production-ready');
     }
-    if (!_isLocaleSupported(pair.targetLocale)) {
+    if (LanguageReadinessMatrix.getTier(pair.targetLocale) !=
+        LanguageReadinessTier.productionReady) {
       return const DirectedPairStatus(PairReadinessState.unsupportedTarget, 'Target not production-ready');
     }
 
@@ -116,30 +108,14 @@ class DirectedPairReadinessEngine {
           PairReadinessState.schemaMismatch, gate.reason ?? 'Pack schema mismatch',
         );
       case PackGateStatus.approved:
-        if (_admittedPairs.contains(pair)) {
-          return const DirectedPairStatus(
-            PairReadinessState.ready,
-            'Directed pair admitted and verified',
-          );
-        }
+        // LanguagePackAcceptanceGate only checks positive rows/nonempty
+        // checksums; it neither verifies the signature nor the *directed*
+        // translation edge. Cannot assert pair readiness from it.
         return const DirectedPairStatus(
           PairReadinessState.missingDirectedEvidence,
           'No independently verified directed-pair admission',
         );
     }
-  }
-
-  void admitDirectedPair(DirectedPairId pair) {
-    _admittedPairs.add(pair);
-    _pairCache.remove(pair);
-    if (_admittedPairs.length > maxCachedPairs) {
-      _admittedPairs.remove(_admittedPairs.first);
-    }
-  }
-
-  void revokeDirectedPair(DirectedPairId pair) {
-    _admittedPairs.remove(pair);
-    _pairCache.remove(pair);
   }
 
   void updatePackStatus(String locale, LanguagePackGateResult result) {
@@ -166,11 +142,9 @@ class DirectedPairReadinessEngine {
   void clear() {
     _pairCache.clear();
     _packStatusCache.clear();
-    _admittedPairs.clear();
   }
 
   int get currentPairCacheSize => _pairCache.length;
   int get currentPackCacheSize => _packStatusCache.length;
-  int get currentAdmittedPairsCount => _admittedPairs.length;
 }
 

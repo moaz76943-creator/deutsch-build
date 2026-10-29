@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/hybrid_audio_service.dart';
 import '../core/srs/review_command_port.dart';
+import '../providers/active_language_provider.dart';
 import '../services/database_service.dart';
 import '../widgets/bidi_lexicon_view.dart';
 import '../widgets/lexicon_rich_details.dart';

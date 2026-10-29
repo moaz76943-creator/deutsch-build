@@ -17,12 +17,6 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   final String _targetMeaning = "المسؤولية";
 
   @override
-  void dispose() {
-    _answerController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

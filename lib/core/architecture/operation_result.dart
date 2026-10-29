@@ -6,9 +6,6 @@ abstract class OperationFailure {
   final Object? _cause;
   const OperationFailure(this.code, this.message, [this._cause]);
 
-  /// Bounded diagnostic check whether an underlying cause is present.
-  bool get hasCause => _cause != null;
-
   @override
   String toString() => 'OperationFailure(code: $code, message: $message)';
 }
