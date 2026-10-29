@@ -100,10 +100,10 @@ Map<String, Object> _aggregateCommittedReviews(Map<String, Object> params) {
   final now = params['now'] as DateTime;
   final start = now.subtract(Duration(days: days));
 
-  final scoped = events.where((e) => e.languagePairKey == pairKey).toList();
+  final scoped = events.where((e) => e.pairId.uniqueKey == pairKey).toList();
   final unique = <String, ReviewTransactionEnvelope>{};
   for (final review in scoped) {
-    unique[review.reviewEventId] = review;
+    unique[review.eventId] = review;
   }
 
   final inWindow = unique.values.where((e) =>
