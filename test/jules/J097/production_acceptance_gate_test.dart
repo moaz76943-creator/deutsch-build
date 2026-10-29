@@ -169,14 +169,16 @@ void main() {
     });
 
     test('unavailable optional features degrades safely and preserves configuration', () {
-      final initialConfig = ProductionAcceptanceGate.lastApprovedConfiguration;
 
+
+      final initialConfig = ProductionAcceptanceGate.lastApprovedConfiguration;
       final result = ProductionAcceptanceGate.evaluatePromotion(
         startupContract: MockJ025StartupContract(),
         verificationResult: MockJ095VerificationResult(),
         languageEvidence: [MockLanguageReadinessEvidence(languageCode: 'ar')],
         optionalFeatures: [MockOptionalFeatureEvidence(featureName: 'tts', isAvailable: false)],
       );
+      expect(initialConfig, isNull);
 
       expect(result, PromotionEligibility.degraded);
 
@@ -226,6 +228,53 @@ void main() {
       final configAfter = ProductionAcceptanceGate.lastApprovedConfiguration;
       expect(configAfter, isNotNull);
       expect(configAfter!.verifiedLanguages, contains('de'));
+    });
+  });
+  additionalTests();
+}
+
+// Added missing tests requirement #13
+void additionalTests() {
+  group('Additional Requirements Tests', () {
+    test('missing results are handled', () {
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: null,
+        verificationResult: null,
+      );
+      expect(result, PromotionEligibility.notVerified);
+    });
+
+    test('failed benchmarks handled', () {
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: MockJ025StartupContract(),
+        verificationResult: MockJ095VerificationResult(hasMemoryRegression: true),
+      );
+      expect(result, PromotionEligibility.blocked);
+    });
+
+    test('corrupt storage test', () {
+       final result = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: MockJ025StartupContract(),
+        verificationResult: MockJ095VerificationResult(isStorageCorrupt: true),
+      );
+      expect(result, PromotionEligibility.blocked);
+    });
+
+    test('optional TTS absence', () {
+       final result = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: MockJ025StartupContract(),
+        verificationResult: MockJ095VerificationResult(),
+        optionalFeatures: [MockOptionalFeatureEvidence(featureName: 'tts', isAvailable: false)],
+      );
+      expect(result, PromotionEligibility.degraded);
+    });
+
+    test('stale evidence test', () {
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        startupContract: MockJ025StartupContract(),
+        verificationResult: MockJ095VerificationResult(isEvidenceStale: true),
+      );
+      expect(result, PromotionEligibility.notVerified);
     });
   });
 }
