@@ -33,8 +33,7 @@ class FileReminderStorage implements ReminderStorage {
       }
       return;
     }
-    await _file
-        .writeAsString(jsonEncode({'nextReminder': time.toIso8601String()}));
+    await _file.writeAsString(jsonEncode({'nextReminder': time.toIso8601String()}));
   }
 
   @override
@@ -43,8 +42,8 @@ class FileReminderStorage implements ReminderStorage {
     try {
       final content = await _file.readAsString();
       final data = jsonDecode(content);
-      if (data is Map && data['nextReminder'] is String) {
-        return DateTime.parse(data['nextReminder'] as String);
+      if (data['nextReminder'] != null) {
+        return DateTime.parse(data['nextReminder']);
       }
     } catch (_) {
       // Return null on parsing errors
