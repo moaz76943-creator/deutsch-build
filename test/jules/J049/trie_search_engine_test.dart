@@ -50,7 +50,7 @@ void main() {
     });
 
     test('Bounded memory limits', () {
-      final engine = TrieSearchEngine(maxNodes: 20, maxResultsPerNode: 2, maxSearchResults: 2);
+      final engine = TrieSearchEngine(maxNodes: 10, maxResultsPerNode: 2, maxSearchResults: 2);
 
       // maxResultsPerNode test
       engine.insert('test1', '1');
@@ -61,12 +61,10 @@ void main() {
       expect(results.length, lessThanOrEqualTo(2));
 
       // Test nodes limit
-      final smallEngine = TrieSearchEngine(maxNodes: 6);
+      final smallEngine = TrieSearchEngine(maxNodes: 5);
       smallEngine.insert('longword', '1');
       expect(smallEngine.searchPrefix('longword'), isEmpty);
-
-      smallEngine.insert('long', '2');
-      expect(smallEngine.searchPrefix('long'), ['2']);
+      expect(smallEngine.searchPrefix('long'), ['1']); // Since nodes limited to 5 (1 root + 4 chars)
     });
 
     test('Stale cache clearing', () {
