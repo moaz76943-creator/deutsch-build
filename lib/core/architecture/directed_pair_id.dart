@@ -3,6 +3,9 @@ class DirectedPairId {
   final String targetLocale;
   final String semanticVersion;
 
+  static final RegExp _localeRegex = RegExp(r'^[a-z]{2,3}(_[A-Z]{2})?$');
+  static final RegExp _versionRegex = RegExp(r'^\d+\.\d+\.\d+$');
+
   const DirectedPairId({
     required this.sourceLocale,
     required this.targetLocale,
@@ -14,7 +17,6 @@ class DirectedPairId {
   String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
 
   bool get isReflexive => sourceLocale == targetLocale;
-<<<<<<< HEAD
 
   bool isValidForLearning() =>
       !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
@@ -33,43 +35,81 @@ class DirectedPairId {
 
   String serialize() => uniqueKey;
 
-  static DirectedPairId parse(String serialized) {
+  static DirectedPairId fromString(String serialized) {
     if (serialized.isEmpty) {
       throw const FormatException(
           'Cannot parse empty string into DirectedPairId');
     }
+
+    // Attempt to split. Since locales might contain underscores (e.g. en_US),
+    // and semanticVersion does not contain underscores, we can parse safely.
+    // Legacy migration: source_target (e.g. ar_fr)
+    // New format: source_target_version (e.g. ar_fr_1.0.0, or en_US_es_ES_1.0.0)
+
+    String source;
+    String target;
+    String version;
+
     final parts = serialized.split('_');
-    if (parts.length == 3) {
-      final source = parts[0];
-      final target = parts[1];
-      final version = parts[2];
-      if (source.isEmpty || target.isEmpty || version.isEmpty) {
-        throw FormatException(
-            'Invalid DirectedPairId format: empty components in $serialized');
+
+    // Check if the last part is a semantic version
+    if (parts.length >= 3 && _versionRegex.hasMatch(parts.last)) {
+      version = parts.last;
+
+      // Now we have the remaining parts for locales.
+      final remaining = parts.sublist(0, parts.length - 1);
+      if (remaining.length == 2) {
+        source = remaining[0];
+        target = remaining[1];
+      } else if (remaining.length == 3) {
+        // e.g. en_US and es, or en and es_ES
+        // we can test which one matches the regex
+        if (_localeRegex.hasMatch('${remaining[0]}_${remaining[1]}') &&
+            _localeRegex.hasMatch(remaining[2])) {
+          source = '${remaining[0]}_${remaining[1]}';
+          target = remaining[2];
+        } else if (_localeRegex.hasMatch(remaining[0]) &&
+            _localeRegex.hasMatch('${remaining[1]}_${remaining[2]}')) {
+          source = remaining[0];
+          target = '${remaining[1]}_${remaining[2]}';
+        } else {
+          throw FormatException(
+              'Invalid locales in DirectedPairId: $serialized');
+        }
+      } else if (remaining.length == 4) {
+        source = '${remaining[0]}_${remaining[1]}';
+        target = '${remaining[2]}_${remaining[3]}';
+      } else {
+        throw FormatException('Invalid DirectedPairId format: $serialized');
       }
-      return DirectedPairId(
-        sourceLocale: source,
-        targetLocale: target,
-        semanticVersion: version,
-      );
     } else if (parts.length == 2) {
       // Legacy migration path
-      final source = parts[0];
-      final target = parts[1];
-      if (source.isEmpty || target.isEmpty) {
-        throw FormatException(
-            'Invalid legacy DirectedPairId format: empty components in $serialized');
-      }
-      return DirectedPairId(
-        sourceLocale: source,
-        targetLocale: target,
-        semanticVersion: '1.0.0', // Default legacy version
-      );
+      source = parts[0];
+      target = parts[1];
+      version = '1.0.0'; // Default legacy version
     } else {
       throw FormatException('Invalid DirectedPairId format: $serialized');
     }
+
+    if (source.isEmpty || target.isEmpty || version.isEmpty) {
+      throw FormatException(
+          'Invalid DirectedPairId format: empty components in $serialized');
+    }
+
+    if (!_localeRegex.hasMatch(source)) {
+      throw FormatException('Invalid source locale: $source');
+    }
+    if (!_localeRegex.hasMatch(target)) {
+      throw FormatException('Invalid target locale: $target');
+    }
+    if (!_versionRegex.hasMatch(version)) {
+      throw FormatException('Invalid semantic version: $version');
+    }
+
+    return DirectedPairId(
+      sourceLocale: source,
+      targetLocale: target,
+      semanticVersion: version,
+    );
   }
-=======
-  bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
