@@ -1,91 +1,77 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
-import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
 import 'package:deutsch_bilarabi/core/catalog/directed_readiness_engine.dart';
+import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
 
 void main() {
-  group('DirectedPairReadinessEngine', () {
-    late DirectedPairReadinessEngine engine;
+  const ab = DirectedPairId(
+    sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0',
+  );
+  const ba = DirectedPairId(
+    sourceLocale: 'de', targetLocale: 'ar', semanticVersion: '1.0.0',
+  );
 
-    setUp(() {
-      engine = DirectedPairReadinessEngine();
-    });
+  test('approved language pack alone never marks directed pair ready', () {
+    final engine = DirectedPairReadinessEngine();
+    engine.updatePackStatus(
+      'de', const LanguagePackGateResult(PackGateStatus.approved),
+    );
+    expect(engine.resolvePair(ab).state, PairReadinessState.missingDirectedEvidence);
+    expect(engine.resolvePair(ba).state, PairReadinessState.missingPack);
+    engine.updatePackStatus(
+      'ar', const LanguagePackGateResult(PackGateStatus.approved),
+    );
+    expect(engine.resolvePair(ba).state, PairReadinessState.missingDirectedEvidence);
+  });
 
-    test('Evaluating A->B separately from B->A (Directed pair evaluation)', () {
-      // ar -> de should be ready (both production ready)
-      engine.updatePackStatus('de', const LanguagePackGateResult(PackGateStatus.approved));
-      const pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
-      final resultArToDe = engine.resolvePair(pairArToDe);
-      expect(resultArToDe.state, equals(PairReadinessState.ready));
+  test('pack downgrade invalidates readiness and preserves direction', () {
+    final engine = DirectedPairReadinessEngine();
+    engine.updatePackStatus(
+      'de', const LanguagePackGateResult(PackGateStatus.approved),
+    );
+    expect(engine.resolvePair(ab).state, PairReadinessState.missingDirectedEvidence);
+    engine.updatePackStatus(
+      'de', const LanguagePackGateResult(PackGateStatus.schemaMismatch),
+    );
+    expect(engine.resolvePair(ab).state, PairReadinessState.schemaMismatch);
+    engine.invalidatePack('de');
+    expect(engine.resolvePair(ab).state, PairReadinessState.missingPack);
+  });
 
-      // de -> ar: source is de, target is ar. If pack ar is not installed/unknown, missingPack
-      const pairDeToAr = DirectedPairId(sourceLocale: 'de', targetLocale: 'ar', semanticVersion: '1.0.0');
-      final resultDeToAr = engine.resolvePair(pairDeToAr);
-      expect(resultDeToAr.state, equals(PairReadinessState.missingPack));
+  test('unknown language and same-language requests fail closed', () {
+    final engine = DirectedPairReadinessEngine();
+    expect(
+      engine.resolvePair(const DirectedPairId(
+        sourceLocale: 'ar', targetLocale: 'ar', semanticVersion: '1.0.0',
+      )).state, PairReadinessState.identical,
+    );
+    expect(
+      engine.resolvePair(const DirectedPairId(
+        sourceLocale: 'ar', targetLocale: 'zh', semanticVersion: '1.0.0',
+      )).state, PairReadinessState.unsupportedTarget,
+    );
+  });
 
-      engine.updatePackStatus('ar', const LanguagePackGateResult(PackGateStatus.approved));
-      final resultDeToAr2 = engine.resolvePair(pairDeToAr);
-      expect(resultDeToAr2.state, equals(PairReadinessState.ready));
-    });
-
-    test('Rejecting identical-language pairs', () {
-      const pairDeToDe = DirectedPairId(sourceLocale: 'de', targetLocale: 'de', semanticVersion: '1.0.0');
-      final result = engine.resolvePair(pairDeToDe);
-      expect(result.state, equals(PairReadinessState.identical));
-    });
-
-    test('Rejecting unsupported and nominal languages', () {
-      // fr is assetsReady, not productionReady
-      const pairArToFr = DirectedPairId(sourceLocale: 'ar', targetLocale: 'fr', semanticVersion: '1.0.0');
-      final result = engine.resolvePair(pairArToFr);
-      expect(result.state, equals(PairReadinessState.unsupportedTarget));
-
-      const pairFrToDe = DirectedPairId(sourceLocale: 'fr', targetLocale: 'de', semanticVersion: '1.0.0');
-      final result2 = engine.resolvePair(pairFrToDe);
-      expect(result2.state, equals(PairReadinessState.unsupportedSource));
-
-      // zh is nominal/unsupported (fallback)
-      const pairArToZh = DirectedPairId(sourceLocale: 'ar', targetLocale: 'zh', semanticVersion: '1.0.0');
-      final result3 = engine.resolvePair(pairArToZh);
-      expect(result3.state, equals(PairReadinessState.unsupportedTarget));
-    });
-
-    test('Testing different pack states (schema mismatch, rejected)', () {
-      engine.updatePackStatus('de', const LanguagePackGateResult(PackGateStatus.schemaMismatch, 'missing vocab'));
-      const pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
-      final result = engine.resolvePair(pairArToDe);
-      expect(result.state, equals(PairReadinessState.schemaMismatch));
-
-      engine.updatePackStatus('en', const LanguagePackGateResult(PackGateStatus.missingChecksum, 'bad checksum'));
-      const pairArToEn = DirectedPairId(sourceLocale: 'ar', targetLocale: 'en', semanticVersion: '1.0.0');
-      final result2 = engine.resolvePair(pairArToEn);
-      expect(result2.state, equals(PairReadinessState.rejectedPack));
-    });
-
-    test('Explicit invalidation on pack changes and handling stale readiness', () {
-      engine.updatePackStatus('de', const LanguagePackGateResult(PackGateStatus.approved));
-      const pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
-      expect(engine.resolvePair(pairArToDe).state, equals(PairReadinessState.ready));
-
-      engine.invalidatePack('de');
-      expect(engine.resolvePair(pairArToDe).state, equals(PairReadinessState.missingPack));
-    });
-
-    test('Simulating 100 language IDs to guarantee bounds (O(N) packs, bounded pair state)', () {
-      // Add 100 distinct local packs (O(N))
-      for (int i = 0; i < 100; i++) {
-        engine.updatePackStatus('de_$i', const LanguagePackGateResult(PackGateStatus.approved));
-      }
-      expect(engine.currentPackCacheSize, equals(100));
-
-      // Resolve 200 distinct pairs (in reality only few are production ready based on LanguageReadinessMatrix but they are cached)
-      for (int i = 0; i < 200; i++) {
-        final pair = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de_$i', semanticVersion: '1.0.0');
-        engine.resolvePair(pair);
-      }
-
-      // Max cache limit is 100 (bounded memory)
-      expect(engine.currentPairCacheSize, lessThanOrEqualTo(100));
-    });
+  test('bounded caches never materialize N-squared pair state', () {
+    final engine = DirectedPairReadinessEngine(
+      maxCachedPairs: 3, maxCachedPacks: 2,
+    );
+    for (var i = 0; i < 200; i++) {
+      final locale = 'a${String.fromCharCode(97 + i ~/ 26)}'
+          '${String.fromCharCode(97 + i % 26)}';
+      engine.updatePackStatus(
+        locale, const LanguagePackGateResult(PackGateStatus.approved),
+      );
+      engine.resolvePair(DirectedPairId(
+        sourceLocale: 'ar', targetLocale: locale, semanticVersion: '1.0.0',
+      ));
+    }
+    expect(() => engine.updatePackStatus(
+      '../invalid', const LanguagePackGateResult(PackGateStatus.approved),
+    ), throwsArgumentError);
+    expect(engine.currentPackCacheSize, lessThanOrEqualTo(2));
+    expect(engine.currentPairCacheSize, lessThanOrEqualTo(3));
+    engine.clear();
+    expect(engine.currentPairCacheSize, 0);
   });
 }

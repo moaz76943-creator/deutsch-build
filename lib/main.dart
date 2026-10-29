@@ -1,49 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/bootstrap/startup_boundary.dart';
+import 'features/explore/presentation/section_explorer_screen.dart';
 
-import 'bootstrap/production_bootstrap.dart';
-import 'design_system/app_theme.dart';
-import 'features/onboarding/fast_onboarding_screen.dart';
-
-/// One entry point. Crash-loop accounting, pack admission, and session
-/// recovery live in the production shell's startup boundary. This file does
-/// not open learner storage.
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations(const [
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  await bootstrapDeutschApp(const DeutschApp());
+  // The first frame is independent of content databases and optional services.
+  runApp(const DeutschApp());
 }
 
 class DeutschApp extends StatelessWidget {
-  const DeutschApp({super.key});
+  const DeutschApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp(
-        title: 'Deutsch بالعربي',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.system,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('ar'),
-          Locale('en'),
-          Locale('de'),
-        ],
-        home: hostProductionShell(
-          child: const FastOnboardingScreen(),
-        ),
+    return MaterialApp(
+      title: 'DEUTSCH بالعربي',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.dark,
+      ),
+      home: const StartupBoundary(
+        child: SectionExplorerScreen(initialLanguage: 'de'),
       ),
     );
   }

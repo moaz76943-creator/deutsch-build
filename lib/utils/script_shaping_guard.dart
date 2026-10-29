@@ -26,11 +26,8 @@ class ScriptShapingGuard {
 
   static String? scriptOf(int cp) {
     bool inside(int start, int end) => cp >= start && cp <= end;
-    if (inside(0x0900, 0x097F) ||
-        inside(0xA8E0, 0xA8FF) ||
-        inside(0x1CD0, 0x1CFF)) {
-      return 'Devanagari';
-    }
+    if (inside(0x0900, 0x097F) || inside(0xA8E0, 0xA8FF) ||
+        inside(0x1CD0, 0x1CFF)) return 'Devanagari';
     if (inside(0x0980, 0x09FF)) return 'Bengali';
     if (inside(0x0A00, 0x0A7F)) return 'Gurmukhi';
     if (inside(0x0A80, 0x0AFF)) return 'Gujarati';
@@ -44,16 +41,10 @@ class ScriptShapingGuard {
     if (inside(0x0E80, 0x0EFF)) return 'Lao';
     if (inside(0x1780, 0x17FF) || inside(0x19E0, 0x19FF)) return 'Khmer';
     if (inside(0x0F00, 0x0FFF)) return 'Tibetan';
-    if (inside(0x10A0, 0x10FF) ||
-        inside(0x1C90, 0x1CBF) ||
-        inside(0x2D00, 0x2D2F)) {
-      return 'Georgian';
-    }
-    if (inside(0x1000, 0x109F) ||
-        inside(0xAA60, 0xAA7F) ||
-        inside(0xA9E0, 0xA9FF)) {
-      return 'Myanmar';
-    }
+    if (inside(0x10A0, 0x10FF) || inside(0x1C90, 0x1CBF) ||
+        inside(0x2D00, 0x2D2F)) return 'Georgian';
+    if (inside(0x1000, 0x109F) || inside(0xAA60, 0xAA7F) ||
+        inside(0xA9E0, 0xA9FF)) return 'Myanmar';
     return null;
   }
 
@@ -66,8 +57,7 @@ class ScriptShapingGuard {
     return List<String>.unmodifiable(scripts);
   }
 
-  static List<String> fallbackFamiliesFor(
-    String text, {
+  static List<String> fallbackFamiliesFor(String text, {
     List<String> existing = const [],
     int? androidSdkInt,
   }) {
@@ -78,7 +68,8 @@ class ScriptShapingGuard {
       if (font != null) fonts.add(font);
     }
     if (scripts.isNotEmpty) {
-      if (androidSdkInt == null || androidSdkInt < 26 || androidSdkInt > 29) {
+      if (androidSdkInt == null ||
+          androidSdkInt < 26 || androidSdkInt > 29) {
         fonts.add('Noto Sans');
       }
       fonts.add('sans-serif');
@@ -86,16 +77,14 @@ class ScriptShapingGuard {
     return List<String>.unmodifiable(fonts);
   }
 
-  static TextStyle styleFor(
-    String text, {
+  static TextStyle styleFor(String text, {
     TextStyle base = const TextStyle(),
     int? androidSdkInt,
   }) {
     if (scriptsIn(text).isEmpty) return base;
-    return base.copyWith(
-        fontFamilyFallback: fallbackFamiliesFor(text,
-            existing: base.fontFamilyFallback ?? const [],
-            androidSdkInt: androidSdkInt));
+    return base.copyWith(fontFamilyFallback: fallbackFamiliesFor(text,
+      existing: base.fontFamilyFallback ?? const [],
+      androidSdkInt: androidSdkInt));
   }
 
   /// True only for literal replacement U+FFFD, not for font-renderer tofu.
