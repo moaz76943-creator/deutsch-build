@@ -131,15 +131,15 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
 
       await guard.recordFailure();
 
-      final pipeline = IsolatedBootstrapPipeline([
+      // Critical path only — keeps cold start fast.
+      final criticalPipeline = IsolatedBootstrapPipeline([
         _ProductionAcceptanceStep(),
         _SessionRecoveryStep(prefs),
         _FeatureRegistryStep(),
         _LifecycleRegistryStep(),
-        IntegrityBootstrapStep(), // Play Integrity attestation for anti-modding and feature gating
       ]);
 
-      final results = await pipeline.runPipeline();
+      final results = await criticalPipeline.runPipeline();
 
       // Performance instrumentation: log per-step startup times (measurable impact).
       for (final r in results) {
@@ -163,19 +163,34 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
           isBootstrapping = false;
           errorMessage = fatalMsg;
         });
-      } else {
-        await guard.recordSuccess();
-        setState(() {
-          isSafeMode = false;
-          isBootstrapping = false;
-        });
+        return;
       }
+
+      await guard.recordSuccess();
+      setState(() {
+        isSafeMode = false;
+        isBootstrapping = false;
+      });
+
+      // Non-critical security attestation runs after UI is shown.
+      // Does not block startup. Features remain gated on success as before.
+      unawaited(_runDeferredIntegrity());
     } catch (e) {
       setState(() {
         isSafeMode = true;
         isBootstrapping = false;
         errorMessage = e.toString();
       });
+    }
+  }
+
+  Future<void> _runDeferredIntegrity() async {
+    try {
+      final step = IntegrityBootstrapStep();
+      final result = await step.execute();
+      debugPrint("[DBA][BOOTSTRAP_PERF] ${result.stepName}: deferred ${result.elapsed.inMilliseconds}ms status=${result.status}");
+    } catch (e) {
+      debugPrint('[DBA][INTEGRITY] Deferred check error: $e');
     }
   }
 
