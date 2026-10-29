@@ -1,0 +1,22 @@
+{
+  "verbs": [
+    {
+      "verb_id": "v1",
+      "infinitive": "machen",
+      "translation_ar": "make",
+      "frequency_rank": 1,
+      "conjugations": [
+        {"conjugation_id": "c1", "tense": "present", "person": "1s", "conjugated_form": "mache"}
+      ]
+    },
+    {
+      "verb_id": "v2",
+      "infinitive": "gehen",
+      "translation_ar": "go",
+      "frequency_rank": 2,
+      "conjugations": [
+        {"conjugation_id": "c2", "tense": "past", "person": "3s", "conjugated_form": "ging"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "nominals": [
+    {
+      "id": "n1",
+      "lemma": "Kind",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {"id": "d1", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Kinder"}
+      ]
+    }
+  ]
+}
