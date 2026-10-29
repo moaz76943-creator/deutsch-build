@@ -31,16 +31,16 @@ class FlashcardReviewItem {
       facetKey.trim().isNotEmpty;
 
   ReviewCommand command(ReviewRating rating) => ReviewCommand(
-        reviewId: reviewEventId,
-        sourceLanguageId: entry.sourceLocale,
-        targetLanguageId: entry.targetLocale,
-        semanticVersion: semanticVersion,
-        cardId: entry.id,
-        facetKey: facetKey,
-        pairEpoch: pairEpoch,
-        rating: rating,
-        hinted: false,
-      );
+    reviewId: reviewEventId,
+    sourceLanguageId: entry.sourceLocale,
+    targetLanguageId: entry.targetLocale,
+    semanticVersion: semanticVersion,
+    cardId: entry.id,
+    facetKey: facetKey,
+    pairEpoch: pairEpoch,
+    rating: rating,
+    hinted: false,
+  );
 }
 
 /// UI advances only after a durable ReviewCommandPort acknowledges the write.
@@ -75,7 +75,7 @@ class _FlashcardSessionState extends State<FlashcardSessionWidget>
     super.initState();
     _queue = List<FlashcardReviewItem>.of(widget.items);
     _flip = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 180));
+      vsync: this, duration: const Duration(milliseconds: 180));
   }
 
   @override
@@ -175,10 +175,9 @@ class _FlashcardSessionState extends State<FlashcardSessionWidget>
         Padding(
           padding: const EdgeInsets.all(12),
           child: Text('Cards left: ${_queue.length}',
-              textDirection: TextDirection.ltr),
+            textDirection: TextDirection.ltr),
         ),
-        Expanded(
-            child: Padding(
+        Expanded(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: FlashcardWidget(
             entry: item.entry,
@@ -189,8 +188,8 @@ class _FlashcardSessionState extends State<FlashcardSessionWidget>
         if (_error != null)
           Padding(
             padding: const EdgeInsets.all(8),
-            child: Text(_error!,
-                key: const Key('review-error'), textAlign: TextAlign.center),
+            child: Text(_error!, key: const Key('review-error'),
+              textAlign: TextAlign.center),
           ),
         if (_flipped)
           Padding(
@@ -200,32 +199,24 @@ class _FlashcardSessionState extends State<FlashcardSessionWidget>
               alignment: WrapAlignment.center,
               children: <Widget>[
                 ElevatedButton(
-                    onPressed: _busy ||
-                            (_attemptedRating != null &&
-                                _attemptedRating != ReviewRating.hard)
-                        ? null
-                        : () => _grade(ReviewRating.hard),
-                    child: const Text('Hard')),
+                  onPressed: _busy || (_attemptedRating != null && _attemptedRating != ReviewRating.hard)
+                      ? null : () => _grade(ReviewRating.hard),
+                  child: const Text('Hard')),
                 ElevatedButton(
-                    onPressed: _busy ||
-                            (_attemptedRating != null &&
-                                _attemptedRating != ReviewRating.good)
-                        ? null
-                        : () => _grade(ReviewRating.good),
-                    child: const Text('Good')),
+                  onPressed: _busy || (_attemptedRating != null && _attemptedRating != ReviewRating.good)
+                      ? null : () => _grade(ReviewRating.good),
+                  child: const Text('Good')),
                 ElevatedButton(
-                    onPressed: _busy ||
-                            (_attemptedRating != null &&
-                                _attemptedRating != ReviewRating.easy)
-                        ? null
-                        : () => _grade(ReviewRating.easy),
-                    child: const Text('Easy')),
+                  onPressed: _busy || (_attemptedRating != null && _attemptedRating != ReviewRating.easy)
+                      ? null : () => _grade(ReviewRating.easy),
+                  child: const Text('Easy')),
               ],
             ),
           )
         else
           TextButton(
-              onPressed: _busy ? null : _skip, child: const Text('Skip')),
+            onPressed: _busy ? null : _skip,
+            child: const Text('Skip')),
       ],
     );
   }
