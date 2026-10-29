@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../core/srs/review_command_port.dart';
 import '../core/audio/offline_audio_manager.dart';
-import '../services/local_database_service.dart';
+import '../services/database_service.dart';
 
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
-  final db = await LocalDatabaseService.instance.database;
+  final db = await DatabaseService.instance.contentDb;
   return await db.rawQuery(
     '''
-    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence
-    FROM lexemes AS l
-    LEFT JOIN examples AS e
-      ON e.concept_id = l.concept_id AND e.language_code = l.language_code
-    WHERE l.language_code = ?
+    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence 
+    FROM lexemes AS l 
+    LEFT JOIN examples AS e 
+      ON e.concept_id = l.concept_id AND e.language_code = l.language_code 
+    WHERE l.language_code = ? 
     LIMIT 10
     ''',
-    [targetLangCode],
+    [targetLangCode], 
   );
 }
 
 class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key});
+  const FlashcardsScreen({super.key}); 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
 }
@@ -44,7 +44,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   @override
   void dispose() {
     _flipController.dispose();
-    OfflineAudioManager.instance.stop();
+    OfflineAudioManager.instance.stop(); 
     super.dispose();
   }
 
@@ -55,22 +55,22 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     });
     if (_isFlipped) {
       _flipController.forward();
-      OfflineAudioManager.instance.speak("das Buch");
+      OfflineAudioManager.instance.speak("das Buch"); 
     } else {
       _flipController.reverse();
     }
   }
 
   Future<void> _handleRating(ReviewRating rating) async {
-    if (_isSubmitting) return;
+    if (_isSubmitting) return; 
     setState(() => _isSubmitting = true);
 
-    await Future.delayed(const Duration(milliseconds: 300));
-
+    await Future.delayed(const Duration(milliseconds: 300)); 
+    
     if (mounted) {
       setState(() {
         _isSubmitting = false;
-        _toggleFlip();
+        _toggleFlip(); 
       });
     }
   }
@@ -114,7 +114,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
             if (_isFlipped)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: _isSubmitting
+                child: _isSubmitting 
                   ? const CircularProgressIndicator()
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -148,7 +148,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
       ),
       alignment: Alignment.center,
       child: const Text(
-        'das Buch',
+        'das Buch', 
         style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
@@ -186,7 +186,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
         backgroundColor: color.withAlpha(51),
         foregroundColor: color,
         elevation: 0,
-        minimumSize: const Size(70, 56),
+        minimumSize: const Size(70, 56), 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       onPressed: () => _handleRating(rating),

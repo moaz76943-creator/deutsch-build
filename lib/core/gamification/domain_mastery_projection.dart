@@ -33,7 +33,7 @@ class DomainMasteryProjection {
     // الإتقان يعتمد على البطاقات المتقنة فعلياً مقارنة بإجمالي البطاقات
     return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0);
   }
-
+  
   /// تقييم حالة شجرة الإتقان للمجال (مغلق، متاح، قيد التقدم، متقن)
   DomainMasteryState get masteryState {
     if (introducedCardCount == 0) return DomainMasteryState.available;

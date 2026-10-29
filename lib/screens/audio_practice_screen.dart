@@ -33,7 +33,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
     await _flutterTts.setLanguage(locale);
     await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(''));
     await _flutterTts.setSpeechRate(_playbackSpeed);
-
+    
     _flutterTts.setCompletionHandler(() {
       if (mounted) setState(() => _isPlaying = false);
     });

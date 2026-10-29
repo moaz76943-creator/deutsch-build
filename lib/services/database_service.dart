@@ -28,54 +28,99 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
-        // جداول المحتوى (لـ 100 لغة)
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS language_profiles (
-           language_code TEXT PRIMARY KEY,
-           name_native TEXT NOT NULL,
-           name_ar TEXT NOT NULL,
-           direction TEXT NOT NULL
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS concepts (
-           concept_id TEXT PRIMARY KEY,
-           category TEXT NOT NULL,
-           cefr_level TEXT NOT NULL
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS lexemes (
-           lexeme_id TEXT PRIMARY KEY,
-           concept_id TEXT NOT NULL,
-           language_code TEXT NOT NULL,
-           lemma TEXT NOT NULL,
-           display_text TEXT NOT NULL,
-           article TEXT,
-           plural TEXT,
-           gender TEXT,
-           grammar_json TEXT DEFAULT '{}'
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS examples (
-           example_id TEXT PRIMARY KEY,
-           concept_id TEXT NOT NULL,
-           language_code TEXT NOT NULL,
-           sentence TEXT NOT NULL,
-           translation_ar TEXT
-          )
-        ''');
-
+        await _createContentDbSchema(db);
         // زرع بيانات مبدئية لكي يعمل المعجم فوراً
         await _seedInitialData(db);
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // Create missing tables if they don't exist (e.g., if legacy LocalDatabaseService created db)
+          await _createContentDbSchema(db);
+
+          // Add missing columns to lexemes and examples if they were created by LocalDatabaseService
+          try {
+            await db.execute("ALTER TABLE lexemes ADD COLUMN display_text TEXT NOT NULL DEFAULT ''");
+          } catch (_) {}
+
+          try {
+            await db.execute("ALTER TABLE lexemes ADD COLUMN gender TEXT");
+          } catch (_) {}
+
+          try {
+            await db.execute("ALTER TABLE lexemes ADD COLUMN grammar_json TEXT DEFAULT '{}'");
+          } catch (_) {}
+
+          // Migrate examples table safely
+          try {
+            await db.execute('''
+              CREATE TABLE examples_new (
+               example_id TEXT PRIMARY KEY,
+               concept_id TEXT NOT NULL,
+               language_code TEXT NOT NULL,
+               sentence TEXT NOT NULL,
+               translation_ar TEXT
+              )
+            ''');
+
+            await db.execute('''
+              INSERT INTO examples_new (example_id, concept_id, language_code, sentence, translation_ar)
+              SELECT lower(hex(randomblob(16))), concept_id, language_code, sentence, translation_ar
+              FROM examples
+            ''');
+
+            await db.execute('DROP TABLE examples');
+            await db.execute('ALTER TABLE examples_new RENAME TO examples');
+          } catch (_) {
+             // Migration might have already occurred or table was already in correct format
+          }
+        }
+      },
     );
+  }
+
+  Future<void> _createContentDbSchema(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS language_profiles (
+       language_code TEXT PRIMARY KEY,
+       name_native TEXT NOT NULL,
+       name_ar TEXT NOT NULL,
+       direction TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS concepts (
+       concept_id TEXT PRIMARY KEY,
+       category TEXT NOT NULL,
+       cefr_level TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS lexemes (
+       lexeme_id TEXT PRIMARY KEY,
+       concept_id TEXT NOT NULL,
+       language_code TEXT NOT NULL,
+       lemma TEXT NOT NULL,
+       display_text TEXT NOT NULL,
+       article TEXT,
+       plural TEXT,
+       gender TEXT,
+       grammar_json TEXT DEFAULT '{}'
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS examples (
+       example_id TEXT PRIMARY KEY,
+       concept_id TEXT NOT NULL,
+       language_code TEXT NOT NULL,
+       sentence TEXT NOT NULL,
+       translation_ar TEXT
+      )
+    ''');
   }
 
   Future<Database> _initProgressDb(String fileName) async {
@@ -84,22 +129,47 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
-        // جدول التكرار المتباعد (SuperMemo-2)
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS srs_progress (
-           lexeme_id TEXT PRIMARY KEY,
-           target_language_code TEXT NOT NULL,
-           repetition_count INTEGER NOT NULL DEFAULT 0,
-           interval_days INTEGER NOT NULL DEFAULT 1,
-           ease_factor REAL NOT NULL DEFAULT 2.5,
-           next_due_at INTEGER,
-           status TEXT NOT NULL DEFAULT 'learning'
-          )
-        ''');
+        await _createProgressDbSchema(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await _createProgressDbSchema(db);
+        }
       },
     );
+  }
+
+  Future<void> _createProgressDbSchema(Database db) async {
+    // جدول التكرار المتباعد (SuperMemo-2)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS srs_progress (
+       lexeme_id TEXT PRIMARY KEY,
+       target_language_code TEXT NOT NULL,
+       repetition_count INTEGER NOT NULL DEFAULT 0,
+       interval_days INTEGER NOT NULL DEFAULT 1,
+       ease_factor REAL NOT NULL DEFAULT 2.5,
+       next_due_at INTEGER,
+       status TEXT NOT NULL DEFAULT 'learning'
+      )
+    ''');
+
+    // Create vocabulary_items table here instead of in VocabularyRepository
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS vocabulary_items (
+        word TEXT PRIMARY KEY,
+        language_code TEXT NOT NULL DEFAULT 'de',
+        article TEXT,
+        meaning TEXT,
+        interval INTEGER NOT NULL DEFAULT 0,
+        repetitions INTEGER NOT NULL DEFAULT 0,
+        ease_factor REAL NOT NULL DEFAULT 2.5,
+        json_data TEXT NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
   }
 
   // دالة البحث في المعجم الفوري
@@ -107,7 +177,7 @@ class DatabaseService {
     final db = await contentDb;
     if (query.isEmpty) {
       return await db.rawQuery('''
-        SELECT l.*, e.sentence, e.translation_ar
+        SELECT l.*, e.sentence, e.translation_ar 
         FROM lexemes l
         LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
         WHERE l.language_code = ?
@@ -116,7 +186,7 @@ class DatabaseService {
     }
 
     return await db.rawQuery('''
-      SELECT l.*, e.sentence, e.translation_ar
+      SELECT l.*, e.sentence, e.translation_ar 
       FROM lexemes l
       LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
       WHERE l.language_code = ? AND (l.lemma LIKE ? OR l.display_text LIKE ? OR e.translation_ar LIKE ?)
@@ -127,7 +197,7 @@ class DatabaseService {
   // إدخال بيانات تجريبية (مفاهيم الحياة اليومية)
   Future<void> _seedInitialData(Database db) async {
     final batch = db.batch();
-
+    
     // إدخال اللغات
     batch.insert('language_profiles', {'language_code': 'de', 'name_native': 'Deutsch', 'name_ar': 'الألمانية', 'direction': 'ltr'});
     batch.insert('language_profiles', {'language_code': 'ar', 'name_native': 'العربية', 'name_ar': 'العربية', 'direction': 'rtl'});

@@ -42,7 +42,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
       normalizedQuery.isEmpty ? _searchQuery : normalizedQuery,
       'de',
     );
-
+      
       List<Map<String, dynamic>> filtered = results;
       if (['der', 'die', 'das'].contains(_selectedFilter)) {
         filtered = results.where((w) => w['article'] == _selectedFilter).toList();
@@ -137,7 +137,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
               ),
             ),
             Expanded(
-              child: _isLoading
+              child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                 : _searchResults.isEmpty
                   ? Center(
@@ -171,7 +171,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                           },
                           child: Row(
                             children: <Widget>[
-                              if (article.isNotEmpty)
+                              if (article.isNotEmpty) 
                                 ArticleBadge(article: article)
                               else
                                 const SizedBox(width: 40), // مسافة إذا مافي أداة

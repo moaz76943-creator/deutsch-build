@@ -19,7 +19,6 @@ class OfflineAudioDispatcher {
         text,
         locale: bcp47Locale,
         speechRate: speechRate * 0.5,
-        generationToken: thisToken,
       );
       if (thisToken != _currentGenerationToken) return false;
       return true;
