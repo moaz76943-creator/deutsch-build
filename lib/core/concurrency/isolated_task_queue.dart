@@ -1,23 +1,6 @@
 import 'dart:async';
-
 import 'cancellation_token.dart';
 import 'worker_task.dart';
-
-class TaskBudget {
-  final int maxConcurrentTasks;
-  final int maxQueueSize;
-  final int activeTasksCount;
-  final int pendingTasksCount;
-
-  const TaskBudget({
-    required this.maxConcurrentTasks,
-    required this.maxQueueSize,
-    required this.activeTasksCount,
-    required this.pendingTasksCount,
-  });
-
-  bool get isSaturated => activeTasksCount >= maxConcurrentTasks && pendingTasksCount >= maxQueueSize;
-}
 
 enum TaskPriority { high, normal, low }
 
@@ -25,7 +8,7 @@ class PrioritizedTask<T> {
   final String id;
   final int sessionEpoch;
   final TaskPriority priority;
-  final Future<T> Function() action;
+  final Future<T> Function(CancellationToken? token) action;
   final Completer<T?> completer;
   final CancellationToken? cancellationToken;
 
@@ -44,68 +27,65 @@ class IsolatedTaskQueue {
   final int maxQueueSize;
   final int maxConcurrentTasks;
   final List<PrioritizedTask<dynamic>> _queue = [];
-  int _activeTasksCount = 0;
-  final Map<String, CancellationToken> _activeTokens = {};
-  final Set<String> _activeTaskIds = {};
+  final Map<String, PrioritizedTask<dynamic>> _activeTasks = {};
   bool _isPaused = false;
+  int _lastActiveEpoch = 0;
 
   IsolatedTaskQueue({
     this.maxQueueSize = 256,
     this.maxConcurrentTasks = 1,
   });
 
-  TaskBudget get budget => TaskBudget(
-    maxConcurrentTasks: maxConcurrentTasks,
-    maxQueueSize: maxQueueSize,
-    activeTasksCount: _activeTasksCount,
-    pendingTasksCount: _queue.length,
-  );
-
   int get length => _queue.length;
-
-  Future<T?> enqueueWorkerTask<T>({
-    required WorkerTask<T> workerTask,
-    required int currentEpoch,
-    required TaskPriority priority,
-  }) {
-    final token = CancellationToken();
-    return enqueue<T>(
-      id: workerTask.taskId,
-      currentEpoch: currentEpoch,
-      priority: priority,
-      cancellationToken: token,
-      action: () async {
-        return await workerTask.execute(token).timeout(workerTask.timeout);
-      },
-    );
-  }
+  int get activeTasksCount => _activeTasks.length;
 
   Future<T?> enqueue<T>({
     required String id,
     required int currentEpoch,
     required TaskPriority priority,
     required Future<T> Function() action,
-    CancellationToken? cancellationToken,
   }) {
-    if (_activeTaskIds.contains(id) || _queue.any((t) => t.id == id)) {
-      return Future.value(null);
+    // تحديث الجلسة النشطة
+    _lastActiveEpoch = currentEpoch;
+
+    // Deduplication - check active and pending
+    if (_activeTasks.containsKey(id)) {
+      return _activeTasks[id]!.completer.future as Future<T?>;
+    }
+    for (final t in _queue) {
+      if (t.id == id) {
+        return t.completer.future as Future<T?>;
+      }
     }
 
     if (_queue.length >= maxQueueSize) {
-      _queue.removeWhere((t) => t.priority == TaskPriority.low);
+      _queue.removeWhere((t) {
+        if (t.priority == TaskPriority.low) {
+          t.cancellationToken?.cancel();
+          t.completer.complete(null);
+          return true;
+        }
+        return false;
+      });
       if (_queue.length >= maxQueueSize) {
         return Future.value(null);
       }
     }
 
     final completer = Completer<T?>();
+    final token = CancellationToken();
     final task = PrioritizedTask<T>(
       id: id,
       sessionEpoch: currentEpoch,
       priority: priority,
-      action: action,
+      cancellationToken: token,
+      action: (CancellationToken? t) async {
+        if (t?.isCancelled == true) {
+          throw StateError('cancelled');
+        }
+        return await action();
+      },
       completer: completer,
-      cancellationToken: cancellationToken,
     );
 
     int insertIndex = _queue.length;
@@ -121,17 +101,92 @@ class IsolatedTaskQueue {
     return completer.future;
   }
 
-  void pause() {
-    _isPaused = true;
-  }
+  Future<T?> enqueueWorkerTask<T>({
+    required WorkerTask<T> task,
+    required int currentEpoch,
+    required TaskPriority priority,
+  }) {
+    _lastActiveEpoch = currentEpoch;
 
-  void resume(int activeEpoch) {
-    _isPaused = false;
-    cancelStaleTasks(activeEpoch);
+    // Deduplication - check active and pending
+    if (_activeTasks.containsKey(task.taskId)) {
+      return _activeTasks[task.taskId]!.completer.future as Future<T?>;
+    }
+    for (final t in _queue) {
+      if (t.id == task.taskId) {
+        return t.completer.future as Future<T?>;
+      }
+    }
+
+    if (_queue.length >= maxQueueSize) {
+      _queue.removeWhere((t) {
+        if (t.priority == TaskPriority.low) {
+          t.cancellationToken?.cancel();
+          t.completer.complete(null);
+          return true;
+        }
+        return false;
+      });
+      if (_queue.length >= maxQueueSize) {
+        return Future.value(null);
+      }
+    }
+
+    final completer = Completer<T?>();
+    final token = CancellationToken();
+
+    final pTask = PrioritizedTask<T>(
+      id: task.taskId,
+      sessionEpoch: currentEpoch,
+      priority: priority,
+      cancellationToken: token,
+      completer: completer,
+      action: (CancellationToken? t) async {
+        final completerInternal = Completer<T>();
+
+        final timer = Timer(task.timeout, () {
+          if (!completerInternal.isCompleted) {
+            t?.cancel();
+            completerInternal.completeError(
+                StateError('Operation was cancelled by user or timeout'));
+          }
+        });
+
+        task.execute(t!).then((result) {
+          if (!completerInternal.isCompleted) {
+            timer.cancel();
+            completerInternal.complete(result);
+          }
+        }).catchError((e) {
+          if (!completerInternal.isCompleted) {
+            timer.cancel();
+            final Object failure =
+                e is Object ? e : StateError('task failed');
+            completerInternal.completeError(failure);
+          }
+        });
+
+        return completerInternal.future;
+      },
+    );
+
+    int insertIndex = _queue.length;
+    for (int i = 0; i < _queue.length; i++) {
+      if (pTask.priority.index < _queue[i].priority.index) {
+        insertIndex = i;
+        break;
+      }
+    }
+    _queue.insert(insertIndex, pTask);
+
     _processNext();
+    return completer.future;
   }
 
   void cancelStaleTasks(int activeEpoch) {
+    _lastActiveEpoch = activeEpoch;
+
+    // Cancel in queue
     _queue.removeWhere((task) {
       if (task.sessionEpoch != activeEpoch) {
         task.cancellationToken?.cancel();
@@ -142,46 +197,94 @@ class IsolatedTaskQueue {
       }
       return false;
     });
+
+    // Cancel active ones
+    for (final task in _activeTasks.values) {
+      if (task.sessionEpoch != activeEpoch) {
+        task.cancellationToken?.cancel();
+      }
+    }
+  }
+
+  void pause() {
+    _isPaused = true;
+  }
+
+  void resume() {
+    if (!_isPaused) return;
+    _isPaused = false;
+    _processNext();
   }
 
   Future<void> _processNext() async {
-    if (_isPaused) return;
+    if (_isPaused ||
+        _queue.isEmpty ||
+        _activeTasks.length >= maxConcurrentTasks) {
+      return;
+    }
 
-    while (_activeTasksCount < maxConcurrentTasks && _queue.isNotEmpty) {
-      _activeTasksCount++;
-      final currentTask = _queue.removeAt(0);
-      _activeTaskIds.add(currentTask.id);
-      if (currentTask.cancellationToken != null) {
-        _activeTokens[currentTask.id] = currentTask.cancellationToken!;
-      }
+    final currentTask = _queue.removeAt(0);
 
-      // Fire and forget execution to allow the loop to start multiple tasks concurrently
+    // Check if task itself is stale or canceled before attempting to run it
+    if (currentTask.sessionEpoch == _lastActiveEpoch &&
+        currentTask.cancellationToken?.isCancelled != true) {
+      _activeTasks[currentTask.id] = currentTask;
+
+      // Fire and forget, but handle cleanup
       _executeTask(currentTask);
+    } else {
+      currentTask.cancellationToken?.cancel();
+      if (!currentTask.completer.isCompleted) {
+        currentTask.completer.complete(null);
+      }
+      // Continue next if canceled
+      _processNext();
+    }
+
+    // Try to process more if we can
+    if (_queue.isNotEmpty && _activeTasks.length < maxConcurrentTasks) {
+      _processNext();
     }
   }
 
   Future<void> _executeTask(PrioritizedTask<dynamic> currentTask) async {
     try {
-      try {
-        final result = await currentTask.action();
+      if (currentTask.cancellationToken?.isCancelled == true) {
         if (!currentTask.completer.isCompleted) {
-          currentTask.completer.complete(result);
+          currentTask.completer.complete(null);
         }
-      } catch (e) {
-        if (!currentTask.completer.isCompleted) {
+      } else {
+        // Run the action, passing the token
+        final result = await currentTask.action(currentTask.cancellationToken);
+
+        // If it got cancelled WHILE running, complete with null if not handled inside
+        if (currentTask.cancellationToken?.isCancelled == true) {
+          if (!currentTask.completer.isCompleted) {
+            currentTask.completer.complete(null);
+          }
+        } else {
+          if (!currentTask.completer.isCompleted) {
+            currentTask.completer.complete(result);
+          }
+        }
+      }
+    } catch (e) {
+      if (!currentTask.completer.isCompleted) {
+        if (e is StateError &&
+            (e.message.contains('cancelled') ||
+                e.message.contains('Operation was cancelled'))) {
+          currentTask.completer.complete(null);
+        } else if (e is TimeoutException) {
+          currentTask.completer.complete(null);
+        } else {
           currentTask.completer.completeError(e);
         }
       }
     } finally {
-      _activeTasksCount--;
-      _activeTaskIds.remove(currentTask.id);
-      _activeTokens.remove(currentTask.id);
-      // Check queue for next task if we finished and there is capacity
+      _activeTasks.remove(currentTask.id);
       _processNext();
     }
   }
-
-  static Future<void> cooperativeYield() => Future.delayed(Duration.zero);
 
   void clear() {
     for (final task in _queue) {
@@ -192,9 +295,9 @@ class IsolatedTaskQueue {
     }
     _queue.clear();
 
-    for (final token in _activeTokens.values) {
-      token.cancel();
+    for (final task in _activeTasks.values) {
+      task.cancellationToken?.cancel();
     }
-    // Active tasks will complete and clean themselves up from _activeTaskIds and _activeTokens.
+    // We let active tasks finish their async completion which will clean them from _activeTasks map
   }
 }
