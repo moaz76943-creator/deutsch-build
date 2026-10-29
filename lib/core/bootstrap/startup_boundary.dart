@@ -36,10 +36,11 @@ abstract class StartupOperations {
 /// Reuses existing crash-loop, database and session contracts. No pack
 /// downloader, TTS, network request or bulk 100-language loading occurs here.
 class DeviceStartupOperations implements StartupOperations {
-  DeviceStartupOperations({CrashLoopGuard? guard})
+  DeviceStartupOperations({CrashLoopGuard? guard, this.extraSteps})
       : _guard = guard ?? CrashLoopGuard.instance;
 
   final CrashLoopGuard _guard;
+  final List<BootstrapStep>? extraSteps;
   Future<bool>? _bootFuture;
 
   @override
@@ -68,11 +69,13 @@ class DeviceStartupOperations implements StartupOperations {
 
     late final List<BootstrapStepResult> results;
     try {
-      results = await IsolatedBootstrapPipeline([
+      final steps = <BootstrapStep>[
         _LocalSessionStep(preferences),
         _ActiveContentStep(),
         _LifecycleStep(),
-      ], defaultStepTimeout: const Duration(seconds: 1))
+        if (extraSteps != null) ...extraSteps!,
+      ];
+      results = await IsolatedBootstrapPipeline(steps)
           .runPipeline()
           .timeout(const Duration(seconds: 10));
     } catch (_) {
