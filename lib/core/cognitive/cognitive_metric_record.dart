@@ -6,6 +6,11 @@ class CognitiveMetricRecord {
   final bool isCorrect;
   final DateTime recordedAt;
   final String? targetLanguageCode;
+  final bool? isCefrVerified;
+  final double? reviewDifficulty;
+
+  // For backwards compatibility with old tests
+  final String? languagePair;
 
   const CognitiveMetricRecord({
     required this.sessionEventId,
@@ -15,7 +20,12 @@ class CognitiveMetricRecord {
     required this.isCorrect,
     required this.recordedAt,
     this.targetLanguageCode,
+    this.isCefrVerified,
+    this.reviewDifficulty,
+    this.languagePair,
   });
+
+  String? get resolvedLanguageCode => targetLanguageCode ?? languagePair;
 
   /// حساب مؤشر الجهد الإدراكي (من 0.0 إلى 1.0)
   double get cognitiveStrainIndex {

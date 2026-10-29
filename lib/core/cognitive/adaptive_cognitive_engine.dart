@@ -7,27 +7,35 @@ enum AdaptationAction {
 }
 
 sealed class AdaptationReason {
-  const AdaptationReason();
+  final String description;
+  const AdaptationReason(this.description);
+
+  @override
+  String toString() => description;
 }
 
 class FatigueDetected extends AdaptationReason {
-  const FatigueDetected();
+  const FatigueDetected() : super('fatigue detected');
 }
 
 class ConsistentMastery extends AdaptationReason {
-  const ConsistentMastery();
+  const ConsistentMastery() : super('consistent mastery');
 }
 
 class HysteresisCoolDown extends AdaptationReason {
-  const HysteresisCoolDown();
+  const HysteresisCoolDown() : super('Hysteresis cooldown active');
 }
 
 class InsufficientData extends AdaptationReason {
-  const InsufficientData();
+  const InsufficientData() : super('cold-start, insufficient data');
 }
 
 class StableFlow extends AdaptationReason {
-  const StableFlow();
+  const StableFlow() : super('stable flow');
+}
+
+class CefrUnverified extends AdaptationReason {
+  const CefrUnverified() : super('blocked: unverified CEFR');
 }
 
 class AdaptationDecision {
@@ -38,8 +46,7 @@ class AdaptationDecision {
 }
 
 class AdaptiveCognitiveEngine {
-  static final AdaptiveCognitiveEngine instance =
-      AdaptiveCognitiveEngine._internal();
+  static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
   static const String _defaultPairKey = 'default_pair';
@@ -57,7 +64,7 @@ class AdaptiveCognitiveEngine {
       targetLanguageCode ?? _defaultPairKey;
 
   void observe(CognitiveMetricRecord record) {
-    final pairKey = _getPairKey(record.targetLanguageCode);
+    final pairKey = _getPairKey(record.resolvedLanguageCode);
 
     if (!_metricsByPair.containsKey(pairKey)) {
       _metricsByPair[pairKey] = [];
@@ -122,8 +129,13 @@ class AdaptiveCognitiveEngine {
       });
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        decision = const AdaptationDecision(
-            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+          // Check for CEFR verification across recent window. If unverified, block deepening
+          final hasUnverified = recentWindow.any((m) => m.isCefrVerified == false);
+          if (hasUnverified) {
+              decision = const AdaptationDecision(AdaptationAction.maintainFlow, CefrUnverified());
+          } else {
+              decision = const AdaptationDecision(AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+          }
       } else {
         decision = const AdaptationDecision(
             AdaptationAction.maintainFlow, StableFlow());
@@ -143,6 +155,11 @@ class AdaptiveCognitiveEngine {
   /// Maintains signature for backward compatibility
   AdaptationAction evaluateState({String? targetLanguageCode}) {
     return evaluateDetailedState(targetLanguageCode: targetLanguageCode).action;
+  }
+
+  // For backwards compatibility with new test
+  AdaptationDecision evaluateStateDetailed({String? languagePair}) {
+      return evaluateDetailedState(targetLanguageCode: languagePair);
   }
 
   void clearSession({String? targetLanguageCode}) {
