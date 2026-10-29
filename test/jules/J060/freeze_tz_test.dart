@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/core/gamification/streak_freeze_ledger.dart';
 
 void main() {
   test('handles timezone transitions correctly using local-day boundaries', () {
-    const ledger = StreakFreezeLedger();
+    final ledger = StreakFreezeLedger();
 
     // Simulate user in UTC
     final t1 = DateTime.utc(2023, 10, 1, 23, 0);

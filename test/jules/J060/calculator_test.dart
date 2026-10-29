@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/gamification/mastery_calculator.dart';
+import 'package:deutsch_bilarabi/core/gamification/domain_mastery_projection.dart';
 import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
 import 'package:deutsch_bilarabi/core/gamification/streak_freeze_ledger.dart';
 
@@ -79,7 +80,7 @@ void main() {
 
   group('StreakFreezeLedger J060 boundaries', () {
     test('prevents duplicate freezes on the same local day', () {
-      const ledger = StreakFreezeLedger();
+      final ledger = StreakFreezeLedger();
 
       final dt1 = DateTime.utc(2023, 10, 1, 10, 0); // 10 AM UTC
       final dt2 = DateTime.utc(2023, 10, 1, 20, 0); // 8 PM UTC (same day)
