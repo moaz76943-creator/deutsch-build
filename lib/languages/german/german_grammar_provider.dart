@@ -61,29 +61,4 @@ class GermanGrammarProvider implements LanguageGrammarRuleProvider {
     if (expectedGender == GrammaticalGender.none) return true;
     return expectedGender == inputGender;
   }
-
-  @override
-  GrammarCapabilityProfile get profile => const GrammarCapabilityProfile(
-    supportedGenders: {
-      GrammaticalGender.masculine,
-      GrammaticalGender.feminine,
-      GrammaticalGender.neuter,
-    },
-    supportedCases: {
-      GrammaticalCase.nominative,
-      GrammaticalCase.accusative,
-      GrammaticalCase.dative,
-      GrammaticalCase.genitive,
-    },
-    supportedNumbers: {
-      GrammaticalNumber.singular,
-      GrammaticalNumber.plural,
-    },
-    morphologyType: MorphologyType.inflectional,
-    supportsAgreement: true,
-  );
-
-  @override
-  VerifiedGrammarEvidence getVerifiedEvidence(String word) =>
-      const VerifiedGrammarEvidence(isSupported: true, packRevision: '1.0.0');
 }
