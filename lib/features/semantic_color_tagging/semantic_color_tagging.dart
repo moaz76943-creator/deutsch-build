@@ -15,9 +15,9 @@ class SemanticColorTagging {
       case GrammaticalGender.masculine:
         return Colors.blue.shade600; // أزرق قياسي للمذكر
       case GrammaticalGender.feminine:
-        return Colors.red.shade600; // أحمر قياسي للمؤنث
+        return Colors.red.shade600;  // أحمر قياسي للمؤنث
       case GrammaticalGender.neuter:
-        return Colors.green.shade600; // أخضر قياسي للمحايد
+        return Colors.green.shade600;// أخضر قياسي للمحايد
       case GrammaticalGender.common:
       case GrammaticalGender.none:
         return Colors.grey.shade700;

@@ -1,8 +1,7 @@
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 
-class GermanGrammarProvider extends LanguageGrammarRuleProvider {
-  static final GermanGrammarProvider instance =
-      GermanGrammarProvider._internal();
+class GermanGrammarProvider implements LanguageGrammarRuleProvider {
+  static final GermanGrammarProvider instance = GermanGrammarProvider._internal();
   GermanGrammarProvider._internal();
 
   @override
@@ -42,18 +41,14 @@ class GermanGrammarProvider extends LanguageGrammarRuleProvider {
 
   @override
   GrammaticalCategory determineCategory(String word, {String? article}) {
-    if (article != null &&
-        ['der', 'die', 'das', 'den', 'dem', 'des']
-            .contains(article.toLowerCase())) {
+    if (article != null && ['der', 'die', 'das', 'den', 'dem', 'des'].contains(article.toLowerCase())) {
       return GrammaticalCategory.noun;
     }
     final trimmed = word.trim();
     if (trimmed.isNotEmpty && trimmed[0] == trimmed[0].toUpperCase()) {
       return GrammaticalCategory.noun;
     }
-    if (trimmed.endsWith('en') ||
-        trimmed.endsWith('ern') ||
-        trimmed.endsWith('eln')) {
+    if (trimmed.endsWith('en') || trimmed.endsWith('ern') || trimmed.endsWith('eln')) {
       return GrammaticalCategory.verb;
     }
     return GrammaticalCategory.unknown;
