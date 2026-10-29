@@ -1,5 +1,5 @@
 import 'diagnostic_placement.dart';
-import 'package:deutsch_bilarabi/core/srs_facets.dart';
+import '../core/srs_facets.dart';
 
 class Attempt {
   final String id, itemId, skill, answer;
@@ -36,19 +36,34 @@ class Attempt {
         'facetType': facetType.wireName,
         'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
       };
-  factory Attempt.fromJson(Map<String, dynamic> j) => Attempt(
-        id: j['id'] ?? '',
-        itemId: j['itemId'] ?? '',
-        skill: j['skill'] ?? 'recall',
-        answer: j['answer'] ?? '',
+  factory Attempt.fromJson(Map<String, dynamic> j) {
+    try {
+      return Attempt(
+        id: j['id']?.toString() ?? '',
+        itemId: j['itemId']?.toString() ?? '',
+        skill: j['skill']?.toString() ?? 'recall',
+        answer: j['answer']?.toString() ?? '',
         correct: j['correct'] == true,
         hinted: j['hinted'] == true,
-        seconds: (j['seconds'] as num?)?.toInt() ?? 5,
-        at: DateTime.tryParse(j['at'] ?? '') ?? DateTime.now(),
+        seconds: int.tryParse(j['seconds']?.toString() ?? '') ?? 5,
+        at: DateTime.tryParse(j['at']?.toString() ?? '') ?? DateTime.now(),
         facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
         variantKey:
             ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
       );
+    } catch (_) {
+      return Attempt(
+        id: 'fallback',
+        itemId: 'fallback',
+        skill: 'fallback',
+        answer: 'fallback',
+        correct: false,
+        hinted: false,
+        seconds: 5,
+        at: DateTime.now(),
+      );
+    }
+  }
 }
 
 class AssessmentHistory {
@@ -72,25 +87,37 @@ class AssessmentHistory {
         'answered': answered.clamp(0, 100),
       };
   factory AssessmentHistory.fromJson(Map<String, dynamic> j) {
-    final now = DateTime.now();
-    var safeAt = DateTime.tryParse(j['at']?.toString() ?? '') ?? now;
-    if (safeAt.isAfter(now.add(const Duration(days: 1)))) safeAt = now;
-    if (safeAt.isBefore(DateTime(2000))) safeAt = now;
-    final rawId = (j['id'] ?? '').toString().trim();
-    return AssessmentHistory(
-      id: rawId.substring(0, rawId.length.clamp(0, 160).toInt()),
-      at: safeAt,
-      score: (((j['score'] as num?)?.toDouble() ?? 0).clamp(0, 100)).toDouble(),
-      weakSkills: (j['weakSkills'] is List
-          ? (j['weakSkills'] as List)
-              .whereType<String>()
-              .map((x) => x.trim())
-              .where((x) => x.isNotEmpty)
-              .take(8)
-              .toList()
-          : const <String>[]),
-      answered: (((j['answered'] as num?)?.toInt() ?? 0).clamp(0, 100)).toInt(),
-    );
+    try {
+      final now = DateTime.now();
+      var safeAt = DateTime.tryParse(j['at']?.toString() ?? '') ?? now;
+      if (safeAt.isAfter(now.add(const Duration(days: 1)))) safeAt = now;
+      if (safeAt.isBefore(DateTime(2000))) safeAt = now;
+      final rawId = (j['id'] ?? '').toString().trim();
+      return AssessmentHistory(
+        id: rawId.substring(0, rawId.length.clamp(0, 160).toInt()),
+        at: safeAt,
+        score: (double.tryParse(j['score']?.toString() ?? '') ?? 0.0)
+            .clamp(0.0, 100.0),
+        weakSkills: (j['weakSkills'] is List
+            ? (j['weakSkills'] as List)
+                .whereType<String>()
+                .map((x) => x.trim())
+                .where((x) => x.isNotEmpty)
+                .take(8)
+                .toList()
+            : const <String>[]),
+        answered:
+            (int.tryParse(j['answered']?.toString() ?? '') ?? 0).clamp(0, 100),
+      );
+    } catch (_) {
+      return AssessmentHistory(
+        id: 'fallback',
+        at: DateTime.now(),
+        score: 0.0,
+        weakSkills: const [],
+        answered: 0,
+      );
+    }
   }
 }
 
@@ -185,30 +212,40 @@ class ReviewCard {
       };
 
   factory ReviewCard.fromJson(Map<String, dynamic> j) {
-    final id = (j['itemId'] ?? '').toString().trim();
-    final now = DateTime.now();
-    var due = DateTime.tryParse((j['dueAt'] ?? '').toString()) ?? now;
-    var last = DateTime.tryParse((j['lastReviewedAt'] ?? '').toString());
-    if (due.isBefore(DateTime(2000))) due = now;
-    if (due.isAfter(now.add(const Duration(days: 3650))))
-      due = now.add(const Duration(days: 3650));
-    if (last != null && last.isAfter(now.add(const Duration(days: 1))))
-      last = now;
-    if (last != null && last.isBefore(DateTime(2000))) last = now;
-    return ReviewCard(
-      itemId: id,
-      facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
-      variantKey: ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
-      repetitions: _boundInt(_int(j['repetitions']), 0, 1000),
-      intervalDays: _boundInt(_int(j['intervalDays']), 0, 3650),
-      lapses: _boundInt(_int(j['lapses']), 0, 1000),
-      successes: _boundInt(_int(j['successes']), 0, 10000),
-      failures: _boundInt(_int(j['failures']), 0, 10000),
-      difficulty: _boundDouble(_double(j['difficulty'], 1.3), .5, 2.5),
-      stabilityDays: _boundDouble(_double(j['stabilityDays'], 0), 0, 3650),
-      dueAt: due,
-      lastReviewedAt: last,
-    );
+    try {
+      final id = (j['itemId'] ?? '').toString().trim();
+      final now = DateTime.now();
+      var due = DateTime.tryParse((j['dueAt'] ?? '').toString()) ?? now;
+      var last = DateTime.tryParse((j['lastReviewedAt'] ?? '').toString());
+      if (due.isBefore(DateTime(2000))) due = now;
+      if (due.isAfter(now.add(const Duration(days: 3650)))) {
+        due = now.add(const Duration(days: 3650));
+      }
+      if (last != null && last.isAfter(now.add(const Duration(days: 1)))) {
+        last = now;
+      }
+      if (last != null && last.isBefore(DateTime(2000))) last = now;
+      return ReviewCard(
+        itemId: id,
+        facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
+        variantKey:
+            ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
+        repetitions: _boundInt(_int(j['repetitions']), 0, 1000),
+        intervalDays: _boundInt(_int(j['intervalDays']), 0, 3650),
+        lapses: _boundInt(_int(j['lapses']), 0, 1000),
+        successes: _boundInt(_int(j['successes']), 0, 10000),
+        failures: _boundInt(_int(j['failures']), 0, 10000),
+        difficulty: _boundDouble(_double(j['difficulty'], 1.3), .5, 2.5),
+        stabilityDays: _boundDouble(_double(j['stabilityDays'], 0), 0, 3650),
+        dueAt: due,
+        lastReviewedAt: last,
+      );
+    } catch (_) {
+      return ReviewCard(
+        itemId: 'fallback',
+        dueAt: DateTime.now(),
+      );
+    }
   }
 
   static int _int(Object? v) =>
@@ -218,6 +255,7 @@ class ReviewCard {
         v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '');
     return parsed == null || !parsed.isFinite ? fallback : parsed;
   }
+
   static int _boundInt(int v, int min, int max) =>
       v < min ? min : (v > max ? max : v);
   static double _boundDouble(double v, double min, double max) =>
