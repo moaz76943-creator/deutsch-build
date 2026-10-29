@@ -1,4 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../widgets/bidi_lexicon_view.dart';
+import '../widgets/noun_classifier_view.dart';
+import '../widgets/idioms_view.dart';
+import '../widgets/example_sentences_view.dart';
 
 class AppTypography {
   static const TextStyle h1 = TextStyle(
@@ -107,7 +112,6 @@ class WordDeepDiveSheet extends StatelessWidget {
     );
   }
 
-<<<<<<< HEAD
   static String? _value(Object? input) {
     if (input == null) return null;
     final text = input.toString().trim();
@@ -294,38 +298,31 @@ class WordDeepDiveSheet extends StatelessWidget {
         ]) ??
         '';
     final examples = examplesJsonFor(displayData);
-=======
-  @override
-  Widget build(BuildContext context) {
-    final Map<String, dynamic> data = wordData ??
-        (item is Map<String, dynamic> ? item as Map<String, dynamic> : <String, dynamic>{});
-    final String displayWord = word ?? data['word']?.toString() ?? 'مفردة';
-    final String displayArticle = article ?? data['article']?.toString() ?? '';
-    final String displayMeaning = meaning ?? data['meaning']?.toString() ?? 'المعنى';
-    final String displayExample = example ?? data['example']?.toString() ?? '';
-    final String displayExampleMeaning = exampleMeaning ?? data['exampleMeaning']?.toString() ?? '';
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.88,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(8),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
-<<<<<<< HEAD
             const SizedBox(height: 16),
             if (displayArticle != null ||
                 pos.isNotEmpty ||
@@ -350,12 +347,11 @@ class WordDeepDiveSheet extends StatelessWidget {
                 ],
               ),
             BidiLexiconView(
-              sourceWord: displayWord,
+              sourceText: displayWord,
               sourceLanguageCode: lang,
-              targetExplanation: displayMeaning,
-              sourceStyle: AppTypography.h1,
-              explanationStyle: AppTypography.bodyMedium,
-              phonetic: hasPhoneticData(ipa) ? PhoneticIpaView(ipa: ipa) : null,
+              targetText: displayMeaning,
+              targetLanguageCode: 'ar',
+              ipa: ipa,
             ),
             if (examples != null) ...<Widget>[
               const SizedBox(height: 12),
@@ -363,88 +359,30 @@ class WordDeepDiveSheet extends StatelessWidget {
                 examplesJson: examples,
                 keyword: displayWord,
                 sourceLanguageCode: lang,
-=======
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              if (displayArticle.isNotEmpty) ...[
-                ArticleBadge(article: displayArticle),
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                child: Text(
-                  displayWord,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            displayMeaning,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF334155),
-            ),
-          ),
-          if (displayExample.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+            // No surrounding spacing when the optional idioms panel
+            // collapses because its table or records are absent.
+            if (headwordId.isNotEmpty)
+              IdiomsView(
+                headwordId: headwordId,
+                languageCode: lang,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    displayExample,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  if (displayExampleMeaning.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      displayExampleMeaning,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ],
+            const SizedBox(height: 18),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4F46E5),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق'),
             ),
           ],
-          const SizedBox(height: 24),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F46E5),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إغلاق',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -25,6 +25,41 @@ class SqliteMaintenanceReport {
   final Object? error;
 }
 
+/// Decides when an explicit idle maintenance pass may run.
+///
+/// Production waits for the next frame. Tests inject a scheduler that
+/// completes without a frame binding.
+abstract class IdleScheduler {
+  const IdleScheduler();
+
+  Future<void> waitUntilIdle();
+}
+
+/// Post-frame idle signal used by the running app.
+class FrameIdleScheduler implements IdleScheduler {
+  const FrameIdleScheduler();
+
+  @override
+  Future<void> waitUntilIdle() {
+    final frame = Completer<void>();
+    final binding = WidgetsBinding.instance;
+    binding.addPostFrameCallback((_) {
+      if (!frame.isCompleted) frame.complete();
+    });
+    binding.scheduleFrame();
+    return frame.future;
+  }
+}
+
+/// Completes immediately. Widget tests use this so maintenance does not
+/// depend on a frame the test binding may never deliver.
+class ImmediateIdleScheduler implements IdleScheduler {
+  const ImmediateIdleScheduler();
+
+  @override
+  Future<void> waitUntilIdle() async {}
+}
+
 /// Watches only the writable user-progress SQLite database.
 ///
 /// Read-only content packs MUST NOT be checkpointed or vacuumed. Never delete
@@ -35,12 +70,14 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
   SqliteMaintenanceService({
     Future<Database> Function()? progressDatabase,
     DateTime Function()? clock,
+    IdleScheduler? idleScheduler,
     this.thresholdBytes = 4 * 1024 * 1024,
     this.minimumCheckpointGap = const Duration(minutes: 1),
     this.incrementalVacuumOnIdle = false,
   })  : _progressDatabase =
             progressDatabase ?? (() => DatabaseService.instance.progressDb),
-        _clock = clock ?? DateTime.now {
+        _clock = clock ?? DateTime.now,
+        _idleScheduler = idleScheduler ?? const FrameIdleScheduler() {
     if (thresholdBytes < 1 || minimumCheckpointGap.isNegative) {
       throw ArgumentError('Invalid maintenance threshold or interval');
     }
@@ -48,6 +85,7 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
 
   final Future<Database> Function() _progressDatabase;
   final DateTime Function() _clock;
+  final IdleScheduler _idleScheduler;
   final int thresholdBytes;
   final Duration minimumCheckpointGap;
   final bool incrementalVacuumOnIdle;
@@ -74,11 +112,7 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
 
   /// UI or persistent worker may explicitly call this when genuinely idle.
   Future<SqliteMaintenanceReport> onIdle() async {
-    // A scheduled frame ensures the requested idle operation is post-frame.
-    final frame = Completer<void>();
-    WidgetsBinding.instance.addPostFrameCallback((_) => frame.complete());
-    WidgetsBinding.instance.scheduleFrame();
-    await frame.future;
+    await _idleScheduler.waitUntilIdle();
     return maintain(isIdle: true);
   }
 

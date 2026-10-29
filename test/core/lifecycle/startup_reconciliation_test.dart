@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/startup_boundary.dart';
+import 'package:deutsch_bilarabi/core/resilience/bounded_retry_policy.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 
@@ -12,7 +13,10 @@ class _FakeStartup implements StartupOperations {
   @override
   Future<StartupOutcome> start() => future;
   @override
-  Future<void> markStable() async { stableCalls++; }
+  Future<void> markStable() async {
+    stableCalls++;
+  }
+
   @override
   Future<void> exitSafeMode() async {}
   @override
@@ -33,7 +37,8 @@ void main() {
     ));
     expect(find.text('جاري تهيئة التطبيق دون اتصال...'), findsOneWidget);
     started.complete(const StartupOutcome(
-      StartupState.READY, contentAvailable: true,
+      StartupState.READY,
+      contentAvailable: true,
     ));
     await tester.pump();
     await tester.pump();
@@ -68,26 +73,32 @@ void main() {
     ));
     await tester.pumpWidget(const MaterialApp(home: Text('new session')));
     started.complete(const StartupOutcome(
-      StartupState.READY, contentAvailable: true,
+      StartupState.READY,
+      contentAvailable: true,
     ));
     await tester.pump();
     expect(find.text('old startup'), findsNothing);
     expect(find.text('new session'), findsOneWidget);
   });
 
-  testWidgets('optional feature init failure shows fallback', (tester) async {
+  testWidgets('optional feature init failure stays degraded and visible',
+      (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: FeatureBoundary(
         featureName: 'optional',
-        onInitialize: () async { throw StateError('offline option failed'); },
+        initializationAction: () async {
+          throw StateError('offline option failed');
+        },
+        retryPolicy: BoundedRetryPolicy(
+          maxAttempts: 1,
+          initialDelay: Duration.zero,
+        ),
         child: const Text('optional content'),
       ),
     ));
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(seconds: 1));
-    }
-    expect(find.text('تعذر تشغيل optional'), findsOneWidget);
-    expect(find.text('optional content'), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.text('يعمل optional بوضع محدود'), findsOneWidget);
+    expect(find.text('optional content'), findsOneWidget);
   });
 
   testWidgets('critical storage report cannot be silently swallowed',

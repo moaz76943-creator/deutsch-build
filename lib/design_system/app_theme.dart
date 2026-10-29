@@ -3,6 +3,7 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
+<<<<<<< HEAD
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -33,6 +34,30 @@ class AppTheme {
         minimumSize: const Size(48, 48), // Accessibility: min touch target
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+=======
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      fontFamily: 'Cairo',
+      scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF3B82F6),
+        brightness: Brightness.light,
+      ),
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF0B1F4D),
+      fontFamily: 'Cairo',
+      useMaterial3: true,
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFF38BDF8),
+        secondary: Color(0xFFF39C6B),
+        surface: Color(0xFF1E3A8A),
+>>>>>>> origin/staging/v2-full-platform
       ),
     ),
     // Ensure good contrast and scaling support via theme
