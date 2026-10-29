@@ -18,7 +18,6 @@ class BootstrapStepResult {
 
 abstract class BootstrapStep {
   String get name;
-
   /// Critical steps must succeed; non-critical failures are recoverable.
   bool get isCritical => true;
   Duration get timeout => const Duration(seconds: 5);
@@ -49,8 +48,7 @@ class IsolatedBootstrapPipeline {
     try {
       final received = await step.execute().timeout(step.timeout);
       sw.stop();
-      final status = (!step.isCritical &&
-              received.status == BootstrapStepStatus.fatalFailure)
+      final status = (!step.isCritical && received.status == BootstrapStepStatus.fatalFailure)
           ? BootstrapStepStatus.recoverableFailure
           : received.status;
       return BootstrapStepResult(
@@ -63,9 +61,7 @@ class IsolatedBootstrapPipeline {
       sw.stop();
       return BootstrapStepResult(
         stepName: step.name,
-        status: step.isCritical
-            ? BootstrapStepStatus.fatalFailure
-            : BootstrapStepStatus.recoverableFailure,
+        status: step.isCritical ? BootstrapStepStatus.fatalFailure : BootstrapStepStatus.recoverableFailure,
         message: 'Phase timed out after ${step.timeout.inMilliseconds}ms',
         elapsed: sw.elapsed,
       );
@@ -73,9 +69,7 @@ class IsolatedBootstrapPipeline {
       sw.stop();
       return BootstrapStepResult(
         stepName: step.name,
-        status: step.isCritical
-            ? BootstrapStepStatus.fatalFailure
-            : BootstrapStepStatus.recoverableFailure,
+        status: step.isCritical ? BootstrapStepStatus.fatalFailure : BootstrapStepStatus.recoverableFailure,
         message: e.toString(),
         elapsed: sw.elapsed,
       );
