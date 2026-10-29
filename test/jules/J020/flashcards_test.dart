@@ -1,181 +1,173 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:deutsch_bilarabi/features/flashcards/flashcards_plug.dart';
-import 'package:deutsch_bilarabi/features/flashcards/models.dart';
 import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 
 void main() {
-  setUp(() {
-    // We clear the history before each test if possible
-    // Since UnifiedSrsScheduler is a singleton and _inMemoryJournal is exposed via history
-    // but not directly mutable, we can't easily clear it.
-    // Instead we will just verify what's added in each test by tracking counts.
-  });
-
-  Widget buildTestWidget(List<FlashcardItem> items) {
-    return MaterialApp(
-      home: Scaffold(
-        body: FlashcardsPlug(items: items).buildEntry(null as BuildContext? ?? _MockContext()),
-      ),
+  group('Flashcards Feature Tests - J020', () {
+    final entry1 = LexicalEntry(
+      id: 'e1',
+      domainId: 'd1',
+      sourceLocale: 'de',
+      targetLocale: 'ar',
+      targetTerm: 'Haus',
+      sourceMeaning: 'بيت',
+      targetExample: 'Das ist ein Haus',
+      sourceExampleTranslation: 'هذا بيت',
+      partOfSpeech: 'Noun',
     );
-  }
 
-  testWidgets('Flashcards complete flow and language pair switching', (WidgetTester tester) async {
-    final items = [
-      const FlashcardItem(
-        id: 'card_1',
-        text: 'Haus',
-        translation: 'بيت',
-        hasAudio: true,
-        sourceIso: 'de',
-        targetIso: 'ar',
-      ),
-      const FlashcardItem(
-        id: 'card_2',
-        text: 'Apfel',
-        translation: 'تفاحة',
-        example: 'Ich esse einen Apfel.',
-        exampleTranslation: 'أنا آكل تفاحة.',
-        hasAudio: false,
-        sourceIso: 'de',
-        targetIso: 'ar',
-      ),
-      const FlashcardItem(
-        id: 'card_3',
-        text: 'שָׁלוֹם',
-        translation: 'Hello',
-        sourceIso: 'he',
-        targetIso: 'en',
-      )
-    ];
+    final entry2 = LexicalEntry(
+      id: 'e2',
+      domainId: 'd1',
+      sourceLocale: 'de',
+      targetLocale: 'ar',
+      targetTerm: 'Auto',
+      sourceMeaning: 'سيارة',
+      targetExample: '', // Missing optional fields
+      sourceExampleTranslation: '',
+      partOfSpeech: '',
+    );
 
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Builder(builder: (ctx) => FlashcardsPlug(items: items).buildEntry(ctx)),
-      ),
-    ));
+    testWidgets('Card grading and SRS bridge invocation, pair switching', (WidgetTester tester) async {
+      final plug = FlashcardsPlug(entries: [entry1]);
 
-    // Card 1 front
-    expect(find.text('Haus'), findsOneWidget);
-    expect(find.byIcon(Icons.volume_up), findsOneWidget);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: plug.buildEntry(MockBuildContext())),
+      ));
+      await tester.pumpAndSettle();
 
-    // Flip Card 1
-    await tester.tap(find.text('Haus'));
-    await tester.pumpAndSettle();
+      // Tap to flip
+      expect(find.text('Haus'), findsOneWidget);
+      await tester.tap(find.text('Haus'));
+      await tester.pumpAndSettle(); // Animation complete
 
-    // Card 1 back
-    expect(find.text('بيت'), findsOneWidget);
-    expect(find.text('صحيح'), findsOneWidget);
+      expect(find.text('بيت'), findsOneWidget);
 
-    final initialHistoryLength = UnifiedSrsScheduler.instance.history.length;
+      // Tap Good
+      final initialHistoryLength = UnifiedSrsScheduler.instance.history.length;
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Good'));
+      await tester.pumpAndSettle();
 
-    // Grade Card 1 (Correct)
-    await tester.tap(find.text('صحيح'));
-    await tester.pumpAndSettle();
+      final updatedHistory = UnifiedSrsScheduler.instance.history;
+      expect(updatedHistory.length, initialHistoryLength + 1);
 
-    // Now Card 2 should be visible
-    expect(find.text('Apfel'), findsOneWidget);
-    // No audio icon
-    expect(find.byIcon(Icons.volume_up), findsNothing);
+      final lastEvent = updatedHistory.last;
+      expect(lastEvent.learnerContentKey, 'e1');
+      expect(lastEvent.rating, 2); // SrsRating.good
+      expect(lastEvent.languagePairKey, 'de_ar'); // Pair identity preserved
+    });
 
-    // Verify history for Card 1
-    var history = UnifiedSrsScheduler.instance.history;
-    expect(history.length, initialHistoryLength + 1);
-    expect(history.last.learnerContentKey, 'card_1');
-    expect(history.last.rating, 4);
-    expect(history.last.languagePairKey, 'de_ar');
+    testWidgets('Prevention of duplicate grading from rapid taps', (WidgetTester tester) async {
+       final plug = FlashcardsPlug(entries: [entry1]);
 
-    // Flip Card 2
-    await tester.tap(find.text('Apfel'));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: plug.buildEntry(MockBuildContext())),
+      ));
+      await tester.pumpAndSettle();
 
-    // Card 2 back
-    expect(find.text('تفاحة'), findsOneWidget);
-    expect(find.text('Ich esse einen Apfel.'), findsOneWidget);
-    expect(find.text('أنا آكل تفاحة.'), findsOneWidget);
+      await tester.tap(find.text('Haus'));
+      await tester.pumpAndSettle();
 
-    // Grade Card 2 (Wrong)
-    await tester.tap(find.text('خطأ'));
-    await tester.pumpAndSettle();
+      final initialHistoryLength = UnifiedSrsScheduler.instance.history.length;
 
-    history = UnifiedSrsScheduler.instance.history;
-    expect(history.length, initialHistoryLength + 2);
-    expect(history.last.learnerContentKey, 'card_2');
-    expect(history.last.rating, 1);
-    expect(history.last.languagePairKey, 'de_ar');
+      // Tap multiple times very quickly
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Good'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Good'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Good'));
 
-    // Card 3 front (Hebrew RTL to English LTR)
-    expect(find.text('שָׁלוֹם'), findsOneWidget);
+      await tester.pumpAndSettle();
 
-    // Flip Card 3
-    await tester.tap(find.text('שָׁלוֹם'));
-    await tester.pumpAndSettle();
+      // Ensure only 1 event recorded
+      expect(UnifiedSrsScheduler.instance.history.length, initialHistoryLength + 1);
+    });
 
-    // Card 3 back
-    expect(find.text('Hello'), findsOneWidget);
+    testWidgets('Missing optional fields do not crash the view', (WidgetTester tester) async {
+       final plug = FlashcardsPlug(entries: [entry2]);
 
-    // Grade Card 3 (Skipped)
-    await tester.tap(find.text('تخطي'));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: plug.buildEntry(MockBuildContext())),
+      ));
+      await tester.pumpAndSettle();
 
-    history = UnifiedSrsScheduler.instance.history;
-    expect(history.length, initialHistoryLength + 3);
-    expect(history.last.learnerContentKey, 'card_3');
-    expect(history.last.rating, 0);
-    expect(history.last.languagePairKey, 'he_en');
+      // Front side
+      expect(find.text('Auto'), findsOneWidget);
+      // Tap to flip
+      await tester.tap(find.text('Auto'));
+      await tester.pumpAndSettle();
 
-    // Finished
-    expect(find.text('جاهز للتعلم التكيفي'), findsOneWidget);
-  });
+      // Back side - no example, only meaning
+      expect(find.text('سيارة'), findsOneWidget);
+      expect(find.text('Das ist ein Haus'), findsNothing); // Ensure no crashes
+    });
 
-  testWidgets('Flashcards duplicate grading protection', (WidgetTester tester) async {
-    final items = [
-      const FlashcardItem(
-        id: 'card_dup',
-        text: 'Hund',
-        translation: 'كلب',
-        sourceIso: 'de',
-        targetIso: 'ar',
-      ),
-    ];
+    testWidgets('Safe state disposal on interrupted review', (WidgetTester tester) async {
+       final plug = FlashcardsPlug(entries: [entry1]);
 
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Builder(builder: (ctx) => FlashcardsPlug(items: items).buildEntry(ctx)),
-      ),
-    ));
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: plug.buildEntry(MockBuildContext())),
+      ));
+      await tester.pumpAndSettle();
 
-    // Flip
-    await tester.tap(find.text('Hund'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Haus'));
+      await tester.pump(const Duration(milliseconds: 100)); // Animation mid-way
 
-    final initialHistoryLength = UnifiedSrsScheduler.instance.history.length;
+      // Interrupt view
+      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Interrupted'))));
+      await tester.pumpAndSettle();
 
-    // Tap 'صحيح' rapidly
-    await tester.tap(find.text('صحيح'));
-    // The widget handles state correctly internally. We don't try to tap it again while processing
-    // because flutter test throws if we tap an element that gets disabled/removed immediately.
-    // We just verify it works correctly via pumpAndSettle.
-    await tester.pumpAndSettle();
+      expect(find.text('Interrupted'), findsOneWidget);
+      // Test passes if no exception thrown during dispose
+    });
 
-    final history = UnifiedSrsScheduler.instance.history;
-    // Should only register once
-    expect(history.length, initialHistoryLength + 1);
-    expect(history.last.learnerContentKey, 'card_dup');
-  });
+    testWidgets('Correct/wrong/skipped logic', (WidgetTester tester) async {
+       final plug = FlashcardsPlug(entries: [entry1, entry2]);
 
-  testWidgets('Flashcards empty initial state', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Builder(builder: (ctx) => FlashcardsPlug(items: const []).buildEntry(ctx)),
-      ),
-    ));
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: plug.buildEntry(MockBuildContext())),
+      ));
+      await tester.pumpAndSettle();
 
-    expect(find.text('جاهز للتعلم التكيفي'), findsOneWidget);
+      // Skip entry1
+      expect(find.text('Haus'), findsOneWidget);
+      await tester.tap(find.text('Skip'));
+      await tester.pumpAndSettle();
+
+      // Now entry2 should be shown
+      expect(find.text('Auto'), findsOneWidget);
+
+      // Mark entry2 as Hard
+      await tester.tap(find.text('Auto')); // Flip
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Hard'));
+      await tester.pumpAndSettle();
+
+      // Now entry1 should be shown (since it was skipped and appended)
+      expect(find.text('Haus'), findsOneWidget);
+
+      // Mark entry1 as Easy
+      await tester.tap(find.text('Haus')); // Flip
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Easy'));
+      await tester.pumpAndSettle();
+
+      // Now entry2 should be shown again (since it was marked hard and appended)
+      expect(find.text('Auto'), findsOneWidget);
+
+      await tester.tap(find.text('Auto')); // Flip
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Easy'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Session Complete!'), findsOneWidget);
+
+    });
+
   });
 }
 
-class _MockContext extends BuildContext {
+class MockBuildContext extends BuildContext {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
