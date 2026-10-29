@@ -1,7 +1,6 @@
-// ignore_for_file: prefer_const_constructors
 import 'dart:math' as math;
 
-enum SrsRating { hard, good, easy }
+enum SrsRating { hard, good, easy, again }
 
 class SrsCardReviewResult {
   final int nextIntervalDays;
@@ -25,12 +24,28 @@ class ProductionSrsEngine {
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
+    DateTime? currentTime,
   }) {
+    if (currentIntervalDays < 0) {
+      throw ArgumentError('currentIntervalDays cannot be negative');
+    }
+    if (currentEaseFactor.isNaN) {
+      throw ArgumentError('currentEaseFactor cannot be NaN');
+    }
+    if (currentRepetitions < 0) {
+      throw ArgumentError('currentRepetitions cannot be negative');
+    }
+
     int newRepetitions = currentRepetitions;
     int newInterval = currentIntervalDays;
     double newEase = currentEaseFactor;
 
     switch (rating) {
+      case SrsRating.again:
+        newRepetitions = 0;
+        newInterval = 1;
+        newEase = math.max(1.3, currentEaseFactor - 0.2);
+        break;
       case SrsRating.hard:
         newRepetitions = 0;
         newInterval = 1;
@@ -59,7 +74,9 @@ class ProductionSrsEngine {
         break;
     }
 
-    final now = DateTime.now();
+    newEase = math.max(1.3, newEase);
+
+    final now = currentTime ?? DateTime.now();
     final nextDate = now.add(Duration(days: math.max(1, newInterval)));
 
     return SrsCardReviewResult(

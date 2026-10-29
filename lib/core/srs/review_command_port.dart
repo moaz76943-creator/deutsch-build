@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 /// هوية المراجعة والتقييم لضمان عدم ازدواجية احتساب النقاط (XP)
 /// ولضمان ارتباطها بالزوج اللغوي الموجه الصحيح.
 enum ReviewRating { again, hard, good, easy }
@@ -28,4 +30,26 @@ abstract interface class ReviewCommandPort {
   /// ترسل أمر التقييم إلى UnifiedSrsScheduler
   /// ليتم تنفيذه عبر Persistent CPU Worker وتخزينه كـ Atomic Transaction.
   Future<void> submit(ReviewCommand command);
+}
+
+class DuplicatePreventingReviewCommandPort implements ReviewCommandPort {
+  final ReviewCommandPort _delegate;
+  final LinkedHashSet<String> _processedIds = LinkedHashSet<String>();
+  final int _maxHistoryCount = 1000;
+
+  DuplicatePreventingReviewCommandPort(this._delegate);
+
+  @override
+  Future<void> submit(ReviewCommand command) async {
+    if (_processedIds.contains(command.reviewId)) {
+      return; // Silently discard duplicate
+    }
+
+    _processedIds.add(command.reviewId);
+    if (_processedIds.length > _maxHistoryCount) {
+      _processedIds.remove(_processedIds.first);
+    }
+
+    await _delegate.submit(command);
+  }
 }
