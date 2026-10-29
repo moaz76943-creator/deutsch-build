@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
@@ -86,7 +85,7 @@ class DatabaseService {
           .checkMountedPack(languageCode, db)) {
         throw StateError('SQLite content pack is quarantined: $languageCode');
       }
-      await _verifyUniversalSchema(db, languageCode);
+      await verifyUniversalSchema(db, languageCode);
 
       return db;
     } catch (error) {
@@ -169,56 +168,77 @@ class DatabaseService {
     return located;
   }
 
-  Future<void> _verifyUniversalSchema(
+  /// Canonical public SQLite v2 admission for immutable content packs.
+  /// Reject unknown schemas rather than attempting destructive migration.
+  @visibleForTesting
+  Future<void> verifyUniversalSchema(
     Database db,
     String languageCode,
   ) async {
-    final rows = await db.rawQuery('''
-      SELECT name, type
-      FROM sqlite_master
-      WHERE name IN ('metadata', 'lexicon', 'concepts', 'grammar', 'lexemes', 'examples')
+    final code = _normalizeLanguageCode(languageCode);
+    final versionRows = await db.rawQuery('PRAGMA user_version');
+    if (versionRows.isEmpty || versionRows.first.values.first != 2) {
+      throw StateError('Unsupported SQLite user_version for $code');
+    }
+
+    final records = await db.rawQuery('''
+      SELECT name, type FROM sqlite_master
+      WHERE name IN (
+        'metadata', 'schema_migrations', 'concepts', 'lexicon', 'senses',
+        'translations', 'examples', 'lexical_relations', 'grammar',
+        'lexemes', 'lexicon_fts'
+      )
     ''');
-    final names = rows
-        .map((row) => row['name'])
-        .whereType<String>()
-        .toSet();
-    const required = <String>{
-      'metadata',
-      'lexicon',
-      'concepts',
-      'grammar',
-      'lexemes',
-      'examples',
+    final names = <String, String>{
+      for (final row in records)
+        row['name'].toString(): row['type'].toString(),
     };
-    if (!names.containsAll(required)) {
-      throw StateError(
-        'Content database $languageCode does not satisfy the universal schema contract',
-      );
+    const tables = <String>{
+      'metadata', 'schema_migrations', 'concepts', 'lexicon', 'senses',
+      'translations', 'examples', 'lexical_relations', 'grammar',
+    };
+    if (tables.any((name) => names[name] != 'table') ||
+        names['lexemes'] != 'view' ||
+        names['lexicon_fts'] != 'table') {
+      throw StateError('Content database $code has an incompatible v2 schema');
     }
 
-    // Reject old packs before they can be bound to a read-only consumer.
-    final lexiconColumns = await db.rawQuery('PRAGMA table_info(lexicon)');
-    final columnNames = lexiconColumns
-        .map((column) => column['name'])
-        .whereType<String>()
-        .toSet();
-    if (!columnNames.contains('sort_key')) {
-      throw StateError(
-        'Content database $languageCode is missing required lexicon.sort_key',
-      );
-    }
-
-    final metadataRows = await db.rawQuery(
-      "SELECT value FROM metadata WHERE key = 'languageCode' LIMIT 1",
-    );
-    if (metadataRows.isNotEmpty) {
-      final storedCode = metadataRows.first['value']?.toString().toLowerCase();
-      if (storedCode != null &&
-          _normalizeLanguageCode(storedCode) != languageCode) {
-        throw StateError(
-          'Content database language mismatch: expected $languageCode, got $storedCode',
-        );
+    Future<void> requireColumns(String table, Set<String> required) async {
+      final rows = await db.rawQuery('PRAGMA table_info($table)');
+      final actual = rows.map((row) => row['name'])
+          .whereType<String>().toSet();
+      if (!actual.containsAll(required)) {
+        throw StateError('Content database $code lacks $table columns');
       }
+    }
+    await requireColumns('metadata', <String>{'key', 'value'});
+    await requireColumns('lexicon', <String>{
+      'id', 'surface', 'sort_key', 'language_code', 'cefr_level',
+      'part_of_speech', 'fields_json',
+    });
+    await requireColumns('senses', <String>{
+      'sense_id', 'lexeme_id', 'concept_id', 'payload_json',
+    });
+    await requireColumns('examples', <String>{
+      'example_id', 'lexeme_id', 'language_code', 'text',
+    });
+
+    final metadata = <String, String>{
+      for (final row in await db.query('metadata', columns: ['key', 'value']))
+        row['key'].toString(): row['value'].toString(),
+    };
+    if (metadata['mapping_version'] != '2.0.0' ||
+        metadata['contract_version'] != '1.0.0' ||
+        metadata['language_code'] != code) {
+      throw StateError('Content database $code metadata is incompatible');
+    }
+
+    final ownedRows = await db.rawQuery(
+      'SELECT 1 FROM lexicon WHERE language_code = ? LIMIT 1',
+      <Object?>[code],
+    );
+    if (ownedRows.isEmpty) {
+      throw StateError('Content database $code has no matching lexemes');
     }
   }
 
@@ -226,6 +246,10 @@ class DatabaseService {
       _contentPool.close(_normalizeLanguageCode(languageCode));
 
   Future<void> closeAllContentDbs() => _contentPool.closeAll();
+
+  /// Closes unleased background SQLite connections under memory pressure.
+  Future<int> trimUnleasedContentConnections() =>
+      _contentPool.closeUnleased();
 
   Future<File> migrateContentPack(
     String filename, {
@@ -241,6 +265,11 @@ class DatabaseService {
     return await openDatabase(
       databasePath,
       version: 2,
+      onConfigure: (db) async {
+        await db.rawQuery('PRAGMA journal_mode = WAL;');
+        await db.execute('PRAGMA busy_timeout = 5000;');
+        await db.execute('PRAGMA foreign_keys = ON;');
+      },
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
@@ -252,6 +281,19 @@ class DatabaseService {
             next_due_at INTEGER,
             status TEXT NOT NULL DEFAULT 'learning',
             PRIMARY KEY (lexeme_id, target_language_code)
+          )
+        ''');
+        await db.execute('''
+          CREATE INDEX IF NOT EXISTS idx_srs_due_covering
+          ON srs_progress(target_language_code, next_due_at, lexeme_id)
+        ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS srs_review_events (
+            review_event_id TEXT PRIMARY KEY,
+            lexeme_id TEXT NOT NULL,
+            target_language_code TEXT NOT NULL,
+            grade INTEGER NOT NULL,
+            created_at INTEGER NOT NULL
           )
         ''');
       },
@@ -286,6 +328,21 @@ class DatabaseService {
           );
         }
       },
+      onOpen: (db) async {
+        await db.execute('''
+          CREATE INDEX IF NOT EXISTS idx_srs_due_covering
+          ON srs_progress(target_language_code, next_due_at, lexeme_id)
+        ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS srs_review_events (
+            review_event_id TEXT PRIMARY KEY,
+            lexeme_id TEXT NOT NULL,
+            target_language_code TEXT NOT NULL,
+            grade INTEGER NOT NULL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
+      },
     );
   }
 
@@ -295,33 +352,35 @@ class DatabaseService {
     int limit = 50,
   }) async {
     final code = _normalizeLanguageCode(langCode);
-    final trimmedQuery = query.trim();
-    final safeLimit = limit.clamp(1, 50);
-    final rows = await withContentDb(
+    final term = query.trim();
+    final boundedLimit = limit.clamp(1, 50).toInt();
+    final rows = await withContentDb<List<Map<String, Object?>>>(
       code,
       (db) async {
-        return trimmedQuery.isEmpty
-        ? await db.rawQuery('''
+        if (term.isEmpty) {
+          return db.rawQuery('''
             SELECT id, surface, part_of_speech, fields_json
             FROM lexicon
-            LIMIT ?
-          ''', <Object?>[safeLimit])
-        : await db.rawQuery('''
-            SELECT id, surface, part_of_speech, fields_json
-            FROM lexicon
-            WHERE surface LIKE ? OR fields_json LIKE ?
-            LIMIT ?
-          ''', <Object?>[
-            '%$trimmedQuery%', '%$trimmedQuery%', safeLimit,
-          ]);
-
+            WHERE language_code = ?
+            ORDER BY sort_key, id LIMIT ?
+          ''', <Object?>[code, boundedLimit]);
+        }
+        return db.rawQuery('''
+          SELECT id, surface, part_of_speech, fields_json
+          FROM lexicon
+          WHERE language_code = ?
+            AND (instr(lower(surface), lower(?)) > 0
+              OR instr(lower(fields_json), lower(?)) > 0)
+          ORDER BY sort_key, id LIMIT ?
+        ''', <Object?>[code, term, term, boundedLimit]);
+      },
+    );
     return compute(_decodeLexiconRows, <String, Object?>{
       'languageCode': code,
       'rows': rows.map((row) => Map<String, Object?>.from(row))
           .toList(growable: false),
     });
   }
-
 
   /// One language-scoped, bounded daily queue from the active progress ledger.
   /// Immutable content packs and writable user progress stay in separate DBs.
@@ -335,8 +394,6 @@ class DatabaseService {
     final code = _normalizeLanguageCode(languageCode);
     final vaultActive = await _progressVault.isOperationalActive;
     final dueIds = <String>[];
-      },
-    );
     final reviewedIds = <String>{};
     Database? legacyDb;
 
@@ -547,6 +604,8 @@ class DatabaseService {
     required String languageCode,
     required int grade,
     DateTime? reviewedAt,
+    String? reviewEventId,
+    bool alignToCircadianDay = false,
   }) async {
     if (await _progressVault.isOperationalActive) {
       return _progressVault.gradeOperationalSrs(
@@ -554,8 +613,14 @@ class DatabaseService {
         grade: grade, reviewedAt: reviewedAt);
     }
     return SrsSchedulerService().gradeAndPersist(
-      progressDb: await progressDb, lexemeId: lexemeId,
-      languageCode: languageCode, grade: grade, reviewedAt: reviewedAt);
+      progressDb: await progressDb,
+      lexemeId: lexemeId,
+      languageCode: languageCode,
+      grade: grade,
+      reviewedAt: reviewedAt,
+      reviewEventId: reviewEventId,
+      alignToCircadianDay: alignToCircadianDay,
+    );
   }
 
   Future<void> saveBookmark({
