@@ -92,7 +92,7 @@ void main() {
         {'id': 'stale_data'}
       ], identity2);
 
-      final result = l1Cache.get('lang_en');
+      final result = l1Cache.get('lang_en', direction: 'en_es', packVersion: 'v1' as dynamic);
       expect(result![0]['id'], 'fresh_data');
     });
 
@@ -103,8 +103,8 @@ void main() {
       l1Cache.putWithIdentity('lang_en_v1', [{'id': 'old'}], oldIdentity);
       l1Cache.putWithIdentity('lang_en_v2', [{'id': 'new'}], newIdentity);
 
-      expect(l1Cache.has('lang_en_v1'), isFalse);
-      expect(l1Cache.has('lang_en_v2'), isTrue);
+      expect(l1Cache.has('lang_en_v1', direction: 'en_es', packVersion: 'v1' as dynamic), isFalse);
+      expect(l1Cache.has('lang_en_v2', direction: 'en_es', packVersion: 'v1' as dynamic), isTrue);
     });
 
     test('trimMemoryPressure trims items appropriately', () {
