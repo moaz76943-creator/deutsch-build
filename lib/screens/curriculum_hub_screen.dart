@@ -23,13 +23,11 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
   Future<void> _loadMissions() async {
     try {
       final jsonStr = await rootBundle.loadString('assets/data/missions_50.json');
-      if (!mounted) return;
       setState(() {
         _missions = jsonDecode(jsonStr);
         _isLoading = false;
       });
     } catch (_) {
-      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
