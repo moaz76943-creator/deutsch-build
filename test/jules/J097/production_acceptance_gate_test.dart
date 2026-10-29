@@ -8,11 +8,44 @@ class MockJ025StartupContract implements J025StartupContract {
   final bool hasNormalStartup;
   @override
   final bool hasSafeModeStartup;
+  @override
+  final bool hasExecutedTests;
+  @override
+  final bool hasOptionalAudio;
+  @override
+  final bool isContentCorrupted;
+  @override
+  final bool isIntegrityEvidenceMissing;
+  @override
+  final bool isLifecycleManaged;
+  @override
+  final bool isOfflineSafe;
+  @override
+  final bool isStartupRecoveryFailed;
+  @override
+  final bool isStorageGuarded;
+  @override
+  final bool isVerificationStale;
+  @override
+  final Set<String> registeredLanguages;
+  @override
+  final Set<String> verifiedDictionaries;
 
   MockJ025StartupContract({
     this.hasNewDartErrors = false,
     this.hasNormalStartup = true,
     this.hasSafeModeStartup = true,
+    this.hasExecutedTests = true,
+    this.hasOptionalAudio = true,
+    this.isContentCorrupted = false,
+    this.isIntegrityEvidenceMissing = false,
+    this.isLifecycleManaged = true,
+    this.isOfflineSafe = true,
+    this.isStartupRecoveryFailed = false,
+    this.isStorageGuarded = true,
+    this.isVerificationStale = false,
+    this.registeredLanguages = const {},
+    this.verifiedDictionaries = const {},
   });
 }
 
@@ -27,6 +60,12 @@ class MockJ095VerificationResult implements J095VerificationResult {
   final bool isEvidenceStale;
   @override
   final bool hasMissingMandatoryEvidence;
+  @override
+  final PromotionEligibility eligibility;
+  @override
+  final GateOutcome outcome;
+  @override
+  final String reason;
 
   MockJ095VerificationResult({
     this.hasMemoryRegression = false,
@@ -34,6 +73,9 @@ class MockJ095VerificationResult implements J095VerificationResult {
     this.isStorageCorrupt = false,
     this.isEvidenceStale = false,
     this.hasMissingMandatoryEvidence = false,
+    this.eligibility = PromotionEligibility.approved,
+    this.outcome = GateOutcome.passed,
+    this.reason = '',
   });
 }
 
