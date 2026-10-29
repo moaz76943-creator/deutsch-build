@@ -1,6 +1,9 @@
 import 'dart:async';
+<<<<<<< HEAD
 import 'cancellation_token.dart';
 import 'worker_task.dart';
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 enum TaskPriority { high, normal, low }
 
@@ -10,7 +13,6 @@ class PrioritizedTask<T> {
   final TaskPriority priority;
   final Future<T> Function(CancellationToken? token) action;
   final Completer<T?> completer;
-  final CancellationToken? cancellationToken;
 
   PrioritizedTask({
     required this.id,
@@ -18,15 +20,14 @@ class PrioritizedTask<T> {
     required this.priority,
     required this.action,
     required this.completer,
-    this.cancellationToken,
   });
 }
 
 /// طابور مهام معزول ذكي يدعم الأولويات والإلغاء الفوري للمهام القديمة عند تبديل الجلسة
 class IsolatedTaskQueue {
   final int maxQueueSize;
-  final int maxConcurrentTasks;
   final List<PrioritizedTask<dynamic>> _queue = [];
+<<<<<<< HEAD
   final Map<String, PrioritizedTask<dynamic>> _activeTasks = {};
   bool _isPaused = false;
   int _lastActiveEpoch = 0;
@@ -38,15 +39,21 @@ class IsolatedTaskQueue {
 
   int get length => _queue.length;
   int get activeTasksCount => _activeTasks.length;
-  int get availableCapacity => maxConcurrentTasks - activeTasksCount;
+=======
+  bool _isProcessing = false;
+
+  IsolatedTaskQueue({this.maxQueueSize = 256});
+
+  int get length => _queue.length;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   Future<T?> enqueue<T>({
     required String id,
     required int currentEpoch,
     required TaskPriority priority,
     required Future<T> Function() action,
-    CancellationToken? token,
   }) {
+<<<<<<< HEAD
     // تحديث الجلسة النشطة
     _lastActiveEpoch = currentEpoch;
 
@@ -60,6 +67,8 @@ class IsolatedTaskQueue {
       }
     }
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     if (_queue.length >= maxQueueSize) {
       _queue.removeWhere((t) {
         if (t.priority == TaskPriority.low) {
@@ -75,12 +84,12 @@ class IsolatedTaskQueue {
     }
 
     final completer = Completer<T?>();
-    final actualToken = token ?? CancellationToken();
+    final token = CancellationToken();
     final task = PrioritizedTask<T>(
       id: id,
       sessionEpoch: currentEpoch,
       priority: priority,
-      cancellationToken: actualToken,
+      cancellationToken: token,
       action: (CancellationToken? t) async {
         if (t?.isCancelled == true) {
           throw StateError('cancelled');
@@ -99,10 +108,11 @@ class IsolatedTaskQueue {
     }
     _queue.insert(insertIndex, task);
 
-    _processNext();
+    _processNext(currentEpoch);
     return completer.future;
   }
 
+<<<<<<< HEAD
   Future<T?> enqueueWorkerTask<T>({
     required WorkerTask<T> task,
     required int currentEpoch,
@@ -150,7 +160,7 @@ class IsolatedTaskQueue {
           if (!completerInternal.isCompleted) {
             t?.cancel();
             completerInternal.completeError(
-                TimeoutException('Operation was cancelled by user or timeout'));
+                StateError('Operation was cancelled by user or timeout'));
           }
         });
 
@@ -159,7 +169,7 @@ class IsolatedTaskQueue {
             timer.cancel();
             completerInternal.complete(result);
           }
-        }).catchError((Object e) {
+        }).catchError((e) {
           if (!completerInternal.isCompleted) {
             timer.cancel();
             completerInternal.completeError(e);
@@ -183,13 +193,14 @@ class IsolatedTaskQueue {
     return completer.future;
   }
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   void cancelStaleTasks(int activeEpoch) {
     _lastActiveEpoch = activeEpoch;
 
     // Cancel in queue
     _queue.removeWhere((task) {
       if (task.sessionEpoch != activeEpoch) {
-        task.cancellationToken?.cancel();
         if (!task.completer.isCompleted) {
           task.completer.complete(null);
         }
@@ -210,15 +221,13 @@ class IsolatedTaskQueue {
     _isPaused = true;
   }
 
-  void resume([int? activeEpoch]) {
-    if (activeEpoch != null) {
-      _lastActiveEpoch = activeEpoch;
-    }
+  void resume() {
     if (!_isPaused) return;
     _isPaused = false;
     _processNext();
   }
 
+<<<<<<< HEAD
   Future<void> _processNext() async {
     if (_isPaused ||
         _queue.isEmpty ||
@@ -253,6 +262,16 @@ class IsolatedTaskQueue {
   Future<void> _executeTask(PrioritizedTask<dynamic> currentTask) async {
     try {
       if (currentTask.cancellationToken?.isCancelled == true) {
+=======
+  Future<void> _processNext(int activeEpoch) async {
+    if (_isProcessing || _queue.isEmpty) return;
+    _isProcessing = true;
+
+    final currentTask = _queue.removeAt(0);
+    if (currentTask.sessionEpoch == activeEpoch) {
+      try {
+        final result = await currentTask.action();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         if (!currentTask.completer.isCompleted) {
           currentTask.completer.complete(null);
         }
@@ -278,33 +297,43 @@ class IsolatedTaskQueue {
                 e.message.contains('Operation was cancelled'))) {
           currentTask.completer.complete(null);
         } else if (e is TimeoutException) {
-
-
-
-
-          currentTask.completer.completeError(e);
+          currentTask.completer.complete(null);
         } else {
           currentTask.completer.completeError(e);
         }
       }
+<<<<<<< HEAD
     } finally {
       _activeTasks.remove(currentTask.id);
       _processNext();
+=======
+    } else {
+      if (!currentTask.completer.isCompleted) {
+        currentTask.completer.complete(null);
+      }
+    }
+
+    _isProcessing = false;
+    if (_queue.isNotEmpty) {
+      _processNext(activeEpoch);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     }
   }
 
   void clear() {
     for (final task in _queue) {
-      task.cancellationToken?.cancel();
       if (!task.completer.isCompleted) {
         task.completer.complete(null);
       }
     }
     _queue.clear();
+<<<<<<< HEAD
 
     for (final task in _activeTasks.values) {
       task.cancellationToken?.cancel();
     }
     // We let active tasks finish their async completion which will clean them from _activeTasks map
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }

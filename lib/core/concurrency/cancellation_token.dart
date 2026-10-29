@@ -32,7 +32,7 @@ class CancellationToken {
   Future<void> yieldAndCheck() async {
     throwIfCancelled();
     if (_stopwatch.elapsed > _yieldThreshold) {
-      await Future<void>.delayed(Duration.zero);
+      await Future.delayed(Duration.zero);
       throwIfCancelled();
       _stopwatch.reset();
     }
