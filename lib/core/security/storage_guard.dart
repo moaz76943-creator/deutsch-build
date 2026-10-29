@@ -4,11 +4,8 @@ enum StoragePermission { read, write }
 
 class StorageGuard {
   static bool hasPermission(StoragePermission permission) {
-    if (permission == StoragePermission.read || permission == StoragePermission.write) {
-      // Explicitly allow local learning operations
-      return true;
-    }
-    return false;
+    // Explicitly allow local learning operations
+    return true;
   }
 
   static bool validateJsonIntegrity(String rawJson) {
@@ -35,7 +32,7 @@ class StorageGuard {
     return safe;
   }
 
-  static bool isLocalReadPermitted() => hasPermission(StoragePermission.read);
+  static bool isLocalReadPermitted() => true;
 
-  static bool isLocalWritePermitted() => hasPermission(StoragePermission.write);
+  static bool isLocalWritePermitted() => true;
 }
