@@ -29,7 +29,7 @@ void main() {
   });
 
   group('DataIntegritySigner', () {
-    const payload = '{"key":"value"}';
+    final payload = '{"key":"value"}';
     final validChecksum = DataIntegritySigner.computeChecksum(payload);
 
     test('verifies valid manifest', () {
@@ -59,7 +59,7 @@ void main() {
       final manifestJson = jsonEncode({
         'hash': validChecksum,
         'capabilities': ['content_v1'],
-        'expiresAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+        'expiresAt': DateTime.now().subtract(Duration(days: 1)).toIso8601String(),
       });
       expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
     });
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('rejects invalid content hash', () {
-      const alteredPayload = '{"key":"altered"}';
+      final alteredPayload = '{"key":"altered"}';
       final manifestJson = jsonEncode({
         'hash': validChecksum, // Hash corresponds to original payload
         'capabilities': ['content_v1'],
@@ -87,8 +87,8 @@ void main() {
   });
 
   group('StorageGuard', () {
-    const validPayload = '{"key":"value"}';
-    const invalidPayload = 'not_json';
+    final validPayload = '{"key":"value"}';
+    final invalidPayload = 'not_json';
     final validChecksum = DataIntegritySigner.computeChecksum(validPayload);
     final manifestJson = jsonEncode({
       'hash': validChecksum,
@@ -110,7 +110,7 @@ void main() {
     });
 
     test('denies access when manifest validation fails', () {
-      const alteredPayload = '{"key":"altered"}';
+      final alteredPayload = '{"key":"altered"}';
       expect(StorageGuard.checkAccess(StorageAccessType.read, alteredPayload, manifestJson: manifestJson), isFalse);
     });
   });
