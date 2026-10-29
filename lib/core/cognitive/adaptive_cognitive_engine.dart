@@ -1,51 +1,91 @@
 import 'cognitive_metric_record.dart';
 
 enum AdaptationAction {
-  maintainFlow,       // المتعلم في حالة تدفق ممتازة (استمر بنفس الوتيرة)
-  reduceExtraneousLoad, // إرهاق أو صعوبة (تبسيط الشاشة وتهدئة الوتيرة)
-  deepenLinguisticChallenge, // تمكن وسرعة فائقة (عرض تفاصيل لسانية أعمق)
+  maintainFlow,
+  reduceExtraneousLoad,
+  deepenLinguisticChallenge,
 }
 
+class AdaptationDecision {
+  final AdaptationAction action;
+  final String reason;
+  const AdaptationDecision(this.action, this.reason);
+}
+
+/// Heuristic learning-flow adjustments only; not CEFR certification.
 class AdaptiveCognitiveEngine {
-  static final AdaptiveCognitiveEngine instance = AdaptiveCognitiveEngine._internal();
+  static final AdaptiveCognitiveEngine instance =
+      AdaptiveCognitiveEngine._internal();
   AdaptiveCognitiveEngine._internal();
 
-  final List<CognitiveMetricRecord> _recentMetrics = [];
-  static const int _windowSize = 5; // مراقبة آخر 5 تفاعلات
+  static const int _windowSize = 5;
+  static const int _maxResidentPairs = 128;
+  final Map<String, List<CognitiveMetricRecord>> _metricsByPair = {};
+  final Map<String, AdaptationAction> _lastActionByPair = {};
 
+  /// Malformed observations provide no adaptation evidence.
   void observe(CognitiveMetricRecord record) {
-    _recentMetrics.add(record);
-    if (_recentMetrics.length > _windowSize) {
-      _recentMetrics.removeAt(0);
+    if (!record.isUsable) return;
+    final pair = record.languagePair.trim();
+    if (pair.isEmpty) return;
+    if (!_metricsByPair.containsKey(pair)) {
+      if (_metricsByPair.length >= _maxResidentPairs) {
+        final oldestPair = _metricsByPair.keys.first;
+        _metricsByPair.remove(oldestPair);
+        _lastActionByPair.remove(oldestPair);
+      }
+      _metricsByPair[pair] = <CognitiveMetricRecord>[];
     }
+    final metrics = _metricsByPair[pair]!;
+    for (final prior in metrics) {
+      if (prior.sessionEventId == record.sessionEventId) {
+        if (prior.contentKey != record.contentKey ||
+            prior.isCorrect != record.isCorrect ||
+            prior.responseLatency != record.responseLatency ||
+            prior.hesitationTaps != record.hesitationTaps ||
+            prior.reviewDifficulty != record.reviewDifficulty) {
+          throw StateError('Conflicting cognitive event replay');
+        }
+        return; // Exact replay: do not duplicate
+      }
+    }
+    metrics.add(record);
+    if (metrics.length > _windowSize) metrics.removeAt(0);
   }
 
-  /// تقييم الحالة الذهنية واتخاذ قرار التكيف التلقائي
-  AdaptationAction evaluateState() {
-    if (_recentMetrics.isEmpty) return AdaptationAction.maintainFlow;
+  AdaptationAction evaluateState() => evaluateStateDetailed().action;
 
-    final avgStrain = _recentMetrics
-            .map((m) => m.cognitiveStrainIndex)
-            .reduce((a, b) => a + b) /
-        _recentMetrics.length;
-
-    // حالة إرهاق ذهني أو صعوبة مستمرة
-    if (avgStrain >= 0.6) {
-      return AdaptationAction.reduceExtraneousLoad;
+  AdaptationDecision evaluateStateDetailed({String languagePair = 'default'}) {
+    final metrics = _metricsByPair[languagePair];
+    if (metrics == null || metrics.length < 3) {
+      return const AdaptationDecision(
+        AdaptationAction.maintainFlow, 'Insufficient local evidence');
     }
+    final average = metrics.fold<double>(
+          0.0, (sum, record) => sum + record.cognitiveStrainIndex,
+        ) / metrics.length;
+    final previous = _lastActionByPair[languagePair];
 
-    // حالة تدفق واستيعاب سريع (أقل من ثانية ونصف وبدون أخطاء)
-    final allCorrect = _recentMetrics.every((m) => m.isCorrect);
-    final isFast = _recentMetrics.every((m) => m.responseLatency.inMilliseconds < 2000);
-
-    if (allCorrect && isFast && _recentMetrics.length >= 3) {
-      return AdaptationAction.deepenLinguisticChallenge;
+    if (average >= 0.6 ||
+        (previous == AdaptationAction.reduceExtraneousLoad && average > 0.3)) {
+      _lastActionByPair[languagePair] = AdaptationAction.reduceExtraneousLoad;
+      return const AdaptationDecision(
+        AdaptationAction.reduceExtraneousLoad, 'Sustained session difficulty');
     }
-
-    return AdaptationAction.maintainFlow;
+    final accurate = metrics.every((m) => m.isCorrect) &&
+        metrics.every((m) => m.responseLatency.inMilliseconds < 2000);
+    final action = accurate
+        ? AdaptationAction.deepenLinguisticChallenge
+        : AdaptationAction.maintainFlow;
+    _lastActionByPair[languagePair] = action;
+    return AdaptationDecision(
+      action,
+      accurate ? 'Fast local recall; not a CEFR credential' : 'Maintain flow',
+    );
   }
 
   void clearSession() {
-    _recentMetrics.clear();
+    _metricsByPair.clear();
+    _lastActionByPair.clear();
   }
 }
