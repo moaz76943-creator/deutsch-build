@@ -114,9 +114,30 @@ class TestAnalyzer(unittest.TestCase):
         analyzer = MorphologyAnalyzer([self.noun_db_path], de)
 
         res = analyzer.analyze("Toren")
-        self.assertEqual(len(res), 3)
+        self.assertEqual(len(res), 2)
 
         analyzer.close()
+
+    def test_german_dative_plural_false_matches(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'Boden', 'noun', 'masc', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'n1', 'nom', 'sg', 'def', 'Bode')") # mock stem
+
+        self.ndb.execute("INSERT INTO nominals VALUES ('n2', 'Kind', 'noun', 'neu', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'n2', 'nom', 'pl', 'def', 'Kinder')")
+        self.ndb.commit()
+
+        de = get_profile("de")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], de)
+
+        res = analyzer.analyze("Boden")
+        self.assertEqual(len(res), 0) # Should not match DAT PL because n1 is sg
+
+        res = analyzer.analyze("Kindern")
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].tags, ["DAT", "PL"])
+
+        analyzer.close()
+
 
 if __name__ == '__main__':
     unittest.main()

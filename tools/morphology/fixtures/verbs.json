@@ -1,0 +1,38 @@
+{
+  "verbs": [
+    {
+      "verb_id": "de:gehen",
+      "infinitive": "gehen",
+      "translation_ar": "يذهب",
+      "frequency_rank": 5,
+      "conjugations": [
+        {
+          "conjugation_id": "de:gehen:present:ich",
+          "tense": "present",
+          "person": "ich",
+          "conjugated_form": "gehe"
+        },
+        {
+          "conjugation_id": "de:gehen:past:3s",
+          "tense": "past",
+          "person": "3s",
+          "conjugated_form": "ging"
+        }
+      ]
+    },
+    {
+      "verb_id": "de:machen",
+      "infinitive": "machen",
+      "translation_ar": "يفعل",
+      "frequency_rank": 1,
+      "conjugations": [
+        {
+          "conjugation_id": "de:machen:present:ich",
+          "tense": "present",
+          "person": "ich",
+          "conjugated_form": "mache"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "nominals": [
+    {
+      "id": "de:Kind", "lemma": "Kind", "part_of_speech": "noun",
+      "gender": "neu", "number": "sg",
+      "declensions": [
+        {"id": "de:Kind:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Kinder"}
+      ]
+    },
+    {
+      "id": "de:Tor1", "lemma": "Tor", "part_of_speech": "noun",
+      "gender": "neu", "number": "sg",
+      "declensions": [
+        {"id": "de:Tor1:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Tor"},
+        {"id": "de:Tor1:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Tore"}
+      ]
+    },
+    {
+      "id": "de:Tor2", "lemma": "Tor", "part_of_speech": "noun",
+      "gender": "masc", "number": "sg",
+      "declensions": [
+        {"id": "de:Tor2:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Tor"},
+        {"id": "de:Tor2:nom:pl", "grammatical_case": "nom", "number": "pl", "definiteness": "def", "inflected_form": "Toren"}
+      ]
+    },
+    {
+      "id": "de:Boden", "lemma": "Boden", "part_of_speech": "noun",
+      "gender": "masc", "number": "sg",
+      "declensions": [
+        {"id": "de:Boden:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Bode"}
+      ]
+    },
+    {
+      "id": "tr:ev1", "lemma": "ev", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "tr:araba1", "lemma": "araba", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "fi:talo1", "lemma": "talo", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "fi:metsä1", "lemma": "metsä", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    }
+  ]
+}
