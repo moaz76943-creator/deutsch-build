@@ -1,8 +1,6 @@
 import '../services/audio_feedback_engine.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
-import '../services/hybrid_audio_service.dart';
-import '../services/tts_service.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
 
@@ -15,8 +13,7 @@ class AudioPracticeScreen extends StatefulWidget {
 }
 
 class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
-  late final TtsService _tts = TtsService(onStatus: _onTtsStatus);
-  late final HybridAudioService _audio = HybridAudioService(ttsService: _tts);
+  final FlutterTts _flutterTts = FlutterTts();
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
   bool _isLoading = true;
@@ -27,25 +24,30 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   @override
   void initState() {
     super.initState();
+    _initTts();
     _loadRandomSentence();
   }
 
-  void _onTtsStatus(TtsStatus status, {String? locale, String? message}) {
-    if (!mounted) return;
-    if (status == TtsStatus.completed ||
-        status == TtsStatus.stopped ||
-        status == TtsStatus.error ||
-        status == TtsStatus.unavailable ||
-        status == TtsStatus.voiceMissing) {
-      setState(() => _isPlaying = false);
-    }
+  Future<void> _initTts() async {
+    final locale = AudioFeedbackEngine.resolveLocaleTag(widget.languageCode);
+    await _flutterTts.setLanguage(locale);
+    await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(''));
+    await _flutterTts.setSpeechRate(_playbackSpeed);
+
+    _flutterTts.setCompletionHandler(() {
+      if (mounted) setState(() => _isPlaying = false);
+    });
   }
 
   Future<void> _loadRandomSentence() async {
     setState(() => _isLoading = true);
     try {
+<<<<<<< HEAD
       final db =
           await DatabaseService.instance.getContentDb(widget.languageCode);
+=======
+      final db = await DatabaseService.instance.contentDb;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       // سحب جملة عشوائية من قاعدة البيانات للتدرب عليها
       final result = await db.query(
         'examples',
@@ -57,16 +59,21 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
       );
 
       if (result.isNotEmpty) {
-        _germanText = result.first['sentence']?.toString() ?? '';
-        _arabicText = result.first['translation_ar']?.toString() ?? '';
+        _germanText = result.first['sentence'] as String;
+        _arabicText = result.first['translation_ar'] as String;
       } else {
+<<<<<<< HEAD
         _germanText = widget.languageCode == 'de' ? 'Ich lerne Deutsch.' : '';
         _arabicText = widget.languageCode == 'de'
             ? 'أنا أتعلم الألمانية.'
             : 'لا توجد جملة متاحة.';
+=======
+        _germanText = 'Ich lerne Deutsch.';
+        _arabicText = 'أنا أتعلم الألمانية.';
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       }
     } catch (e) {
-      _germanText = '';
+      _germanText = 'Fehler beim Laden.';
       _arabicText = 'خطأ في التحميل.';
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -74,8 +81,9 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   }
 
   Future<void> _speak() async {
-    if (_germanText.trim().isEmpty || _isPlaying) return;
+    if (_germanText.isEmpty) return;
     setState(() => _isPlaying = true);
+<<<<<<< HEAD
     try {
       await _tts
           .configure(speechRate: _playbackSpeed)
@@ -96,11 +104,15 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
         ));
       }
     }
+=======
+    await _flutterTts.setSpeechRate(_playbackSpeed);
+    await _flutterTts.speak(_germanText);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> _stop() async {
-    await _audio.stop();
-    if (mounted) setState(() => _isPlaying = false);
+    await _flutterTts.stop();
+    setState(() => _isPlaying = false);
   }
 
   void _toggleSpeed() {
@@ -109,12 +121,12 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
           ? AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: true)
           : AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false);
     });
-    if (_isPlaying) unawaited(_stop()); // apply on next playback
+    if (_isPlaying) _speak(); // إعادة التشغيل بالسرعة الجديدة
   }
 
   @override
   void dispose() {
-    unawaited(_audio.dispose());
+    _flutterTts.stop();
     super.dispose();
   }
 
