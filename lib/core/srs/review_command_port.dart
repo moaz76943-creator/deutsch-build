@@ -32,6 +32,24 @@ abstract interface class ReviewCommandPort {
   Future<void> submit(ReviewCommand command);
 }
 
+<<<<<<< HEAD
+class IdempotentReviewCommandPort implements ReviewCommandPort {
+  final ReviewCommandPort _delegate;
+  final Set<String> _processedReviewIds = {};
+  static const int _maxCacheSize = 1000;
+
+  IdempotentReviewCommandPort(this._delegate);
+
+  @override
+  Future<void> submit(ReviewCommand command) async {
+    if (_processedReviewIds.contains(command.reviewId)) {
+      return;
+    }
+    if (_processedReviewIds.length >= _maxCacheSize) {
+      _processedReviewIds.remove(_processedReviewIds.first);
+    }
+    _processedReviewIds.add(command.reviewId);
+=======
 class DuplicatePreventingReviewCommandPort implements ReviewCommandPort {
   final ReviewCommandPort _delegate;
   final LinkedHashSet<String> _processedIds = LinkedHashSet<String>();
@@ -50,6 +68,7 @@ class DuplicatePreventingReviewCommandPort implements ReviewCommandPort {
       _processedIds.remove(_processedIds.first);
     }
 
+>>>>>>> origin/main
     await _delegate.submit(command);
   }
 }
