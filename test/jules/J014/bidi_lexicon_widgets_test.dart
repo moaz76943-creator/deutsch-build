@@ -29,12 +29,12 @@ void main() {
 
     testWidgets('ResilientTextContainer prevents horizontal overflow', (WidgetTester tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 100, // Very narrow container
               child: ResilientTextContainer(
-                child: Text('This is a very long text that will surely overflow if not protected.'),
+                child: const Text('This is a very long text that will surely overflow if not protected.'),
               ),
             ),
           ),

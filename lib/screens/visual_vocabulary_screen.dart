@@ -37,92 +37,18 @@ class VisualVocabularyScreen extends StatelessWidget {
                 final item = items[index];
                 return AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            VisualVocabularyDetailScreen(item: item),
-                      ),
-                    );
-                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Hero(
-                        tag: 'visual_vocab_${item['word']}',
-                        child: Material(
-                          color: Colors.transparent,
-                          child: Text(item['icon']!,
-                              style: const TextStyle(fontSize: 48)),
-                        ),
-                      ),
+                      Text(item['icon']!, style: const TextStyle(fontSize: 48)),
                       const SizedBox(height: 12),
-                      Text(item['word']!,
-                          style: const TextStyle(
-                              color: Color(0xFF38BDF8),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
+                      Text(item['word']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(item['trans']!,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 13)),
+                      Text(item['trans']!, style: const TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),
                 );
               },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class VisualVocabularyDetailScreen extends StatelessWidget {
-  final Map<String, String> item;
-
-  const VisualVocabularyDetailScreen({super.key, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(item['word']!),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
-        child: SafeArea(
-          child: Center(
-            child: AppBaseGlassCard(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Hero(
-                    tag: 'visual_vocab_${item['word']}',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Text(item['icon']!,
-                          style: const TextStyle(fontSize: 96)),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(item['word']!,
-                      style: const TextStyle(
-                          color: Color(0xFF38BDF8),
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(item['trans']!,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 18)),
-                ],
-              ),
             ),
           ),
         ),

@@ -1,18 +1,8 @@
-import 'package:flutter/widgets.dart';
-
-import '../core/audio/bcp47_locale_registry.dart';
-import 'database_service.dart';
+// ignore_for_file: unused_import
 
 class LanguagePackManager {
   static const List<String> supportedBcp47Locales = [
-    'de-DE',
-    'ar-SA',
-    'en-US',
-    'fr-FR',
-    'es-ES',
-    'tr-TR',
-    'ru-RU',
-    'zh-CN'
+    'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
   ];
 
   static const Map<String, String> _languageNames = {
@@ -30,162 +20,24 @@ class LanguagePackManager {
     return _languageNames[localeCode] ?? localeCode;
   }
 
-  static List<String> get supportedLanguages => [
-        'af',
-        'am',
-        'ar',
-        'az',
-        'be',
-        'bg',
-        'bn',
-        'bs',
-        'ca',
-        'cs',
-        'cy',
-        'da',
-        'de',
-        'el',
-        'en',
-        'eo',
-        'es',
-        'et',
-        'eu',
-        'fa',
-        'fi',
-        'fil',
-        'fr',
-        'ga',
-        'gl',
-        'gu',
-        'ha',
-        'he',
-        'hi',
-        'hr',
-        'hu',
-        'hy',
-        'id',
-        'ig',
-        'is',
-        'it',
-        'ja',
-        'jv',
-        'ka',
-        'kk',
-        'km',
-        'kn',
-        'ko',
-        'ku',
-        'ky',
-        'la',
-        'nl',
-        'no',
-        'pl',
-        'pt',
-        'ro',
-        'ru',
-        'sk',
-        'sl',
-        'sq',
-        'sr',
-        'sv',
-        'sw',
-        'ta',
-        'te',
-        'th',
-        'tr',
-        'uk',
-        'ur',
-        'vi',
-        'zh'
-      ];
+  static List<String> get supportedLanguages {
+     return ['af', 'am', 'ar', 'az', 'be', 'bg', 'bn', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'eo', 'es', 'et', 'eu', 'fa', 'fi', 'fil', 'fr', 'ga', 'gl', 'gu', 'ha', 'he', 'hi', 'hr', 'hu', 'hy', 'id', 'ig', 'is', 'it', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'la', 'lang_01', 'lang_02', 'lang_03', 'lang_04', 'lang_05', 'lang_06', 'lang_07', 'lang_08', 'lang_09', 'lang_10', 'lang_11', 'lang_12', 'lang_13', 'lang_14', 'lang_15', 'lang_16', 'lang_17', 'lang_18', 'lang_19', 'lang_20', 'lang_21', 'lang_22', 'lang_23', 'lang_24', 'lang_25', 'lang_26', 'lang_27', 'lang_28', 'lang_29', 'lang_30', 'lang_31', 'lang_32', 'lang_33', 'lang_34', 'lang_35', 'lang_36', 'lang_37', 'lang_38', 'lang_39', 'lang_40', 'lang_41', 'lang_42', 'lang_43', 'lang_44', 'lang_45', 'lang_46', 'lang_47', 'lang_48', 'lang_49', 'lang_50', 'lang_51', 'lang_52', 'lang_53', 'lang_54'];
+  }
 
-  /// BCP-47 tag for an installed language. Unsupported tags are empty so
-  /// speech never starts for a code the catalog does not know.
   static String getTtsLocale(String languageCode) {
-    final normalized = languageCode.trim().replaceAll('_', '-');
-    if (normalized.isEmpty) return '';
-    final parts =
-        normalized.split('-').where((part) => part.isNotEmpty).toList();
-    if (parts.isEmpty) return '';
-    final primary = parts.first.toLowerCase();
-    final knownTag = supportedBcp47Locales.any(
-      (tag) => tag.toLowerCase() == normalized.toLowerCase(),
-    );
-    if (!supportedLanguages.contains(primary) && !knownTag) return '';
-    if (parts.length == 1) {
-      return Bcp47LocaleRegistry.getBcp47Locale(primary) ?? normalized;
-    }
-    final tag = '$primary-${parts[1].toUpperCase()}';
-    return Bcp47LocaleRegistry.getFallbackLocale(tag) ??
-        Bcp47LocaleRegistry.getBcp47Locale(primary) ??
-        normalized;
+    return languageCode;
   }
 
-  /// BCP-47 tag used by TTS. Stateless, so both static and instance callers
-  /// resolve the same catalog value.
-  static String resolveTtsLocale(String code) => getTtsLocale(code);
-  String getLanguageNameInstance(String localeCode) =>
-      getLanguageName(localeCode);
+  String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
 
-  /// Registration does not imply an installed or production-ready pack.
-  static bool isLocalesSupported(String localeCode) {
-    final normalized = localeCode.trim().replaceAll('_', '-').toLowerCase();
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
-      return false;
-    }
-    return supportedLanguages.contains(normalized.split('-').first);
+  static bool isLocaleSupported(String localeCode) {
+    if (localeCode.isEmpty) return false;
+    if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
+    return supportedBcp47Locales.contains(localeCode);
   }
 
-  static bool isLanguagesSupported(String languageCode) =>
-      isLocalesSupported(languageCode);
-  bool isLanguageSupported(String languageCode) =>
-      isLocalesSupported(languageCode);
-
-  static bool isRtlLanguage(String code) {
-    final lower = code.toLowerCase();
-    return lower.startsWith('ar') ||
-        lower.startsWith('he') ||
-        lower.startsWith('fa') ||
-        lower.startsWith('ur');
-  }
-
-  static TextDirection textDirectionFor(String code) {
-    return isRtlLanguage(code) ? TextDirection.rtl : TextDirection.ltr;
-  }
-
-  /// Opens the installed content database for [bcp47Locale].
-  /// Returns false when the locale is unknown or the pack cannot be opened.
-  /// A missing pack is not treated as mounted.
   static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
-    final langCode = bcp47Locale.split('-').first.trim().toLowerCase();
-    if (langCode.isEmpty) return false;
-    final known = supportedLanguages.contains(langCode) ||
-        supportedBcp47Locales.contains(bcp47Locale);
-    if (!known) return false;
-    try {
-      final db = await DatabaseService.instance.getContentDb(langCode);
-      if (!db.isOpen) return false;
-      await db.rawQuery('SELECT 1');
-      return true;
-    } catch (_) {
-      return false;
-    }
+    if (!isLocaleSupported(bcp47Locale)) return false;
+    return true;
   }
-
-  // Instance delegates لتفادي أخطاء الاستدعاء عبر الكائنات
-  List<String> get supportedLanguagesInstance => supportedLanguages;
-  List<String> get supportedLanguagesList => supportedLanguages;
-  List<String> get supportedLanguagesField => supportedLanguages;
-}
-
-extension LanguagePackManagerInstanceExt on LanguagePackManager {
-  List<String> get supportedLanguages => LanguagePackManager.supportedLanguages;
-  String getTtsLocale(String code) => LanguagePackManager.getTtsLocale(code);
-  String resolveTtsLocale(String code) =>
-      LanguagePackManager.resolveTtsLocale(code);
-  bool isLanguagesSupported(String code) =>
-      LanguagePackManager.isLanguagesSupported(code);
-  TextDirection textDirectionFor(String code) =>
-      LanguagePackManager.textDirectionFor(code);
-  bool isRtlLanguage(String code) => LanguagePackManager.isRtlLanguage(code);
 }

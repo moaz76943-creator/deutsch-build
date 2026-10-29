@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import '../design_system/design_system.dart';
 
@@ -31,33 +32,24 @@ class WeakWordsReviewScreen extends StatelessWidget {
               return AppBaseGlassCard(
                 child: Row(
                   children: <Widget>[
-                    const Icon(Icons.replay_circle_filled_rounded,
-                        color: Color(0xFFEF4444)),
+                    const Icon(Icons.replay_circle_filled_rounded, color: Color(0xFFEF4444)),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(item['word']!,
-                              style: AppTypography.title
-                                  .copyWith(color: Colors.white, fontSize: 16)),
-                          Text(item['meaning']!,
-                              style: AppTypography.body.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 12)),
+                          Text(item['word']!, style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16)),
+                          Text(item['meaning']!, style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(item['accuracy']!,
-                          style: const TextStyle(
-                              color: Color(0xFFEF4444), fontSize: 12)),
+                      child: Text(item['accuracy']!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12)),
                     ),
                   ],
                 ),

@@ -1,22 +1,69 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'bootstrap/production_bootstrap.dart';
-import 'design_system/app_theme.dart';
 import 'features/onboarding/fast_onboarding_screen.dart';
 
-/// One entry point. Crash-loop accounting, pack admission, and session
-/// recovery live in the production shell's startup boundary. This file does
-/// not open learner storage.
-Future<void> main() async {
+void main() async {
+  // 1. ضمان استقرار محرك الرسوميات وربط النظام
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations(const [
+
+  // 2. تثبيت اتجاه الشاشة وتحسين مظهر شريط الحالة
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await bootstrapDeutschApp(const DeutschApp());
+
+  // 3. مصيدة الأخطاء الشفافة لحماية التطبيق من الانهيار المفاجئ
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: const Color(0xFF0F172A),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
+                    SizedBox(width: 8),
+                    Text(
+                      "STARTUP ISSUE DETECTED",
+                      style: TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.exceptionAsString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: "monospace"),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.stack.toString(),
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontFamily: "monospace"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
+  // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
+  runApp(
+    const ProviderScope(
+      child: DeutschApp(),
+    ),
+  );
 }
 
 class DeutschApp extends StatelessWidget {
@@ -24,27 +71,21 @@ class DeutschApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp(
-        title: 'Deutsch بالعربي',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.system,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('ar'),
-          Locale('en'),
-          Locale('de'),
-        ],
-        home: hostProductionShell(
-          child: const FastOnboardingScreen(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Deutsch بالعربي',
+      theme: ThemeData(
+        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        fontFamily: 'Cairo',
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF3B82F6),
+          brightness: Brightness.light,
         ),
       ),
+      // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
+      home: const FastOnboardingScreen(),
     );
   }
 }

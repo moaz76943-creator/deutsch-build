@@ -42,14 +42,13 @@ class MetaphorConcept {
 /// مستودع سيناريوهات Wave 05 المؤطرة بالعقد المشترك
 class Wave05Scenarios {
   // W05-01: المغناطيسية الصرفية (موثق لسانياً ومتاح)
-  static const UniversalScenarioContract<List<MorphemeBlock>>
-      morphemicScenario = UniversalScenarioContract<List<MorphemeBlock>>(
+  static const UniversalScenarioContract<List<MorphemeBlock>> morphemicScenario =
+      UniversalScenarioContract<List<MorphemeBlock>>(
     scenarioId: 'W05-01-MORPH-TR',
     languagePair: LanguagePair(sourceIso: 'tr', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.morphologicalStacking},
     acceptedAnswers: ['Evlerimde'],
-    localExplanation:
-        'الترتيب الصرفي: الجذر (Ev) + الجمع (ler) + الملكية (im) + حرف الجر الموضعي (de).',
+    localExplanation: 'الترتيب الصرفي: الجذر (Ev) + الجمع (ler) + الملكية (im) + حرف الجر الموضعي (de).',
     isLinguisticallyVerified: true,
     payload: [
       MorphemeBlock(text: 'Ev', isRoot: true, type: 'بيت'),
@@ -66,20 +65,10 @@ class Wave05Scenarios {
     languagePair: LanguagePair(sourceIso: 'de', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.syntacticBranching},
     acceptedAnswers: ['دخول مبنى', 'شخص دخل إلى مبنى', 'الدخول'],
-    localExplanation:
-        'الكلمات المطموسة هي صفات وظروف ثانوية، بينما الهيكل الدلالي الأساسي قائم على الفاعل والفعل.',
+    localExplanation: 'الكلمات المطموسة هي صفات وظروف ثانوية، بينما الهيكل الدلالي الأساسي قائم على الفاعل والفعل.',
     isLinguisticallyVerified: true,
     payload: AmbiguityTask(
-      sentenceTokens: [
-        'Der',
-        'Mann',
-        'ging',
-        'schnell',
-        'in',
-        'das',
-        'große',
-        'Gebäude.'
-      ],
+      sentenceTokens: ['Der', 'Mann', 'ging', 'schnell', 'in', 'das', 'große', 'Gebäude.'],
       blurredIndices: [3, 6],
       question: 'ما هو الحدث الدلالي المحوري في الجملة؟',
       hint: 'ركز على الفعل الرئيسي والاسم المجرور وتجاهل الزوائد.',

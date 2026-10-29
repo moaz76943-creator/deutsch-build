@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/services/pack_downloader_service.dart';
 
@@ -26,7 +27,7 @@ class MockHttpClient extends http.BaseClient {
     if (simulateNetworkFailure) {
       retryCount++;
       if (retryCount <= 3) { // Force retry to fail all attempts
-        throw const SocketException("Network failed");
+        throw SocketException("Network failed");
       }
     }
 

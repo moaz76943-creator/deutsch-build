@@ -4,8 +4,7 @@ import '../../language_bidi_helper.dart';
 import '../../../design_system/app_typography.dart';
 import '../tokens/app_spacing.dart';
 
-class ResilientMediaPlaceholder extends StatelessWidget
-    implements OptionalContentContract {
+class ResilientMediaPlaceholder extends StatelessWidget implements OptionalContentContract {
   @override
   final String semanticLabel;
   @override
@@ -35,8 +34,7 @@ class ResilientMediaPlaceholder extends StatelessWidget
       label: semanticLabel,
       image: true,
       child: Container(
-        constraints:
-            BoxConstraints(minHeight: minHeight, minWidth: double.infinity),
+        constraints: BoxConstraints(minHeight: minHeight, minWidth: double.infinity),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppSpacing.cardRadiusSm),

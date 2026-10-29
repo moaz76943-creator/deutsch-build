@@ -1,18 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static ThemeData get lightTheme {
-    return ThemeData(
-      useMaterial3: true,
-      fontFamily: 'Cairo',
-      scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF3B82F6),
-        brightness: Brightness.light,
-      ),
-    );
-  }
-
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,

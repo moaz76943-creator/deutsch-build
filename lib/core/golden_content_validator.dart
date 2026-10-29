@@ -39,8 +39,7 @@ class GoldenContentValidator {
     }
 
     if (article != null && article.isNotEmpty) {
-      final validList =
-          _articlesByLanguage[languageCode] ?? _validGermanArticles;
+      final validList = _articlesByLanguage[languageCode] ?? _validGermanArticles;
       if (!validList.contains(article.toLowerCase().trim())) {
         issues.add('أداة التعريف غير صحيحة: $article');
       }

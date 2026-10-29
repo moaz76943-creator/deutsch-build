@@ -21,10 +21,8 @@ class ReviewTransactionStatus {
 }
 
 class IdempotentReviewTransactionManager {
-  final LinkedHashMap<String, ReviewTransactionStatus> _history =
-      LinkedHashMap();
-  final LinkedHashMap<String, DateTime> _lastContentTimestamps =
-      LinkedHashMap();
+  final LinkedHashMap<String, ReviewTransactionStatus> _history = LinkedHashMap();
+  final LinkedHashMap<String, DateTime> _lastContentTimestamps = LinkedHashMap();
   final int maxHistorySize = 1000;
 
   final Future<void> Function(ReviewTransactionEnvelope)? _persistencePort;
@@ -51,8 +49,7 @@ class IdempotentReviewTransactionManager {
       return ReviewTransactionStatus(
         envelope: envelope,
         state: TransactionState.failed,
-        error:
-            'Pair mismatch. Active: $activeLanguagePairKey, Transaction: ${envelope.languagePairKey}',
+        error: 'Pair mismatch. Active: $activeLanguagePairKey, Transaction: ${envelope.languagePairKey}',
       );
     }
 

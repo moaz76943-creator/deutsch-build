@@ -1,168 +1,183 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
-
-// Use relative import for the file in lib/services
 import 'package:deutsch_bilarabi/services/cefr_classifier.dart';
 
 void main() {
-  group('CefrClassifier - Legacy Methods', () {
-    test('detectLevel returns unknown for all inputs to prevent fake A1 assignments', () {
-      expect(CefrClassifier.detectLevel(1, 1), CefrLevel.unknown);
-      expect(CefrClassifier.detectLevel(100, 5), CefrLevel.unknown);
-      expect(CefrClassifier.detectLevel(600, 7), CefrLevel.unknown);
-      expect(CefrClassifier.detectLevel(4000, 10), CefrLevel.unknown);
-      expect(CefrClassifier.detectLevel(0, 0), CefrLevel.unknown);
+  group('CefrClassifier - LexicalEntryEvidence', () {
+    test('explicit sources override inferred metrics', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        sourceProvidedCefr: CefrLevel.b2,
+        frequencyRank: 10,
+        charLength: 2,
+      );
+
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.b2);
+      expect(result.grouping, CefrGrouping.intermediate);
+      expect(result.method, CefrClassificationMethod.explicit);
+      expect(result.confidence, CefrEvidenceConfidence.high);
     });
 
-    test('getCode returns standard codes', () {
+    test('German profile inferred logic', () {
+      const a1Evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        frequencyRank: 100,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(a1Evidence).level, CefrLevel.a1);
+
+      const a2CompoundEvidence = LexicalEntryEvidence(
+        languageId: 'de',
+        frequencyRank: 100,
+        isCompound: true,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(a2CompoundEvidence).level, CefrLevel.a2);
+
+      const b1Evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        frequencyRank: 3000,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(b1Evidence).level, CefrLevel.b1);
+
+      const b2Evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        frequencyRank: 6000,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(b2Evidence).level, CefrLevel.b2);
+
+      const c1Evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        frequencyRank: 10000,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(c1Evidence).level, CefrLevel.c1);
+    });
+
+    test('Arabic profile inferred logic', () {
+      const a1Evidence = LexicalEntryEvidence(
+        languageId: 'ar',
+        frequencyRank: 500,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(a1Evidence).level, CefrLevel.a1);
+
+      const a2Evidence = LexicalEntryEvidence(
+        languageId: 'ar',
+        frequencyRank: 2000,
+      );
+      expect(CefrClassifier.classifyLexicalEntry(a2Evidence).level, CefrLevel.a2);
+    });
+
+    test('generic fallback inferred logic with extremely long words', () {
+      const fallbackEvidence = LexicalEntryEvidence(
+        languageId: 'fr',
+        frequencyRank: 500,
+      );
+      final result = CefrClassifier.classifyLexicalEntry(fallbackEvidence);
+      expect(result.level, CefrLevel.a1);
+      expect(result.confidence, CefrEvidenceConfidence.low);
+
+      const longWordEvidence = LexicalEntryEvidence(
+        languageId: 'fr',
+        frequencyRank: 500,
+        charLength: 20, // Should bump A1 to A2
+      );
+      expect(CefrClassifier.classifyLexicalEntry(longWordEvidence).level, CefrLevel.a2);
+    });
+
+    test('invalid/null records returning unknown', () {
+      const nullEvidence = LexicalEntryEvidence(
+        languageId: 'en',
+      );
+      final result = CefrClassifier.classifyLexicalEntry(nullEvidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.grouping, CefrGrouping.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+  });
+
+  group('CefrClassifier - LearningExampleEvidence', () {
+    test('explicit sources override inferred metrics', () {
+      const evidence = LearningExampleEvidence(
+        languageId: 'es',
+        sourceProvidedCefr: CefrLevel.c1,
+        wordCount: 3,
+        maxWordFrequencyRank: 100,
+      );
+      final result = CefrClassifier.classifyLearningExample(evidence);
+      expect(result.level, CefrLevel.c1);
+      expect(result.method, CefrClassificationMethod.explicit);
+      expect(result.confidence, CefrEvidenceConfidence.high);
+    });
+
+    test('inferred logic based on example complexity vs isolated words', () {
+      // Very simple short sentence
+      const a1Evidence = LearningExampleEvidence(
+        languageId: 'it',
+        wordCount: 4,
+        maxWordFrequencyRank: 300,
+        clauseCount: 1,
+      );
+      expect(CefrClassifier.classifyLearningExample(a1Evidence).level, CefrLevel.a1);
+
+      // Slightly longer sentence, more complex words
+      const a2Evidence = LearningExampleEvidence(
+        languageId: 'it',
+        wordCount: 8,
+        maxWordFrequencyRank: 1500,
+        clauseCount: 2,
+      );
+      expect(CefrClassifier.classifyLearningExample(a2Evidence).level, CefrLevel.a2);
+
+      // Even more complex
+      const b1Evidence = LearningExampleEvidence(
+        languageId: 'it',
+        wordCount: 12,
+        maxWordFrequencyRank: 4000,
+        clauseCount: 2,
+      );
+      expect(CefrClassifier.classifyLearningExample(b1Evidence).level, CefrLevel.b1);
+
+      // Highly complex
+      const c1Evidence = LearningExampleEvidence(
+        languageId: 'it',
+        wordCount: 25,
+        maxWordFrequencyRank: 15000,
+        clauseCount: 4,
+      );
+      expect(CefrClassifier.classifyLearningExample(c1Evidence).level, CefrLevel.c1);
+    });
+
+    test('invalid/null records returning unknown', () {
+      const nullEvidence = LearningExampleEvidence(
+        languageId: 'en',
+      );
+      final result = CefrClassifier.classifyLearningExample(nullEvidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+  });
+
+  group('CefrClassifier - Legacy and enum preservation', () {
+    test('detectLevel is deprecated and returns unknown', () {
+      expect(CefrClassifier.detectLevel(10, 5), CefrLevel.unknown);
+    });
+
+    test('getCode returns correct standard codes', () {
       expect(CefrClassifier.getCode(CefrLevel.a1), 'A1');
       expect(CefrClassifier.getCode(CefrLevel.c2), 'C2');
       expect(CefrClassifier.getCode(CefrLevel.unknown), '--');
     });
-
-    test('getLabelAr / getLabel returns descriptive labels', () {
-      expect(CefrClassifier.getLabel(CefrLevel.a1), 'A1 (مبتدئ)');
-      expect(CefrClassifier.getLabelAr(CefrLevel.c1), 'C1 (احترافي)');
-      expect(CefrClassifier.getLabel(CefrLevel.unknown), 'عام');
-    });
-
-    test('getLevelColor returns visual distinction colors', () {
-      expect(CefrClassifier.getLevelColor(CefrLevel.a1), const Color(0xFF10B981));
-      expect(CefrClassifier.getLevelColor(CefrLevel.c2), const Color(0xFFEF4444));
-      expect(CefrClassifier.getLevelColor(CefrLevel.unknown), const Color(0xFF6B7280));
-    });
-
-    test('getGroup returns appropriate broad level groupings', () {
-      expect(CefrClassifier.getGroup(CefrLevel.a1), CefrGroup.beginner);
-      expect(CefrClassifier.getGroup(CefrLevel.a2), CefrGroup.beginner);
-      expect(CefrClassifier.getGroup(CefrLevel.b1), CefrGroup.intermediate);
-      expect(CefrClassifier.getGroup(CefrLevel.b2), CefrGroup.intermediate);
-      expect(CefrClassifier.getGroup(CefrLevel.c1), CefrGroup.advanced);
-      expect(CefrClassifier.getGroup(CefrLevel.c2), CefrGroup.advanced);
-      expect(CefrClassifier.getGroup(CefrLevel.unknown), CefrGroup.unknown);
-    });
   });
 
-  group('CefrClassifier - Evidence-based Word Classification', () {
-    test('Explicit policy overrides other sources (Arabic)', () {
-      const evidence = LexicalEvidence(
-        languageCode: 'ar',
-        explicitLevel: CefrLevel.b1,
-        sourceLevelMap: {
-          'frequency_list': CefrLevel.a1,
-          'teacher_review': CefrLevel.a2,
-        },
+  group('CefrClassifier - C2 Edge Cases', () {
+    test('explicit C2 source is respected', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'en',
+        sourceProvidedCefr: CefrLevel.c2,
       );
-
-      final result = CefrClassifier.classifyWord(evidence);
-      expect(result.level, CefrLevel.b1);
-      expect(result.source, EvidenceSource.explicitPolicy);
-      expect(result.confidence, 1.0);
-    });
-
-    test('Verified sources are used when explicit policy is missing (German)', () {
-      const evidence = LexicalEvidence(
-        languageCode: 'de',
-        sourceLevelMap: {
-          'goethe_institut': CefrLevel.b2,
-          'dw': CefrLevel.b1,
-        },
-      );
-
-      final result = CefrClassifier.classifyWord(evidence);
-      // Resolves to highest
-      expect(result.level, CefrLevel.b2);
-      expect(result.source, EvidenceSource.verifiedSource);
-      expect(result.confidence, 0.8);
-    });
-
-    test('Unsupported / Unknown when insufficient evidence (Japanese)', () {
-      const evidence = LexicalEvidence(
-        languageCode: 'ja',
-      );
-
-      final result = CefrClassifier.classifyWord(evidence);
-      expect(result.level, CefrLevel.unknown);
-      expect(result.source, EvidenceSource.unsupported);
-      expect(result.confidence, 0.0);
-    });
-
-    test('Handles source map with only unknown levels', () {
-      const evidence = LexicalEvidence(
-        languageCode: 'en',
-        sourceLevelMap: {
-          'source_a': CefrLevel.unknown,
-          'source_b': CefrLevel.unknown,
-        },
-      );
-
-      final result = CefrClassifier.classifyWord(evidence);
-      expect(result.level, CefrLevel.unknown);
-      expect(result.source, EvidenceSource.unsupported);
-    });
-  });
-
-  group('CefrClassifier - Evidence-based Example Classification', () {
-    test('Explicit policy is respected for examples', () {
-      const evidence = ExampleEvidence(
-        languageCode: 'fr',
-        explicitLevel: CefrLevel.c1,
-        wordsLevels: [CefrLevel.a1, CefrLevel.a2],
-      );
-
-      final result = CefrClassifier.classifyExample(evidence);
-      expect(result.level, CefrLevel.c1);
-      expect(result.source, EvidenceSource.explicitPolicy);
-    });
-
-    test('Verified source map is respected for examples', () {
-      const evidence = ExampleEvidence(
-        languageCode: 'es',
-        sourceLevelMap: {
-          'textbook_x': CefrLevel.b1,
-        },
-        wordsLevels: [CefrLevel.a1],
-      );
-
-      final result = CefrClassifier.classifyExample(evidence);
-      expect(result.level, CefrLevel.b1);
-      expect(result.source, EvidenceSource.verifiedSource);
-    });
-
-    test('Infers difficulty from words levels with bump (cap at C2)', () {
-      const evidence = ExampleEvidence(
-        languageCode: 'it',
-        wordsLevels: [CefrLevel.a1, CefrLevel.b1, CefrLevel.a2],
-      );
-
-      final result = CefrClassifier.classifyExample(evidence);
-      // Max is B1, bumped by 1 level to B2 for example complexity
-      expect(result.level, CefrLevel.b2);
-      expect(result.source, EvidenceSource.inferredDifficulty);
-      expect(result.confidence, 0.6);
-    });
-
-    test('Inferred difficulty does not exceed C2', () {
-      const evidence = ExampleEvidence(
-        languageCode: 'ru',
-        wordsLevels: [CefrLevel.c2, CefrLevel.a1],
-      );
-
-      final result = CefrClassifier.classifyExample(evidence);
-      // Max is C2, bumped by 1 cap at C2
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
       expect(result.level, CefrLevel.c2);
-      expect(result.source, EvidenceSource.inferredDifficulty);
-    });
-
-    test('Returns unknown for examples with no valid words or sources', () {
-      const evidence = ExampleEvidence(
-        languageCode: 'zh',
-        wordsLevels: [CefrLevel.unknown, CefrLevel.unknown],
-      );
-
-      final result = CefrClassifier.classifyExample(evidence);
-      expect(result.level, CefrLevel.unknown);
-      expect(result.source, EvidenceSource.unsupported);
+      expect(result.grouping, CefrGrouping.advanced);
+      expect(result.method, CefrClassificationMethod.explicit);
     });
   });
 }

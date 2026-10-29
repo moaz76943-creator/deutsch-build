@@ -5,40 +5,40 @@ import 'package:deutsch_bilarabi/design_system/multi_script_typography.dart';
 void main() {
   group('MultiScriptTypography Fallback Engine', () {
     test('identifies Arabic fallbacks correctly (Cairo)', () {
-      const text = 'مرحبا بك';
+      final text = 'مرحبا بك';
       final fallbacks = MultiScriptTypography.getFallbacksForText(text);
       expect(fallbacks, contains(MultiScriptTypography.arabicFallback));
       expect(fallbacks, contains('Cairo'));
     });
 
     test('identifies Hebrew fallbacks correctly', () {
-      const text = 'שלום';
+      final text = 'שלום';
       final fallbacks = MultiScriptTypography.getFallbacksForText(text);
       expect(fallbacks, contains(MultiScriptTypography.hebrewFallback));
     });
 
     test('identifies Devanagari fallbacks correctly', () {
-      const text = 'नमस्ते';
+      final text = 'नमस्ते';
       final fallbacks = MultiScriptTypography.getFallbacksForText(text);
       expect(fallbacks, contains(MultiScriptTypography.devanagariFallback));
     });
 
     test('identifies CJK fallbacks correctly', () {
-      const textSC = '你好';
+      final textSC = '你好';
       final fallbacksSC = MultiScriptTypography.getFallbacksForText(textSC);
       expect(fallbacksSC, contains(MultiScriptTypography.scFallback));
 
-      const textJP = 'こんにちは';
+      final textJP = 'こんにちは';
       final fallbacksJP = MultiScriptTypography.getFallbacksForText(textJP);
       expect(fallbacksJP, contains(MultiScriptTypography.jpFallback));
 
-      const textKR = '안녕하세요';
+      final textKR = '안녕하세요';
       final fallbacksKR = MultiScriptTypography.getFallbacksForText(textKR);
       expect(fallbacksKR, contains(MultiScriptTypography.krFallback));
     });
 
     test('identifies mixed scripts correctly', () {
-      const text = 'Hello مرحبا こんにちは';
+      final text = 'Hello مرحبا こんにちは';
       final fallbacks = MultiScriptTypography.getFallbacksForText(text);
       expect(fallbacks, contains(MultiScriptTypography.arabicFallback));
       expect(fallbacks, contains(MultiScriptTypography.jpFallback));
@@ -46,7 +46,7 @@ void main() {
     });
 
     test('returns empty fallbacks for pure Latin text', () {
-      const text = 'Hello world 123!';
+      final text = 'Hello world 123!';
       final fallbacks = MultiScriptTypography.getFallbacksForText(text);
       expect(fallbacks, isEmpty);
     });

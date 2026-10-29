@@ -63,7 +63,7 @@ void main() {
     });
 
     test('altered content hash mismatch rejection', () {
-      const payload = 'my secret payload';
+      final payload = 'my secret payload';
       final expectedHash = DataIntegritySigner.computeChecksum(payload);
 
       final manifest = {
@@ -75,7 +75,7 @@ void main() {
     });
 
     test('unsupported signing metadata rejection (trustedKey missing or false)', () {
-      const payload = 'my secret payload';
+      final payload = 'my secret payload';
       final expectedHash = DataIntegritySigner.computeChecksum(payload);
 
       final manifest1 = {
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('valid content integrity success', () {
-      const payload = 'my secret payload';
+      final payload = 'my secret payload';
       final expectedHash = DataIntegritySigner.computeChecksum(payload);
 
       final manifest = {

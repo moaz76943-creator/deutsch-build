@@ -8,24 +8,7 @@ class PolyglotIntelligenceEngine {
     final code = targetLangCode.split('-').first.toLowerCase();
 
     // Germanic, Romance, Western Latin scripts (Base baseline)
-    if ([
-      'en',
-      'fr',
-      'es',
-      'it',
-      'de',
-      'nl',
-      'pt',
-      'ca',
-      'gl',
-      'ro',
-      'af',
-      'sv',
-      'da',
-      'no',
-      'nb',
-      'nn'
-    ].contains(code)) {
+    if (['en', 'fr', 'es', 'it', 'de', 'nl', 'pt', 'ca', 'gl', 'ro', 'af', 'sv', 'da', 'no', 'nb', 'nn'].contains(code)) {
       return 1.0;
     }
     // Slavic, Cyrillic, Hellenic (Moderate case inflections)
@@ -33,13 +16,11 @@ class PolyglotIntelligenceEngine {
       return 1.15;
     }
     // Semitic & Afro-Asiatic (Root & pattern morphology)
-    if (['ar', 'fa', 'ur', 'ps', 'sd', 'ku', 'ug', 'ckb', 'am', 'ha']
-        .contains(code)) {
+    if (['ar', 'fa', 'ur', 'ps', 'sd', 'ku', 'ug', 'ckb', 'am', 'ha'].contains(code)) {
       return 1.25;
     }
     // Indic & Dravidian scripts (Syllabic stacking & agglutination)
-    if (['hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'ne', 'si']
-        .contains(code)) {
+    if (['hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'ne', 'si'].contains(code)) {
       return 1.30;
     }
     // East Asian Logographic / Isolating / High character density (CJK)
@@ -59,8 +40,7 @@ class PolyglotIntelligenceEngine {
   }
 
   /// 3. Incremental Delta Check
-  static Map<String, dynamic> checkDeltaSyncVersion(
-      String langCode, int localVersion) {
+  static Map<String, dynamic> checkDeltaSyncVersion(String langCode, int localVersion) {
     const int serverVersion = 2;
     final bool needsUpdate = localVersion < serverVersion;
     return {
@@ -81,12 +61,10 @@ class PolyglotIntelligenceEngine {
   }
 
   /// 5. Universal Semantic Concept Graph
-  static Map<String, dynamic> resolveConceptNode(
-      String conceptId, String targetLang) {
+  static Map<String, dynamic> resolveConceptNode(String conceptId, String targetLang) {
     final lang = targetLang.split('-').first.toLowerCase();
 
-    final Map<String, Map<String, Map<String, String>>> globalConceptDatabase =
-        {
+    final Map<String, Map<String, Map<String, String>>> globalConceptDatabase = {
       'concept_pharmacy': {
         'de': {'word': 'Apotheke', 'article': 'die', 'meaning': 'صيدلية'},
         'en': {'word': 'Pharmacy', 'article': '', 'meaning': 'صيدلية'},

@@ -51,8 +51,7 @@ class ContractEvaluator {
     return ContractEvaluationResult(
       isSuccess: isMatch,
       status: ContractStatus.active,
-      feedback:
-          isMatch ? contract.localExplanation : 'إجابة غير مطابقة للمعيار.',
+      feedback: isMatch ? contract.localExplanation : 'إجابة غير مطابقة للمعيار.',
     );
   }
 }

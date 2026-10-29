@@ -29,19 +29,9 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
   // 5. بيانات التلطيف البراغماتي
   double _mitigationSlider = 0;
   final List<MitigationLevel> _mitigationLevels = const [
-    MitigationLevel(
-        level: 0,
-        text: 'Ich will nicht. (لا أريد)',
-        explanation: 'مباشر جداً، قد يُعتبر فظاً.'),
-    MitigationLevel(
-        level: 1,
-        text: 'Ich möchte lieber nicht. (أفضل ألا أفعل)',
-        explanation: 'مهذب، يستخدم صيغة التمني.'),
-    MitigationLevel(
-        level: 2,
-        text:
-            'Ich würde wirklich gerne, aber leider... (كنت أود ذلك بشدة لكن للأسف...)',
-        explanation: 'قمة الدبلوماسية، حفظ ماء الوجه للطرفين.'),
+    MitigationLevel(level: 0, text: 'Ich will nicht. (لا أريد)', explanation: 'مباشر جداً، قد يُعتبر فظاً.'),
+    MitigationLevel(level: 1, text: 'Ich möchte lieber nicht. (أفضل ألا أفعل)', explanation: 'مهذب، يستخدم صيغة التمني.'),
+    MitigationLevel(level: 2, text: 'Ich würde wirklich gerne, aber leider... (كنت أود ذلك بشدة لكن للأسف...)', explanation: 'قمة الدبلوماسية، حفظ ماء الوجه للطرفين.'),
   ];
 
   @override
@@ -64,20 +54,15 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                 SegmentedButton<String>(
                   segments: const [
                     ButtonSegment(value: 'subject', label: Text('الفاعل')),
-                    ButtonSegment(
-                        value: 'object', label: Text('المفعول (Focus)')),
+                    ButtonSegment(value: 'object', label: Text('المفعول (Focus)')),
                   ],
                   selected: {_focusTarget},
-                  onSelectionChanged: (set) =>
-                      setState(() => _focusTarget = set.first),
+                  onSelectionChanged: (set) => setState(() => _focusTarget = set.first),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   _spotlight.getFocusedSentence(_focusTarget),
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.indigo),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.indigo),
                 ),
               ],
             ),
@@ -95,14 +80,10 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                   child: const Text('إضافة جملة موصولة متداخلة +'),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                    'Das ist das Haus${_buildNestedClauses(_branchingLevel)}, das Jack gebaut hat.'),
+                Text('Das ist das Haus${_buildNestedClauses(_branchingLevel)}, das Jack gebaut hat.'),
                 const SizedBox(height: 8),
                 if (_branchingLevel > 2)
-                  const Text(
-                      '⚠️ تحذير: انهيار الذاكرة العاملة! الجملة معقدة جداً للمستمع، قسّمها فوراً.',
-                      style: TextStyle(
-                          color: Colors.red, fontWeight: FontWeight.bold)),
+                  const Text('⚠️ تحذير: انهيار الذاكرة العاملة! الجملة معقدة جداً للمستمع، قسّمها فوراً.', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                 if (_branchingLevel > 0)
                   TextButton(
                     onPressed: () => setState(() => _branchingLevel = 0),
@@ -123,22 +104,14 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                   children: [
                     ActionChip(
                       label: const Text('machen (يصنع)'),
-                      backgroundColor: _selectedCollocation == 'machen'
-                          ? Colors.red.shade100
-                          : null,
-                      onPressed: () =>
-                          setState(() => _selectedCollocation = 'machen'),
+                      backgroundColor: _selectedCollocation == 'machen' ? Colors.red.shade100 : null,
+                      onPressed: () => setState(() => _selectedCollocation = 'machen'),
                     ),
-                    const Text('➡️ Entscheidung ⬅️',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('➡️ Entscheidung ⬅️', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ActionChip(
                       label: const Text('treffen (يتخذ)'),
-                      backgroundColor: _selectedCollocation == 'treffen'
-                          ? Colors.green.shade100
-                          : null,
-                      onPressed: () =>
-                          setState(() => _selectedCollocation = 'treffen'),
+                      backgroundColor: _selectedCollocation == 'treffen' ? Colors.green.shade100 : null,
+                      onPressed: () => setState(() => _selectedCollocation = 'treffen'),
                     ),
                   ],
                 ),
@@ -146,13 +119,10 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
-                      _selectedCollocation == 'treffen'
-                          ? '✅ تلازم صحيح! الألمان يقولون "يتخذ قراراً" وليس "يصنع".'
+                      _selectedCollocation == 'treffen' 
+                          ? '✅ تلازم صحيح! الألمان يقولون "يتخذ قراراً" وليس "يصنع".' 
                           : '❌ تنافر مغناطيسي! الترجمة الحرفية من الإنجليزية (Make a decision) خاطئة هنا.',
-                      style: TextStyle(
-                          color: _selectedCollocation == 'treffen'
-                              ? Colors.green
-                              : Colors.red),
+                      style: TextStyle(color: _selectedCollocation == 'treffen' ? Colors.green : Colors.red),
                     ),
                   ),
               ],
@@ -168,9 +138,7 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
               children: [
                 Row(
                   children: [
-                    Switch(
-                        value: _xRayEnabled,
-                        onChanged: (v) => setState(() => _xRayEnabled = v)),
+                    Switch(value: _xRayEnabled, onChanged: (v) => setState(() => _xRayEnabled = v)),
                     const Text('تفعيل أشعة X للكشف عن الحشو'),
                   ],
                 ),
@@ -182,22 +150,16 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                       TextSpan(
                         text: '[أنا] ',
                         style: TextStyle(
-                          color: _xRayEnabled
-                              ? Colors.grey.withValues(alpha: 0.3)
-                              : Colors.black,
-                          decoration:
-                              _xRayEnabled ? TextDecoration.lineThrough : null,
+                          color: _xRayEnabled ? Colors.grey.withValues(alpha: 0.3) : Colors.black,
+                          decoration: _xRayEnabled ? TextDecoration.lineThrough : null,
                         ),
                       ),
                       const TextSpan(text: 'ذهبت إلى السوق، و '),
                       TextSpan(
                         text: '[أنا] ',
                         style: TextStyle(
-                          color: _xRayEnabled
-                              ? Colors.grey.withValues(alpha: 0.3)
-                              : Colors.black,
-                          decoration:
-                              _xRayEnabled ? TextDecoration.lineThrough : null,
+                          color: _xRayEnabled ? Colors.grey.withValues(alpha: 0.3) : Colors.black,
+                          decoration: _xRayEnabled ? TextDecoration.lineThrough : null,
                         ),
                       ),
                       const TextSpan(text: 'اشتريت تفاحاً.'),
@@ -224,10 +186,7 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                 ),
                 Text(
                   _mitigationLevels[_mitigationSlider.toInt()].text,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.teal),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
@@ -251,10 +210,7 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
     return ', das dem Mann, der den Hund, der die Katze jagte, sah, gehört';
   }
 
-  Widget _buildCard(
-      {required String title,
-      required String subtitle,
-      required Widget content}) {
+  Widget _buildCard({required String title, required String subtitle, required Widget content}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -262,11 +218,8 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-            Text(subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
             const Divider(),
             content,
           ],
