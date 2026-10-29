@@ -1,5 +1,3 @@
-import 'dart:async';
-
 enum BootstrapStepStatus { success, recoverableFailure, fatalFailure }
 
 class BootstrapStepResult {
@@ -17,60 +15,34 @@ class BootstrapStepResult {
 abstract class BootstrapStep {
   String get name;
   Future<BootstrapStepResult> execute();
-
-  // Existing steps remain source-compatible. Optional steps may opt out of
-  // startup-fatal classification without hiding their failures.
-  bool get isCritical => true;
-  Duration? get timeout => null;
 }
 
-/// Bounded sequential bootstrap: each dependency is probed once, and a fatal
-/// failure prevents dependent steps from running. Timeouts do not cancel the
-/// underlying future; callers must ignore obsolete results after disposal.
+/// خط إقلاع معزول يمنع ابتلاع الأخطاء ويوثق حالة كل مرحلة في بدء التشغيل
 class IsolatedBootstrapPipeline {
   final List<BootstrapStep> steps;
-  final Duration defaultStepTimeout;
 
-  IsolatedBootstrapPipeline(
-    this.steps, {
-    this.defaultStepTimeout = const Duration(seconds: 6),
-  });
+  IsolatedBootstrapPipeline(this.steps);
 
   Future<List<BootstrapStepResult>> runPipeline() async {
-    final results = <BootstrapStepResult>[];
+    final List<BootstrapStepResult> results = [];
+
     for (final step in steps) {
-      BootstrapStepResult result;
       try {
-        final received = await step.execute().timeout(
-              step.timeout ?? defaultStepTimeout,
-            );
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: !step.isCritical &&
-                  received.status == BootstrapStepStatus.fatalFailure
-              ? BootstrapStepStatus.recoverableFailure
-              : received.status,
-          message: received.message,
+        final res = await step.execute();
+        results.add(res);
+        if (res.status == BootstrapStepStatus.fatalFailure) {
+          break;
+        }
+      } catch (e) {
+        results.add(
+          BootstrapStepResult(
+            stepName: step.name,
+            status: BootstrapStepStatus.fatalFailure,
+            message: e.toString(),
+          ),
         );
-      } on TimeoutException {
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: step.isCritical
-              ? BootstrapStepStatus.fatalFailure
-              : BootstrapStepStatus.recoverableFailure,
-          message: 'Phase timed out',
-        );
-      } catch (_) {
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: step.isCritical
-              ? BootstrapStepStatus.fatalFailure
-              : BootstrapStepStatus.recoverableFailure,
-          message: 'Phase failed',
-        );
+        break;
       }
-      results.add(result);
-      if (result.status == BootstrapStepStatus.fatalFailure) break;
     }
     return results;
   }
