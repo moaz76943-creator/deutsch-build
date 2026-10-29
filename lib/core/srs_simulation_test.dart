@@ -18,9 +18,9 @@ class SrSimulationTest {
         if (repetitions == 0) {
           interval = 1;
         } else if (repetitions == 1) {
-          interval = 4;
+          interval = 6;
         } else {
-          interval = (interval * easeFactor * 1.05).round();
+          interval = (interval * easeFactor).round();
         }
         repetitions++;
       } else {

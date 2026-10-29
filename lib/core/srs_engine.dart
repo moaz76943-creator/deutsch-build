@@ -72,9 +72,9 @@ class SrsEngine {
       if (repetitions == 0) {
         nextInterval = 1;
       } else if (repetitions == 1) {
-        nextInterval = 4;
+        nextInterval = 6;
       } else {
-        nextInterval = (previousInterval * previousEaseFactor * morphologicalMultiplier * 1.05).round();
+        nextInterval = (previousInterval * previousEaseFactor * morphologicalMultiplier).round();
       }
       nextRepetitions += 1;
     } else {

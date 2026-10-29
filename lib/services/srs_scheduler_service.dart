@@ -1,163 +1,295 @@
-import 'package:sqflite/sqflite.dart';
-import 'database_service.dart';
-import 'srs_sm2_engine.dart';
+import 'dart:math' as math;
 
+import 'package:sqflite/sqflite.dart';
+import '../core/security/monotonic_clock_guard.dart';
+
+/// The existing user_progress_v2.db ledger uses next_due_at (epoch seconds).
+/// No content pack is ever modified by this service.
 class SrsReviewState {
-  final String lexemeId;
-  final String targetLanguageCode;
   final int repetitionCount;
   final int intervalDays;
   final double easeFactor;
-  final int? nextDueAtEpoch;
-  final String status;
 
   const SrsReviewState({
-    required this.lexemeId,
-    required this.targetLanguageCode,
-    required this.repetitionCount,
-    required this.intervalDays,
-    required this.easeFactor,
-    this.nextDueAtEpoch,
-    required this.status,
+    this.repetitionCount = 0,
+    this.intervalDays = 0,
+    this.easeFactor = 2.5,
   });
-
-  factory SrsReviewState.fromMap(Map<String, dynamic> map) {
-    return SrsReviewState(
-      lexemeId: map['lexeme_id'] as String,
-      targetLanguageCode: map['target_language_code'] as String,
-      repetitionCount: map['repetition_count'] as int,
-      intervalDays: map['interval_days'] as int,
-      easeFactor: (map['ease_factor'] as num).toDouble(),
-      nextDueAtEpoch: map['next_due_at'] as int?,
-      status: map['status'] as String,
-    );
-  }
 }
 
 class SrsReviewSchedule {
-  final String lexemeId;
-  final DateTime nextDueAt;
+  final int repetitionCount;
+  final int intervalDays;
+  final double easeFactor;
+  final int nextReviewEpoch;
+  final bool isLeech;
 
   const SrsReviewSchedule({
-    required this.lexemeId,
-    required this.nextDueAt,
+    required this.repetitionCount,
+    required this.intervalDays,
+    required this.easeFactor,
+    required this.nextReviewEpoch,
+    this.isLeech = false,
   });
+
+  SrsReviewState asState() => SrsReviewState(
+        repetitionCount: repetitionCount,
+        intervalDays: intervalDays,
+        easeFactor: easeFactor,
+      );
 }
 
+/// A deterministic SM-2 scheduler with cognitive enhancements:
+/// - Leech remediation & detection
+/// - Overdue review interval recovery
+/// - Circadian day rollover boundary alignment
+/// - Response-time grade scoring
+/// - Idempotent review event transaction deduplication
 class SrsSchedulerService {
-  final Future<Database> Function() _getDb;
+  static const double initialEaseFactor = 2.5;
+  static const double minimumEaseFactor = 1.3;
+  static const int secondsPerDay = 86400;
 
-  SrsSchedulerService({Future<Database> Function()? getDb})
-      : _getDb = getDb ?? (() => DatabaseService.instance.progressDb);
+  final MonotonicClockGuard _clockGuard;
 
-  Future<void> submitReview({
-    required String lexemeId,
-    required String languageCode,
-    required int quality,
-    required DateTime now,
-  }) async {
-    // 1. Validate constraints
-    if (quality < 1 || quality > 5) {
-      throw ArgumentError('Quality must be between 1 and 5');
+  SrsSchedulerService({MonotonicClockGuard? clockGuard})
+      : _clockGuard = clockGuard ?? MonotonicClockGuard();
+
+  SrsReviewSchedule calculate({
+    required int grade,
+    SrsReviewState previous = const SrsReviewState(),
+    DateTime? reviewedAt,
+    int? elapsedDays,
+    bool alignToCircadianDay = false,
+    int rolloverHour = 4,
+    double facetMultiplier = 1.0,
+  }) {
+    if (grade < 0 || grade > 4) {
+      throw RangeError.range(grade, 0, 4, 'grade');
+    }
+    if (previous.repetitionCount < 0 || previous.intervalDays < 0 ||
+        !previous.easeFactor.isFinite || previous.easeFactor < minimumEaseFactor) {
+      throw ArgumentError.value(previous, 'previous', 'Invalid SRS state');
+    }
+    if (facetMultiplier <= 0) {
+      throw ArgumentError.value(facetMultiplier, 'facetMultiplier', 'Must be positive');
     }
 
-    final db = await _getDb();
-
-    await db.transaction((txn) async {
-      // 2. Fetch current state
-      final List<Map<String, Object?>> results = await txn.query(
-        'srs_progress',
-        where: 'lexeme_id = ? AND target_language_code = ?',
-        whereArgs: [lexemeId, languageCode],
-      );
-
-      double currentEaseFactor = 2.5;
-      int repetitions = 0;
-      int intervalDays = 1;
-
-      if (results.isNotEmpty) {
-        final state = SrsReviewState.fromMap(results.first);
-
-        // Idempotency check: if nextDueAtEpoch is > now, and we just reviewed it,
-        // this might be a duplicate submission for the same day.
-        // SM-2 normally shouldn't be updated multiple times a day unless it's a new review.
-        // For J035, duplicate review submissions should be safely handled.
-        // If the review is already scheduled for the future, we can ignore the duplicate submission.
-        final nowEpoch = now.millisecondsSinceEpoch ~/ 1000;
-        if (state.nextDueAtEpoch != null && state.nextDueAtEpoch! > nowEpoch) {
-          // Already scheduled for the future, skip updating to prevent duplication.
-          return;
-        }
-
-        currentEaseFactor = state.easeFactor;
-        repetitions = state.repetitionCount;
-        intervalDays = state.intervalDays;
-      }
-
-      // 3. Calculate next schedule
-      final result = SrsSm2Engine.calculateNextReview(
-        quality: quality,
-        currentEaseFactor: currentEaseFactor,
-        repetitions: repetitions,
-        intervalDays: intervalDays,
-      );
-
-      // Calculate next due date strictly from 'now'
-      final nextDueAtEpoch = now.add(Duration(days: result.intervalDays)).millisecondsSinceEpoch ~/ 1000;
-
-      // Enforce bounds
-      final easeFactor = result.easeFactor.clamp(SrsSm2Engine.minEaseFactor, 5.0);
-      final safeIntervalDays = result.intervalDays < 0 ? 0 : result.intervalDays;
-
-      // 4. Update the state transactionally without destroying existing row schema fields
-      await txn.rawInsert('''
-        INSERT INTO srs_progress (
-          lexeme_id,
-          target_language_code,
-          repetition_count,
-          interval_days,
-          ease_factor,
-          next_due_at,
-          status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(lexeme_id) DO UPDATE SET
-          target_language_code = excluded.target_language_code,
-          repetition_count = excluded.repetition_count,
-          interval_days = excluded.interval_days,
-          ease_factor = excluded.ease_factor,
-          next_due_at = excluded.next_due_at,
-          status = excluded.status
-      ''', [
-        lexemeId,
-        languageCode,
-        result.repetitions,
-        safeIntervalDays,
-        easeFactor,
-        nextDueAtEpoch,
-        result.repetitions > 0 ? 'reviewing' : 'learning',
-      ]);
-    });
-  }
-
-  Future<List<SrsReviewSchedule>> getDueReviews(String languageCode, DateTime now) async {
-    final db = await _getDb();
-    final nowEpoch = now.millisecondsSinceEpoch ~/ 1000;
-
-    final results = await db.query(
-      'srs_progress',
-      columns: ['lexeme_id', 'next_due_at'],
-      where: 'target_language_code = ? AND (next_due_at IS NULL OR next_due_at <= ?)',
-      whereArgs: [languageCode, nowEpoch],
+    const qualities = <int>[0, 2, 3, 4, 5];
+    final quality = qualities[grade];
+    final delta = 5 - quality;
+    final ease = math.max(
+      minimumEaseFactor,
+      previous.easeFactor + 0.1 - delta * (0.08 + delta * 0.02),
     );
 
-    return results.map((row) {
-      final nextDueAtEpoch = row['next_due_at'] as int?;
-      return SrsReviewSchedule(
-        lexemeId: row['lexeme_id'] as String,
-        nextDueAt: nextDueAtEpoch != null
-            ? DateTime.fromMillisecondsSinceEpoch(nextDueAtEpoch * 1000, isUtc: true)
-            : now,
+    final successful = quality >= 3;
+    final repetitions = successful ? previous.repetitionCount + 1 : 0;
+    final int interval;
+    if (!successful || previous.repetitionCount == 0) {
+      interval = 1;
+    } else if (previous.repetitionCount == 1) {
+      interval = math.max(1, (6 * facetMultiplier).round());
+    } else {
+      // Overdue recovery: if actual elapsed days exceed scheduled interval,
+      // factor in a fraction of true retention memory span.
+      var baseInterval = previous.intervalDays;
+      if (successful && elapsedDays != null && elapsedDays > previous.intervalDays) {
+        baseInterval = math.max(
+          previous.intervalDays,
+          (previous.intervalDays + (elapsedDays - previous.intervalDays) * 0.25).round(),
+        );
+      }
+      interval = math.max(1, (baseInterval * ease * facetMultiplier).round());
+    }
+
+    // Leech detection: repeated failures on previously learned items
+    final bool isLeech = !successful &&
+        previous.repetitionCount > 0 &&
+        previous.easeFactor <= (minimumEaseFactor + 0.15);
+
+    final reviewed = (reviewedAt != null)
+        ? reviewedAt.toUtc()
+        : _clockGuard.getEffectiveUtcTime();
+    final DateTime targetDate;
+    if (alignToCircadianDay) {
+      final shifted = reviewed.add(Duration(days: interval));
+      targetDate = DateTime.utc(
+        shifted.year,
+        shifted.month,
+        shifted.day,
+        rolloverHour.clamp(0, 23),
       );
-    }).toList();
+    } else {
+      targetDate = reviewed.add(Duration(days: interval));
+    }
+    final nextEpoch = targetDate.millisecondsSinceEpoch ~/ 1000;
+
+    return SrsReviewSchedule(
+      repetitionCount: repetitions,
+      intervalDays: interval,
+      easeFactor: ease,
+      nextReviewEpoch: nextEpoch,
+      isLeech: isLeech,
+    );
+  }
+
+  /// Calculates a recommended SM-2 quality grade based on correctness and response time.
+  static int gradeFromResponseTime({
+    required bool isCorrect,
+    required Duration responseTime,
+    Duration rapidThreshold = const Duration(seconds: 3),
+    Duration hardThreshold = const Duration(seconds: 10),
+  }) {
+    if (!isCorrect) return 0;
+    if (responseTime <= rapidThreshold) return 4;
+    if (responseTime > hardThreshold) return 2;
+    return 3;
+  }
+
+  // SQLite INTEGER affinity still allows fractional REAL values. Validate the
+  // saved value before conversion so corrupt progress is never rounded and
+  // overwritten by a review.
+  static int _readPersistedCounter(Object? value, String column) {
+    if (value is! num || !value.isFinite || value < 0) {
+      throw ArgumentError.value(value, column, 'Invalid persisted SRS counter');
+    }
+    final counter = value.toInt();
+    if (value != counter) {
+      throw ArgumentError.value(value, column, 'Invalid persisted SRS counter');
+    }
+    return counter;
+  }
+
+  /// Atomic read-modify-write using the existing srs_progress schema.
+  /// nextReviewEpoch is persisted as next_due_at, in Unix seconds.
+  /// Deduplicates calls via idempotent srs_review_events table when reviewEventId is provided.
+  Future<SrsReviewSchedule> gradeAndPersist({
+    required Database progressDb,
+    required String lexemeId,
+    required String languageCode,
+    required int grade,
+    DateTime? reviewedAt,
+    String? reviewEventId,
+    bool alignToCircadianDay = false,
+  }) async {
+    if (lexemeId.trim().isEmpty || languageCode.trim().isEmpty) {
+      throw ArgumentError('A lexeme ID and language code are required');
+    }
+    return progressDb.transaction((txn) async {
+      // Ensure review events table for idempotency
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS srs_review_events (
+          review_event_id TEXT PRIMARY KEY,
+          lexeme_id TEXT NOT NULL,
+          target_language_code TEXT NOT NULL,
+          grade INTEGER NOT NULL,
+          created_at INTEGER NOT NULL
+        )
+      ''');
+
+      // Check idempotency if a unique review event ID was supplied
+      if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
+        final existingEvent = await txn.query(
+          'srs_review_events',
+          where: 'review_event_id = ?',
+          whereArgs: <Object>[reviewEventId.trim()],
+          limit: 1,
+        );
+        if (existingEvent.isNotEmpty) {
+          // Idempotent: already processed. Return current schedule without mutating state.
+          final existing = await txn.query(
+            'srs_progress',
+            where: 'lexeme_id = ? AND target_language_code = ?',
+            whereArgs: <Object>[lexemeId, languageCode],
+            limit: 1,
+          );
+          if (existing.isNotEmpty) {
+            return SrsReviewSchedule(
+              repetitionCount: _readPersistedCounter(existing.first['repetition_count'], 'repetition_count'),
+              intervalDays: _readPersistedCounter(existing.first['interval_days'], 'interval_days'),
+              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+              nextReviewEpoch: existing.first['next_due_at'] is num ? (existing.first['next_due_at'] as num).toInt() : 0,
+            );
+          }
+        }
+      }
+
+      final existing = await txn.query(
+        'srs_progress',
+        columns: <String>['repetition_count', 'interval_days', 'ease_factor', 'next_due_at'],
+        where: 'lexeme_id = ? AND target_language_code = ?',
+        whereArgs: <Object>[lexemeId, languageCode],
+        limit: 1,
+      );
+      final state = existing.isEmpty
+          ? const SrsReviewState()
+          : SrsReviewState(
+              repetitionCount: _readPersistedCounter(
+                existing.first['repetition_count'], 'repetition_count',
+              ),
+              intervalDays: _readPersistedCounter(
+                existing.first['interval_days'], 'interval_days',
+              ),
+              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+            );
+
+      final reviewed = (reviewedAt != null)
+          ? reviewedAt.toUtc()
+          : _clockGuard.getEffectiveUtcTime();
+      int? elapsedDays;
+      if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
+        final lastDueEpoch = (existing.first['next_due_at'] as num).toInt();
+        final nowEpoch = reviewed.millisecondsSinceEpoch ~/ 1000;
+        if (nowEpoch > lastDueEpoch) {
+          elapsedDays = (nowEpoch - lastDueEpoch) ~/ secondsPerDay + state.intervalDays;
+        }
+      }
+
+      final result = calculate(
+        grade: grade,
+        previous: state,
+        reviewedAt: reviewed,
+        elapsedDays: elapsedDays,
+        alignToCircadianDay: alignToCircadianDay,
+      );
+
+      final values = <String, Object?>{
+        'target_language_code': languageCode,
+        'repetition_count': result.repetitionCount,
+        'interval_days': result.intervalDays,
+        'ease_factor': result.easeFactor,
+        'next_due_at': result.nextReviewEpoch,
+        'status': result.isLeech
+            ? 'leech'
+            : (result.repetitionCount > 1 ? 'review' : 'learning'),
+      };
+      if (existing.isEmpty) {
+        await txn.insert('srs_progress', <String, Object?>{
+          'lexeme_id': lexemeId,
+          ...values,
+        });
+      } else {
+        await txn.update(
+          'srs_progress',
+          values,
+          where: 'lexeme_id = ? AND target_language_code = ?',
+          whereArgs: <Object>[lexemeId, languageCode],
+        );
+      }
+
+      // Record review event for idempotency & audit ledger
+      if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
+        await txn.insert('srs_review_events', <String, Object?>{
+          'review_event_id': reviewEventId.trim(),
+          'lexeme_id': lexemeId,
+          'target_language_code': languageCode,
+          'grade': grade,
+          'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
+        });
+      }
+
+      return result;
+    });
   }
 }

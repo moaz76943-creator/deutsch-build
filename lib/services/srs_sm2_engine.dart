@@ -37,9 +37,9 @@ class SrsSm2Engine {
       if (repetitions == 0) {
         newInterval = 1;
       } else if (repetitions == 1) {
-        newInterval = 4;
+        newInterval = 6;
       } else {
-        newInterval = (intervalDays * newEf * 1.05).round();
+        newInterval = (intervalDays * newEf).round();
       }
       newReps += 1;
     }
