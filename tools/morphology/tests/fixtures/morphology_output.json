@@ -1,0 +1,51 @@
+{
+  "turkish": [
+    {
+      "surface": "evlerimizde",
+      "lemma": "ev",
+      "tags": [
+        "PL",
+        "POSS1P",
+        "LOC"
+      ]
+    }
+  ],
+  "finnish": [
+    {
+      "surface": "talossani",
+      "lemma": "talo",
+      "tags": [
+        "INE",
+        "POSS1S"
+      ]
+    }
+  ],
+  "german_ambiguous": [
+    {
+      "surface": "Toren",
+      "lemma": "Tor",
+      "tags": [
+        "nom",
+        "pl",
+        "def"
+      ]
+    },
+    {
+      "surface": "Toren",
+      "lemma": "Tor",
+      "tags": [
+        "DAT",
+        "PL"
+      ]
+    }
+  ],
+  "german_past": [
+    {
+      "surface": "gearbeitet",
+      "lemma": "arbeiten",
+      "tags": [
+        "PART_PERF"
+      ]
+    }
+  ]
+}

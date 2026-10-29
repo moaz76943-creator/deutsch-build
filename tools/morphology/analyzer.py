@@ -28,6 +28,8 @@ class TurkishProfile(LanguageProfile):
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            if len(results) >= analyzer.max_results:
+                return
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -70,6 +72,8 @@ class FinnishProfile(LanguageProfile):
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            if len(results) >= analyzer.max_results:
+                return
             if depth > analyzer.max_recursion_depth:
                 return
 
@@ -126,16 +130,26 @@ class GermanProfile(LanguageProfile):
                 for v in analyzer.lookup_verb_lemma(stem + "en"):
                     results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
 
+        if word.startswith("ge") and word.endswith("et"):
+            stem = word[2:-2]
+            if len(stem) > 0:
+                for v in analyzer.lookup_verb_lemma(stem + "en"):
+                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+                for v in analyzer.lookup_verb_lemma(stem + "n"):
+                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+
         if word.endswith("n"):
             stem1 = word[:-1]
             if len(stem1) > 0:
                 for n in analyzer.lookup_nominal_form(stem1):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                    if n['number'] == 'pl':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
         if word.endswith("en"):
             stem2 = word[:-2]
             if len(stem2) > 0:
                 for n in analyzer.lookup_nominal_form(stem2):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                    if n['number'] == 'pl':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results
 
@@ -186,7 +200,11 @@ class MorphologyAnalyzer:
         """, (form,))
 
     def analyze(self, word: str) -> List[AnalysisResult]:
-        results = self.profile.analyze(word, self)
+        normalized_word = unicodedata.normalize('NFC', word)
+        results = self.profile.analyze(normalized_word, self)
+
+        for r in results:
+            r.surface = word
 
         seen = set()
         unique = []
