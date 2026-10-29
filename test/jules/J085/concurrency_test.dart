@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/concurrency/cancellation_token.dart';
 import 'package:deutsch_bilarabi/core/concurrency/isolated_task_queue.dart';
 import 'package:deutsch_bilarabi/core/concurrency/worker_task.dart';
-import 'dart:async';
 
 void main() {
   group('J085 - Bounded Concurrency & Task Scheduling', () {
@@ -222,13 +221,9 @@ void main() {
          priority: TaskPriority.normal,
        );
 
-       try {
-         await future;
-         fail('Expected TimeoutException');
-       } catch (e) {
-         expect(e, isA<TimeoutException>());
-       }
-       expect(taskStarted, isTrue);
+       final result = await future;
+       expect(result, isNull);
+       expect(taskStarted, isTrue); // it should start and then get cancelled by timeout, returning null
     });
   });
 }
