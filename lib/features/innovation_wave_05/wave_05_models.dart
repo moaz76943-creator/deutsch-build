@@ -1,5 +1,5 @@
-import '../../core/contracts/linguistic_capability.dart';
-import '../../core/contracts/universal_scenario_contract.dart';
+import 'package:deutsch_bilarabi/core/contracts/linguistic_capability.dart';
+import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
 
 class MorphemeBlock {
   final String text;

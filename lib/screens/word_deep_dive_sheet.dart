@@ -1,111 +1,212 @@
-import '../design_system/design_system.dart';
+import 'package:flutter/material.dart';
 
-class WordDeepDiveSheet extends StatelessWidget {
-  const WordDeepDiveSheet({
-    required this.article,
-    required this.word,
-    required this.plural,
-    required this.meaning,
-    required this.example,
+class AppTypography {
+  static const TextStyle h1 = TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A));
+  static const TextStyle h2 = TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B));
+  static const TextStyle h3 = TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155));
+  static const TextStyle body = TextStyle(fontSize: 14, color: Color(0xFF475569));
+  static const TextStyle bodyMedium = TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF475569));
+  static const TextStyle caption = TextStyle(fontSize: 12, color: Color(0xFF64748B));
+  static const TextStyle label = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B));
+}
+
+class AppGradients {
+  static const LinearGradient blueCard = LinearGradient(
+    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
+
+class ArticleBadge extends StatelessWidget {
+  final String? article;
+  final String? label;
+  final String? text;
+  final Color? color;
+
+  const ArticleBadge({
     super.key,
+    this.article,
+    this.label,
+    this.text,
+    this.color,
   });
 
-  final String article;
-  final String word;
-  final String plural;
-  final String meaning;
-  final String example;
+  @override
+  Widget build(BuildContext context) {
+    final display = article ?? label ?? text ?? '';
+    if (display.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color ?? const Color(0xFF4F46E5),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        display,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
 
-  static void show(
+class WordDeepDiveSheet extends StatelessWidget {
+  final Map<String, dynamic>? wordData;
+  final String? word;
+  final String? article;
+  final String? meaning;
+  final String? example;
+  final String? exampleMeaning;
+  final dynamic item;
+
+  const WordDeepDiveSheet({
+    super.key,
+    this.wordData,
+    this.word,
+    this.article,
+    this.meaning,
+    this.example,
+    this.exampleMeaning,
+    this.item,
+  });
+
+  static Future<void> show(
     BuildContext context, {
-    required String article,
-    required String word,
-    required String plural,
-    required String meaning,
-    required String example,
+    Map<String, dynamic>? wordData,
+    String? word,
+    String? article,
+    String? meaning,
+    String? example,
+    String? exampleMeaning,
+    dynamic item,
   }) {
-    showModalBottomSheet(
+    return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WordDeepDiveSheet(
-        article: article,
+      builder: (ctx) => WordDeepDiveSheet(
+        wordData: wordData,
         word: word,
-        plural: plural,
+        article: article,
         meaning: meaning,
         example: example,
+        exampleMeaning: exampleMeaning,
+        item: item,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic> data = wordData ??
+        (item is Map<String, dynamic> ? item as Map<String, dynamic> : <String, dynamic>{});
+    final String displayWord = word ?? data['word']?.toString() ?? 'مفردة';
+    final String displayArticle = article ?? data['article']?.toString() ?? '';
+    final String displayMeaning = meaning ?? data['meaning']?.toString() ?? 'المعنى';
+    final String displayExample = example ?? data['example']?.toString() ?? '';
+    final String displayExampleMeaning = exampleMeaning ?? data['exampleMeaning']?.toString() ?? '';
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
       decoration: const BoxDecoration(
-        gradient: AppGradients.darkScaffold,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
+        children: [
           Center(
             child: Container(
-              width: 48,
-              height: 5,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),
           const SizedBox(height: 20),
           Row(
-            children: <Widget>[
-              ArticleBadge(article: article, label: article),
-              const SizedBox(width: 12),
-              Text(
-                word,
-                style: AppTypography.display.copyWith(color: Colors.white, fontSize: 26),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.volume_up_rounded, color: Color(0xFF38BDF8), size: 28),
+            children: [
+              if (displayArticle.isNotEmpty) ...[
+                ArticleBadge(article: displayArticle),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Text(
+                  displayWord,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            'المعنى: $meaning',
-            style: AppTypography.title.copyWith(color: const Color(0xFFF39C6B), fontSize: 18),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'صيغة الجمع: $plural',
-            style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8)),
-          ),
-          const SizedBox(height: 20),
-          AppBaseGlassCard(
-            gradient: AppGradients.blueCard,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text('مثال في جملة مفيدة:', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                const SizedBox(height: 6),
-                Text(
-                  example,
-                  style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
-                ),
-              ],
+            displayMeaning,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF334155),
             ),
           ),
+          if (displayExample.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayExample,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  if (displayExampleMeaning.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      displayExampleMeaning,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4F46E5),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'إغلاق',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

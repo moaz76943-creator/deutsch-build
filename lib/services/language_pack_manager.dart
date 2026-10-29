@@ -1,31 +1,36 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+// ignore_for_file: unused_import
 
 class LanguagePackManager {
-  static final List<String> supportedLanguages = [
-    'de', 'en', 'fr', 'es', 'it', 'ru', 'zh', 'ar', 'ja', 'tr',
-    'nl', 'pl', 'pt', 'sv', 'da', 'fi', 'el', 'cs', 'hu', 'ro'
-    // والمزيد وصولاً إلى 100 لغة عبر النظام المعياري القابل للتوسع
+  static const List<String> supportedBcp47Locales = [
+    'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
   ];
 
-  static Future<List<Map<String, dynamic>>> loadPack(String langCode) async {
-    try {
-      String path = 'assets/data/packs/${langCode}_pack.json';
-      String jsonString = await rootBundle.loadString(path);
-      final Map<String, dynamic> decoded = jsonDecode(jsonString);
-      final List<dynamic> items = decoded['items'] ?? [];
-      return items.map((e) => Map<String, dynamic>.from(e)).toList();
-    } catch (_) {
-      // في حال لم تتوفر الحزمة محلياً، تُرجع قائمة فارغة آمنة لحين التنزيل الذكي
-      return [];
-    }
+  static const Map<String, String> _languageNames = {
+    'de-DE': 'الألمانية (Deutsch)',
+    'ar-SA': 'العربية',
+    'en-US': 'الإنجليزية (English)',
+    'fr-FR': 'الفرنسية (Français)',
+    'es-ES': 'الإسبانية (Español)',
+    'tr-TR': 'التركية (Türkçe)',
+    'ru-RU': 'الروسية (Русский)',
+    'zh-CN': 'الصينية (中文)',
+  };
+
+  static String getLanguageName(String localeCode) {
+    return _languageNames[localeCode] ?? localeCode;
   }
 
-  static Map<String, dynamic> getSystemArchitectureStats() {
-    return {
-      'totalTargetLanguages': 100,
-      'architectureType': 'Modular Polyglot Packs & Universal Core Concept Matrix',
-      'status': 'Fully Scalable and Optimized for Production'
-    };
+  // دعم استدعاء الدالة سواء كـ static أو من خلال كائن instance
+  String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
+
+  static bool isLocaleSupported(String localeCode) {
+    if (localeCode.isEmpty) return false;
+    if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
+    return supportedBcp47Locales.contains(localeCode);
+  }
+
+  static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
+    if (!isLocaleSupported(bcp47Locale)) return false;
+    return true;
   }
 }

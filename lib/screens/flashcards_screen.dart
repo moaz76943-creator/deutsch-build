@@ -1,218 +1,196 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
-import '../services/database_service.dart';
+import 'dart:math';
+import '../core/srs/review_command_port.dart';
+import '../core/audio/offline_audio_manager.dart';
+import '../services/local_database_service.dart';
+
+Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
+  final db = await LocalDatabaseService.instance.database;
+  return await db.rawQuery(
+    '''
+    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence 
+    FROM lexemes AS l 
+    LEFT JOIN examples AS e 
+      ON e.concept_id = l.concept_id AND e.language_code = l.language_code 
+    WHERE l.language_code = ? 
+    LIMIT 10
+    ''',
+    [targetLangCode], 
+  );
+}
 
 class FlashcardsScreen extends StatefulWidget {
-  const FlashcardsScreen({super.key});
-
+  const FlashcardsScreen({super.key}); 
   @override
   State<FlashcardsScreen> createState() => _FlashcardsScreenState();
 }
 
-class _FlashcardsScreenState extends State<FlashcardsScreen> {
-  bool _showBack = false;
-  int _currentIndex = 0;
-  List<Map<String, dynamic>> _cards = [];
-  bool _isLoading = true;
+class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _flipController;
+  late Animation<double> _flipAnimation;
+  bool _isFlipped = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCards();
+    _flipController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_flipController);
   }
 
-  Future<void> _loadCards() async {
-    setState(() => _isLoading = true);
-    try {
-      final contentDb = await DatabaseService.instance.contentDb;
-      // جلب 10 كلمات للدراسة مع أمثلتها
-      final results = await contentDb.rawQuery('''
-        SELECT l.lexeme_id, l.article, l.lemma, l.plural, 
-               e.translation_ar, e.sentence
-        FROM lexemes l
-        LEFT JOIN examples e ON e.concept_id = l.concept_id AND e.language_code = l.language_code
-        WHERE l.language_code = 'de'
-        LIMIT 10
-      ''');
+  @override
+  void dispose() {
+    _flipController.dispose();
+    OfflineAudioManager.instance.stop(); 
+    super.dispose();
+  }
 
-      setState(() {
-        _cards = results;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
+  void _toggleFlip() {
+    if (_isSubmitting) return;
+    setState(() {
+      _isFlipped = !_isFlipped;
+    });
+    if (_isFlipped) {
+      _flipController.forward();
+      OfflineAudioManager.instance.speak("das Buch"); 
+    } else {
+      _flipController.reverse();
     }
   }
 
-  Future<void> _handleReview(bool isEasy) async {
-    if (_cards.isEmpty || _currentIndex >= _cards.length) return;
-    
-    final card = _cards[_currentIndex];
-    final progressDb = await DatabaseService.instance.progressDb;
-    
-    // تسجيل قرار المستخدم في قاعدة التقدم المستقلة
-    await progressDb.rawInsert('''
-      INSERT OR REPLACE INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
-      VALUES (?, 'de', 
-        COALESCE((SELECT repetition_count + 1 FROM srs_progress WHERE lexeme_id = ?), 1),
-        ?
-      )
-    ''', [card['lexeme_id'], card['lexeme_id'], isEasy ? 'review' : 'learning']);
+  Future<void> _handleRating(ReviewRating rating) async {
+    if (_isSubmitting) return; 
+    setState(() => _isSubmitting = true);
 
-    setState(() {
-      _showBack = false;
-      _currentIndex++;
-    });
+    await Future.delayed(const Duration(milliseconds: 300)); 
+    
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+        _toggleFlip(); 
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0B1F4D),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8))),
-      );
-    }
-
-    if (_currentIndex >= _cards.length || _cards.isEmpty) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF0B1F4D),
-        appBar: AppBar(title: const Text('بطاقات المفردات'), backgroundColor: Colors.transparent, elevation: 0),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 72),
-              const SizedBox(height: 16),
-              Text('أنهيت مراجعة اليوم!', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 24)),
-              const SizedBox(height: 8),
-              Text('تم حفظ تقدمك بنجاح', style: AppTypography.body.copyWith(color: Colors.white70)),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('العودة للرئيسية'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final card = _cards[_currentIndex];
-    final article = card['article'] ?? '';
-    final german = card['lemma'] ?? '';
-    final plural = card['plural'] ?? '-';
-    final arabic = card['translation_ar'] ?? 'بدون ترجمة';
-    final example = card['sentence'] ?? 'بدون مثال';
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('بطاقات المفردات (SRS)'),
-        backgroundColor: Colors.transparent,
+        title: const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
         elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-            child: Column(
-              children: <Widget>[
-                LinearProgressIndicator(
-                  value: (_currentIndex + 1) / _cards.length,
-                  backgroundColor: Colors.white.withValues(alpha: 0.15),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF38BDF8)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'بطاقة ${_currentIndex + 1} من ${_cards.length}',
-                  style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.7)),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => setState(() => _showBack = !_showBack),
-                  child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(32),
-                    gradient: AppGradients.blueCard,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        if (!_showBack) ...<Widget>[
-                          if (article.toString().isNotEmpty)
-                            ArticleBadge(article: article.toString(), label: article.toString()),
-                          const SizedBox(height: 20),
-                          Text(
-                            german.toString(),
-                            style: AppTypography.display.copyWith(color: Colors.white, fontSize: 34),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'الجمع: $plural',
-                            style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8)),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'المس للقلب ومعرفة المعنى',
-                            style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
-                          ),
-                        ] else ...<Widget>[
-                          Text(
-                            arabic.toString(),
-                            style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 32),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              example.toString(),
-                              style: AppTypography.body.copyWith(color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: LinearProgressIndicator(value: 0.3, backgroundColor: Colors.white24),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: _toggleFlip,
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _flipAnimation,
+                    builder: (context, child) {
+                      final angle = _flipAnimation.value * pi;
+                      final isFront = angle < pi / 2;
+                      return Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.001)
+                          ..rotateX(angle),
+                        child: isFront ? _buildFrontAppBaseGlassCard() : _buildBackAppBaseGlassCard(),
+                      );
+                    },
                   ),
                 ),
-                const Spacer(),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _handleReview(false),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFEF4444),
-                          side: const BorderSide(color: Color(0xFFEF4444)),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text('صعبة (إعادة قريباً)'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => _handleReview(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text('سهلة (حفظ)'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
+              ),
             ),
-          ),
+            if (_isFlipped)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                child: _isSubmitting 
+                  ? const CircularProgressIndicator()
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildRatingButton('مجدداً', Colors.redAccent, ReviewRating.again),
+                        _buildRatingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
+                        _buildRatingButton('جيد', Colors.blueAccent, ReviewRating.good),
+                        _buildRatingButton('سهل', Colors.green, ReviewRating.easy),
+                      ],
+                    ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.all(40.0),
+                child: Text('اضغط للكشف والاستماع', style: TextStyle(color: Colors.white54)),
+              ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFrontAppBaseGlassCard() {
+    return Container(
+      width: 320,
+      height: 400,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
+      ),
+      alignment: Alignment.center,
+      child: const Text(
+        'das Buch', 
+        style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildBackAppBaseGlassCard() {
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()..rotateX(pi),
+      child: Container(
+        width: 320,
+        height: 400,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF334155),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('الكتاب', style: TextStyle(fontSize: 32, fontFamily: 'Cairo', color: Colors.white)),
+            SizedBox(height: 20),
+            Text('Ich lese ein Buch.', style: TextStyle(fontSize: 18, color: Colors.white70)),
+            Text('أنا أقرأ كتاباً.', style: TextStyle(fontSize: 18, fontFamily: 'Cairo', color: Colors.white70)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRatingButton(String label, Color color, ReviewRating rating) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withAlpha(51),
+        foregroundColor: color,
+        elevation: 0,
+        minimumSize: const Size(70, 56), 
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      onPressed: () => _handleRating(rating),
+      child: Text(label, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
     );
   }
 }

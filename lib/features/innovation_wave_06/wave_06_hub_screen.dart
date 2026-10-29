@@ -150,7 +150,7 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                       TextSpan(
                         text: '[أنا] ',
                         style: TextStyle(
-                          color: _xRayEnabled ? Colors.grey.withOpacity(0.3) : Colors.black,
+                          color: _xRayEnabled ? Colors.grey.withValues(alpha: 0.3) : Colors.black,
                           decoration: _xRayEnabled ? TextDecoration.lineThrough : null,
                         ),
                       ),
@@ -158,7 +158,7 @@ class _Wave06HubScreenState extends State<Wave06HubScreen> {
                       TextSpan(
                         text: '[أنا] ',
                         style: TextStyle(
-                          color: _xRayEnabled ? Colors.grey.withOpacity(0.3) : Colors.black,
+                          color: _xRayEnabled ? Colors.grey.withValues(alpha: 0.3) : Colors.black,
                           decoration: _xRayEnabled ? TextDecoration.lineThrough : null,
                         ),
                       ),

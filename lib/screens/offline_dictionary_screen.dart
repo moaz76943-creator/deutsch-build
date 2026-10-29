@@ -1,6 +1,8 @@
+import 'package:deutsch_bilarabi/services/trie_search_engine.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 import '../design_system/design_system.dart';
-import 'word_deep_dive_sheet.dart';
+// import 'word_deep_dive_sheet.dart';
 import 'articles_matrix_screen.dart';
 import 'verb_conjugation_screen.dart';
 import '../services/database_service.dart';
@@ -35,7 +37,11 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
     setState(() => _isLoading = true);
     try {
       // جلب البيانات الحقيقية من قاعدة البيانات
-      final results = await DatabaseService.instance.searchDictionary(_searchQuery, 'de');
+      final normalizedQuery = TrieSearchEngine.normalizeUniversal(_searchQuery);
+    final results = await DatabaseService.instance.searchDictionary(
+      normalizedQuery.isEmpty ? _searchQuery : normalizedQuery,
+      'de',
+    );
       
       List<Map<String, dynamic>> filtered = results;
       if (['der', 'die', 'das'].contains(_selectedFilter)) {
@@ -116,7 +122,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: ChoiceChip(
-                            label: Text(f),
+            label: Text(f),
                             selected: isSel,
                             onSelected: (_) {
                               setState(() => _selectedFilter = f);
@@ -166,7 +172,7 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
                           child: Row(
                             children: <Widget>[
                               if (article.isNotEmpty) 
-                                ArticleBadge(article: article, label: article)
+                                ArticleBadge(article: article)
                               else
                                 const SizedBox(width: 40), // مسافة إذا مافي أداة
                               const SizedBox(width: 14),
@@ -201,4 +207,27 @@ class _OfflineDictionaryScreenState extends State<OfflineDictionaryScreen> {
       ),
     );
   }
+}
+
+class WordDeepDiveSheet extends StatelessWidget {
+  static void show(BuildContext context, {required String article, required String word, required String plural, required String meaning, required String example}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => WordDeepDiveSheet(wordData: {'article': article, 'word': word, 'plural': plural, 'meaning': meaning, 'example': example}),
+    );
+  }
+
+  final Map<String, dynamic> wordData;
+  const WordDeepDiveSheet({super.key, required this.wordData});
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+
+class ArticleBadge extends StatelessWidget {
+  final String article;
+  const ArticleBadge({super.key, required this.article});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
 }

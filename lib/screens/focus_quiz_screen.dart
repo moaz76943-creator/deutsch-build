@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
 class FocusQuizScreen extends StatefulWidget {
   const FocusQuizScreen({super.key});

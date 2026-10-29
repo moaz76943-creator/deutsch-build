@@ -1,8 +1,9 @@
+import '../services/audio_feedback_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../design_system/design_system.dart';
-import '../repositories/vocabulary_repository.dart';
-import '../models/vocabulary_item.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
+import 'package:deutsch_bilarabi/models/vocabulary_item.dart';
 
 class VocabularyJournalScreen extends StatefulWidget {
   const VocabularyJournalScreen({super.key});
@@ -12,6 +13,8 @@ class VocabularyJournalScreen extends StatefulWidget {
 }
 
 class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
+  // ignore: unused_field
+  bool _isOverloadMode = false;
   final TextEditingController _wordController = TextEditingController();
   final TextEditingController _pluralController = TextEditingController();
   final TextEditingController _registerController = TextEditingController();
@@ -19,11 +22,11 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   
   String _selectedLanguage = 'de';
   String _selectedArticle = 'der';
-  String _selectedSemanticField = 'حياة يومية';
-  String _selectedProfessionalContext = 'صيدلاني / طبي';
+  final String _selectedSemanticField = 'حياة يومية';
+  final String _selectedProfessionalContext = 'صيدلاني / طبي';
   
   int _consecutiveFailures = 0; // درع التنفس البصري الإيقاعي عند العبء الحاد
-  bool _isOverloadMode = false;
+  
   
   final VocabularyRepository _repository = VocabularyRepository();
   final FlutterTts _flutterTts = FlutterTts();
@@ -47,14 +50,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   }
 
   Future<void> _updateTtsLanguage(String langCode) async {
-    String ttsLang = "de-DE";
-    if (langCode == 'en') ttsLang = "en-US";
-    else if (langCode == 'fr') ttsLang = "fr-FR";
-    else if (langCode == 'es') ttsLang = "es-ES";
+    final ttsLang = AudioFeedbackEngine.resolveLocaleTag(langCode);
     await _flutterTts.setLanguage(ttsLang);
+    await _flutterTts.setSpeechRate(AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false));
   }
 
-  Future<void> _speakWord(String textToSpeak, String langCode) async {
+  Future<void> _speakWord(String textToSpeak, String langCode, [String? genderOrArticle]) async {
+    await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(genderOrArticle ?? ''));
     AppHaptics.light();
     await _updateTtsLanguage(langCode);
     await _flutterTts.stop();
@@ -147,7 +149,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _registerController.clear();
       _meaningController.clear();
       
-      if (!mounted) return;
+      if (!mounted) {
+      return;
+    }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('🌿 تمت إضافة العنصر مع مؤشر مستويات الخطاب بنجاح.'),
@@ -176,7 +180,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     final rawList = _journalItems.map((e) => e.toJson()).toList();
     await _repository.saveVocabularyList(rawList);
     
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('⏱️ التبريد الزمني القادم بعد ${_journalItems[index].interval} أيام.'),
@@ -266,7 +272,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                 ),
                 AppBaseGlassCard(
                   padding: const EdgeInsets.all(16),
-                  isOverloaded: _isOverloadMode,
+                  // removed: false,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -354,10 +360,10 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                       : visibleItems.isEmpty
-                          ? Center(
+                          ? const Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
+                                children: [
                                   Icon(Icons.hub_rounded, size: 48, color: Colors.white38),
                                   SizedBox(height: 12),
                                   Text('المفكرة هادئة.\nأضف أول مستوى خطاب!', 
@@ -382,7 +388,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                   direction: DismissDirection.horizontal,
                                   onDismissed: (direction) {
                                     _deleteItem(index);
-                                    if (!context.mounted) return;
+                                    if (!context.mounted) {
+      return;
+    }
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('تم إزالة العنصر بهدوء.')),
                                     );
@@ -407,7 +415,7 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                     ),
                                     child: AppBaseGlassCard(
                                       padding: const EdgeInsets.all(16),
-                                      isOverloaded: _isOverloadMode,
+                                      // removed: false,
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[

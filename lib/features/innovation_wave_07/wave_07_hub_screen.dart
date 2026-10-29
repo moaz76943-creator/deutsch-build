@@ -241,7 +241,7 @@ class _Wave07HubScreenState extends State<Wave07HubScreen> {
                 ),
                 if (_voidScanned)
                   const Padding(
-                    padding: EdgeInsets.top: 8.0,
+                    padding: EdgeInsets.only(top: 8.0),
                     child: Text('تبخر حرف الجر! الفعل (hören) يأخذ المفعول به مباشرة في الألمانية دون وساطة.', style: TextStyle(color: Colors.deepPurple)),
                   ),
               ],

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../contracts/universal_scenario_contract.dart';
-import '../contracts/contract_evaluator.dart';
+import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import 'package:deutsch_bilarabi/core/contracts/contract_evaluator.dart';
 import 'interaction_mode.dart';
 
 class UniversalAdaptiveShell extends StatefulWidget {
-  final UniversalScenarioContract contract;
+  final UniversalScenarioContract<dynamic> contract;
   final InteractionMode mode;
 
   const UniversalAdaptiveShell({
@@ -18,7 +18,7 @@ class UniversalAdaptiveShell extends StatefulWidget {
 }
 
 class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
-  String _currentInput = '';
+  final String _currentInput = '';
   ContractEvaluationResult? _result;
   bool _showLinguisticDetails = false; // الكشف التدريجي (Progressive Disclosure)
 

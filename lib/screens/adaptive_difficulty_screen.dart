@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
 class AdaptiveDifficultyScreen extends StatefulWidget {
   const AdaptiveDifficultyScreen({super.key});
@@ -44,7 +44,7 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                       ),
                       Switch(
                         value: _adaptiveActive,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _adaptiveActive = val;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/contracts/universal_scenario_contract.dart';
-import '../../core/shell/interaction_mode.dart';
-import '../../core/shell/universal_adaptive_shell.dart';
+import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import 'package:deutsch_bilarabi/core/shell/interaction_mode.dart';
+import 'package:deutsch_bilarabi/core/shell/universal_adaptive_shell.dart';
 import 'wave_07_scenarios.dart';
 
 class Wave07RunnerScreen extends StatelessWidget {
@@ -10,27 +10,27 @@ class Wave07RunnerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scenarios = [
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '1. ناظم التزامن الإيقاعي (Metrical Isochrony)',
         contract: Wave07Scenarios.rhythmScenario,
         mode: InteractionMode.kineticBlocks,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '2. مقياس المسافة الاجتماعية وصيغ الخطاب (Honorifics)',
         contract: Wave07Scenarios.honorificScenario,
         mode: InteractionMode.discreteSlider,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '3. شبكة الترابط الإحالي النصي (Anaphora Mesh)',
         contract: Wave07Scenarios.anaphoraScenario,
         mode: InteractionMode.relationalMatrix,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '4. مستشعر الاستلزام الحواري والتضمين (Implicature)',
         contract: Wave07Scenarios.implicatureScenario,
         mode: InteractionMode.maskedInspection,
       ),
-      _ScenarioRoute(
+      const _ScenarioRoute(
         title: '5. مخزن حشوات التردد وتدارك الكلام (Hesitation Buffer)',
         contract: Wave07Scenarios.hesitationScenario,
         mode: InteractionMode.discreteSlider,

@@ -143,9 +143,9 @@ class _Wave02HubScreenState extends State<Wave02HubScreen> {
           _buildCard(
             title: '3. محاكي الأوراق والبيروقراطية (INNOV-W02-06)',
             subtitle: 'استمارة تسجيل السكن الميدانية (Anmeldung)',
-            content: Column(
+            content: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 TextField(
                   decoration: InputDecoration(
                     labelText: 'Familienname (اسم العائلة)',

@@ -1,4 +1,6 @@
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/floating_bottom_nav_bar.dart';
+import 'package:flutter/material.dart';
+
 import 'home_screen.dart';
 import 'curriculum_units_screen.dart';
 import 'offline_dictionary_screen.dart';

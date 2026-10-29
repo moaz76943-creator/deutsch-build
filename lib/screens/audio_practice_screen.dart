@@ -1,10 +1,12 @@
+import '../services/audio_feedback_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../design_system/design_system.dart';
-import '../services/database_service.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/services/database_service.dart';
 
 class AudioPracticeScreen extends StatefulWidget {
-  const AudioPracticeScreen({super.key});
+  final String languageCode;
+  const AudioPracticeScreen({super.key, this.languageCode = 'de'});
 
   @override
   State<AudioPracticeScreen> createState() => _AudioPracticeScreenState();
@@ -27,7 +29,9 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage("de-DE");
+    final locale = AudioFeedbackEngine.resolveLocaleTag(widget.languageCode);
+    await _flutterTts.setLanguage(locale);
+    await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(''));
     await _flutterTts.setSpeechRate(_playbackSpeed);
     
     _flutterTts.setCompletionHandler(() {
@@ -43,9 +47,9 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
       final result = await db.rawQuery('''
         SELECT sentence, translation_ar 
         FROM examples 
-        WHERE language_code = 'de' 
-        ORDER BY RANDOM() LIMIT 1
-      ''');
+        WHERE language_code = ?
+      ORDER BY RANDOM() LIMIT 1
+    ''', [widget.languageCode]);
       
       if (result.isNotEmpty) {
         _germanText = result.first['sentence'] as String;
@@ -76,7 +80,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
 
   void _toggleSpeed() {
     setState(() {
-      _playbackSpeed = _playbackSpeed == 1.0 ? 0.6 : 1.0;
+      _playbackSpeed = _playbackSpeed == 1.0 ? AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: true) : AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false);
     });
     if (_isPlaying) _speak(); // إعادة التشغيل بالسرعة الجديدة
   }

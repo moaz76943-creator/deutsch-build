@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
 class EyeCareSettingsScreen extends StatefulWidget {
   const EyeCareSettingsScreen({super.key});
@@ -44,7 +44,7 @@ class _EyeCareSettingsScreenState extends State<EyeCareSettingsScreen> {
                       ),
                       Switch(
                         value: _blueLightFilter,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _blueLightFilter = val;

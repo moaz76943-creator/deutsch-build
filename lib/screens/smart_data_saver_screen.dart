@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
 class SmartDataSaverScreen extends StatefulWidget {
   const SmartDataSaverScreen({super.key});
@@ -44,7 +44,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                       ),
                       Switch(
                         value: _offlineAudioMode,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _offlineAudioMode = val;
@@ -70,7 +70,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                       ),
                       Switch(
                         value: _compressData,
-                        activeColor: const Color(0xFF38BDF8),
+                        activeThumbColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _compressData = val;

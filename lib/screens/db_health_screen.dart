@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
-import '../repositories/vocabulary_repository.dart';
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
 
 class DbHealthScreen extends StatefulWidget {
   const DbHealthScreen({super.key});
@@ -76,7 +76,7 @@ class _DbHealthScreenState extends State<DbHealthScreen> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 6),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.between,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('اللغة: ${entry.key.toUpperCase()}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
                                     Text('${entry.value} مفردة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 13, fontWeight: FontWeight.bold)),

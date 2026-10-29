@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/contracts/universal_scenario_contract.dart';
-import '../../core/contracts/contract_evaluator.dart';
+import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import 'package:deutsch_bilarabi/core/contracts/contract_evaluator.dart';
 import 'wave_05_models.dart';
 
 class Wave05HubScreen extends StatefulWidget {

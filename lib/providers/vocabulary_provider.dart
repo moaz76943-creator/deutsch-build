@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/vocabulary_item.dart';
-import '../repositories/vocabulary_repository.dart';
+import 'package:deutsch_bilarabi/models/vocabulary_item.dart';
+import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
 
 final vocabularyRepositoryProvider = Provider((ref) => VocabularyRepository());
 
