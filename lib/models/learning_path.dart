@@ -1,4 +1,4 @@
-import 'package:deutsch_bilarabi/core/content_contract.dart';
+import '../core/content_contract.dart';
 
 class LearningPathItem {
   final LearningContent item;
