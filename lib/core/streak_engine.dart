@@ -49,7 +49,6 @@ class StreakEngine {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_kCurrentStreak) ?? 0;
   }
-
   static Future<int> getFreezesAvailable() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_kFreezesAvailable) ?? 2;

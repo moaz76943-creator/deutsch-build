@@ -96,8 +96,7 @@ class AssessmentHistory {
       return AssessmentHistory(
         id: rawId.substring(0, rawId.length.clamp(0, 160).toInt()),
         at: safeAt,
-        score: (double.tryParse(j['score']?.toString() ?? '') ?? 0.0)
-            .clamp(0.0, 100.0),
+        score: (double.tryParse(j['score']?.toString() ?? '') ?? 0.0).clamp(0.0, 100.0),
         weakSkills: (j['weakSkills'] is List
             ? (j['weakSkills'] as List)
                 .whereType<String>()
@@ -106,8 +105,7 @@ class AssessmentHistory {
                 .take(8)
                 .toList()
             : const <String>[]),
-        answered:
-            (int.tryParse(j['answered']?.toString() ?? '') ?? 0).clamp(0, 100),
+        answered: (int.tryParse(j['answered']?.toString() ?? '') ?? 0).clamp(0, 100),
       );
     } catch (_) {
       return AssessmentHistory(
@@ -218,18 +216,15 @@ class ReviewCard {
       var due = DateTime.tryParse((j['dueAt'] ?? '').toString()) ?? now;
       var last = DateTime.tryParse((j['lastReviewedAt'] ?? '').toString());
       if (due.isBefore(DateTime(2000))) due = now;
-      if (due.isAfter(now.add(const Duration(days: 3650)))) {
+      if (due.isAfter(now.add(const Duration(days: 3650))))
         due = now.add(const Duration(days: 3650));
-      }
-      if (last != null && last.isAfter(now.add(const Duration(days: 1)))) {
+      if (last != null && last.isAfter(now.add(const Duration(days: 1))))
         last = now;
-      }
       if (last != null && last.isBefore(DateTime(2000))) last = now;
       return ReviewCard(
         itemId: id,
         facetType: ReviewFacetType.fromWire(j['facetType']?.toString()),
-        variantKey:
-            ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
+        variantKey: ReviewFacetKey.normalizeVariant(j['variantKey']?.toString()),
         repetitions: _boundInt(_int(j['repetitions']), 0, 1000),
         intervalDays: _boundInt(_int(j['intervalDays']), 0, 3650),
         lapses: _boundInt(_int(j['lapses']), 0, 1000),
@@ -255,7 +250,6 @@ class ReviewCard {
         v is num ? v.toDouble() : double.tryParse(v?.toString() ?? '');
     return parsed == null || !parsed.isFinite ? fallback : parsed;
   }
-
   static int _boundInt(int v, int min, int max) =>
       v < min ? min : (v > max ? max : v);
   static double _boundDouble(double v, double min, double max) =>
