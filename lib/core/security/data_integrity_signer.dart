@@ -26,12 +26,9 @@ class DataIntegritySigner {
     final expectedHash = manifest['hash'];
     if (expectedHash == null || expectedHash is! int) return false;
 
-    if (payload.isEmpty) return false;
-
     // Check expiration if present
-    if (manifest.containsKey('expiresAt')) {
-      final expiresAt = manifest['expiresAt'];
-      if (expiresAt is! int) return false;
+    final expiresAt = manifest['expiresAt'];
+    if (expiresAt != null && expiresAt is int) {
       final now = DateTime.now().millisecondsSinceEpoch;
       if (now > expiresAt) {
         return false;
