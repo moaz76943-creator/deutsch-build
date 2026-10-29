@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
-import 'package:deutsch_bilarabi/core/resilience/failure_reasons.dart';
 
 void main() {
   testWidgets('FeatureBoundary يمنع تعطل الواجهة عند حدوث أي خطأ داخلي', (tester) async {

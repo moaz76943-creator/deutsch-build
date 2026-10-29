@@ -13,12 +13,11 @@ class SrsCompatBridge {
     required int rating,
     required String sourceIso,
     required String targetIso,
-    String? eventId,
   }) async {
-    final effectiveEventId = eventId ?? 'REV_${contentKey}_${DateTime.now().millisecondsSinceEpoch}';
+    final eventId = 'REV_${contentKey}_${DateTime.now().millisecondsSinceEpoch}';
 
     final envelope = ReviewTransactionEnvelope(
-      reviewEventId: effectiveEventId,
+      reviewEventId: eventId,
       learnerContentKey: contentKey,
       rating: rating,
       timestamp: DateTime.now().toUtc(),
