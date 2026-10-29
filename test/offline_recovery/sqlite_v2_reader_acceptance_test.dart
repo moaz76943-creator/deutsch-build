@@ -1,5 +1,6 @@
 import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Synthetic SQLite v2 contract fixture. This deliberately uses a real SQLite

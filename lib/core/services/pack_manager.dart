@@ -63,6 +63,9 @@ class PackManager {
     final section = sectionId.trim();
     final level = cefr.trim().toUpperCase();
     if (section.isEmpty || level.isEmpty) return <Map<String, dynamic>>[];
+
+    // Bind JSON paths as SQL values instead of embedding a Dart-interpolated
+    // '$' path in the SQL string. Preserve language/section parameter isolation.
     final rows = await db.rawQuery('''
       SELECT DISTINCT s.concept_id, l.id AS lexeme_id, l.surface AS word,
         l.part_of_speech, l.fields_json, l.sort_key
@@ -70,13 +73,15 @@ class PackManager {
       JOIN lexicon AS l ON l.id = s.lexeme_id
       WHERE l.language_code = ? AND l.cefr_level = ?
         AND (
-          EXISTS (SELECT 1 FROM json_each(s.payload_json, '\$.semantic_tags')
+          EXISTS (SELECT 1 FROM json_each(s.payload_json, ?)
                   WHERE value = ?)
-          OR EXISTS (SELECT 1 FROM json_each(s.payload_json, '\$.domains')
+          OR EXISTS (SELECT 1 FROM json_each(s.payload_json, ?)
                      WHERE value = ?)
         )
       ORDER BY l.sort_key, l.id, s.concept_id LIMIT ?
-    ''', <Object?>[code, level, section, section, limit]);
+    ''', <Object?>[
+      code, level, r'$.semantic_tags', section, r'$.domains', section, limit,
+    ]);
 
     return rows.map((row) {
       final fields = jsonDecode(row['fields_json']?.toString() ?? '{}');
