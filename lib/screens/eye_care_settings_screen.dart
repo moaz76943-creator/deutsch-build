@@ -34,14 +34,14 @@ class _EyeCareSettingsScreenState extends State<EyeCareSettingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      Expanded(child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('فلتر الضوء الأزرق المريح', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
                           Text('تخفيف إجهاد العين أثناء جلسات الليل', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _blueLightFilter,
                         activeThumbColor: const Color(0xFF38BDF8),

@@ -34,14 +34,14 @@ class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      Expanded(child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('تذكير يومي لحماية الـ Streak', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
                           Text('تنبيه لطيف في وقت فراغك للتعلم', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _remindersEnabled,
                         activeThumbColor: const Color(0xFF38BDF8),

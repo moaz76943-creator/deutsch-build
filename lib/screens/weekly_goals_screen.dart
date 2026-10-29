@@ -73,7 +73,7 @@ class WeeklyGoalsScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(day, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Expanded(child: Text(day, style: const TextStyle(color: Colors.white, fontSize: 14))),
           Row(
             children: <Widget>[
               Text(stringDuration, style: const TextStyle(color: Colors.white70, fontSize: 13)),

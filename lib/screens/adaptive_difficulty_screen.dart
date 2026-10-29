@@ -34,14 +34,14 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      Expanded(child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('تفعيل التكيّف التلقائي', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
                           Text('تعديل فترات البطاقات بناءً على أخطائك', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _adaptiveActive,
                         activeThumbColor: const Color(0xFF38BDF8),

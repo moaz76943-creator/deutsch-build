@@ -43,7 +43,7 @@ class ErrorDiagnosticsScreen extends StatelessWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
-                                  Text(log['type']!, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold)),
+                                  Expanded(child: Text(log['type']!, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold))),
                                   Text(log['time']!, style: const TextStyle(color: Colors.white54, fontSize: 11)),
                                 ],
                               ),
