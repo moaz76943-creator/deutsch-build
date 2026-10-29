@@ -1,6 +1,8 @@
 class CancellationToken {
   bool _isCancelled = false;
   final List<void Function()> _listeners = [];
+  final Stopwatch _stopwatch = Stopwatch()..start();
+  final Duration _yieldThreshold = const Duration(milliseconds: 16);
 
   bool get isCancelled => _isCancelled;
 
@@ -24,6 +26,15 @@ class CancellationToken {
   void throwIfCancelled() {
     if (_isCancelled) {
       throw StateError('Operation was cancelled by user or timeout');
+    }
+  }
+
+  Future<void> yieldAndCheck() async {
+    throwIfCancelled();
+    if (_stopwatch.elapsed > _yieldThreshold) {
+      await Future.delayed(Duration.zero);
+      throwIfCancelled();
+      _stopwatch.reset();
     }
   }
 }
