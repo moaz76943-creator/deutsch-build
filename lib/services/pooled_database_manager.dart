@@ -34,7 +34,6 @@ class PooledDatabaseManager {
   final LinkedHashMap<String, Database> _connections =
       LinkedHashMap<String, Database>();
   final Map<String, int> _leases = <String, int>{};
-  final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
   Future<void> _mutexTail = Future<void>.value();
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
@@ -61,70 +60,41 @@ class PooledDatabaseManager {
     return code;
   }
 
-  void _notifyWaiters() {
-    for (final completer in _waitQueue) {
-      if (!completer.isCompleted) {
-        completer.complete();
-      }
-    }
-    _waitQueue.clear();
-  }
-
   Future<Database> open(String languageCode) =>
-      _acquireDatabase(_normalizeCode(languageCode), incrementLease: false);
+      _locked(() => _openLocked(_normalizeCode(languageCode)));
 
-  Future<Database> _acquireDatabase(String code, {required bool incrementLease}) async {
-    while (true) {
-      Completer<void>? waitCompleter;
-
-      final db = await _locked<Database?>(() async {
-        final existing = _connections.remove(code);
-        if (existing != null && existing.isOpen) {
-          _connections[code] = existing;
-          if (incrementLease) {
-            _leases[code] = (_leases[code] ?? 0) + 1;
-          }
-          return existing;
-        }
-
-        while (_connections.length >= maxConnections) {
-          final evict = _connections.keys.firstWhere(
-            (key) => (_leases[key] ?? 0) == 0,
-            orElse: () => '',
-          );
-          if (evict.isEmpty) {
-            waitCompleter = Completer<void>();
-            _waitQueue.add(waitCompleter!);
-            return null;
-          }
-          await _closeLocked(evict);
-        }
-
-        Database? opened;
-        try {
-          opened = await _openConnection(code);
-        } catch (e) {
-          _notifyWaiters();
-          rethrow;
-        }
-
-        if (!opened.isOpen) {
-          throw StateError('Connection for $code is already closed');
-        }
-        _connections[code] = opened;
-        if (incrementLease) {
-          _leases[code] = (_leases[code] ?? 0) + 1;
-        }
-        return opened;
-      });
-
-      if (waitCompleter != null) {
-        await waitCompleter!.future;
-        continue;
-      }
-
-      return db!;
+  Future<Database> _openLocked(String code) async {
+    final existing = _connections.remove(code);
+    if (existing != null && existing.isOpen) {
+      _connections[code] = existing;
+      return existing;
     }
+
+    // Close excess idle connections before opening a new one
+    while (_connections.length >= maxConnections) {
+      final evict = _connections.keys.firstWhere(
+        (key) => (_leases[key] ?? 0) == 0,
+        orElse: () => '',
+      );
+      if (evict.isEmpty) {
+        throw StateError('All pooled content databases are in use');
+      }
+      await _closeLocked(evict);
+    }
+
+    Database? opened;
+    try {
+      opened = await _openConnection(code);
+    } catch (e) {
+      // If opening fails, do not add to connections, let the error propagate
+      rethrow;
+    }
+
+    if (!opened.isOpen) {
+      throw StateError('Connection for $code is already closed');
+    }
+    _connections[code] = opened;
+    return opened;
   }
 
   /// Pins a handle for a bounded operation. Never evicts a leased handle.
@@ -133,7 +103,11 @@ class PooledDatabaseManager {
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    final db = await _acquireDatabase(code, incrementLease: true);
+    final db = await _locked(() async {
+      final opened = await _openLocked(code);
+      _leases[code] = (_leases[code] ?? 0) + 1;
+      return opened;
+    });
 
     try {
       return await action(db);
@@ -142,7 +116,6 @@ class PooledDatabaseManager {
         final count = (_leases[code] ?? 1) - 1;
         if (count == 0) {
           _leases.remove(code);
-          _notifyWaiters();
         } else {
           _leases[code] = count;
         }
@@ -151,10 +124,7 @@ class PooledDatabaseManager {
   }
 
   Future<void> close(String languageCode) =>
-      _locked(() async {
-        await _closeLocked(_normalizeCode(languageCode));
-        _notifyWaiters();
-      });
+      _locked(() => _closeLocked(_normalizeCode(languageCode)));
 
   Future<void> _closeLocked(String code) async {
     if ((_leases[code] ?? 0) != 0) {
@@ -170,7 +140,6 @@ class PooledDatabaseManager {
           // Ignore errors in beforeClose during eviction to guarantee close
         }
       }
-      // Guarantee close
       await db.close();
     }
   }
@@ -186,9 +155,6 @@ class PooledDatabaseManager {
           await _closeLocked(code);
           closedCount++;
         }
-        if (closedCount > 0) {
-          _notifyWaiters();
-        }
         return closedCount;
       });
 
@@ -199,6 +165,5 @@ class PooledDatabaseManager {
         for (final code in _connections.keys.toList(growable: false)) {
           await _closeLocked(code);
         }
-        _notifyWaiters();
       });
 }
