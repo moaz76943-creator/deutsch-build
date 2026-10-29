@@ -99,12 +99,10 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
-                                  Expanded(
-                              child: Text(
-                                item['word']!,
-                                style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 20),
-                              ),
-                            ),
+                                  Text(
+                                    item['word']!,
+                                    style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 20),
+                                  ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(

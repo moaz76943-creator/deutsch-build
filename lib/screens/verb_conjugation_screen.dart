@@ -114,12 +114,10 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Expanded(
-                                      child: Text(
-                                        pronoun,
-                                        style: AppTypography.title.copyWith(color: Colors.white70, fontSize: 16),
-                                      ),
-                                    ),
+                            Text(
+                              pronoun,
+                              style: AppTypography.title.copyWith(color: Colors.white70, fontSize: 16),
+                            ),
                             Text(
                               conjugated,
                               style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 18),

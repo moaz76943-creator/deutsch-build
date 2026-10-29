@@ -84,7 +84,7 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Expanded(child: Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13))),
+                                    Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(

@@ -17,6 +17,7 @@ class LeitnerCardState {
     this.consecutiveSuccesses = 0,
   });
 
-  bool get isDueForReview =>
-      DateTime.now().millisecondsSinceEpoch >= nextReviewEpoch;
+  bool get isDueForReview => isDueAt(DateTime.now().millisecondsSinceEpoch);
+
+  bool isDueAt(int nowEpoch) => nowEpoch >= nextReviewEpoch;
 }

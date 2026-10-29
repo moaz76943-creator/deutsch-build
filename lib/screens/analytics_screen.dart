@@ -29,7 +29,7 @@ class AnalyticsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Expanded(child: Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32))),
+                        Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
                         const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
                       ],
                     ),
