@@ -1,0 +1,21 @@
+{
+  "isoCode": "pa",
+  "autonym": "ਪੰਜਾਬੀ",
+  "englishName": "Punjabi",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Gurmukhi",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 5,
+  "caseNames": ["Direct", "Oblique", "Vocative", "Ablative", "Locative"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "hasThreeTones": true,
+    "hasPostpositions": true
+  }
+}

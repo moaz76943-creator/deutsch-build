@@ -1,0 +1,21 @@
+{
+  "isoCode": "sd",
+  "autonym": "سنڌي",
+  "englishName": "Sindhi",
+  "scriptDirection": "rtl",
+  "scriptFamily": "Perso-Arabic (Extended)",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Direct", "Oblique", "Vocative", "Locative"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasImplosiveConsonants": true,
+    "fiftyTwoLettersAlphabet": true,
+    "isRtl": true
+  }
+}
