@@ -1,138 +1,187 @@
 enum GrammaticalGender {
-  masculine, feminine, neuter, common, none,
+  masculine,
+  feminine,
+  neuter,
+  common,
+  none,
 }
 
 enum GrammaticalCategory {
-  noun, verb, adjective, adverb, preposition, particle, unknown,
+  noun,
+  verb,
+  adjective,
+  adverb,
+  preposition,
+  particle,
+  unknown,
+<<<<<<< HEAD
 }
 
-enum GrammaticalNumber { singular, dual, plural, none }
+enum GrammaticalNumber {
+  singular,
+  dual,
+  plural,
+  none,
+  unknown,
+}
+
+enum GrammaticalPerson {
+  first,
+  second,
+  third,
+  none,
+  unknown,
+}
+
 enum GrammaticalCase {
-  nominative, accusative, dative, genitive, instrumental,
-  prepositional, vocative, none,
+  nominative,
+  accusative,
+  dative,
+  genitive,
+  instrumental,
+  prepositional,
+  vocative,
+  locative,
+  ablative,
+  none,
+  unknown,
 }
-enum GrammaticalTense { past, present, future, none }
-enum GrammaticalAspect { perfective, imperfective, continuous, none }
-enum GrammaticalMood { indicative, subjunctive, imperative, conditional, none }
-enum GrammaticalPerson { first, second, third, none }
-enum MorphologyType { rootPattern, agglutinative, inflectional, analytic, unknown }
 
-/// Omitted capabilities are UNKNOWN; they must never mean "not in this language".
-enum GrammarFeature { gender, grammaticalCase, number, nounClass, agreement }
-enum GrammarFeatureStatus { supported, unsupported, unknown }
+enum Tense {
+  past,
+  present,
+  future,
+  none,
+  unknown,
+}
 
-class NounClass {
-  final String identifier;
-  final String localizedLabel;
-  const NounClass(this.identifier, this.localizedLabel);
+enum Aspect {
+  perfective,
+  imperfective,
+  continuous,
+  none,
+  unknown,
+}
 
-  @override
-  bool operator ==(Object other) =>
-      other is NounClass && other.identifier == identifier;
-  @override
-  int get hashCode => identifier.hashCode;
+enum Mood {
+  indicative,
+  subjunctive,
+  imperative,
+  conditional,
+  optative,
+  none,
+  unknown,
 }
 
 class GrammarCapabilityProfile {
-  final Set<GrammaticalGender> supportedGenders;
-  final Set<GrammaticalCase> supportedCases;
-  final Set<GrammaticalNumber> supportedNumbers;
-  final Set<NounClass> supportedNounClasses;
-  final Set<GrammarFeature> explicitlyUnsupported;
-  final MorphologyType morphologyType;
-  // Null means unknown, not false.
-  final bool? supportsAgreement;
+  final bool hasGender;
+  final bool hasCases;
+  final bool hasNumber;
+  final bool hasPerson;
+  final bool hasTense;
+  final bool hasAspect;
+  final bool hasMood;
+  final bool hasRootPatternMorphology;
+  final bool isAgglutinative;
+  final bool isAnalytic;
+  final bool hasNounClasses;
 
   const GrammarCapabilityProfile({
-    this.supportedGenders = const {},
-    this.supportedCases = const {},
-    this.supportedNumbers = const {},
-    this.supportedNounClasses = const {},
-    this.explicitlyUnsupported = const {},
-    this.morphologyType = MorphologyType.unknown,
-    this.supportsAgreement,
+    this.hasGender = false,
+    this.hasCases = false,
+    this.hasNumber = false,
+    this.hasPerson = false,
+    this.hasTense = false,
+    this.hasAspect = false,
+    this.hasMood = false,
+    this.hasRootPatternMorphology = false,
+    this.isAgglutinative = false,
+    this.isAnalytic = false,
+    this.hasNounClasses = false,
   });
-
-  factory GrammarCapabilityProfile.empty() => const GrammarCapabilityProfile();
-
-  GrammarFeatureStatus statusFor(GrammarFeature feature) {
-    bool positive;
-    switch (feature) {
-      case GrammarFeature.gender:
-        positive = supportedGenders.isNotEmpty;
-        break;
-      case GrammarFeature.grammaticalCase:
-        positive = supportedCases.isNotEmpty;
-        break;
-      case GrammarFeature.number:
-        positive = supportedNumbers.isNotEmpty;
-        break;
-      case GrammarFeature.nounClass:
-        positive = supportedNounClasses.isNotEmpty;
-        break;
-      case GrammarFeature.agreement:
-        if (supportsAgreement == true) return GrammarFeatureStatus.supported;
-        if (supportsAgreement == false) return GrammarFeatureStatus.unsupported;
-        positive = false;
-        break;
-    }
-    if (positive) return GrammarFeatureStatus.supported;
-    if (explicitlyUnsupported.contains(feature)) {
-      return GrammarFeatureStatus.unsupported;
-    }
-    return GrammarFeatureStatus.unknown;
-  }
-}
-
-/// Evidence record pointer; the runtime does NOT validate its provenance.
-class VerifiedGrammarEvidence {
-  final bool isSupported;
-  final String? sourceEvidenceId;
-  final String? packRevision;
-  final String? root;
-  final String? pattern;
-  final List<String> agglutinativeChains;
-  final GrammaticalTense tense;
-  final GrammaticalAspect aspect;
-  final GrammaticalMood mood;
-  final GrammaticalPerson person;
-
-  const VerifiedGrammarEvidence({
-    required this.isSupported,
-    this.sourceEvidenceId,
-    this.packRevision,
-    this.root,
-    this.pattern,
-    this.agglutinativeChains = const [],
-    this.tense = GrammaticalTense.none,
-    this.aspect = GrammaticalAspect.none,
-    this.mood = GrammaticalMood.none,
-    this.person = GrammaticalPerson.none,
-  });
-
-  /// Structural only; actual corpus/source validation belongs to pack admission.
-  bool get hasEvidenceReference =>
-      isSupported &&
-      sourceEvidenceId != null &&
-      sourceEvidenceId!.isNotEmpty &&
-      packRevision != null &&
-      packRevision!.isNotEmpty;
-
-  factory VerifiedGrammarEvidence.unsupported() =>
-      const VerifiedGrammarEvidence(isSupported: false);
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
 
 abstract class LanguageGrammarRuleProvider {
   String get languageCode;
 
-  GrammarCapabilityProfile get profile => GrammarCapabilityProfile.empty();
+<<<<<<< HEAD
+  /// Returns the grammar capability profile for the specific language
+  GrammarCapabilityProfile get capabilityProfile =>
+      const GrammarCapabilityProfile();
 
-  VerifiedGrammarEvidence getVerifiedEvidence(String word) =>
-      VerifiedGrammarEvidence.unsupported();
-
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  /// استنتاج الجنس النحوي للكلمة
   GrammaticalGender determineGender(String word, {String? article});
 
+  /// استنتاج الفئة النحوية
   GrammaticalCategory determineCategory(String word, {String? article});
 
+  /// التحقق مما إذا كانت الأداة مطابقة للكلمة
   bool isValidArticle(String word, String article);
+
+  // New capabilities returning nullable values if the language doesn't support them
+  // or unknown if supported but not determined.
+
+  /// Determine the grammatical number
+  GrammaticalNumber? determineNumber(String word) {
+    if (!capabilityProfile.hasNumber) return null;
+    return GrammaticalNumber.unknown;
+  }
+
+  /// Determine the grammatical person
+  GrammaticalPerson? determinePerson(String word) {
+    if (!capabilityProfile.hasPerson) return null;
+    return GrammaticalPerson.unknown;
+  }
+
+  /// Determine the grammatical case
+  GrammaticalCase? determineCase(String word, {String? context}) {
+    if (!capabilityProfile.hasCases) return null;
+    return GrammaticalCase.unknown;
+  }
+
+  /// Determine the tense
+  Tense? determineTense(String word) {
+    if (!capabilityProfile.hasTense) return null;
+    return Tense.unknown;
+  }
+
+  /// Determine the aspect
+  Aspect? determineAspect(String word) {
+    if (!capabilityProfile.hasAspect) return null;
+    return Aspect.unknown;
+  }
+
+  /// Determine the mood
+  Mood? determineMood(String word) {
+    if (!capabilityProfile.hasMood) return null;
+    return Mood.unknown;
+  }
+
+  /// Extract root for Semitic languages
+  String? extractRoot(String word) {
+    if (!capabilityProfile.hasRootPatternMorphology) return null;
+    return null;
+  }
+
+  /// Extract pattern for Semitic languages
+  String? extractPattern(String word) {
+    if (!capabilityProfile.hasRootPatternMorphology) return null;
+    return null;
+  }
+
+  /// Extract affixes for agglutinative languages
+  List<String>? extractAffixes(String word) {
+    if (!capabilityProfile.isAgglutinative) return null;
+    return [];
+  }
+
+  /// Determine noun class
+  String? determineNounClass(String word) {
+    if (!capabilityProfile.hasNounClasses) return null;
+    return null;
+  }
 }

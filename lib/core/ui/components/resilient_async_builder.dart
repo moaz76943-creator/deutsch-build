@@ -83,7 +83,7 @@ class _ResilientAsyncBuilderState<T> extends State<ResilientAsyncBuilder<T>> {
           _state = UIState<T>.empty(widget.emptyMessage);
         } else {
           _state = UIState<T>.failed(
-            ContentFailure('ui_async_failure', 'Offline request failed'),
+            const ContentFailure('ui_async_failure', 'Offline request failed'),
             'Unable to load content.',
           );
         }
@@ -206,7 +206,8 @@ class _ResilientOperationBuilderState<T>
       if (!mounted || token.isCancelled) return;
       setState(() {
         _state = UIState<T>.failed(
-          ContentFailure('ui_operation_failure', 'Offline operation failed'),
+          const ContentFailure(
+              'ui_operation_failure', 'Offline operation failed'),
           'Unable to load content.',
         );
       });

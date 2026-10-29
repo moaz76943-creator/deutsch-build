@@ -34,7 +34,8 @@ class _SleepLearningScreenState extends State<SleepLearningScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     children: <Widget>[
@@ -42,12 +43,15 @@ class _SleepLearningScreenState extends State<SleepLearningScreen> {
                       const SizedBox(height: 12),
                       Text(
                         'جلسة ترسيخ الذاكرة اللاواعية',
-                        style: AppTypography.display.copyWith(color: Colors.white, fontSize: 18),
+                        style: AppTypography.display
+                            .copyWith(color: Colors.white, fontSize: 18),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         'استمع للكلمات والجمل بنبرة هادئة ومريحة أثناء النوم أو الاسترخاء لترسيخها في الذاكرة طويلة المدى.',
-                        style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+                        style: AppTypography.body.copyWith(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 13),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -59,9 +63,13 @@ class _SleepLearningScreenState extends State<SleepLearningScreen> {
                   child: Column(
                     children: <Widget>[
                       Text(
-                        _isPlaying ? 'جارٍ التشغيل... (صوت هادئ)' : 'متوقف مؤقتاً',
+                        _isPlaying
+                            ? 'جارٍ التشغيل... (صوت هادئ)'
+                            : 'متوقف مؤقتاً',
                         style: TextStyle(
-                          color: _isPlaying ? const Color(0xFF34D399) : Colors.white70,
+                          color: _isPlaying
+                              ? const Color(0xFF34D399)
+                              : Colors.white70,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -70,7 +78,9 @@ class _SleepLearningScreenState extends State<SleepLearningScreen> {
                       IconButton(
                         iconSize: 64,
                         color: const Color(0xFF38BDF8),
-                        icon: Icon(_isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_filled_rounded),
+                        icon: Icon(_isPlaying
+                            ? Icons.pause_circle_filled_rounded
+                            : Icons.play_circle_filled_rounded),
                         onPressed: () {
                           setState(() {
                             _isPlaying = !_isPlaying;

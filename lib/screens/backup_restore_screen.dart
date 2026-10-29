@@ -27,20 +27,18 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final backupFile = File('${directory.path}/deutsch_backup_$timestamp.json');
+      final backupFile =
+          File('${directory.path}/deutsch_backup_$timestamp.json');
       await backupFile.writeAsString(jsonEncode(data));
 
-      if (!mounted) return;
       setState(() {
-        _statusMessage = 'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
+        _statusMessage =
+            'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
       });
     } catch (e) {
-      if (!mounted) return;
       setState(() => _statusMessage = 'فشل تصدير النسخة: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -55,12 +53,12 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           .toList();
 
       if (files.isEmpty) {
-        if (!mounted) return;
         setState(() => _statusMessage = 'لا توجد نسخ احتياطية سابقة محلياً.');
         return;
       }
 
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files
+          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
       final latest = files.first;
       final raw = await latest.readAsString();
       final Map<String, dynamic> data = jsonDecode(raw);
@@ -81,17 +79,13 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         }
       }
 
-      if (!mounted) return;
       setState(() {
         _statusMessage = 'تمت استعادة البيانات بنجاح من:\n${latest.path}';
       });
     } catch (e) {
-      if (!mounted) return;
       setState(() => _statusMessage = 'فشل استعادة البيانات: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
