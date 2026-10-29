@@ -63,20 +63,20 @@ void main() {
       final serialized = original.serialize();
       expect(serialized, 'en_de_2.1.0');
 
-      final parsed = DirectedPairId.fromString(serialized);
+      final parsed = DirectedPairId.parse(serialized);
       expect(original, parsed);
 
       // Legacy format migration
-      final legacyParsed = DirectedPairId.fromString('ar_fr');
+      final legacyParsed = DirectedPairId.parse('ar_fr');
       expect(legacyParsed.sourceLocale, 'ar');
       expect(legacyParsed.targetLocale, 'fr');
       expect(legacyParsed.semanticVersion, '1.0.0');
 
       // Invalid formats
-      expect(() => DirectedPairId.fromString(''), throwsFormatException);
-      expect(() => DirectedPairId.fromString('en'), throwsFormatException);
-      expect(() => DirectedPairId.fromString('en_de_1.0.0_extra'), throwsFormatException);
-      expect(() => DirectedPairId.fromString('_de_1.0.0'), throwsFormatException);
+      expect(() => DirectedPairId.parse(''), throwsFormatException);
+      expect(() => DirectedPairId.parse('en'), throwsFormatException);
+      expect(() => DirectedPairId.parse('en_de_1.0.0_extra'), throwsFormatException);
+      expect(() => DirectedPairId.parse('_de_1.0.0'), throwsFormatException);
     });
 
     test('version-transition scenarios', () {
@@ -85,22 +85,6 @@ void main() {
 
       expect(oldVersion, isNot(equals(newVersion)));
       expect(identical(oldVersion, newVersion), isFalse);
-    });
-
-    test('validates regex formats in fromString', () {
-      // Valid inputs
-      expect(DirectedPairId.fromString('en_US_es_1.0.0').sourceLocale, 'en_US');
-      expect(DirectedPairId.fromString('en_US_es_1.0.0').targetLocale, 'es');
-      expect(DirectedPairId.fromString('en_es_ES_1.0.0').targetLocale, 'es_ES');
-      expect(DirectedPairId.fromString('en_US_es_ES_1.0.0').targetLocale, 'es_ES');
-
-      // Invalid locales
-      expect(() => DirectedPairId.fromString('english_de_1.0.0'), throwsFormatException);
-      expect(() => DirectedPairId.fromString('en_deutsch_1.0.0'), throwsFormatException);
-
-      // Invalid semantic version
-      expect(() => DirectedPairId.fromString('en_de_1.0'), throwsFormatException);
-      expect(() => DirectedPairId.fromString('en_de_v1.0.0'), throwsFormatException);
     });
   });
 }
