@@ -17,7 +17,7 @@ void main() {
       queue.enqueue(id: 't2_high', currentEpoch: 1, priority: TaskPriority.high, action: () async { executed.add('high'); return 'high'; });
       queue.enqueue(id: 't3_normal', currentEpoch: 1, priority: TaskPriority.normal, action: () async { executed.add('normal'); return 'normal'; });
 
-      queue.resume();
+      queue.resume(1);
 
       // Wait for queue to process
       await Future.delayed(const Duration(milliseconds: 100));
@@ -79,7 +79,7 @@ void main() {
 
       expect(queue.length, 1);
 
-      queue.resume();
+      queue.resume(1);
       await f1;
       await f2;
 
@@ -101,7 +101,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
       expect(executed, isFalse);
 
-      queue.resume();
+      queue.resume(1);
       await future;
 
       expect(executed, isTrue);
@@ -131,7 +131,7 @@ void main() {
         action: () async { newTaskExecuted = true; return 'new'; }
       );
 
-      queue.resume();
+      queue.resume(2);
 
       await Future.wait([f1 as Future<dynamic>, f2 as Future<dynamic>]);
 
@@ -208,7 +208,7 @@ void main() {
       expect(queue.length, 0);
       expect(token.isCancelled, isTrue);
 
-      queue.resume();
+      queue.resume(1);
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(executed, isFalse);
