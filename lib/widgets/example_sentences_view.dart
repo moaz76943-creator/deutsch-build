@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 
 import '../services/language_pack_manager.dart';
 import '../services/tts_service.dart';
-import '../services/hybrid_audio_service.dart';
 
 /// A valid, translated usage example for a vocabulary entry.
 class ExampleSentence {
@@ -83,18 +82,12 @@ class _ExampleSentencesViewState extends State<ExampleSentencesView> {
   Future<void> _speak(String sentence) async {
     final tts = widget.ttsService ?? (_ownedTts ??= TtsService());
     try {
-      final audio = HybridAudioService(
-        ttsService: tts,
-        // Injected TTS instances can be test doubles; the TtsService.speak
-        // implementation independently checks installed voices in production.
-        voiceProbe: widget.ttsService != null ? (_) async => true : null,
-      );
-      await audio.play(
-        text: sentence,
+      await tts.speak(
+        sentence,
         languageCode: widget.sourceLanguageCode,
-        context: mounted ? context : null,
       );
     } catch (error) {
+      // Speech errors must not break the vocabulary screen.
       debugPrint('Example sentence TTS failed: $error');
     }
   }
