@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'polyglot_models.dart';
 import 'package:deutsch_bilarabi/services/polyglot_intelligence_engine.dart';
-// Note: LanguagePackManager is in a conflicted state in the main branch.
-// We are forbidden to touch it (outside allowed paths). Thus we cannot use it directly.
-// We mock the required functionality that we were supposed to get from it.
+import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
 
 class UniversalPolyglotHubScreen extends StatefulWidget {
   const UniversalPolyglotHubScreen({super.key});
@@ -14,221 +13,198 @@ class UniversalPolyglotHubScreen extends StatefulWidget {
 
 class _UniversalPolyglotHubScreenState
     extends State<UniversalPolyglotHubScreen> {
-  String _interfaceLanguage = 'ar-SA';
-  String _sourceLanguage = 'ar-SA';
-  String _targetLanguage = 'de-DE';
+  final String _activeLocale = 'ar';
 
-  bool _isLoading = false;
-  bool _isPackAvailable = false;
-  int _verificationRequest = 0;
+  final List<CrossLinguisticCognate> _cognates = const [
+    CrossLinguisticCognate(
+      sourceWord: 'Gift (English: هدية)',
+      targetWord: 'Gift (German: سُم)',
+      sourceLang: 'EN',
+      targetLang: 'DE',
+      isFalseFriend: true,
+      nuanceNotes:
+          'تطابق لفظي واختلاف تام في المعنى؛ تحذير من الخلط أثناء الترجمة.',
+    ),
+    CrossLinguisticCognate(
+      sourceWord: 'Sukkar (عربي: سكر)',
+      targetWord: 'Zucker (German: سكر)',
+      sourceLang: 'AR',
+      targetLang: 'DE',
+      isFalseFriend: false,
+      nuanceNotes: 'جذر تاريخي مشترك يسهل الحفظ الفوري بين اللغتين.',
+    ),
+    CrossLinguisticCognate(
+      sourceWord: 'Haus (German: منزل)',
+      targetWord: 'House (English: منزل)',
+      sourceLang: 'DE',
+      targetLang: 'EN',
+      isFalseFriend: false,
+      nuanceNotes: 'تشابه جرماني مباشر من العائلة اللغوية ذاتها.',
+    ),
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    // Do it synchronously in init state for testing ease, or use future microtask
-    // so we don't leave pending timers.
-    _verifyCurrentPair();
-  }
-
-  String _getMockLanguageName(String code) {
-    const Map<String, String> names = {
-      'de-DE': 'الألمانية (Deutsch)',
-      'ar-SA': 'العربية',
-      'en-US': 'الإنجليزية (English)',
-      'fr-FR': 'الفرنسية (Français)',
-      'es-ES': 'الإسبانية (Español)',
-      'tr-TR': 'التركية (Türkçe)',
-      'ru-RU': 'الروسية (Русский)',
-      'zh-CN': 'الصينية (中文)',
-    };
-    return names[code] ?? code;
-  }
-
-  TextDirection _getMockTextDirection(String code) {
-    final lower = code.toLowerCase();
-    if (lower.startsWith('ar') || lower.startsWith('he') || lower.startsWith('fa') || lower.startsWith('ur')) {
-      return TextDirection.rtl;
-    }
-    return TextDirection.ltr;
-  }
-
-  void _verifyCurrentPair() {
-    _verificationRequest++;
-    final currentRequest = _verificationRequest;
-
-    setState(() {
-      _isLoading = true;
-      _isPackAvailable = false;
-    });
-
-    // Run the verification in a microtask instead of a delayed Timer so it completes in the same event loop tick for tests
-    Future.microtask(() {
-      try {
-        bool isAvailable = _targetLanguage == 'de-DE' || _targetLanguage == 'en-US' || _targetLanguage == 'ar-SA';
-
-        PolyglotIntelligenceEngine.checkDeltaSyncVersion(_targetLanguage, 1);
-
-        if (mounted && currentRequest == _verificationRequest) {
-          setState(() {
-            _isPackAvailable = isAvailable;
-            _isLoading = false;
-          });
-        }
-      } catch (e) {
-        if (mounted && currentRequest == _verificationRequest) {
-          setState(() {
-            _isPackAvailable = false;
-            _isLoading = false;
-          });
-        }
-      }
-    });
-  }
-
-  void _onLanguageSelected(String? newValue, String type) {
-    if (newValue != null) {
-      setState(() {
-        if (type == 'interface') {
-          _interfaceLanguage = newValue;
-        } else if (type == 'source') {
-          _sourceLanguage = newValue;
-        } else if (type == 'target') {
-          _targetLanguage = newValue;
-          _verifyCurrentPair();
-        }
-      });
-    }
-  }
+  final List<TypologicalStructure> _typologies = const [
+    TypologicalStructure(
+      language: 'الألمانية / الإنجليزية',
+      typology: WordOrderTypology.svo,
+      subject: 'Subject (الفاعل)',
+      verb: 'Verb (الفعل)',
+      object: 'Object (المفعول)',
+    ),
+    TypologicalStructure(
+      language: 'التركية / اليابانية',
+      typology: WordOrderTypology.sov,
+      subject: 'Subject (الفاعل)',
+      verb: 'Verb (الفعل)',
+      object: 'Object (المفعول)',
+    ),
+    TypologicalStructure(
+      language: 'العربية الكلاسيكية',
+      typology: WordOrderTypology.vso,
+      subject: 'الفاعل',
+      verb: 'الفعل',
+      object: 'المفعول به',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // Generate 100 language codes for testing
-    final List<String> allLanguages = List.generate(100, (index) => 'lang-${index + 1}');
-    // Add realistic ones to the front
-    allLanguages.insertAll(0, ['ar-SA', 'de-DE', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'zh-CN', 'ru-RU']);
+    final double sm2Factor =
+        PolyglotIntelligenceEngine.getMorphologicalMultiplier(_activeLocale);
+    final String languageName =
+        LanguagePackManager.getLanguageName(_activeLocale);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المحور اللغوي الشامل'),
+        title: const Text('المحور اللغوي الشامل (Wave 04)'),
         centerTitle: true,
       ),
-      body: Directionality(
-        textDirection: _getMockTextDirection(_interfaceLanguage),
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            _buildLanguageSelector('لغة الواجهة:', _interfaceLanguage, 'interface', allLanguages),
-            const SizedBox(height: 16),
-            _buildLanguageSelector('اللغة المصدر:', _sourceLanguage, 'source', allLanguages),
-            const SizedBox(height: 16),
-            _buildLanguageSelector('اللغة الهدف:', _targetLanguage, 'target', allLanguages),
-            const SizedBox(height: 32),
-            _buildStatusIndicator(),
-            const SizedBox(height: 32),
-            // Navigation actions
-            if (!_isLoading) _buildNavigationActions(),
-          ],
-        ),
-      ),
-    );
-  }
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // 1. رادار الكلمات المتشابهة والأصدقاء المزيفون
+          _buildSectionCard(
+            title: '1. رادار الكلمات المشتركة (INNOV-W04-01)',
+            subtitle:
+                'كشف الأصدقاء المزيفين والتشابه الدلالي لربط الذاكرة باللغات الأخرى',
+            child: Column(
+              children: _cognates.map((item) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    item.isFalseFriend
+                        ? Icons.warning_amber_rounded
+                        : Icons.check_circle_outline,
+                    color: item.isFalseFriend ? Colors.orange : Colors.green,
+                  ),
+                  title: Text('${item.sourceWord} ⇄ ${item.targetWord}'),
+                  subtitle: Text(item.nuanceNotes),
+                );
+              }).toList(),
+            ),
+          ),
 
-  Widget _buildLanguageSelector(String label, String value, String type, List<String> languages) {
-    // Ensure the current value is in the list
-    if (!languages.contains(value)) {
-      languages.add(value);
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: DropdownButton<String>(
-              value: value,
-              menuMaxHeight: 300,
-              isExpanded: true,
-              items: languages.map((String langCode) {
-                return DropdownMenuItem<String>(
-                  value: langCode,
-                  child: Text(
-                    _getMockLanguageName(langCode),
-                    textDirection: _getMockTextDirection(langCode),
-                    overflow: TextOverflow.ellipsis,
+          // 2. ترتيب الجمل والأنماط التيبولوجية
+          _buildSectionCard(
+            title: '2. الترتيب التيبولوجي للجمل (INNOV-W04-02)',
+            subtitle:
+                'بنية الجمل الأساسية (SVO / SOV / VSO) لفهم تسلسل الكلمات التلقائي',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _typologies.map((t) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(t.language,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            t.renderSequence(),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }).toList(),
-              onChanged: (newValue) => _onLanguageSelected(newValue, type),
             ),
           ),
-        ),
-      ],
+
+          // 3. الميزان الصرفي ومعامل التكرار SM-2
+          _buildSectionCard(
+            title: '3. ميزان التكرار الذكي والكثافة الصرفية (INNOV-W04-03)',
+            subtitle: 'معايرة فترات مراجعة SM-2 تلقائياً بحسب التركيب اللغوي',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('اللغة النشطة: $languageName',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                          'معامل SM-2: ${sm2Factor.toStringAsFixed(2)}x',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.blue)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                    '• اللغات التحليلية (الإنجليزية/الفرنسية): سرعة مراجعة قياسية.'),
+                const SizedBox(height: 4),
+                const Text(
+                    '• اللغات الاشتقاقية والسامية (العربية/الألمانية): تباعد زمني موسع لتثبيت القواعد والجذور.'),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildStatusIndicator() {
-    if (_isLoading) {
-      return const Column(
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('جاري التحقق من الحزمة...'),
-        ],
-      );
-    }
-
-    if (_isPackAvailable) {
-      return const Column(
-        children: [
-          Icon(Icons.check_circle, color: Colors.green, size: 64),
-          SizedBox(height: 16),
-          Text('الحزمة متوفرة وجاهزة للاستخدام'),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.book, size: 16, color: Colors.blue),
-              SizedBox(width: 4),
-              Text('القاموس متاح', style: TextStyle(fontSize: 12)),
-              SizedBox(width: 16),
-              Icon(Icons.volume_up, size: 16, color: Colors.blue),
-              SizedBox(width: 4),
-              Text('الصوت متاح', style: TextStyle(fontSize: 12)),
-            ],
-          )
-        ],
-      );
-    }
-
-    return const Column(
-      children: [
-        Icon(Icons.cancel, color: Colors.red, size: 64),
-        SizedBox(height: 16),
-        Text('الحزمة غير متوفرة أو غير صالحة'),
-      ],
-    );
-  }
-
-  Widget _buildNavigationActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ElevatedButton(
-          onPressed: _isPackAvailable ? () {
-            // Navigate to Dictionary
-          } : null,
-          child: const Text('فتح القاموس'),
+  Widget _buildSectionCard({
+    required String title,
+    required String subtitle,
+    required Widget child,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(subtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const Divider(),
+            child,
+          ],
         ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: _isPackAvailable ? () {
-            // Navigate to Lessons
-          } : null,
-          child: const Text('بدء الدروس'),
-        ),
-      ],
+      ),
     );
   }
 }
