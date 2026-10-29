@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'dart:math' as math;
 
 enum SrsRating { hard, good, easy }
@@ -16,83 +17,56 @@ class SrsCardReviewResult {
   });
 }
 
-/// Pure bounded scheduling math. This does not persist progress or award XP.
 class ProductionSrsEngine {
-  static const int maxIntervalDays = 36500;
-  static const int maxRepetitions = 1000000;
-
+  /// معالجة مراجعة البطاقة وفق خوارزمية SM-2 المعدلة رياضياً
   static SrsCardReviewResult processReview({
     required int currentIntervalDays,
     required double currentEaseFactor,
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
-    DateTime? currentTime,
   }) {
-    if (currentIntervalDays < 0 || currentIntervalDays > maxIntervalDays) {
-      throw ArgumentError.value(currentIntervalDays, 'currentIntervalDays');
-    }
-    if (currentRepetitions < 0 || currentRepetitions > maxRepetitions) {
-      throw ArgumentError.value(currentRepetitions, 'currentRepetitions');
-    }
-    if (!currentEaseFactor.isFinite) {
-      throw ArgumentError.value(currentEaseFactor, 'currentEaseFactor');
-    }
-    if (!morphologicalMultiplier.isFinite ||
-        morphologicalMultiplier < 0.1 ||
-        morphologicalMultiplier > 10.0) {
-      throw ArgumentError.value(morphologicalMultiplier, 'morphologicalMultiplier');
-    }
-
-    final ease = currentEaseFactor.clamp(1.3, 2.5).toDouble();
-    int repetitions = currentRepetitions;
-    int interval;
-    double newEase = ease;
+    int newRepetitions = currentRepetitions;
+    int newInterval = currentIntervalDays;
+    double newEase = currentEaseFactor;
 
     switch (rating) {
       case SrsRating.hard:
-        repetitions = 0;
-        interval = 1;
-        newEase = math.max(1.3, ease - 0.2);
+        newRepetitions = 0;
+        newInterval = 1;
+        newEase = math.max(1.3, currentEaseFactor - 0.2);
         break;
       case SrsRating.good:
-        if (repetitions == 0) {
-          interval = 1;
-        } else if (repetitions == 1) {
-          interval = 3;
+        if (newRepetitions == 0) {
+          newInterval = 1;
+        } else if (newRepetitions == 1) {
+          newInterval = 3;
         } else {
-          interval = _boundedInterval(
-            currentIntervalDays * ease * morphologicalMultiplier,
-          );
+          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
         }
-        repetitions = math.min(maxRepetitions, repetitions + 1);
+        newRepetitions += 1;
         break;
       case SrsRating.easy:
-        if (repetitions == 0) {
-          interval = 2;
-        } else if (repetitions == 1) {
-          interval = 5;
+        if (newRepetitions == 0) {
+          newInterval = 2;
+        } else if (newRepetitions == 1) {
+          newInterval = 5;
         } else {
-          interval = _boundedInterval(
-            currentIntervalDays * ease * 1.3 * morphologicalMultiplier,
-          );
+          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
         }
-        repetitions = math.min(maxRepetitions, repetitions + 1);
-        newEase = math.min(2.5, ease + 0.15);
+        newRepetitions += 1;
+        newEase = math.min(2.5, currentEaseFactor + 0.15);
         break;
     }
 
-    final now = currentTime ?? DateTime.now();
-    return SrsCardReviewResult(
-      nextIntervalDays: interval,
-      easeFactor: newEase,
-      repetitionCount: repetitions,
-      nextReviewDate: now.add(Duration(days: interval)),
-    );
-  }
+    final now = DateTime.now();
+    final nextDate = now.add(Duration(days: math.max(1, newInterval)));
 
-  static int _boundedInterval(double days) {
-    if (!days.isFinite) throw ArgumentError.value(days, 'intervalDays');
-    return days.round().clamp(1, maxIntervalDays).toInt();
+    return SrsCardReviewResult(
+      nextIntervalDays: newInterval,
+      easeFactor: newEase,
+      repetitionCount: newRepetitions,
+      nextReviewDate: nextDate,
+    );
   }
 }
