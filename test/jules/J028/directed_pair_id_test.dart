@@ -3,72 +3,105 @@ import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
 
 void main() {
   group('DirectedPairId', () {
-    test('Identity and Directionality', () {
-      const pair1 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
-      const pair2 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
-      const pair3 = DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0.0');
-      const pair4 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.1.0');
+    test('directional identity (A->B != B->A)', () {
+      const id1 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      const id2 = DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0.0');
 
-      expect(pair1, equals(pair2));
-      expect(pair1.hashCode, equals(pair2.hashCode));
-      expect(pair1, isNot(equals(pair3)));
-      expect(pair1.hashCode, isNot(equals(pair3.hashCode)));
-      expect(pair1, isNot(equals(pair4)));
-      expect(pair1.uniqueKey, 'en_de_1.0.0');
+      expect(id1, isNot(equals(id2)));
+      expect(id1.uniqueKey, isNot(equals(id2.uniqueKey)));
+      expect(id1.hashCode, isNot(equals(id2.hashCode)));
     });
 
-    test('Validation Logic', () {
-      const validPair = DirectedPairId(sourceLocale: 'en_US', targetLocale: 'de', semanticVersion: '1.2.3');
-      expect(validPair.hasValidLocales, isTrue);
-      expect(validPair.hasValidVersion, isTrue);
-      expect(validPair.isValidForLearning(), isTrue);
+    test('forLearning validation', () {
+      expect(
+        () => DirectedPairId.forLearning(
+            sourceLocale: 'en', targetLocale: 'en', semanticVersion: '1.0.0'),
+        throwsArgumentError,
+      );
 
-      const invalidVersion = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
-      expect(invalidVersion.hasValidVersion, isFalse);
-
-      const invalidLocale = DirectedPairId(sourceLocale: 'english', targetLocale: 'de', semanticVersion: '1.0.0');
-      expect(invalidLocale.hasValidLocales, isFalse);
-      expect(invalidLocale.isValidForLearning(), isFalse);
-
-      const reflexivePair = DirectedPairId(sourceLocale: 'en', targetLocale: 'en', semanticVersion: '1.0.0');
-      expect(reflexivePair.isReflexive, isTrue);
-      expect(reflexivePair.isValidForLearning(), isFalse);
+      final validId = DirectedPairId.forLearning(
+          sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      expect(validId.sourceLocale, 'en');
+      expect(validId.targetLocale, 'de');
     });
 
-    test('Serialization and Legacy Migration', () {
-      final json = {'sourceLocale': 'ar', 'targetLocale': 'de', 'semanticVersion': '2.0.0'};
-      final pair = DirectedPairId.fromJson(json);
-      expect(pair.sourceLocale, 'ar');
-      expect(pair.targetLocale, 'de');
-      expect(pair.semanticVersion, '2.0.0');
-      expect(pair.toJson(), equals(json));
-
-      final legacy2 = DirectedPairId.fromString('ar_de');
-      expect(legacy2.sourceLocale, 'ar');
-      expect(legacy2.targetLocale, 'de');
-      expect(legacy2.semanticVersion, '1.0.0');
-
-      final legacy3 = DirectedPairId.fromString('en_fr_1.5.0');
-      expect(legacy3.sourceLocale, 'en');
-      expect(legacy3.targetLocale, 'fr');
-      expect(legacy3.semanticVersion, '1.5.0');
+    test('validates non-empty properties on const instantiation', () {
+      expect(
+        () => DirectedPairId(sourceLocale: '', targetLocale: 'de', semanticVersion: '1.0.0'),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => DirectedPairId(sourceLocale: 'en', targetLocale: '', semanticVersion: '1.0.0'),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: ''),
+        throwsA(isA<AssertionError>()),
+      );
     });
 
-    test('Test 100 language identities instantiations', () {
+    test('100 language identities generation via loop', () {
       final ids = <DirectedPairId>{};
       for (int i = 0; i < 100; i++) {
         ids.add(DirectedPairId(
-          sourceLocale: 'l$i',
-          targetLocale: 't$i',
-          semanticVersion: '1.0.0'
+          sourceLocale: 'lang$i',
+          targetLocale: 'lang${i + 1}',
+          semanticVersion: '1.0.$i',
         ));
       }
       expect(ids.length, 100);
 
-      // they should have invalid locales according to regex but the object should instantiate fine
-      for (final id in ids) {
-         expect(id.hasValidLocales, isFalse);
-      }
+      // Verify a subset
+      expect(
+        ids.contains(const DirectedPairId(sourceLocale: 'lang50', targetLocale: 'lang51', semanticVersion: '1.0.50')),
+        isTrue,
+      );
+    });
+
+    test('legacy string parsing', () {
+      final legacyIdStr = 'en_de_1.0.0';
+      final parsed = DirectedPairId.parse(legacyIdStr);
+      expect(parsed.sourceLocale, 'en');
+      expect(parsed.targetLocale, 'de');
+      expect(parsed.semanticVersion, '1.0.0');
+
+      // Test parsing with underscores in version
+      final legacyIdStr2 = 'en_de_1.0.0_beta_1';
+      final parsed2 = DirectedPairId.parse(legacyIdStr2);
+      expect(parsed2.sourceLocale, 'en');
+      expect(parsed2.targetLocale, 'de');
+      expect(parsed2.semanticVersion, '1.0.0_beta_1');
+
+      expect(() => DirectedPairId.parse('en_de'), throwsFormatException);
+    });
+
+    test('equality and hashing', () {
+      const id1 = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
+      const id2 = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
+
+      expect(id1, equals(id2));
+      expect(id1.hashCode, equals(id2.hashCode));
+    });
+
+    test('serialization (toMap / fromMap)', () {
+      const id1 = DirectedPairId(sourceLocale: 'fr', targetLocale: 'it', semanticVersion: '2.1.0');
+      final map = id1.toMap();
+
+      expect(map['sourceLocale'], 'fr');
+      expect(map['targetLocale'], 'it');
+      expect(map['semanticVersion'], '2.1.0');
+
+      final id2 = DirectedPairId.fromMap(map);
+      expect(id1, equals(id2));
+    });
+
+    test('isValidForLearning handles reflexive appropriately', () {
+      const id1 = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0.0');
+      const id2 = DirectedPairId(sourceLocale: 'de', targetLocale: 'de', semanticVersion: '1.0.0');
+
+      expect(id1.isValidForLearning(), isTrue);
+      expect(id2.isValidForLearning(), isFalse);
+      expect(id2.isReflexive, isTrue);
     });
   });
 }
