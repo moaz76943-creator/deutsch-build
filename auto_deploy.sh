@@ -1,9 +1,9 @@
 #!/bin/bash
-set -e
-echo "🚀 بدء دورة الأتمتة والنشر المحلية..."
-dart analyze
-flutter test || true
-git add .
-git commit -m "feat(pipeline): automated local synchronization and state hardening"
-git push origin main
-echo "✨ تمت المزامنة والرفع بنجاح مطلق!"
+# Fail closed. The previous script ran tests with '|| true', committed
+# the whole worktree, and pushed to main.
+set -euo pipefail
+
+echo "auto_deploy.sh refuses to push."
+echo "Direct pushes to main are disabled."
+echo "Integrate verified work through a PR into staging/v2-full-platform."
+exit 1
