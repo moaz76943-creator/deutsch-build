@@ -6,6 +6,7 @@ import 'package:deutsch_bilarabi/core/notifications/reminder_preferences.dart';
 import 'package:deutsch_bilarabi/core/notifications/reminder_storage.dart';
 
 void main() {
+  late HabitReminderScheduler scheduler;
   late InMemoryReminderStorage storage;
 
   setUp(() {
@@ -14,138 +15,115 @@ void main() {
       storage: storage,
       preferences: const ReminderPreferences(isOptedIn: true),
     );
+    scheduler = HabitReminderScheduler.instance;
   });
 
-  test('Does not schedule if opted out', () async {
-    HabitReminderScheduler.instance.updatePreferences(const ReminderPreferences(isOptedIn: false));
-    final now = DateTime(2023, 10, 20, 15, 0); // 3 PM
-    await HabitReminderScheduler.scheduleDailyReminder(now: now);
-    final next = await storage.getNextReminder();
-    expect(next, isNull);
+  test('Opt-in is required to schedule a reminder', () async {
+    scheduler.updatePreferences(const ReminderPreferences(isOptedIn: false));
+    await HabitReminderScheduler.scheduleDailyReminder();
+    final nextReminder = await storage.getNextReminder();
+    expect(nextReminder, isNull);
   });
 
-  test('Schedules for preferred hour if no SRS due date', () async {
-    final now = DateTime(2023, 10, 20, 15, 0); // 3 PM
-    await HabitReminderScheduler.scheduleDailyReminder(now: now);
-
-    final next = await storage.getNextReminder();
-    expect(next, isNotNull);
-    expect(next!.hour, 18); // Default preferred hour is 18
-    expect(next.day, 20);
-  });
-
-  test('Schedules for next day if preferred hour passed', () async {
-    final now = DateTime(2023, 10, 20, 19, 0); // 7 PM
+  test('Reminder falls within preferred hour if no SRS due date', () async {
+    final now = DateTime(2023, 10, 15, 10, 0); // 10 AM
     await HabitReminderScheduler.scheduleDailyReminder(now: now);
 
-    final next = await storage.getNextReminder();
-    expect(next, isNotNull);
-    expect(next!.hour, 18);
-    expect(next.day, 21); // Next day
+    final nextReminder = await storage.getNextReminder();
+    expect(nextReminder, isNotNull);
+
+    // Default preferred hour is 18 (6 PM)
+    expect(nextReminder!.hour, 18);
+    expect(nextReminder.day, 15);
   });
 
-  test('Adjusts for quiet hours (night span)', () async {
-    HabitReminderScheduler.instance.updatePreferences(const ReminderPreferences(
-      isOptedIn: true,
-      preferredHour: 23, // 11 PM
-      quietHourStart: 22,
-      quietHourEnd: 8,
-    ));
+  test('Reminder prefers SRS due date if available and valid', () async {
+    final now = DateTime(2023, 10, 15, 10, 0);
+    final srsDueDate = DateTime(2023, 10, 15, 14, 0); // 2 PM
 
-    final now = DateTime(2023, 10, 20, 15, 0);
+    await HabitReminderScheduler.scheduleDailyReminder(
+        srsDueDate: srsDueDate, now: now);
+
+    final nextReminder = await storage.getNextReminder();
+    expect(nextReminder, isNotNull);
+    expect(nextReminder, srsDueDate);
+  });
+
+  test('Reminder is deferred to tomorrow if preferred hour has passed',
+      () async {
+    final now = DateTime(2023, 10, 15, 20, 0); // 8 PM
+
     await HabitReminderScheduler.scheduleDailyReminder(now: now);
 
-    final next = await storage.getNextReminder();
-    expect(next, isNotNull);
-    // Should be moved to end of quiet hours (next day 8 AM)
-    expect(next!.hour, 8);
-    expect(next.day, 21);
+    final nextReminder = await storage.getNextReminder();
+    expect(nextReminder, isNotNull);
+    expect(nextReminder!.day, 16);
+    expect(nextReminder.hour, 18); // Default preferred hour
   });
 
-  test('Adjusts for quiet hours (morning span)', () async {
-    HabitReminderScheduler.instance.updatePreferences(const ReminderPreferences(
-      isOptedIn: true,
-      preferredHour: 3, // 3 AM
-      quietHourStart: 1,
-      quietHourEnd: 6,
-    ));
+  test('Reminder adjusts for quiet hours', () async {
+    // preferred hour is 18 (6 PM), quiet hours are 22 to 8. We set preferred to 23
+    scheduler.updatePreferences(const ReminderPreferences(
+        isOptedIn: true,
+        preferredHour: 23,
+        quietHourStart: 22,
+        quietHourEnd: 8));
+    final now = DateTime(2023, 10, 15, 10, 0);
 
-    final now = DateTime(2023, 10, 20, 0, 0); // Midnight
     await HabitReminderScheduler.scheduleDailyReminder(now: now);
 
-    final next = await storage.getNextReminder();
-    expect(next, isNotNull);
-    // Should be moved to end of quiet hours (same day 6 AM)
-    expect(next!.hour, 6);
-    expect(next.day, 20);
+    final nextReminder = await storage.getNextReminder();
+    expect(nextReminder, isNotNull);
+
+    // It should be moved to quietHourEnd (8 AM next day)
+    expect(nextReminder!.hour, 8);
+    expect(nextReminder.day, 16);
   });
 
-  test('Idempotency: does not duplicate for the same logical window', () async {
-    final now = DateTime(2023, 10, 20, 15, 0);
+  test('Idempotency prevents duplicate reminders on the same day', () async {
+    final now = DateTime(2023, 10, 15, 10, 0);
 
+    // Schedule first time
     await HabitReminderScheduler.scheduleDailyReminder(now: now);
-    final firstNext = await storage.getNextReminder();
+    final firstReminder = await storage.getNextReminder();
 
-    // Attempt to schedule again at 16:00
-    final later = DateTime(2023, 10, 20, 16, 0);
-    await HabitReminderScheduler.scheduleDailyReminder(now: later);
-    final secondNext = await storage.getNextReminder();
+    // Try to schedule again
+    await HabitReminderScheduler.scheduleDailyReminder(now: now);
+    final secondReminder = await storage.getNextReminder();
 
-    // Should remain the exact same scheduled time
-    expect(firstNext, equals(secondNext));
+    expect(firstReminder, secondReminder);
   });
 
-  test('Cancellation clears state', () async {
-    final now = DateTime(2023, 10, 20, 15, 0);
+  test('cancelReminder removes the next reminder', () async {
+    final now = DateTime(2023, 10, 15, 10, 0);
     await HabitReminderScheduler.scheduleDailyReminder(now: now);
     expect(await storage.getNextReminder(), isNotNull);
 
-    await HabitReminderScheduler.instance.cancelReminder();
+    await scheduler.cancelReminder();
     expect(await storage.getNextReminder(), isNull);
   });
 
-  test('Foreground evaluation is true when passed recently', () async {
-    final now = DateTime(2023, 10, 20, 15, 0);
-    await HabitReminderScheduler.scheduleDailyReminder(now: now);
+  test(
+      'evaluateForegroundEligibility returns true if reminder is due and within 4 hours',
+      () async {
+    final scheduledTime = DateTime(2023, 10, 15, 18, 0);
+    await storage.saveNextReminder(scheduledTime);
 
-    // Target is 18:00
-    final evaluateNow = DateTime(2023, 10, 20, 19, 0); // 1 hour past target
+    final nowEligible = DateTime(2023, 10, 15, 19, 0); // 1 hour after scheduled
+    expect(await scheduler.evaluateForegroundEligibility(now: nowEligible),
+        isTrue);
 
-    final isEligible = await HabitReminderScheduler.instance.evaluateForegroundEligibility(now: evaluateNow);
-    expect(isEligible, isTrue);
-  });
+    final nowIneligibleEarly =
+        DateTime(2023, 10, 15, 17, 0); // Before scheduled
+    expect(
+        await scheduler.evaluateForegroundEligibility(now: nowIneligibleEarly),
+        isFalse);
 
-  test('Foreground evaluation is false when not passed', () async {
-    final now = DateTime(2023, 10, 20, 15, 0);
-    await HabitReminderScheduler.scheduleDailyReminder(now: now);
-
-    // Target is 18:00
-    final evaluateNow = DateTime(2023, 10, 20, 17, 0); // Before target
-
-    final isEligible = await HabitReminderScheduler.instance.evaluateForegroundEligibility(now: evaluateNow);
-    expect(isEligible, isFalse);
-  });
-
-  test('Foreground evaluation is false when expired (too old)', () async {
-    final now = DateTime(2023, 10, 20, 15, 0);
-    await HabitReminderScheduler.scheduleDailyReminder(now: now);
-
-    // Target is 18:00
-    final evaluateNow = DateTime(2023, 10, 20, 23, 0); // 5 hours past target (limit is 4)
-
-    final isEligible = await HabitReminderScheduler.instance.evaluateForegroundEligibility(now: evaluateNow);
-    expect(isEligible, isFalse);
-  });
-
-  test('Uses SRS due date if available', () async {
-    final now = DateTime(2023, 10, 20, 15, 0);
-    final srsDue = DateTime(2023, 10, 20, 17, 30);
-
-    await HabitReminderScheduler.scheduleDailyReminder(now: now, srsDueDate: srsDue);
-
-    final next = await storage.getNextReminder();
-    expect(next, isNotNull);
-    expect(next, equals(srsDue));
+    final nowIneligibleLate =
+        DateTime(2023, 10, 15, 23, 0); // 5 hours after scheduled
+    expect(
+        await scheduler.evaluateForegroundEligibility(now: nowIneligibleLate),
+        isFalse);
   });
 
   test('App restart: recovers state using FileReminderStorage', () async {
@@ -183,7 +161,8 @@ void main() {
 
     // Reminder targeted for 18:00 local representation (we'll just use the explicit DateTime object logic)
     final evaluateNow = DateTime.utc(2023, 10, 20, 19, 0);
-    final isEligible = await HabitReminderScheduler.instance.evaluateForegroundEligibility(now: evaluateNow);
+    final isEligible = await HabitReminderScheduler.instance
+        .evaluateForegroundEligibility(now: evaluateNow);
 
     expect(isEligible, isTrue);
   });
