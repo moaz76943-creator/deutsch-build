@@ -10,8 +10,8 @@ class LemmaMatch {
   final String? lexiconId;
 }
 
-typedef LemmatizationDictionarySearch =
-    Future<List<Map<String, dynamic>>> Function(
+typedef LemmatizationDictionarySearch = Future<List<Map<String, dynamic>>>
+    Function(
   String query,
   String languageCode,
 );
@@ -26,7 +26,7 @@ class LemmatizationService {
   LemmatizationService({
     Future<Database> Function(String)? openContentDb,
   }) : _openContentDb = openContentDb ??
-           ((code) => DatabaseService.instance.getContentDb(code));
+            ((code) => DatabaseService.instance.getContentDb(code));
 
   static const int maxFormRunes = 96;
   static const int maxMatches = 8;
@@ -36,10 +36,11 @@ class LemmatizationService {
 
   static String _normalizeLanguage(String languageCode) {
     final normalized = languageCode.trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$')
-        .hasMatch(normalized)) {
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
       throw ArgumentError.value(
-        languageCode, 'languageCode', 'Invalid language tag',
+        languageCode,
+        'languageCode',
+        'Invalid language tag',
       );
     }
     return normalized.split('-').first;
@@ -71,11 +72,13 @@ class LemmatizationService {
         <Object?>[word, code, limit],
       );
       return List<LemmaMatch>.unmodifiable(rows.map((row) => LemmaMatch(
-        lemma: row['lemma']!.toString(),
-        lexiconId: row['lexicon_id']?.toString(),
-      )));
+            lemma: row['lemma']!.toString(),
+            lexiconId: row['lexicon_id']?.toString(),
+          )));
     } on DatabaseException catch (error) {
-      if (error.toString().toLowerCase()
+      if (error
+          .toString()
+          .toLowerCase()
           .contains('no such table: inflections_lookup')) {
         return const <LemmaMatch>[];
       }
@@ -83,6 +86,8 @@ class LemmatizationService {
     }
   }
 
+  /// Return a single lemma only when that result is unambiguous.
+  /// Choosing the first lexeme by SQL order is not linguistic evidence.
   Future<String?> resolve(
     String inflectedForm, {
     String languageCode = 'de',
@@ -90,9 +95,11 @@ class LemmatizationService {
     final matches = await lookup(
       inflectedForm,
       languageCode: languageCode,
-      limit: 1,
+      limit: 2,
     );
-    return matches.isEmpty ? null : matches.first.lemma;
+    if (matches.isEmpty) return null;
+    if (matches.length > 1) return null;
+    return matches.single.lemma;
   }
 
   /// Intercept only unsuccessful normal searches, then retry attested lemmas.
@@ -106,11 +113,14 @@ class LemmatizationService {
     final originals = await searchDictionary(query, code);
     if (originals.isNotEmpty) return originals;
 
+    // Detect a fourth competing lemma rather than silently truncating
+    // ambiguity to the first three candidates.
     final matches = await lookup(
       query,
       languageCode: code,
-      limit: maxFallbackLemmas,
+      limit: maxFallbackLemmas + 1,
     );
+    if (matches.length != 1) return originals;
     final tried = <String>{query.trim().toLowerCase()};
     for (final match in matches) {
       final lemma = match.lemma.trim();

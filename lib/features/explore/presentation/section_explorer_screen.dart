@@ -7,7 +7,7 @@ import '../../../core/services/audio_tts_service.dart';
 class SectionExplorerScreen extends StatefulWidget {
   final String initialLanguage;
 
-  const SectionExplorerScreen({Key? key, this.initialLanguage = 'de'}) : super(key: key);
+  const SectionExplorerScreen({super.key, this.initialLanguage = 'de'});
 
   @override
   State<SectionExplorerScreen> createState() => _SectionExplorerScreenState();
@@ -30,7 +30,15 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   int _searchGeneration = 0;
   Timer? _searchDebounce;
 
-  static const Set<String> rtlLanguages = {'ar', 'fa', 'he', 'ur', 'ps', 'yi', 'ug'};
+  static const Set<String> rtlLanguages = {
+    'ar',
+    'fa',
+    'he',
+    'ur',
+    'ps',
+    'yi',
+    'ug'
+  };
 
   final List<Map<String, String>> availableLanguages = [
     {'code': 'de', 'name': 'الألمانية (Deutsch)'},
@@ -180,22 +188,29 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
           Wrap(
             spacing: 8,
             children: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('إغلاق')),
               ElevatedButton.icon(
                 icon: const Icon(Icons.download, size: 18),
                 label: const Text('تصدير JSON'),
                 onPressed: () async {
                   Navigator.pop(ctx);
                   try {
-                    final path = await PackManager.exportDatasetAsJson(currentLanguage);
+                    final path =
+                        await PackManager.exportDatasetAsJson(currentLanguage);
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('✅ تم التصدير: $path'), backgroundColor: Colors.green),
+                      SnackBar(
+                          content: Text('✅ تم التصدير: $path'),
+                          backgroundColor: Colors.green),
                     );
                   } catch (e) {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('تعذر التصدير: $e'), backgroundColor: Colors.red),
+                      SnackBar(
+                          content: Text('تعذر التصدير: $e'),
+                          backgroundColor: Colors.red),
                     );
                   }
                 },
@@ -212,8 +227,15 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     if (exercises.isEmpty || !mounted) return;
 
     final ex = exercises.first;
-    final List distractors = jsonDecode(ex['distractors_json'] as String? ?? '[]');
-    final List<String> options = [ex['correct_answer'] as String, ...distractors.map((e) => e.toString())]..shuffle();
+    final decodedDistractors =
+        jsonDecode(ex['distractors_json'] as String? ?? '[]');
+    final List<dynamic> distractors = decodedDistractors is List
+        ? decodedDistractors
+        : const <dynamic>[];
+    final List<String> options = [
+      ex['correct_answer'] as String,
+      ...distractors.map((e) => e.toString())
+    ]..shuffle();
 
     showDialog(
       context: context,
@@ -222,32 +244,40 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: options.map((opt) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    final isCorrect = opt == ex['correct_answer'];
-                    await PackManager.recordQuizResult(conceptId: conceptId, isCorrect: isCorrect);
-                    await loadSectionData();
+            children: options
+                .map((opt) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 8),
+                          ),
+                          onPressed: () async {
+                            Navigator.pop(ctx);
+                            final isCorrect = opt == ex['correct_answer'];
+                            await PackManager.recordQuizResult(
+                                conceptId: conceptId, isCorrect: isCorrect);
+                            await loadSectionData();
 
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(isCorrect ? '✅ إجابة صحيحة! تم تحديث المراجعة.' : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
-                        backgroundColor: isCorrect ? Colors.green : Colors.red,
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isCorrect
+                                    ? '✅ إجابة صحيحة! تم تحديث المراجعة.'
+                                    : '❌ خطأ! الإجابة: ${ex['correct_answer']}'),
+                                backgroundColor:
+                                    isCorrect ? Colors.green : Colors.red,
+                              ),
+                            );
+                          },
+                          child: Text(opt,
+                              textAlign: TextAlign.center, softWrap: true),
+                        ),
                       ),
-                    );
-                  },
-                  child: Text(opt, textAlign: TextAlign.center, softWrap: true),
-                ),
-              ),
-            )).toList(),
+                    ))
+                .toList(),
           ),
         ),
       ),
@@ -266,7 +296,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
             isDense: true,
             icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
             dropdownColor: Colors.indigo.shade800,
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
             onChanged: (newLang) {
               if (newLang != null && newLang != currentLanguage) {
                 setState(() {
@@ -303,16 +334,20 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               color: Colors.indigo.shade50,
               child: Column(
                 children: [
-                  Text(loadingMessage, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(loadingMessage,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  LinearProgressIndicator(value: downloadProgress > 0 ? downloadProgress : null),
+                  LinearProgressIndicator(
+                      value: downloadProgress > 0 ? downloadProgress : null),
                 ],
               ),
             ),
           if (loadError != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(loadError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              child: Text(loadError!,
+                  style: const TextStyle(color: Colors.red, fontSize: 13)),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -331,8 +366,10 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                         },
                       )
                     : null,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
               ),
             ),
           ),
@@ -341,38 +378,42 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
-                children: sections.map((sec) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(sec['title']!),
-                    selected: selectedSection == sec['id'],
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() => selectedSection = sec['id']!);
-                        loadSectionData();
-                      }
-                    },
-                  ),
-                )).toList(),
+                children: sections
+                    .map((sec) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(sec['title']!),
+                            selected: selectedSection == sec['id'],
+                            onSelected: (val) {
+                              if (val) {
+                                setState(() => selectedSection = sec['id']!);
+                                loadSectionData();
+                              }
+                            },
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
               child: Row(
-                children: ['A1', 'A2', 'B1', 'B2'].map((lvl) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: FilterChip(
-                    label: Text(lvl),
-                    selected: selectedCefr == lvl,
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() => selectedCefr = lvl);
-                        loadSectionData();
-                      }
-                    },
-                  ),
-                )).toList(),
+                children: ['A1', 'A2', 'B1', 'B2']
+                    .map((lvl) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: FilterChip(
+                            label: Text(lvl),
+                            selected: selectedCefr == lvl,
+                            onSelected: (val) {
+                              if (val) {
+                                setState(() => selectedCefr = lvl);
+                                loadSectionData();
+                              }
+                            },
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
           ],
@@ -392,34 +433,46 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                     itemBuilder: (context, index) {
                       final item = displayList[index];
                       final pos = item['part_of_speech'] ?? 'noun';
-                      final word = item['word'] ?? item['display_text'] ?? '';
+                      final word =
+                          '${item['word'] ?? item['display_text'] ?? ''}';
                       final boxLevel = item['box_level'] as int? ?? 0;
 
                       return Directionality(
-                        textDirection: isCurrentRtl ? TextDirection.rtl : TextDirection.ltr,
+                        textDirection: isCurrentRtl
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: pos == 'verb'
                                 ? Colors.orange.shade100
-                                : (pos == 'phrase' ? Colors.purple.shade100 : Colors.blue.shade100),
+                                : (pos == 'phrase'
+                                    ? Colors.purple.shade100
+                                    : Colors.blue.shade100),
                             child: Text(
-                              pos == 'verb' ? 'فعل' : (pos == 'phrase' ? 'جملة' : 'اسم'),
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              pos == 'verb'
+                                  ? 'فعل'
+                                  : (pos == 'phrase' ? 'جملة' : 'اسم'),
+                              style: const TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                           title: Text(
                             word,
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                fontSize: 17, fontWeight: FontWeight.w600),
                             softWrap: true,
                           ),
                           subtitle: Text(
-                            isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
+                            isSearching
+                                ? 'المعرف: ${item['concept_id']}'
+                                : 'المستوى في الذاكرة: صندوق $boxLevel',
                           ),
                           trailing: Wrap(
                             spacing: 0,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.volume_up, color: Colors.blueGrey),
+                                icon: const Icon(Icons.volume_up,
+                                    color: Colors.blueGrey),
                                 tooltip: 'استماع للنطق',
                                 onPressed: () async {
                                   try {
@@ -429,10 +482,12 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                     );
                                   } catch (err) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
                                           content: Text('⚠️ تعذر النطق: $err'),
-                                          backgroundColor: Colors.orange.shade800,
+                                          backgroundColor:
+                                              Colors.orange.shade800,
                                         ),
                                       );
                                     }
@@ -440,9 +495,12 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.quiz, color: Colors.indigo),
+                                icon: const Icon(Icons.quiz,
+                                    color: Colors.indigo),
                                 tooltip: 'بدء تمرين',
-                                onPressed: () => openQuizDialog(item['concept_id'], word),
+                                onPressed: () =>
+                                    openQuizDialog(
+                                        '${item['concept_id']}', word),
                               ),
                             ],
                           ),

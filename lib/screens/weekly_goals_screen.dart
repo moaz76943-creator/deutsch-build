@@ -25,21 +25,29 @@ class WeeklyGoalsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('هدف الأسبوع الحالي', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text('هدف الأسبوع الحالي',
+                          style: TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      const Text('حفظ 50 كلمة جديدة وإتمام 5 جلسات مراجعة', style: TextStyle(color: Colors.white, fontSize: 14)),
+                      const Text('حفظ 50 كلمة جديدة وإتمام 5 جلسات مراجعة',
+                          style: TextStyle(color: Colors.white, fontSize: 14)),
                       const SizedBox(height: 16),
                       LinearProgressIndicator(
                         value: 0.7,
                         backgroundColor: Colors.white24,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF34D399)),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF34D399)),
                         minHeight: 8,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       const SizedBox(height: 8),
                       const Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('70% من الهدف مكتمل', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                        child: Text('70% من الهدف مكتمل',
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 12)),
                       ),
                     ],
                   ),
@@ -50,7 +58,11 @@ class WeeklyGoalsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('إحصائيات إنجاز الأيام', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text('إحصائيات إنجاز الأيام',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
                       _buildDayRow('السبت', '25 دقيقة', true),
                       _buildDayRow('الأحد', '30 دقيقة', true),
@@ -67,19 +79,22 @@ class WeeklyGoalsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDayRow(String day, stringDuration, bool completed) {
+  Widget _buildDayRow(String day, String stringDuration, bool completed) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(day, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Expanded(child: Text(day, style: const TextStyle(color: Colors.white, fontSize: 14))),
           Row(
             children: <Widget>[
-              Text(stringDuration, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              Text(stringDuration,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(width: 10),
               Icon(
-                completed ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                completed
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
                 color: completed ? const Color(0xFF34D399) : Colors.white38,
                 size: 20,
               ),
