@@ -43,6 +43,8 @@ class DirectedPairReadinessEngine {
       LinkedHashMap<String, LanguagePackGateResult>();
   final LinkedHashMap<DirectedPairId, DirectedPairStatus> _pairCache =
       LinkedHashMap<DirectedPairId, DirectedPairStatus>();
+  final LinkedHashSet<DirectedPairId> _admittedPairs =
+      LinkedHashSet<DirectedPairId>();
 
   DirectedPairReadinessEngine({
     this.maxCachedPairs = 100,
@@ -108,14 +110,30 @@ class DirectedPairReadinessEngine {
           PairReadinessState.schemaMismatch, gate.reason ?? 'Pack schema mismatch',
         );
       case PackGateStatus.approved:
-        // LanguagePackAcceptanceGate only checks positive rows/nonempty
-        // checksums; it neither verifies the signature nor the *directed*
-        // translation edge. Cannot assert pair readiness from it.
+        if (_admittedPairs.contains(pair)) {
+          return const DirectedPairStatus(
+            PairReadinessState.ready,
+            'Directed pair admitted and verified',
+          );
+        }
         return const DirectedPairStatus(
           PairReadinessState.missingDirectedEvidence,
           'No independently verified directed-pair admission',
         );
     }
+  }
+
+  void admitDirectedPair(DirectedPairId pair) {
+    _admittedPairs.add(pair);
+    _pairCache.remove(pair);
+    if (_admittedPairs.length > maxCachedPairs) {
+      _admittedPairs.remove(_admittedPairs.first);
+    }
+  }
+
+  void revokeDirectedPair(DirectedPairId pair) {
+    _admittedPairs.remove(pair);
+    _pairCache.remove(pair);
   }
 
   void updatePackStatus(String locale, LanguagePackGateResult result) {
@@ -142,9 +160,11 @@ class DirectedPairReadinessEngine {
   void clear() {
     _pairCache.clear();
     _packStatusCache.clear();
+    _admittedPairs.clear();
   }
 
   int get currentPairCacheSize => _pairCache.length;
   int get currentPackCacheSize => _packStatusCache.length;
+  int get currentAdmittedPairsCount => _admittedPairs.length;
 }
 
