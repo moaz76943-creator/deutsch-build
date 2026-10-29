@@ -1,15 +1,19 @@
 import 'dart:async';
 
+<<<<<<< HEAD
 import 'package:flutter/foundation.dart';
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
+<<<<<<< HEAD
   final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
   final Set<String> _disposedOwners = {};
-  bool _isDisposed = false;
+  final bool _isDisposed = false;
 
   bool get isDisposed => _isDisposed;
 
@@ -31,7 +35,7 @@ class RuntimeLifecycleRegistry {
   void registerCleanup(FutureOr<void> Function() cleanup,
       {String owner = 'global'}) {
     if (isOwnerDisposed(owner)) {
-      safeCleanup(cleanup);
+      _safeCleanup(cleanup);
       return;
     }
     _cleanups.putIfAbsent(owner, () => []).add(cleanup);
@@ -41,10 +45,31 @@ class RuntimeLifecycleRegistry {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
     await disposeOwnerResources(owner);
+=======
+  final List<StreamSubscription<dynamic>> subscriptions = [];
+  final List<Timer> timers = [];
+  bool isDisposed = false;
+
+  void registerSubscription(StreamSubscription<dynamic> sub) {
+    if (isDisposed) {
+      sub.cancel();
+      return;
+    }
+    subscriptions.add(sub);
+  }
+
+  void registerTimer(Timer timer) {
+    if (isDisposed) {
+      timer.cancel();
+      return;
+    }
+    timers.add(timer);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> disposeAll() async {
-    _isDisposed = true;
+    isDisposed = true;
+<<<<<<< HEAD
 
     final owners = _cleanups.keys.toList().reversed;
     for (final owner in owners) {
@@ -67,9 +92,20 @@ class RuntimeLifecycleRegistry {
 
     for (final cleanup in callbacks) {
       await safeCleanup(cleanup);
+=======
+    for (final timer in timers) {
+      timer.cancel();
     }
+    timers.clear();
+
+    for (final sub in subscriptions) {
+      await sub.cancel();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    }
+    subscriptions.clear();
   }
 
+<<<<<<< HEAD
   Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
@@ -103,6 +139,9 @@ class RuntimeLifecycleRegistry {
   void resetForTest() {
     _cleanups.clear();
     _disposedOwners.clear();
-    _isDisposed = false;
+    isDisposed = false;
   }
+=======
+  bool get isDisposed => isDisposed;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

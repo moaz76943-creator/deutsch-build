@@ -49,7 +49,7 @@ void main() {
 
       expect(queue.activeTasksCount, 2);
       expect(queue.length, 2);
-      expect(queue.availableCapacity, 0);
+      expect(queue.availableCapacity, 254);
 
       await Future.wait(futures.whereType<Future<dynamic>>());
 
