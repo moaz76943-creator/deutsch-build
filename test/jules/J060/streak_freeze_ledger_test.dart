@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/core/gamification/streak_freeze_ledger.dart';
 void main() {
   group('StreakFreezeLedger', () {
     test('records usage correctly', () {
-      var ledger = const StreakFreezeLedger();
+      var ledger = StreakFreezeLedger();
       expect(ledger.remainingShields, 2);
 
       ledger = ledger.recordUsage('missed day', timestamp: DateTime.now());
@@ -12,7 +12,7 @@ void main() {
     });
 
     test('prevents duplicate freezes on the same day in local time', () {
-      var ledger = const StreakFreezeLedger();
+      var ledger = StreakFreezeLedger();
       final now = DateTime.now();
       ledger = ledger.recordUsage('missed day', timestamp: now);
       ledger = ledger.recordUsage('another reason', timestamp: now.add(const Duration(hours: 1)));
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('cannot consume when no shields remain', () {
-      var ledger = const StreakFreezeLedger();
+      var ledger = StreakFreezeLedger();
       final now = DateTime.now();
       ledger = ledger.recordUsage('missed day', timestamp: now);
       ledger = ledger.recordUsage('missed day 2', timestamp: now.add(const Duration(days: 1)));
