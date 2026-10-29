@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class AchievementsScreen extends StatelessWidget {
   const AchievementsScreen({super.key});
@@ -7,30 +7,10 @@ class AchievementsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> badges = [
-      {
-        "title": "محترف المفردات",
-        "desc": "أتممت حفظ أكثر من 500 كلمة بنجاح",
-        "icon": "🏆",
-        "unlocked": true
-      },
-      {
-        "title": "سفير الاستمرارية",
-        "desc": "حافظت على سلسلة تعلم لمدة 30 يوماً متواصلاً",
-        "icon": "🔥",
-        "unlocked": true
-      },
-      {
-        "title": "خبير السيناريوهات",
-        "desc": "أكملت جميع سيناريوهات الحياة اليومية",
-        "icon": "☕",
-        "unlocked": false
-      },
-      {
-        "title": "ملك تحدي السرعة",
-        "desc": "حققت المركز الأول في اختبار الـ 60 ثانية",
-        "icon": "⚡",
-        "unlocked": false
-      },
+      {"title": "محترف المفردات", "desc": "أتممت حفظ أكثر من 500 كلمة بنجاح", "icon": "🏆", "unlocked": true},
+      {"title": "سفير الاستمرارية", "desc": "حافظت على سلسلة تعلم لمدة 30 يوماً متواصلاً", "icon": "🔥", "unlocked": true},
+      {"title": "خبير السيناريوهات", "desc": "أكملت جميع سيناريوهات الحياة اليومية", "icon": "☕", "unlocked": false},
+      {"title": "ملك تحدي السرعة", "desc": "حققت المركز الأول في اختبار الـ 60 ثانية", "icon": "⚡", "unlocked": false},
     ];
 
     return Scaffold(
@@ -60,14 +40,11 @@ class AchievementsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: unlocked
-                                ? const Color(0xFF34D399)
-                                    .withValues(alpha: 0.15)
-                                : Colors.white.withValues(alpha: 0.05),
+                            color: unlocked ? const Color(0xFF34D399).withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            badge['icon']! as String,
+                            badge['icon']!,
                             style: const TextStyle(fontSize: 28),
                           ),
                         ),
@@ -77,20 +54,17 @@ class AchievementsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                badge['title']! as String,
+                                badge['title']!,
                                 style: AppTypography.display.copyWith(
-                                  color:
-                                      unlocked ? Colors.white : Colors.white54,
+                                  color: unlocked ? Colors.white : Colors.white54,
                                   fontSize: 16,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                badge['desc']! as String,
+                                badge['desc']!,
                                 style: AppTypography.body.copyWith(
-                                  color: unlocked
-                                      ? Colors.white70
-                                      : Colors.white38,
+                                  color: unlocked ? Colors.white70 : Colors.white38,
                                   fontSize: 12,
                                 ),
                               ),
@@ -98,12 +72,8 @@ class AchievementsScreen extends StatelessWidget {
                           ),
                         ),
                         Icon(
-                          unlocked
-                              ? Icons.check_circle_rounded
-                              : Icons.lock_rounded,
-                          color: unlocked
-                              ? const Color(0xFF34D399)
-                              : Colors.white38,
+                          unlocked ? Icons.check_circle_rounded : Icons.lock_rounded,
+                          color: unlocked ? const Color(0xFF34D399) : Colors.white38,
                         ),
                       ],
                     ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class SrsFlashcardDeckScreen extends StatefulWidget {
   const SrsFlashcardDeckScreen({super.key});
@@ -24,8 +24,7 @@ class _SrsFlashcardDeckScreenState extends State<SrsFlashcardDeckScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            'مراجعة التكرار المتباعد (${_currentIndex + 1}/${_cards.length})'),
+        title: Text('مراجعة التكرار المتباعد (${_currentIndex + 1}/${_cards.length})'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -50,18 +49,12 @@ class _SrsFlashcardDeckScreenState extends State<SrsFlashcardDeckScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          const Text('اضغط على البطاقة لعكسها ورؤية المعنى',
-                              style: TextStyle(
-                                  color: Colors.white54, fontSize: 12)),
+                          const Text('اضغط على البطاقة لعكسها ورؤية المعنى', style: TextStyle(color: Colors.white54, fontSize: 12)),
                           const SizedBox(height: 20),
                           Text(
-                            _showAnswer
-                                ? currentCard['meaning']!
-                                : currentCard['word']!,
+                            _showAnswer ? currentCard['meaning']! : currentCard['word']!,
                             style: TextStyle(
-                              color: _showAnswer
-                                  ? const Color(0xFF34D399)
-                                  : const Color(0xFF38BDF8),
+                              color: _showAnswer ? const Color(0xFF34D399) : const Color(0xFF38BDF8),
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
                             ),
@@ -78,12 +71,10 @@ class _SrsFlashcardDeckScreenState extends State<SrsFlashcardDeckScreen> {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xFFEF4444).withValues(alpha: 0.2),
+                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.2),
                           foregroundColor: const Color(0xFFEF4444),
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
                         onPressed: () {
@@ -92,20 +83,17 @@ class _SrsFlashcardDeckScreenState extends State<SrsFlashcardDeckScreen> {
                             _currentIndex = (_currentIndex + 1) % _cards.length;
                           });
                         },
-                        child: const Text('صعب / نسيتها',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('صعب / نسيتها', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xFF34D399).withValues(alpha: 0.2),
+                          backgroundColor: const Color(0xFF34D399).withValues(alpha: 0.2),
                           foregroundColor: const Color(0xFF34D399),
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
                         onPressed: () {
@@ -114,8 +102,7 @@ class _SrsFlashcardDeckScreenState extends State<SrsFlashcardDeckScreen> {
                             _currentIndex = (_currentIndex + 1) % _cards.length;
                           });
                         },
-                        child: const Text('أتقنتها جيداً',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('أتقنتها جيداً', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],

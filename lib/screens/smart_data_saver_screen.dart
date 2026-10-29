@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class SmartDataSaverScreen extends StatefulWidget {
   const SmartDataSaverScreen({super.key});
@@ -34,23 +34,17 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Expanded(child: Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('التخزين المؤقت للبيانات الصوتية',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold)),
+                          Text('التخزين المؤقت للبيانات الصوتية', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('حفظ الملفات للعمل بدون إنترنت',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12)),
+                          Text('حفظ الملفات للعمل بدون إنترنت', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
-                      )),
+                      ),
                       Switch(
                         value: _offlineAudioMode,
-                        activeThumbColor: const Color(0xFF38BDF8),
+                        activeColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _offlineAudioMode = val;
@@ -66,23 +60,17 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Expanded(child: Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('ضغط حزم البيانات والملفات',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold)),
+                          Text('ضغط حزم البيانات والملفات', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('تقليل استهلاك مساحة التخزين والإنترنت',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12)),
+                          Text('تقليل استهلاك مساحة التخزين والإنترنت', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
-                      )),
+                      ),
                       Switch(
                         value: _compressData,
-                        activeThumbColor: const Color(0xFF38BDF8),
+                        activeColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _compressData = val;
@@ -98,20 +86,14 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                     backgroundColor: Colors.white.withValues(alpha: 0.1),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text(
-                              'تم مسح الذاكرة المؤقتة وتوفير 140 ميجابايت بنجاح!'),
-                          backgroundColor: Color(0xFF34D399)),
+                      const SnackBar(content: Text('تم مسح الذاكرة المؤقتة وتوفير 140 ميجابايت بنجاح!'), backgroundColor: Color(0xFF34D399)),
                     );
                   },
-                  child: const Text('مسح الذاكرة المؤقتة (Cache Clean)',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text('مسح الذاكرة المؤقتة (Cache Clean)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

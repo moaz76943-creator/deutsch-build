@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class StudyPlanGeneratorScreen extends StatefulWidget {
   const StudyPlanGeneratorScreen({super.key});
@@ -11,7 +10,7 @@ class StudyPlanGeneratorScreen extends StatefulWidget {
 
 class _StudyPlanGeneratorScreenState extends State<StudyPlanGeneratorScreen> {
   double _dailyMinutes = 15;
-  final String _goal = "تطوير المحادثة اليومية والسفر";
+  String _goal = "تطوير المحادثة اليومية والسفر";
 
   @override
   Widget build(BuildContext context) {

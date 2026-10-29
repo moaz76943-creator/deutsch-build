@@ -1,5 +1,5 @@
-import 'package:deutsch_bilarabi/core/contracts/linguistic_capability.dart';
-import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import '../contracts/linguistic_capability.dart';
+import '../contracts/universal_scenario_contract.dart';
 
 enum FeatureId {
   morphologyStacker,

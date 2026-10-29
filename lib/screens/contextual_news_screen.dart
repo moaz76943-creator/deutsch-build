@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class ContextualNewsScreen extends StatelessWidget {
   const ContextualNewsScreen({super.key});
@@ -47,11 +47,9 @@ class ContextualNewsScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                article['title']!,
-                                style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 16),
-                              ),
+                            Text(
+                              article['title']!,
+                              style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 16),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

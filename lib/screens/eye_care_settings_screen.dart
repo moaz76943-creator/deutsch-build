@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class EyeCareSettingsScreen extends StatefulWidget {
   const EyeCareSettingsScreen({super.key});
@@ -34,23 +34,17 @@ class _EyeCareSettingsScreenState extends State<EyeCareSettingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Expanded(child: Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('فلتر الضوء الأزرق المريح',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold)),
+                          Text('فلتر الضوء الأزرق المريح', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('تخفيف إجهاد العين أثناء جلسات الليل',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12)),
+                          Text('تخفيف إجهاد العين أثناء جلسات الليل', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
-                      )),
+                      ),
                       Switch(
                         value: _blueLightFilter,
-                        activeThumbColor: const Color(0xFF38BDF8),
+                        activeColor: const Color(0xFF38BDF8),
                         onChanged: (val) {
                           setState(() {
                             _blueLightFilter = val;
@@ -66,11 +60,7 @@ class _EyeCareSettingsScreenState extends State<EyeCareSettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('مستوى التباين والسطوع الداخلي',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
+                      const Text('مستوى التباين والسطوع الداخلي', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       Slider(
                         value: _brightnessLevel,

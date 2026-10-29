@@ -1,55 +1,77 @@
 import 'package:flutter/material.dart';
-export 'app_typography.dart';
-export '../core/app_haptics.dart';
+import 'package:flutter/services.dart';
 
 class AppGradients {
-  static const LinearGradient blueCard = LinearGradient(
-      colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight);
-
-  static const LinearGradient purpleCard = LinearGradient(
-    colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
-  );
-  static const LinearGradient primary = LinearGradient(
-    colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-  );
   static const LinearGradient darkScaffold = LinearGradient(
-    colors: [Color(0xFF000000), Color(0xFF121212)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFF000000), // أسود مطلق لشاشات OLED
+      Color(0xFF020408),
+      Color(0xFF0F172A),
+    ],
   );
-  static const LinearGradient heroSunset = LinearGradient(
-    colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
-  );
+
+  // التدرج الكروماتيكي المتجانس مع الطيف الحيوي وحالة العبء العصبي
+  static LinearGradient biophilicSpectrumFlow(bool isOverloaded) {
+    if (isOverloaded) {
+      return const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0x330284C7), // تدرج أزرق هادئ ومواسي عند رصد العبء العصبي الحاد
+          Color(0x110369A1),
+          Color(0x02FFFFFF),
+        ],
+      );
+    }
+    return const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0x24FFFFFF),
+        Color(0x0AFFFFFF),
+        Color(0x02FFFFFF),
+      ],
+    );
+  }
 }
 
 class AppBaseGlassCard extends StatelessWidget {
   final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final VoidCallback? onTap;
-  final Gradient? gradient;
+  final EdgeInsetsGeometry padding;
+  final bool isOverloaded;
 
   const AppBaseGlassCard({
     super.key,
     required this.child,
-    this.padding,
-    this.onTap,
-    this.gradient,
+    this.padding = const EdgeInsets.all(16),
+    this.isOverloaded = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: padding ?? const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          color: gradient == null ? Colors.white.withValues(alpha: 0.08) : null,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        ),
-        child: child,
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        gradient: AppGradients.biophilicSpectrumFlow(isOverloaded),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isOverloaded ? const Color(0xFF38BDF8).withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.12), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.6),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
+      child: child,
     );
   }
+}
+
+class AppHaptics {
+  static void light() => HapticFeedback.lightImpact();
+  static void growthTrigger() => HapticFeedback.mediumImpact();
+  static void deepFixation() => HapticFeedback.heavyImpact();
 }

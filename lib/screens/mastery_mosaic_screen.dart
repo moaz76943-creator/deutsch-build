@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
-import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
+import '../design_system/design_system.dart';
+import '../repositories/vocabulary_repository.dart';
 
 class MasteryMosaicScreen extends StatefulWidget {
   const MasteryMosaicScreen({super.key});
@@ -25,7 +25,7 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
     final items = await _repository.getVocabularyList();
     Map<String, int> fields = {};
     for (var item in items) {
-      final String f = '${item['semanticField'] ?? 'عام'}';
+      String f = item['semanticField'] ?? 'عام';
       fields[f] = (fields[f] ?? 0) + 1;
     }
     if (mounted) {
@@ -52,28 +52,20 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const AppBaseGlassCard(
-                        padding: EdgeInsets.all(20),
+                      AppBaseGlassCard(
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('🌸 خريطة اليقين المعرفي (بدون عدادات توتر)',
-                                style: TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold)),
+                          children: const [
+                            Text('🌸 خريطة اليقين المعرفي (بدون عدادات توتر)', style: TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.bold)),
                             SizedBox(height: 8),
                             Text(
                               'هذه الفسيفساء تعكس تراكم وعيك اللغوي بسلام وتوازن. كل مفردة تم حفظها هي بذرة أنبتت في بستان عقلك الباطن بغض النظر عن انقطاع الأيام.',
-                              style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                  height: 1.5),
+                              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
                             ),
                           ],
                         ),
@@ -84,36 +76,22 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                                'إجمالي الغلال المعرفي: $_totalWords مفردة مستقرة',
-                                style: const TextStyle(
-                                    color: Color(0xFF38BDF8),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold)),
+                            Text('إجمالي الغلال المعرفي: ${_totalWords} مفردة مستقرة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
                             ...(_fieldCounts.entries.map((entry) {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.between,
                                   children: [
-                                    Text('حقل: ${entry.key}',
-                                        style: const TextStyle(
-                                            color: Colors.white, fontSize: 13)),
+                                    Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13)),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF34D399)
-                                            .withValues(alpha: 0.15),
+                                        color: const Color(0xFF34D399).withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: Text('${entry.value} عناصر',
-                                          style: const TextStyle(
-                                              color: Color(0xFF34D399),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold)),
+                                      child: Text('${entry.value} عناصر', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold)),
                                     ),
                                   ],
                                 ),

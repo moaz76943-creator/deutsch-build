@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:deutsch_bilarabi/models/vocabulary_item.dart';
-import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
+import '../models/vocabulary_item.dart';
+import '../repositories/vocabulary_repository.dart';
 
 final vocabularyRepositoryProvider = Provider((ref) => VocabularyRepository());
 
-final vocabularyListProvider =
-    StateNotifierProvider<VocabularyNotifier, List<VocabularyItem>>((ref) {
+final vocabularyListProvider = StateNotifierProvider<VocabularyNotifier, List<VocabularyItem>>((ref) {
   final repo = ref.watch(vocabularyRepositoryProvider);
   return VocabularyNotifier(repo);
 });
@@ -37,7 +36,8 @@ class VocabularyNotifier extends StateNotifier<List<VocabularyItem>> {
 
   Future<void> updateItem(int index, VocabularyItem updated) async {
     state = [
-      for (int i = 0; i < state.length; i++) i == index ? updated : state[i]
+      for (int i = 0; i < state.length; i++)
+        i == index ? updated : state[i]
     ];
     await _save();
   }

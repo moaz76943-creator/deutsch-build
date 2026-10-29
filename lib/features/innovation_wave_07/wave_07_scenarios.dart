@@ -1,5 +1,5 @@
-import 'package:deutsch_bilarabi/core/contracts/linguistic_capability.dart';
-import 'package:deutsch_bilarabi/core/contracts/universal_scenario_contract.dart';
+import '../../core/contracts/linguistic_capability.dart';
+import '../../core/contracts/universal_scenario_contract.dart';
 
 class Wave07Scenarios {
   // W07-01: ناظم التزامن الإيقاعي
@@ -9,8 +9,7 @@ class Wave07Scenarios {
     languagePair: LanguagePair(sourceIso: 'de', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.phonologicalStress},
     acceptedAnswers: ['Ich GE-he in die SCHU-le.'],
-    localExplanation:
-        'الألمانية لغة موقوتة بالنبر؛ التركيز الزمني يقع على المقاطع المشددة مع تسريع المقاطع غير المشددة.',
+    localExplanation: 'الألمانية لغة موقوتة بالنبر؛ التركيز الزمني يقع على المقاطع المشددة مع تسريع المقاطع غير المشددة.',
     isLinguisticallyVerified: true,
     payload: {
       'stressPattern': [0, 1, 0, 0, 1, 0],
@@ -25,8 +24,7 @@ class Wave07Scenarios {
     languagePair: LanguagePair(sourceIso: 'de', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.honorificDistance},
     acceptedAnswers: ['Könnten Sie mir bitte helfen?'],
-    localExplanation:
-        'في السياق الرسمي أو مع الغرباء، يُستخدم الضمير Sie مقترناً بصيغة التلطيف Könnten للحفاظ على المسافة الاجتماعية.',
+    localExplanation: 'في السياق الرسمي أو مع الغرباء، يُستخدم الضمير Sie مقترناً بصيغة التلطيف Könnten للحفاظ على المسافة الاجتماعية.',
     isLinguisticallyVerified: true,
     payload: [
       'Hilf mir mal.',
@@ -42,8 +40,7 @@ class Wave07Scenarios {
     languagePair: LanguagePair(sourceIso: 'de', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.anaphoraCohesion},
     acceptedAnswers: ['Es ist neu.'],
-    localExplanation:
-        'كلمة Auto محايدة دلالياً ونحوياً، لذا فإن الضمير العائد عليها يجب أن يكون Es حصراً.',
+    localExplanation: 'كلمة Auto محايدة دلالياً ونحوياً، لذا فإن الضمير العائد عليها يجب أن يكون Es حصراً.',
     isLinguisticallyVerified: true,
     payload: {
       'antecedent': 'das Auto',
@@ -53,18 +50,16 @@ class Wave07Scenarios {
   );
 
   // W07-04: مستشعر الاستلزام الحواري
-  static const UniversalScenarioContract<Map<String, String>>
-      implicatureScenario = UniversalScenarioContract<Map<String, String>>(
+  static const UniversalScenarioContract<Map<String, String>> implicatureScenario =
+      UniversalScenarioContract<Map<String, String>>(
     scenarioId: 'W07-04-IMPLIC-DE',
     languagePair: LanguagePair(sourceIso: 'de', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.conversationalImplicature},
     acceptedAnswers: ['الطعام لم يعجبه'],
-    localExplanation:
-        'تجنب الإجابة المباشرة عن جودة الطعام والحديث عن النظافة فقط هو خرق لقرينة العلاقة، ويستلزم ضمنياً عدم الرضا.',
+    localExplanation: 'تجنب الإجابة المباشرة عن جودة الطعام والحديث عن النظافة فقط هو خرق لقرينة العلاقة، ويستلزم ضمنياً عدم الرضا.',
     isLinguisticallyVerified: true,
     payload: {
-      'dialogue':
-          'A: Hat dir das Essen geschmeckt?\nB: Das Restaurant war sehr sauber.',
+      'dialogue': 'A: Hat dir das Essen geschmeckt?\nB: Das Restaurant war sehr sauber.',
       'implicitMeaning': 'الطعام لم يعجبه',
     },
   );
@@ -76,8 +71,7 @@ class Wave07Scenarios {
     languagePair: LanguagePair(sourceIso: 'de', targetIso: 'ar'),
     requiredCapabilities: {LinguisticCapability.hesitationRepair},
     acceptedAnswers: ['sozusagen', 'also'],
-    localExplanation:
-        'استخدام sozusagen يمنح المتحدث وقتاً ذهنياً لإعادة صياغة الفكرة دون قطع التواصل أو إصدار أصوات تردد غير لغوية.',
+    localExplanation: 'استخدام sozusagen يمنح المتحدث وقتاً ذهنياً لإعادة صياغة الفكرة دون قطع التواصل أو إصدار أصوات تردد غير لغوية.',
     isLinguisticallyVerified: true,
     payload: ['sozusagen', 'also', 'quasi'],
   );

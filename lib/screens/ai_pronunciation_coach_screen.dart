@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class AiPronunciationCoachScreen extends StatefulWidget {
   const AiPronunciationCoachScreen({super.key});

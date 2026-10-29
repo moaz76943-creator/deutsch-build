@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
 
-import 'package:deutsch_bilarabi/design_system/design_system.dart';
+import '../design_system/design_system.dart';
 
 class PlacementLevelScreen extends StatefulWidget {
   const PlacementLevelScreen({required this.onComplete, super.key});
@@ -14,21 +13,9 @@ class _PlacementLevelScreenState extends State<PlacementLevelScreen> {
   String _selectedLevel = 'A1';
 
   final levels = const [
-    {
-      'id': 'A1',
-      'name': 'مبتدئ تماماً (A1)',
-      'desc': 'الحروف، الأرقام، أدوات التعريف والجمل اليومية الأولى.'
-    },
-    {
-      'id': 'A2',
-      'name': 'أساسيات التواصل (A2)',
-      'desc': 'الماضي البسيط، المحادثات في السوق والعمل والمطاعم.'
-    },
-    {
-      'id': 'B1',
-      'name': 'المستوى المتوسط (B1)',
-      'desc': 'تراكيب الجمل المعقدة، التعبير عن الرأي والقصص.'
-    },
+    {'id': 'A1', 'name': 'مبتدئ تماماً (A1)', 'desc': 'الحروف، الأرقام، أدوات التعريف والجمل اليومية الأولى.'},
+    {'id': 'A2', 'name': 'أساسيات التواصل (A2)', 'desc': 'الماضي البسيط، المحادثات في السوق والعمل والمطاعم.'},
+    {'id': 'B1', 'name': 'المستوى المتوسط (B1)', 'desc': 'تراكيب الجمل المعقدة، التعبير عن الرأي والقصص.'},
   ];
 
   @override
@@ -45,15 +32,13 @@ class _PlacementLevelScreenState extends State<PlacementLevelScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'ما هو مستواك الحالي؟',
-                  style: AppTypography.display
-                      .copyWith(color: Colors.white, fontSize: 26),
+                  style: AppTypography.display.copyWith(color: Colors.white, fontSize: 26),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'سنقوم بتخصيص مسار التعلم ليناسب معرفتك الحالية',
-                  style: AppTypography.body
-                      .copyWith(color: Colors.white.withValues(alpha: 0.8)),
+                  style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8)),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 28),
@@ -65,8 +50,7 @@ class _PlacementLevelScreenState extends State<PlacementLevelScreen> {
                       final item = levels[index];
                       final isSelected = _selectedLevel == item['id'];
                       return AppBaseGlassCard(
-                        onTap: () =>
-                            setState(() => _selectedLevel = item['id']!),
+                        onTap: () => setState(() => _selectedLevel = item['id']!),
                         gradient: isSelected ? AppGradients.purpleCard : null,
                         child: Row(
                           children: <Widget>[
@@ -80,8 +64,7 @@ class _PlacementLevelScreenState extends State<PlacementLevelScreen> {
                               alignment: Alignment.center,
                               child: Text(
                                 item['id']!,
-                                style: AppTypography.title.copyWith(
-                                    color: Colors.white, fontSize: 18),
+                                style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -91,15 +74,13 @@ class _PlacementLevelScreenState extends State<PlacementLevelScreen> {
                                 children: <Widget>[
                                   Text(
                                     item['name']!,
-                                    style: AppTypography.title.copyWith(
-                                        color: Colors.white, fontSize: 16),
+                                    style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     item['desc']!,
                                     style: AppTypography.body.copyWith(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.85),
+                                      color: Colors.white.withValues(alpha: 0.85),
                                       fontSize: 12,
                                     ),
                                   ),
