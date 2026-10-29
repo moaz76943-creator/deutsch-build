@@ -522,18 +522,6 @@ class DatabaseService {
       // materializing the entire dictionary or an unbounded SQL IN clause.
       const pageSize = 128;
       var offset = 0;
-
-      final activeReviewedIds = vaultActive ? reviewedIds : <String>{};
-      if (!vaultActive && legacyDb != null) {
-        final allTracked = await legacyDb!.rawQuery(
-          'SELECT lexeme_id FROM srs_progress WHERE target_language_code = ?',
-          <Object?>[code],
-        );
-        activeReviewedIds.addAll(
-          allTracked.map((row) => row['lexeme_id'].toString()),
-        );
-      }
-
       while (cards.length < limit) {
         final rows = await db.rawQuery('''
           SELECT id, surface, part_of_speech, fields_json
@@ -542,9 +530,21 @@ class DatabaseService {
         if (rows.isEmpty) break;
         offset += rows.length;
 
+        final reviewedOnPage = vaultActive ? reviewedIds : <String>{};
+        if (!vaultActive) {
+          final ids = rows.map((row) => row['id'].toString()).toList();
+          final placeholders = List<String>.filled(ids.length, '?').join(',');
+          final tracked = await legacyDb!.rawQuery(
+            'SELECT lexeme_id FROM srs_progress WHERE target_language_code = ? AND lexeme_id IN ($placeholders)',
+            <Object?>[code, ...ids],
+          );
+          reviewedOnPage.addAll(
+            tracked.map((row) => row['lexeme_id'].toString()),
+          );
+        }
         for (final row in rows) {
           final id = row['id']?.toString() ?? '';
-          if (id.isEmpty || activeReviewedIds.contains(id)) continue;
+          if (id.isEmpty || reviewedOnPage.contains(id)) continue;
           cards.add(unpackLexiconRow(row, code));
           if (cards.length == limit) break;
         }
