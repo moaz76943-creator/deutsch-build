@@ -13,23 +13,23 @@ void main() {
     });
 
     test('Restores legacy v1 checkpoint correctly', () async {
+      final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final legacyData = {
         'session_id': 'legacy_123',
         'current_route': '/quiz',
         'last_item_index': 2,
-        'timestamp': 1000000,
+        'timestamp': nowSec,
       };
       await prefs.setString('deutsch_active_session_recovery_v1', jsonEncode(legacyData));
 
       final manager = SessionRecoveryManager(
         prefs,
-        clock: () => 1000000 + 1000, // Valid age
       );
       final restored = manager.restoreSession();
 
       expect(restored, isNotNull);
       expect(restored?.sessionId, 'legacy_123');
-      expect(restored?.sourceLocale, '');
+      expect(restored?.languagePairKey, isNull);
       expect(restored?.committedReviewIds, isEmpty);
     });
 
@@ -38,12 +38,11 @@ void main() {
         sessionId: 'sess_new',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 5,
-        timestamp: 1000000,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         committedReviewIds: ['rev_1', 'rev_2'],
       );
       final manager = SessionRecoveryManager(
         prefs,
-        clock: () => 1000000 + 1000,
       );
 
       await manager.persistSession(session);
@@ -57,20 +56,17 @@ void main() {
         sessionId: 'sess_pair',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 0,
-        timestamp: 1000000,
-        sourceLocale: 'de',
-        targetLocale: 'ar',
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        languagePairKey: 'de_ar'
       );
       final manager = SessionRecoveryManager(
         prefs,
-        clock: () => 1000000 + 1000,
       );
 
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        expectedSourceLocale: 'en',
-        expectedTargetLocale: 'ar',
+        expectedLanguagePairKey: 'en',
       );
 
       expect(restored, isNull);
@@ -81,11 +77,10 @@ void main() {
         sessionId: 'sess_route',
         currentRoute: '/missing_pack_route',
         lastItemIndex: 0,
-        timestamp: 1000000,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       );
       final manager = SessionRecoveryManager(
         prefs,
-        clock: () => 1000000 + 1000,
       );
 
       await manager.persistSession(session);
@@ -98,16 +93,14 @@ void main() {
     });
 
     test('Rejects stale session beyond max age', () async {
-      const maxAgeMs = 24 * 60 * 60 * 1000;
       final session = SessionState(
         sessionId: 'sess_stale',
         currentRoute: '/quiz',
         lastItemIndex: 0,
-        timestamp: 1000000,
+        timestamp: (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 86401,
       );
       final manager = SessionRecoveryManager(
         prefs,
-        clock: () => 1000000 + maxAgeMs + 1000, // 1 second past max age
       );
 
       await manager.persistSession(session);
@@ -122,12 +115,10 @@ void main() {
         sessionId: 'sess_loop',
         currentRoute: '/quiz',
         lastItemIndex: 0,
-        timestamp: 1000000,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       );
       final manager = SessionRecoveryManager(
         prefs,
-        clock: () => 1000000 + 1000,
-        maxRecoveryAttempts: 2,
       );
 
       await manager.persistSession(session);
@@ -140,7 +131,11 @@ void main() {
       restored = manager.restoreSession();
       expect(restored, isNotNull);
 
-      // Attempt 3 (Should fail)
+      // Attempt 3
+      restored = manager.restoreSession();
+      expect(restored, isNotNull);
+
+      // Attempt 4 (Should fail)
       restored = manager.restoreSession();
       expect(restored, isNull);
     });
