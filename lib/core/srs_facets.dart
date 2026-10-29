@@ -1,113 +1,73 @@
+// SRS Facets and Review Key Definitions
 enum ReviewFacetType {
   meaningRecall,
-  gender,
-  plural,
-  caseForm,
-  spelling,
-  listening,
-  pronunciation,
-  verbValency,
-  prepositionCase,
-  separablePrefix,
-  auxiliary,
-  collocation,
+  recognition,
   production,
-  unknown;
+  listening,
+  spelling,
+  grammar,
+  collocation;
 
-  String get wireName => switch (this) {
-        ReviewFacetType.meaningRecall => 'meaning_recall',
-        ReviewFacetType.caseForm => 'case_form',
-        ReviewFacetType.verbValency => 'verb_valency',
-        ReviewFacetType.prepositionCase => 'preposition_case',
-        ReviewFacetType.separablePrefix => 'separable_prefix',
-        _ => name,
-      };
+  String get wireName => name;
 
-  static ReviewFacetType fromWire(String? raw) {
-    final value = raw?.trim().toLowerCase();
-    if (value == null || value.isEmpty) {
-      return ReviewFacetType.meaningRecall;
-    }
-    for (final facet in ReviewFacetType.values) {
-      if (facet != ReviewFacetType.unknown && facet.wireName == value) {
-        return facet;
+  static ReviewFacetType fromWire(String? wire) {
+    if (wire == null || wire.isEmpty) return ReviewFacetType.meaningRecall;
+    for (final v in ReviewFacetType.values) {
+      if (v.name.toLowerCase() == wire.toLowerCase() ||
+          v.wireName.toLowerCase() == wire.toLowerCase()) {
+        return v;
       }
     }
-    return ReviewFacetType.unknown;
+    return ReviewFacetType.meaningRecall;
   }
 }
 
-final class ReviewFacetKey {
-  const ReviewFacetKey({
-    required this.conceptId,
-    this.facetType = ReviewFacetType.meaningRecall,
-    this.variantKey,
-  });
-
-  static const String _prefix = '@facet::';
-
+class ReviewFacetKey {
   final String conceptId;
+  final String variantKey;
   final ReviewFacetType facetType;
-  final String? variantKey;
+  final String contentId;
 
-  String? get normalizedVariantKey => normalizeVariant(variantKey);
-
-  bool get isValid {
-    final id = conceptId.trim();
-    final variant = normalizedVariantKey;
-    return id.isNotEmpty &&
-        id.length <= 160 &&
-        facetType != ReviewFacetType.unknown &&
-        (variant == null || variant.length <= 80);
-  }
-
-  bool get isLegacyMeaningKey =>
-      facetType == ReviewFacetType.meaningRecall &&
-      normalizedVariantKey == null;
+  const ReviewFacetKey({
+    String? conceptId,
+    String? variantKey,
+    String? contentId,
+    ReviewFacetType? facetType,
+  })  : conceptId = conceptId ?? '',
+        variantKey = variantKey ?? '',
+        contentId = contentId ?? '',
+        facetType = facetType ?? ReviewFacetType.meaningRecall;
 
   String get storageKey {
-    final id = conceptId.trim();
-    if (facetType == ReviewFacetType.meaningRecall &&
-        normalizedVariantKey == null) {
-      return id;
-    }
-    return '$_prefix'
-        '${Uri.encodeComponent(id)}::'
-        '${facetType.wireName}::'
-        '${Uri.encodeComponent(normalizedVariantKey ?? '')}';
+    final id = conceptId.isNotEmpty ? conceptId : contentId;
+    final variant = variantKey.isNotEmpty ? ':$variantKey' : '';
+    return '$id:${facetType.wireName}$variant';
   }
 
-  static ReviewFacetKey fromStorageKey(String raw) {
-    final value = raw.trim();
-    if (!value.startsWith(_prefix)) {
-      return ReviewFacetKey(conceptId: value);
-    }
+  bool get isValid => conceptId.isNotEmpty || contentId.isNotEmpty;
 
-    final payload = value.substring(_prefix.length);
-    final parts = payload.split('::');
-    if (parts.length != 3) {
-      return const ReviewFacetKey(
-        conceptId: '',
-        facetType: ReviewFacetType.unknown,
-      );
-    }
+  bool get isLegacyMeaningKey => facetType == ReviewFacetType.meaningRecall;
 
-    try {
-      return ReviewFacetKey(
-        conceptId: Uri.decodeComponent(parts[0]),
-        facetType: ReviewFacetType.fromWire(parts[1]),
-        variantKey: normalizeVariant(Uri.decodeComponent(parts[2])),
-      );
-    } on FormatException {
-      return const ReviewFacetKey(
-        conceptId: '',
-        facetType: ReviewFacetType.unknown,
-      );
-    }
-  }
+  static String normalizeVariant([String? variant = '']) =>
+      variant?.trim().toLowerCase() ?? '';
 
-  static String? normalizeVariant(String? raw) {
-    final value = raw?.trim();
-    return value == null || value.isEmpty ? null : value;
-  }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReviewFacetKey &&
+          runtimeType == other.runtimeType &&
+          conceptId == other.conceptId &&
+          variantKey == other.variantKey &&
+          facetType == other.facetType &&
+          contentId == other.contentId;
+
+  @override
+  int get hashCode =>
+      conceptId.hashCode ^
+      variantKey.hashCode ^
+      facetType.hashCode ^
+      contentId.hashCode;
+
+  @override
+  String toString() => storageKey;
 }

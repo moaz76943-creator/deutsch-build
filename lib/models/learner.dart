@@ -1,5 +1,5 @@
 import 'diagnostic_placement.dart';
-import '../core/srs_facets.dart';
+import 'package:deutsch_bilarabi/core/srs_facets.dart';
 
 class Attempt {
   final String id, itemId, skill, answer;
@@ -22,7 +22,7 @@ class Attempt {
   });
   bool get isMeaningFacet =>
       facetType == ReviewFacetType.meaningRecall &&
-      ReviewFacetKey.normalizeVariant(variantKey) == null;
+      ReviewFacetKey.normalizeVariant(variantKey).isEmpty;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -34,8 +34,7 @@ class Attempt {
         'seconds': seconds,
         'at': at.toIso8601String(),
         'facetType': facetType.wireName,
-        if (ReviewFacetKey.normalizeVariant(variantKey) != null)
-          'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
+        'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
       };
   factory Attempt.fromJson(Map<String, dynamic> j) => Attempt(
         id: j['id'] ?? '',
@@ -173,8 +172,7 @@ class ReviewCard {
   Map<String, dynamic> toJson() => {
         'itemId': itemId,
         'facetType': facetType.wireName,
-        if (ReviewFacetKey.normalizeVariant(variantKey) != null)
-          'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
+        'variantKey': ReviewFacetKey.normalizeVariant(variantKey),
         'repetitions': repetitions,
         'intervalDays': intervalDays,
         'lapses': lapses,
@@ -192,10 +190,12 @@ class ReviewCard {
     var due = DateTime.tryParse((j['dueAt'] ?? '').toString()) ?? now;
     var last = DateTime.tryParse((j['lastReviewedAt'] ?? '').toString());
     if (due.isBefore(DateTime(2000))) due = now;
-    if (due.isAfter(now.add(const Duration(days: 3650))))
+    if (due.isAfter(now.add(const Duration(days: 3650)))) {
       due = now.add(const Duration(days: 3650));
-    if (last != null && last.isAfter(now.add(const Duration(days: 1))))
+    }
+    if (last != null && last.isAfter(now.add(const Duration(days: 1)))) {
       last = now;
+    }
     if (last != null && last.isBefore(DateTime(2000))) last = now;
     return ReviewCard(
       itemId: id,

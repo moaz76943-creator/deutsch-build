@@ -13,7 +13,7 @@ void main() {
     });
 
     test('rejects empty reviewId', () async {
-      const command = ReviewCommand(
+      final command = ReviewCommand(
         reviewId: '',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -31,7 +31,7 @@ void main() {
     });
 
     test('strict A->B and B->A separation', () async {
-      const commandAB = ReviewCommand(
+      final commandAB = ReviewCommand(
         reviewId: 'rev_1',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -45,7 +45,7 @@ void main() {
       final stateAB = await manager.executeTransaction(commandAB, (env) async {});
       expect(stateAB, isA<TransactionCommitted>());
 
-      const commandBA = ReviewCommand(
+      final commandBA = ReviewCommand(
         reviewId: 'rev_1', // Same ID, but different pair!
         sourceLanguageId: 'de',
         targetLanguageId: 'en',
@@ -63,7 +63,7 @@ void main() {
     });
 
     test('repeated taps (pending state rejection)', () async {
-      const command = ReviewCommand(
+      final command = ReviewCommand(
         reviewId: 'rev_2',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -91,7 +91,7 @@ void main() {
     });
 
     test('idempotency (same command retried after commit)', () async {
-      const command = ReviewCommand(
+      final command = ReviewCommand(
         reviewId: 'rev_3',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -103,9 +103,9 @@ void main() {
       );
 
       int commitCount = 0;
-      Future<void> commitFn(ReviewTransactionEnvelope env) async {
+      final commitFn = (ReviewTransactionEnvelope env) async {
         commitCount++;
-      }
+      };
 
       final state1 = await manager.executeTransaction(command, commitFn);
       expect(state1, isA<TransactionCommitted>());
@@ -127,7 +127,7 @@ void main() {
 
       manager.restoreHistory([envelope]);
 
-      const command = ReviewCommand(
+      final command = ReviewCommand(
         reviewId: 'rev_restored',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
@@ -148,7 +148,7 @@ void main() {
     });
 
     test('recovery of a failed operation', () async {
-      const command = ReviewCommand(
+      final command = ReviewCommand(
         reviewId: 'rev_4',
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
