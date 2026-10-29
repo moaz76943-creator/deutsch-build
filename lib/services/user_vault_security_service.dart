@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
@@ -18,21 +18,54 @@ abstract class VaultCipher {
 
 class AndroidKeystoreVaultCipher implements VaultCipher {
   const AndroidKeystoreVaultCipher();
+
   static const MethodChannel _channel =
       MethodChannel('com.deutschbilarabi.app/user_vault_security');
+
+  static Never _keyFailure(PlatformException error, StackTrace trace) {
+    // Do not silently regenerate a key: old device-bound ciphertext would be
+    // irrecoverable. Existing records remain stored for explicit recovery.
+    if (error.code == 'vault_key_unavailable_or_corrupt' ||
+        error.code.toLowerCase().contains('keystore')) {
+      UserVaultSecurityService.reportKeyFailure();
+    }
+    Error.throwWithStackTrace(error, trace);
+  }
+
   @override
   Future<Uint8List> encrypt(String recordId, Uint8List plaintext) async {
-    final data = await _channel.invokeMethod<Uint8List>(
-      'encrypt', <String,Object>{'recordId':recordId,'bytes':plaintext});
-    if(data==null) throw StateError('Hardware vault unavailable');
-    return data;
+    if (UserVaultSecurityService._keyUnavailable) {
+      throw StateError('Vault key recovery is required before further writes');
+    }
+    try {
+      final data = await _channel.invokeMethod<Uint8List>(
+        'encrypt', <String, Object>{
+          'recordId': recordId,
+          'bytes': plaintext,
+        },
+      );
+      if (data == null) throw StateError('Hardware vault unavailable');
+      return data;
+    } on PlatformException catch (error, trace) {
+      _keyFailure(error, trace);
+    }
   }
+
   @override
   Future<Uint8List> decrypt(String recordId, Uint8List ciphertext) async {
-    final data = await _channel.invokeMethod<Uint8List>(
-      'decrypt', <String,Object>{'recordId':recordId,'bytes':ciphertext});
-    if(data==null) throw StateError('Vault decryption failed');
-    return data;
+    try {
+      final data = await _channel.invokeMethod<Uint8List>(
+        'decrypt', <String, Object>{
+          'recordId': recordId,
+          'bytes': ciphertext,
+        },
+      );
+      if (data == null) throw StateError('Vault decryption failed');
+      UserVaultSecurityService._markKeyRecovered();
+      return data;
+    } on PlatformException catch (error, trace) {
+      _keyFailure(error, trace);
+    }
   }
 }
 
@@ -56,6 +89,30 @@ class UserVaultSecurityService {
   }) : _cipher=cipher ?? const AndroidKeystoreVaultCipher(),
        _openDatabase=openVaultDatabase ?? _openDefault,
        _legacyDatabasePath=legacyDatabasePath ?? _defaultLegacyPath;
+  // UI observes this state and offers retry without deleting ciphertext.
+  static final ValueNotifier<String?> recoveryMessage =
+      ValueNotifier<String?>(null);
+
+  static bool _keyUnavailable = false;
+
+  static void _markKeyRecovered() {
+    _keyUnavailable = false;
+    recoveryMessage.value = null;
+  }
+
+  static void reportKeyFailure() {
+    _keyUnavailable = true;
+    recoveryMessage.value =
+        'تعذّر الوصول إلى مفتاح التشفير في Android Keystore. '
+        'بيانات المراجعة المشفّرة محفوظة ولم تُحذف. '
+        'تحقّق من قفل الجهاز ثم أعد المحاولة؛ قد تتطلب استعادة المفتاح '
+        'القديم نسخة احتياطية صالحة.';
+  }
+
+  static void clearRecoveryMessage() {
+    recoveryMessage.value = null;
+  }
+
   static const maximumRecordBytes=4*1024*1024;
   final VaultCipher _cipher;
   final Future<Database> Function() _openDatabase;
@@ -158,7 +215,7 @@ class UserVaultSecurityService {
     if (entries.isEmpty) {
       await txn.delete('vault_entries',
           where: 'record_hash = ?', whereArgs: <Object>[_index(key)]);
-      await _catalogMutation(txn, 'bookmark', bookmarkId, languageCode, add: false);
+
     } else {
       await _writeEncrypted(txn, key,
           Uint8List.fromList(utf8.encode(jsonEncode(entries))), replace: true);
