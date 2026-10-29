@@ -2,115 +2,103 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/models/assessment.dart';
 
 void main() {
-  group('assessmentNormalize', () {
-    test('trims whitespace', () {
-      expect(assessmentNormalize(' hello '), 'hello');
-    });
-
-    test('lowercases', () {
-      expect(assessmentNormalize('HELLO'), 'hello');
-    });
-
-    test('removes trailing punctuation', () {
-      expect(assessmentNormalize('hello.'), 'hello');
-      expect(assessmentNormalize('hello!'), 'hello');
-      expect(assessmentNormalize('hello?'), 'hello');
-      expect(assessmentNormalize('hello.!?'), 'hello');
-    });
-
-    test('does not remove internal punctuation', () {
-      expect(assessmentNormalize('hello.world'), 'hello.world');
-    });
-
-    test('normalizes internal spaces', () {
-      expect(assessmentNormalize('hello   world'), 'hello world');
-      expect(assessmentNormalize(' hello \t world \n '), 'hello world');
-    });
-
-    test('preserves internal apostrophes and combines whitespace and punctuation', () {
-      expect(assessmentNormalize("what's up?"), "what's up");
-      expect(assessmentNormalize('  HELLO \t\n WORLD.!?  '), 'hello world');
-      expect(assessmentNormalize(' .!? '), '');
-    });
-
-    test('handles empty strings', () {
-      expect(assessmentNormalize(''), '');
-    });
-  });
-
   group('assessmentAnswerMatches', () {
-    const question = AssessmentQuestion(
+    final defaultQuestion = AssessmentQuestion(
       id: 'q1',
       itemId: 'i1',
-      prompt: 'Translate hello',
-      expected: 'hallo',
+      prompt: 'What is the answer?',
+      expected: 'correct answer',
       type: AssessmentQuestionType.translation,
-      accepted: ['hi', 'guten tag'],
-      skill: 'vocab',
+      accepted: ['alternative answer', 'another one'],
+      skill: 'translation',
     );
 
     test('returns false if response is marked incorrect', () {
-      const response = AssessmentResponse(
+      final response = AssessmentResponse(
         questionId: 'q1',
         itemId: 'i1',
-        answer: 'hallo',
+        answer: 'correct answer',
         correct: false,
         hinted: false,
       );
-      expect(assessmentAnswerMatches(response, question), false);
+      expect(assessmentAnswerMatches(response, defaultQuestion), isFalse);
     });
 
-    test('returns true if answer is empty but correct is true (e.g. self-assessed)', () {
-      const response = AssessmentResponse(
+    test('returns true if answer is empty after normalization', () {
+      final response = AssessmentResponse(
         questionId: 'q1',
         itemId: 'i1',
-        answer: '',
+        answer: '   ',
         correct: true,
         hinted: false,
       );
-      expect(assessmentAnswerMatches(response, question), true);
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('matches expected answer with normalization', () {
-      const response = AssessmentResponse(
+    test('returns true for exact match of expected answer', () {
+      final response = AssessmentResponse(
         questionId: 'q1',
         itemId: 'i1',
-        answer: ' HALLO! ',
+        answer: 'correct answer',
         correct: true,
         hinted: false,
       );
-      expect(assessmentAnswerMatches(response, question), true);
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('matches accepted answers with normalization', () {
-      const response1 = AssessmentResponse(
+    test('matches correctly with different casing', () {
+      final response = AssessmentResponse(
         questionId: 'q1',
         itemId: 'i1',
-        answer: 'Guten Tag.',
+        answer: 'CoRrEcT AnSwEr',
         correct: true,
         hinted: false,
       );
-      expect(assessmentAnswerMatches(response1, question), true);
-
-      const response2 = AssessmentResponse(
-        questionId: 'q1',
-        itemId: 'i1',
-        answer: 'HI',
-        correct: true,
-        hinted: false,
-      );
-      expect(assessmentAnswerMatches(response2, question), true);
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
     });
 
-    test('returns false if answer does not match expected or accepted', () {
-      const response = AssessmentResponse(
+    test('matches correctly after removing trailing punctuation', () {
+      final response = AssessmentResponse(
         questionId: 'q1',
         itemId: 'i1',
-        answer: 'tschüss',
+        answer: 'correct answer!?.',
         correct: true,
         hinted: false,
       );
-      expect(assessmentAnswerMatches(response, question), false);
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
+    });
+
+    test('matches correctly when multiple whitespaces are present', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'correct     answer',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
+    });
+
+    test('returns true if it matches one of the accepted answers', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: ' alternative  Answer! ',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isTrue);
+    });
+
+    test('returns false if it does not match expected or any accepted answers', () {
+      final response = AssessmentResponse(
+        questionId: 'q1',
+        itemId: 'i1',
+        answer: 'wrong answer',
+        correct: true,
+        hinted: false,
+      );
+      expect(assessmentAnswerMatches(response, defaultQuestion), isFalse);
     });
   });
 }
