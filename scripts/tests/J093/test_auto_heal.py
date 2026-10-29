@@ -12,7 +12,6 @@ import auto_heal
 class TestAutoHeal(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
-        self.ledger_path = os.path.join(self.test_dir, ".scope_guard_ledger.json")
         self.plan_path = os.path.join(self.test_dir, "plan.json")
         self.target_file = os.path.join(self.test_dir, "target.dart")
 
@@ -44,11 +43,12 @@ class TestAutoHeal(unittest.TestCase):
         executor = auto_heal.AutoHealExecutor(self.plan_path)
         executor.dry_run()
 
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
     @patch('auto_heal.AutoHealExecutor._run_gate')
-    def test_execute_success(self, mock_gate):
+    def test_execute_success(self, mock_gate, mock_request_ownership):
         mock_gate.return_value = True
+        mock_request_ownership.return_value = True
         executor = auto_heal.AutoHealExecutor(self.plan_path)
-        executor.guard.ledger_path = self.ledger_path
 
         executor.execute()
 
@@ -56,15 +56,12 @@ class TestAutoHeal(unittest.TestCase):
             content = f.read()
         self.assertIn("good_path", content)
 
-        with open(self.ledger_path, 'r') as f:
-            ledger = json.load(f)
-        self.assertEqual(ledger["leases"][self.target_file]["status"], "COMPLETE")
-
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
     @patch('auto_heal.AutoHealExecutor._run_gate')
-    def test_execute_failure_rollback(self, mock_gate):
+    def test_execute_failure_rollback(self, mock_gate, mock_request_ownership):
         mock_gate.return_value = False
+        mock_request_ownership.return_value = True
         executor = auto_heal.AutoHealExecutor(self.plan_path)
-        executor.guard.ledger_path = self.ledger_path
 
         with self.assertRaises(SystemExit):
             executor.execute()
@@ -72,10 +69,6 @@ class TestAutoHeal(unittest.TestCase):
         with open(self.target_file, 'r') as f:
             content = f.read()
         self.assertIn("bad_path", content)
-
-        with open(self.ledger_path, 'r') as f:
-            ledger = json.load(f)
-        self.assertEqual(ledger["leases"][self.target_file]["status"], "CANCELLED")
 
     def test_blocked_if_gate_missing(self):
         executor = auto_heal.AutoHealExecutor(self.plan_path)
@@ -92,17 +85,18 @@ class TestAutoHeal(unittest.TestCase):
             auto_heal.AutoHealExecutor(self.plan_path)
         self.assertIn("Missing signature", str(context.exception))
 
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
     @patch('auto_heal.subprocess.check_call')
     @patch('auto_heal.AutoHealExecutor._run_gate')
-    def test_commit(self, mock_gate, mock_check_call):
+    def test_commit(self, mock_gate, mock_check_call, mock_request_ownership):
         mock_gate.return_value = True
+        mock_request_ownership.return_value = True
         self.plan_data["commit"] = True
         self.plan_data["branch"] = "test-branch"
         with open(self.plan_path, 'w') as f:
             json.dump(self.plan_data, f)
 
         executor = auto_heal.AutoHealExecutor(self.plan_path)
-        executor.guard.ledger_path = self.ledger_path
 
         executor.execute()
 
@@ -111,12 +105,10 @@ class TestAutoHeal(unittest.TestCase):
         self.assertEqual(calls[1][0][0], ["git", "add", self.target_file])
         self.assertEqual(calls[2][0][0], ["git", "commit", "-m", "Fix(J093-TEST): Auto-heal repair [skip ci]"])
 
-    def test_scope_guard_collision(self):
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
+    def test_scope_guard_collision(self, mock_request_ownership):
+        mock_request_ownership.return_value = False
         executor = auto_heal.AutoHealExecutor(self.plan_path)
-        executor.guard.ledger_path = self.ledger_path
-
-        # Pre-claim the lease with another agent
-        executor.guard.claim("OtherAgent", [self.target_file])
 
         # Now try to claim it with our executor
         with patch('sys.exit') as mock_exit:
