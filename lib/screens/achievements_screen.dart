@@ -67,7 +67,7 @@ class AchievementsScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            badge['icon']! as String,
+                            badge['icon']!,
                             style: const TextStyle(fontSize: 28),
                           ),
                         ),
@@ -77,7 +77,7 @@ class AchievementsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                badge['title']! as String,
+                                badge['title']!,
                                 style: AppTypography.display.copyWith(
                                   color:
                                       unlocked ? Colors.white : Colors.white54,
@@ -86,7 +86,7 @@ class AchievementsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                badge['desc']! as String,
+                                badge['desc']!,
                                 style: AppTypography.body.copyWith(
                                   color: unlocked
                                       ? Colors.white70

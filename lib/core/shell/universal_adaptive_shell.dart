@@ -18,38 +18,18 @@ class UniversalAdaptiveShell extends StatefulWidget {
 }
 
 class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
-  final TextEditingController _inputController = TextEditingController();
-  String get _currentInput => _inputController.text;
+  final String _currentInput = '';
   ContractEvaluationResult? _result;
   bool _showLinguisticDetails =
       false; // الكشف التدريجي (Progressive Disclosure)
 
   void _submitEvaluation() {
-    if (_currentInput.trim().isEmpty) return;
     setState(() {
       _result = ContractEvaluator.process(
         contract: widget.contract,
         userInput: _currentInput,
       );
     });
-  }
-
-  @override
-  void didUpdateWidget(covariant UniversalAdaptiveShell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.contract.scenarioId != widget.contract.scenarioId ||
-        oldWidget.contract.languagePair != widget.contract.languagePair ||
-        oldWidget.mode != widget.mode) {
-      _inputController.clear();
-      _result = null;
-      _showLinguisticDetails = false;
-    }
-  }
-
-  @override
-  void dispose() {
-    _inputController.dispose();
-    super.dispose();
   }
 
   @override
@@ -102,9 +82,8 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
+        child: Column(
+          children: [
             // شريط الكشف التدريجي (يظهر فقط عند طلبه لتجنب الفوضى)
             AnimatedCrossFade(
               firstChild: const SizedBox.shrink(),
@@ -134,29 +113,15 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
             ),
 
             // منطقة التمرين المركزية المتكيفة
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: _buildAdaptiveBody(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: _buildAdaptiveBody(),
+              ),
             ),
 
             // راية النتيجة والتغذية الراجعة المحلية
             if (_result != null) _buildFeedbackBanner(_result!),
-
-            // إجابة فعلية لكل أنماط التفاعل؛ لا يتم تشغيل الشبكة.
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                key: const Key('universal_scenario_answer'),
-                controller: _inputController,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'إجابتك',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (_) => setState(() => _result = null),
-                onSubmitted: (_) => _submitEvaluation(),
-              ),
-            ),
 
             // زر التنفيذ السفلي الموحد
             Padding(
@@ -165,14 +130,13 @@ class _UniversalAdaptiveShellState extends State<UniversalAdaptiveShell> {
                 width: double.infinity,
                 height: 50,
                 child: FilledButton(
-                  onPressed: _currentInput.trim().isEmpty ? null : _submitEvaluation,
+                  onPressed: _currentInput.isEmpty ? null : _submitEvaluation,
                   child:
                       const Text('تحقق محلياً', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ),
           ],
-          ),
         ),
       ),
     );
