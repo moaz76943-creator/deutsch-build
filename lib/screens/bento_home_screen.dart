@@ -39,37 +39,52 @@ class BentoHomeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
+                    Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Deutsch بالعربي 🌿',
-                          style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           getCircadianGreeting(),
-                          style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600),
                         ),
                       ],
-                    ),
+                    )),
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.assessment_rounded, color: Color(0xFF38BDF8)),
+                          icon: const Icon(Icons.assessment_rounded,
+                              color: Color(0xFF38BDF8)),
                           onPressed: () async {
-                            final report = await repo.generateDiagnosticReport();
+                            final report =
+                                await repo.generateDiagnosticReport();
                             if (!context.mounted) return;
                             showDialog(
                               context: context,
                               builder: (_) => AlertDialog(
                                 backgroundColor: const Color(0xFF0F172A),
-                                title: const Text('📋 التقرير التشخيصي المحلي', style: TextStyle(color: Colors.white, fontSize: 16)),
-                                content: SelectableText(report, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12)),
+                                title: const Text('📋 التقرير التشخيصي المحلي',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 16)),
+                                content: SelectableText(report,
+                                    style: const TextStyle(
+                                        color: Color(0xFF34D399),
+                                        fontSize: 12)),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: const Text('إغلاق', style: TextStyle(color: Colors.white70)),
+                                    child: const Text('إغلاق',
+                                        style:
+                                            TextStyle(color: Colors.white70)),
                                   ),
                                 ],
                               ),
@@ -78,11 +93,13 @@ class BentoHomeScreen extends ConsumerWidget {
                           tooltip: 'تقرير الصحة التشخيصي',
                         ),
                         IconButton(
-                          icon: const Icon(Icons.monitor_heart_rounded, color: Color(0xFF34D399)),
+                          icon: const Icon(Icons.monitor_heart_rounded,
+                              color: Color(0xFF34D399)),
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const DbHealthScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const DbHealthScreen()),
                             );
                           },
                           tooltip: 'صحة البيانات المحلية',
@@ -106,7 +123,9 @@ class BentoHomeScreen extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const VocabularyJournalScreen()),
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const VocabularyJournalScreen()),
                           );
                         },
                       ),
@@ -118,7 +137,8 @@ class BentoHomeScreen extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const FocusQuizScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const FocusQuizScreen()),
                           );
                         },
                       ),
@@ -130,7 +150,8 @@ class BentoHomeScreen extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const MasteryMosaicScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const MasteryMosaicScreen()),
                           );
                         },
                       ),
@@ -142,7 +163,9 @@ class BentoHomeScreen extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const WellbeingSanctuaryScreen()),
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const WellbeingSanctuaryScreen()),
                           );
                         },
                       ),
@@ -189,9 +212,14 @@ class _BentoTile extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 32),
             const Spacer(),
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+            Text(subtitle,
+                style: const TextStyle(color: Colors.white60, fontSize: 11)),
           ],
         ),
       ),

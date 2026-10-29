@@ -1,5 +1,4 @@
-import '../../features/wordbit/ui/wordbit_carousel_screen.dart';
-// ignore_for_file: prefer_const_constructors, prefer_interpolation_to_compose_strings, unused_import
+
 import 'package:flutter/material.dart';
 import '../../screens/dashboard_screen.dart';
 import '../../screens/flashcards_screen.dart';
@@ -17,20 +16,21 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case initialRoute:
-        return MaterialPageRoute(builder: (_) => OnboardingScreen(onStart: () {}));
+        return MaterialPageRoute(
+            builder: (_) => OnboardingScreen(onStart: () {}));
       case dashboard:
-        return MaterialPageRoute(builder: (_) => DashboardScreen());
+        return MaterialPageRoute(builder: (_) => const DashboardScreen());
       case flashcards:
-        return MaterialPageRoute(builder: (_) => FlashcardsScreen());
+        return MaterialPageRoute(builder: (_) => const FlashcardsScreen());
       case vocabJournal:
-        return MaterialPageRoute(builder: (_) => VocabularyJournalScreen());
+        return MaterialPageRoute(builder: (_) => const VocabularyJournalScreen());
       case speedQuiz:
-        return MaterialPageRoute(builder: (_) => SpeedQuizScreen());
+        return MaterialPageRoute(builder: (_) => const SpeedQuizScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
             body: Center(
-              child: Text('المسار غير موجود: ' + (settings.name ?? '')),
+              child: Text('المسار غير موجود: ${settings.name ?? ''}'),
             ),
           ),
         );

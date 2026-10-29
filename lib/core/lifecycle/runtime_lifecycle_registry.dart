@@ -1,42 +1,147 @@
 import 'dart:async';
 
+<<<<<<< HEAD
+import 'package:flutter/foundation.dart';
+
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
-  final List<StreamSubscription<dynamic>> _subscriptions = [];
-  final List<Timer> _timers = [];
-  bool _isDisposed = false;
+<<<<<<< HEAD
+  final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
+  final Set<String> _disposedOwners = {};
+  final bool _isDisposed = false;
+
+  bool get isDisposed => _isDisposed;
+
+  bool isOwnerDisposed(String owner) {
+    return _isDisposed || _disposedOwners.contains(owner);
+  }
+
+  void registerSubscription(StreamSubscription<dynamic> sub,
+      {String owner = 'global'}) {
+    registerCleanup(() => sub.cancel(), owner: owner);
+  }
+
+  void registerTimer(Timer timer, {String owner = 'global'}) {
+    registerCleanup(() {
+      timer.cancel();
+    }, owner: owner);
+  }
+
+  void registerCleanup(FutureOr<void> Function() cleanup,
+      {String owner = 'global'}) {
+    if (isOwnerDisposed(owner)) {
+      _safeCleanup(cleanup);
+      return;
+    }
+    _cleanups.putIfAbsent(owner, () => []).add(cleanup);
+  }
+
+  Future<void> disposeOwner(String owner) async {
+    if (isOwnerDisposed(owner)) return;
+    _disposedOwners.add(owner);
+    await disposeOwnerResources(owner);
+=======
+  final List<StreamSubscription<dynamic>> subscriptions = [];
+  final List<Timer> timers = [];
+  bool isDisposed = false;
 
   void registerSubscription(StreamSubscription<dynamic> sub) {
-    if (_isDisposed) {
+    if (isDisposed) {
       sub.cancel();
       return;
     }
-    _subscriptions.add(sub);
+    subscriptions.add(sub);
   }
 
   void registerTimer(Timer timer) {
-    if (_isDisposed) {
+    if (isDisposed) {
       timer.cancel();
       return;
     }
-    _timers.add(timer);
+    timers.add(timer);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> disposeAll() async {
-    _isDisposed = true;
-    for (final timer in _timers) {
-      timer.cancel();
-    }
-    _timers.clear();
+    isDisposed = true;
+<<<<<<< HEAD
 
-    for (final sub in _subscriptions) {
-      await sub.cancel();
+    final owners = _cleanups.keys.toList().reversed;
+    for (final owner in owners) {
+      if (!_disposedOwners.contains(owner)) {
+        _disposedOwners.add(owner);
+        await disposeOwnerResources(owner);
+      }
     }
-    _subscriptions.clear();
+
+    _cleanups.clear();
   }
 
-  bool get isDisposed => _isDisposed;
+  Future<void> disposeOwnerResources(String owner) async {
+    final cleanups = _cleanups[owner];
+    if (cleanups == null || cleanups.isEmpty) return;
+
+    // LIFO order for deterministic shutdown
+    final callbacks = cleanups.reversed.toList();
+    _cleanups.remove(owner); // clear before execution to handle race conditions
+
+    for (final cleanup in callbacks) {
+      await safeCleanup(cleanup);
+=======
+    for (final timer in timers) {
+      timer.cancel();
+    }
+    timers.clear();
+
+    for (final sub in subscriptions) {
+      await sub.cancel();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    }
+    subscriptions.clear();
+  }
+
+<<<<<<< HEAD
+  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
+    try {
+      final result = cleanup();
+      if (result is Future) {
+        // Enforce a bounded cleanup timeout, e.g., 5 seconds.
+        await result.timeout(const Duration(seconds: 5));
+      }
+    } catch (e, stackTrace) {
+      // Ensure one failing disposer does not skip remaining cleanups.
+      // Log or handle the exception safely here.
+      debugPrint('RuntimeLifecycleRegistry: Cleanup error: $e\n$stackTrace');
+    }
+  }
+
+  T? guard<T>(T Function() callback, {String owner = 'global'}) {
+    if (isOwnerDisposed(owner)) {
+      return null;
+    }
+    return callback();
+  }
+
+  Future<T?> guardFuture<T>(Future<T> future, {String owner = 'global'}) async {
+    final result = await future;
+    if (isOwnerDisposed(owner)) {
+      return null;
+    }
+    return result;
+  }
+
+  @visibleForTesting
+  void resetForTest() {
+    _cleanups.clear();
+    _disposedOwners.clear();
+    isDisposed = false;
+  }
+=======
+  bool get isDisposed => isDisposed;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

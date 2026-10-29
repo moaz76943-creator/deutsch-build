@@ -19,32 +19,50 @@ class ProfileHubScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 46,
                     backgroundColor: Colors.white.withValues(alpha: 0.15),
-                    child: const Icon(Icons.person_rounded, size: 54, color: Colors.white),
+                    child: const Icon(Icons.person_rounded,
+                        size: 54, color: Colors.white),
                   ),
                   const SizedBox(height: 12),
-                  Text('المتعلم المثابر', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 22)),
+                  Text('المتعلم المثابر',
+                      style: AppTypography.display
+                          .copyWith(color: Colors.white, fontSize: 22)),
                 ],
               ),
             ),
             const SizedBox(height: 24),
             AppBaseGlassCard(
               onTap: () {
+<<<<<<< HEAD
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const LanguageManagerScreen()));
+=======
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const OfflineStorageScreen()));
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
               },
               child: const Row(
                 children: <Widget>[
-                  Icon(Icons.folder_special_rounded, color: Color(0xFF10B981), size: 30),
+                  Icon(Icons.folder_special_rounded,
+                      color: Color(0xFF10B981), size: 30),
                   SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('إدارة اللغات والتخزين (100 لغة)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text('تنزيل حزم اللغات والصوتيات دون اتصال', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        Text('إدارة اللغات والتخزين (100 لغة)',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                        Text('تنزيل حزم اللغات والصوتيات دون اتصال',
+                            style:
+                                TextStyle(color: Colors.white60, fontSize: 12)),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 16),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      color: Colors.white38, size: 16),
                 ],
               ),
             ),

@@ -13,9 +13,16 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
   // 1. طيف الازدواجية (Diglossia)
   double _registerSlider = 0;
   final List<RegisterLevel> _registerLevels = const [
-    RegisterLevel(level: 0, phrase: 'Wie geht es dir?', context: 'أكاديمي / رسمي (Standard)'),
-    RegisterLevel(level: 1, phrase: 'Wie geht\'s?', context: 'محايد / يومي (Umgangssprache)'),
-    RegisterLevel(level: 2, phrase: 'Was geht ab?', context: 'شارع / شبابي (Slang)'),
+    RegisterLevel(
+        level: 0,
+        phrase: 'Wie geht es dir?',
+        context: 'أكاديمي / رسمي (Standard)'),
+    RegisterLevel(
+        level: 1,
+        phrase: 'Wie geht\'s?',
+        context: 'محايد / يومي (Umgangssprache)'),
+    RegisterLevel(
+        level: 2, phrase: 'Was geht ab?', context: 'شارع / شبابي (Slang)'),
   ];
 
   // 2. محاكي الإدراك المجسد (Gestures)
@@ -45,7 +52,8 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
         _backgroundColor = Colors.lightBlue.shade50;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('يبدو أن المهمة معقدة. خذ نفساً عميقاً، قمنا بتبسيط الألوان وإبطاء الإيقاع لأجلك.'),
+            content: Text(
+                'يبدو أن المهمة معقدة. خذ نفساً عميقاً، قمنا بتبسيط الألوان وإبطاء الإيقاع لأجلك.'),
             backgroundColor: Colors.teal,
           ),
         );
@@ -54,7 +62,7 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
         _backgroundColor = Colors.red.shade50; // مؤشر توتر خفيف
       }
     });
-    
+
     // العودة للون الطبيعي بعد فترة
     Timer(const Duration(seconds: 2), () {
       if (mounted) setState(() => _backgroundColor = Colors.white);
@@ -93,7 +101,10 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
                   ),
                   Text(
                     _registerLevels[_registerSlider.toInt()].phrase,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo),
+                    style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -114,7 +125,8 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
                   const Draggable<String>(
                     data: 'perfect',
                     feedback: Text('👌', style: TextStyle(fontSize: 40)),
-                    childWhenDragging: Text('👌', style: TextStyle(fontSize: 40, color: Colors.grey)),
+                    childWhenDragging: Text('👌',
+                        style: TextStyle(fontSize: 40, color: Colors.grey)),
                     child: Text('👌', style: TextStyle(fontSize: 40)),
                   ),
                   DragTarget<String>(
@@ -122,19 +134,29 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
                       return Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          border: Border.all(color: _gestureMatched ? Colors.green : Colors.grey, width: 2),
+                          border: Border.all(
+                              color:
+                                  _gestureMatched ? Colors.green : Colors.grey,
+                              width: 2),
                           borderRadius: BorderRadius.circular(12),
                           color: _gestureMatched ? Colors.green.shade50 : null,
                         ),
                         child: Text(
-                          _gestureMatched ? 'Perfekt! 👌' : 'اسحب الإيماءة هنا\n(Perfekt)',
+                          _gestureMatched
+                              ? 'Perfekt! 👌'
+                              : 'اسحب الإيماءة هنا\n(Perfekt)',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: _gestureMatched ? Colors.green : Colors.black, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color:
+                                  _gestureMatched ? Colors.green : Colors.black,
+                              fontWeight: FontWeight.bold),
                         ),
                       );
                     },
                     onAcceptWithDetails: (details) {
-                      if (details.data == 'perfect') setState(() => _gestureMatched = true);
+                      if (details.data == 'perfect') {
+                        setState(() => _gestureMatched = true);
+                      }
                     },
                   ),
                 ],
@@ -151,10 +173,12 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
                     segments: const [
                       ButtonSegment(value: 'witness', label: Text('رأيته 👁️')),
                       ButtonSegment(value: 'rumor', label: Text('إشاعة 👂')),
-                      ButtonSegment(value: 'deduction', label: Text('استنتاج 🧠')),
+                      ButtonSegment(
+                          value: 'deduction', label: Text('استنتاج 🧠')),
                     ],
                     selected: {_knowledgeSource},
-                    onSelectionChanged: (set) => setState(() => _knowledgeSource = set.first),
+                    onSelectionChanged: (set) =>
+                        setState(() => _knowledgeSource = set.first),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -167,7 +191,8 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
                           : _knowledgeSource == 'rumor'
                               ? 'Der Zug soll Verspätung haben. (نقل عن آخرين)'
                               : 'Der Zug muss Verspätung haben. (استنتاج منطقي)',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -178,18 +203,25 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
             // 4. منقذ حالة الانحباس اللفظي (TOT)
             _buildCard(
               title: '4. منقذ الانحباس (Tip-of-the-Tongue) (INNOV-W08-04)',
-              subtitle: 'الكلمة عالقة في ذهنك؟ اطلب تلميحاً لتبني مساراً عصبياً.',
+              subtitle:
+                  'الكلمة عالقة في ذهنك؟ اطلب تلميحاً لتبني مساراً عصبياً.',
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('ما هي الكلمة الألمانية التي تعني (الذاكرة)؟'),
                   const SizedBox(height: 8),
                   if (_totHintLevel > 0)
-                    Text('1. البناء البصري: ${_totWord.visualStructure}', style: const TextStyle(fontSize: 16, color: Colors.indigo)),
+                    Text('1. البناء البصري: ${_totWord.visualStructure}',
+                        style: const TextStyle(
+                            fontSize: 16, color: Colors.indigo)),
                   if (_totHintLevel > 1)
-                    Text('2. تلميح صوتي: ${_totWord.rhymeHint}', style: const TextStyle(fontSize: 16, color: Colors.indigo)),
+                    Text('2. تلميح صوتي: ${_totWord.rhymeHint}',
+                        style: const TextStyle(
+                            fontSize: 16, color: Colors.indigo)),
                   if (_totHintLevel > 2)
-                    Text('3. تلميح دلالي: ${_totWord.semanticHint}', style: const TextStyle(fontSize: 16, color: Colors.indigo)),
+                    Text('3. تلميح دلالي: ${_totWord.semanticHint}',
+                        style: const TextStyle(
+                            fontSize: 16, color: Colors.indigo)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -197,14 +229,20 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
                         icon: const Icon(Icons.sos),
                         label: const Text('طلب تلميح متدرج'),
                         onPressed: () {
-                          if (_totHintLevel < 3) setState(() => _totHintLevel++);
+                          if (_totHintLevel < 3) {
+                            setState(() => _totHintLevel++);
+                          }
                         },
                       ),
                       const SizedBox(width: 8),
                       if (_totHintLevel == 3)
                         TextButton(
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('الكلمة هي: ${_totWord.targetWord}'))),
-                          child: const Text('كشف الكلمة النهائية', style: TextStyle(color: Colors.red)),
+                          onPressed: () => ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(
+                                  content: Text(
+                                      'الكلمة هي: ${_totWord.targetWord}'))),
+                          child: const Text('كشف الكلمة النهائية',
+                              style: TextStyle(color: Colors.red)),
                         )
                     ],
                   ),
@@ -218,7 +256,9 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
               subtitle: 'اضغط بسرعة وعشوائية لمحاكاة التوتر والإحباط',
               content: Center(
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade400, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade400,
+                      foregroundColor: Colors.white),
                   onPressed: _simulateFrustration,
                   child: const Text('إجابة خاطئة سريعة (محاكاة الإحباط)'),
                 ),
@@ -230,7 +270,10 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
     );
   }
 
-  Widget _buildCard({required String title, required String subtitle, required Widget content}) {
+  Widget _buildCard(
+      {required String title,
+      required String subtitle,
+      required Widget content}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -239,8 +282,11 @@ class _Wave08HubScreenState extends State<Wave08HubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text(title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(subtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
             const Divider(),
             content,
           ],

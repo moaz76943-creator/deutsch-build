@@ -3,7 +3,8 @@ enum FeatureStatus { disabled, available, ready, unsupported }
 /// سجل مركزي للقدرات التعليمية يمنع عرض ميزات غير محملة محلياً
 class FeatureCapabilityRegistry {
   FeatureCapabilityRegistry._();
-  static final FeatureCapabilityRegistry instance = FeatureCapabilityRegistry._();
+  static final FeatureCapabilityRegistry instance =
+      FeatureCapabilityRegistry._();
 
   final Map<String, FeatureStatus> _features = {};
 

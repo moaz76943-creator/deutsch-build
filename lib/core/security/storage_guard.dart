@@ -1,6 +1,13 @@
 import 'dart:convert';
 
+enum StoragePermission { read, write }
+
 class StorageGuard {
+  static bool hasPermission(StoragePermission permission) {
+    // Explicitly allow local learning operations
+    return true;
+  }
+
   static bool validateJsonIntegrity(String rawJson) {
     try {
       final decoded = jsonDecode(rawJson);
@@ -15,9 +22,17 @@ class StorageGuard {
     final List<Map<String, dynamic>> safe = [];
     for (final item in rawList) {
       if (item is Map) {
-        safe.add(Map<String, dynamic>.from(item));
+        try {
+          safe.add(Map<String, dynamic>.from(item));
+        } catch (_) {
+          // Drop malformed maps
+        }
       }
     }
     return safe;
   }
+
+  static bool isLocalReadPermitted() => true;
+
+  static bool isLocalWritePermitted() => true;
 }

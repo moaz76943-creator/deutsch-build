@@ -17,7 +17,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
   bool _isLoading = true;
-  
+
   String _germanText = '';
   String _arabicText = '';
 
@@ -33,7 +33,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
     await _flutterTts.setLanguage(locale);
     await _flutterTts.setPitch(AudioFeedbackEngine.getPitchForGender(''));
     await _flutterTts.setSpeechRate(_playbackSpeed);
-    
+
     _flutterTts.setCompletionHandler(() {
       if (mounted) setState(() => _isPlaying = false);
     });
@@ -42,21 +42,35 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   Future<void> _loadRandomSentence() async {
     setState(() => _isLoading = true);
     try {
+<<<<<<< HEAD
+      final db =
+          await DatabaseService.instance.getContentDb(widget.languageCode);
+=======
       final db = await DatabaseService.instance.contentDb;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       // سحب جملة عشوائية من قاعدة البيانات للتدرب عليها
-      final result = await db.rawQuery('''
-        SELECT sentence, translation_ar 
-        FROM examples 
-        WHERE language_code = ?
-      ORDER BY RANDOM() LIMIT 1
-    ''', [widget.languageCode]);
-      
+      final result = await db.query(
+        'examples',
+        columns: ['sentence', 'translation_ar'],
+        where: 'language_code = ?',
+        whereArgs: [widget.languageCode],
+        orderBy: 'RANDOM()',
+        limit: 1,
+      );
+
       if (result.isNotEmpty) {
         _germanText = result.first['sentence'] as String;
         _arabicText = result.first['translation_ar'] as String;
       } else {
+<<<<<<< HEAD
+        _germanText = widget.languageCode == 'de' ? 'Ich lerne Deutsch.' : '';
+        _arabicText = widget.languageCode == 'de'
+            ? 'أنا أتعلم الألمانية.'
+            : 'لا توجد جملة متاحة.';
+=======
         _germanText = 'Ich lerne Deutsch.';
         _arabicText = 'أنا أتعلم الألمانية.';
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       }
     } catch (e) {
       _germanText = 'Fehler beim Laden.';
@@ -69,8 +83,31 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   Future<void> _speak() async {
     if (_germanText.isEmpty) return;
     setState(() => _isPlaying = true);
+<<<<<<< HEAD
+    try {
+      await _tts
+          .configure(speechRate: _playbackSpeed)
+          .timeout(const Duration(seconds: 5));
+      final played = await _audio.play(
+        text: _germanText,
+        languageCode: widget.languageCode,
+        context: mounted ? context : null,
+      );
+      if (!played && mounted) setState(() => _isPlaying = false);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isPlaying = false);
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+          content:
+              Text(HybridAudioService.fallbackMessage(widget.languageCode)),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    }
+=======
     await _flutterTts.setSpeechRate(_playbackSpeed);
     await _flutterTts.speak(_germanText);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> _stop() async {
@@ -80,7 +117,9 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
 
   void _toggleSpeed() {
     setState(() {
-      _playbackSpeed = _playbackSpeed == 1.0 ? AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: true) : AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false);
+      _playbackSpeed = _playbackSpeed == 1.0
+          ? AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: true)
+          : AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false);
     });
     if (_isPlaying) _speak(); // إعادة التشغيل بالسرعة الجديدة
   }
@@ -109,23 +148,28 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
               children: <Widget>[
                 const Spacer(),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                  const Center(
+                      child:
+                          CircularProgressIndicator(color: Color(0xFF38BDF8)))
                 else
                   AppBaseGlassCard(
                     padding: const EdgeInsets.all(28),
                     child: Column(
                       children: <Widget>[
-                        const Icon(Icons.graphic_eq_rounded, size: 72, color: Color(0xFF38BDF8)),
+                        const Icon(Icons.graphic_eq_rounded,
+                            size: 72, color: Color(0xFF38BDF8)),
                         const SizedBox(height: 18),
                         Text(
                           _germanText,
-                          style: AppTypography.display.copyWith(color: Colors.white, fontSize: 24),
+                          style: AppTypography.display
+                              .copyWith(color: Colors.white, fontSize: 24),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           _arabicText,
-                          style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8)),
+                          style: AppTypography.body.copyWith(
+                              color: Colors.white.withValues(alpha: 0.8)),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
@@ -134,19 +178,25 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
                           children: <Widget>[
                             IconButton(
                               iconSize: 54,
-                              icon: Icon(_isPlaying ? Icons.stop_circle_rounded : Icons.play_circle_fill_rounded),
+                              icon: Icon(_isPlaying
+                                  ? Icons.stop_circle_rounded
+                                  : Icons.play_circle_fill_rounded),
                               color: const Color(0xFFF39C6B),
                               onPressed: _isPlaying ? _stop : _speak,
                             ),
                             const SizedBox(width: 16),
                             ActionChip(
-                              label: Text('${_playbackSpeed}x', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              backgroundColor: Colors.white.withValues(alpha: 0.1),
+                              label: Text('${_playbackSpeed}x',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.1),
                               onPressed: _toggleSpeed,
                             ),
                             const SizedBox(width: 16),
                             IconButton(
-                              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                              icon: const Icon(Icons.refresh_rounded,
+                                  color: Colors.white),
                               onPressed: _loadRandomSentence,
                               tooltip: 'جملة جديدة',
                             )

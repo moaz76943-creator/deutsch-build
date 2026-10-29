@@ -9,7 +9,8 @@ class SpotlightSentence {
     required this.baseObject,
   });
 
-  String getFocusedSentence(String focusTarget) {
+  String getFocusedSentence(String? focusTarget) {
+    if (focusTarget == null) return "";
     if (focusTarget == 'object') {
       return '$baseObject $baseVerb $baseSubject (تقديم المفعول للتركيز)';
     } else if (focusTarget == 'verb') {
