@@ -2,30 +2,21 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionState {
-<<<<<<< HEAD
   final int version;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   final String sessionId;
   final String currentRoute;
   final int lastItemIndex;
   final int timestamp;
-<<<<<<< HEAD
   final String? languagePairKey;
   final List<String> committedReviewIds;
   final int recoveryAttempts;
 
   SessionState({
     this.version = 1,
-=======
-
-  SessionState({
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     required this.sessionId,
     required this.currentRoute,
     required this.lastItemIndex,
     required this.timestamp,
-<<<<<<< HEAD
     this.languagePairKey,
     this.committedReviewIds = const [],
     this.recoveryAttempts = 0,
@@ -77,23 +68,6 @@ class SessionState {
             const [],
         recoveryAttempts: map['recovery_attempts'] as int? ?? 0,
       );
-=======
-  });
-
-  Map<String, dynamic> toMap() => {
-    'session_id': sessionId,
-    'current_route': currentRoute,
-    'last_item_index': lastItemIndex,
-    'timestamp': timestamp,
-  };
-
-  factory SessionState.fromMap(Map<String, dynamic> map) => SessionState(
-    sessionId: map['session_id'] as String,
-    currentRoute: map['current_route'] as String,
-    lastItemIndex: map['last_item_index'] as int,
-    timestamp: map['timestamp'] as int,
-  );
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
 
 class SessionRecoveryManager {
@@ -107,21 +81,16 @@ class SessionRecoveryManager {
     await _prefs.setString(_storageKey, rawJson);
   }
 
-<<<<<<< HEAD
   SessionState? restoreSession({
     String? expectedLanguagePairKey,
     bool Function(String route)? isValidRoute,
     bool Function(String pairKey)? isPackAvailable,
     int? currentTimestampSec,
   }) {
-=======
-  SessionState? restoreSession() {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     final rawJson = _prefs.getString(_storageKey);
     if (rawJson == null || rawJson.isEmpty) return null;
     try {
       final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
-<<<<<<< HEAD
       final state = SessionState.fromMap(decoded);
 
       // Validation
@@ -177,16 +146,4 @@ class SessionRecoveryManager {
   Future<void> clearSession() async {
     await _prefs.remove(_storageKey);
   }
-=======
-      return SessionState.fromMap(decoded);
-return null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> clearSession() async {
-    await _prefs.remove(_storageKey);
-  }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
