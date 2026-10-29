@@ -1,153 +1,150 @@
 import 'dart:collection';
-import 'package:deutsch_bilarabi/core/contracts/linguistic_capability.dart';
-import 'package:deutsch_bilarabi/core/i18n/language_registry.dart';
-import 'language_pack_gate.dart';
-import 'language_readiness_matrix.dart';
 
-abstract class PairReadinessState {
-  final bool isUsable;
-  const PairReadinessState(this.isUsable);
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
+import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
+import 'package:deutsch_bilarabi/core/catalog/language_readiness_matrix.dart';
+
+enum PairReadinessState {
+  ready,
+  invalidPair,
+  identical,
+  unsupportedSource,
+  unsupportedTarget,
+  missingPack,
+  rejectedPack,
+  schemaMismatch,
+  missingDirectedEvidence,
 }
 
-class ReadyState extends PairReadinessState {
-  const ReadyState() : super(true);
+class DirectedPairStatus {
+  final PairReadinessState state;
+  final String message;
+  const DirectedPairStatus(this.state, this.message);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DirectedPairStatus &&
+      other.state == state &&
+      other.message == message;
+
+  @override
+  int get hashCode => Object.hash(state, message);
 }
 
-abstract class UnavailableState extends PairReadinessState {
-  final String reason;
-  const UnavailableState(this.reason) : super(false);
-}
+/// Readiness observation, NOT a replacement for the signed pair admission gate.
+/// In particular, a pack gate's "approved" flag alone never proves A->B content.
+class DirectedPairReadinessEngine {
+  static final RegExp _validLocaleTag =
+      RegExp(r'^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$');
+  final int maxCachedPairs;
+  final int maxCachedPacks;
 
-class IdenticalPairState extends UnavailableState {
-  const IdenticalPairState(super.reason);
-}
+  final LinkedHashMap<String, LanguagePackGateResult> _packStatusCache =
+      LinkedHashMap<String, LanguagePackGateResult>();
+  final LinkedHashMap<DirectedPairId, DirectedPairStatus> _pairCache =
+      LinkedHashMap<DirectedPairId, DirectedPairStatus>();
 
-class UnregisteredLanguageState extends UnavailableState {
-  const UnregisteredLanguageState(super.reason);
-}
-
-class UnverifiedLanguageState extends UnavailableState {
-  const UnverifiedLanguageState(super.reason);
-}
-
-class MissingPackState extends UnavailableState {
-  const MissingPackState(super.reason);
-}
-
-class InvalidPackState extends UnavailableState {
-  const InvalidPackState(super.reason);
-}
-
-class UnsupportedPairState extends UnavailableState {
-  const UnsupportedPairState(super.reason);
-}
-
-class DirectedReadinessEngine {
-  final Map<String, LanguagePackGateResult> _packStatus = {};
-  final Set<LanguagePair> _supportedPairs = {};
-
-  // Bounded cache, max 50 items
-  final int _maxCacheSize = 50;
-  final LinkedHashMap<LanguagePair, PairReadinessState> _pairCache =
-      LinkedHashMap();
-
-  void submitPackForEvaluation({
-    required String packCode,
-    required int wordCount,
-    required String? checksum,
+  DirectedPairReadinessEngine({
+    this.maxCachedPairs = 100,
+    this.maxCachedPacks = 100,
   }) {
-    final result = LanguagePackAcceptanceGate.evaluatePack(
-      packCode: packCode,
-      wordCount: wordCount,
-      checksum: checksum,
-    );
-    _packStatus[packCode] = result;
-    _invalidateCacheForLanguage(packCode);
-  }
-
-  void invalidatePack(String packCode) {
-    _packStatus.remove(packCode);
-    _invalidateCacheForLanguage(packCode);
-  }
-
-  void _invalidateCacheForLanguage(String languageCode) {
-    final keysToRemove = _pairCache.keys
-        .where((pair) =>
-            pair.sourceIso == languageCode || pair.targetIso == languageCode)
-        .toList();
-    for (final key in keysToRemove) {
-      _pairCache.remove(key);
+    if (maxCachedPairs <= 0 || maxCachedPacks <= 0) {
+      throw ArgumentError('Cache capacities must be positive');
     }
   }
 
-  PairReadinessState evaluatePair(String sourceIso, String targetIso) {
-    final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
-
-    if (_pairCache.containsKey(pair)) {
-      return _pairCache[pair]!;
+  DirectedPairStatus resolvePair(DirectedPairId pair) {
+    if (pair.isReflexive) {
+      return const DirectedPairStatus(
+        PairReadinessState.identical, 'Same language',
+      );
     }
-
-    final state = _computeReadiness(sourceIso, targetIso);
-
-    _pairCache[pair] = state;
-    if (_pairCache.length > _maxCacheSize) {
-      // Remove oldest entry
+    if (!pair.isValidForLearning()) {
+      return const DirectedPairStatus(
+        PairReadinessState.invalidPair, 'Invalid pair identity',
+      );
+    }
+    final cached = _pairCache.remove(pair);
+    if (cached != null) {
+      _pairCache[pair] = cached;
+      return cached;
+    }
+    final status = _evaluate(pair);
+    _pairCache[pair] = status;
+    if (_pairCache.length > maxCachedPairs) {
       _pairCache.remove(_pairCache.keys.first);
     }
-
-    return state;
+    return status;
   }
 
-  void authorizeDirectedPair(String sourceIso, String targetIso) {
-    final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
-    _supportedPairs.add(pair);
-    _pairCache.remove(
-        pair); // Invalidate in cache just in case it was cached as unsupported
-  }
-
-  PairReadinessState _computeReadiness(String sourceIso, String targetIso) {
-    if (sourceIso == targetIso) {
-      return IdenticalPairState(
-          'Source and target languages are identical: $sourceIso');
+  DirectedPairStatus _evaluate(DirectedPairId pair) {
+    if (pair.isReflexive) {
+      return const DirectedPairStatus(PairReadinessState.identical, 'Same language');
     }
-
-    final pair = LanguagePair(sourceIso: sourceIso, targetIso: targetIso);
-    if (!_supportedPairs.contains(pair)) {
-      return UnsupportedPairState(
-          'Directed language pair $sourceIso -> $targetIso is not authorized for learning.');
+    if (!pair.isValidForLearning()) {
+      return const DirectedPairStatus(PairReadinessState.invalidPair, 'Invalid pair identity');
     }
-
-    final sourceState = _checkLanguage(sourceIso, 'Source');
-    if (sourceState is! ReadyState) return sourceState;
-
-    final targetState = _checkLanguage(targetIso, 'Target');
-    if (targetState is! ReadyState) return targetState;
-
-    return const ReadyState();
-  }
-
-  PairReadinessState _checkLanguage(String iso, String role) {
-    if (!LanguageRegistry.supportedLanguages.containsKey(iso.toLowerCase())) {
-      return UnregisteredLanguageState(
-          '$role language "$iso" is not registered.');
-    }
-
-    if (LanguageReadinessMatrix.getTier(iso) !=
+    if (LanguageReadinessMatrix.getTier(pair.sourceLocale) !=
         LanguageReadinessTier.productionReady) {
-      return UnverifiedLanguageState(
-          '$role language "$iso" is not verified for production.');
+      return const DirectedPairStatus(PairReadinessState.unsupportedSource, 'Source not production-ready');
+    }
+    if (LanguageReadinessMatrix.getTier(pair.targetLocale) !=
+        LanguageReadinessTier.productionReady) {
+      return const DirectedPairStatus(PairReadinessState.unsupportedTarget, 'Target not production-ready');
     }
 
-    final packResult = _packStatus[iso];
-    if (packResult == null) {
-      return MissingPackState('$role language "$iso" pack is missing.');
+    final gate = _packStatusCache[pair.targetLocale];
+    if (gate == null) {
+      return const DirectedPairStatus(PairReadinessState.missingPack, 'Target pack unverified');
     }
-
-    if (packResult.status != PackGateStatus.approved) {
-      return InvalidPackState(
-          '$role language "$iso" pack is invalid: ${packResult.reason ?? packResult.status.name}');
+    switch (gate.status) {
+      case PackGateStatus.missingChecksum:
+      case PackGateStatus.rejected:
+        return DirectedPairStatus(
+          PairReadinessState.rejectedPack, gate.reason ?? 'Pack not admitted',
+        );
+      case PackGateStatus.schemaMismatch:
+        return DirectedPairStatus(
+          PairReadinessState.schemaMismatch, gate.reason ?? 'Pack schema mismatch',
+        );
+      case PackGateStatus.approved:
+        // LanguagePackAcceptanceGate only checks positive rows/nonempty
+        // checksums; it neither verifies the signature nor the *directed*
+        // translation edge. Cannot assert pair readiness from it.
+        return const DirectedPairStatus(
+          PairReadinessState.missingDirectedEvidence,
+          'No independently verified directed-pair admission',
+        );
     }
-
-    return const ReadyState();
   }
+
+  void updatePackStatus(String locale, LanguagePackGateResult result) {
+    if (locale.length > 64 || !_validLocaleTag.hasMatch(locale)) {
+      throw ArgumentError.value(locale, 'locale', 'Invalid pack locale');
+    }
+    _packStatusCache.remove(locale);
+    _packStatusCache[locale] = result;
+    if (_packStatusCache.length > maxCachedPacks) {
+      _packStatusCache.remove(_packStatusCache.keys.first);
+    }
+    _pairCache.removeWhere(
+      (pair, _) => pair.sourceLocale == locale || pair.targetLocale == locale,
+    );
+  }
+
+  void invalidatePack(String locale) {
+    _packStatusCache.remove(locale);
+    _pairCache.removeWhere(
+      (pair, _) => pair.sourceLocale == locale || pair.targetLocale == locale,
+    );
+  }
+
+  void clear() {
+    _pairCache.clear();
+    _packStatusCache.clear();
+  }
+
+  int get currentPairCacheSize => _pairCache.length;
+  int get currentPackCacheSize => _packStatusCache.length;
 }
+

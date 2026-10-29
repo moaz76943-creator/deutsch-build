@@ -25,8 +25,7 @@ class PerformanceAnalyticsScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFF38BDF8).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+                    border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: <Widget>[
@@ -38,15 +37,12 @@ class PerformanceAnalyticsScreen extends StatelessWidget {
                           children: <Widget>[
                             Text(
                               'معدل التقدم العام',
-                              style: AppTypography.display
-                                  .copyWith(color: Colors.white, fontSize: 16),
+                              style: AppTypography.display.copyWith(color: Colors.white, fontSize: 16),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'نسبة إتقان الكلمات والقواعد وصلت إلى 84% هذا الأسبوع.',
-                              style: AppTypography.body.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 12),
+                              style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
                             ),
                           ],
                         ),
@@ -57,8 +53,7 @@ class PerformanceAnalyticsScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 Text(
                   'خريطة الضعف والتركيز (Weakness Heatmap)',
-                  style: AppTypography.display
-                      .copyWith(color: Colors.white, fontSize: 18),
+                  style: AppTypography.display.copyWith(color: Colors.white, fontSize: 18),
                 ),
                 const SizedBox(height: 12),
                 AppBaseGlassCard(
@@ -71,14 +66,11 @@ class PerformanceAnalyticsScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                       const SizedBox(height: 14),
-                      _buildWeaknessItem('قواعد الأفعال المركبة (German)', 0.75,
-                          const Color(0xFFEF4444)),
+                      _buildWeaknessItem('قواعد الأفعال المركبة (German)', 0.75, const Color(0xFFEF4444)),
                       const SizedBox(height: 12),
-                      _buildWeaknessItem('أدوات التعريف والتنكير (Articles)',
-                          0.50, const Color(0xFFF59E0B)),
+                      _buildWeaknessItem('أدوات التعريف والتنكير (Articles)', 0.50, const Color(0xFFF59E0B)),
                       const SizedBox(height: 12),
-                      _buildWeaknessItem('مفردات الحياة اليومية (Daily Life)',
-                          0.20, const Color(0xFF34D399)),
+                      _buildWeaknessItem('مفردات الحياة اليومية (Daily Life)', 0.20, const Color(0xFF34D399)),
                     ],
                   ),
                 ),

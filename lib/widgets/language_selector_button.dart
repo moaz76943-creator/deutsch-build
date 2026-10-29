@@ -31,7 +31,7 @@ Future<bool> checkShouldShowLanguagePicker() async {
 Future<bool> markLanguagePickerCompleted() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    return await prefs.setBool(_languagePickerCompletedKey, true);
+    return prefs.setBool(_languagePickerCompletedKey, true);
   } catch (_) {
     return false;
   }
@@ -98,8 +98,7 @@ class LanguageSelectorButton extends ConsumerWidget {
                       const LanguageManagerScreen(),
                   transitionDuration: const Duration(milliseconds: 280),
                   reverseTransitionDuration: const Duration(milliseconds: 220),
-                  transitionsBuilder:
-                      (_, animation, secondaryAnimation, child) {
+                  transitionsBuilder: (_, animation, secondaryAnimation, child) {
                     final progress = animation.drive(
                       CurveTween(curve: Curves.easeOutCubic),
                     );

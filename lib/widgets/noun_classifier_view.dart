@@ -5,39 +5,14 @@ import 'package:flutter/material.dart';
 /// Classifiers are supplied by the lexicon, not inferred from the noun:
 /// different senses and contexts can require different classifiers.
 const Set<String> _measureWordLanguages = <String>{
-  'zh',
-  'cmn',
-  'yue',
-  'ja',
-  'ko',
-  'vi',
-  'th',
-  'km',
-  'lo',
-  'my',
+  'zh', 'cmn', 'yue', 'ja', 'ko', 'vi', 'th', 'km', 'lo', 'my',
 };
 
 /// Selected Bantu languages whose nouns belong to agreement classes.
 /// These are noun-class markers, not Asian-style counting classifiers.
 const Set<String> _nounClassLanguages = <String>{
-  'sw',
-  'zu',
-  'xh',
-  'rw',
-  'rn',
-  'lg',
-  'sn',
-  'ny',
-  'st',
-  'tn',
-  'ts',
-  'ss',
-  've',
-  'nr',
-  'nso',
-  'ki',
-  'kg',
-  'ln',
+  'sw', 'zu', 'xh', 'rw', 'rn', 'lg', 'sn', 'ny', 'st', 'tn', 'ts',
+  'ss', 've', 'nr', 'nso', 'ki', 'kg', 'ln',
 };
 
 /// Displays a lexical classifier beside a noun, with optional reading

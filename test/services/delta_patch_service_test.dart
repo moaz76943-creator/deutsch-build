@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:deutsch_bilarabi/services/delta_patch_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
 
   setUp(() async {
     temp = await Directory.systemTemp.createTemp('delta_service_');
-    installed = File('${temp.path}/fr.sqlite');
+    installed = File(temp.path + '/fr.sqlite');
     final db = await openFile(installed);
     await db.execute('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT)');
     await db.insert('words', {'id': 1, 'word': 'old'});
@@ -35,7 +36,7 @@ void main() {
 
   test('publishes inserts, updates, deletes and SQL only after digest check',
       () async {
-    final expected = File('${temp.path}/expected.sqlite');
+    final expected = File(temp.path + '/expected.sqlite');
     await installed.copy(expected.path);
     final db = await openFile(expected);
     await db.transaction((txn) async {
@@ -87,7 +88,7 @@ void main() {
       throwsStateError,
     );
     expect(await digest(installed), originalHash);
-    expect(await File('${installed.path}.delta-staging').exists(), false);
+    expect(await File(installed.path + '.delta-staging').exists(), false);
   });
 
   test('refuses wrong version, unsafe destructive DML and SQL batching',
@@ -172,7 +173,7 @@ void main() {
   });
 
   test('does not copy files with an active WAL sidecar', () async {
-    await File('${installed.path}-wal').writeAsString('busy');
+    await File(installed.path + '-wal').writeAsString('busy');
     await expectLater(
       service.applyPatch(databaseFile: installed, patch: {
         'fromVersion': 1, 'toVersion': 2,

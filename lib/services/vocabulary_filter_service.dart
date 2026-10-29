@@ -53,8 +53,8 @@ class VocabularyFilterService {
   }) async {
     _validatePagination(limit, offset);
     if (maxFrequencyRank != null && maxFrequencyRank < 1) {
-      throw RangeError.value(
-          maxFrequencyRank, 'maxFrequencyRank', 'Must be a positive integer');
+      throw RangeError.value(maxFrequencyRank, 'maxFrequencyRank',
+          'Must be a positive integer');
     }
 
     final db = await _openContentDb(languageCode);
@@ -105,6 +105,7 @@ class VocabularyFilterService {
       return db.rawQuery(fallback.sql, fallback.arguments);
     }
   }
+
 
   /// Applies the same CEFR/frequency conditions to every lemma retry.
   Future<SearchFeedback<Map<String, Object?>>> searchWithFeedback({
@@ -185,8 +186,8 @@ class VocabularyFilterService {
   }) {
     _validatePagination(limit, offset);
     if (maxFrequencyRank != null && maxFrequencyRank < 1) {
-      throw RangeError.value(
-          maxFrequencyRank, 'maxFrequencyRank', 'Must be a positive integer');
+      throw RangeError.value(maxFrequencyRank, 'maxFrequencyRank',
+          'Must be a positive integer');
     }
     if (maxFrequencyRank != null && !hasFrequencyRankColumn) {
       throw UnsupportedError('frequency_rank column is unavailable');
@@ -194,8 +195,7 @@ class VocabularyFilterService {
     if (cefrSource != 'indexedColumn' &&
         cefrSource != 'concepts' &&
         cefrSource != 'legacyJson') {
-      throw ArgumentError.value(
-          cefrSource, 'cefrSource', 'Unknown CEFR source');
+      throw ArgumentError.value(cefrSource, 'cefrSource', 'Unknown CEFR source');
     }
 
     final args = <Object?>[];
@@ -239,15 +239,13 @@ class VocabularyFilterService {
           ' AND l.rowid IN (SELECT rowid FROM lexicon_fts '
           'WHERE lexicon_fts MATCH ?)',
         );
-        args.add('"${searchTerm.replaceAll('"', '""')}"');
+        args.add('"' + searchTerm.replaceAll('"', '""') + '"');
       } else {
-        sql.write(
-            r" AND (l.surface LIKE ? ESCAPE '\' OR l.fields_json LIKE ? ESCAPE '\')");
+        sql.write(r" AND (l.surface LIKE ? ESCAPE '\' OR l.fields_json LIKE ? ESCAPE '\')");
         final slash = String.fromCharCode(92);
-        final literal = searchTerm
-            .replaceAll(slash, slash + slash)
-            .replaceAll('%', '$slash%')
-            .replaceAll('_', '${slash}_');
+        final literal = searchTerm.replaceAll(slash, slash + slash)
+            .replaceAll('%', slash + '%')
+            .replaceAll('_', slash + '_');
         args.addAll(<String>['%$literal%', '%$literal%']);
       }
     }

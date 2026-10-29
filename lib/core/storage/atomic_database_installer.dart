@@ -1,12 +1,6 @@
 import 'dart:io';
 
-enum DatabaseInstallStatus {
-  installed,
-  replaced,
-  alreadyExists,
-  corrupted,
-  failed
-}
+enum DatabaseInstallStatus { installed, alreadyExists, corrupted, failed, rejected }
 
 class DatabaseInstallResult {
   final DatabaseInstallStatus status;
@@ -20,24 +14,13 @@ class AtomicDatabaseInstaller {
   static Future<DatabaseInstallResult> installDatabaseAtomically({
     required String sourcePath,
     required String targetPath,
-    bool allowReplacement = false,
+    Future<bool> Function(File file)? verifier,
+    Future<void> Function(File file, String reason)? onQuarantine,
   }) async {
-    final targetFile = File(targetPath);
-    final targetExists = await targetFile.exists();
-
-    if (targetExists && !allowReplacement) {
-      return const DatabaseInstallResult(DatabaseInstallStatus.alreadyExists);
-    }
-
     final tempPath = '$targetPath.tmp';
     final tempFile = File(tempPath);
 
     try {
-      // Clean up orphaned .tmp files before copying
-      if (await tempFile.exists()) {
-        await tempFile.delete();
-      }
-
       final sourceFile = File(sourcePath);
       if (!await sourceFile.exists()) {
         return const DatabaseInstallResult(
@@ -58,14 +41,24 @@ class AtomicDatabaseInstaller {
         );
       }
 
-      // نقل ذري للمسار النهائي
-      // This will overwrite the targetFile if it exists, fulfilling atomic replacement.
-      // If this fails, the original targetFile is untouched.
-      await tempFile.rename(targetPath);
+      if (verifier != null) {
+        final isValid = await verifier(tempFile);
+        if (!isValid) {
+          if (onQuarantine != null) {
+             await onQuarantine(tempFile, 'Validation failed during atomic install');
+          } else {
+             if (await tempFile.exists()) await tempFile.delete();
+          }
+          return const DatabaseInstallResult(
+            DatabaseInstallStatus.rejected,
+            'Verification failed',
+          );
+        }
+      }
 
-      return DatabaseInstallResult(targetExists
-          ? DatabaseInstallStatus.replaced
-          : DatabaseInstallStatus.installed);
+      // نقل ذري للمسار النهائي
+      await tempFile.rename(targetPath);
+      return const DatabaseInstallResult(DatabaseInstallStatus.installed);
     } catch (e) {
       if (await tempFile.exists()) {
         await tempFile.delete();

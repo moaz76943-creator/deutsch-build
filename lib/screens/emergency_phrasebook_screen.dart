@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 
 String _emergencyPhraseHeroTag(Map<String, String> phrase) =>
-    'emergency_phrase_${phrase['title'] ?? ''}';
+    'emergency_phrase_' + (phrase['title'] ?? '');
 
 /// Offline phrases remain bundled; opening details never triggers a download.
 class EmergencyPhrasebookScreen extends StatelessWidget {
@@ -11,21 +11,9 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> phrases = [
-      {
-        "title": "أحتاج إلى طبيب فوراً",
-        "trans": "Ich brauche sofort einen Arzt",
-        "icon": "🏥"
-      },
-      {
-        "title": "أين أقرب صيدلية؟",
-        "trans": "Wo ist die nächste Apotheke?",
-        "icon": "💊"
-      },
-      {
-        "title": "لقد ضاع جواز سفرى",
-        "trans": "Mein Reisepass ist verloren gegangen",
-        "icon": "✈️"
-      },
+      {"title": "أحتاج إلى طبيب فوراً", "trans": "Ich brauche sofort einen Arzt", "icon": "🏥"},
+      {"title": "أين أقرب صيدلية؟", "trans": "Wo ist die nächste Apotheke?", "icon": "💊"},
+      {"title": "لقد ضاع جواز سفرى", "trans": "Mein Reisepass ist verloren gegangen", "icon": "✈️"},
       {"title": "النجدة / الشرطة", "trans": "Hilfe / Polizei", "icon": "🚨"},
     ];
 
@@ -49,60 +37,60 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                 child: Semantics(
                   button: true,
                   child: AppBaseGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => EmergencyPhrasebookDetailScreen(
-                            item: item,
+                  padding: const EdgeInsets.all(16),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => EmergencyPhrasebookDetailScreen(
+                          item: item,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Row(
+                      children: <Widget>[
+                        Hero(
+                          tag: _emergencyPhraseHeroTag(item),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Text(
+                              item['icon']!,
+                              style: const TextStyle(fontSize: 32),
+                            ),
                           ),
                         ),
-                      );
-                    },
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Row(
-                        children: <Widget>[
-                          Hero(
-                            tag: _emergencyPhraseHeroTag(item),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: Text(
-                                item['icon']!,
-                                style: const TextStyle(fontSize: 32),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                item['title']!,
+                                softWrap: true,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  item['title']!,
-                                  softWrap: true,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item['trans']!,
+                                textDirection: TextDirection.ltr,
+                                softWrap: true,
+                                style: const TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 14,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['trans']!,
-                                  textDirection: TextDirection.ltr,
-                                  softWrap: true,
-                                  style: const TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
                   ),
                 ),
               );
