@@ -1,20 +1,19 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../widgets/bidi_lexicon_view.dart';
+import '../widgets/phonetic_ipa_view.dart';
+import '../widgets/noun_classifier_view.dart';
+import '../widgets/idioms_view.dart';
+import '../widgets/example_sentences_view.dart';
 
 class AppTypography {
-  static const TextStyle h1 = TextStyle(
-      fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A));
-  static const TextStyle h2 = TextStyle(
-      fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B));
-  static const TextStyle h3 = TextStyle(
-      fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155));
-  static const TextStyle body =
-      TextStyle(fontSize: 14, color: Color(0xFF475569));
-  static const TextStyle bodyMedium = TextStyle(
-      fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF475569));
-  static const TextStyle caption =
-      TextStyle(fontSize: 12, color: Color(0xFF64748B));
-  static const TextStyle label = TextStyle(
-      fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B));
+  static const TextStyle h1 = TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A));
+  static const TextStyle h2 = TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B));
+  static const TextStyle h3 = TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155));
+  static const TextStyle body = TextStyle(fontSize: 14, color: Color(0xFF475569));
+  static const TextStyle bodyMedium = TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF475569));
+  static const TextStyle caption = TextStyle(fontSize: 12, color: Color(0xFF64748B));
+  static const TextStyle label = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B));
 }
 
 class AppGradients {
@@ -107,7 +106,7 @@ class WordDeepDiveSheet extends StatelessWidget {
     );
   }
 
-<<<<<<< HEAD
+
   static String? _value(Object? input) {
     if (input == null) return null;
     final text = input.toString().trim();
@@ -168,13 +167,10 @@ class WordDeepDiveSheet extends StatelessWidget {
       for (final entry in decoded) {
         if (entry is! Map) continue;
         final source = _first(<Object?>[
-          entry['sentence'],
-          entry['text'],
-          entry['example'],
+          entry['sentence'], entry['text'], entry['example'],
         ]);
         final target = _first(<Object?>[
-          entry['translation'],
-          entry['translation_ar'],
+          entry['translation'], entry['translation_ar'],
           entry['meaning_ar'],
         ]);
         if (source != null && target != null) {
@@ -187,16 +183,12 @@ class WordDeepDiveSheet extends StatelessWidget {
     }
     if (valid.isEmpty) {
       final source = _first(<Object?>[
-        data['sentence'],
-        data['example'],
-        fields['sentence'],
+        data['sentence'], data['example'], fields['sentence'],
         fields['example'],
       ]);
       final target = _first(<Object?>[
-        data['exampleMeaning'],
-        data['example_translation'],
-        fields['example_translation_ar'],
-        fields['sentence_translation_ar'],
+        data['exampleMeaning'], data['example_translation'],
+        fields['example_translation_ar'], fields['sentence_translation_ar'],
         fields['exampleMeaning'],
       ]);
       if (source != null && target != null) {
@@ -212,42 +204,26 @@ class WordDeepDiveSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = wordData ??
-        (item is Map
-            ? (item as Map).map(
-                (key, value) => MapEntry(key.toString(), value),
-              )
-            : <String, dynamic>{});
+        (item is Map ? (item as Map).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ) : <String, dynamic>{});
     final fields = _fields(data);
     final displayWord = _first(<Object?>[
-          word,
-          data['lemma'],
-          data['word'],
-          data['surface'],
-          data['display_text'],
-        ]) ??
-        'مفردة';
+      word, data['lemma'], data['word'], data['surface'],
+      data['display_text'],
+    ]) ?? 'مفردة';
     final displayArticle = _first(<Object?>[
-      article,
-      data['article'],
-      fields['article'],
+      article, data['article'], fields['article'],
     ]);
     final displayMeaning = _first(<Object?>[
-          meaning,
-          data['translation_ar'],
-          data['meaning'],
-          fields['translation_ar'],
-          fields['translation'],
-        ]) ??
-        'المعنى غير متوفر';
+      meaning, data['translation_ar'], data['meaning'],
+      fields['translation_ar'], fields['translation'],
+    ]) ?? 'المعنى غير متوفر';
     final displayExample = _first(<Object?>[
-      example,
-      data['sentence'],
-      fields['sentence'],
+      example, data['sentence'], fields['sentence'],
     ]);
     final displayExampleMeaning = _first(<Object?>[
-      exampleMeaning,
-      data['exampleMeaning'],
-      fields['example_translation_ar'],
+      exampleMeaning, data['exampleMeaning'], fields['example_translation_ar'],
     ]);
     final displayData = <String, dynamic>{
       ...data,
@@ -256,80 +232,56 @@ class WordDeepDiveSheet extends StatelessWidget {
         'exampleMeaning': displayExampleMeaning,
     };
     final lang = _first(<Object?>[
-          data['language_code'],
-          fields['language_code'],
-        ]) ??
-        'de';
+      data['language_code'], fields['language_code'],
+    ]) ?? 'de';
     final pos = _first(<Object?>[
-          data['part_of_speech'],
-          fields['part_of_speech'],
-        ]) ??
-        '';
+      data['part_of_speech'], fields['part_of_speech'],
+    ]) ?? '';
     final ipa = _first(<Object?>[
-      fields['ipa'],
-      fields['phonetic_ipa'],
-      fields['pronunciation_ipa'],
+      fields['ipa'], fields['phonetic_ipa'], fields['pronunciation_ipa'],
       data['ipa'],
     ]);
     final headwordId = _first(<Object?>[
-          data['id'],
-          data['lexeme_id'],
-        ]) ??
-        '';
+      data['id'], data['lexeme_id'],
+    ]) ?? '';
     final classifier = _first(<Object?>[
-          fields['classifier'],
-          fields['measure_word'],
-          fields['noun_class'],
-          data['classifier'],
-        ]) ??
-        '';
+      fields['classifier'], fields['measure_word'], fields['noun_class'],
+      data['classifier'],
+    ]) ?? '';
     final reading = _first(<Object?>[
-          fields['classifier_reading'],
-          fields['measure_word_reading'],
-        ]) ??
-        '';
+      fields['classifier_reading'], fields['measure_word_reading'],
+    ]) ?? '';
     final explanation = _first(<Object?>[
-          fields['classifier_explanation'],
-          fields['measure_word_explanation'],
-        ]) ??
-        '';
+      fields['classifier_explanation'], fields['measure_word_explanation'],
+    ]) ?? '';
     final examples = examplesJsonFor(displayData);
-=======
-  @override
-  Widget build(BuildContext context) {
-    final Map<String, dynamic> data = wordData ??
-        (item is Map<String, dynamic> ? item as Map<String, dynamic> : <String, dynamic>{});
-    final String displayWord = word ?? data['word']?.toString() ?? 'مفردة';
-    final String displayArticle = article ?? data['article']?.toString() ?? '';
-    final String displayMeaning = meaning ?? data['meaning']?.toString() ?? 'المعنى';
-    final String displayExample = example ?? data['example']?.toString() ?? '';
-    final String displayExampleMeaning = exampleMeaning ?? data['exampleMeaning']?.toString() ?? '';
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.88,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(8),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
-<<<<<<< HEAD
             const SizedBox(height: 16),
-            if (displayArticle != null ||
-                pos.isNotEmpty ||
-                classifier.isNotEmpty)
+            if (displayArticle != null || pos.isNotEmpty || classifier.isNotEmpty)
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
@@ -337,16 +289,17 @@ class WordDeepDiveSheet extends StatelessWidget {
                 children: <Widget>[
                   if (displayArticle != null)
                     ArticleBadge(article: displayArticle),
-                  if (pos.isNotEmpty) Chip(label: Text(pos)),
+                  if (pos.isNotEmpty)
+                    Chip(label: Text(pos)),
                   if (classifier.isNotEmpty)
                     NounClassifierView(
-                      noun: displayWord,
-                      languageCode: lang,
-                      partOfSpeech: pos,
-                      classifier: classifier,
-                      reading: reading,
-                      explanation: explanation,
-                    ),
+                    noun: displayWord,
+                    languageCode: lang,
+                    partOfSpeech: pos,
+                    classifier: classifier,
+                    reading: reading,
+                    explanation: explanation,
+                  ),
                 ],
               ),
             BidiLexiconView(
@@ -355,7 +308,9 @@ class WordDeepDiveSheet extends StatelessWidget {
               targetExplanation: displayMeaning,
               sourceStyle: AppTypography.h1,
               explanationStyle: AppTypography.bodyMedium,
-              phonetic: hasPhoneticData(ipa) ? PhoneticIpaView(ipa: ipa) : null,
+              phonetic: hasPhoneticData(ipa)
+                  ? PhoneticIpaView(ipa: ipa)
+                  : null,
             ),
             if (examples != null) ...<Widget>[
               const SizedBox(height: 12),
@@ -363,88 +318,30 @@ class WordDeepDiveSheet extends StatelessWidget {
                 examplesJson: examples,
                 keyword: displayWord,
                 sourceLanguageCode: lang,
-=======
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              if (displayArticle.isNotEmpty) ...[
-                ArticleBadge(article: displayArticle),
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                child: Text(
-                  displayWord,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            displayMeaning,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF334155),
-            ),
-          ),
-          if (displayExample.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+            // No surrounding spacing when the optional idioms panel
+            // collapses because its table or records are absent.
+            if (headwordId.isNotEmpty)
+              IdiomsView(
+                headwordId: headwordId,
+                languageCode: lang,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    displayExample,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  if (displayExampleMeaning.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      displayExampleMeaning,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ],
+            const SizedBox(height: 18),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4F46E5),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق'),
             ),
           ],
-          const SizedBox(height: 24),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F46E5),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إغلاق',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

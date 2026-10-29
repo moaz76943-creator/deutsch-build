@@ -1,19 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:ui' show RootIsolateToken;
 
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
-
-/// Duty-cycle profiles for background tasks to prevent device overheating and battery drain.
-enum ThermalProfile {
-  /// Unconstrained processing: 200 rows per batch, 5ms yield pause.
-  normal,
-  /// Duty-cycled processing for sustained background tasks: 100 rows per batch, 15ms yield.
-  sustained,
-  /// Cool-down mode under thermal pressure or low battery: 50 rows per batch, 50ms yield.
-  coolDown,
-}
 
 /// Bounded, offline-only ingestion and FTS work on a dedicated background
 /// isolate. Pass a WRITABLE staging database, never a signed/read-only pack.
@@ -21,28 +12,6 @@ enum ThermalProfile {
 class BackgroundTaskGovernor {
   static const int maxBatchSize = 200;
   static const Duration yieldPause = Duration(milliseconds: 5);
-
-  static int batchSizeFor(ThermalProfile profile) {
-    switch (profile) {
-      case ThermalProfile.normal:
-        return maxBatchSize;
-      case ThermalProfile.sustained:
-        return 100;
-      case ThermalProfile.coolDown:
-        return 50;
-    }
-  }
-
-  static Duration yieldPauseFor(ThermalProfile profile) {
-    switch (profile) {
-      case ThermalProfile.normal:
-        return yieldPause;
-      case ThermalProfile.sustained:
-        return const Duration(milliseconds: 15);
-      case ThermalProfile.coolDown:
-        return const Duration(milliseconds: 50);
-    }
-  }
 
   static Iterable<List<T>> batches<T>(
     Iterable<T> source, {
@@ -66,22 +35,19 @@ class BackgroundTaskGovernor {
   static Future<T> runCpuBound<T>(T Function() function) =>
       Isolate.run<T>(function);
 
-  /// The caller sends bounded batches. Each transaction is committed
+  /// The caller sends only 200 rows at a time. Each transaction is committed
   /// by the worker isolate before the next batch is sent.
   Future<int> ingestLexicon({
     required String writableDatabasePath,
     required Iterable<Map<String, Object?>> rows,
-    ThermalProfile profile = ThermalProfile.normal,
   }) async {
     final worker = await _SqliteIsolateWorker.start(writableDatabasePath);
-    final batchSize = batchSizeFor(profile);
-    final pause = yieldPauseFor(profile);
     var inserted = 0;
     try {
-      for (final chunk in batches(rows, batchSize: batchSize)) {
+      for (final chunk in batches(rows)) {
         final reply = await worker.request('insert', chunk);
         inserted += reply['count'] as int;
-        await Future<void>.delayed(pause);
+        await Future<void>.delayed(yieldPause);
       }
       return inserted;
     } finally {
@@ -93,25 +59,19 @@ class BackgroundTaskGovernor {
   /// pagination avoids OFFSET's quadratic work on large lexicons.
   Future<int> rebuildFts5Index({
     required String writableDatabasePath,
-    ThermalProfile profile = ThermalProfile.normal,
   }) async {
     final worker = await _SqliteIsolateWorker.start(writableDatabasePath);
-    final batchSize = batchSizeFor(profile);
-    final pause = yieldPauseFor(profile);
     var indexed = 0;
     var lastRowId = 0;
     try {
       await worker.request('resetFts', null);
       while (true) {
-        final reply = await worker.request('index', <String, Object?>{
-          'lastRowId': lastRowId,
-          'batchSize': batchSize,
-        });
+        final reply = await worker.request('index', lastRowId);
         final count = reply['count'] as int;
         if (count == 0) break;
         indexed += count;
         lastRowId = reply['lastRowId'] as int;
-        await Future<void>.delayed(pause);
+        await Future<void>.delayed(yieldPause);
       }
       return indexed;
     } finally {
@@ -129,13 +89,11 @@ class _SqliteIsolateWorker {
 
   static Future<_SqliteIsolateWorker> start(String path) async {
     if (path.trim().isEmpty) {
-      throw ArgumentError.value(
-          path, 'path', 'Required writable database path');
+      throw ArgumentError.value(path, 'path', 'Required writable database path');
     }
     final token = RootIsolateToken.instance;
     if (token == null) {
-      throw StateError(
-          'SQLite background isolate requires the Flutter root isolate');
+      throw StateError('SQLite background isolate requires the Flutter root isolate');
     }
     final ready = ReceivePort();
     Isolate? isolate;
@@ -147,7 +105,7 @@ class _SqliteIsolateWorker {
       );
       final result = await ready.first.timeout(const Duration(seconds: 30));
       if (result is! SendPort) {
-        throw StateError('Background SQLite worker failed: $result');
+        throw StateError('Background SQLite worker failed: ' + result.toString());
       }
       return _SqliteIsolateWorker(isolate, result);
     } catch (_) {
@@ -163,8 +121,7 @@ class _SqliteIsolateWorker {
     final replyPort = ReceivePort();
     try {
       _port.send(<Object?>[command, data, replyPort.sendPort]);
-      final response =
-          await replyPort.first.timeout(const Duration(seconds: 30));
+      final response = await replyPort.first.timeout(const Duration(seconds: 30));
       if (response is! Map) {
         throw StateError('Invalid background worker response');
       }
@@ -224,22 +181,14 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
             final row = Map<String, Object?>.from(raw);
             final id = row['id'];
             final surface = row['surface'];
-            if (id is! String ||
-                id.isEmpty ||
-                surface is! String ||
-                surface.isEmpty) {
-              throw const FormatException(
-                  'Lexicon rows require nonempty id and surface');
+            if (id is! String || id.isEmpty ||
+                surface is! String || surface.isEmpty) {
+              throw FormatException('Lexicon rows require nonempty id and surface');
             }
             await txn.rawInsert(
               'INSERT OR REPLACE INTO lexicon '
               '(id, surface, part_of_speech, fields_json) VALUES (?, ?, ?, ?)',
-              <Object?>[
-                id,
-                surface,
-                row['part_of_speech'],
-                row['fields_json'] ?? '{}'
-              ],
+              <Object?>[id, surface, row['part_of_speech'], row['fields_json'] ?? '{}'],
             );
           }
         });
@@ -252,14 +201,11 @@ Future<void> _sqliteWorkerEntry(List<Object> args) async {
         await db.delete('lexicon_fts');
         reply.send(<String, Object?>{'count': 0});
       } else if (command == 'index') {
-        final lastId = data is int ? data : ((data as Map)['lastRowId'] as int);
-        final batchSize = data is Map && data['batchSize'] is int
-            ? data['batchSize'] as int
-            : BackgroundTaskGovernor.maxBatchSize;
+        final lastId = data as int;
         final rows = await db.rawQuery(
           'SELECT rowid, surface, fields_json FROM lexicon '
           'WHERE rowid > ? ORDER BY rowid LIMIT ?',
-          <Object>[lastId, batchSize],
+          <Object>[lastId, BackgroundTaskGovernor.maxBatchSize],
         );
         await db.transaction((txn) async {
           for (final row in rows) {

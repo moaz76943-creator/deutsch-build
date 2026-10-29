@@ -45,7 +45,7 @@ void main() {
         languagePackStorageProvider.overrideWith((ref) => storage),
         agglutinativeSuffixStripperProvider.overrideWith((ref) {
           linguisticAllocations++;
-          return const AgglutinativeSuffixStripper();
+          return AgglutinativeSuffixStripper();
         }),
       ],
       child: const MyApp(),
