@@ -16,7 +16,6 @@ class GamificationState {
 /// المحرك المرجعي الوحيد (Single Source of Truth) لحساب النقاط والالتزام اليومي.
 /// يُمنع استخدام SharedPreferences لحساب الـ Streak خارج هذا المحرك.
 class GamificationEngine {
-  
   /// دالة مركزية لمعالجة النقاط بعد كل مراجعة ناجحة ومكتملة من محرك SRS
   /// لا يتم منح النقاط لمجرد تقليب البطاقة، بل لنجاح التخزين.
   static GamificationState processReviewReward({
@@ -25,11 +24,12 @@ class GamificationEngine {
     required bool isSuccess,
   }) {
     // توحيد صيغة التاريخ لضمان عدم تأثر السلسلة باختلاف المناطق الزمنية (Timezones)
-    final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-    
+    final todayStr =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
     int newStreak = currentState.currentStreak;
     // 10 نقاط كحد أقصى للإجابة الناجحة، 0 للإجابة الخاطئة (لا مكافآت مجانية)
-    int earnedXp = isSuccess ? 10 : 0; 
+    int earnedXp = isSuccess ? 10 : 0;
 
     if (currentState.lastActivityDate.isEmpty) {
       newStreak = 1;

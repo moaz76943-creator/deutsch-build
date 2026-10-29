@@ -1,65 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 import 'accessible_multilingual_text.dart';
-import '../core/lexical_repository.dart';
 
 class LexiconRichDetails extends StatelessWidget {
-  final LexicalEntry entry;
+  final String? partOfSpeech;
+  final String? gender;
+  final String? pluralForm;
+  final String? ipa;
+  final String? explanation;
+  final String explanationLanguageCode;
 
-  const LexiconRichDetails({super.key, required this.entry});
+  const LexiconRichDetails({
+    super.key,
+    this.partOfSpeech,
+    this.gender,
+    this.pluralForm,
+    this.ipa,
+    this.explanation,
+    this.explanationLanguageCode = 'ar',
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // Changed from stretch to start to prevent Infinite width constraints
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Target term (e.g. German word)
-        AccessibleMultilingualText(
-          entry.targetTerm,
-          bcp47Code: entry.targetLocale,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          semanticLabel: 'Term: ${entry.targetTerm}',
-        ),
-        const SizedBox(height: 8),
+    final List<Widget> details = [];
 
-        // Part of speech
-        AccessibleMultilingualText(
-          entry.partOfSpeech,
-          bcp47Code: entry.targetLocale,
-          style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
+    if (partOfSpeech != null && partOfSpeech!.isNotEmpty) {
+      details.add(_buildDetailItem('POS: ', partOfSpeech!));
+    }
 
-        // Meaning
-        const Text('Meaning:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-        AccessibleMultilingualText(
-          entry.sourceMeaning,
-          bcp47Code: entry.sourceLocale,
-          style: const TextStyle(fontSize: 18),
-          semanticLabel: 'Meaning: ${entry.sourceMeaning}',
-        ),
+    if (gender != null && gender!.isNotEmpty) {
+      details.add(_buildDetailItem('Gender: ', gender!));
+    }
 
-        // Target Example
-        if (entry.targetExample.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          const Text('Example:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          AccessibleMultilingualText(
-            entry.targetExample,
-            bcp47Code: entry.targetLocale,
-            style: const TextStyle(fontSize: 16),
-            semanticLabel: 'Example: ${entry.targetExample}',
-          ),
-          if (entry.sourceExampleTranslation.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            AccessibleMultilingualText(
-              entry.sourceExampleTranslation,
-              bcp47Code: entry.sourceLocale,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
-              semanticLabel: 'Example Translation: ${entry.sourceExampleTranslation}',
+    if (pluralForm != null && pluralForm!.isNotEmpty) {
+      details.add(_buildDetailItem('Plural: ', pluralForm!));
+    }
+
+    if (ipa != null && ipa!.isNotEmpty) {
+      details.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(
+              '/$ipa/',
+              style: AppTypography.caption,
             ),
-          ]
-        ],
-      ],
+          ),
+        ),
+      );
+    }
+
+    if (explanation != null && explanation!.isNotEmpty) {
+      details.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: AccessibleMultilingualText(
+            text: explanation!,
+            languageCode: explanationLanguageCode,
+            style: AppTypography.body,
+          ),
+        ),
+      );
+    }
+
+    if (details.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: details,
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0),
+      child: Text(
+        '$label$value',
+        style: AppTypography.caption,
+      ),
     );
   }
 }

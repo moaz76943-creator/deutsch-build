@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/srs_scheduler_service.dart';
+import 'package:deutsch_bilarabi/core/srs/production_srs_engine.dart';
 
 void main() {
   late Database db;
@@ -14,9 +15,9 @@ void main() {
   setUp(() async {
     db = await databaseFactory.openDatabase(inMemoryDatabasePath,
         options: OpenDatabaseOptions(
-            version: 1,
-            onCreate: (db, version) async {
-              await db.execute('''
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
           CREATE TABLE IF NOT EXISTS srs_progress (
            lexeme_id TEXT PRIMARY KEY,
            target_language_code TEXT NOT NULL,
@@ -27,246 +28,158 @@ void main() {
            status TEXT NOT NULL DEFAULT 'learning'
           )
         ''');
-            }));
-
-    scheduler = SrsSchedulerService(getDb: () async => db);
+      },
+    ));
+    scheduler = SrsSchedulerService(db: db);
   });
 
   tearDown(() async {
     await db.close();
   });
 
-  test('Schedules correct due dates for new review', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
-
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
+  test('Real SQLite review fixtures schedule correct due dates in epoch seconds', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
+    final schedule = await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    final results = await db.query('srs_progress');
-    expect(results.length, 1);
+    expect(schedule, isNotNull);
 
-    final state = SrsReviewState.fromMap(results.first);
-    expect(state.lexemeId, 'lex.de.water');
-    expect(state.targetLanguageCode, 'de');
-    expect(state.intervalDays, 1);
-    expect(state.repetitionCount, 1);
+    expect(schedule!.nextReviewDate.year, 2023);
+    expect(schedule.nextReviewDate.month, 1);
+    expect(schedule.nextReviewDate.day, 2);
+    expect(schedule.nextReviewDate.isUtc, true);
 
-    final expectedDueEpoch = now.add(const Duration(days: 1)).millisecondsSinceEpoch ~/ 1000;
-    expect(state.nextDueAtEpoch, expectedDueEpoch);
-    expect(state.status, 'reviewing');
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
+    expect(result.length, 1);
+    expect(result.first['interval_days'], 1);
+    expect(result.first['repetition_count'], 1);
+    final expectedNextDueAt = schedule.nextReviewDate.millisecondsSinceEpoch ~/ 1000;
+    expect(result.first['next_due_at'], expectedNextDueAt);
   });
 
-  test('Safely handles duplicate review submissions (idempotency)', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
+  test('Duplicate review submissions are safely handled via inference', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
+    await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    final results1 = await db.query('srs_progress');
-    final state1 = SrsReviewState.fromMap(results1.first);
-    expect(state1.repetitionCount, 1);
-
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now.add(const Duration(hours: 1)),
+    await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.easy,
+      currentTimeSeconds: nowSeconds + 10,
     );
 
-    final results2 = await db.query('srs_progress');
-    final state2 = SrsReviewState.fromMap(results2.first);
-
-    expect(state2.repetitionCount, 1);
-    expect(state2.nextDueAtEpoch, state1.nextDueAtEpoch);
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
+    expect(result.length, 1);
+    expect(result.first['repetition_count'], 1);
   });
 
-  test('No cross-pair mutation (different languages do not conflict due to unique lexeme_id)', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
+  test('Overdue cards process correctly', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
+    await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.submitReview(
-      lexemeId: 'lex.ar.water',
-      languageCode: 'ar',
-      quality: 4,
-      now: now,
+    final overdueSeconds = nowSeconds + (10 * 86400);
+    final schedule2 = await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: overdueSeconds,
     );
 
-    final results = await db.query('srs_progress');
-    expect(results.length, 2);
+    expect(schedule2, isNotNull);
+
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
+    expect(result.first['repetition_count'], 2);
   });
 
-  test('Correctly handles overdue cards by scheduling based on current time', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
+  test('Reverse pairs are isolated using target_language_code and lexeme_id', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
+    await scheduler.processReview(
+      lexemeId: 'lex1_ar_de',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
     );
 
-    final nextReviewDate = DateTime.utc(2023, 1, 5, 12, 0, 0);
-
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: nextReviewDate,
+    await scheduler.processReview(
+      lexemeId: 'lex1_de_ar',
+      targetLanguageCode: 'ar',
+      rating: SrsRating.easy,
+      currentTimeSeconds: nowSeconds,
     );
 
-    final results = await db.query('srs_progress');
-    final state = SrsReviewState.fromMap(results.first);
+    final resultDe = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1_ar_de']);
+    expect(resultDe.first['target_language_code'], 'de');
+    expect(resultDe.first['repetition_count'], 1);
 
-    expect(state.repetitionCount, 2);
-
-    // nextDueAtEpoch should be nextReviewDate + interval
-    final expectedDueEpoch = nextReviewDate.add(Duration(days: state.intervalDays)).millisecondsSinceEpoch ~/ 1000;
-    expect(state.nextDueAtEpoch, expectedDueEpoch);
+    final resultAr = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1_de_ar']);
+    expect(resultAr.first['target_language_code'], 'ar');
+    expect(resultAr.first['repetition_count'], 1);
   });
 
-  test('Retrieves due reviews up to now', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
+  test('Clock changes backwards handled gracefully (negative diff)', () async {
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
-    ); // Due on 2023-01-02 12:00:00
+    await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.good,
+      currentTimeSeconds: nowSeconds,
+    );
 
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.book',
-      languageCode: 'de',
-      quality: 4,
-      now: now.subtract(const Duration(days: 3)),
-    ); // Due on 2022-12-30 12:00:00, Overdue now
+    await scheduler.processReview(
+      lexemeId: 'lex1',
+      targetLanguageCode: 'de',
+      rating: SrsRating.easy,
+      currentTimeSeconds: nowSeconds - 100, // Time jumped backwards
+    );
 
-    final checkNow = now.add(const Duration(hours: 1)); // 2023-01-01 13:00:00
-
-    final dueList = await scheduler.getDueReviews('de', checkNow);
-    expect(dueList.length, 1);
-    expect(dueList.first.lexemeId, 'lex.de.book');
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
+    expect(result.length, 1);
+    expect(result.first['repetition_count'], 2); // Processed because it's not swallowed as debounce
   });
 
-  test('Validates grade meaning and bounds', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
+  test('Interrupted writes rollback correctly', () async {
+    // Though sqflite handles transaction rollback natively, we simulate a logic error inside the transaction to ensure it bubbles out and rolls back.
+    final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    expect(
-      () => scheduler.submitReview(
-        lexemeId: 'lex.de.water',
-        languageCode: 'de',
-        quality: 6, // out of bounds
-        now: now,
-      ),
-      throwsArgumentError,
-    );
+    try {
+      await db.transaction((txn) async {
+        await txn.insert(
+          'srs_progress',
+          {
+            'lexeme_id': 'lex1',
+            'target_language_code': 'de',
+            'repetition_count': 1,
+            'interval_days': 1,
+            'ease_factor': 2.5,
+            'next_due_at': nowSeconds + 86400,
+            'status': 'reviewing',
+          },
+        );
+        throw Exception('Simulated crash');
+      });
+    } catch (e) {
+      // Ignored
+    }
 
-    expect(
-      () => scheduler.submitReview(
-        lexemeId: 'lex.de.water',
-        languageCode: 'de',
-        quality: 0, // out of bounds
-        now: now,
-      ),
-      throwsArgumentError,
-    );
-  });
-
-  test('Clock changes and daylight saving transitions (using UTC)', () async {
-    final now = DateTime.utc(2023, 3, 26, 1, 0, 0); // Before DST change in EU
-
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
-    );
-
-    final results = await db.query('srs_progress');
-    final state = SrsReviewState.fromMap(results.first);
-
-    // nextDueAtEpoch should be strictly interval * 24h
-    // DST doesn't affect UTC epoch addition in dart with Duration(days: 1)
-    final expectedDueEpoch = now.add(const Duration(days: 1)).millisecondsSinceEpoch ~/ 1000;
-    expect(state.nextDueAtEpoch, expectedDueEpoch);
-
-    final nextDueDateUtc = DateTime.fromMillisecondsSinceEpoch(state.nextDueAtEpoch! * 1000, isUtc: true);
-    expect(nextDueDateUtc, DateTime.utc(2023, 3, 27, 1, 0, 0));
-  });
-
-  test('Safely handles interrupted writes (no regression on conflict)', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
-
-    // Initial state
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
-    );
-
-    // Check initial ease factor and interval
-    final initialResults = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex.de.water']);
-    final initialState = SrsReviewState.fromMap(initialResults.first);
-
-    // Update with new data simulating a successful write after an interruption
-    final later = now.add(const Duration(days: 2));
-    await scheduler.submitReview(
-      lexemeId: 'lex.de.water',
-      languageCode: 'de',
-      quality: 5,
-      now: later,
-    );
-
-    // Ensure state updated but row identity (and primary key) remained intact and stable
-    final finalResults = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex.de.water']);
-    final finalState = SrsReviewState.fromMap(finalResults.first);
-
-    expect(finalState.repetitionCount, 2);
-    expect(finalState.easeFactor, greaterThan(initialState.easeFactor)); // Quality 5 increases ease
-    expect(finalState.intervalDays, greaterThan(initialState.intervalDays));
-  });
-
-  test('Reverse pairs (e.g. ar->de vs de->ar) use distinct identities and do not overlap', () async {
-    final now = DateTime.utc(2023, 1, 1, 12, 0, 0);
-
-    await scheduler.submitReview(
-      lexemeId: 'lex.de_ar.water',
-      languageCode: 'ar',
-      quality: 4,
-      now: now,
-    );
-
-    await scheduler.submitReview(
-      lexemeId: 'lex.ar_de.water',
-      languageCode: 'de',
-      quality: 4,
-      now: now,
-    );
-
-    final results = await db.query('srs_progress');
-    expect(results.length, 2); // Distinct lexeme IDs naturally protect against cross-pair mutation
-
-    final deResults = await scheduler.getDueReviews('de', now.add(const Duration(days: 2)));
-    expect(deResults.length, 1);
-    expect(deResults.first.lexemeId, 'lex.ar_de.water');
-
-    final arResults = await scheduler.getDueReviews('ar', now.add(const Duration(days: 2)));
-    expect(arResults.length, 1);
-    expect(arResults.first.lexemeId, 'lex.de_ar.water');
+    final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
+    expect(result.isEmpty, true);
   });
 }

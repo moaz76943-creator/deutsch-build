@@ -15,23 +15,32 @@ class MultiScriptTypography {
     final fallbacks = <String>{};
 
     for (final rune in text.runes) {
-      if ((rune >= 0x0600 && rune <= 0x06FF) || (rune >= 0x0750 && rune <= 0x077F) || (rune >= 0x08A0 && rune <= 0x08FF)) {
+      if ((rune >= 0x0600 && rune <= 0x06FF) ||
+          (rune >= 0x0750 && rune <= 0x077F) ||
+          (rune >= 0x08A0 && rune <= 0x08FF)) {
         fallbacks.add(arabicFallback);
       } else if (rune >= 0x0590 && rune <= 0x05FF) {
         fallbacks.add(hebrewFallback);
       } else if (rune >= 0x0900 && rune <= 0x097F) {
         fallbacks.add(devanagariFallback);
-      } else if ((rune >= 0x1200 && rune <= 0x137F) || (rune >= 0x1380 && rune <= 0x139F) || (rune >= 0x2D80 && rune <= 0x2DDF)) {
+      } else if ((rune >= 0x1200 && rune <= 0x137F) ||
+          (rune >= 0x1380 && rune <= 0x139F) ||
+          (rune >= 0x2D80 && rune <= 0x2DDF)) {
         fallbacks.add(ethiopicFallback);
       } else if (rune >= 0x10A0 && rune <= 0x10FF) {
         fallbacks.add(georgianFallback);
       } else if (rune >= 0x0530 && rune <= 0x058F) {
         fallbacks.add(armenianFallback);
-      } else if ((rune >= 0x3040 && rune <= 0x309F) || (rune >= 0x30A0 && rune <= 0x30FF)) {
+      } else if ((rune >= 0x3040 && rune <= 0x309F) ||
+          (rune >= 0x30A0 && rune <= 0x30FF)) {
         fallbacks.add(jpFallback);
-      } else if ((rune >= 0xAC00 && rune <= 0xD7AF) || (rune >= 0x1100 && rune <= 0x11FF) || (rune >= 0x3130 && rune <= 0x318F)) {
+      } else if ((rune >= 0xAC00 && rune <= 0xD7AF) ||
+          (rune >= 0x1100 && rune <= 0x11FF) ||
+          (rune >= 0x3130 && rune <= 0x318F)) {
         fallbacks.add(krFallback);
-      } else if ((rune >= 0x4E00 && rune <= 0x9FFF) || (rune >= 0x3400 && rune <= 0x4DBF) || (rune >= 0x20000 && rune <= 0x2A6DF)) {
+      } else if ((rune >= 0x4E00 && rune <= 0x9FFF) ||
+          (rune >= 0x3400 && rune <= 0x4DBF) ||
+          (rune >= 0x20000 && rune <= 0x2A6DF)) {
         fallbacks.add(scFallback);
       }
     }
@@ -84,7 +93,8 @@ class ScriptAwareText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textContent = data ?? (textSpan != null ? _extractText(textSpan!) : '');
+    final textContent =
+        data ?? (textSpan != null ? _extractText(textSpan!) : '');
     final fallbacks = MultiScriptTypography.getFallbacksForText(textContent);
 
     TextStyle effectiveStyle = style ?? const TextStyle();
@@ -96,7 +106,8 @@ class ScriptAwareText extends StatelessWidget {
           newFallbacks.add(fallback);
         }
       }
-      effectiveStyle = effectiveStyle.copyWith(fontFamilyFallback: newFallbacks);
+      effectiveStyle =
+          effectiveStyle.copyWith(fontFamilyFallback: newFallbacks);
     }
 
     if (data != null) {
