@@ -16,6 +16,18 @@ abstract class VaultCipher {
   Future<Uint8List> decrypt(String recordId, Uint8List ciphertext);
 }
 
+/// Outcome of copying a legacy progress database into the encrypted vault.
+/// The original file is renamed aside only after verification; it is not deleted.
+class LegacyProgressMigrationResult {
+  const LegacyProgressMigrationResult({
+    required this.migrated,
+    required this.tableRowCounts,
+  });
+
+  final bool migrated;
+  final Map<String, int> tableRowCounts;
+}
+
 class AndroidKeystoreVaultCipher implements VaultCipher {
   const AndroidKeystoreVaultCipher();
 
