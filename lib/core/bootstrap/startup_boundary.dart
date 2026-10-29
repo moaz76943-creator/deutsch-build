@@ -47,8 +47,8 @@ class DeviceStartupOperations implements StartupOperations {
     try {
       // A UI retry is not a new Android process launch. Count the launch
       // exactly once or a manual retry would falsely trigger crash-loop mode.
-      final bootFuture = _bootFuture ??= _guard.beginBoot()
-          .timeout(const Duration(seconds: 3));
+      final bootFuture = _bootFuture ??=
+          _guard.beginBoot().timeout(const Duration(seconds: 3));
       if (await bootFuture) {
         return const StartupOutcome(StartupState.SAFE_MODE);
       }
@@ -73,7 +73,8 @@ class DeviceStartupOperations implements StartupOperations {
         _ActiveContentStep(),
         _LifecycleStep(),
       ], defaultStepTimeout: const Duration(seconds: 1))
-          .runPipeline().timeout(const Duration(seconds: 10));
+          .runPipeline()
+          .timeout(const Duration(seconds: 10));
     } catch (_) {
       return const StartupOutcome(StartupState.CRITICAL_ERROR);
     }
@@ -83,7 +84,8 @@ class DeviceStartupOperations implements StartupOperations {
     }
 
     final contentAvailable = results.any(
-      (r) => r.stepName == 'active_content' &&
+      (r) =>
+          r.stepName == 'active_content' &&
           r.status == BootstrapStepStatus.success,
     );
     FeatureCapabilityRegistry.instance.registerFeature(
@@ -104,11 +106,13 @@ class DeviceStartupOperations implements StartupOperations {
 
     try {
       // Startup-only marker, kept separate from all existing learner settings.
-      final saved = await preferences.setBool('bootstrap.last_ready.v1', true)
+      final saved = await preferences
+          .setBool('bootstrap.last_ready.v1', true)
           .timeout(const Duration(seconds: 2));
       if (!saved) {
         return const StartupOutcome(
-          StartupState.DEGRADED, contentAvailable: true,
+          StartupState.DEGRADED,
+          contentAvailable: true,
         );
       }
     } catch (_) {
@@ -136,10 +140,12 @@ class DeviceStartupOperations implements StartupOperations {
   Future<StartupOutcome> continueSafeOffline() async {
     // Keep the crash ledger in safe mode; only bundled German is eligible.
     try {
-      await DatabaseService.instance.getContentDb('de')
+      await DatabaseService.instance
+          .getContentDb('de')
           .timeout(const Duration(seconds: 7));
       return const StartupOutcome(
-        StartupState.DEGRADED, contentAvailable: true,
+        StartupState.DEGRADED,
+        contentAvailable: true,
       );
     } catch (_) {
       return const StartupOutcome(StartupState.DEGRADED);
@@ -287,7 +293,8 @@ class _StartupBoundaryState extends State<StartupBoundary> {
     setState(() => _state = StartupState.INITIALIZING);
     StartupOutcome outcome;
     try {
-      outcome = await _operations.continueSafeOffline()
+      outcome = await _operations
+          .continueSafeOffline()
           .timeout(const Duration(seconds: 9));
     } catch (_) {
       outcome = const StartupOutcome(StartupState.DEGRADED);
@@ -354,7 +361,8 @@ class _StartupBoundaryState extends State<StartupBoundary> {
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: const Padding(
                   padding: EdgeInsets.all(12),
-                  child: Text('بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'),
+                  child: Text(
+                      'بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'),
                 ),
               ),
               Expanded(child: widget.child),
@@ -364,7 +372,8 @@ class _StartupBoundaryState extends State<StartupBoundary> {
         return _recoveryScreen(
           icon: Icons.menu_book_outlined,
           title: 'المحتوى غير متاح حاليًا',
-          description: 'تعذر التحقق من حزمة اللغة المحلية. بيانات التعلّم محفوظة. '
+          description:
+              'تعذر التحقق من حزمة اللغة المحلية. بيانات التعلّم محفوظة. '
               'يمكنك المحاولة مجددًا بعد التأكد من تثبيت الحزمة.',
           retry: _manualRetries < 1 && !_safeSession ? _retry : null,
         );
@@ -382,7 +391,8 @@ class _StartupBoundaryState extends State<StartupBoundary> {
         return _recoveryScreen(
           icon: Icons.error_outline,
           title: 'تعذر بدء الخدمات الأساسية',
-          description: 'قد تكون وحدة التخزين المحلية أو خدمات الإقلاع غير متاحة. '
+          description:
+              'قد تكون وحدة التخزين المحلية أو خدمات الإقلاع غير متاحة. '
               'لم تُحذف سجلاتك. أغلق التطبيق وتحقق من مساحة التخزين إذا استمرت المشكلة.',
           retry: _manualRetries < 1 ? _retry : null,
         );

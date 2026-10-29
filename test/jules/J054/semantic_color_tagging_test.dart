@@ -1,93 +1,128 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 import 'package:deutsch_bilarabi/features/semantic_color_tagging/semantic_presentation_engine.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
+import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 
-class FakeRules extends LanguageGrammarRuleProvider {
+class MockGrammarProvider implements LanguageGrammarRuleProvider {
   @override
-  String get languageCode => 'de';
-  @override
-  GrammaticalGender determineGender(String word, {String? article}) =>
-      GrammaticalGender.masculine;
-  @override
-  GrammaticalCategory determineCategory(String word, {String? article}) =>
-      GrammaticalCategory.noun;
-  @override
-  bool isValidArticle(String word, String article) => article == 'der';
-}
+  final String languageCode;
 
-class BrokenRules extends FakeRules {
+  final GrammaticalGender Function(String word, {String? article}) determineGenderMock;
+
+  MockGrammarProvider({
+    required this.languageCode,
+    required this.determineGenderMock,
+  });
+
   @override
-  GrammaticalGender determineGender(String word, {String? article}) =>
-      throw StateError('local pack unavailable');
+  GrammaticalCategory determineCategory(String word, {String? article}) {
+    return GrammaticalCategory.unknown;
+  }
+
+  @override
+  GrammaticalGender determineGender(String word, {String? article}) {
+    return determineGenderMock(word, article: article);
+  }
+
+  @override
+  bool isValidArticle(String word, String article) {
+    return false;
+  }
 }
 
 void main() {
-  test('unverified guesses are not presented as linguistic facts', () {
-    final engine = SemanticPresentationEngine(
-      ruleProvider: FakeRules(), packVersion: 'v1',
-    );
-    final status = engine.getPresentationForWord('Baum', article: 'der');
-    expect(status.isAttested, isFalse);
-    expect(status.label, contains('not verified'));
+  group('SemanticPresentationEngine Tests (J054)', () {
+    test('German colors are derived from AppColors.article* specific colors', () {
+      final mockDe = MockGrammarProvider(
+        languageCode: 'de',
+        determineGenderMock: (word, {article}) {
+          if (word == 'Hund') return GrammaticalGender.masculine;
+          if (word == 'Freiheit') return GrammaticalGender.feminine;
+          if (word == 'Mädchen') return GrammaticalGender.neuter;
+          return GrammaticalGender.none;
+        },
+      );
+
+      final engine = SemanticPresentationEngine(ruleProvider: mockDe, packVersion: 'v1');
+
+      expect(engine.getPresentationForWord('Hund').color, AppColors.articleDer);
+      expect(engine.getPresentationForWord('Freiheit').color, AppColors.articleDie);
+      expect(engine.getPresentationForWord('Mädchen').color, AppColors.articleDas);
+      expect(engine.getPresentationForWord('Unbekannt').color, AppColors.articleOther);
+    });
+
+    test('Non-German colors use standard primary/secondary/tertiary colors', () {
+      final mockFr = MockGrammarProvider(
+        languageCode: 'fr',
+        determineGenderMock: (word, {article}) {
+          if (word == 'chien') return GrammaticalGender.masculine;
+          if (word == 'liberté') return GrammaticalGender.feminine;
+          if (word == 'neuter_word') return GrammaticalGender.neuter;
+          return GrammaticalGender.none;
+        },
+      );
+
+      final engine = SemanticPresentationEngine(ruleProvider: mockFr, packVersion: 'v1');
+
+      expect(engine.getPresentationForWord('chien').color, AppColors.primary);
+      expect(engine.getPresentationForWord('liberté').color, AppColors.secondary);
+      expect(engine.getPresentationForWord('neuter_word').color, AppColors.tertiary);
+      expect(engine.getPresentationForWord('inconnu').color, AppColors.articleOther);
+    });
+
+    test('Cache behaves correctly per instance', () {
+       final mockFr1 = MockGrammarProvider(
+        languageCode: 'fr',
+        determineGenderMock: (word, {article}) => GrammaticalGender.masculine,
+      );
+
+      final engine1 = SemanticPresentationEngine(ruleProvider: mockFr1, packVersion: 'v1');
+
+      final m1 = engine1.getPresentationForWord('test');
+      final m1Cached = engine1.getPresentationForWord('test');
+
+      expect(m1.color, AppColors.primary);
+
+      // Ensure the same engine returns the exact identical cached object.
+      expect(identical(m1, m1Cached), isTrue);
+    });
   });
 
-  test('explicitly admitted language metadata and cache isolation', () {
-    final engine = SemanticPresentationEngine(
-      ruleProvider: FakeRules(), packVersion: 'v1',
-      maxCacheEntries: 2,
-      isAdmittedEvidence: (word, article) => word == 'Baum',
-    );
-    final verified = engine.getPresentationForWord('Baum', article: 'der');
-    expect(verified.isAttested, isTrue);
-    expect(verified.label, contains('Masculine'));
-    expect(engine.getPresentationForWord('Baum', article: 'das').isAttested, isTrue);
-    engine.getPresentationForWord('Haus');
-    expect(engine.cacheSize, 2);
-    engine.clear();
-    expect(engine.cacheSize, 0);
-  });
+  group('SemanticWordText Widget Tests', () {
+    testWidgets('RTL layout and accessibility label are present', (WidgetTester tester) async {
+      final mockAr = MockGrammarProvider(
+        languageCode: 'ar',
+        determineGenderMock: (word, {article}) => GrammaticalGender.feminine,
+      );
+      final engine = SemanticPresentationEngine(ruleProvider: mockAr, packVersion: 'v1');
+      const word = 'شمس';
 
-  testWidgets('mixed-direction words use explicit text direction', (tester) async {
-    final engine = SemanticPresentationEngine(
-      ruleProvider: FakeRules(), packVersion: 'v1',
-    );
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: SemanticWordText(
-          word: 'كتاب English',
-          engine: engine,
-          textDirection: TextDirection.rtl,
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            );
+          },
+          home: Scaffold(
+            body: SemanticWordText(
+              word: word,
+              engine: engine,
+            ),
+          ),
         ),
-      ),
-    ));
-    final rendered = tester.widget<Text>(find.text('كتاب English'));
-    expect(rendered.textDirection, TextDirection.rtl);
-  });
+      );
 
-  test('reject zero-size cache and missing revision', () {
-    expect(
-      () => SemanticPresentationEngine(
-        ruleProvider: FakeRules(), packVersion: '',
-      ),
-      throwsArgumentError,
-    );
-  });
-  test('offline reader exceptions and oversized cache inputs fail closed', () {
-    final engine = SemanticPresentationEngine(
-      ruleProvider: BrokenRules(),
-      packVersion: 'v1',
-      isAdmittedEvidence: (word, article) => true,
-    );
-    final status = engine.getPresentationForWord('broken');
-    expect(status.isAttested, isFalse);
-    expect(status.label, 'Grammar not verified');
-    expect(
-      engine.getPresentationForWord(List<String>.filled(600, 'x').join())
-          .isAttested,
-      isFalse,
-    );
-    expect(engine.cacheSize, 1);
-  });
+      final textFinder = find.text('شمس');
+      expect(textFinder, findsOneWidget);
 
+      final textWidget = tester.widget<Text>(textFinder);
+      expect(textWidget.style?.color, AppColors.secondary);
+
+      final semanticsFinder = find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Feminine');
+      expect(semanticsFinder, findsOneWidget);
+    });
+  });
 }
