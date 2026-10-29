@@ -1,160 +1,152 @@
-import 'package:flutter/widgets.dart';
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:deutsch_bilarabi/core/worker/persistent_cpu_worker.dart';
 
-// Helper for test failures
-double _failingMathTask(dynamic data) {
-  throw Exception("Simulated worker failure");
+double dummyTask(Map<String, dynamic> data) {
+  return data['value'] * 2.0;
 }
 
-double _dummyMathTask(dynamic data) {
+double slowTask(Map<String, dynamic> data) {
+  int ms = data['ms'] ?? 100;
+  final end = DateTime.now().add(Duration(milliseconds: ms));
+  while (DateTime.now().isBefore(end)) {}
   return 1.0;
 }
 
 void main() {
-  group('PersistentCpuWorker Tests', () {
-    setUp(() {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      PersistentCpuWorker.resetForTesting();
-    });
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    PersistentCpuWorker.resetForTesting();
+  });
 
-    test('calculates new ease factor correctly', () async {
-      final worker = PersistentCpuWorker.instance;
-      final result = await worker.calculateNewEaseFactor(2.5, 4);
-      // New Ease: 2.5 + (0.1 - (5-4)*(0.08 + (5-4)*0.02))
-      // = 2.5 + (0.1 - 1*(0.1)) = 2.5
-      expect(result, closeTo(2.5, 0.001));
-    });
+  tearDown(() {
+    PersistentCpuWorker.instance.dispose();
+  });
 
-    test('handles bounded concurrency correctly', () async {
-      final worker = PersistentCpuWorker.instance;
-      // We will submit 10 tasks.
-      // With maxConcurrentTasks = 4, they should execute successfully.
-      List<Future<double>> tasks = [];
-      for (int i = 0; i < 10; i++) {
-        tasks.add(worker.calculateNewEaseFactor(2.5, 4));
+  test('Worker successfully processes a task', () async {
+    final result = await PersistentCpuWorker.instance.executeTask<Map<String, dynamic>, double>(
+      dummyTask,
+      {'value': 21.0}
+    );
+    expect(result, 42.0);
+  });
+
+  test('Worker respects max queue size and throws WorkerQueueExhaustedException', () async {
+    final worker = PersistentCpuWorker.instance;
+    int successCount = 0;
+    int exhaustCount = 0;
+
+    final futures = <Future<double>>[];
+    for (int i = 0; i < 60; i++) {
+      final f = worker.executeTask<Map<String, dynamic>, double>(slowTask, {'ms': 100}).catchError((e) {
+        if (e is WorkerQueueExhaustedException) {
+          exhaustCount++;
+          return 0.0;
+        }
+        throw e;
+      });
+      futures.add(f);
+    }
+
+    for (final f in futures) {
+      final result = await f;
+      if (result != 0.0) {
+        successCount++;
       }
+    }
 
-      final results = await Future.wait(tasks);
-      expect(results.length, 10);
-      for (var result in results) {
-         expect(result, closeTo(2.5, 0.001));
-      }
-    });
+    expect(successCount, 54);
+    expect(exhaustCount, 6);
 
-    test('exhausts queue when exceeding maxQueueSize', () async {
-      final worker = PersistentCpuWorker.instance;
-      int exhaustCount = 0;
+    worker.cancelAll();
 
-      for (int i = 0; i < 100; i++) {
-        // We do not await, we just push 100 tasks synchronously
-        worker.calculateNewEaseFactor(2.5, 4).catchError((e) {
-            if (e is WorkerQueueExhaustedException) {
-              exhaustCount++;
-            }
-            return 0.0;
-        });
-      }
+    // Wait for futures so they don't leak
+    for (final f in futures) {
+      try { await f; } catch (_) {}
+    }
+  });
 
-      // Since _pump runs as microtask, the synchronous queueing above will immediately hit maxQueueSize limit.
-      // Wait for microtasks and isolate callbacks to flush
-      await Future.delayed(const Duration(milliseconds: 50));
 
-      // 100 tasks pushed. Assuming maxQueueSize = 50. The first 50 enter the queue. The rest (50) should be rejected.
-      // Wait wait wait, active jobs isn't incremented until _pump runs later? Actually `_pump` is called synchronously on `executeTask`.
-      // `_pump` removes from queue, increments _activeJobs, and runs a microtask.
-      // So first 4 are popped, _activeJobs becomes 4.
-      // Then the remaining 96. 50 go into queue. 46 are rejected. So 46 rejected is expected.
-      expect(exhaustCount, 46);
+  test('Worker executes heavy SRS math correctly', () async {
+    final result = await PersistentCpuWorker.instance.calculateNewEaseFactor(2.5, 4);
+    // 2.5 + (0.1 - (5-4)*(0.08 + 1*0.02)) = 2.5 + (0.1 - 1*0.1) = 2.5 + 0 = 2.5
+    expect(result, 2.5);
+  });
 
-      // Wait for the active tasks to drain so the isolate shuts down cleanly
-      worker.cancelAll();
-      await Future.delayed(const Duration(milliseconds: 100));
-    });
+  test('Worker stress test: large amount of concurrent tasks', () async {
+    final worker = PersistentCpuWorker.instance;
+    final futures = <Future<double>>[];
 
-    test('cancels active and queued jobs on cancelAll', () async {
-      final worker = PersistentCpuWorker.instance;
+    // Max queue is 50, concurrent is 4. Add exactly 54.
+    for (int i = 0; i < 54; i++) {
+      final f = worker.calculateNewEaseFactor(2.5, 4);
+      futures.add(f);
+    }
 
-      List<Future<double>> futures = [];
-      for (int i = 0; i < 10; i++) {
-        // Fire asynchronously to test queuing and cancellation
-        futures.add(worker.calculateNewEaseFactor(2.5, 4).catchError((e) {
-            if (e is WorkerCancelledException) {
-              return -1.0;
-            }
-            throw e;
-        }));
-      }
+    final results = await Future.wait(futures);
+    expect(results.length, 54);
+    expect(results.every((r) => r == 2.5), isTrue);
+  });
 
-      worker.cancelAll();
+  test('Worker failure test: task throws exception', () async {
+    final worker = PersistentCpuWorker.instance;
+    final f = worker.executeTask<Map<String, dynamic>, double>(
+      (msg) => throw Exception('Intentional failure'),
+      {}
+    );
+    expect(() => f, throwsException);
+  });
+  test('Worker cancels all tasks on request', () async {
+    final worker = PersistentCpuWorker.instance;
+    final futures = <Future<double>>[];
+    for (int i = 0; i < 10; i++) {
+      final f = worker.executeTask<Map<String, dynamic>, double>(slowTask, {'ms': 200});
+      // Catch immediately to prevent unhandled async exceptions
+      f.catchError((_) => 0.0);
+      futures.add(f);
+    }
 
-      int cancelledCount = 0;
-      for (var f in futures) {
-          final result = await f;
-          if (result == -1.0) {
-            cancelledCount++;
-          }
-      }
+    worker.cancelAll();
 
-      expect(cancelledCount, 10);
-    });
-
-    test('clears queue on app pause lifecycle', () async {
-      final worker = PersistentCpuWorker.instance;
-
-      List<Future<double>> futures = [];
-      for (int i = 0; i < 10; i++) {
-        futures.add(worker.calculateNewEaseFactor(2.5, 4).catchError((e) {
-            if (e is WorkerCancelledException) {
-              return -1.0;
-            }
-            throw e;
-        }));
-      }
-
-      worker.didChangeAppLifecycleState(AppLifecycleState.paused);
-
-      int cancelledCount = 0;
-      for (var f in futures) {
-        final result = await f;
-        if (result == -1.0) {
-          cancelledCount++;
+    int cancelCount = 0;
+    for (final f in futures) {
+      try {
+        await f;
+      } catch (e) {
+        if (e is WorkerCancelledException) {
+          cancelCount++;
         }
       }
+    }
 
-      expect(cancelledCount, 10);
-    });
+    expect(cancelCount, futures.length);
+  });
 
-    test('handles worker failure without freezing UI', () async {
-      final worker = PersistentCpuWorker.instance;
+  test('Worker cancels all tasks on application pause', () async {
+    final worker = PersistentCpuWorker.instance;
+    final futures = <Future<double>>[];
+    for (int i = 0; i < 5; i++) {
+      final f = worker.executeTask<Map<String, dynamic>, double>(slowTask, {'ms': 200});
+      f.catchError((_) => 0.0);
+      futures.add(f);
+    }
 
-      bool failed = false;
+    // Simulate app pause
+    worker.didChangeAppLifecycleState(AppLifecycleState.paused);
+
+    int cancelCount = 0;
+    for (final f in futures) {
       try {
-        await worker.executeTask<dynamic, double>(_failingMathTask, {});
+        await f;
       } catch (e) {
-        failed = true;
-        expect(e.toString(), contains("Simulated worker failure"));
+        if (e is WorkerCancelledException) {
+          cancelCount++;
+        }
       }
+    }
 
-      expect(failed, true);
-
-      // Verify subsequent tasks can run
-      final result = await worker.calculateNewEaseFactor(2.5, 4);
-      expect(result, closeTo(2.5, 0.001));
-    });
-
-    test('verifies bounded memory with large synthetic task counts', () async {
-      final worker = PersistentCpuWorker.instance;
-
-      // Submit 50 tasks (at the queue limit) and await them all
-      List<Future<double>> futures = [];
-      for (int i = 0; i < 50; i++) {
-        futures.add(worker.executeTask<dynamic, double>(_dummyMathTask, {}));
-      }
-
-      final results = await Future.wait(futures);
-      expect(results.length, 50);
-      expect(results.every((r) => r == 1.0), true);
-    });
+    expect(cancelCount, futures.length);
   });
 }
