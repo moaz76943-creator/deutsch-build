@@ -11,13 +11,15 @@ void main() {
         ReviewTransactionEnvelope(
           reviewEventId: '1',
           learnerContentKey: 'card1',
-          rating: 2, timestamp: DateTime(2023, 1, 1),
+          rating: 2,
+          timestamp: DateTime(2023, 1, 1),
           languagePairKey: 'de_ar',
         ),
         ReviewTransactionEnvelope(
           reviewEventId: '2',
           learnerContentKey: 'card1',
-          rating: 3, timestamp: DateTime(2023, 1, 2),
+          rating: 3,
+          timestamp: DateTime(2023, 1, 2),
           languagePairKey: 'de_ar',
         ),
       ];
@@ -27,7 +29,7 @@ void main() {
         sourceLanguageId: 'de',
         targetLanguageId: 'ar',
         eligibleCardCount: 1,
-        events: events.cast<ReviewTransactionEnvelope>(),
+        events: events,
       );
 
       expect(projection.introducedCardCount, 1);
@@ -40,7 +42,8 @@ void main() {
         ReviewTransactionEnvelope(
           reviewEventId: '1',
           learnerContentKey: 'card1',
-          rating: 3, timestamp: DateTime(2023, 1, 1),
+          rating: 3,
+          timestamp: DateTime(2023, 1, 1),
           languagePairKey: 'ar_de', // Reversed
         ),
       ];
@@ -50,7 +53,7 @@ void main() {
         sourceLanguageId: 'de',
         targetLanguageId: 'ar',
         eligibleCardCount: 1,
-        events: events.cast<ReviewTransactionEnvelope>(),
+        events: events,
       );
 
       expect(projection.introducedCardCount, 0);
@@ -64,7 +67,8 @@ void main() {
         ReviewTransactionEnvelope(
           reviewEventId: '1',
           learnerContentKey: 'card1',
-          rating: 3, timestamp: now.add(const Duration(days: 2)), // Invalid future timestamp
+          rating: 3,
+          timestamp: now.add(const Duration(days: 2)), // Invalid future timestamp
           languagePairKey: 'de_ar',
         ),
         ReviewTransactionEnvelope(
@@ -81,7 +85,7 @@ void main() {
         sourceLanguageId: 'de',
         targetLanguageId: 'ar',
         eligibleCardCount: 2,
-        events: events.cast<ReviewTransactionEnvelope>(),
+        events: events,
       );
 
       expect(projection.introducedCardCount, 0);
@@ -91,10 +95,10 @@ void main() {
       var ledger = const StreakFreezeLedger(totalShields: 2);
       final timestamp = DateTime(2023, 1, 1, 12, 0, 0);
 
-      ledger = ledger.recordUsage('reason1', now: timestamp);
+      ledger = ledger.recordUsage('reason1', timestamp: timestamp);
       expect(ledger.remainingShields, 1);
 
-      ledger = ledger.recordUsage('reason2', now: timestamp.add(const Duration(hours: 1)));
+      ledger = ledger.recordUsage('reason2', timestamp: timestamp.add(const Duration(hours: 1)));
       expect(ledger.remainingShields, 1); // Duplicate on same local day prevented
     });
 

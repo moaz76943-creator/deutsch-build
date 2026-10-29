@@ -34,7 +34,7 @@ void main() {
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
         eligibleCardCount: 10,
-        events: events.cast<ReviewTransactionEnvelope>(),
+        events: events,
         projectionTimeUtc: DateTime.utc(2023, 10, 4),
       );
 
@@ -85,7 +85,7 @@ void main() {
         sourceLanguageId: 'en',
         targetLanguageId: 'de',
         eligibleCardCount: 10,
-        events: events.cast<ReviewTransactionEnvelope>(),
+        events: events,
         projectionTimeUtc: DateTime.utc(2023, 10, 4),
       );
 
