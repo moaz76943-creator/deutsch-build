@@ -1,0 +1,21 @@
+{
+  "isoCode": "is",
+  "autonym": "Íslenska",
+  "englishName": "Icelandic",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Nefnifall", "Þolfall", "Þágufall", "Eignarfall"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "archaicMorphology": true,
+    "hasSuffixArticles": true,
+    "verbSecondOrder": true
+  }
+}
