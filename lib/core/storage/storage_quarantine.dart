@@ -14,11 +14,7 @@ class QuarantinedData {
 
 class StorageQuarantine {
   final List<QuarantinedData> _quarantine = [];
-<<<<<<< HEAD
-
   static const int _retentionDays = 30;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   void isolateCorruptData({
     required String id,
@@ -35,6 +31,7 @@ class StorageQuarantine {
   }
 
   List<QuarantinedData> get isolatedItems => List.unmodifiable(_quarantine);
+
   void clearResolved(String id) {
     _quarantine.removeWhere((item) => item.id == id);
   }
