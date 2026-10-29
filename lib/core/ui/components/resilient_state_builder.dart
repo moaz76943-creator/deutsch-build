@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../contracts/ui_state.dart';
+import '../states/content_loading_state.dart';
+import '../states/content_empty_state.dart';
+import '../states/content_error_state.dart';
 
 /// Presents a typed offline-content state without altering route or domain state.
 class ResilientStateBuilder<T> extends StatelessWidget {
@@ -29,21 +32,11 @@ class ResilientStateBuilder<T> extends StatelessWidget {
     switch (state.type) {
       case UIStateType.loading:
         content = loadingBuilder?.call(context) ??
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(semanticsLabel: 'Loading'),
-            );
+            const ContentLoadingState(message: 'Loading...');
         break;
       case UIStateType.empty:
         content = emptyBuilder?.call(context, state.message) ??
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                state.message ?? 'No offline content available.',
-                textAlign: TextAlign.center,
-                softWrap: true,
-              ),
-            );
+            ContentEmptyState(message: state.message ?? 'No offline content available.');
         break;
       case UIStateType.data:
         content = dataBuilder(context, state.data as T);
@@ -60,21 +53,7 @@ class ResilientStateBuilder<T> extends StatelessWidget {
       case UIStateType.corrupted:
         final error = state.rawError ?? state.failure ?? StateError('Unknown');
         content = errorBuilder?.call(context, error, state.message) ??
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, semanticLabel: 'Error'),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.message ?? 'Unable to load content.',
-                    textAlign: TextAlign.center,
-                    softWrap: true,
-                  ),
-                ],
-              ),
-            );
+            ContentErrorState(error: error);
         break;
     }
     if (state.type == UIStateType.data || state.type == UIStateType.degraded) {

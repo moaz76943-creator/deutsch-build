@@ -65,8 +65,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureFactory: () => Future.value('Success Data'),
-              builder: (context, data) => Text(data),
+              futureBuilder: (token) => Future.value('Success Data'),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -87,8 +87,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureFactory: () => Future.error(Exception('Failed to load')),
-              builder: (context, data) => Text(data),
+              futureBuilder: (token) => Future.error(Exception('Failed to load')),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         ),
@@ -104,8 +104,8 @@ void main() {
         return MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureFactory: factory,
-              builder: (context, data) => Text(data),
+              futureBuilder: (token) => factory(),
+              dataBuilder: (context, data) => Text(data),
             ),
           ),
         );

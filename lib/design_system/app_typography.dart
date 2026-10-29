@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/text/language_identity.dart';
 
 class AppTypography {
+  // Existing static styles
 
   /// Returns safe font settings based on the language profile with appropriate fallbacks
   static TextStyle getSafeStyle(LanguageIdentity identity,
