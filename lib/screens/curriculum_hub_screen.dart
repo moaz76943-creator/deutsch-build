@@ -2,6 +2,7 @@ import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class CurriculumHubScreen extends StatefulWidget {
   const CurriculumHubScreen({super.key});
@@ -13,6 +14,8 @@ class CurriculumHubScreen extends StatefulWidget {
 class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
   List<dynamic> _missions = [];
   bool _isLoading = true;
+  // Simple in-memory cache to avoid re-parsing on subsequent visits (measurable for navigation).
+  static List<dynamic>? _cachedMissions;
 
   @override
   void initState() {
@@ -21,20 +24,34 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
   }
 
   Future<void> _loadMissions() async {
-    try {
-<<<<<<< HEAD
-      final jsonStr =
-          await rootBundle.loadString('assets/data/missions_50.json');
-=======
-      final jsonStr = await rootBundle.loadString('assets/data/missions_50.json');
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    if (_cachedMissions != null) {
       setState(() {
-        _missions = jsonDecode(jsonStr);
+        _missions = _cachedMissions!;
         _isLoading = false;
       });
-    } catch (_) {
-      setState(() => _isLoading = false);
+      return;
     }
+    try {
+      final jsonStr = await rootBundle.loadString('assets/data/missions_50.json');
+      // Offload CPU-bound JSON decoding to a background isolate.
+      // Prevents potential UI jank during startup/screen load.
+      final decoded = await compute(_decodeJson, jsonStr);
+      _cachedMissions = decoded;
+      if (mounted) {
+        setState(() {
+          _missions = decoded;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  static List<dynamic> _decodeJson(String jsonStr) {
+    return jsonDecode(jsonStr) as List<dynamic>;
   }
 
   @override
