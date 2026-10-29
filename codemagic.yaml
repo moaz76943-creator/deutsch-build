@@ -1,14 +1,6 @@
 workflows:
   signed-android-release:
     name: Signed Android Release
-    # mac_mini_m2 is billed. Do not start it on push or pull_request.
-    # trigger_signed_build.yml is the explicit API path and stays opt-in.
-    triggering:
-      events:
-        - tag
-      tag_patterns:
-        - pattern: 'codemagic-manual-only-*'
-          include: true
     instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
