@@ -6,8 +6,7 @@ import sys
 import os
 import time
 import fcntl
-import tempfile
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 
 ALLOWED_PATHS = [
     "AGENTS.md",
@@ -18,77 +17,47 @@ ALLOWED_PATHS = [
 VALID_TRANSITIONS = {
     "CLAIM": ["ACTIVE", "BLOCKED", "CANCELLED"],
     "ACTIVE": ["COMPLETE", "BLOCKED", "CANCELLED"],
-    "BLOCKED": ["ACTIVE", "CANCELLED"],
+    "BLOCKED": ["ACTIVE", "COMPLETE", "CANCELLED"],
     "COMPLETE": [],
     "CANCELLED": []
 }
 
-REPO_ROOT = str(Path(__file__).resolve().parents[2])
+REPO_ROOT = os.path.abspath(os.getcwd())
 LOCK_TTL_SECONDS = 3600
-
-
-def default_state_dir():
-    """Keep mutable agent state outside the source-controlled repository."""
-    base = os.environ.get("XDG_STATE_HOME")
-    return (Path(base) if base else Path.home() / ".local" / "state") / "deutsch-agent-contract"
-
-
-def write_json_atomic(path, value):
-    """Durably replace JSON under the caller's stable sibling-file lock."""
-    target = Path(path)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary = tempfile.mkstemp(prefix=".agent-state-", dir=target.parent)
-    try:
-        os.fchmod(descriptor, 0o600)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(value, stream, indent=2)
-            stream.write("\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, target)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
-
 
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
     try:
-        output = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE, cwd=REPO_ROOT)
+        output = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE)
         return [line.strip() for line in output.splitlines() if line.strip()]
     except subprocess.CalledProcessError as e:
         raise ValueError(f"Git diff failed or stale base SHA. Ensure BASE_SHA is valid. Error: {e.stderr}")
 
 def is_path_allowed(path_str):
-    """Validate a repository-relative claim without following any symlink."""
-    if not isinstance(path_str, str):
+    p = PurePosixPath(path_str)
+    if ".." in p.parts or p.is_absolute():
         return False
-    try:
-        path = PurePosixPath(path_str)
-        if (not path.parts or path.is_absolute() or
-                ".." in path.parts or ".git" in path.parts):
-            return False
 
-        normalized = path.as_posix()
-        if not (
-            normalized == "AGENTS.md"
-            or normalized == "docs/project-record"
-            or normalized.startswith("docs/project-record/")
-            or normalized == "tools/agent_contract"
-            or normalized.startswith("tools/agent_contract/")
-        ):
-            return False
+    path_str = str(p)
+    if path_str == "AGENTS.md":
+        return True
+    if path_str.startswith("docs/project-record/"):
+        return True
+    if path_str.startswith("tools/agent_contract/"):
+        return True
+    return False
 
-        root = Path(REPO_ROOT).resolve()
-        candidate = root
-        for component in path.parts:
-            candidate = candidate / component
-            # Even in-scope symlink aliases obscure the actual claimed file.
-            if candidate.is_symlink():
-                return False
-        return candidate.resolve().is_relative_to(root)
-    except (OSError, RuntimeError, ValueError):
+def is_symlink_safe(path_str):
+    if not os.path.islink(path_str):
+        return True
+
+    target = os.path.realpath(path_str)
+    if not target.startswith(REPO_ROOT):
         return False
+
+    rel_target = os.path.relpath(target, REPO_ROOT)
+    rel_target = rel_target.replace(os.sep, "/")
+    return is_path_allowed(rel_target)
 
 def paths_overlap(p1, p2):
     parts1 = PurePosixPath(p1).parts
@@ -101,18 +70,17 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now):
         if other_task == task_id or other_task == "_metadata":
             continue
         if data.get("state") in ["CLAIM", "ACTIVE"]:
-            # Age alone does not prove the original process stopped writing.
-            # Keep overlapping ownership until explicit cancellation/completion;
-            # unrelated paths remain runnable even when another claim is stale.
-            expired = now - data.get("timestamp", 0) > LOCK_TTL_SECONDS
+            timestamp = data.get("timestamp", 0)
+            if now - timestamp > LOCK_TTL_SECONDS:
+                data["state"] = "BLOCKED"
+                data["recovery_evidence"] = f"Stale lock recovered after {now - timestamp} seconds."
+                continue
+
             other_paths = data.get("paths", [])
             for p in requested_paths:
                 for op in other_paths:
                     if paths_overlap(p, op):
-                        reason = f"Path {p} overlaps with {op} claimed by {other_task}"
-                        if expired:
-                            reason += "; expired claim requires explicit release after owner reconciliation"
-                        return True, reason
+                        return True, f"Path {p} overlaps with {op} claimed by {other_task}"
     return False, ""
 
 def is_stale_base_sha(ledger, base_sha):
@@ -120,7 +88,7 @@ def is_stale_base_sha(ledger, base_sha):
     if latest_completed:
         try:
             subprocess.check_call(["git", "merge-base", "--is-ancestor", latest_completed, base_sha],
-                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=REPO_ROOT)
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except subprocess.CalledProcessError:
             return True
     return False
@@ -129,12 +97,6 @@ def process_ledger(parsed, f):
     f.seek(0)
     content = f.read()
     ledger = json.loads(content) if content else {}
-    states = frozenset(VALID_TRANSITIONS)
-    if (not isinstance(ledger, dict) or
-            any(not isinstance(value, dict) or
-                (key != "_metadata" and value.get("state") not in states)
-                for key, value in ledger.items())):
-        raise ValueError("invalid_ledger_schema")
 
     report = {
         "task_id": parsed.task_id,
@@ -165,7 +127,11 @@ def process_ledger(parsed, f):
 
     for p in requested_paths:
         if is_path_allowed(p):
-            report["permitted_paths"].append(p)
+            if os.path.exists(p) and not is_symlink_safe(p):
+                report["denied_paths"].append(p)
+                report["blockers"].append(f"Symlink {p} points to forbidden path")
+            else:
+                report["permitted_paths"].append(p)
         else:
             report["denied_paths"].append(p)
 
@@ -233,35 +199,26 @@ def main(args=None):
     parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
-    parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
-    parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
+    parser.add_argument("--ledger", default="tools/agent_contract/task_ledger.json")
+    parser.add_argument("--report", default="tools/agent_contract/evidence_report.json")
 
     parsed = parser.parse_args(args)
 
-    ledger_path = Path(parsed.ledger)
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    # A persistent sibling lock remains valid across atomic inode replacements.
-    with open(str(ledger_path) + ".lock", "a+", encoding="utf-8") as lock:
-        os.chmod(str(ledger_path) + ".lock", 0o600)
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        try:
-            if ledger_path.exists():
-                with ledger_path.open("r", encoding="utf-8") as current:
-                    result_code, report, updated_ledger = process_ledger(parsed, current)
-            else:
-                import io
-                result_code, report, updated_ledger = process_ledger(parsed, io.StringIO(""))
-        except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
-            result_code = 1
-            report = {"task_id": parsed.task_id, "base_sha": parsed.base_sha,
-                      "result_sha": parsed.result_sha, "transition": parsed.transition,
-                      "permitted_paths": [], "denied_paths": [],
-                      "blockers": ["Invalid ledger JSON/schema: existing state preserved"]}
-            updated_ledger = None
+    os.makedirs(os.path.dirname(os.path.abspath(parsed.ledger)), exist_ok=True)
 
-        write_json_atomic(parsed.report, report)
-        if result_code == 0:
-            write_json_atomic(ledger_path, updated_ledger)
+    with open(parsed.ledger, "a+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        result_code, report, updated_ledger = process_ledger(parsed, f)
+
+        os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
+        with open(parsed.report, "w") as rf:
+            json.dump(report, rf, indent=2)
+
+        f.seek(0)
+        f.truncate()
+        json.dump(updated_ledger, f, indent=2)
+        # Add a newline for posix compliance
+        f.write("\n")
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)

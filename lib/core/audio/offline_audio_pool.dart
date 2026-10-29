@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/widgets.dart';
@@ -21,6 +22,14 @@ class OfflineAudioPool with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _initTts();
   }
+=======
+import 'package:flutter_tts/flutter_tts.dart';
+
+class OfflineAudioPool {
+  static final OfflineAudioPool _instance = OfflineAudioPool._internal();
+  factory OfflineAudioPool() => _instance;
+  OfflineAudioPool._internal();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   final FlutterTts _tts = FlutterTts();
   bool _isPlaying = false;
@@ -28,6 +37,7 @@ class OfflineAudioPool with WidgetsBindingObserver {
 
   String _activeLocale = '';
   double _activeSpeechRate = -1.0;
+<<<<<<< HEAD
 
   int _pairGenerationToken = 0;
   final int maxQueueSize = 5;
@@ -151,6 +161,36 @@ class OfflineAudioPool with WidgetsBindingObserver {
 
   Future<void> stop() async {
     _clearQueue();
+=======
+
+  Future<void> playWord(
+    String text, {
+    String locale = 'de-DE',
+    double speechRate = 0.45,
+  }) async {
+    try {
+      await _tts.stop();
+      _isPlaying = true;
+
+      // Zero-latency optimization: only update channel state if parameters changed
+      if (_activeLocale != locale) {
+        await _tts.setLanguage(locale);
+        _activeLocale = locale;
+      }
+      if (_activeSpeechRate != speechRate) {
+        await _tts.setSpeechRate(speechRate);
+        _activeSpeechRate = speechRate;
+      }
+
+      await _tts.speak(text);
+    } catch (_) {
+    } finally {
+      _isPlaying = false;
+    }
+  }
+
+  Future<void> stop() async {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     try {
       await _tts.stop();
     } catch (_) {}
@@ -158,7 +198,11 @@ class OfflineAudioPool with WidgetsBindingObserver {
   }
 
   void dispose() {
+<<<<<<< HEAD
     WidgetsBinding.instance.removeObserver(this);
     stop();
+=======
+    // Release cached audio resources
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }
