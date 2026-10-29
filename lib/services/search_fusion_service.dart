@@ -77,7 +77,6 @@ class SearchFusionService {
 
   static const int rrfK = 60;
   final MountedPackSearch _search;
-  int _searchGeneration = 0;
 
   Stream<SearchFusionPage> search({
     required String query,
@@ -86,7 +85,6 @@ class SearchFusionService {
     int pageSize = 20,
     int perPackLimit = 80,
   }) async* {
-    final generation = ++_searchGeneration;
     if (pageSize < 1 || pageSize > 100) {
       throw RangeError.range(pageSize, 1, 100, 'pageSize');
     }
@@ -96,7 +94,6 @@ class SearchFusionService {
     final active = _normalizeCode(activeLanguageCode);
     final term = query.trim();
     if (term.isEmpty || term.runes.length > 30) {
-      if (generation != _searchGeneration) return;
       yield const SearchFusionPage(
         pageIndex: 0,
         items: <FusedSearchHit>[],
@@ -110,7 +107,6 @@ class SearchFusionService {
       languages.add(_normalizeCode(language));
     }
     if (languages.isEmpty) {
-      if (generation != _searchGeneration) return;
       yield const SearchFusionPage(
         pageIndex: 0,
         items: <FusedSearchHit>[],
@@ -141,7 +137,7 @@ class SearchFusionService {
     final responses = <String, List<Map<String, dynamic>>>{};
     await for (final answer in events.stream) {
       responses[answer.languageCode] = answer.rows;
-      final ranked = _fuse(responses, active, term.toLowerCase(), languages);
+      final ranked = _fuse(responses, active, term.toLowerCase());
       final complete = responses.length == languages.length;
       final count = complete ? (ranked.length + pageSize - 1) ~/ pageSize : 1;
       for (var page = 0; page < count; page++) {
@@ -149,7 +145,6 @@ class SearchFusionService {
         final end = (start + pageSize < ranked.length)
             ? start + pageSize
             : ranked.length;
-        if (generation != _searchGeneration) return;
         yield SearchFusionPage(
           pageIndex: page,
           items: List<FusedSearchHit>.unmodifiable(
@@ -160,7 +155,6 @@ class SearchFusionService {
         );
       }
       if (count == 0) {
-        if (generation != _searchGeneration) return;
         yield SearchFusionPage(
           pageIndex: 0,
           items: const <FusedSearchHit>[],
@@ -175,7 +169,6 @@ class SearchFusionService {
     Map<String, List<Map<String, dynamic>>> responses,
     String activeLanguage,
     String query,
-    Set<String> mountedLanguages,
   ) {
     final gathered = <String, _AccumulatedHit>{};
     final sortedCodes = responses.keys.toList()..sort();
@@ -186,13 +179,11 @@ class SearchFusionService {
         final language = _normalizeCode(
           (row['language_code'] ?? code).toString(),
         );
-        if (!mountedLanguages.contains(language)) continue;
         final surface =
             (row['surface'] ?? row['display_text'] ?? '').toString().trim();
         if (surface.isEmpty) continue;
         final lemma = (row['lemma'] ?? surface).toString().trim();
-        final id = (row['id'] ?? '').toString().trim();
-        final key = '$language|${lemma.toLowerCase()}|$id';
+        final key = '$language|${lemma.toLowerCase()}';
         final translation =
             (row['translation_ar'] ?? '').toString().toLowerCase();
         final tier =

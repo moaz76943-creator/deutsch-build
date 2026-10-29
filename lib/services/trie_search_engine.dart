@@ -1,17 +1,23 @@
+import 'package:characters/characters.dart';
+
 class TrieNode {
   final Map<String, TrieNode> children = {};
   final List<String> wordIds = [];
 }
 
 class TrieSearchEngine {
-  final TrieNode _root = TrieNode();
+  TrieNode _root = TrieNode();
+  int _nodeCount = 1;
 
-  /// تطبيع نصي عالمي يدعم اللاتينية، السلافية، والتشكيل العربي
-  static String normalizeUniversal(String text) {
-    if (text.isEmpty) return text;
-    String res = text.toLowerCase().trim();
+  final String languageCode;
+  final String? directedPairKey;
+  final int maxNodes;
+  final int maxResultsPerNode;
+  final int maxSearchResults;
+  final int maxWordGraphemes;
+  static const int maxInputCodeUnits = 1024;
+  static const int maxIdCodeUnits = 256;
 
-<<<<<<< HEAD
   TrieSearchEngine({
     this.languageCode = 'und',
     this.directedPairKey,
@@ -50,9 +56,34 @@ class TrieSearchEngine {
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
       );
-=======
+    } else {
+      // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
+      final diacritics = {
+        'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+        'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u',
+        'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+      };
+
+      diacritics.forEach((k, v) {
+        result = result.replaceAll(k, v);
+      });
+    }
+
+    return result;
+  }
+
+  // Legacy static entrypoints retained; universal no longer means Latin fold.
+  static String normalizeUniversal(String text) {
+    if (text.isEmpty) return text;
+    String res = text.toLowerCase().trim();
     // إزالة التشكيل العربي
     res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+
+    // إزالة التشكيل العبري
+    res = res.replaceAll(RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'), '');
 
     // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
     final diacritics = {
@@ -71,37 +102,7 @@ class TrieSearchEngine {
     return res;
   }
 
-  // دعم التوافق مع الكود السابق
   String normalizeGerman(String text) => normalizeUniversal(text);
-
-  void insert(String word, String id) {
-    final normalized = normalizeUniversal(word);
-    TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      current = current.children.putIfAbsent(char, () => TrieNode());
-      current.wordIds.add(id);
-    }
-  }
-
-  List<String> searchPrefix(String prefix) {
-    final normalized = normalizeUniversal(prefix);
-    TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      if (!current.children.containsKey(char)) return [];
-      current = current.children[char]!;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    }
-    return current.wordIds.toSet().toList();
-  }
-<<<<<<< HEAD
-
-  // Legacy static entrypoints retained; universal no longer means Latin fold.
-  String normalizeUniversal(String text) =>
-      normalizeForLanguage(text, 'und');
-  String normalizeGerman(String text) =>
-      normalizeForLanguage(text, 'de');
 
   bool matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
@@ -114,21 +115,18 @@ class TrieSearchEngine {
         id.length > maxIdCodeUnits) {
       return false;
     }
-    final normalized = normalizeForLanguage(word, languageCode);
+    final normalized = languageCode == 'und' ? normalizeUniversal(word) : normalizeForLanguage(word, languageCode);
     if (normalized.isEmpty) return false;
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
 
     // Preflight both capacity dimensions before touching the index.
     TrieNode? cursor = _root;
-    var missingNodes = 0;
     for (final unit in units) {
       if (cursor == null) {
-        missingNodes++;
       } else {
         final child = cursor.children[unit];
         if (child == null) {
-          missingNodes++;
           cursor = null;
         } else {
           cursor = child;
@@ -139,16 +137,16 @@ class TrieSearchEngine {
         }
       }
     }
-    if (_nodeCount + missingNodes > maxNodes) return false;
 
     var current = _root;
     for (final unit in units) {
       if (!current.children.containsKey(unit)) {
+        if (_nodeCount >= maxNodes) break; // Graceful truncation
         current.children[unit] = TrieNode();
         _nodeCount++;
       }
       current = current.children[unit]!;
-      if (current.wordIds.length < maxResultsPerNode) {
+      if (current.wordIds.length < maxResultsPerNode && !current.wordIds.contains(id)) {
         current.wordIds.add(id);
       }
     }
@@ -164,7 +162,7 @@ class TrieSearchEngine {
     if (!matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
       return <String>[];
     }
-    final normalized = normalizeForLanguage(prefix, languageCode);
+    final normalized = languageCode == 'und' ? normalizeUniversal(prefix) : normalizeForLanguage(prefix, languageCode);
     if (normalized.isEmpty) return <String>[];
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return <String>[];
@@ -184,6 +182,4 @@ class TrieSearchEngine {
   }
 
   int get currentNodeCount => _nodeCount;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
