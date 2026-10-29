@@ -22,10 +22,8 @@ class VocabularyRepository {
         json_data TEXT NOT NULL
       )
     ''');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_lang ON vocabulary_items(language_code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_vocab_interval ON vocabulary_items(interval)');
     return db;
   }
 
@@ -57,15 +55,13 @@ class VocabularyRepository {
 
       if (jsonString == null || jsonString.isEmpty || jsonString == '[]') {
         try {
-          jsonString =
-              await rootBundle.loadString('assets/data/master_vocabulary.json');
+          jsonString = await rootBundle.loadString('assets/data/master_vocabulary.json');
         } catch (_) {}
       }
 
       if (jsonString != null && jsonString.isNotEmpty && jsonString != '[]') {
         final List<dynamic> decoded = jsonDecode(jsonString);
-        final items =
-            decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         await saveVocabularyList(items);
         return items;
       }
@@ -90,9 +86,7 @@ class VocabularyRepository {
             'meaning': (item['meaning'] ?? '').toString(),
             'interval': item['interval'] is int ? item['interval'] : 0,
             'repetitions': item['repetitions'] is int ? item['repetitions'] : 0,
-            'ease_factor': item['easeFactor'] is num
-                ? (item['easeFactor'] as num).toDouble()
-                : 2.5,
+            'ease_factor': item['easeFactor'] is num ? (item['easeFactor'] as num).toDouble() : 2.5,
             'json_data': jsonEncode(item),
           },
           conflictAlgorithm: ConflictAlgorithm.replace,
@@ -121,8 +115,7 @@ class VocabularyRepository {
         limit: 1,
       );
       if (res.isNotEmpty) {
-        final map = Map<String, dynamic>.from(
-            jsonDecode(res.first['json_data'] as String));
+        final map = Map<String, dynamic>.from(jsonDecode(res.first['json_data'] as String));
         map['interval'] = interval;
         map['repetitions'] = repetitions;
         map['easeFactor'] = easeFactor;
@@ -160,9 +153,7 @@ class VocabularyRepository {
           'meaning': (item['meaning'] ?? '').toString(),
           'interval': item['interval'] is int ? item['interval'] : 0,
           'repetitions': item['repetitions'] is int ? item['repetitions'] : 0,
-          'ease_factor': item['easeFactor'] is num
-              ? (item['easeFactor'] as num).toDouble()
-              : 2.5,
+          'ease_factor': item['easeFactor'] is num ? (item['easeFactor'] as num).toDouble() : 2.5,
           'json_data': jsonEncode(item),
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -195,8 +186,7 @@ class VocabularyRepository {
       final String front = item['languageCode'] == 'de'
           ? '${item['article']} ${item['word']}'
           : item['word'];
-      final String back =
-          '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
+      final String back = '${item['meaning']} (${item['semanticField'] ?? 'عام'})';
       buffer.writeln('$front\t$back');
     }
     return buffer.toString();
@@ -231,8 +221,7 @@ class VocabularyRepository {
   Future<bool> importBackupJson(String jsonString) async {
     try {
       final List<dynamic> decoded = jsonDecode(jsonString);
-      final items =
-          decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final items = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       return await saveVocabularyList(items);
     } catch (_) {
       return false;

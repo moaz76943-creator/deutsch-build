@@ -2,8 +2,7 @@ import 'dart:convert';
 
 class BackgroundOrchestrator {
   // 1. Predictive Forgetting Curve Simulation Matrix (محاكاة منحنيات النسيان)
-  static Map<String, dynamic> simulateForgettingCurves(
-      List<Map<String, dynamic>> items) {
+  static Map<String, dynamic> simulateForgettingCurves(List<Map<String, dynamic>> items) {
     int totalSimulatedReviews = items.length * 120;
     double averageRetentionRate = 0.952;
     return {
@@ -15,8 +14,7 @@ class BackgroundOrchestrator {
   }
 
   // 2. Cross-Lingual Lexical Chunking Synthesizer (توليف الكتل المعجمية المقارنة)
-  static Map<String, dynamic> synthesizeLexicalChunks(
-      List<Map<String, dynamic>> items) {
+  static Map<String, dynamic> synthesizeLexicalChunks(List<Map<String, dynamic>> items) {
     return {
       'module': 'Cross-Lingual Lexical Chunking Synthesizer',
       'synthesizedClusters': items.length * 4,
@@ -52,8 +50,7 @@ class BackgroundOrchestrator {
     };
   }
 
-  static Map<String, dynamic> runAllNightlyOrchestrations(
-      List<Map<String, dynamic>> items) {
+  static Map<String, dynamic> runAllNightlyOrchestrations(List<Map<String, dynamic>> items) {
     String rawJson = jsonEncode(items);
     return {
       'timestamp': DateTime.now().toIso8601String(),

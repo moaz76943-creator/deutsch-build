@@ -1,3 +1,1 @@
-class BackgroundWorker {
-  static void initialize() {}
-}
+class BackgroundWorker { static void initialize() {} }

@@ -5,8 +5,7 @@ class SmartNotificationsScreen extends StatefulWidget {
   const SmartNotificationsScreen({super.key});
 
   @override
-  State<SmartNotificationsScreen> createState() =>
-      _SmartNotificationsScreenState();
+  State<SmartNotificationsScreen> createState() => _SmartNotificationsScreenState();
 }
 
 class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
@@ -38,15 +37,9 @@ class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
                       const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text('تذكير يومي لحماية الـ Streak',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold)),
+                          Text('تذكير يومي لحماية الـ Streak', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('تنبيه لطيف في وقت فراغك للتعلم',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12)),
+                          Text('تنبيه لطيف في وقت فراغك للتعلم', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
                       ),
                       Switch(
@@ -67,11 +60,7 @@ class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Text('وقت التذكير المفضل',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
+                      const Text('وقت التذكير المفضل', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                       TextButton(
                         onPressed: () async {
                           final TimeOfDay? picked = await showTimePicker(
@@ -86,10 +75,7 @@ class _SmartNotificationsScreenState extends State<SmartNotificationsScreen> {
                         },
                         child: Text(
                           _reminderTime.format(context),
-                          style: const TextStyle(
-                              color: Color(0xFF38BDF8),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],

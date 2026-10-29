@@ -71,12 +71,12 @@ class DirectedCatalogReadiness {
     // and we implicitly try to translate es -> fr by going es -> de -> fr.
     // If BOTH source and target are not production ready, we block it.
     // If AT LEAST ONE is production ready (e.g. es -> de OR de -> es), it's a valid direct pair or reverse pair.
-    if (LanguageReadinessMatrix.getTier(pair.sourceLocale) !=
-            LanguageReadinessTier.productionReady &&
-        LanguageReadinessMatrix.getTier(pair.targetLocale) !=
-            LanguageReadinessTier.productionReady) {
-      return PairUnavailable(UnavailableReason.silentPivotPrevented,
-          'Neither source (${pair.sourceLocale}) nor target (${pair.targetLocale}) is a production-ready anchor language');
+    if (LanguageReadinessMatrix.getTier(pair.sourceLocale) != LanguageReadinessTier.productionReady &&
+        LanguageReadinessMatrix.getTier(pair.targetLocale) != LanguageReadinessTier.productionReady) {
+      return PairUnavailable(
+        UnavailableReason.silentPivotPrevented,
+        'Neither source (${pair.sourceLocale}) nor target (${pair.targetLocale}) is a production-ready anchor language'
+      );
     }
 
     final packResult = targetNode.packVerification;
@@ -85,8 +85,7 @@ class DirectedCatalogReadiness {
     }
 
     if (packResult.status != PackGateStatus.approved) {
-      return PairUnavailable(
-          UnavailableReason.targetPackRejected, packResult.reason);
+      return PairUnavailable(UnavailableReason.targetPackRejected, packResult.reason);
     }
 
     return PairUsable();

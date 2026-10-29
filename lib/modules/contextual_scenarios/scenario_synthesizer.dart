@@ -1,9 +1,8 @@
 class ContextualScenarioSynthesizer {
   // توليد سيناريو حواري واقعي ومصغر مرتبط بالمفردة والقطاع المهني (مثل الصيدلة والطب)
-  static Map<String, dynamic> generateMicroScenario(
-      String word, String professionalContext) {
+  static Map<String, dynamic> generateMicroScenario(String word, String professionalContext) {
     Map<String, String> scenarioData;
-
+    
     if (word.toLowerCase() == 'rezept') {
       scenarioData = {
         'setting': 'صيدلية مجتمعية (Community Pharmacy)',
@@ -16,8 +15,7 @@ class ContextualScenarioSynthesizer {
       scenarioData = {
         'setting': 'مدخل الصيدلية / الشارع الرئيسي',
         'dialoguePartner': 'أحد المارة والباحث عن دواء',
-        'lineA':
-            'Entschuldigung, wo ist hier die nächste Apotheke mit Notdienst?',
+        'lineA': 'Entschuldigung, wo ist hier die nächste Apotheke mit Notdienst?',
         'lineB': 'Die Notdienst-Apotheke ist zwei Straßen weiter links.',
         'grammarFocus': 'تحديد المواقع باستخدام المجرور (Dativ)'
       };

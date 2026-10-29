@@ -11,12 +11,11 @@ abstract class OptionalFeatureFailure extends FeatureFailure {
 }
 
 class MissingOfflineVoiceFailure extends OptionalFeatureFailure {
-  const MissingOfflineVoiceFailure(
-      [super.message = 'Offline voice is missing']);
+  const MissingOfflineVoiceFailure([String message = 'Offline voice is missing']) : super(message);
 }
 
 class MissingDictionaryFailure extends OptionalFeatureFailure {
-  const MissingDictionaryFailure([super.message = 'Dictionary is missing']);
+  const MissingDictionaryFailure([String message = 'Dictionary is missing']) : super(message);
 }
 
 abstract class CriticalIntegrityFailure extends FeatureFailure {
@@ -24,10 +23,9 @@ abstract class CriticalIntegrityFailure extends FeatureFailure {
 }
 
 class InvalidVaultFailure extends CriticalIntegrityFailure {
-  const InvalidVaultFailure([super.message = 'Invalid vault detected']);
+  const InvalidVaultFailure([String message = 'Invalid vault detected']) : super(message);
 }
 
 class StorageIntegrityFailure extends CriticalIntegrityFailure {
-  const StorageIntegrityFailure(
-      [super.message = 'Storage integrity compromised']);
+  const StorageIntegrityFailure([String message = 'Storage integrity compromised']) : super(message);
 }

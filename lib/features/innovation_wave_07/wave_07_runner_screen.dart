@@ -51,11 +51,8 @@ class Wave07RunnerScreen extends StatelessWidget {
           return Card(
             elevation: 1.5,
             child: ListTile(
-              title: Text(item.title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: Text(
-                  'المعرف: ${item.contract.scenarioId} | النمط: ${item.mode.name}'),
+              title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: Text('المعرف: ${item.contract.scenarioId} | النمط: ${item.mode.name}'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.push(

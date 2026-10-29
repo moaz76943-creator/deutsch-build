@@ -3,7 +3,8 @@ import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
 
 class OfflineAudioDispatcher {
   static int _currentGenerationToken = 0;
-  static bool get isPlaying => OfflineAudioPool().isPlaying;
+  static bool _isPlaying = false;
+  static bool get isPlaying => _isPlaying;
 
   static Future<bool> speakText({
     required String text,
@@ -11,27 +12,29 @@ class OfflineAudioDispatcher {
     double speechRate = 0.9,
   }) async {
     final int thisToken = ++_currentGenerationToken;
+    _isPlaying = true;
     try {
       if (thisToken != _currentGenerationToken) return false;
-      final result = await OfflineAudioPool().playWord(
+      await OfflineAudioPool().playWord(
         text,
         locale: bcp47Locale,
         speechRate: speechRate * 0.5,
+        generationToken: thisToken,
       );
       if (thisToken != _currentGenerationToken) return false;
-      return result;
+      return true;
     } catch (_) {
       return false;
+    } finally {
+      if (thisToken == _currentGenerationToken) {
+        _isPlaying = false;
+      }
     }
   }
 
   static void stopCurrentAudio() {
     _currentGenerationToken++;
+    _isPlaying = false;
     OfflineAudioPool().stop();
-  }
-
-  static void markPairChange() {
-    _currentGenerationToken++;
-    OfflineAudioPool().markPairChange();
   }
 }

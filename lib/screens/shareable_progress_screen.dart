@@ -25,28 +25,17 @@ class ShareableProgressScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: <Widget>[
-                      const Text('🔥 5 أيام متتالية من التعلم',
-                          style: TextStyle(
-                              color: Color(0xFF38BDF8),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                      const Text('🔥 5 أيام متتالية من التعلم', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      const Text(
-                          '⭐ أتممت حفظ وتثبيت أكثر من 500 كلمة بنجاح عبر منصة "Deutsch بالعربي"',
-                          style: TextStyle(color: Colors.white, fontSize: 15),
-                          textAlign: TextAlign.center),
+                      const Text('⭐ أتممت حفظ وتثبيت أكثر من 500 كلمة بنجاح عبر منصة "Deutsch بالعربي"', style: TextStyle(color: Colors.white, fontSize: 15), textAlign: TextAlign.center),
                       const SizedBox(height: 20),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: const Color(0xFF34D399).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Text('مستوى الإتقان: 84% 🚀',
-                            style: TextStyle(
-                                color: Color(0xFF34D399),
-                                fontWeight: FontWeight.bold)),
+                        child: const Text('مستوى الإتقان: 84% 🚀', style: TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -57,21 +46,15 @@ class ShareableProgressScreen extends StatelessWidget {
                     backgroundColor: const Color(0xFF38BDF8),
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text(
-                              'تم نسخ وتوليد بطاقة الإنجاز بنجاح للمشاركة!'),
-                          backgroundColor: Color(0xFF34D399)),
+                      const SnackBar(content: Text('تم نسخ وتوليد بطاقة الإنجاز بنجاح للمشاركة!'), backgroundColor: Color(0xFF34D399)),
                     );
                   },
                   icon: const Icon(Icons.share_rounded),
-                  label: const Text('مشاركة البطاقة كصورة',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  label: const Text('مشاركة البطاقة كصورة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

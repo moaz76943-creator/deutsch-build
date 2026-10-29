@@ -17,8 +17,7 @@ class RuntimeLifecycleRegistry {
     return _isDisposed || _disposedOwners.contains(owner);
   }
 
-  void registerSubscription(StreamSubscription<dynamic> sub,
-      {String owner = 'global'}) {
+  void registerSubscription(StreamSubscription<dynamic> sub, {String owner = 'global'}) {
     registerCleanup(() => sub.cancel(), owner: owner);
   }
 
@@ -28,8 +27,7 @@ class RuntimeLifecycleRegistry {
     }, owner: owner);
   }
 
-  void registerCleanup(FutureOr<void> Function() cleanup,
-      {String owner = 'global'}) {
+  void registerCleanup(FutureOr<void> Function() cleanup, {String owner = 'global'}) {
     if (isOwnerDisposed(owner)) {
       _safeCleanup(cleanup);
       return;

@@ -1,66 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/app_typography.dart';
-import 'accessible_multilingual_text.dart';
-import 'resilient_text_container.dart';
+<<<<<<< HEAD
+import '../core/lexical_repository.dart';
 import 'lexicon_rich_details.dart';
+import 'resilient_text_container.dart';
+
+/// A complete view for a lexical entry, safely rendering BiDi and rich text,
+/// preventing overflow using [ResilientTextContainer].
+class BidiLexiconView extends StatelessWidget {
+  final LexicalEntry entry;
+  final EdgeInsetsGeometry padding;
+
+  const BidiLexiconView({
+    super.key,
+    required this.entry,
+    this.padding = const EdgeInsets.all(16.0),
+=======
+import 'accessible_multilingual_text.dart';
 
 class BidiLexiconView extends StatelessWidget {
   final String sourceText;
-  final String sourceLanguageCode;
+  final String sourceLocale;
   final String targetText;
-  final String targetLanguageCode;
-
-  final String? partOfSpeech;
-  final String? gender;
-  final String? pluralForm;
-  final String? ipa;
-  final String? explanation;
+  final String targetLocale;
+  final TextStyle? sourceStyle;
+  final TextStyle? targetStyle;
 
   const BidiLexiconView({
     super.key,
     required this.sourceText,
-    required this.sourceLanguageCode,
+    required this.sourceLocale,
     required this.targetText,
-    required this.targetLanguageCode,
-    this.partOfSpeech,
-    this.gender,
-    this.pluralForm,
-    this.ipa,
-    this.explanation,
+    required this.targetLocale,
+    this.sourceStyle,
+    this.targetStyle,
+>>>>>>> origin/main
   });
 
   @override
   Widget build(BuildContext context) {
-    return ResilientTextContainer(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AccessibleMultilingualText(
-            text: sourceText,
-            languageCode: sourceLanguageCode,
-            style: AppTypography.title,
-          ),
-          const SizedBox(height: 8.0),
-          LexiconRichDetails(
-            partOfSpeech: partOfSpeech,
-            gender: gender,
-            pluralForm: pluralForm,
-            ipa: ipa,
-            explanation: explanation,
-            explanationLanguageCode: targetLanguageCode,
-          ),
-          const SizedBox(height: 12.0),
-          const Divider(),
-          const SizedBox(height: 12.0),
-          AccessibleMultilingualText(
-            text: targetText,
-            languageCode: targetLanguageCode,
-            style: AppTypography.h2,
-          ),
-        ],
+<<<<<<< HEAD
+    return Padding(
+      padding: padding,
+      child: ResilientTextContainer(
+        child: LexiconRichDetails(entry: entry),
       ),
+=======
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AccessibleMultilingualText(
+          sourceText,
+          locale: sourceLocale,
+          style: sourceStyle,
+          textAlign: TextAlign.start,
+        ),
+        const SizedBox(height: 8),
+        AccessibleMultilingualText(
+          targetText,
+          locale: targetLocale,
+          style: targetStyle,
+          textAlign: TextAlign.start,
+        ),
+      ],
+>>>>>>> origin/main
     );
   }
 }

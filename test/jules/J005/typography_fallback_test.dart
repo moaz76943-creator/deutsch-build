@@ -1,55 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/design_system/app_typography.dart';
-import 'package:deutsch_bilarabi/core/text/language_identity.dart';
+import 'package:deutsch_bilarabi/design_system/font_fallback_engine.dart';
 
 void main() {
-  testWidgets('Typography applies correct fallbacks and directionality', (WidgetTester tester) async {
-    const arabicIdentity = LanguageIdentity(
-      languageCode: 'ar',
-      writingDirection: WritingDirection.rtl,
-      typographyProfile: 'arabic',
-      tokenizerProfile: 'default',
-      normalizationProfile: 'default',
-    );
+  group('AppTypography and FontFallbackEngine Tests', () {
+    test('FontFallbackEngine universal fallback contains all supported scripts', () {
+      final fallbacks = FontFallbackEngine.universalFallback;
+      expect(fallbacks, contains('NotoSansArabic'));
+      expect(fallbacks, contains('NotoSansHebrew'));
+      expect(fallbacks, contains('NotoSansDevanagari'));
+      expect(fallbacks, contains('NotoSansEthiopic'));
+      expect(fallbacks, contains('NotoSansGeorgian'));
+      expect(fallbacks, contains('NotoSansArmenian'));
+      expect(fallbacks, contains('NotoSansSC'));
+    });
 
-    const georgianIdentity = LanguageIdentity(
-      languageCode: 'ka',
-      writingDirection: WritingDirection.ltr,
-      typographyProfile: 'georgian',
-      tokenizerProfile: 'default',
-      normalizationProfile: 'default',
-    );
+    test('FontFallbackEngine getFallbackForText targets specific scripts', () {
+      expect(FontFallbackEngine.getFallbackForText('مرحبا'), contains('NotoSansArabic'));
+      expect(FontFallbackEngine.getFallbackForText('שלום'), contains('NotoSansHebrew'));
+      expect(FontFallbackEngine.getFallbackForText('नमस्ते'), contains('NotoSansDevanagari')); // combining marks
+      expect(FontFallbackEngine.getFallbackForText('ሰላም'), contains('NotoSansEthiopic'));
+      expect(FontFallbackEngine.getFallbackForText('გამარჯობა'), contains('NotoSansGeorgian'));
+      expect(FontFallbackEngine.getFallbackForText('Բարև'), contains('NotoSansArmenian'));
+      expect(FontFallbackEngine.getFallbackForText('你好'), contains('NotoSansSC'));
 
-    final arabicStyle = AppTypography.getSafeStyle(arabicIdentity);
-    expect(arabicStyle.fontFamilyFallback, contains('NotoSansArabic'));
-    expect(arabicStyle.height, 1.2);
+      // Mixed script
+      final mixed = FontFallbackEngine.getFallbackForText('Hello مرحبا 你好');
+      expect(mixed, contains('NotoSansArabic'));
+      expect(mixed, contains('NotoSansSC'));
+    });
 
-    final georgianStyle = AppTypography.getSafeStyle(georgianIdentity);
-    expect(georgianStyle.fontFamilyFallback, contains('NotoSansGeorgian'));
+    test('AppTypography applies default font and fallback list', () {
+      final style = AppTypography.body;
+      expect(style.fontFamily, 'Cairo');
+      expect(style.fontFamilyFallback, isNotEmpty);
+      expect(style.fontFamilyFallback, contains('NotoSansArabic'));
+    });
 
-    final cairoIdentity = LanguageIdentity(
-      languageCode: 'ar',
-      writingDirection: WritingDirection.rtl,
-      typographyProfile: 'cairo',
-      tokenizerProfile: 'default',
-      normalizationProfile: 'default',
-    );
-    final cairoStyle = AppTypography.getSafeStyle(cairoIdentity);
-    expect(cairoStyle.fontFamily, 'Cairo');
-    expect(cairoStyle.fontFamilyFallback, contains('NotoSansArabic'));
-    expect(cairoStyle.height, 1.45);
+    testWidgets('Renders mixed script text successfully', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                Text('مرحبا (Hello) 你好', style: AppTypography.display),
+                Text('שלום (Peace)', style: AppTypography.h1, textDirection: TextDirection.rtl),
+                Text('नमस्ते', style: AppTypography.body), // Devangari with combining marks
+                Text('This is purely English text.', style: AppTypography.body),
+                // Extremely long string to test wrapping logic with mixed script
+                Text('English ' * 20 + 'مرحبا ' * 20 + '你好 ' * 20, style: AppTypography.body),
+              ],
+            ),
+          ),
+        ),
+      );
 
-    // Test Widget Rendering for RTL
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: AppTypography.buildBiDiText('مرحبا', arabicIdentity),
-      ),
-    ));
+      // Verify that the text renders without layout errors.
+      expect(find.text('مرحبا (Hello) 你好'), findsOneWidget);
+      expect(find.text('שלום (Peace)'), findsOneWidget);
+      expect(find.text('नमस्ते'), findsOneWidget);
+    });
 
-    final directionality = tester.widget<Directionality>(
-      find.ancestor(of: find.text('مرحبا'), matching: find.byType(Directionality)).first
-    );
-    expect(directionality.textDirection, TextDirection.rtl);
+    testWidgets('Layout does not crash on narrow viewports with large mixed text', (WidgetTester tester) async {
+      // Set narrow constraints
+      tester.view.physicalSize = const Size(300, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 150, // narrow width
+                child: Text(
+                  'A very long text mixing scripts: გამარჯობა (Georgian), Բարև (Armenian), ሰላም (Ethiopic). '
+                  'This should wrap naturally without crashing.',
+                  style: AppTypography.body,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Text), findsOneWidget);
+    });
   });
 }
