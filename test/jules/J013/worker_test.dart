@@ -5,8 +5,8 @@ void main() {
   late PersistentCpuWorker worker;
 
   setUp(() {
-    PersistentCpuWorker.resetForTesting();
     worker = PersistentCpuWorker.instance;
+    worker.reset();
   });
 
   group('PersistentCpuWorker - Core Calculations', () {
@@ -23,32 +23,25 @@ void main() {
 
   group('PersistentCpuWorker - Bounded Execution & Failures', () {
     test('throws WorkerQueueExhaustedException when queue is full', () async {
-      // The queue size is 50, and max concurrent tasks is 4.
-      // So if we queue 55, the last ones will throw WorkerQueueExhaustedException.
+      worker.setMaxQueueSize(2);
 
-      List<Future<double>> futures = [];
-      bool caught = false;
-      for (int i = 0; i < 100; i++) {
-        final f = worker.calculateNewEaseFactor(2.5, 4);
-        f.catchError((Object e) {
-           if (e is WorkerQueueExhaustedException) caught = true;
-           return 0.0;
-        });
-        futures.add(f);
-      }
+      // Start 2 jobs that will take some time
+      final future1 = worker.calculateNewEaseFactor(2.5, 4);
+      final future2 = worker.calculateNewEaseFactor(2.5, 4);
 
-      for (var f in futures) {
-        try {
-           await f;
-        } catch(e) {
-          // Ignore expected exceptions in test loop
-        }
-      }
-      expect(caught, true);
+      // The 3rd job should immediately throw due to queue exhaustion
+      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<WorkerQueueExhaustedException>()));
 
+      // Wait for completion
+      await Future.wait([future1, future2]);
     });
 
-
+    test('worker failure propagates correctly', () async {
+      expect(
+        () => worker.calculateNewEaseFactor(-1.0, 4),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
   });
 
   group('PersistentCpuWorker - Cancellation & Disposal', () {
@@ -57,7 +50,7 @@ void main() {
       final future = worker.calculateNewEaseFactor(2.5, 4);
 
       // Cancel generation immediately
-      worker.cancelAll();
+      worker.cancelCurrentGeneration();
 
       // The job should complete but throw WorkerCancelledException before returning
       expect(() => future, throwsA(isA<WorkerCancelledException>()));
@@ -80,17 +73,17 @@ void main() {
 
   group('PersistentCpuWorker - Stress Test', () {
     test('handles concurrent jobs up to bounds without crashing', () async {
-
+      worker.setMaxQueueSize(100);
 
       // Create 100 concurrent valid jobs
       final List<Future<double>> futures = [];
-      for (int i = 0; i < 50; i++) {
+      for (int i = 0; i < 100; i++) {
         futures.add(worker.calculateNewEaseFactor(2.5, 4));
       }
 
       final results = await Future.wait(futures);
 
-      expect(results.length, 50);
+      expect(results.length, 100);
       for (final result in results) {
         expect(result, isPositive);
       }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
@@ -39,8 +40,7 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   int _activeJobs = 0;
   int _generation = 0;
-  bool _isDisposed = false;
-  final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
+  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
@@ -80,7 +80,6 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   void dispose() {
-    _isDisposed = true;
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
@@ -88,7 +87,6 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
-    if (_isDisposed) return Future.error(StateError('Worker disposed'));
     if (_queue.length >= maxQueueSize) {
       return Future.error(WorkerQueueExhaustedException());
     }
@@ -171,6 +169,24 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   // دالة رياضية معزولة تماماً (SM-2 Logic)
   static double _heavySrsMath(dynamic rawData) {
     final data = rawData as Map<String, dynamic>;
+=======
+import 'package:flutter/foundation.dart';
+
+/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
+class PersistentCpuWorker {
+  final PersistentCpuWorker instance = PersistentCpuWorker._init();
+
+  PersistentCpuWorker._init();
+
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
+    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
+    return await compute(heavySrsMath, {'ease': currentEase, 'rating': rating});
+  }
+
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  double heavySrsMath(Map<String, dynamic> data) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
 
