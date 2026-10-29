@@ -1,209 +1,145 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'dart:async';
-import 'bounded_retry_policy.dart';
-import 'feature_recovery_outcome.dart';
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+
+import '../concurrency/cancellation_token.dart';
+import 'recovery_outcome.dart';
+import 'resilient_feature_executor.dart';
+
+abstract class FeatureBoundaryHandle {
+  void reportError(Object error, [StackTrace? stackTrace]);
+}
 
 class FeatureBoundary extends StatefulWidget {
-  final String featureName;
-  final Widget child;
-  final Widget Function(BuildContext context, Object error)? fallbackBuilder;
-<<<<<<< HEAD
-  final Widget Function(BuildContext context, FeatureFailureReason reason)?
-      degradedBuilder;
-  final Future<void> Function()? initializationAction;
-  final BoundedRetryPolicy? retryPolicy;
-  final String? sessionId;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-
   const FeatureBoundary({
     super.key,
     required this.featureName,
     required this.child,
     this.fallbackBuilder,
-<<<<<<< HEAD
-    this.degradedBuilder,
-    this.initializationAction,
-    this.retryPolicy,
-    this.sessionId,
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    this.onInitialize,
+    this.initializationDependency,
+    this.onCriticalFailure,
+    this.initializationTimeout = ResilientFeatureExecutor.defaultAttemptTimeout,
+    this.maxInitializationAttempts = ResilientFeatureExecutor.defaultMaxAttempts,
   });
+
+  final String featureName;
+  final Widget child;
+  final Widget Function(BuildContext context, Object error)? fallbackBuilder;
+  final Future<void> Function()? onInitialize;
+  final Object? initializationDependency;
+  final void Function(Object error)? onCriticalFailure;
+  final Duration initializationTimeout;
+  final int maxInitializationAttempts;
+
+  static FeatureBoundaryHandle? of(BuildContext context) =>
+      context.findAncestorStateOfType<_FeatureBoundaryState>();
 
   @override
   State<FeatureBoundary> createState() => _FeatureBoundaryState();
 }
 
-class _FeatureBoundaryState extends State<FeatureBoundary> {
+class _FeatureBoundaryState extends State<FeatureBoundary>
+    implements FeatureBoundaryHandle {
+  final ResilientFeatureExecutor _executor = ResilientFeatureExecutor();
+  CancellationToken? _activeToken;
   Object? _caughtError;
-<<<<<<< HEAD
-  FeatureRecoveryOutcome? _outcome;
-  final bool _isInitializing = false;
-  String? _activeSessionId;
-  bool _isDisposed = false;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  bool _initializing = false;
 
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    _activeSessionId = widget.sessionId;
-    if (widget.initializationAction != null) {
-      _runInitialization();
-    }
+    _beginInitialization();
   }
 
   @override
-  void didUpdateWidget(FeatureBoundary oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.sessionId != oldWidget.sessionId) {
-      _activeSessionId = widget.sessionId;
-      // Stale callback protection via new sessionId
+  void didUpdateWidget(covariant FeatureBoundary previous) {
+    super.didUpdateWidget(previous);
+    if (previous.initializationDependency !=
+        widget.initializationDependency) {
+      _beginInitialization();
     }
+  }
+
+  void _beginInitialization() {
+    _activeToken?.cancel();
+    _executor.resetSession();
+    final initialize = widget.onInitialize;
+    _caughtError = null;
+    if (initialize == null) {
+      _initializing = false;
+      return;
+    }
+    _initializing = true;
+    final token = CancellationToken();
+    _activeToken = token;
+    _runInitialization(token, initialize);
+  }
+
+  Future<void> _runInitialization(
+      CancellationToken token, Future<void> Function() initialize) async {
+    RecoveryOutcome<void> outcome;
+    try {
+      outcome = await _executor.execute<void>(
+        task: initialize,
+        cancellationToken: token,
+        maxAttempts: widget.maxInitializationAttempts,
+        attemptTimeout: widget.initializationTimeout,
+      );
+    } catch (error, stackTrace) {
+      outcome = RecoveryOutcome<void>.failed(error, stackTrace);
+    }
+    if (!mounted || !identical(_activeToken, token) ||
+        token.isCancelled || outcome.isStale || outcome.isCancelled) return;
+    if (outcome.isFailed &&
+        outcome.error != null &&
+        FailureCategorization.isCritical(outcome.error!)) {
+      widget.onCriticalFailure?.call(outcome.error!);
+    }
+    setState(() {
+      _initializing = false;
+      _caughtError = outcome.isFailed ? outcome.error : null;
+    });
+  }
+
+  @override
+  void reportError(Object error, [StackTrace? stackTrace]) {
+    if (FailureCategorization.isCritical(error)) {
+      if (stackTrace != null) Error.throwWithStackTrace(error, stackTrace);
+      throw error;
+    }
+    if (mounted) setState(() => _caughtError = error);
   }
 
   @override
   void dispose() {
-    _isDisposed = true;
+    _activeToken?.cancel();
+    _executor.resetSession();
     super.dispose();
   }
 
-  Future<void> _runInitialization() async {
-    if (_isInitializing) return;
-
-    setState(() {
-      _isInitializing = true;
-    });
-
-    final policy = widget.retryPolicy ?? BoundedRetryPolicy();
-    final currentSession = _activeSessionId;
-
-    final outcome = await policy.execute<void>(() async {
-      await widget.initializationAction!();
-    }, sessionId: currentSession, isDisposed: () => _isDisposed);
-
-    if (!mounted || _activeSessionId != currentSession) {
-      // Reject stale callback if session changed or unmounted
-      return;
-    }
-
-    setState(() {
-      _outcome = outcome;
-      _isInitializing = false;
-      if (outcome is RecoveryBlocked) {
-        _caughtError = outcome.message;
-      }
-    });
-  }
-
-  static Widget _defaultFallback(
-      BuildContext context, String featureName, Object? error) {
-=======
-  }
-
-  static Widget _defaultFallback(BuildContext context, String featureName, Object? error) {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-<<<<<<< HEAD
-            Icon(Icons.error_outline, size: 36, color: Colors.red.shade400),
-            const SizedBox(height: 12),
-            Text(
-              'تعذر تشغيل $featureName',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.red.shade700,
-=======
-            Icon(Icons.auto_awesome, size: 36, color: Colors.blueGrey.shade400),
-            const SizedBox(height: 12),
-            Text(
-              'جاري تحديث $featureName تلقائياً...',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.blueGrey.shade700,
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-              ),
-            ),
-          ],
+  Widget _fallback(Object? error) =>
+      widget.fallbackBuilder?.call(context, error ?? StateError('Unavailable')) ??
+      Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('تعذر تشغيل ${widget.featureName}'),
         ),
-      ),
-    );
-  }
-<<<<<<< HEAD
-
-  static Widget _defaultDegraded(
-      BuildContext context, String featureName, FeatureFailureReason reason) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.warning_amber, size: 36, color: Colors.orange.shade400),
-            const SizedBox(height: 12),
-            Text(
-              'يعمل $featureName بوضع محدود',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.orange.shade700,
-              ),
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: onRetry,
-                child: const Text('إعادة المحاولة'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+      );
 
   @override
   Widget build(BuildContext context) {
-    if (_isInitializing) {
-      return const Center(child: CircularProgressIndicator());
+    if (_initializing && _caughtError == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
+            Text('جاري تحديث ${widget.featureName} تلقائياً...'),
+          ],
+        ),
+      );
     }
-
-    if (_caughtError != null || _outcome is RecoveryBlocked) {
-      return widget.fallbackBuilder?.call(
-              context, _caughtError ?? (_outcome as RecoveryBlocked).message) ??
-          _defaultFallback(context, widget.featureName, _caughtError);
-    }
-
-    if (_outcome is RecoveryDegraded) {
-      final degradedOutcome = _outcome as RecoveryDegraded;
-      return Column(mainAxisSize: MainAxisSize.min, children: [
-        widget.degradedBuilder?.call(context, degradedOutcome.reason) ??
-            _defaultDegraded(
-                context, widget.featureName, degradedOutcome.reason),
-        Flexible(child: widget.child),
-      ]);
-    }
-
-=======
-
-  @override
-  Widget build(BuildContext context) {
-    if (_caughtError != null) {
-      return widget.fallbackBuilder?.call(context, _caughtError!) ??
-          _defaultFallback(context, widget.featureName, _caughtError);
-    }
-
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    if (_caughtError != null) return _fallback(_caughtError);
     return widget.child;
   }
 }

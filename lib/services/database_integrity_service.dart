@@ -30,8 +30,7 @@ class DatabaseIntegrityService {
         clearQuarantine(code);
         return true;
       }
-      await quarantine(
-          code, StateError('SQLite quick_check did not return ok'));
+      await quarantine(code, StateError('SQLite quick_check did not return ok'));
     } catch (error) {
       await quarantine(code, error);
     }

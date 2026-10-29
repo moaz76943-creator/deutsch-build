@@ -1,199 +1,235 @@
-<<<<<<< HEAD
 import 'dart:async';
-import 'dart:collection';
-import 'package:flutter/foundation.dart';
+import 'dart:isolate';
+
 import 'package:flutter/widgets.dart';
 
 class WorkerQueueExhaustedException implements Exception {
-  final String message;
-  WorkerQueueExhaustedException([this.message = "Worker queue is full"]);
+  const WorkerQueueExhaustedException();
   @override
-  String toString() => message;
+  String toString() => 'WorkerQueueExhaustedException: queue capacity reached';
 }
 
 class WorkerCancelledException implements Exception {
-  final String message;
-  WorkerCancelledException([this.message = "Task was cancelled"]);
+  const WorkerCancelledException();
   @override
-  String toString() => message;
+  String toString() => 'WorkerCancelledException: generation invalidated';
 }
 
-class _QueuedTask<Q, R> {
-  final ComputeCallback<Q, R> task;
-  final Q message;
-  final Completer<R> completer;
-  final int generation;
-
-  _QueuedTask({
-    required this.task,
-    required this.message,
-    required this.completer,
-    required this.generation,
-  });
-}
-
+/// Reuses one CPU isolate instead of spawning a new isolate for each review.
+/// Job IDs and generation tokens reject late replies after cancellation.
 class PersistentCpuWorker with WidgetsBindingObserver {
-  static PersistentCpuWorker instance = PersistentCpuWorker._init();
+  PersistentCpuWorker._init();
+  static final PersistentCpuWorker instance = PersistentCpuWorker._init();
 
-  final int maxConcurrentTasks;
-  final int maxQueueSize;
+  static const int defaultMaxQueueSize = 50;
+  static const int absoluteMaxQueueSize = 256;
+  static const Duration startupTimeout = Duration(seconds: 5);
 
-  int _activeJobs = 0;
+  final Map<int, Completer<double>> _pending = <int, Completer<double>>{};
+  int _maxQueueSize = defaultMaxQueueSize;
+  int _nextJobId = 0;
   int _generation = 0;
-  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
+  int _workerStarts = 0;
+  bool _disposed = false;
+  bool _observingLifecycle = false;
+  Isolate? _isolate;
+  SendPort? _commands;
+  ReceivePort? _replies;
+  Future<SendPort>? _starting;
 
-  PersistentCpuWorker._init()
-      : maxConcurrentTasks = 4,
-        maxQueueSize = 50 {
-    _registerObserver();
-  }
+  int get pendingJobs => _pending.length;
+  int get workerStarts => _workerStarts;
 
-  void _registerObserver() {
-    try {
-      WidgetsBinding.instance.addObserver(this);
-    } catch (_) {
-      // Ignore if not initialized
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) {
+    if (_disposed) return Future<double>.error(StateError('Worker disposed'));
+    _observeLifecycle();
+    if (!currentEase.isFinite || currentEase < 0 || rating < 0 || rating > 5) {
+      return Future<double>.error(ArgumentError('Invalid SRS calculation'));
     }
-  }
-
-  @visibleForTesting
-  static void resetForTesting() {
-    instance.dispose();
-    instance = PersistentCpuWorker._init();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      cancelAll();
+    if (_pending.length >= _maxQueueSize) {
+      return Future<double>.error(const WorkerQueueExhaustedException());
     }
-  }
-
-  void cancelAll() {
-    _generation++;
-    for (final task in _queue) {
-      if (!task.completer.isCompleted) {
-        task.completer.completeError(WorkerCancelledException());
-      }
-    }
-    _queue.clear();
-  }
-
-  void dispose() {
-    try {
-      WidgetsBinding.instance.removeObserver(this);
-    } catch (_) {}
-    cancelAll();
-  }
-
-  Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
-    if (_queue.length >= maxQueueSize) {
-      return Future.error(WorkerQueueExhaustedException());
-    }
-
-    final completer = Completer<R>();
-    final queuedTask = _QueuedTask<Q, R>(
-      task: task,
-      message: message,
-      completer: completer,
-      generation: _generation,
+    final jobId = ++_nextJobId;
+    final completer = Completer<double>();
+    _pending[jobId] = completer;
+    final generation = _generation;
+    _dispatch(jobId, currentEase, rating, generation).catchError(
+      (Object error, StackTrace stackTrace) {
+        final pending = _pending.remove(jobId);
+        if (pending != null && !pending.isCompleted) {
+          pending.completeError(error, stackTrace);
+        }
+      },
     );
-
-    _queue.add(queuedTask);
-    _pump();
-
     return completer.future;
   }
 
-  void _pump() {
-    if (_activeJobs >= maxConcurrentTasks || _queue.isEmpty) {
-      return;
+  Future<void> _dispatch(
+      int id, double ease, int rating, int generation) async {
+    final commands = await _ensureWorker(generation);
+    if (_disposed || generation != _generation || !_pending.containsKey(id)) {
+      throw const WorkerCancelledException();
     }
-
-    final queuedTask = _queue.removeFirst();
-    _unpackAndExecute(queuedTask);
+    final replies = _replies;
+    if (replies == null) throw StateError('Missing worker reply channel');
+    commands.send(<Object>[id, ease, rating, replies.sendPort]);
   }
 
-  void _unpackAndExecute(dynamic task) {
-    if (task is _QueuedTask) {
-      _executeQueuedTask(task);
-    }
+  Future<SendPort> _ensureWorker(int generation) {
+    final existing = _commands;
+    if (existing != null) return Future<SendPort>.value(existing);
+    final launching = _starting;
+    if (launching != null) return launching;
+    final next = _launchWorker(generation);
+    _starting = next;
+    next.then<void>((_) {
+      if (identical(_starting, next)) _starting = null;
+    }, onError: (Object _, StackTrace __) {
+      if (identical(_starting, next)) _starting = null;
+    });
+    return next;
   }
 
-  void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
-    if (queuedTask.generation != _generation) {
-      if (!queuedTask.completer.isCompleted) {
-        queuedTask.completer.completeError(WorkerCancelledException());
+  Future<SendPort> _launchWorker(int generation) async {
+    final ready = ReceivePort();
+    Isolate? started;
+    try {
+      started = await Isolate.spawn<SendPort>(_runWorker, ready.sendPort);
+      if (generation != _generation || _disposed) {
+        throw const WorkerCancelledException();
       }
-      _pump();
+      final response = await ready.first.timeout(startupTimeout);
+      if (generation != _generation || _disposed) {
+        throw const WorkerCancelledException();
+      }
+      if (response is! SendPort) {
+        throw StateError('CPU worker returned an invalid ready message');
+      }
+      final replies = ReceivePort();
+      replies.listen((dynamic reply) => _handleReply(reply, generation));
+      started.addOnExitListener(
+        replies.sendPort,
+        response: <Object>['exit', generation],
+      );
+      _isolate = started;
+      _replies = replies;
+      _commands = response;
+      _workerStarts++;
+      return response;
+    } catch (_) {
+      started?.kill(priority: Isolate.immediate);
+      rethrow;
+    } finally {
+      ready.close();
+    }
+  }
+
+  void _handleReply(dynamic reply, int generation) {
+    if (_disposed || generation != _generation) return;
+    if (reply is! List || reply.isEmpty) return;
+    if (reply.first == 'exit') {
+      _closeWorker();
+      _failPending(StateError('CPU isolate exited unexpectedly'));
       return;
     }
+    if (reply.length != 3 || reply[0] is! int || reply[1] is! bool) {
+      return;
+    }
+    final completion = _pending.remove(reply[0] as int);
+    if (completion == null || completion.isCompleted) return;
+    if (reply[1] == true && reply[2] is num) {
+      completion.complete((reply[2] as num).toDouble());
+    } else {
+      completion.completeError(StateError('CPU isolate rejected a task'));
+    }
+  }
 
-    _activeJobs++;
-
-    Future.microtask(() async {
+  static void _runWorker(SendPort ready) {
+    final requests = ReceivePort();
+    ready.send(requests.sendPort);
+    requests.listen((dynamic raw) {
+      if (raw is! List || raw.length != 4) return;
+      final id = raw[0] as int;
+      final ease = raw[1] as double;
+      final rating = raw[2] as int;
+      final reply = raw[3] as SendPort;
       try {
-        // Do not pass `queuedTask` or anything referencing Completer into compute.
-        // Copy task and message to local vars to avoid capturing `this` or `queuedTask`.
-        // To be completely safe from capturing the current context, we should pass the task directly
-        // back to compute if it's already a static top-level function, but if it is a closure we might still have problems.
-        // Dart's compute expects a top-level or static function.
-        final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
-
-        if (queuedTask.generation == _generation) {
-          if (!queuedTask.completer.isCompleted) {
-            queuedTask.completer.complete(result);
-          }
-        } else {
-          if (!queuedTask.completer.isCompleted) {
-            queuedTask.completer.completeError(WorkerCancelledException());
-          }
-        }
-      } catch (e, st) {
-        if (!queuedTask.completer.isCompleted) {
-          queuedTask.completer.completeError(e, st);
-        }
-      } finally {
-        _activeJobs--;
-        _pump();
+        final delta = 5 - rating;
+        var result = ease +
+            (0.1 - delta * (0.08 + delta * 0.02));
+        if (result < 1.3) result = 1.3;
+        reply.send(<Object>[id, true, result]);
+      } catch (_) {
+        reply.send(<Object>[id, false, 'invalid']);
       }
     });
   }
 
-  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
-  Future<double> calculateNewEaseFactor(double currentEase, int rating) {
-    return executeTask<Map<String, dynamic>, double>(
-        _heavySrsMath, {'ease': currentEase, 'rating': rating});
+  void _failPending(Object error) {
+    final pending = _pending.values.toList(growable: false);
+    _pending.clear();
+    for (final job in pending) {
+      if (!job.isCompleted) job.completeError(error);
+    }
   }
 
-  // دالة رياضية معزولة تماماً (SM-2 Logic)
-  static double _heavySrsMath(dynamic rawData) {
-    final data = rawData as Map<String, dynamic>;
-=======
-import 'package:flutter/foundation.dart';
-
-/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
-class PersistentCpuWorker {
-  final PersistentCpuWorker instance = PersistentCpuWorker._init();
-
-  PersistentCpuWorker._init();
-
-  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
-  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
-    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
-    return await compute(heavySrsMath, {'ease': currentEase, 'rating': rating});
+  void _closeWorker() {
+    _commands = null;
+    _replies?.close();
+    _replies = null;
+    _isolate?.kill(priority: Isolate.immediate);
+    _isolate = null;
   }
 
-  // دالة رياضية معزولة تماماً (SM-2 Logic)
-  double heavySrsMath(Map<String, dynamic> data) {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    double ease = data['ease'] as double;
-    int rating = data['rating'] as int;
+  void _observeLifecycle() {
+    if (_observingLifecycle) return;
+    try {
+      WidgetsBinding.instance.addObserver(this);
+      _observingLifecycle = true;
+    } catch (_) {
+      // Pure Dart consumers may not have a Flutter binding.
+    }
+  }
 
-    // معادلة الحفظ والمراجعة المتباعدة
-    double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
-    if (newEase < 1.3) newEase = 1.3;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      cancelCurrentGeneration();
+    }
+  }
 
-    return newEase;
+  /// Used when a learner switches directed pair, leaves the screen, or the
+  /// application backgrounds. The next job starts a clean isolate generation.
+  void cancelCurrentGeneration() {
+    _generation++;
+    _starting = null;
+    _closeWorker();
+    _failPending(const WorkerCancelledException());
+  }
+
+  void setMaxQueueSize(int size) {
+    if (size <= 0 || size > absoluteMaxQueueSize) {
+      throw RangeError.range(size, 1, absoluteMaxQueueSize, 'size');
+    }
+    _maxQueueSize = size;
+  }
+
+  void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+    if (_observingLifecycle) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observingLifecycle = false;
+    }
+    cancelCurrentGeneration();
+  }
+
+  /// Reset is test-only; production never resurrects a disposed singleton.
+  void reset() {
+    cancelCurrentGeneration();
+    _disposed = false;
+    _maxQueueSize = defaultMaxQueueSize;
+    _workerStarts = 0;
   }
 }

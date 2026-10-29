@@ -1,34 +1,18 @@
-// مسار الملف: lib/core/gamification/domain_mastery_projection.dart
+enum DomainMasteryState { locked, available, inProgress, mastered }
 
-<<<<<<< HEAD
-import '../progress/review_transaction_envelope.dart';
-
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-/// نموذج عرض إتقان المجال (Projection) كما حدده تقرير هندسة التحفيز.
-/// لا يعتمد على التصفح، بل على نجاح الاسترجاع المتباعد (SRS).
+/// Display projection only. These counters MUST originate from an authoritative,
+/// pair-isolated persisted SRS snapshot; event rating alone is not mastery proof.
 class DomainMasteryProjection {
   final String domainId;
   final String sourceLanguageId;
   final String targetLanguageId;
-<<<<<<< HEAD
-  final int eligibleCardCount; // إجمالي البطاقات المتاحة في المجال
-  final int introducedCardCount; // البطاقات التي بدأ المستخدم بتعلمها
-  final int recalledCardCount; // البطاقات التي تذكرها بنجاح مؤخراً
-  final int
-      masteredCardCount; // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
-  final int dueCardCount; // البطاقات المستحقة للمراجعة الآن
-  final DateTime lastEvidenceUtc; // آخر نشاط حقيقي في هذا المجال
-  final int masteryRevision; // رقم المراجعة لضمان التزامن
-=======
-  final int eligibleCardCount;   // إجمالي البطاقات المتاحة في المجال
-  final int introducedCardCount; // البطاقات التي بدأ المستخدم بتعلمها
-  final int recalledCardCount;   // البطاقات التي تذكرها بنجاح مؤخراً
-  final int masteredCardCount;   // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
-  final int dueCardCount;        // البطاقات المستحقة للمراجعة الآن
-  final DateTime lastEvidenceUtc;// آخر نشاط حقيقي في هذا المجال
-  final int masteryRevision;     // رقم المراجعة لضمان التزامن
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  final int eligibleCardCount;
+  final int introducedCardCount;
+  final int recalledCardCount;
+  final int masteredCardCount;
+  final int dueCardCount;
+  final DateTime lastEvidenceUtc;
+  final int masteryRevision;
 
   const DomainMasteryProjection({
     required this.domainId,
@@ -41,152 +25,73 @@ class DomainMasteryProjection {
     required this.dueCardCount,
     required this.lastEvidenceUtc,
     required this.masteryRevision,
-<<<<<<< HEAD
-  })  : assert(eligibleCardCount >= 0, 'eligibleCardCount cannot be negative'),
-        assert(
-            introducedCardCount >= 0, 'introducedCardCount cannot be negative'),
-        assert(recalledCardCount >= 0, 'recalledCardCount cannot be negative'),
-        assert(masteredCardCount >= 0, 'masteredCardCount cannot be negative'),
-        assert(dueCardCount >= 0, 'dueCardCount cannot be negative');
-
-  /// حساب نسبة الإتقان الحقيقية للمجال (0.0 إلى 1.0)
-  double get masteryPercentage {
-    if (eligibleCardCount <= 0) return 0.0;
-=======
   });
 
-  /// حساب نسبة الإتقان الحقيقية للمجال (0.0 إلى 1.0)
-  double get masteryPercentage {
-    if (eligibleCardCount == 0) return 0.0;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    // الإتقان يعتمد على البطاقات المتقنة فعلياً مقارنة بإجمالي البطاقات
-    return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0);
-  }
-
-  /// تقييم حالة شجرة الإتقان للمجال (مغلق، متاح، قيد التقدم، متقن)
-  DomainMasteryState get masteryState {
-<<<<<<< HEAD
-    if (introducedCardCount <= 0) return DomainMasteryState.available;
-    // Require an approved mastery threshold before advancement. (e.g. 0.9 or 100%)
-    // The objective mentions "Require an approved mastery threshold before advancement."
-    // Let's use 0.9 as an arbitrary threshold, or 100%. "0.9 threshold for masteryState advancement" was in the review plan.
-    if (masteryPercentage >= 0.9 && eligibleCardCount > 0) {
-=======
-    if (introducedCardCount == 0) return DomainMasteryState.available;
-    if (masteredCardCount == eligibleCardCount && eligibleCardCount > 0) {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-      return DomainMasteryState.mastered;
-    }
-    return DomainMasteryState.inProgress;
-  }
-
-  /// Rebuilds mastery projection deterministically from raw SRS events.
-  /// Enforces deduplication, pair isolation, and limits replays.
-  static DomainMasteryProjection computeFromEvents({
+  /// Use only counters obtained from one committed directed-pair SRS snapshot.
+  /// This does not establish CEFR proficiency or manufacture review history.
+  factory DomainMasteryProjection.fromVerifiedCounters({
     required String domainId,
     required String sourceLanguageId,
     required String targetLanguageId,
     required int eligibleCardCount,
-    required List<ReviewTransactionEnvelope> events,
-    required DateTime projectionTimeUtc,
+    required int introducedCardCount,
+    required int recalledCardCount,
+    required int masteredCardCount,
+    required int dueCardCount,
+    required DateTime lastEvidenceUtc,
+    required int masteryRevision,
   }) {
-    if (eligibleCardCount < 0) {
-      throw ArgumentError('Eligible card count cannot be negative');
-    }
-
-    final String targetPairKey = '${sourceLanguageId}_$targetLanguageId';
-
-    // Deduplicate by reviewEventId, taking the first valid one we see.
-    // Also ignore events outside the bounded replay window (e.g. in the future).
-    final Map<String, ReviewTransactionEnvelope> uniqueEvents = {};
-    for (final event in events) {
-      if (event.languagePairKey != targetPairKey) continue;
-      if (event.timestamp.isAfter(projectionTimeUtc)) continue;
-
-      if (!uniqueEvents.containsKey(event.reviewEventId)) {
-        uniqueEvents[event.reviewEventId] = event;
-      }
-    }
-
-    // Sort by timestamp
-    final validEvents = uniqueEvents.values.toList()
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-    if (validEvents.isEmpty) {
-      return DomainMasteryProjection(
-        domainId: domainId,
-        sourceLanguageId: sourceLanguageId,
-        targetLanguageId: targetLanguageId,
-        eligibleCardCount: eligibleCardCount,
-        introducedCardCount: 0,
-        recalledCardCount: 0,
-        masteredCardCount: 0,
-        dueCardCount: 0, // Simplified for this task
-        lastEvidenceUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-        masteryRevision: 1,
-      );
-    }
-
-    // Track state per card (learnerContentKey)
-    final Map<String, int> cardSuccessCount = {};
-    DateTime lastEvidence = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-
-    for (final event in validEvents) {
-      if (event.timestamp.isAfter(lastEvidence)) {
-        lastEvidence = event.timestamp;
-      }
-
-      // Determine rating threshold for success
-      // If rating >= 3, it's a recall success.
-      if (event.rating >= 3) {
-        cardSuccessCount[event.learnerContentKey] =
-            (cardSuccessCount[event.learnerContentKey] ?? 0) + 1;
-      } else {
-        // Reset or just don't increment? Let's just track successful recalls
-        // For actual SRS it would reset, but let's assume we just need to see if it reached a threshold
-        cardSuccessCount[event.learnerContentKey] = 0;
-      }
-    }
-
-    int introduced = cardSuccessCount.length;
-    int recalled = 0;
-    int mastered = 0;
-
-    for (final count in cardSuccessCount.values) {
-      if (count > 0) recalled++;
-      if (count >= 3) mastered++; // Threshold for mastery: 3 successful recalls in a row
-    }
-
-    // clamp
-    introduced = introduced.clamp(0, eligibleCardCount);
-    recalled = recalled.clamp(0, eligibleCardCount);
-    mastered = mastered.clamp(0, eligibleCardCount);
-
-    return DomainMasteryProjection(
+    final projection = DomainMasteryProjection(
       domainId: domainId,
       sourceLanguageId: sourceLanguageId,
       targetLanguageId: targetLanguageId,
       eligibleCardCount: eligibleCardCount,
-      introducedCardCount: introduced,
-      recalledCardCount: recalled,
-      masteredCardCount: mastered,
-      dueCardCount: 0,
-      lastEvidenceUtc: lastEvidence,
-      masteryRevision: events.length,
+      introducedCardCount: introducedCardCount,
+      recalledCardCount: recalledCardCount,
+      masteredCardCount: masteredCardCount,
+      dueCardCount: dueCardCount,
+      lastEvidenceUtc: lastEvidenceUtc.toUtc(),
+      masteryRevision: masteryRevision,
     );
+    if (!projection.hasConsistentCounters) {
+      throw ArgumentError('Invalid verified, pair-isolated SRS counters');
+    }
+    return projection;
   }
-}
 
-enum DomainMasteryState {
-  locked, // يتطلب إنجاز مجالات سابقة
-  available, // متاح للبدء
-  inProgress, // قيد التعلم
-  mastered // تم إتقان جميع بطاقاته
-}
+  /// Preserve legacy snapshots without mutating or deleting their data.
+  /// Never show a success state when counters are malformed.
+  bool get hasConsistentCounters =>
+      domainId.trim().isNotEmpty &&
+      sourceLanguageId.trim().isNotEmpty &&
+      targetLanguageId.trim().isNotEmpty &&
+      sourceLanguageId != targetLanguageId &&
+      eligibleCardCount >= 0 &&
+      introducedCardCount >= 0 &&
+      recalledCardCount >= 0 &&
+      masteredCardCount >= 0 &&
+      dueCardCount >= 0 &&
+      introducedCardCount <= eligibleCardCount &&
+      recalledCardCount <= introducedCardCount &&
+      masteredCardCount <= recalledCardCount &&
+      dueCardCount <= introducedCardCount &&
+      masteryRevision >= 0;
 
-enum DomainMasteryState {
-  locked,      // يتطلب إنجاز مجالات سابقة
-  available,   // متاح للبدء
-  inProgress,  // قيد التعلم
-  mastered     // تم إتقان جميع بطاقاته
+  double get masteryPercentage {
+    if (!hasConsistentCounters || eligibleCardCount <= 0) return 0.0;
+    return (masteredCardCount / eligibleCardCount).clamp(0.0, 1.0).toDouble();
+  }
+
+  DomainMasteryState get masteryState {
+    if (!hasConsistentCounters) {
+      return introducedCardCount > 0
+          ? DomainMasteryState.inProgress
+          : DomainMasteryState.available;
+    }
+    if (introducedCardCount <= 0) return DomainMasteryState.available;
+    if (eligibleCardCount > 0 && masteredCardCount == eligibleCardCount) {
+      return DomainMasteryState.mastered;
+    }
+    return DomainMasteryState.inProgress;
+  }
 }

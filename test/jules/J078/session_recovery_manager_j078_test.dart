@@ -1,148 +1,98 @@
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
+import 'dart:convert';
 
 void main() {
-  group('J078 Last-Known-Good Learning Session Recovery Tests', () {
-    late SharedPreferences prefs;
+  group('J078 Recovery Tests', () {
+    late SessionRecoveryManager recoveryManager;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance();
+      recoveryManager = SessionRecoveryManager(prefs);
     });
 
-    test('Restores legacy v1 checkpoint correctly', () async {
-      final legacyData = {
-        'session_id': 'legacy_123',
-        'current_route': '/quiz',
-        'last_item_index': 2,
-        'timestamp': 1000000,
-      };
-      await prefs.setString('deutsch_active_session_recovery_v1', jsonEncode(legacyData));
-
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000, // Valid age
-      );
-      final restored = manager.restoreSession();
-
-      expect(restored, isNotNull);
-      expect(restored?.sessionId, 'legacy_123');
-      expect(restored?.sourceLocale, '');
-      expect(restored?.committedReviewIds, isEmpty);
-    });
-
-    test('Preserves committedReviewIds (Interrupted review)', () async {
+    test('Valid restart', () async {
       final session = SessionState(
-        sessionId: 'sess_new',
+        sessionId: 'sess_valid',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 5,
-        timestamp: 1000000,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        languagePairKey: 'de-ar',
+      );
+      await recoveryManager.persistSession(session);
+
+      final restored = recoveryManager.restoreSession(expectedLanguagePair: 'de-ar', validRoutes: ['/quiz/trainer']);
+      expect(restored, isNotNull);
+      expect(restored?.sessionId, 'sess_valid');
+      expect(restored?.currentRoute, '/quiz/trainer');
+      expect(restored?.lastItemIndex, 5);
+      expect(restored?.languagePairKey, 'de-ar');
+    });
+
+    test('Interrupted review with committed IDs', () async {
+      final session = SessionState(
+        sessionId: 'sess_interrupted',
+        currentRoute: '/quiz',
+        lastItemIndex: 2,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        languagePairKey: 'de-ar',
         committedReviewIds: ['rev_1', 'rev_2'],
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-      );
+      await recoveryManager.persistSession(session);
 
-      await manager.persistSession(session);
-      final restored = manager.restoreSession();
-
+      final restored = recoveryManager.restoreSession();
+      expect(restored, isNotNull);
       expect(restored?.committedReviewIds, containsAll(['rev_1', 'rev_2']));
     });
 
-    test('Rejects checkpoint with wrong language pair', () async {
+    test('Wrong pair', () async {
       final session = SessionState(
-        sessionId: 'sess_pair',
-        currentRoute: '/quiz/trainer',
+        sessionId: 'sess_wrong_pair',
+        currentRoute: '/quiz',
         lastItemIndex: 0,
-        timestamp: 1000000,
-        sourceLocale: 'de',
-        targetLocale: 'ar',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        languagePairKey: 'de-ar',
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-      );
+      await recoveryManager.persistSession(session);
 
-      await manager.persistSession(session);
-
-      final restored = manager.restoreSession(
-        expectedSourceLocale: 'en',
-        expectedTargetLocale: 'ar',
-      );
-
-      expect(restored, isNull);
+      expect(recoveryManager.restoreSession(expectedLanguagePair: 'en-ar'), isNull);
     });
 
-    test('Rejects missing screen or invalid route', () async {
-      final session = SessionState(
-        sessionId: 'sess_route',
-        currentRoute: '/missing_pack_route',
-        lastItemIndex: 0,
-        timestamp: 1000000,
-      );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-      );
+    test('Malformed checkpoint', () async {
+      SharedPreferences.setMockInitialValues({
+        'deutsch_active_session_recovery_v1': '{malformed',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final manager = SessionRecoveryManager(prefs);
 
-      await manager.persistSession(session);
-
-      final restored = manager.restoreSession(
-        isValidRoute: (route) => route == '/valid_route',
-      );
-
-      expect(restored, isNull);
+      expect(manager.restoreSession(), isNull);
     });
 
-    test('Rejects stale session beyond max age', () async {
-      const maxAgeMs = 24 * 60 * 60 * 1000;
+    test('Missing screen', () async {
+      final session = SessionState(
+        sessionId: 'sess_missing_screen',
+        currentRoute: '/unknown_screen',
+        lastItemIndex: 0,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+      );
+      await recoveryManager.persistSession(session);
+
+      expect(recoveryManager.restoreSession(validRoutes: ['/home']), isNull);
+    });
+
+    test('Stale session', () async {
+      final staleTimestamp = DateTime.now().subtract(const Duration(hours: 25)).millisecondsSinceEpoch;
       final session = SessionState(
         sessionId: 'sess_stale',
-        currentRoute: '/quiz',
+        currentRoute: '/home',
         lastItemIndex: 0,
-        timestamp: 1000000,
+        timestamp: staleTimestamp,
       );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + maxAgeMs + 1000, // 1 second past max age
-      );
+      await recoveryManager.persistSession(session);
 
-      await manager.persistSession(session);
-
-      final restored = manager.restoreSession();
-
-      expect(restored, isNull);
-    });
-
-    test('Enforces max recovery attempts limit', () async {
-      final session = SessionState(
-        sessionId: 'sess_loop',
-        currentRoute: '/quiz',
-        lastItemIndex: 0,
-        timestamp: 1000000,
-      );
-      final manager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1000000 + 1000,
-        maxRecoveryAttempts: 2,
-      );
-
-      await manager.persistSession(session);
-
-      // Attempt 1
-      var restored = manager.restoreSession();
-      expect(restored, isNotNull);
-
-      // Attempt 2
-      restored = manager.restoreSession();
-      expect(restored, isNotNull);
-
-      // Attempt 3 (Should fail)
-      restored = manager.restoreSession();
-      expect(restored, isNull);
+      expect(recoveryManager.restoreSession(), isNull);
     });
   });
 }

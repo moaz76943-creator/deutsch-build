@@ -8,6 +8,7 @@ class LeitnerCardState {
   final double easeFactor;
   final int consecutiveSuccesses;
 
+  // Permit reading legacy persisted records; validate before scheduling.
   const LeitnerCardState({
     required this.cardId,
     required this.currentBox,
@@ -15,16 +16,10 @@ class LeitnerCardState {
     required this.nextReviewEpoch,
     this.easeFactor = 2.5,
     this.consecutiveSuccesses = 0,
-  })  : assert(easeFactor >= 0, 'easeFactor cannot be negative or NaN'),
-        assert(consecutiveSuccesses >= 0,
-            'consecutiveSuccesses cannot be negative');
+  });
 
-<<<<<<< HEAD
-  bool get isDueForReview => isDueAt(DateTime.now().millisecondsSinceEpoch);
-
-  bool isDueAt(int nowEpoch) => nowEpoch >= nextReviewEpoch;
-=======
   bool get isDueForReview =>
-      DateTime.now().millisecondsSinceEpoch >= nextReviewEpoch;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+      isDueAt(DateTime.now().millisecondsSinceEpoch);
+
+  bool isDueAt(int currentEpoch) => currentEpoch >= nextReviewEpoch;
 }

@@ -124,8 +124,9 @@ class DeckExportService {
     }
     final db = await _progressDb();
     await _ensureTables(db);
-    final dueClause =
-        dueOnly ? 'AND (p.next_due_at IS NULL OR p.next_due_at <= ?)' : '';
+    final dueClause = dueOnly
+        ? 'AND (p.next_due_at IS NULL OR p.next_due_at <= ?)'
+        : '';
     final args = <Object?>[name];
     if (dueOnly) {
       args.add((now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000);
@@ -145,8 +146,7 @@ class DeckExportService {
     final byLanguage = <String, List<String>>{};
     for (final row in progress) {
       final code = _language(row['target_language_code'].toString());
-      byLanguage
-          .putIfAbsent(code, () => <String>[])
+      byLanguage.putIfAbsent(code, () => <String>[])
           .add(row['lexeme_id'].toString());
     }
     final words = <DeckExportWord>[];
@@ -158,14 +158,16 @@ class DeckExportService {
         continue; // Unmounted pack must not corrupt an otherwise valid export.
       }
       for (var start = 0; start < item.value.length; start += 300) {
-        final end =
-            start + 300 < item.value.length ? start + 300 : item.value.length;
+        final end = start + 300 < item.value.length
+            ? start + 300
+            : item.value.length;
         final ids = item.value.sublist(start, end);
         final placeholders = List<String>.filled(ids.length, '?').join(',');
         final List<Map<String, Object?>> rows;
         try {
           rows = await content.rawQuery(
-            'SELECT id, surface, fields_json FROM lexicon WHERE id IN ($placeholders)',
+            'SELECT id, surface, fields_json FROM lexicon '
+            'WHERE id IN (' + placeholders + ')',
             ids,
           );
         } catch (_) {
@@ -181,8 +183,9 @@ class DeckExportService {
           } on FormatException {
             // Malformed optional metadata does not break the whole deck.
           }
-          final back = (fields['translation_ar'] ?? fields['translation'] ?? '')
-              .toString();
+          final back =
+              (fields['translation_ar'] ?? fields['translation'] ?? '')
+                  .toString();
           words.add(DeckExportWord(
             lexemeId: row['id'].toString(),
             languageCode: item.key,
@@ -209,12 +212,12 @@ class DeckExportService {
     final buffer = StringBuffer('Front\tBack\tTags\n');
     for (final word in words) {
       buffer.writeln(
-        '${_tsv(word.front)}\t${_tsv(word.back)}\t${_tsv(word.tag)}',
+        _tsv(word.front) + '\t' + _tsv(word.back) + '\t' + _tsv(word.tag),
       );
     }
     final directory = await _downloadsDirectory();
     await directory.create(recursive: true);
-    final file = File(p.join(directory.path, '${_fileStem(deckName)}.csv'));
+    final file = File(p.join(directory.path, _fileStem(deckName) + '.csv'));
     return file.writeAsString(buffer.toString(), encoding: utf8, flush: true);
   }
 
@@ -228,7 +231,7 @@ class DeckExportService {
     final temporaryRoot = await _temporaryDirectory();
     final scratch = Directory(p.join(
       temporaryRoot.path,
-      'anki_${DateTime.now().microsecondsSinceEpoch}',
+      'anki_' + DateTime.now().microsecondsSinceEpoch.toString(),
     ));
     await scratch.create(recursive: true);
     Database? db;
@@ -243,17 +246,10 @@ class DeckExportService {
       final model = _basicModel(modelId, deckId, nowS);
       final decks = <String, Object?>{
         deckId.toString(): <String, Object?>{
-          'id': deckId,
-          'name': name,
-          'mod': nowS,
-          'usn': -1,
-          'desc': '',
-          'dyn': 0,
-          'collapsed': false,
-          'browserCollapsed': false,
-          'conf': 1,
-          'extendNew': 0,
-          'extendRev': 0,
+          'id': deckId, 'name': name, 'mod': nowS, 'usn': -1,
+          'desc': '', 'dyn': 0, 'collapsed': false,
+          'browserCollapsed': false, 'conf': 1,
+          'extendNew': 0, 'extendRev': 0,
         },
       };
       final config = <String, Object?>{
@@ -273,21 +269,11 @@ class DeckExportService {
         '(id,crt,mod,scm,ver,dty,usn,ls,conf,models,decks,dconf,tags) '
         'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
         <Object?>[
-          1,
-          nowS,
-          nowMs,
-          nowMs,
-          11,
-          0,
-          -1,
-          0,
-          jsonEncode(config),
-          jsonEncode(<String, Object?>{
+          1, nowS, nowMs, nowMs, 11, 0, -1, 0,
+          jsonEncode(config), jsonEncode(<String, Object?>{
             modelId.toString(): model,
           }),
-          jsonEncode(decks),
-          jsonEncode(_deckConfig(nowS)),
-          '{}',
+          jsonEncode(decks), jsonEncode(_deckConfig(nowS)), '{}',
         ],
       );
 
@@ -297,7 +283,8 @@ class DeckExportService {
           final word = words[i];
           final noteId = firstId + i * 2;
           final cardId = noteId + 1;
-          final fieldText = '${_html(word.front)}\u001f${_html(word.back)}';
+          final fieldText =
+              _html(word.front) + '\u001f' + _html(word.back);
           final hash = sha1.convert(utf8.encode(word.front)).toString();
           final checksum = int.parse(hash.substring(0, 8), radix: 16);
           await txn.rawInsert(
@@ -305,17 +292,9 @@ class DeckExportService {
             '(id,guid,mid,mod,usn,tags,flds,sfld,csum,flags,data) '
             'VALUES (?,?,?,?,?,?,?,?,?,?,?)',
             <Object?>[
-              noteId,
-              noteId.toRadixString(36),
-              modelId,
-              nowS,
-              -1,
-              ' ${word.tag} ',
-              fieldText,
-              word.front,
-              checksum,
-              0,
-              '',
+              noteId, noteId.toRadixString(36), modelId, nowS, -1,
+              ' ' + word.tag + ' ', fieldText, word.front,
+              checksum, 0, '',
             ],
           );
           await txn.rawInsert(
@@ -323,24 +302,8 @@ class DeckExportService {
             '(id,nid,did,ord,mod,usn,type,queue,due,ivl,factor,reps,lapses,'
             'left,odue,odid,flags,data) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             <Object?>[
-              cardId,
-              noteId,
-              deckId,
-              0,
-              nowS,
-              -1,
-              0,
-              0,
-              i + 1,
-              0,
-              2500,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              '',
+              cardId, noteId, deckId, 0, nowS, -1, 0, 0, i + 1,
+              0, 2500, 0, 0, 0, 0, 0, 0, '',
             ],
           );
         }
@@ -350,14 +313,14 @@ class DeckExportService {
       final sqliteBytes = await collectionFile.readAsBytes();
       final mediaBytes = utf8.encode('{}');
       final archive = Archive()
-        ..addFile(
-            ArchiveFile('collection.anki2', sqliteBytes.length, sqliteBytes))
+        ..addFile(ArchiveFile('collection.anki2', sqliteBytes.length, sqliteBytes))
         ..addFile(ArchiveFile('media', mediaBytes.length, mediaBytes));
       final encoded = ZipEncoder().encode(archive);
+      if (encoded.isEmpty) throw StateError('Anki ZIP encoding failed');
       final directory = await _downloadsDirectory();
       await directory.create(recursive: true);
-      final output = File(p.join(directory.path, '${_fileStem(name)}.apkg'));
-      return output.writeAsBytes(encoded, flush: true);
+      final output = File(p.join(directory.path, _fileStem(name) + '.apkg'));
+      return await output.writeAsBytes(encoded, flush: true);
     } finally {
       if (db != null && db.isOpen) await db.close();
       if (await scratch.exists()) await scratch.delete(recursive: true);
@@ -394,102 +357,57 @@ class DeckExportService {
 
   static Map<String, Object?> _basicModel(int modelId, int deckId, int now) =>
       <String, Object?>{
-        'id': modelId,
-        'name': 'DEUTSCH Export Basic',
-        'type': 0,
-        'mod': now,
-        'usn': -1,
-        'sortf': 0,
-        'did': deckId,
-        'latexPre': '',
-        'latexPost': '',
-        'css':
-            '.card { font-family: Arial; font-size: 20px; text-align: center; }',
+        'id': modelId, 'name': 'DEUTSCH Export Basic',
+        'type': 0, 'mod': now, 'usn': -1, 'sortf': 0,
+        'did': deckId, 'latexPre': '', 'latexPost': '',
+        'css': '.card { font-family: Arial; font-size: 20px; text-align: center; }',
         'flds': <Map<String, Object?>>[
-          <String, Object?>{
-            'name': 'Front',
-            'ord': 0,
-            'sticky': false,
-            'rtl': false,
-            'font': 'Arial',
-            'size': 20
-          },
-          <String, Object?>{
-            'name': 'Back',
-            'ord': 1,
-            'sticky': false,
-            'rtl': true,
-            'font': 'Arial',
-            'size': 20
-          },
+          <String, Object?>{'name': 'Front', 'ord': 0, 'sticky': false,
+            'rtl': false, 'font': 'Arial', 'size': 20},
+          <String, Object?>{'name': 'Back', 'ord': 1, 'sticky': false,
+            'rtl': true, 'font': 'Arial', 'size': 20},
         ],
         'tmpls': <Map<String, Object?>>[
           <String, Object?>{
-            'name': 'Card 1',
-            'ord': 0,
+            'name': 'Card 1', 'ord': 0,
             'qfmt': '{{Front}}',
             'afmt': '{{FrontSide}}<hr id=answer>{{Back}}',
           },
         ],
         'req': <Object?>[
-          <Object?>[
-            0,
-            'any',
-            <int>[0]
-          ],
+          <Object?>[0, 'any', <int>[0]],
         ],
         'tags': <String>[],
       };
 
   static Map<String, Object?> _deckConfig(int now) => <String, Object?>{
-        '1': <String, Object?>{
-          'id': 1,
-          'name': 'Default',
-          'mod': now,
-          'usn': -1,
-          'maxTaken': 60,
-          'autoplay': true,
-          'timer': 0,
-          'replayq': true,
-          'new': <String, Object?>{
-            'bury': true,
-            'delays': <int>[1, 10],
-            'initialFactor': 2500,
-            'ints': <int>[1, 4, 7],
-            'order': 1,
-            'perDay': 20,
-            'separate': true,
-          },
-          'rev': <String, Object?>{
-            'bury': true,
-            'ease4': 1.3,
-            'fuzz': 0.05,
-            'ivlFct': 1,
-            'maxIvl': 36500,
-            'minSpace': 1,
-            'perDay': 200,
-          },
-          'lapse': <String, Object?>{
-            'delays': <int>[10],
-            'leechAction': 0,
-            'leechFails': 8,
-            'minInt': 1,
-            'mult': 0,
-          },
-        },
-      };
+    '1': <String, Object?>{
+      'id': 1, 'name': 'Default', 'mod': now, 'usn': -1,
+      'maxTaken': 60, 'autoplay': true, 'timer': 0, 'replayq': true,
+      'new': <String, Object?>{
+        'bury': true, 'delays': <int>[1, 10], 'initialFactor': 2500,
+        'ints': <int>[1, 4, 7], 'order': 1, 'perDay': 20, 'separate': true,
+      },
+      'rev': <String, Object?>{
+        'bury': true, 'ease4': 1.3, 'fuzz': 0.05, 'ivlFct': 1,
+        'maxIvl': 36500, 'minSpace': 1, 'perDay': 200,
+      },
+      'lapse': <String, Object?>{
+        'delays': <int>[10], 'leechAction': 0, 'leechFails': 8,
+        'minInt': 1, 'mult': 0,
+      },
+    },
+  };
 
-  static String _html(String text) => text
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
+  static String _html(String text) => text.replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   static String _tsv(String text) =>
       text.replaceAll(RegExp(r'[\t\r\n]+'), ' ').trim();
   static String _fileStem(String name) {
     final safe = _validateName(name).replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
-    return '${safe.isEmpty ? 'deck' : safe}_${DateTime.now().microsecondsSinceEpoch}';
+    return (safe.isEmpty ? 'deck' : safe) +
+        '_' + DateTime.now().microsecondsSinceEpoch.toString();
   }
-
   static String _validateName(String value) {
     final name = value.trim();
     if (name.isEmpty || name.length > 80) {
@@ -497,7 +415,6 @@ class DeckExportService {
     }
     return name;
   }
-
   static String _language(String raw) {
     final code = raw.trim().toLowerCase().replaceAll('_', '-');
     if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(code)) {

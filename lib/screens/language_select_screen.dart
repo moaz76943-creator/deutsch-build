@@ -48,8 +48,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'اختر لغة الواجهة الأساسية',
-                  style: AppTypography.display
-                      .copyWith(color: Colors.white, fontSize: 24),
+                  style: AppTypography.display.copyWith(color: Colors.white, fontSize: 24),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
@@ -67,8 +66,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'ابحث عن لغتك بين 100 لغة مدعومة...',
-                    hintStyle:
-                        TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
                     prefixIcon: const Icon(Icons.search, color: Colors.white70),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.08),
@@ -76,8 +74,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -106,13 +103,10 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                     backgroundColor: const Color(0xFF38BDF8),
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: widget.onContinue,
-                  child: const Text('متابعة',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: const Text('متابعة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -143,8 +137,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
               children: <Widget>[
                 Text(
                   title,
-                  style: AppTypography.title
-                      .copyWith(color: Colors.white, fontSize: 16),
+                  style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -158,8 +151,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
             ),
           ),
           if (isSelected)
-            const Icon(Icons.check_circle_rounded,
-                color: Colors.white, size: 24),
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 24),
         ],
       ),
     );
