@@ -60,12 +60,10 @@ void main() {
       // Wait for microtasks and isolate callbacks to flush
       await Future.delayed(const Duration(milliseconds: 50));
 
-      // 100 tasks pushed. Assuming maxQueueSize = 50. The first 50 enter the queue. The rest (50) should be rejected.
-      // Wait wait wait, active jobs isn't incremented until _pump runs later? Actually `_pump` is called synchronously on `executeTask`.
-      // `_pump` removes from queue, increments _activeJobs, and runs a microtask.
-      // So first 4 are popped, _activeJobs becomes 4.
-      // Then the remaining 96. 50 go into queue. 46 are rejected. So 46 rejected is expected.
-      expect(exhaustCount, 46);
+      // 100 tasks pushed. Assuming maxQueueSize = 50.
+      // If we now check queue+activeJobs, all 100 hit synchronously before microtasks run,
+      // so exactly 50 are admitted (queued) and 50 are rejected.
+      expect(exhaustCount, 50);
 
       // Wait for the active tasks to drain so the isolate shuts down cleanly
       worker.cancelAll();
