@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/gamification/streak_freeze_ledger.dart';
-import 'package:deutsch_bilarabi/core/gamification/mastery_projection_engine.dart';
-import 'package:deutsch_bilarabi/core/gamification/domain_mastery_projection.dart';
-import 'package:deutsch_bilarabi/core/progress/review_transaction_envelope.dart';
+import '../../../lib/core/gamification/streak_freeze_ledger.dart';
+import '../../../lib/core/gamification/mastery_projection_engine.dart';
+import '../../../lib/core/gamification/domain_mastery_projection.dart';
+import '../../../lib/core/progress/review_transaction_envelope.dart';
 
 void main() {
   group('StreakFreezeLedger', () {
     test('Prevents repeated freeze on the same local day', () {
-      const ledger = StreakFreezeLedger();
+      final ledger = const StreakFreezeLedger();
       final now = DateTime(2023, 10, 15, 12, 0);
 
       final l1 = ledger.recordUsage('missed day', timestamp: now);
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('Handles timezone transitions and boundaries correctly', () {
-      const ledger = StreakFreezeLedger();
+      final ledger = const StreakFreezeLedger();
       // Suppose UTC is 23:00 on 15th, local is 01:00 on 16th.
       // We pass the DateTimes explicitly to simulate local times.
 
