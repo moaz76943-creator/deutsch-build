@@ -95,10 +95,10 @@ void main() {
       var ledger = const StreakFreezeLedger(totalShields: 2);
       final timestamp = DateTime(2023, 1, 1, 12, 0, 0);
 
-      ledger = ledger.recordUsage('reason1', timestamp: timestamp);
+      ledger = ledger.recordUsage('reason1', now: timestamp);
       expect(ledger.remainingShields, 1);
 
-      ledger = ledger.recordUsage('reason2', timestamp: timestamp.add(const Duration(hours: 1)));
+      ledger = ledger.recordUsage('reason2', now: timestamp.add(const Duration(hours: 1)));
       expect(ledger.remainingShields, 1); // Duplicate on same local day prevented
     });
 
