@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/services/pack_manager.dart';
 import '../../../core/services/audio_tts_service.dart';
-import '../data/local_topic_catalog.dart';
 
 class SectionExplorerScreen extends StatefulWidget {
   final String initialLanguage;
@@ -20,7 +19,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   String selectedCefr = 'A1';
   bool isLoading = true;
   double downloadProgress = 0.0;
-  String loadingMessage = 'جاري فتح المكتبة المحلية...';
+  String loadingMessage = 'جاري إعداد الحزمة...';
   String? loadError;
   bool isSearching = false;
   List<Map<String, dynamic>> items = [];
@@ -46,8 +45,13 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
     {'code': 'nl', 'name': 'الهولندية (Nederlands)'},
   ];
 
-  // Topics are independent of downloaded pack files and learner progress.
-  final List<LocalTopicSection> sections = LocalTopicCatalog.sections;
+  final List<Map<String, String>> sections = [
+    {'id': 'HOME_KITCHEN', 'title': 'المطبخ والأواني 🍳'},
+    {'id': 'HOME_BATHROOM', 'title': 'الحمام والنظافة 🚿'},
+    {'id': 'HOME_LIVING', 'title': 'غرفة المعيشة 🛋️'},
+    {'id': 'PHARMA', 'title': 'الصيدلة والعلاج 💊'},
+    {'id': 'EMERGENCY', 'title': 'طوارئ وإسعاف 🚨'},
+  ];
 
   @override
   void initState() {
@@ -78,26 +82,25 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
       isLoading = true;
       loadError = null;
       downloadProgress = 0.0;
-      loadingMessage = 'جاري فتح مفردات اللغة المحلية...';
+      loadingMessage = 'جاري إعداد حزمة اللغة...';
     });
 
-    final language = currentLanguage;
-    final section = selectedSection;
-    final level = selectedCefr;
     try {
-      // This opens already-installed, verified SQLite. It never downloads.
-      await PackManager.initLanguagePack(language);
-      final data = LocalTopicCatalog.supportsBundledTopics(language)
-          ? await LocalTopicCatalog.loadSection(
-              sectionId: section,
-              cefr: level,
-              languageCode: language,
-            )
-          : await PackManager.getConceptsBySection(
-              sectionId: section,
-              cefr: level,
-              languageCode: language,
-            );
+      await PackManager.initLanguagePack(
+        currentLanguage,
+        onDownloadProgress: (progress) {
+          if (!mounted || gen != _loadGeneration) return;
+          setState(() {
+            downloadProgress = progress;
+            loadingMessage = 'تنزيل الحزمة: ${(progress * 100).toInt()}%';
+          });
+        },
+      );
+
+      final data = await PackManager.getConceptsBySection(
+        sectionId: selectedSection,
+        cefr: selectedCefr,
+      );
 
       if (!mounted || gen != _loadGeneration) return;
       setState(() {
@@ -134,9 +137,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
 
     _searchDebounce = Timer(const Duration(milliseconds: 250), () async {
       try {
-        final results = await PackManager.searchInstant(
-          normalized, languageCode: currentLanguage,
-        );
+        final results = await PackManager.searchInstant(normalized);
         if (!mounted || gen != _searchGeneration) return;
         setState(() {
           searchResults = results;
@@ -152,40 +153,54 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
   }
 
   void showLicenseDialog() async {
-    Map<String, String> meta = <String, String>{};
-    try {
-      meta = await PackManager.getDatasetMetadata(
-        languageCode: currentLanguage,
-      );
-    } catch (_) {
-      // No installed pack is a normal offline state for registered languages.
-    }
+    final meta = await PackManager.getDatasetMetadata();
     if (!mounted) return;
-    showDialog<void>(
+
+    showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('بيانات المصدر والترخيص'),
+        title: const Text('المصادر والتراخيص المفتوحة ⚖️'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text('المصدر المسجل: ${meta['source'] ?? 'غير مثبت'}'),
+            children: [
+              Text('المصدر: ${meta['source'] ?? 'Kaikki / Wiktionary'}'),
               const SizedBox(height: 6),
-              Text('الترخيص المسجل: ${meta['license'] ?? 'غير مثبت'}'),
+              Text('الترخيص: ${meta['license'] ?? 'CC BY-SA 4.0'}'),
               const SizedBox(height: 12),
               const Text(
-                'هذه معلومات وصفية داخل المحتوى، وليست إثباتًا '
-                'لحق إعادة التوزيع. لا يُنشر محتوى جديد قبل '
-                'التحقق من حقوق المصدر والإسناد.',
+                'المحتوى المعجمي مرخص بموجب رخصة المشاع الإبداعي CC BY-SA 4.0. يمكنك تصدير البيانات بالكامل:',
+                style: TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ],
           ),
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('إغلاق'),
+        actions: [
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.download, size: 18),
+                label: const Text('تصدير JSON'),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final path = await PackManager.exportDatasetAsJson(currentLanguage);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('✅ تم التصدير: $path'), backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('تعذر التصدير: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -329,11 +344,11 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                 children: sections.map((sec) => Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text(sec.title),
-                    selected: selectedSection == sec.id,
+                    label: Text(sec['title']!),
+                    selected: selectedSection == sec['id'],
                     onSelected: (val) {
                       if (val) {
-                        setState(() => selectedSection = sec.id);
+                        setState(() => selectedSection = sec['id']!);
                         loadSectionData();
                       }
                     },
@@ -378,7 +393,8 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                       final item = displayList[index];
                       final pos = item['part_of_speech'] ?? 'noun';
                       final word = item['word'] ?? item['display_text'] ?? '';
- 
+                      final boxLevel = item['box_level'] as int? ?? 0;
+
                       return Directionality(
                         textDirection: isCurrentRtl ? TextDirection.rtl : TextDirection.ltr,
                         child: ListTile(
@@ -397,10 +413,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                             softWrap: true,
                           ),
                           subtitle: Text(
-                            (item['translation_ar']?.toString().trim().isNotEmpty ?? false)
-                                ? item['translation_ar'].toString()
-                                : 'لا تتوفر ترجمة موثقة',
-                            textDirection: TextDirection.rtl,
+                            isSearching ? 'المعرف: ${item['concept_id']}' : 'المستوى في الذاكرة: صندوق $boxLevel',
                           ),
                           trailing: Wrap(
                             spacing: 0,

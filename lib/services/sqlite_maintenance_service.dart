@@ -76,17 +76,8 @@ class SqliteMaintenanceService with WidgetsBindingObserver {
   Future<SqliteMaintenanceReport> onIdle() async {
     // A scheduled frame ensures the requested idle operation is post-frame.
     final frame = Completer<void>();
-    final binding = WidgetsBinding.instance;
-    binding.addPostFrameCallback((_) {
-      if (!frame.isCompleted) frame.complete();
-    });
-    binding.scheduleFrame();
-    if (!binding.sendFramesToEngine ||
-        binding.runtimeType.toString().contains('AutomatedTest')) {
-      scheduleMicrotask(() {
-        if (!frame.isCompleted) frame.complete();
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => frame.complete());
+    WidgetsBinding.instance.scheduleFrame();
     await frame.future;
     return maintain(isIdle: true);
   }
