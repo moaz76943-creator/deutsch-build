@@ -52,7 +52,8 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -61,11 +62,18 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('🌸 خريطة اليقين المعرفي (بدون عدادات توتر)', style: TextStyle(color: Color(0xFF34D399), fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text('🌸 خريطة اليقين المعرفي (بدون عدادات توتر)',
+                                style: TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold)),
                             SizedBox(height: 8),
                             Text(
                               'هذه الفسيفساء تعكس تراكم وعيك اللغوي بسلام وتوازن. كل مفردة تم حفظها هي بذرة أنبتت في بستان عقلك الباطن بغض النظر عن انقطاع الأيام.',
-                              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                  height: 1.5),
                             ),
                           ],
                         ),
@@ -76,22 +84,40 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('إجمالي الغلال المعرفي: $_totalWords مفردة مستقرة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 15, fontWeight: FontWeight.bold)),
+                            Text(
+                                'إجمالي الغلال المعرفي: $_totalWords مفردة مستقرة',
+                                style: const TextStyle(
+                                    color: Color(0xFF38BDF8),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
                             ...(_fieldCounts.entries.map((entry) {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13)),
+<<<<<<< HEAD
+                                    Text('حقل: ${entry.key}',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 13)),
+=======
+                                    Expanded(child: Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13))),
+>>>>>>> origin/staging/v2-full-platform-9617688105299726044
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF34D399).withValues(alpha: 0.15),
+                                        color: const Color(0xFF34D399)
+                                            .withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: Text('${entry.value} عناصر', style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold)),
+                                      child: Text('${entry.value} عناصر',
+                                          style: const TextStyle(
+                                              color: Color(0xFF34D399),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold)),
                                     ),
                                   ],
                                 ),
