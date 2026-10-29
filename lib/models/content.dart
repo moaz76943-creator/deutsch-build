@@ -1,7 +1,13 @@
 import 'package:deutsch_bilarabi/core/content_contract.dart';
 
 class ContentItem implements LearningContent {
-  final String id, german, arabic, sentence, sentenceAr, topic, skill;
+  @override
+  final String id;
+  final String german, arabic, sentence, sentenceAr;
+  @override
+  final String topic;
+  @override
+  final String skill;
   final String article, plural;
   final List<String> accepted;
 
@@ -39,6 +45,16 @@ class ContentItem implements LearningContent {
   @override
   List<String> get acceptedForms => accepted;
 
-  @override
-  Map<String, dynamic> toMap() => <String, dynamic>{};
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'id': id,
+        'sourceText': sourceText,
+        'translationText': translationText,
+        'exampleText': exampleText,
+        'exampleTranslationText': exampleTranslationText,
+        'topic': topic,
+        'skill': skill,
+        'grammaticalMarker': grammaticalMarker,
+        'pluralForm': pluralForm,
+        'acceptedForms': acceptedForms,
+      };
 }

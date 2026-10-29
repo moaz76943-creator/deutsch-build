@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/plugins/feature_plug.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
+import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
+
 import 'models.dart';
 import 'card_physics_helper.dart';
 
@@ -9,7 +11,7 @@ class FlashcardsPlug implements FeaturePlug {
   final List<FlashcardItem> items;
   final VoidCallback? onComplete;
 
-  FlashcardsPlug({
+  const FlashcardsPlug({
     this.items = const [],
     this.onComplete,
   });
@@ -37,6 +39,7 @@ class FlashcardsPlug implements FeaturePlug {
     required int rating,
     String sourceIso = 'de',
     String targetIso = 'ar',
+    ReviewCommandPort? commandPort,
   }) async {
     if (commandPort != null) {
       ReviewRating enumRating;
@@ -68,51 +71,9 @@ class FlashcardsPlug implements FeaturePlug {
         hinted: false,
       );
       await commandPort.submit(command);
-    } else {
-      await SrsCompatBridge.instance.recordReviewCompat(
-        contentKey: cardId,
-        rating: rating,
-        sourceIso: sourceIso,
-        targetIso: targetIso,
-      );
+      return;
     }
-  }
-}
-
-class _FlashcardsContainer extends StatelessWidget {
-  final FlashcardData? card;
-  final ReviewCommandPort? commandPort;
-
-  const _FlashcardsContainer()
-      : commandPort = null,
-        card = null;
-
-  @override
-  Widget build(BuildContext context) {
-    if (card != null) {
-      return FlashcardWidget(
-        card: card!,
-        onReviewed: (cardId, rating, sourceIso, targetIso) =>
-            FlashcardsPlug.dispatchReview(
-                cardId: cardId,
-                rating: rating,
-                sourceIso: sourceIso,
-                targetIso: targetIso,
-                commandPort: commandPort),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'جاهز للتعلم التكيفي',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
+    throw StateError('A durable, versioned review writer is required');
   }
 }
 
@@ -122,7 +83,8 @@ class _FlashcardsContainer extends StatefulWidget {
 
   const _FlashcardsContainer({
     required this.items,
-  }) : onComplete = null;
+    this.onComplete,
+  });
 
   @override
   State<_FlashcardsContainer> createState() => _FlashcardsContainerState();
@@ -152,6 +114,8 @@ class _FlashcardsContainerState extends State<_FlashcardsContainer> {
               'جاهز للتعلم التكيفي',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 8),
+            Text('البطاقات تنتظر ربط التخزين المحلي الآمن'),
           ],
         ),
       );
@@ -214,8 +178,8 @@ class _FlashcardWidgetState extends State<_FlashcardWidget>
     });
 
     try {
-      await FlashcardsPlug.dispatchReview(
-        cardId: widget.item.id,
+      await SrsCompatBridge.instance.recordReviewCompat(
+        contentKey: widget.item.id,
         rating: rating,
         sourceIso: widget.item.sourceIso,
         targetIso: widget.item.targetIso,

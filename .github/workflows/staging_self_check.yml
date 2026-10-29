@@ -1,0 +1,167 @@
+name: Staging self-check
+
+# One automatic private-repo check sized for GitHub Free's 2,000 Linux
+# minutes per month. It does not use
+# GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED: that switch also starts
+# the rest of the opt-in workflows and would exhaust the quota.
+# Pull requests only, so a merge does not run the same SHA twice.
+# cancel-in-progress drops superseded runs. The 20 minute cap stops a
+# hung Flutter job from consuming the default six-hour limit.
+
+on:
+  pull_request:
+    branches:
+      - staging/v2-full-platform
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: staging-self-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+        with:
+          persist-credentials: false
+
+      - name: Detect Flutter-impacting changes
+        id: scope
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -Eeuo pipefail
+          # On API errors run all Flutter gates (fail closed), never omit them.
+          if ! changed="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" --jq '.[].filename')"; then
+            echo '::warning::Changed-file lookup failed; running all Flutter gates.'
+            echo 'flutter_changed=true' >> "$GITHUB_OUTPUT"
+          elif printf '%s\n' "$changed" | grep -E '^(lib/|test/|android/|pubspec\.yaml$|pubspec\.lock$|toolchain\.lock$|assets/fonts/OFL)' >/dev/null; then
+            echo 'flutter_changed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'flutter_changed=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: CI merge and security boundary regression
+        id: contract
+        run: python3 -m unittest discover -s tests -p 'test_private_ci_merge_contract.py'
+
+      - name: Play compliance
+        id: play
+        if: steps.scope.outputs.flutter_changed == 'true'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - << 'PY'
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+          gradle = Path("android/app/build.gradle").read_text(encoding="utf-8")
+          required = [
+              'android:allowBackup="false"',
+              'android:usesCleartextTraffic="false"',
+              "android.permission.RECORD_AUDIO",
+              "targetSdk 36",
+              "compileSdk 36",
+          ]
+          forbidden = [
+              "android.permission.INTERNET",
+              "android.permission.POST_NOTIFICATIONS",
+          ]
+          missing = [item for item in required if item not in manifest and item not in gradle]
+          present = [item for item in forbidden if item in manifest]
+          if missing or present:
+              raise SystemExit(f"Play compliance failed missing={missing} forbidden={present}")
+          print("Play compliance ok")
+          PY
+
+      - name: Read locked Flutter version
+        if: steps.scope.outputs.flutter_changed == 'true'
+        id: toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter
+        id: flutter_setup
+        if: steps.scope.outputs.flutter_changed == 'true'
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ steps.toolchain.outputs.flutter }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        id: dependencies
+        if: steps.scope.outputs.flutter_changed == 'true'
+        run: flutter pub get --enforce-lockfile
+
+      - name: Analyze
+        id: analyze
+        if: steps.scope.outputs.flutter_changed == 'true'
+        run: dart analyze lib/
+
+      - name: Flutter tests that guard learner data
+        id: flutter_tests
+        if: steps.scope.outputs.flutter_changed == 'true'
+        run: >-
+          flutter test --reporter compact
+          test/core/database/bootstrap/database_bootstrapper_test.dart
+          test/services/delta_patch_service_test.dart
+          test/services/srs_scheduler_persisted_counter_integrity_test.dart
+          test/services/lemmatization_service_test.dart
+          test/jules/J049/trie_search_engine_test.dart
+          test/jules/WS16/
+          test/offline_gate_test.dart
+
+      # Classification only; do not grant this workflow merge credentials.
+      # Runner provisioning failures occur before any Step Summary can run.
+      - name: Explain check outcome
+        if: always()
+        shell: bash
+        env:
+          SCOPE: ${{ steps.scope.outputs.flutter_changed }}
+          CONTRACT: ${{ steps.contract.outcome }}
+          PLAY: ${{ steps.play.outcome }}
+          TOOLCHAIN: ${{ steps.toolchain.outcome }}
+          SETUP: ${{ steps.flutter_setup.outcome }}
+          DEPENDENCIES: ${{ steps.dependencies.outcome }}
+          ANALYZE: ${{ steps.analyze.outcome }}
+          FLUTTER_TESTS: ${{ steps.flutter_tests.outcome }}
+        run: |
+          set -Eeuo pipefail
+          classification=PASS
+          stage=complete
+          if [[ "$CONTRACT" != "success" || "$PLAY" == "failure" || "$ANALYZE" == "failure" || "$FLUTTER_TESTS" == "failure" ]]; then
+            classification=SOURCE_FAILURE
+            stage=source_or_regression
+          elif [[ "$DEPENDENCIES" == "failure" || "$TOOLCHAIN" == "failure" ]]; then
+            classification=DEPENDENCY_FAILURE
+            stage=locked_toolchain_or_pub
+          elif [[ "$SETUP" == "failure" || -z "$SCOPE" ]]; then
+            classification=INFRASTRUCTURE_FAILURE
+            stage=setup_or_precheck
+          elif [[ "$SCOPE" == "true" && ( "$ANALYZE" != "success" || "$FLUTTER_TESTS" != "success" ) ]]; then
+            classification=INFRASTRUCTURE_FAILURE
+            stage=incomplete_flutter_execution
+          fi
+          {
+            echo '## Staging self-check outcome'
+            echo "- Classification: $classification"
+            echo "- Stage: $stage"
+            echo "- Flutter-impacting files: ${SCOPE:-unknown}"
+            echo "- Contract: $CONTRACT; Play: $PLAY; Toolchain: $TOOLCHAIN"
+            echo "- Flutter setup: $SETUP; Dependencies: $DEPENDENCIES"
+            echo "- Analyze: $ANALYZE; Tests: $FLUTTER_TESTS"
+            echo '- Merge: NOT_ATTEMPTED (separate exact-head/review gate)'
+          } >> "$GITHUB_STEP_SUMMARY"
