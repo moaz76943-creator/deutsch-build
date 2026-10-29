@@ -25,7 +25,18 @@ class ProductionSrsEngine {
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
+    DateTime? currentTime,
   }) {
+    if (currentIntervalDays < 0) {
+      throw ArgumentError('currentIntervalDays cannot be negative');
+    }
+    if (currentRepetitions < 0) {
+      throw ArgumentError('currentRepetitions cannot be negative');
+    }
+    if (currentEaseFactor.isNaN) {
+      throw ArgumentError('currentEaseFactor cannot be NaN');
+    }
+
     int newRepetitions = currentRepetitions;
     int newInterval = currentIntervalDays;
     double newEase = currentEaseFactor;
@@ -42,7 +53,12 @@ class ProductionSrsEngine {
         } else if (newRepetitions == 1) {
           newInterval = 3;
         } else {
-          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
+          newInterval = math.max(
+              1,
+              (currentIntervalDays *
+                      currentEaseFactor *
+                      morphologicalMultiplier)
+                  .round());
         }
         newRepetitions += 1;
         break;
@@ -52,14 +68,20 @@ class ProductionSrsEngine {
         } else if (newRepetitions == 1) {
           newInterval = 5;
         } else {
-          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
+          newInterval = math.max(
+              1,
+              (currentIntervalDays *
+                      currentEaseFactor *
+                      1.3 *
+                      morphologicalMultiplier)
+                  .round());
         }
         newRepetitions += 1;
         newEase = math.min(2.5, currentEaseFactor + 0.15);
         break;
     }
 
-    final now = DateTime.now();
+    final now = currentTime ?? DateTime.now();
     final nextDate = now.add(Duration(days: math.max(1, newInterval)));
 
     return SrsCardReviewResult(

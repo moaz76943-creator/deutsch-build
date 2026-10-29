@@ -7,9 +7,15 @@ import 'package:flutter/material.dart';
 /// Supports gender/register tags, IPA, bold, italic and inline code.
 class LexicalSyntaxParser {
   static const Map<String, String> _tags = <String, String>{
-    'm': 'm.', 'f': 'f.', 'n': 'n.', 'etym': 'etym.',
-    'archaic': 'archaic', 'slang': 'slang', 'colloquial': 'colloquial',
-    'formal': 'formal', 'pl': 'plural',
+    'm': 'm.',
+    'f': 'f.',
+    'n': 'n.',
+    'etym': 'etym.',
+    'archaic': 'archaic',
+    'slang': 'slang',
+    'colloquial': 'colloquial',
+    'formal': 'formal',
+    'pl': 'plural',
   };
 
   static const TextStyle _genderStyle = TextStyle(

@@ -222,25 +222,27 @@ class ActiveLanguageState {
 class LanguagePackStorage {
   Future<Directory> get _directory async {
     final support = await getApplicationSupportDirectory();
-    return Directory(support.path + '/language_packs');
+    return Directory('${support.path}/language_packs');
   }
 
   Future<File> _packFile(String code) async {
     if (!LanguagePackMetadata._safeCode.hasMatch(code) || code == 'de') {
       throw ArgumentError.value(code, 'code', 'Invalid downloadable code');
     }
-    return File((await _directory).path + '/' + code + '.pack.gz');
+    return File('${(await _directory).path}/$code.pack.gz');
   }
 
   Future<String> fetchManifest() async {
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 12);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 12);
     try {
       final request = await client
           .getUrl(Uri.parse(languagePackManifestUrl))
           .timeout(const Duration(seconds: 15));
-      final response = await request.close().timeout(const Duration(seconds: 15));
+      final response =
+          await request.close().timeout(const Duration(seconds: 15));
       if (response.statusCode != HttpStatus.ok) {
-        throw HttpException('Catalog HTTP status: ' + response.statusCode.toString());
+        throw HttpException('Catalog HTTP status: ${response.statusCode}');
       }
       final bytes = BytesBuilder(copy: false);
       var count = 0;
@@ -292,23 +294,28 @@ class LanguagePackStorage {
       }
     }
 
-    final temporary = File(target.path + '.partial');
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 12);
+    final temporary = File('${target.path}.partial');
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 12);
     try {
       final uri = Uri.parse(_packBaseUrl + pack.packFile!);
-      final request = await client.getUrl(uri).timeout(const Duration(seconds: 15));
-      final response = await request.close().timeout(const Duration(seconds: 15));
+      final request =
+          await client.getUrl(uri).timeout(const Duration(seconds: 15));
+      final response =
+          await request.close().timeout(const Duration(seconds: 15));
       if (response.statusCode != HttpStatus.ok) {
-        throw HttpException('Pack HTTP status: ' + response.statusCode.toString());
+        throw HttpException('Pack HTTP status: ${response.statusCode}');
       }
 
       final writer = temporary.openWrite(mode: FileMode.writeOnly);
       var received = 0;
       try {
-        await for (final chunk in response.timeout(const Duration(seconds: 30))) {
+        await for (final chunk
+            in response.timeout(const Duration(seconds: 30))) {
           received += chunk.length;
           if (received > pack.sizeBytes!) {
-            throw const FormatException('Pack is larger than its manifest size.');
+            throw const FormatException(
+                'Pack is larger than its manifest size.');
           }
           writer.add(chunk);
           onProgress((received / pack.sizeBytes!).clamp(0.0, 1.0));
@@ -335,7 +342,7 @@ class LanguagePackStorage {
   Future<void> delete(String code) async {
     final file = await _packFile(code);
     if (!await file.exists()) {
-      throw StateError('No managed archive exists for ' + code);
+      throw StateError('No managed archive exists for $code');
     }
     await file.delete();
   }
@@ -392,7 +399,8 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
     await refreshCatalog();
     if (!mounted) return;
     final savedActive = _savedActive;
-    if (savedActive != null && state.isInstalled(savedActive) &&
+    if (savedActive != null &&
+        state.isInstalled(savedActive) &&
         state.activeLanguageCode != savedActive) {
       state = state.copyWith(activeLanguageCode: savedActive);
       _ref.invalidate(vocabularyListProvider);
@@ -528,7 +536,7 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
     } catch (error) {
       if (mounted) {
         state = state.copyWith(
-          errorMessage: 'فشل تنزيل الحزمة أو التحقق منها: ' + error.toString(),
+          errorMessage: 'فشل تنزيل الحزمة أو التحقق منها: $error',
         );
       }
       rethrow;
@@ -544,7 +552,9 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
   }
 
   Future<void> deletePack(String langCode) async {
-    if (langCode == 'de') throw StateError('The built-in German pack is protected.');
+    if (langCode == 'de') {
+      throw StateError('The built-in German pack is protected.');
+    }
     if (langCode == state.activeLanguageCode) {
       throw StateError('Switch to another language before deleting this pack.');
     }

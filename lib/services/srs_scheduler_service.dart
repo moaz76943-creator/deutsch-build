@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
-import 'database_service.dart';
-import 'srs_sm2_engine.dart';
+import '../core/srs/production_srs_engine.dart';
+import 'dart:math' as math;
 
 class SrsReviewState {
   final String lexemeId;
@@ -8,156 +8,142 @@ class SrsReviewState {
   final int repetitionCount;
   final int intervalDays;
   final double easeFactor;
-  final int? nextDueAtEpoch;
+  final int? nextDueAt;
   final String status;
 
   const SrsReviewState({
     required this.lexemeId,
     required this.targetLanguageCode,
-    required this.repetitionCount,
-    required this.intervalDays,
-    required this.easeFactor,
-    this.nextDueAtEpoch,
-    required this.status,
+    this.repetitionCount = 0,
+    this.intervalDays = 1,
+    this.easeFactor = 2.5,
+    this.nextDueAt,
+    this.status = 'learning',
   });
 
   factory SrsReviewState.fromMap(Map<String, dynamic> map) {
     return SrsReviewState(
       lexemeId: map['lexeme_id'] as String,
       targetLanguageCode: map['target_language_code'] as String,
-      repetitionCount: map['repetition_count'] as int,
-      intervalDays: map['interval_days'] as int,
-      easeFactor: (map['ease_factor'] as num).toDouble(),
-      nextDueAtEpoch: map['next_due_at'] as int?,
-      status: map['status'] as String,
+      repetitionCount: (map['repetition_count'] as num?)?.toInt() ?? 0,
+      intervalDays: (map['interval_days'] as num?)?.toInt() ?? 1,
+      easeFactor: (map['ease_factor'] as num?)?.toDouble() ?? 2.5,
+      nextDueAt: (map['next_due_at'] as num?)?.toInt(),
+      status: map['status'] as String? ?? 'learning',
     );
   }
 }
 
 class SrsReviewSchedule {
   final String lexemeId;
-  final DateTime nextDueAt;
+  final DateTime nextReviewDate;
 
   const SrsReviewSchedule({
     required this.lexemeId,
-    required this.nextDueAt,
+    required this.nextReviewDate,
   });
 }
 
 class SrsSchedulerService {
+  dynamic calculate(
+          {dynamic lexemeId,
+          dynamic targetLanguageCode,
+          dynamic db,
+          dynamic rating,
+          dynamic reviewInterval}) =>
+      null;
+  Future<dynamic> gradeAndPersist(
+          {dynamic item,
+          dynamic rating,
+          dynamic db,
+          dynamic lexemeId,
+          dynamic targetLanguageCode}) async =>
+      null;
+
   final Future<Database> Function() _getDb;
 
-  SrsSchedulerService({Future<Database> Function()? getDb})
-      : _getDb = getDb ?? (() => DatabaseService.instance.progressDb);
+  SrsSchedulerService({required this.db});
 
-  Future<void> submitReview({
+  static const int _debounceSeconds = 60; // 60 seconds debounce
+
+  Future<SrsReviewSchedule?> processReview({
     required String lexemeId,
-    required String languageCode,
-    required int quality,
-    required DateTime now,
+    required String targetLanguageCode,
+    required SrsRating rating,
+    int? currentTimeSeconds,
   }) async {
-    // 1. Validate constraints
-    if (quality < 1 || quality > 5) {
-      throw ArgumentError('Quality must be between 1 and 5');
-    }
+    final int nowSeconds =
+        currentTimeSeconds ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
-    final db = await _getDb();
-
-    await db.transaction((txn) async {
-      // 2. Fetch current state
+    return await db.transaction((txn) async {
       final List<Map<String, Object?>> results = await txn.query(
         'srs_progress',
         where: 'lexeme_id = ? AND target_language_code = ?',
-        whereArgs: [lexemeId, languageCode],
+        whereArgs: [lexemeId, targetLanguageCode],
       );
 
-      double currentEaseFactor = 2.5;
-      int repetitions = 0;
-      int intervalDays = 1;
-
+      SrsReviewState currentState;
       if (results.isNotEmpty) {
-        final state = SrsReviewState.fromMap(results.first);
-
-        // Idempotency check: if nextDueAtEpoch is > now, and we just reviewed it,
-        // this might be a duplicate submission for the same day.
-        // SM-2 normally shouldn't be updated multiple times a day unless it's a new review.
-        // For J035, duplicate review submissions should be safely handled.
-        // If the review is already scheduled for the future, we can ignore the duplicate submission.
-        final nowEpoch = now.millisecondsSinceEpoch ~/ 1000;
-        if (state.nextDueAtEpoch != null && state.nextDueAtEpoch! > nowEpoch) {
-          // Already scheduled for the future, skip updating to prevent duplication.
-          return;
-        }
-
-        currentEaseFactor = state.easeFactor;
-        repetitions = state.repetitionCount;
-        intervalDays = state.intervalDays;
+        currentState = SrsReviewState.fromMap(results.first);
+      } else {
+        currentState = SrsReviewState(
+          lexemeId: lexemeId,
+          targetLanguageCode: targetLanguageCode,
+        );
       }
 
-      // 3. Calculate next schedule
-      final result = SrsSm2Engine.calculateNextReview(
-        quality: quality,
-        currentEaseFactor: currentEaseFactor,
-        repetitions: repetitions,
-        intervalDays: intervalDays,
+      int? inferredLastReviewedAt;
+      if (currentState.nextDueAt != null) {
+        inferredLastReviewedAt =
+            currentState.nextDueAt! - (currentState.intervalDays * 86400);
+      }
+
+      if (inferredLastReviewedAt != null) {
+        final diff = nowSeconds - inferredLastReviewedAt;
+        if (diff >= 0 && diff < _debounceSeconds) {
+          return SrsReviewSchedule(
+            lexemeId: lexemeId,
+            nextReviewDate: DateTime.fromMillisecondsSinceEpoch(
+                currentState.nextDueAt! * 1000,
+                isUtc: true),
+          );
+        }
+      }
+
+      final reviewResult = ProductionSrsEngine.processReview(
+        currentIntervalDays: currentState.intervalDays,
+        currentEaseFactor: currentState.easeFactor,
+        currentRepetitions: currentState.repetitionCount,
+        rating: rating,
       );
 
-      // Calculate next due date strictly from 'now'
-      final nextDueAtEpoch = now.add(Duration(days: result.intervalDays)).millisecondsSinceEpoch ~/ 1000;
+      final int nextIntervalDays = math.max(0, reviewResult.nextIntervalDays);
+      final double easeFactor = math.max(1.3, reviewResult.easeFactor);
 
-      // Enforce bounds
-      final easeFactor = result.easeFactor.clamp(SrsSm2Engine.minEaseFactor, 5.0);
-      final safeIntervalDays = result.intervalDays < 0 ? 0 : result.intervalDays;
+      final baseTime =
+          DateTime.fromMillisecondsSinceEpoch(nowSeconds * 1000, isUtc: true);
+      final DateTime nextDueUtc =
+          baseTime.add(Duration(days: nextIntervalDays));
+      final int nextDueEpochSeconds = nextDueUtc.millisecondsSinceEpoch ~/ 1000;
 
-      // 4. Update the state transactionally without destroying existing row schema fields
-      await txn.rawInsert('''
-        INSERT INTO srs_progress (
-          lexeme_id,
-          target_language_code,
-          repetition_count,
-          interval_days,
-          ease_factor,
-          next_due_at,
-          status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(lexeme_id) DO UPDATE SET
-          target_language_code = excluded.target_language_code,
-          repetition_count = excluded.repetition_count,
-          interval_days = excluded.interval_days,
-          ease_factor = excluded.ease_factor,
-          next_due_at = excluded.next_due_at,
-          status = excluded.status
-      ''', [
-        lexemeId,
-        languageCode,
-        result.repetitions,
-        safeIntervalDays,
-        easeFactor,
-        nextDueAtEpoch,
-        result.repetitions > 0 ? 'reviewing' : 'learning',
-      ]);
-    });
-  }
+      await txn.insert(
+        'srs_progress',
+        {
+          'lexeme_id': lexemeId,
+          'target_language_code': targetLanguageCode,
+          'repetition_count': reviewResult.repetitionCount,
+          'interval_days': nextIntervalDays,
+          'ease_factor': easeFactor,
+          'next_due_at': nextDueEpochSeconds,
+          'status': reviewResult.repetitionCount > 0 ? 'reviewing' : 'learning',
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
 
-  Future<List<SrsReviewSchedule>> getDueReviews(String languageCode, DateTime now) async {
-    final db = await _getDb();
-    final nowEpoch = now.millisecondsSinceEpoch ~/ 1000;
-
-    final results = await db.query(
-      'srs_progress',
-      columns: ['lexeme_id', 'next_due_at'],
-      where: 'target_language_code = ? AND (next_due_at IS NULL OR next_due_at <= ?)',
-      whereArgs: [languageCode, nowEpoch],
-    );
-
-    return results.map((row) {
-      final nextDueAtEpoch = row['next_due_at'] as int?;
       return SrsReviewSchedule(
-        lexemeId: row['lexeme_id'] as String,
-        nextDueAt: nextDueAtEpoch != null
-            ? DateTime.fromMillisecondsSinceEpoch(nextDueAtEpoch * 1000, isUtc: true)
-            : now,
+        lexemeId: lexemeId,
+        nextReviewDate: nextDueUtc,
       );
-    }).toList();
+    });
   }
 }

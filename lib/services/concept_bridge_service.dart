@@ -106,8 +106,7 @@ class ConceptBridgeService {
 
   static String _normalizeLanguage(String value) {
     final normalized = value.trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$')
-        .hasMatch(normalized)) {
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
       throw ArgumentError.value(value, 'languageCode', 'Invalid language tag');
     }
     return normalized;

@@ -9,5 +9,6 @@ class GrammarProfile {
     required this.capabilities,
   });
 
-  bool supports(GrammarCapability capability) => capabilities.contains(capability);
+  bool supports(GrammarCapability capability) =>
+      capabilities.contains(capability);
 }

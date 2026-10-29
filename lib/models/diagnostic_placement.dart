@@ -161,73 +161,88 @@ final class PlacementDiagnosticRecord {
         'reviewItemIds': reviewItemIds.take(20).toList(growable: false),
         if (curriculumStartLevel != null)
           'curriculumStartLevel': curriculumStartLevel,
-        'recommendedStartTaskOrder':
-            recommendedStartTaskOrder.clamp(1, 50),
+        'recommendedStartTaskOrder': recommendedStartTaskOrder.clamp(1, 50),
         if (learningGoal != null) 'learningGoal': learningGoal,
       };
 
   factory PlacementDiagnosticRecord.fromJson(Map<String, dynamic> json) {
-    final now = DateTime.now();
-    var at = DateTime.tryParse(json['at']?.toString() ?? '') ?? now;
-    if (at.isBefore(DateTime(2000)) ||
-        at.isAfter(now.add(const Duration(days: 1)))) {
-      at = now;
-    }
-
-    final scores = <DiagnosticDimension, double>{};
-    final rawScores = json['dimensionScores'];
-    if (rawScores is Map) {
-      for (final entry in rawScores.entries) {
-        final dimension = DiagnosticDimension.fromWire(entry.key.toString());
-        final raw = entry.value;
-        if (dimension == null || raw is! num) continue;
-        scores[dimension] = raw.toDouble().clamp(0.0, 1.0).toDouble();
+    try {
+      final now = DateTime.now();
+      var at = DateTime.tryParse(json['at']?.toString() ?? '') ?? now;
+      if (at.isBefore(DateTime(2000)) ||
+          at.isAfter(now.add(const Duration(days: 1)))) {
+        at = now;
       }
-    }
 
-    final weak = <DiagnosticDimension>[];
-    final rawWeak = json['weakDimensions'];
-    if (rawWeak is List) {
-      for (final raw in rawWeak.take(DiagnosticDimension.values.length)) {
-        final dimension = DiagnosticDimension.fromWire(raw?.toString());
-        if (dimension != null && !weak.contains(dimension)) weak.add(dimension);
-      }
-    }
-
-    final reviewIds = <String>[];
-    final rawReviewIds = json['reviewItemIds'];
-    if (rawReviewIds is List) {
-      for (final raw in rawReviewIds.take(20)) {
-        final value = raw?.toString().trim() ?? '';
-        if (value.isNotEmpty &&
-            value.length <= 160 &&
-            !reviewIds.contains(value)) {
-          reviewIds.add(value);
+      final scores = <DiagnosticDimension, double>{};
+      final rawScores = json['dimensionScores'];
+      if (rawScores is Map) {
+        for (final entry in rawScores.entries) {
+          final dimension = DiagnosticDimension.fromWire(entry.key.toString());
+          final raw = entry.value;
+          if (dimension == null || raw is! num) continue;
+          scores[dimension] = raw.toDouble().clamp(0.0, 1.0).toDouble();
         }
       }
+
+      final weak = <DiagnosticDimension>[];
+      final rawWeak = json['weakDimensions'];
+      if (rawWeak is List) {
+        for (final raw in rawWeak.take(DiagnosticDimension.values.length)) {
+          final dimension = DiagnosticDimension.fromWire(raw?.toString());
+          if (dimension != null && !weak.contains(dimension)) {
+            weak.add(dimension);
+          }
+        }
+      }
+
+      final reviewIds = <String>[];
+      final rawReviewIds = json['reviewItemIds'];
+      if (rawReviewIds is List) {
+        for (final raw in rawReviewIds.take(20)) {
+          final value = raw?.toString().trim() ?? '';
+          if (value.isNotEmpty &&
+              value.length <= 160 &&
+              !reviewIds.contains(value)) {
+            reviewIds.add(value);
+          }
+        }
+      }
+
+      final rawId = json['id']?.toString().trim() ?? '';
+      return PlacementDiagnosticRecord(
+        id: rawId.length > 160 ? rawId.substring(0, 160) : rawId,
+        at: at,
+        answered: _boundedInt(json['answered'], 0, 20),
+        scoredAnswers: _boundedInt(json['scoredAnswers'], 0, 20),
+        score: _boundedDouble(json['score'], 0, 100),
+        confidence: _boundedDouble(json['confidence'], 0, 1),
+        band: DiagnosticPlacementBand.fromWire(json['band']?.toString()),
+        dimensionScores: Map<DiagnosticDimension, double>.unmodifiable(scores),
+        weakDimensions: List<DiagnosticDimension>.unmodifiable(weak),
+        reviewItemIds: List<String>.unmodifiable(reviewIds),
+        curriculumStartLevel: _placementLevel(
+          json['curriculumStartLevel']?.toString(),
+        ),
+        recommendedStartTaskOrder:
+            _boundedInt(json['recommendedStartTaskOrder'], 1, 50),
+        learningGoal: _learningGoal(json['learningGoal']?.toString()),
+      );
+    } catch (_) {
+      return PlacementDiagnosticRecord(
+        id: 'fallback',
+        at: DateTime.now(),
+        answered: 0,
+        scoredAnswers: 0,
+        score: 0.0,
+        confidence: 0.0,
+        band: DiagnosticPlacementBand.foundation,
+        dimensionScores: const {},
+        weakDimensions: const [],
+        reviewItemIds: const [],
+      );
     }
-
-    final rawId = json['id']?.toString().trim() ?? '';
-    return PlacementDiagnosticRecord(
-      id: rawId.length > 160 ? rawId.substring(0, 160) : rawId,
-      at: at,
-      answered: _boundedInt(json['answered'], 0, 20),
-      scoredAnswers: _boundedInt(json['scoredAnswers'], 0, 20),
-      score: _boundedDouble(json['score'], 0, 100),
-      confidence: _boundedDouble(json['confidence'], 0, 1),
-      band: DiagnosticPlacementBand.fromWire(json['band']?.toString()),
-      dimensionScores: Map<DiagnosticDimension, double>.unmodifiable(scores),
-      weakDimensions: List<DiagnosticDimension>.unmodifiable(weak),
-      reviewItemIds: List<String>.unmodifiable(reviewIds),
-      curriculumStartLevel: _placementLevel(
-        json['curriculumStartLevel']?.toString(),
-      ),
-      recommendedStartTaskOrder:
-          _boundedInt(json['recommendedStartTaskOrder'], 1, 50),
-      learningGoal: _learningGoal(json['learningGoal']?.toString()),
-    );
   }
-
 
   static String? _placementLevel(String? raw) {
     final value = raw?.trim().toUpperCase();

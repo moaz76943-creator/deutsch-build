@@ -15,8 +15,8 @@ import '../utils/transliteration_engine.dart';
 /// Providers are registered without running their factories. Read only from
 /// the feature that needs the corresponding service; never watch in MyApp.
 final agglutinativeSuffixStripperProvider =
-    Provider<AgglutinativeSuffixStripper>((ref) => AgglutinativeSuffixStripper());
-
+    Provider<AgglutinativeSuffixStripper>(
+        (ref) => const AgglutinativeSuffixStripper());
 
 typedef LazyDictionaryLookup = Future<List<Map<String, dynamic>>> Function(
     String query, String languageCode);
@@ -26,15 +26,16 @@ typedef LazyDictionaryLookup = Future<List<Map<String, dynamic>>> Function(
 final lazyDictionaryLookupProvider = Provider<LazyDictionaryLookup>((ref) {
   final fts = FtsSearchService();
   return (query, languageCode) {
-    final code = languageCode.trim().toLowerCase().replaceAll('_', '-')
-        .split('-').first;
+    final code =
+        languageCode.trim().toLowerCase().replaceAll('_', '-').split('-').first;
     if (!const <String>{'tr', 'az', 'fi', 'hu'}.contains(code)) {
       return fts.searchDictionary(query, languageCode);
     }
-    return ref.read(agglutinativeSuffixStripperProvider)
+    return ref
+        .read(agglutinativeSuffixStripperProvider)
         .searchWithSuffixFallback(query,
-          languageCode: code,
-          search: (text, lang) => fts.searchDictionary(text, lang));
+            languageCode: code,
+            search: (text, lang) => fts.searchDictionary(text, lang));
   };
 });
 
@@ -58,8 +59,8 @@ class _UnusedOpusSource implements EmbeddedOpusSource {
   Future<Uint8List?> read(String clipId) async => null;
 }
 
-final conceptDisambiguationProvider =
-    Provider<ConceptDisambiguationService>((ref) => ConceptDisambiguationService());
+final conceptDisambiguationProvider = Provider<ConceptDisambiguationService>(
+    (ref) => ConceptDisambiguationService());
 
 final deckExportServiceProvider =
     Provider<DeckExportService>((ref) => DeckExportService());
@@ -83,6 +84,7 @@ typedef FuzzySuggestionLookup = List<String> Function(
 
 final fuzzySuggestionLookupProvider = Provider<FuzzySuggestionLookup>(
   (ref) => (input, candidates) => FuzzySearchEngine.didYouMean(
-    input, candidates,
-  ),
+        input,
+        candidates,
+      ),
 );

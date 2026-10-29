@@ -279,8 +279,7 @@ class MultiScriptTypography {
     final family = _resolveScriptFamily(scriptCode);
     final scriptFallbacks =
         _fallbacks[family] ?? _fallbacks[ScriptFamily.latin]!;
-    final existingFallbacks =
-        baseStyle?.fontFamilyFallback ?? const <String>[];
+    final existingFallbacks = baseStyle?.fontFamilyFallback ?? const <String>[];
 
     final mergedFallbacks = <String>[];
     for (final fontFamily in <String>[

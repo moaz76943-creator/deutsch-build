@@ -20,7 +20,8 @@ class VocabularyItem {
   final String cognateNote;
   final String morphologicalTree;
   final String morphophonemicBridge;
-  final String politenessRegister; // مؤشر مستويات الخطاب والطبقات الاجتماعية (رسمي، مهني، يومي)
+  final String
+      politenessRegister; // مؤشر مستويات الخطاب والطبقات الاجتماعية (رسمي، مهني، يومي)
 
   VocabularyItem({
     required this.word,
@@ -57,7 +58,8 @@ class VocabularyItem {
 
   VocabularyItem calculateSm2(int quality) {
     double adaptiveDecayFactor = (quality < 3) ? 0.8 : 1.0;
-    double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+    double newEase =
+        easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEase < 1.3) newEase = 1.3;
 
     int newRepetitions = repetitions;
@@ -131,29 +133,46 @@ class VocabularyItem {
   }
 
   factory VocabularyItem.fromJson(Map<dynamic, dynamic> json) {
-    return VocabularyItem(
-      word: json['word'] as String? ?? '',
-      article: json['article'] as String? ?? '',
-      plural: json['plural'] as String? ?? '',
-      preposition: json['preposition'] as String? ?? '',
-      collocation: json['collocation'] as String? ?? '',
-      wordFamily: json['wordFamily'] as String? ?? '',
-      difficultyScore: (json['difficultyScore'] as num?)?.toDouble() ?? 1.0,
-      meaning: json['meaning'] as String? ?? '',
-      example: json['example'] as String? ?? '',
-      interval: json['interval'] as int? ?? 0,
-      repetitions: json['repetitions'] as int? ?? 0,
-      easeFactor: (json['easeFactor'] as num?)?.toDouble() ?? 2.5,
-      languageCode: json['languageCode'] as String? ?? 'de',
-      etymologyRoot: json['etymologyRoot'] as String? ?? '',
-      semanticField: json['semanticField'] as String? ?? 'حياة يومية',
-      professionalContext: json['professionalContext'] as String? ?? 'عام',
-      grammaticalValency: json['grammaticalValency'] as String? ?? '',
-      pragmaticScenario: json['pragmaticScenario'] as String? ?? '',
-      cognateNote: json['cognateNote'] as String? ?? '',
-      morphologicalTree: json['morphologicalTree'] as String? ?? '',
-      morphophonemicBridge: json['morphophonemicBridge'] as String? ?? '',
-      politenessRegister: json['politenessRegister'] as String? ?? 'محايد / يومي',
-    );
+    try {
+      return VocabularyItem(
+        word: json['word']?.toString() ?? '',
+        article: json['article']?.toString() ?? '',
+        plural: json['plural']?.toString() ?? '',
+        preposition: json['preposition']?.toString() ?? '',
+        collocation: json['collocation']?.toString() ?? '',
+        wordFamily: json['wordFamily']?.toString() ?? '',
+        difficultyScore:
+            double.tryParse(json['difficultyScore']?.toString() ?? '') ?? 1.0,
+        meaning: json['meaning']?.toString() ?? '',
+        example: json['example']?.toString() ?? '',
+        interval: int.tryParse(json['interval']?.toString() ?? '') ?? 0,
+        repetitions: int.tryParse(json['repetitions']?.toString() ?? '') ?? 0,
+        easeFactor:
+            double.tryParse(json['easeFactor']?.toString() ?? '') ?? 2.5,
+        languageCode: json['languageCode']?.toString() ?? 'de',
+        etymologyRoot: json['etymologyRoot']?.toString() ?? '',
+        semanticField: json['semanticField']?.toString() ?? 'حياة يومية',
+        professionalContext: json['professionalContext']?.toString() ?? 'عام',
+        grammaticalValency: json['grammaticalValency']?.toString() ?? '',
+        pragmaticScenario: json['pragmaticScenario']?.toString() ?? '',
+        cognateNote: json['cognateNote']?.toString() ?? '',
+        morphologicalTree: json['morphologicalTree']?.toString() ?? '',
+        morphophonemicBridge: json['morphophonemicBridge']?.toString() ?? '',
+        politenessRegister:
+            json['politenessRegister']?.toString() ?? 'محايد / يومي',
+      );
+    } catch (_) {
+      return VocabularyItem(
+        word: 'fallback',
+        article: '',
+        plural: '',
+        preposition: '',
+        collocation: '',
+        wordFamily: '',
+        difficultyScore: 1.0,
+        meaning: '',
+        example: '',
+      );
+    }
   }
 }

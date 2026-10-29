@@ -1,24 +1,19 @@
 import '../srs/review_command_port.dart';
 import 'review_transaction_envelope.dart';
 
-enum TransactionCommitOutcome { applied, alreadyCommitted }
+enum ReviewCommitResult { committed, alreadyCommitted }
 
-/// Required durable-store contract, NOT an in-memory journal.
+/// Required DB/worker boundary: the UNIQUE reviewId constraint, validated
+/// command payload, progress advance, SRS advance and committed event MUST
+/// persist together in ONE atomic transaction. A collision with a different
+/// command payload must throw, not return alreadyCommitted.
 ///
-/// An implementation MUST, in one durable SQLite write transaction:
-/// 1. Validate uniqueness of reviewId globally and compare the complete
-///    command payload (pair direction, epoch, facet, card, rating, hint).
-/// 2. If identical and previously committed, do not advance any counters.
-/// 3. Otherwise update SRS, progress, streak/XP and store the envelope
-///    together, then commit. Roll back ALL updates on any exception.
-/// 4. Never return [TransactionCommitOutcome.applied] before commit is durable.
-///
-/// A replay after process death or after a lost acknowledgment must therefore
-/// return [TransactionCommitOutcome.alreadyCommitted]. Any ID collision with
-/// different content MUST throw without writes. The caller cannot enforce this
-/// by checking and writing in two separate asynchronous calls.
+/// Implementations must not perform non-transactional external side effects.
+/// On interruption before commit, retry applies once; after commit, retry
+/// returns alreadyCommitted. No production implementation is supplied here
+/// until the canonical persistence owner exposes the transaction primitive.
 abstract interface class TransactionPersistencePort {
-  Future<TransactionCommitOutcome> commitReviewAtomically({
+  Future<ReviewCommitResult> commitOnce({
     required ReviewCommand command,
     required ReviewTransactionEnvelope envelope,
   });

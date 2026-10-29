@@ -30,7 +30,8 @@ class OptionalMediaWidget extends StatelessWidget {
       }
       return UiStateSuccess(data);
     } catch (e, st) {
-      return UiStateFailed(e, stackTrace: st, userMessage: 'Failed to load media');
+      return UiStateFailed(e,
+          stackTrace: st, userMessage: 'Failed to load media');
     }
   }
 
@@ -47,11 +48,14 @@ class OptionalMediaWidget extends StatelessWidget {
             data,
             fit: fit,
             semanticLabel: semanticLabel,
-            errorBuilder: (context, error, stackTrace) => _buildFallback(context),
+            errorBuilder: (context, error, stackTrace) =>
+                _buildFallback(context),
           );
         },
-        emptyBuilder: (context, message) => _buildFallback(context, isError: false),
-        errorBuilder: (context, error) => _buildFallback(context, isError: true),
+        emptyBuilder: (context, message) =>
+            _buildFallback(context, isError: false),
+        errorBuilder: (context, error) =>
+            _buildFallback(context, isError: true),
       ),
     );
   }

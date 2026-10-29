@@ -33,7 +33,8 @@ class FileReminderStorage implements ReminderStorage {
       }
       return;
     }
-    await _file.writeAsString(jsonEncode({'nextReminder': time.toIso8601String()}));
+    await _file
+        .writeAsString(jsonEncode({'nextReminder': time.toIso8601String()}));
   }
 
   @override

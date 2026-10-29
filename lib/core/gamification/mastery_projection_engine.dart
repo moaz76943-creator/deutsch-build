@@ -30,7 +30,9 @@ class MasteryProjectionEngine {
 
     for (final event in sortedEvents) {
       if (event.timestamp.isBefore(replayCutoff)) continue;
-      if (event.timestamp.isAfter(currentTime)) continue; // Reject future invalid timestamps
+      if (event.timestamp.isAfter(currentTime)) {
+        continue; // Reject future invalid timestamps
+      }
       if (event.languagePairKey != languagePairKey) continue;
 
       // Deduplicate
@@ -50,7 +52,8 @@ class MasteryProjectionEngine {
       final isSuccess = event.rating >= 3;
       if (isSuccess) {
         recalled.add(event.learnerContentKey);
-        successes[event.learnerContentKey] = (successes[event.learnerContentKey] ?? 0) + 1;
+        successes[event.learnerContentKey] =
+            (successes[event.learnerContentKey] ?? 0) + 1;
       } else {
         recalled.remove(event.learnerContentKey);
         // Failures reset mastery progress
@@ -78,7 +81,8 @@ class MasteryProjectionEngine {
       recalledCardCount: recalled.length,
       masteredCardCount: masteredCardCount,
       dueCardCount: dueCardCount,
-      lastEvidenceUtc: lastEvidence?.toUtc() ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      lastEvidenceUtc: lastEvidence?.toUtc() ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       masteryRevision: masteryRevision,
     );
   }
