@@ -4,10 +4,17 @@ import 'database_service.dart';
 
 /// One attested reverse-inflection hit, not a guessed morphological rule.
 class LemmaMatch {
-  const LemmaMatch({required this.lemma, this.lexiconId});
+  const LemmaMatch({
+    required this.lemma,
+    this.lexiconId,
+    this.languageCode,
+    this.senseId,
+  });
 
   final String lemma;
   final String? lexiconId;
+  final String? languageCode;
+  final String? senseId;
 }
 
 typedef LemmatizationDictionarySearch = Future<List<Map<String, dynamic>>>
@@ -74,6 +81,7 @@ class LemmatizationService {
       return List<LemmaMatch>.unmodifiable(rows.map((row) => LemmaMatch(
             lemma: row['lemma']!.toString(),
             lexiconId: row['lexicon_id']?.toString(),
+            languageCode: code,
           )));
     } on DatabaseException catch (error) {
       if (error
@@ -84,6 +92,66 @@ class LemmatizationService {
       }
       rethrow;
     }
+  }
+
+  /// Resolve an inflected form to its attested base forms from both `lexemes`
+  /// and `inflections_lookup` tables, returning multiple ambiguous candidates.
+  Future<List<LemmaMatch>> resolveLemma(
+    String inflectedForm,
+    String languageCode, {
+    int limit = maxMatches,
+  }) async {
+    if (limit < 1 || limit > maxMatches) {
+      throw RangeError.range(limit, 1, maxMatches, 'limit');
+    }
+    final code = _normalizeLanguage(languageCode);
+    final word = inflectedForm.trim();
+    if (word.isEmpty || word.runes.length > maxFormRunes) {
+      return const <LemmaMatch>[];
+    }
+
+    final db = await _openContentDb(code);
+    final results = <LemmaMatch>[];
+    final seen = <String>{};
+
+    try {
+      final lexemeRows = await db.rawQuery(
+        'SELECT lemma, language_code, concept_id FROM lexemes '
+        'WHERE (lemma = ? COLLATE NOCASE OR display_text = ? COLLATE NOCASE OR plural = ? COLLATE NOCASE) '
+        'AND language_code = ? COLLATE NOCASE '
+        'LIMIT ?',
+        <Object?>[word, word, word, code, limit],
+      );
+
+      for (final row in lexemeRows) {
+        final lemma = row['lemma']!.toString();
+        final conceptId = row['concept_id']?.toString();
+        final key = '$lemma:$conceptId';
+        if (seen.add(key)) {
+          results.add(LemmaMatch(
+            lemma: lemma,
+            languageCode: row['language_code']?.toString(),
+            senseId: conceptId,
+          ));
+        }
+      }
+    } on DatabaseException catch (error) {
+      if (!error.toString().toLowerCase().contains('no such table: lexemes')) {
+        rethrow;
+      }
+    }
+
+    if (results.length < limit) {
+      final inflectionMatches = await lookup(word, languageCode: code, limit: limit - results.length);
+      for (final match in inflectionMatches) {
+        final key = '${match.lemma}:${match.senseId}';
+        if (seen.add(key)) {
+          results.add(match);
+        }
+      }
+    }
+
+    return List<LemmaMatch>.unmodifiable(results);
   }
 
   /// Return a single lemma only when that result is unambiguous.

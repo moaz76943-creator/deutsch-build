@@ -1,37 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
-class TestVerificationContract implements J095VerificationContract {
-  @override
-  bool hasMandatoryEvidence = true;
-  @override
-  bool hasStaleEvidence = false;
-  @override
-  bool hasNewDartErrors = false;
-  @override
-  bool hasMemoryRegression = false;
-  @override
-  bool hasFTS5Regression = false;
-  @override
-  bool hasCorruptStorage = false;
-  @override
-  bool isNormalStartupVerified = true;
-  @override
-  bool isSafeModeBehaviorVerified = true;
-}
-
-class TestLanguageContract implements J025LanguageContract {
-  @override
-  bool hasLocalPackEvidence = true;
-  @override
-  bool isMetadataOnly = false;
-}
-
-class TestOptionalFeatureContract implements OptionalFeatureContract {
-  @override
-  bool isTtsAvailable = true;
-}
-
 void main() {
   group('ProductionAcceptanceGate', () {
     test('verifyAppReadiness remains backward compatible', () {
@@ -54,135 +23,120 @@ void main() {
       );
     });
 
-    test('evaluate - Successful pass', () {
-      final contract = TestVerificationContract();
-      final lang = TestLanguageContract();
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Missing integrity evidence blocks acceptance', () {
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
+        isIntegrityEvidenceMissing: true,
       );
 
-      expect(result.outcome, GateOutcome.passed);
-      expect(result.isDegraded, isFalse);
-    });
-
-    test('evaluate - Missing integrity evidence blocks acceptance', () {
-      final contract = TestVerificationContract();
-      final lang = TestLanguageContract()..hasLocalPackEvidence = false;
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
-        isOfflineSafe: true,
-        isStorageGuarded: true,
-        isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
-      );
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
       expect(result.outcome, GateOutcome.blocked);
+      expect(result.eligibility, PromotionEligibility.blocked);
     });
 
-    test('evaluate - Corrupted content fails acceptance', () {
-      final contract = TestVerificationContract()..hasCorruptStorage = true;
-      final lang = TestLanguageContract();
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Corrupted content fails acceptance', () {
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
+        isContentCorrupted: true,
       );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
       expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
     });
 
-    test('evaluate - Failed startup recovery fails acceptance', () {
-      final contract = TestVerificationContract()..isNormalStartupVerified = false;
-      final lang = TestLanguageContract();
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Failed startup recovery fails acceptance', () {
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
+        isStartupRecoveryFailed: true,
       );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
       expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
     });
 
-    test('evaluate - Missing infrastructure blocks acceptance', () {
-      final contract = TestVerificationContract();
-      final lang = TestLanguageContract();
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Missing infrastructure fails acceptance', () {
+      final contract = J025StartupContract(
         isOfflineSafe: false,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
       );
-      expect(result.outcome, GateOutcome.blocked);
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
     });
 
-    test('evaluate - Stale verification marks as not run', () {
-      final contract = TestVerificationContract()..hasStaleEvidence = true;
-      final lang = TestLanguageContract();
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Unexecuted tests mark as not run', () {
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
+        hasExecutedTests: false,
       );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
       expect(result.outcome, GateOutcome.notRun);
+      expect(result.eligibility, PromotionEligibility.notVerified);
     });
 
-    test('evaluate - Unsupported language claims block acceptance', () {
-      final contract = TestVerificationContract();
-      final lang = TestLanguageContract()..isMetadataOnly = true;
-      final optionalFeatures = TestOptionalFeatureContract();
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Stale verification marks as not run', () {
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
+        isVerificationStale: true,
       );
-      expect(result.outcome, GateOutcome.blocked);
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      expect(result.outcome, GateOutcome.notRun);
+      expect(result.eligibility, PromotionEligibility.notVerified);
     });
 
-    test('evaluate - Missing optional audio results in degraded but passed acceptance', () {
-      final contract = TestVerificationContract();
-      final lang = TestLanguageContract();
-      final optionalFeatures = TestOptionalFeatureContract()..isTtsAvailable = false;
-
-      final result = ProductionAcceptanceGate.evaluate(
+    test('Unsupported language claims fail acceptance', () {
+      final contract = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        j095contract: contract,
-        languages: [lang],
-        optionalFeatures: optionalFeatures,
+        registeredLanguages: {'en', 'de', 'fr'},
+        verifiedDictionaries: {'en', 'de'},
       );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
+    });
+
+    test('Missing optional audio results in degraded but passed acceptance', () {
+      final contract = J025StartupContract(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasOptionalAudio: false,
+      );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
       expect(result.outcome, GateOutcome.passed);
-      expect(result.isDegraded, isTrue);
+      expect(result.eligibility, PromotionEligibility.degraded);
+    });
+
+    test('Successful pass', () {
+      final contract = J025StartupContract(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+      );
+
+      final result = ProductionAcceptanceGate.evaluateReadiness(contract);
+      expect(result.outcome, GateOutcome.passed);
+      expect(result.eligibility, PromotionEligibility.approved);
     });
   });
 }
