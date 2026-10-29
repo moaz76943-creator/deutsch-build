@@ -1,58 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
+import 'package:deutsch_bilarabi/core/bidi_helper.dart';
 import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
-import 'package:deutsch_bilarabi/core/design/bidi_text_isolator.dart';
+import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
 
 class AccessibleMultilingualText extends StatelessWidget {
   final String text;
-  final String locale;
+  final String languageCode;
   final TextStyle? style;
-  final String? semanticLabel;
   final TextAlign? textAlign;
   final int? maxLines;
   final TextOverflow? overflow;
+  final String? semanticLabel;
+  final bool protectPunctuation;
 
-  const AccessibleMultilingualText(
-    this.text, {
+  const AccessibleMultilingualText({
     super.key,
-    required this.locale,
+    required this.text,
+    required this.languageCode,
     this.style,
-    this.semanticLabel,
     this.textAlign,
     this.maxLines,
     this.overflow,
+    this.semanticLabel,
+    this.protectPunctuation = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (text.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (text.isEmpty) return const SizedBox.shrink();
 
-    final direction = LanguageBiDiHelper.getDirection(locale);
+    final direction = LanguageBiDiHelper.getDirection(languageCode);
     final isRtl = direction == TextDirection.rtl;
-    final lineHeight = LanguageBiDiHelper.getLineHeight(locale);
 
-    // Protect text selection, URLs and embedded punctuation using isolation markers.
-    final isolatedText = BiDiTextIsolator.wrapDirectional(text, isRtl: isRtl);
-
-    final defaultStyle = style ?? const TextStyle();
-    final combinedStyle = defaultStyle.copyWith(
-      height: defaultStyle.height ?? lineHeight,
-    );
+    String displayText = text;
+    if (protectPunctuation) {
+      displayText = isRtl ? BiDiHelper.wrapRtl(text) : BiDiHelper.wrapLtr(text);
+    }
 
     return Semantics(
       label: semanticLabel ?? text,
       textDirection: direction,
-      child: ExcludeSemantics(
-        child: AppDirectionalText(
-          isolatedText,
-          style: combinedStyle,
-          forceDirection: direction,
-          textAlign: textAlign,
-          maxLines: maxLines,
-          overflow: overflow,
+      child: AppDirectionalText(
+        displayText,
+        style: (style ?? const TextStyle()).copyWith(
+          height:
+              style?.height ?? LanguageBiDiHelper.getLineHeight(languageCode),
         ),
+        forceDirection: direction,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
       ),
     );
   }
