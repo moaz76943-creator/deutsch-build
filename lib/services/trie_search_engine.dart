@@ -1,25 +1,17 @@
-import 'package:characters/characters.dart';
-
 class TrieNode {
-  final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = <String>{};
+  final Map<String, TrieNode> children = {};
+  final List<String> wordIds = [];
 }
 
-/// A bounded, language-specific *search-key* index. It does not mutate or
-/// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
-  static const int maxInputCodeUnits = 2048;
-  static const int maxIdCodeUnits = 128;
-  TrieNode _root = TrieNode();
-  int _nodeCount = 1;
+  final TrieNode _root = TrieNode();
 
-  final String languageCode;
-  final String? directedPairKey;
-  final int maxNodes;
-  final int maxResultsPerNode;
-  final int maxSearchResults;
-  final int maxWordGraphemes;
+  /// تطبيع نصي عالمي يدعم اللاتينية، السلافية، والتشكيل العربي
+  static String normalizeUniversal(String text) {
+    if (text.isEmpty) return text;
+    String res = text.toLowerCase().trim();
 
+<<<<<<< HEAD
   TrieSearchEngine({
     this.languageCode = 'und',
     this.directedPairKey,
@@ -36,7 +28,7 @@ class TrieSearchEngine {
     }
   }
 
-  static String normalizeForLanguage(String text, String language) {
+  String normalizeForLanguage(String text, String language) {
     if (text.isEmpty) return '';
     final lang = language.split('-').first.toLowerCase();
     // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
@@ -44,44 +36,79 @@ class TrieSearchEngine {
     String result = (lang == 'tr' || lang == 'az')
         ? text.trim()
         : text.trim().toLowerCase();
-    // 'und' is the default multilingual index used by prefix search. Apply
-    // each script fold there; a specific language keeps only its own fold.
-    final foldGerman = lang == 'de' || lang == 'und';
-    final foldArabic = lang == 'ar' || lang == 'und';
-    final foldHebrew = lang == 'he' || lang == 'und';
-    if (foldGerman) {
+    if (lang == 'de') {
       result = result
           .replaceAll('ä', 'ae')
           .replaceAll('ö', 'oe')
           .replaceAll('ü', 'ue')
           .replaceAll('ß', 'ss');
-    }
-    if (foldArabic) {
+    } else if (lang == 'ar') {
       result = result.replaceAll(
           RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
-    }
-    if (foldHebrew) {
+    } else if (lang == 'he') {
       result = result.replaceAll(
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
       );
-    }
-    return result;
+=======
+    // إزالة التشكيل العربي
+    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+
+    // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
+    final diacritics = {
+      'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+      'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+      'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+      'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+      'ú': 'u', 'ù': 'u', 'û': 'u',
+      'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+    };
+
+    diacritics.forEach((k, v) {
+      res = res.replaceAll(k, v);
+    });
+
+    return res;
   }
 
+  // دعم التوافق مع الكود السابق
+  String normalizeGerman(String text) => normalizeUniversal(text);
+
+  void insert(String word, String id) {
+    final normalized = normalizeUniversal(word);
+    TrieNode current = _root;
+    for (int i = 0; i < normalized.length; i++) {
+      final char = normalized[i];
+      current = current.children.putIfAbsent(char, () => TrieNode());
+      current.wordIds.add(id);
+    }
+  }
+
+  List<String> searchPrefix(String prefix) {
+    final normalized = normalizeUniversal(prefix);
+    TrieNode current = _root;
+    for (int i = 0; i < normalized.length; i++) {
+      final char = normalized[i];
+      if (!current.children.containsKey(char)) return [];
+      current = current.children[char]!;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    }
+    return current.wordIds.toSet().toList();
+  }
+<<<<<<< HEAD
+
   // Legacy static entrypoints retained; universal no longer means Latin fold.
-  static String normalizeUniversal(String text) =>
+  String normalizeUniversal(String text) =>
       normalizeForLanguage(text, 'und');
-  static String normalizeGerman(String text) =>
+  String normalizeGerman(String text) =>
       normalizeForLanguage(text, 'de');
 
-  bool _matchesScope(String? pairKey) =>
+  bool matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
-  /// Returns false when the word cannot be indexed at all.
-  /// A word that exceeds [maxNodes] is indexed only for the prefix that fits.
+  /// Returns false on capacity limits. A failed insert makes NO partial path.
   bool tryInsert(String word, String id, {String? pairKey}) {
-    if (!_matchesScope(pairKey) ||
+    if (!matchesScope(pairKey) ||
         id.isEmpty ||
         word.length > maxInputCodeUnits ||
         id.length > maxIdCodeUnits) {
@@ -92,31 +119,40 @@ class TrieSearchEngine {
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
 
-    var current = _root;
-    var indexed = false;
+    // Preflight both capacity dimensions before touching the index.
+    TrieNode? cursor = _root;
+    var missingNodes = 0;
     for (final unit in units) {
-      final existing = current.children[unit];
-      if (existing != null) {
-        if (!existing.wordIds.contains(id) &&
-            existing.wordIds.length >= maxResultsPerNode) {
-          return indexed;
-        }
-        current = existing;
+      if (cursor == null) {
+        missingNodes++;
       } else {
-        if (_nodeCount >= maxNodes) break;
-        final created = TrieNode();
-        current.children[unit] = created;
-        _nodeCount++;
-        current = created;
+        final child = cursor.children[unit];
+        if (child == null) {
+          missingNodes++;
+          cursor = null;
+        } else {
+          cursor = child;
+          if (!cursor.wordIds.contains(id) &&
+              cursor.wordIds.length >= maxResultsPerNode) {
+            return false;
+          }
+        }
       }
-      if (!current.wordIds.contains(id) &&
-          current.wordIds.length >= maxResultsPerNode) {
-        return indexed;
-      }
-      current.wordIds.add(id);
-      indexed = true;
     }
-    return indexed;
+    if (_nodeCount + missingNodes > maxNodes) return false;
+
+    var current = _root;
+    for (final unit in units) {
+      if (!current.children.containsKey(unit)) {
+        current.children[unit] = TrieNode();
+        _nodeCount++;
+      }
+      current = current.children[unit]!;
+      if (current.wordIds.length < maxResultsPerNode) {
+        current.wordIds.add(id);
+      }
+    }
+    return true;
   }
 
   // Retains original void API for current callers.
@@ -125,7 +161,7 @@ class TrieSearchEngine {
   }
 
   List<String> searchPrefix(String prefix, {String? pairKey}) {
-    if (!_matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
+    if (!matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
       return <String>[];
     }
     final normalized = normalizeForLanguage(prefix, languageCode);
@@ -148,4 +184,6 @@ class TrieSearchEngine {
   }
 
   int get currentNodeCount => _nodeCount;
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
