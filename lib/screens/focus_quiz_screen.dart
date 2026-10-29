@@ -14,26 +14,15 @@ class FocusQuizScreen extends StatefulWidget {
 }
 
 class _FocusQuizScreenState extends State<FocusQuizScreen> {
-  // متغيرات مؤقت التركيز العميق (Pomodoro)
-  int _remainingSeconds = 900; // 15 دقيقة تركيز هادئ
+  int _remainingSeconds = 900;
   bool _isTimerRunning = false;
   Timer? _timer;
 
-<<<<<<< HEAD
   List<LexicalEntry> _entries = [];
-=======
-  // اختبار الفراغات السياقية (Cloze Deletion)
-  final List<Map<String, String>> _quizItems = [
-    {"sentence": "Ich ___ ein Buch.", "target": "lese", "hint": "يقرأ (lesen)"},
-    {"sentence": "Wir ___ nach Berlin.", "target": "fahren", "hint": "يسافر (fahren)"},
-    {"sentence": "Das ___ ist sehr schön.", "target": "Auto", "hint": "سيارة (der/das? -> das)"},
-  ];
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   int _currentQuizIndex = 0;
   final TextEditingController _answerController = TextEditingController();
   String _feedbackMessage = '';
   bool _isCorrect = false;
-<<<<<<< HEAD
   bool _isSubmitting = false;
   bool _hasAnsweredCurrent = false;
 
@@ -50,8 +39,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
       _entries.shuffle();
     }
   }
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   void _startTimer() {
     HapticFeedback.mediumImpact();
@@ -90,7 +77,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-<<<<<<< HEAD
   Future<void> _checkAnswer() async {
     if (_isSubmitting || _entries.isEmpty || _hasAnsweredCurrent) return;
 
@@ -164,35 +150,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
     });
   }
 
-=======
-  void _checkAnswer() {
-    final userAnswer = _answerController.text.trim().toLowerCase();
-    final correctAnswer = _quizItems[_currentQuizIndex]['target']!.toLowerCase();
-
-    HapticFeedback.lightImpact();
-    if (userAnswer == correctAnswer) {
-      setState(() {
-        _isCorrect = true;
-        _feedbackMessage = '✨ ممتاز! استدعاء ذهني دقيق وصحيح.';
-      });
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _answerController.clear();
-            _feedbackMessage = '';
-            _currentQuizIndex = (_currentQuizIndex + 1) % _quizItems.length;
-          });
-        }
-      });
-    } else {
-      setState(() {
-        _isCorrect = false;
-        _feedbackMessage = '💡 حاول مجدداً بهدوء، الدماغ يتعلم من المحاولة!';
-      });
-    }
-  }
-
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   @override
   void dispose() {
     _timer?.cancel();
@@ -202,7 +159,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     if (_entries.isEmpty) {
       return Scaffold(
         appBar: AppBar(
@@ -232,9 +188,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
     if (clozeSentence == targetExample) {
       clozeSentence = '$targetExample (___)';
     }
-=======
-    final currentQuiz = _quizItems[_currentQuizIndex];
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     return Scaffold(
       appBar: AppBar(
@@ -255,7 +208,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: <Widget>[
-<<<<<<< HEAD
                       const Text('🧘 وضع التركيز العميق (Flow State)',
                           style: TextStyle(
                               color: Color(0xFF38BDF8),
@@ -269,13 +221,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 2),
-=======
-                      const Text('🧘 وضع التركيز العميق (Flow State)', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      Text(
-                        _formatTime(_remainingSeconds),
-                        style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold, letterSpacing: 2),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       ),
                       const SizedBox(height: 12),
                       const Text(
@@ -286,7 +231,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-<<<<<<< HEAD
                           backgroundColor: _isTimerRunning
                               ? Colors.redAccent
                               : const Color(0xFF34D399),
@@ -305,16 +249,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                                 : 'ابدأ جلسة التركيز',
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
-=======
-                          backgroundColor: _isTimerRunning ? Colors.redAccent : const Color(0xFF34D399),
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        onPressed: _isTimerRunning ? _stopTimer : _startTimer,
-                        icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
-                        label: Text(_isTimerRunning ? 'إيقاف مؤقت للراحة' : 'ابدأ جلسة التركيز', style: const TextStyle(fontWeight: FontWeight.bold)),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       ),
                     ],
                   ),
@@ -327,7 +261,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-<<<<<<< HEAD
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -386,31 +319,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                                 borderRadius: BorderRadius.circular(10),
                                 borderSide: BorderSide.none),
                           ),
-=======
-                      const Text('🧩 مختبر الفراغات السياقية (Lückentext)', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      Text(
-                        currentQuiz['sentence']!,
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'تلميح: ${currentQuiz['hint']}',
-                        style: const TextStyle(color: Color(0xFF34D399), fontSize: 13),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _answerController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'اكتب الكلمة الناقصة هنا...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -419,7 +327,6 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                           backgroundColor: const Color(0xFF38BDF8),
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-<<<<<<< HEAD
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
@@ -434,27 +341,17 @@ class _FocusQuizScreenState extends State<FocusQuizScreen> {
                                     strokeWidth: 2, color: Colors.black))
                             : const Text('تحقق من الإجابة بهدوء',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
-=======
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        onPressed: _checkAnswer,
-                        child: const Text('تحقق من الإجابة بهدوء', style: TextStyle(fontWeight: FontWeight.bold)),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       ),
                       if (_feedbackMessage.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Text(
                           _feedbackMessage,
-<<<<<<< HEAD
                           style: TextStyle(
                               color: _isCorrect
                                   ? const Color(0xFF34D399)
                                   : Colors.orangeAccent,
                               fontSize: 13,
                               fontWeight: FontWeight.bold),
-=======
-                          style: TextStyle(color: _isCorrect ? const Color(0xFF34D399) : Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.bold),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                           textAlign: TextAlign.center,
                         ),
                       ],

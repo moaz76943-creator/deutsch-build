@@ -16,8 +16,10 @@ class AnalyticsScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
         child: SafeArea(
-          child: ListView(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               AppBaseGlassCard(
                 gradient: AppGradients.heroSunset,
@@ -30,8 +32,6 @@ class AnalyticsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-<<<<<<< HEAD
-<<<<<<< HEAD
                         Expanded(
                             child: Text('--%',
                                 softWrap: true,
@@ -39,13 +39,6 @@ class AnalyticsScreen extends StatelessWidget {
                                     color: Colors.white, fontSize: 32))),
                         const Icon(Icons.psychology_rounded,
                             color: Colors.white, size: 44),
-=======
-                        Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
-=======
-                        Expanded(child: Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32))),
->>>>>>> origin/staging/v2-full-platform-9617688105299726044
-                        const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -70,17 +63,12 @@ class AnalyticsScreen extends StatelessWidget {
                           const Icon(Icons.bolt_rounded,
                               color: Color(0xFFF39C6B), size: 28),
                           const SizedBox(height: 8),
-<<<<<<< HEAD
                           Text('--',
                               style: AppTypography.title
                                   .copyWith(color: Colors.white, fontSize: 22)),
                           const Text('كلمة متقنة بالـ SRS',
                               style: TextStyle(
                                   color: Colors.white60, fontSize: 11)),
-=======
-                          Text('142', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 22)),
-                          const Text('كلمة متقنة بالـ SRS', style: TextStyle(color: Colors.white60, fontSize: 11)),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                         ],
                       ),
                     ),
@@ -112,21 +100,25 @@ class AnalyticsScreen extends StatelessWidget {
                       .copyWith(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 10),
               AppBaseGlassCard(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    _bar('سبت', 0.4),
-                    _bar('أحد', 0.7),
-                    _bar('اثنين', 0.9),
-                    _bar('ثلاثاء', 0.5),
-                    _bar('أربعاء', 0.85),
-                    _bar('خميس', 1.0, isHighest: true),
-                    _bar('جمعة', 0.3),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _bar('سبت', 0.4),
+                      _bar('أحد', 0.7),
+                      _bar('اثنين', 0.9),
+                      _bar('ثلاثاء', 0.5),
+                      _bar('أربعاء', 0.85),
+                      _bar('خميس', 1.0, isHighest: true),
+                      _bar('جمعة', 0.3),
+                    ],
+                  ),
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

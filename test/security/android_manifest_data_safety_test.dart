@@ -32,11 +32,10 @@ void main() {
         reason: 'release overlay must also strip $permission',
       );
     }
-    expect(manifest.contains('android.permission.RECORD_AUDIO"/>'), isTrue);
-    expect(
-      manifest.contains('android.permission.RECORD_AUDIO"\n        tools:node="remove"'),
-      isFalse,
-    );
+    // Staging does not declare RECORD_AUDIO. The pronunciation channel
+    // requests it only after the in-app disclosure. A plugin must not add it.
+    expect(manifest.contains('android.permission.RECORD_AUDIO'), isFalse);
+    expect(release.contains('android.permission.RECORD_AUDIO'), isFalse);
   });
 
   test('backup stays off and cleartext traffic is refused', () {
