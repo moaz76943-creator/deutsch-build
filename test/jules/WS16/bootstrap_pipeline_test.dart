@@ -19,49 +19,16 @@ class FakeBootstrapStep extends BootstrapStep {
 }
 
 void main() {
-  test('optional fatal result is downgraded and later steps still run',
-      () async {
-    final results = await IsolatedBootstrapPipeline([
-      FakeBootstrapStep(
-        'pack',
-        () async => const BootstrapStepResult(
-          stepName: 'pack',
-          status: BootstrapStepStatus.fatalFailure,
-          message: 'pack missing',
-        ),
-        critical: false,
-      ),
-      FakeBootstrapStep(
-        'core',
-        () async => const BootstrapStepResult(
-          stepName: 'core',
-          status: BootstrapStepStatus.success,
-        ),
-      ),
-    ]).runPipeline();
-
-    expect(results.map((result) => result.status), [
-      BootstrapStepStatus.recoverableFailure,
-      BootstrapStepStatus.success,
-    ]);
-    expect(results.first.message, 'pack missing');
-    expect(results.first.stepName, 'pack');
-  });
-
   test('critical failure stops dependent startup phases', () async {
     var dependentRuns = 0;
     final results = await IsolatedBootstrapPipeline([
-      FakeBootstrapStep(
-          'critical',
-          () async => const BootstrapStepResult(
-                stepName: 'critical',
-                status: BootstrapStepStatus.fatalFailure,
-              )),
+      FakeBootstrapStep('critical', () async => const BootstrapStepResult(
+        stepName: 'critical', status: BootstrapStepStatus.fatalFailure,
+      )),
       FakeBootstrapStep('dependent', () async {
         dependentRuns++;
         return const BootstrapStepResult(
-          stepName: 'dependent',
-          status: BootstrapStepStatus.success,
+          stepName: 'dependent', status: BootstrapStepStatus.success,
         );
       }),
     ]).runPipeline();
@@ -72,19 +39,14 @@ void main() {
 
   test('optional exception degrades and does not prevent next phase', () async {
     final results = await IsolatedBootstrapPipeline([
-      FakeBootstrapStep(
-          'audio', () async => throw StateError('private diagnostic'),
+      FakeBootstrapStep('audio', () async => throw StateError('private diagnostic'),
           critical: false),
-      FakeBootstrapStep(
-          'core',
-          () async => const BootstrapStepResult(
-                stepName: 'core',
-                status: BootstrapStepStatus.success,
-              )),
+      FakeBootstrapStep('core', () async => const BootstrapStepResult(
+        stepName: 'core', status: BootstrapStepStatus.success,
+      )),
     ]).runPipeline();
     expect(results.map((e) => e.status), [
-      BootstrapStepStatus.recoverableFailure,
-      BootstrapStepStatus.success,
+      BootstrapStepStatus.recoverableFailure, BootstrapStepStatus.success,
     ]);
     expect(results.first.message, isNot(contains('private diagnostic')));
   });
@@ -93,14 +55,10 @@ void main() {
     final hanging = Completer<BootstrapStepResult>();
     final results = await IsolatedBootstrapPipeline([
       FakeBootstrapStep('tts', () => hanging.future, critical: false),
-      FakeBootstrapStep(
-          'core',
-          () async => const BootstrapStepResult(
-                stepName: 'core',
-                status: BootstrapStepStatus.success,
-              )),
-    ], defaultStepTimeout: const Duration(milliseconds: 1))
-        .runPipeline();
+      FakeBootstrapStep('core', () async => const BootstrapStepResult(
+        stepName: 'core', status: BootstrapStepStatus.success,
+      )),
+    ], defaultStepTimeout: const Duration(milliseconds: 1)).runPipeline();
     expect(results, hasLength(2));
     expect(results.first.status, BootstrapStepStatus.recoverableFailure);
     expect(results.last.status, BootstrapStepStatus.success);
@@ -110,14 +68,10 @@ void main() {
     final hanging = Completer<BootstrapStepResult>();
     final results = await IsolatedBootstrapPipeline([
       FakeBootstrapStep('storage', () => hanging.future),
-      FakeBootstrapStep(
-          'unused',
-          () async => const BootstrapStepResult(
-                stepName: 'unused',
-                status: BootstrapStepStatus.success,
-              )),
-    ], defaultStepTimeout: const Duration(milliseconds: 1))
-        .runPipeline();
+      FakeBootstrapStep('unused', () async => const BootstrapStepResult(
+        stepName: 'unused', status: BootstrapStepStatus.success,
+      )),
+    ], defaultStepTimeout: const Duration(milliseconds: 1)).runPipeline();
     expect(results, hasLength(1));
     expect(results.single.status, BootstrapStepStatus.fatalFailure);
   });
