@@ -29,23 +29,3 @@ abstract interface class ReviewCommandPort {
   /// ليتم تنفيذه عبر Persistent CPU Worker وتخزينه كـ Atomic Transaction.
   Future<void> submit(ReviewCommand command);
 }
-
-class IdempotentReviewCommandPort implements ReviewCommandPort {
-  final ReviewCommandPort _delegate;
-  final Set<String> _processedReviewIds = {};
-  static const int _maxCacheSize = 1000;
-
-  IdempotentReviewCommandPort(this._delegate);
-
-  @override
-  Future<void> submit(ReviewCommand command) async {
-    if (_processedReviewIds.contains(command.reviewId)) {
-      return;
-    }
-    if (_processedReviewIds.length >= _maxCacheSize) {
-      _processedReviewIds.remove(_processedReviewIds.first);
-    }
-    _processedReviewIds.add(command.reviewId);
-    await _delegate.submit(command);
-  }
-}
