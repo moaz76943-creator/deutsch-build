@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final db = await DatabaseService.instance.progressDb;
       // حساب عدد الكلمات اللي تم التفاعل معها
-      final result = await db.query('srs_progress', columns: ['COUNT(*) as count']);
+      final result = await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
       final count = (result.first['count'] as int?) ?? 0;
       
       if (mounted) {

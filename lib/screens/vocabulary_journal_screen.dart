@@ -4,7 +4,6 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
 import 'package:deutsch_bilarabi/models/vocabulary_item.dart';
-import 'package:deutsch_bilarabi/widgets/neumorphic_vocabulary_card.dart';
 
 class VocabularyJournalScreen extends StatefulWidget {
   const VocabularyJournalScreen({super.key});
@@ -20,7 +19,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
   final TextEditingController _pluralController = TextEditingController();
   final TextEditingController _registerController = TextEditingController();
   final TextEditingController _meaningController = TextEditingController();
-  final TextEditingController _imageUrlController = TextEditingController();
   
   String _selectedLanguage = 'de';
   String _selectedArticle = 'der';
@@ -137,7 +135,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
         morphologicalTree: '',
         morphophonemicBridge: '',
         politenessRegister: _registerController.text.trim().isNotEmpty ? _registerController.text.trim() : 'محايد / يومي',
-        imageUrl: _imageUrlController.text.trim(),
       );
 
       setState(() {
@@ -151,7 +148,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
       _pluralController.clear();
       _registerController.clear();
       _meaningController.clear();
-      _imageUrlController.clear();
       
       if (!mounted) {
       return;
@@ -217,7 +213,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
     _pluralController.dispose();
     _registerController.dispose();
     _meaningController.dispose();
-    _imageUrlController.dispose();
     _flutterTts.stop();
     super.dispose();
   }
@@ -344,18 +339,6 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _imageUrlController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'رابط الصورة (اختياري)...',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                        ),
-                      ),
                       const SizedBox(height: 12),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -390,12 +373,9 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                 ],
                               ),
                             )
-                          : SizedBox(
-                              height: 380,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: visibleItems.length,
-                                itemBuilder: (context, index) {
+                          : ListView.builder(
+                              itemCount: visibleItems.length,
+                              itemBuilder: (context, index) {
                                 final item = visibleItems[index];
                                 final familyColor = _getFamilyColor(item.languageCode);
                                 final fullTextToSpeak = item.languageCode == 'de' ? '${item.article} ${item.word}' : item.word;
@@ -403,10 +383,42 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                     ? familyColor.withValues(alpha: 0.8) 
                                     : Colors.white10;
 
-                                Widget cardContent = Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-
+                                return Dismissible(
+                                  key: Key('${item.word}_$index'),
+                                  direction: DismissDirection.horizontal,
+                                  onDismissed: (direction) {
+                                    _deleteItem(index);
+                                    if (!context.mounted) {
+      return;
+    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('تم إزالة العنصر بهدوء.')),
+                                    );
+                                  },
+                                  background: Container(
+                                    alignment: Alignment.centerLeft,
+                                    padding: const EdgeInsets.only(left: 20),
+                                    color: Colors.redAccent.withValues(alpha: 0.3),
+                                    child: const Icon(Icons.delete, color: Colors.white),
+                                  ),
+                                  secondaryBackground: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.only(right: 20),
+                                    color: Colors.redAccent.withValues(alpha: 0.3),
+                                    child: const Icon(Icons.delete, color: Colors.white),
+                                  ),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: cardBorderColor, width: item.isReviewDue ? 1.5 : 1),
+                                    ),
+                                    child: AppBaseGlassCard(
+                                      padding: const EdgeInsets.all(16),
+                                      // removed: false,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: <Widget>[
                                           Row(
                                             children: <Widget>[
                                               Container(
@@ -479,51 +491,13 @@ class _VocabularyJournalScreenState extends State<VocabularyJournalScreen> {
                                               ),
                                             ],
                                           ),
-                                  ],
-                                );
-
-                                return Dismissible(
-                                  key: Key('${item.word}_$index'),
-                                  direction: DismissDirection.vertical,
-                                  onDismissed: (direction) {
-                                    _deleteItem(index);
-                                    if (!context.mounted) {
-                                      return;
-                                    }
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('تم إزالة العنصر بهدوء.')),
-                                    );
-                                  },
-                                  background: Container(
-                                    alignment: Alignment.bottomCenter,
-                                    padding: const EdgeInsets.only(bottom: 20),
-                                    color: Colors.redAccent.withValues(alpha: 0.3),
-                                    child: const Icon(Icons.delete, color: Colors.white),
-                                  ),
-                                  child: SizedBox(
-                                    width: 320,
-                                    child: item.imageUrl.isNotEmpty
-                                        ? NeumorphicVocabularyCard(
-                                            imageUrl: item.imageUrl,
-                                            heroTag: 'journal_${item.word}_$index',
-                                            child: cardContent,
-                                          )
-                                        : Container(
-                                            margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(16),
-                                              border: Border.all(color: cardBorderColor, width: item.isReviewDue ? 1.5 : 1),
-                                            ),
-                                            child: AppBaseGlassCard(
-                                              padding: const EdgeInsets.all(16),
-                                              child: cardContent,
-                                            ),
-                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
                             ),
-                          ),
                 ),
               ],
             ),
