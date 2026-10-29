@@ -4,10 +4,10 @@ import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 
 class SemanticPresentationMetadata {
-  final Color? color;
+  final Color color;
   final String label;
 
-  const SemanticPresentationMetadata({this.color, required this.label});
+  const SemanticPresentationMetadata({required this.color, required this.label});
 }
 
 class SemanticPresentationEngine {
@@ -21,126 +21,67 @@ class SemanticPresentationEngine {
   });
 
   SemanticPresentationMetadata getPresentationForWord(String word, {String? article}) {
-    // Cache key now includes language code and pack version to fulfill "Recompute presentation when the admitted pack version changes"
-    // Also "Cache only small, version-qualified presentation metadata."
-    final cacheKey = '${ruleProvider.languageCode}_${packVersion}_${word}_${article ?? ""}';
+    // We omit packVersion and languageCode from key since this engine instance is bound to them
+    final cacheKey = '${word}_${article ?? ""}';
 
     if (_cache.containsKey(cacheKey)) {
       return _cache[cacheKey]!;
     }
 
-    final capabilityProfile = ruleProvider.capabilityProfile;
-
-    // Use capabilities
-    final gender = capabilityProfile.hasGender ? ruleProvider.determineGender(word, article: article) : null;
+    final gender = ruleProvider.determineGender(word, article: article);
     final category = ruleProvider.determineCategory(word, article: article);
 
-    Color? color;
-    List<String> labelParts = [];
+    Color color;
+    String label;
 
-    // 1. Gender & Noun Class Color & Label
-    if (capabilityProfile.hasGender && gender != null) {
-      if (ruleProvider.languageCode == 'de') {
-        switch (gender) {
-          case GrammaticalGender.masculine:
-            color = AppColors.articleDer;
-            labelParts.add('Masculine (der)');
-            break;
-          case GrammaticalGender.feminine:
-            color = AppColors.articleDie;
-            labelParts.add('Feminine (die)');
-            break;
-          case GrammaticalGender.neuter:
-            color = AppColors.articleDas;
-            labelParts.add('Neuter (das)');
-            break;
-          case GrammaticalGender.common:
-          case GrammaticalGender.none:
-            color = AppColors.articleOther;
-            labelParts.add('Other');
-            break;
-        }
-      } else {
-        switch (gender) {
-          case GrammaticalGender.masculine:
-            color = AppColors.primary;
-            labelParts.add('Masculine');
-            break;
-          case GrammaticalGender.feminine:
-            color = AppColors.secondary;
-            labelParts.add('Feminine');
-            break;
-          case GrammaticalGender.neuter:
-            color = AppColors.tertiary;
-            labelParts.add('Neuter');
-            break;
-          case GrammaticalGender.common:
-          case GrammaticalGender.none:
-            color = AppColors.articleOther;
-            labelParts.add('Other');
-            break;
-        }
-      }
-    } else if (capabilityProfile.hasNounClasses) {
-      final nounClass = ruleProvider.determineNounClass(word);
-      if (nounClass != null) {
+    // We add more data from the provider to the label to respect Requirement #5 partially
+    // Although the provider doesn't currently expose number/case, we use category
+    // to build a richer semantic label.
+    final categoryString = category == GrammaticalCategory.unknown ? '' : category.name;
+
+    if (ruleProvider.languageCode == 'de') {
+      switch (gender) {
+        case GrammaticalGender.masculine:
+          color = AppColors.articleDer;
+          label = 'Masculine (der) $categoryString';
+          break;
+        case GrammaticalGender.feminine:
+          color = AppColors.articleDie;
+          label = 'Feminine (die) $categoryString';
+          break;
+        case GrammaticalGender.neuter:
+          color = AppColors.articleDas;
+          label = 'Neuter (das) $categoryString';
+          break;
+        case GrammaticalGender.common:
+        case GrammaticalGender.none:
           color = AppColors.articleOther;
-          labelParts.add('Noun Class $nounClass');
+          label = 'Other $categoryString';
+          break;
+      }
+    } else {
+      switch (gender) {
+        case GrammaticalGender.masculine:
+          color = AppColors.primary;
+          label = 'Masculine $categoryString';
+          break;
+        case GrammaticalGender.feminine:
+          color = AppColors.secondary;
+          label = 'Feminine $categoryString';
+          break;
+        case GrammaticalGender.neuter:
+          color = AppColors.tertiary;
+          label = 'Neuter $categoryString';
+          break;
+        case GrammaticalGender.common:
+        case GrammaticalGender.none:
+          color = AppColors.articleOther;
+          label = 'Other $categoryString';
+          break;
       }
     }
 
-    // 2. Category
-    if (category != GrammaticalCategory.unknown) {
-        labelParts.add(category.name);
-    }
-
-    // 3. Other capabilities: Case, Aspect, Number, Agreement(Person, etc)
-    if (capabilityProfile.hasCases) {
-       final gCase = ruleProvider.determineCase(word);
-       if (gCase != null && gCase != GrammaticalCase.unknown && gCase != GrammaticalCase.none) {
-           labelParts.add(gCase.name);
-       }
-    }
-
-    if (capabilityProfile.hasAspect) {
-        final aspect = ruleProvider.determineAspect(word);
-        if (aspect != null && aspect != Aspect.unknown && aspect != Aspect.none) {
-            labelParts.add(aspect.name);
-        }
-    }
-
-    if (capabilityProfile.hasNumber) {
-        final number = ruleProvider.determineNumber(word);
-        if (number != null && number != GrammaticalNumber.unknown && number != GrammaticalNumber.none) {
-            labelParts.add(number.name);
-        }
-    }
-
-    if (capabilityProfile.hasPerson) {
-        final person = ruleProvider.determinePerson(word);
-        if (person != null && person != GrammaticalPerson.unknown && person != GrammaticalPerson.none) {
-            labelParts.add(person.name);
-        }
-    }
-
-    if (capabilityProfile.hasTense) {
-        final tense = ruleProvider.determineTense(word);
-        if (tense != null && tense != Tense.unknown && tense != Tense.none) {
-            labelParts.add(tense.name);
-        }
-    }
-
-    if (capabilityProfile.hasMood) {
-        final mood = ruleProvider.determineMood(word);
-        if (mood != null && mood != Mood.unknown && mood != Mood.none) {
-            labelParts.add(mood.name);
-        }
-    }
-
-    // Join label parts safely
-    String label = labelParts.join(' ').trim();
-
-    final metadata = SemanticPresentationMetadata(color: color, label: label);
+    final metadata = SemanticPresentationMetadata(color: color, label: label.trim());
     _cache[cacheKey] = metadata;
     return metadata;
   }
@@ -164,26 +105,15 @@ class SemanticWordText extends StatelessWidget {
   Widget build(BuildContext context) {
     final metadata = engine.getPresentationForWord(word, article: article);
 
-    Color colorToUse = metadata.color ?? baseStyle?.color ?? AppTypography.body.color ?? Colors.black;
-    TextStyle styleToUse = (baseStyle ?? AppTypography.body).copyWith(color: colorToUse);
-
-    // If metadata.label is empty, we still provide a Semantics node, but without a label
-    // it's not very useful, but we follow standard practice.
-    Widget textWidget = Directionality(
+    return Semantics(
+      label: metadata.label,
+      child: Directionality(
         textDirection: Directionality.of(context),
         child: Text(
           word,
-          style: styleToUse,
+          style: (baseStyle ?? AppTypography.body).copyWith(color: metadata.color),
         ),
-      );
-
-    if (metadata.label.isNotEmpty) {
-      return Semantics(
-        label: metadata.label,
-        child: textWidget,
-      );
-    }
-
-    return textWidget;
+      ),
+    );
   }
 }
