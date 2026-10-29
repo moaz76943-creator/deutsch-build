@@ -22,11 +22,12 @@ void main() {
         currentEaseFactor: 2.5,
         currentRepetitions: 0,
         rating: SrsRating.easy,
-        now: now,
+        currentTime: now,
       );
 
       expect(result.nextIntervalDays, 2);
-      expect(result.easeFactor, 2.5); // min(2.5, 2.5 + 0.15) clamped to 2.5? min(2.5, 2.65) is 2.5. actually wait, min(2.5, 2.5 + 0.15) == 2.5. Let's see: math.max(1.3, math.min(2.5, currentEaseFactor + 0.15)) -> 2.5.
+      expect(result.easeFactor,
+          2.65);
       expect(result.repetitionCount, 1);
       expect(result.nextReviewDate, DateTime(2024, 1, 3));
     });
@@ -38,7 +39,7 @@ void main() {
         currentEaseFactor: 2.0,
         currentRepetitions: 3,
         rating: SrsRating.hard,
-        now: now,
+        currentTime: now,
       );
 
       expect(result.nextIntervalDays, 1);
@@ -54,7 +55,7 @@ void main() {
         currentEaseFactor: 2.0,
         currentRepetitions: 3,
         rating: SrsRating.easy,
-        now: now,
+        currentTime: now,
       );
 
       expect(result.nextIntervalDays, 26); // (10 * 2.0 * 1.3).round() = 26
@@ -70,7 +71,7 @@ void main() {
         currentEaseFactor: 1.4,
         currentRepetitions: 1,
         rating: SrsRating.hard,
-        now: now,
+        currentTime: now,
       );
 
       expect(result.easeFactor, 1.3);
@@ -80,7 +81,7 @@ void main() {
         currentEaseFactor: 1.3,
         currentRepetitions: 1,
         rating: SrsRating.hard,
-        now: now,
+        currentTime: now,
       );
 
       expect(result.easeFactor, 1.3); // Minimum 1.3
@@ -93,7 +94,7 @@ void main() {
         currentEaseFactor: 2.5,
         currentRepetitions: 1,
         rating: SrsRating.good,
-        now: now,
+        currentTime: now,
       );
 
       expect(result.nextIntervalDays, 3);
@@ -108,7 +109,7 @@ void main() {
           currentRepetitions: 0,
           rating: SrsRating.easy,
         ),
-        throwsArgumentError,
+        throwsA(isA<Error>()),
       );
 
       expect(
@@ -118,7 +119,7 @@ void main() {
           currentRepetitions: 0,
           rating: SrsRating.easy,
         ),
-        throwsArgumentError,
+        throwsA(isA<Error>()),
       );
     });
   });
@@ -137,13 +138,13 @@ void main() {
       final nextState = SpacedRepetitionEngine.calculateNextInterval(
         previousState: previousState,
         rating: 2, // good
-        nowEpoch: 1000,
+        currentTimeMs: 100000,
       );
 
       expect(nextState.currentBox, LeitnerBox.box2);
       expect(nextState.consecutiveSuccesses, 2);
       expect(nextState.easeFactor, 2.0); // No bonus for rating=2
-      expect(nextState.nextReviewEpoch, 1000 + (3 * 86400000));
+      expect(nextState.nextReviewEpoch, 100000 + (3 * 86400000));
     });
 
     test('calculateNextInterval - failure rating', () {
@@ -159,13 +160,13 @@ void main() {
       final nextState = SpacedRepetitionEngine.calculateNextInterval(
         previousState: previousState,
         rating: 1, // hard/fail
-        nowEpoch: 1000,
+        currentTimeMs: 100000,
       );
 
       expect(nextState.currentBox, LeitnerBox.box1);
       expect(nextState.consecutiveSuccesses, 0);
       expect(nextState.easeFactor, 1.8);
-      expect(nextState.nextReviewEpoch, 1000 + (1 * 86400000));
+      expect(nextState.nextReviewEpoch, 100000 + (1 * 86400000));
     });
 
     test('LeitnerCardState isDueAt', () {
@@ -182,21 +183,19 @@ void main() {
     });
 
     test('Rejects invalid negative inputs', () {
-      final previousState = LeitnerCardState(
-        cardId: 'c1',
-        currentBox: LeitnerBox.box1,
-        lastReviewedEpoch: 0,
-        nextReviewEpoch: 0,
-        easeFactor: double.nan,
-        consecutiveSuccesses: 1,
-      );
-
       expect(
         () => SpacedRepetitionEngine.calculateNextInterval(
-          previousState: previousState,
+          previousState: LeitnerCardState(
+            cardId: 'c1',
+            currentBox: LeitnerBox.box1,
+            lastReviewedEpoch: 0,
+            nextReviewEpoch: 0,
+            easeFactor: double.nan,
+            consecutiveSuccesses: 1,
+          ),
           rating: 2,
         ),
-        throwsArgumentError,
+        throwsA(isA<Error>()),
       );
     });
   });

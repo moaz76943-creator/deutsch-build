@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-
-=======
-// ignore_for_file: prefer_const_constructors
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 import 'dart:math' as math;
 
 enum SrsRating { hard, good, easy }
@@ -29,20 +24,18 @@ class ProductionSrsEngine {
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
+    DateTime? currentTime,
   }) {
-<<<<<<< HEAD
     if (currentIntervalDays < 0) {
       throw ArgumentError('currentIntervalDays cannot be negative');
     }
     if (currentRepetitions < 0) {
       throw ArgumentError('currentRepetitions cannot be negative');
     }
-    if (currentEaseFactor.isNaN) {
-      throw ArgumentError('currentEaseFactor cannot be NaN');
+    if (!currentEaseFactor.isFinite || currentEaseFactor <= 0.0) {
+      throw ArgumentError('currentEaseFactor must be strictly positive and finite');
     }
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     int newRepetitions = currentRepetitions;
     int newInterval = currentIntervalDays;
     double newEase = currentEaseFactor;
@@ -59,16 +52,7 @@ class ProductionSrsEngine {
         } else if (newRepetitions == 1) {
           newInterval = 3;
         } else {
-<<<<<<< HEAD
-          newInterval = math.max(
-              1,
-              (currentIntervalDays *
-                      currentEaseFactor *
-                      morphologicalMultiplier)
-                  .round());
-=======
           newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
         }
         newRepetitions += 1;
         break;
@@ -78,34 +62,20 @@ class ProductionSrsEngine {
         } else if (newRepetitions == 1) {
           newInterval = 5;
         } else {
-<<<<<<< HEAD
-          newInterval = math.max(
-              1,
-              (currentIntervalDays *
-                      currentEaseFactor *
-                      1.3 *
-                      morphologicalMultiplier)
-                  .round());
-=======
           newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
         }
         newRepetitions += 1;
-        newEase = math.min(2.5, currentEaseFactor + 0.15);
+        newEase = math.min(3.0, currentEaseFactor + 0.15);
         break;
     }
 
-<<<<<<< HEAD
     final now = currentTime ?? DateTime.now();
-=======
-    final now = DateTime.now();
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     final nextDate = now.add(Duration(days: math.max(1, newInterval)));
 
     return SrsCardReviewResult(
-      nextIntervalDays: newInterval,
-      easeFactor: newEase,
-      repetitionCount: newRepetitions,
+      nextIntervalDays: newInterval.clamp(1, 36500),
+      easeFactor: newEase.clamp(1.3, 3.0),
+      repetitionCount: newRepetitions.clamp(0, 1000000),
       nextReviewDate: nextDate,
     );
   }

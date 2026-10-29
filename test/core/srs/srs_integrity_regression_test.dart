@@ -27,26 +27,32 @@ void main() {
 
   test('malformed, nonfinite and negative review state fails closed', () {
     for (final invalid in [double.nan, double.infinity, -1.0, 0.0]) {
-      expect(() => ProductionSrsEngine.processReview(
-        currentIntervalDays: 1,
-        currentEaseFactor: invalid,
-        currentRepetitions: 1,
-        rating: SrsRating.good,
-        currentTime: instant,
-      ), throwsArgumentError);
+      expect(
+          () => ProductionSrsEngine.processReview(
+                currentIntervalDays: 1,
+                currentEaseFactor: invalid,
+                currentRepetitions: 1,
+                rating: SrsRating.good,
+                currentTime: instant,
+              ),
+          throwsArgumentError);
     }
-    expect(() => ProductionSrsEngine.processReview(
-      currentIntervalDays: -1,
-      currentEaseFactor: 2.5,
-      currentRepetitions: 1,
-      rating: SrsRating.good,
-    ), throwsArgumentError);
-    expect(() => ProductionSrsEngine.processReview(
-      currentIntervalDays: 1,
-      currentEaseFactor: 2.5,
-      currentRepetitions: -1,
-      rating: SrsRating.good,
-    ), throwsArgumentError);
+    expect(
+        () => ProductionSrsEngine.processReview(
+              currentIntervalDays: -1,
+              currentEaseFactor: 2.5,
+              currentRepetitions: 1,
+              rating: SrsRating.good,
+            ),
+        throwsArgumentError);
+    expect(
+        () => ProductionSrsEngine.processReview(
+              currentIntervalDays: 1,
+              currentEaseFactor: 2.5,
+              currentRepetitions: -1,
+              rating: SrsRating.good,
+            ),
+        throwsArgumentError);
   });
 
   test('huge legacy values stay bounded without integer wrap', () {
@@ -72,15 +78,17 @@ void main() {
       easeFactor: 2.5,
       consecutiveSuccesses: 1000000,
     );
-    expect(() => SpacedRepetitionEngine.calculateNextInterval(
-      previousState: base,
-      rating: 8,
-      currentTimeEpoch: 1000000,
-    ), throwsArgumentError);
+    expect(
+        () => SpacedRepetitionEngine.calculateNextInterval(
+              previousState: base,
+              rating: 8,
+              currentTimeMs: 1000000,
+            ),
+        throwsArgumentError);
     final next = SpacedRepetitionEngine.calculateNextInterval(
       previousState: base,
       rating: 3,
-      currentTimeEpoch: 1704067200000,
+      currentTimeMs: 1704067200000,
     );
     expect(next.consecutiveSuccesses, 1000000);
     expect(next.lastReviewedEpoch, 1704067200000);
