@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' show TextDirection;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import 'language_pack_manager.dart';
@@ -82,7 +81,8 @@ class TtsService {
     double min,
     double max,
     double defaultValue,
-  ) => value.isFinite ? value.clamp(min, max).toDouble() : defaultValue;
+  ) =>
+      value.isFinite ? value.clamp(min, max).toDouble() : defaultValue;
 
   void _emit(TtsStatus next, {String? locale, String? message}) {
     if (_disposed) return;
@@ -184,7 +184,8 @@ class TtsService {
         final installed = await _engine.isLanguageInstalled(locale);
         if (installed != true && installed != 1) {
           _emit(TtsStatus.voiceMissing,
-              locale: locale, message: 'Install offline voice data for $locale');
+              locale: locale,
+              message: 'Install offline voice data for $locale');
           return false;
         }
       }
@@ -218,7 +219,8 @@ class TtsService {
     if (_disposed) throw StateError('TTS service has been disposed.');
     _ensureAndroidInstallerPlatform();
     try {
-      final opened = await _installerChannel.invokeMethod<bool>('openTtsInstall');
+      final opened =
+          await _installerChannel.invokeMethod<bool>('openTtsInstall');
       if (opened != true) {
         throw StateError('Android did not open the TTS installer.');
       }
@@ -248,8 +250,8 @@ class TtsService {
           text,
           languageCode,
         ));
-    _speechQueue = next.then<void>((_) {},
-        onError: (Object error, StackTrace stack) {});
+    _speechQueue =
+        next.then<void>((_) {}, onError: (Object error, StackTrace stack) {});
     return next.catchError((Object error) {
       _emit(TtsStatus.error, message: error.toString());
       return false;
@@ -307,8 +309,7 @@ class TtsService {
     try {
       if (_tts != null) await _engine.stop();
     } catch (error) {
-      _emit(TtsStatus.error,
-          locale: _activeLocale, message: error.toString());
+      _emit(TtsStatus.error, locale: _activeLocale, message: error.toString());
     } finally {
       _isSpeaking = false;
       _emit(TtsStatus.stopped, locale: _activeLocale);

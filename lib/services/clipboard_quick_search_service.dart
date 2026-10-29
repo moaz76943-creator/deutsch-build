@@ -136,8 +136,12 @@ class ClipboardQuickSearchService with WidgetsBindingObserver {
     try {
       final languageAtLookup = _activeLanguageCode;
       final found = await _entryExists(word, languageAtLookup);
-      if (!found || !_running || _disposed ||
-          languageAtLookup != _activeLanguageCode) return false;
+      if (!found ||
+          !_running ||
+          _disposed ||
+          languageAtLookup != _activeLanguageCode) {
+        return false;
+      }
       await onMatch(word, origin);
       return true;
     } catch (_) {
@@ -149,7 +153,8 @@ class ClipboardQuickSearchService with WidgetsBindingObserver {
   static String? _candidate(String? text) {
     if (text == null || text.length > 160) return null;
     final word = text.trim();
-    if (word.isEmpty || word.runes.length > 80 ||
+    if (word.isEmpty ||
+        word.runes.length > 80 ||
         !RegExp(r'^[^\s]+$').hasMatch(word)) {
       return null;
     }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -70,7 +69,9 @@ class ProgressDatabaseService {
     if (isCorrect) {
       repetitions += 1;
       boxLevel += 1;
-      intervalDays = (repetitions == 1) ? 1 : ((repetitions == 2) ? 6 : (intervalDays * easeFactor).round());
+      intervalDays = (repetitions == 1)
+          ? 1
+          : ((repetitions == 2) ? 6 : (intervalDays * easeFactor).round());
       easeFactor = (easeFactor + 0.1).clamp(1.3, 3.0);
     } else {
       repetitions = 0;
@@ -101,7 +102,10 @@ class ProgressDatabaseService {
   /// جلب مستويات الحفظ لجميع المفاهيم
   static Future<Map<String, int>> getAllBoxLevels() async {
     final db = await getDatabase();
-    final rows = await db.query('user_progress', columns: ['concept_id', 'box_level']);
-    return {for (var r in rows) r['concept_id'] as String: r['box_level'] as int? ?? 0};
+    final rows =
+        await db.query('user_progress', columns: ['concept_id', 'box_level']);
+    return {
+      for (var r in rows) r['concept_id'] as String: r['box_level'] as int? ?? 0
+    };
   }
 }

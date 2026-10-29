@@ -58,7 +58,7 @@ void main() {
     final directory =
         await Directory.systemTemp.createTemp('ws18_srs_restart_');
     addTearDown(() => directory.delete(recursive: true));
-    final path = directory.path + Platform.pathSeparator + 'progress.sqlite';
+    final path = '${directory.path}${Platform.pathSeparator}progress.sqlite';
 
     var db = await ffi.databaseFactoryFfi.openDatabase(path);
     await createSchema(db);

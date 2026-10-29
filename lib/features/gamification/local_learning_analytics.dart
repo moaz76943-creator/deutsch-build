@@ -1,171 +1,216 @@
-import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+<<<<<<< HEAD
+import '../../core/srs_scheduler.dart';
 
-import 'package:deutsch_bilarabi/services/database_service.dart';
-import 'package:deutsch_bilarabi/services/user_vault_security_service.dart';
+enum AnalyticsWindow { days7, days30, days90 }
 
-/// Local-only learning analytics derived from persisted SRS state.
-///
-/// No network analytics are emitted. Unsupported metrics remain explicitly
-/// unavailable instead of being synthesized from constants.
+class PairMetrics {
+  final Map<String, int> dailyReviews;
+  final double completionRate;
+  final double recallAccuracy;
+  final int totalReviews;
+  final int uniqueCardsMastered;
+
+  const PairMetrics({
+    required this.dailyReviews,
+    required this.completionRate,
+    required this.recallAccuracy,
+    required this.totalReviews,
+    required this.uniqueCardsMastered,
+  });
+}
+
+abstract class LearningAnalyticsResult {}
+
+class AnalyticsDataState extends LearningAnalyticsResult {
+  final Map<String, PairMetrics> pairSpecificMetrics;
+
+  AnalyticsDataState(this.pairSpecificMetrics);
+}
+
+class AnalyticsUnavailableState extends LearningAnalyticsResult {}
+
+/// محرك تقارير النمو وتحليل بيانات التعلم المحلية
 class LocalLearningAnalytics {
-  static const int masteryRepetitions = 3;
-  static const int masteryIntervalDays = 21;
-  static const String _masteryBadgeReceipt =
-      'learning/badges/mastery100/v1';
+  static Future<LearningAnalyticsResult> generateReport(AnalyticsWindow window,
+      {DateTime? nowUtc}) async {
+    final history = UnifiedSrsScheduler.instance.history;
+    if (history.isEmpty) {
+      return AnalyticsUnavailableState();
+    }
 
-  static Future<Map<String, dynamic>> generate30DayReport() async {
+    int windowDays = 30;
+    switch (window) {
+      case AnalyticsWindow.days7:
+        windowDays = 7;
+        break;
+      case AnalyticsWindow.days30:
+        windowDays = 30;
+        break;
+      case AnalyticsWindow.days90:
+        windowDays = 90;
+        break;
+    }
+
+    final currentUtc = nowUtc ?? DateTime.now().toUtc();
+    final input = {
+      'history': history.map((e) => e.toMap()).toList(),
+      'windowDays': windowDays,
+      'currentUtc': currentUtc.toIso8601String(),
+    };
+
     try {
-      final rows = await _loadProgressRows();
-      return computeReportFromRows(rows);
-    } catch (_) {
-      return <String, dynamic>{
-        'available': false,
-        'mastered_cards': 0,
-        'active_languages': 0,
-        'due_cards': 0,
-        'review_days_30d': 0,
-        'observed_streak_days': 0,
-        'learning_trend': 'unavailable',
-        'consistency_score': null,
-      };
+      final result = await compute(_aggregateHistory, input);
+      if (result.isEmpty) {
+        return AnalyticsUnavailableState();
+      }
+      return AnalyticsDataState(result);
+    } catch (e) {
+      debugPrint("Error generating local analytics: $e");
+      return AnalyticsUnavailableState();
     }
   }
 
-  static Map<String, dynamic> computeReportFromRows(
-    List<Map<String, dynamic>> rows, {
-    DateTime? now,
-  }) {
-    final clock = (now ?? DateTime.now()).toUtc();
-    final nowEpoch = clock.millisecondsSinceEpoch ~/ 1000;
-    final windowStart =
-        clock.subtract(const Duration(days: 30)).millisecondsSinceEpoch ~/
-            1000;
+  static Map<String, PairMetrics> _aggregateHistory(
+      Map<String, dynamic> input) {
+    final List<dynamic> historyMaps = input['history'] ?? [];
+    final int windowDays = input['windowDays'] ?? 30;
+    final DateTime currentUtc = DateTime.parse(input['currentUtc']);
+    final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
 
-    var mastered = 0;
-    var due = 0;
-    final languages = <String>{};
-    final observedReviewDays = <String>{};
+    // Deduplicate by reviewEventId and safely parse
+    final Map<String, Map<String, dynamic>> deduplicated = {};
+    for (var envMap in historyMaps) {
+      if (envMap is! Map) continue;
 
-    for (final row in rows) {
-      final repetitions = (row['repetition_count'] as num?)?.toInt() ?? 0;
-      final interval = (row['interval_days'] as num?)?.toInt() ?? 0;
-      if (repetitions >= masteryRepetitions &&
-          interval >= masteryIntervalDays) {
-        mastered++;
-      }
+      final eventId = envMap['reviewEventId'];
+      if (eventId == null || eventId is! String || eventId.isEmpty) continue;
 
-      final language = row['target_language_code']?.toString().trim() ?? '';
-      if (language.isNotEmpty) {
-        languages.add(language);
-      }
-
-      final dueAt = row['next_due_at'];
-      if (dueAt == null || (dueAt is num && dueAt.toInt() <= nowEpoch)) {
-        due++;
-      }
-
-      final reviewedAt = row['last_reviewed_at'];
-      if (reviewedAt is num) {
-        final epoch = reviewedAt.toInt();
-        if (epoch >= windowStart && epoch <= nowEpoch) {
-          final date =
-              DateTime.fromMillisecondsSinceEpoch(epoch * 1000, isUtc: true);
-          observedReviewDays.add(_dateKey(date));
-        }
+      if (!deduplicated.containsKey(eventId)) {
+        deduplicated[eventId] = Map<String, dynamic>.from(envMap);
       }
     }
 
-    return <String, dynamic>{
-      'available': true,
-      'mastered_cards': mastered,
-      'active_languages': languages.length,
-      'due_cards': due,
-      'review_days_30d': observedReviewDays.length,
-      'observed_streak_days': _observedStreakDays(
-        observedReviewDays,
-        clock,
-      ),
-      // A complete event history is not part of the current shared progress
-      // contract, so trend and consistency are not inferred from last-state rows.
-      'learning_trend': 'unavailable',
-      'consistency_score': null,
+    final Map<String, List<Map<String, dynamic>>> byPair = {};
+    for (var envMap in deduplicated.values) {
+      final timestampStr = envMap['timestamp'];
+      if (timestampStr == null || timestampStr is! String) continue;
+
+      DateTime timestamp;
+      try {
+        timestamp = DateTime.parse(timestampStr).toUtc();
+      } catch (_) {
+        continue; // Skip invalid dates
+      }
+
+      if (timestamp.isAfter(threshold) ||
+          timestamp.isAtSameMomentAs(threshold)) {
+        final pairKey = envMap['languagePairKey'];
+        if (pairKey == null || pairKey is! String || pairKey.isEmpty) continue;
+
+        byPair.putIfAbsent(pairKey, () => []).add(envMap);
+      }
+    }
+
+    final Map<String, PairMetrics> result = {};
+    for (var entry in byPair.entries) {
+      final pairKey = entry.key;
+      final events = entry.value;
+
+      int totalReviews = 0;
+      int successfulReviews = 0;
+      final Set<String> uniqueCards = {};
+      final Set<String> masteredCards = {};
+      final Map<String, int> dailyReviews = {};
+
+      for (var envMap in events) {
+        final ratingRaw = envMap['rating'];
+        if (ratingRaw == null || ratingRaw is! int) continue;
+
+        final rating = ratingRaw;
+        final contentKey = envMap['learnerContentKey'];
+        if (contentKey == null || contentKey is! String || contentKey.isEmpty) {
+          continue;
+        }
+
+        totalReviews++;
+        if (rating >= 3) {
+          successfulReviews++;
+        }
+
+        uniqueCards.add(contentKey);
+        if (rating >= 4) {
+          masteredCards.add(contentKey);
+        }
+
+        final timestampStr = envMap['timestamp'] as String;
+        final timestamp = DateTime.parse(timestampStr).toUtc();
+        // Explicitly defined local-day grouping (UTC date part only)
+        final localDayStr =
+            "${timestamp.year.toString().padLeft(4, '0')}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}";
+        dailyReviews[localDayStr] = (dailyReviews[localDayStr] ?? 0) + 1;
+      }
+
+      if (totalReviews == 0) {
+        continue; // Skip if all records within pair were corrupted
+      }
+
+      double recallAccuracy = successfulReviews / totalReviews;
+      double completionRate = uniqueCards.isNotEmpty
+          ? masteredCards.length / uniqueCards.length
+          : 0.0;
+
+      result[pairKey] = PairMetrics(
+        dailyReviews: dailyReviews,
+        completionRate: completionRate,
+        recallAccuracy: recallAccuracy,
+        totalReviews: totalReviews,
+        uniqueCardsMastered: masteredCards.length,
+      );
+    }
+
+    return result;
+  }
+
+  /// التحقق من استحقاق المستخدم لوسام جديد
+  static Future<String?> checkNewBadge() async {
+    final result = await generateReport(AnalyticsWindow.days30);
+    if (result is AnalyticsDataState) {
+      int totalMastered = 0;
+      for (var pm in result.pairSpecificMetrics.values) {
+        totalMastered += pm.uniqueCardsMastered;
+      }
+      if (totalMastered > 100) {
+        return 'وسام المائة بطاقة المتقنة';
+      }
+    }
+=======
+
+/// محرك تقارير النمو وتحليل بيانات التعلم المحلية
+class LocalLearningAnalytics {
+
+  /// توليد تقرير النمو لآخر 30 يوماً
+  Future<Map<String, dynamic>> generate30DayReport() async {
+    debugPrint("جاري توليد تقرير النمو محلياً...");
+
+    // محاكاة حسابات قواعد البيانات للإتقان
+    return {
+      'mastered_cards': 120,
+      'active_domains': 3,
+      'learning_trend': 'upward',
+      'consistency_score': 85, // من 100
     };
   }
 
-  /// Returns the badge only on the first securely persisted award.
-  static Future<String?> checkNewBadge() async {
+  /// التحقق من استحقاق المستخدم لوسام جديد
+  Future<String?> checkNewBadge() async {
+    // منح وسام إذا أتقن المستخدم أكثر من 100 بطاقة فعلياً
     final report = await generate30DayReport();
-    if (report['available'] != true ||
-        (report['mastered_cards'] as int? ?? 0) < 100) {
-      return null;
-    }
-
-    try {
-      final vault = UserVaultSecurityService();
-      if (await vault.readRecord(_masteryBadgeReceipt) != null) {
-        return null;
-      }
-      final receipt = Uint8List.fromList(
-        utf8.encode(
-          jsonEncode(<String, dynamic>{
-            'badge': 'mastery100',
-            'awarded_at': DateTime.now().toUtc().toIso8601String(),
-            'mastered_cards': report['mastered_cards'],
-          }),
-        ),
-      );
-      await vault.putRecord(_masteryBadgeReceipt, receipt);
+    if (report['mastered_cards'] > 100) {
       return 'وسام المائة بطاقة المتقنة';
-    } catch (_) {
-      // Never claim a new reward if its durable receipt could not be stored.
-      return null;
     }
-  }
-
-  static Future<List<Map<String, dynamic>>> _loadProgressRows() async {
-    final vault = UserVaultSecurityService();
-    if (await vault.isOperationalActive) {
-      final snapshot = await vault.exportOperationalSnapshot();
-      return (snapshot['srs'] ?? <Map<String, dynamic>>[])
-          .map((row) => Map<String, dynamic>.from(row))
-          .toList(growable: false);
-    }
-
-    final db = await DatabaseService.instance.progressDb;
-    final rows = await db.query('srs_progress');
-    return rows
-        .map((row) => Map<String, dynamic>.from(row))
-        .toList(growable: false);
-  }
-
-  static int _observedStreakDays(Set<String> days, DateTime now) {
-    if (days.isEmpty) {
-      return 0;
-    }
-    var cursor = DateTime.utc(now.year, now.month, now.day);
-    if (!days.contains(_dateKey(cursor))) {
-      final yesterday = cursor.subtract(const Duration(days: 1));
-      if (!days.contains(_dateKey(yesterday))) {
-        return 0;
-      }
-      cursor = yesterday;
-    }
-
-    var streak = 0;
-    while (days.contains(_dateKey(cursor))) {
-      streak++;
-      cursor = cursor.subtract(const Duration(days: 1));
-    }
-    return streak;
-  }
-
-  static String _dateKey(DateTime value) {
-    final utc = value.toUtc();
-    return utc.year.toString().padLeft(4, '0') +
-        '-' +
-        utc.month.toString().padLeft(2, '0') +
-        '-' +
-        utc.day.toString().padLeft(2, '0');
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    return null;
   }
 }
+ return null;
