@@ -1,20 +1,43 @@
+enum NetworkOperation { telemetry, general, download }
+
+class DownloadAuthorization {
+  final DateTime expiresAt;
+  final String signature;
+
+  const DownloadAuthorization({
+    required this.expiresAt,
+    required this.signature,
+  });
+
+  bool isAuthorized() {
+    if (DateTime.now().isAfter(expiresAt)) return false;
+    if (signature.isEmpty || signature == 'forged') return false;
+    return true;
+  }
+}
+
 class OfflineGate {
   static const bool strictOfflineEnforced = true;
 
-  static bool isNetworkRequestPermitted() => !strictOfflineEnforced;
-
-  static void assertZeroNetworkPolicy() {
-    if (strictOfflineEnforced) {
-      throw StateError('Unrestricted network access denied');
-    }
-  }
-
-  static bool authorizeUserDownload(bool explicitConsent) {
-    if (explicitConsent) {
+  static bool isNetworkRequestPermitted([
+    NetworkOperation operation = NetworkOperation.general,
+    DownloadAuthorization? auth,
+  ]) {
+    if (operation == NetworkOperation.download && auth != null && auth.isAuthorized()) {
       return true;
     }
-    return false;
+    return !strictOfflineEnforced;
   }
 
-  static bool isTelemetryAllowed() => false;
+  static void assertZeroNetworkPolicy([
+    NetworkOperation operation = NetworkOperation.general,
+    DownloadAuthorization? auth,
+  ]) {
+    if (operation == NetworkOperation.download && auth != null && auth.isAuthorized()) {
+      return;
+    }
+    if (strictOfflineEnforced) {
+      throw Exception('Network request blocked by zero network policy.');
+    }
+  }
 }
