@@ -1,27 +1,25 @@
 import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
-<<<<<<< HEAD
 import '../../screens/onboarding_screen.dart';
 import '../../services/database_service.dart';
-import '../../core/catalog/language_readiness_matrix.dart';
-import '../../services/language_pack_manager.dart';
-import '../../core/language_bidi_helper.dart';
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 /// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
 class FastOnboardingScreen extends StatefulWidget {
-  const FastOnboardingScreen({super.key});
+  const FastOnboardingScreen({super.key, this.readReviewCount});
+
+  /// Optional read seam for deterministic widget tests. Production keeps the
+  /// existing learner progress database as the sole source of truth.
+  final Future<int> Function()? readReviewCount;
 
   @override
   State<FastOnboardingScreen> createState() => _FastOnboardingScreenState();
 }
 
 class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
-  bool _isNavigating = false;
+  bool _routed = false;
   bool _hasError = false;
-  TextDirection _errorDirection = TextDirection.rtl;
+  bool _isCheckingProgress = false;
 
   @override
   void initState() {
@@ -29,95 +27,88 @@ class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
     _checkState();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Resolve basic direction from current context as fallback
-    _errorDirection = Directionality.maybeOf(context) ?? TextDirection.rtl;
+  Future<int> _loadReviewCount() async {
+    final db = await DatabaseService.instance.progressDb;
+    final result =
+        await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
+    return (result.first['count'] as int?) ?? 0;
+  }
+
+  void _retry() {
+    if (!mounted || _routed || _isCheckingProgress) return;
+    setState(() => _hasError = false);
+    _checkState();
   }
 
   Future<void> _checkState() async {
-    if (!mounted) return;
+    if (!mounted || _routed || _isCheckingProgress) return;
+    _isCheckingProgress = true;
     try {
-      final db = await DatabaseService.instance.progressDb;
-      final result =
-          await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
-      final count = (result.first['count'] as int?) ?? 0;
+      final count = await (widget.readReviewCount?.call() ??
+              _loadReviewCount())
+          .timeout(const Duration(seconds: 8));
 
-      if (!mounted) return;
+      if (!mounted || _routed) return;
+      _routed = true;
 
-      if (count > 0) {
-        if (!_isNavigating) {
-          _isNavigating = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainShellScreen()),
-          );
-        }
-        return;
-      }
-
-      // New user: Resolve available learning paths instead of hardcoding 'de'
-      String? selectedPath;
-      String? selectedPack;
-
-      for (final bcp47Locale in LanguagePackManager.supportedBcp47Locales) {
-        final langCode = bcp47Locale.split('-').first.toLowerCase();
-
-        // Skip user language (Arabic in this case, although we should query actual UI lang ideally)
-        if (langCode == 'ar') continue;
-
-        final isReady = LanguageReadinessMatrix.isProductionReady(langCode);
-        final isMounted =
-            await LanguagePackManager.verifyAndMountOfflinePack(bcp47Locale);
-
-        if (isReady && isMounted) {
-          selectedPath = langCode;
-          selectedPack = bcp47Locale;
-          break; // Prefer the first available path (e.g. 'de-DE' since it's first)
-        }
-      }
-
-      if (!mounted) return;
-
-      if (selectedPath != null && selectedPack != null) {
-        if (!_isNavigating) {
-          _isNavigating = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => OnboardingScreen(
+      // A missing content pack must not block the first-run explanation.
+      // Learners with saved review rows return to the shell.
+      final Widget next = count > 0
+          ? const MainShellScreen()
+          : Builder(
+              // This context belongs to the new onboarding route. The
+              // FastOnboardingScreen state is disposed by pushReplacement.
+              builder: (onboardingContext) => OnboardingScreen(
                 onStart: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
+                  if (!onboardingContext.mounted) return;
+                  Navigator.of(onboardingContext).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const FlashcardsScreen(),
+                    ),
                   );
                 },
               ),
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _hasError = true;
-          // Dynamically set RTL/LTR based on system language or default ar-SA for error screen
-          _errorDirection = LanguageBiDiHelper.getDirection('ar-SA');
-        });
-      }
+            );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => next),
+      );
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _hasError = true;
-        _errorDirection = LanguageBiDiHelper.getDirection('ar-SA');
-      });
+      setState(() => _hasError = true);
+    } finally {
+      _isCheckingProgress = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainShellScreen()),
+    if (_hasError) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'تعذر فتح سجل التقدّم المحلي.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: _retry,
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       );
-    });
-
+    }
     return const Scaffold(
       backgroundColor: Color(0xFF0F172A),
       body: Center(

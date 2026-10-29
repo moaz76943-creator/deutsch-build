@@ -1,15 +1,10 @@
-<<<<<<< HEAD
 import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
 import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
-  L1VocabularyCache._internal();
 
-<<<<<<< HEAD
   L1VocabularyCache._internal() {
     _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
       maxCapacity: 100,
@@ -101,21 +96,4 @@ class L1VocabularyCache {
   void trimMemoryPressure() {
     _memoryCache.trimMemoryPressure();
   }
-=======
-  final Map<String, List<Map<String, dynamic>>> _memoryCache = {};
-
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache[langCode] = List.unmodifiable(items);
-  }
-
-  List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache[langCode];
-  }
-
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
-
-  void clear() {
-    _memoryCache.clear();
-  }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
