@@ -31,7 +31,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
         index: _currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: FloatingBottomNavBar(
+      bottomNavigationBar: MediaQuery.viewInsetsOf(context).bottom > 0
+          ? null
+          : FloatingBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const <NavBarItemData>[
