@@ -1,0 +1,22 @@
+{
+  "isoCode": "pt",
+  "autonym": "Português",
+  "englishName": "Portuguese",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasPersonalInfinitive": true,
+    "hasNasalVowels": true,
+    "auxiliaries": ["ser", "estar", "ter", "haver"]
+  }
+}
