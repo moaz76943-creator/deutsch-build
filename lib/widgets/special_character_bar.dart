@@ -85,7 +85,7 @@ class SpecialCharacterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final code = languageCode ?? ref.watch(activeLanguageCodeProvider);
-    final characters = charactersForLanguage(code ?? 'de');
+    final characters = charactersForLanguage(code);
     if (characters.isEmpty) return const SizedBox.shrink();
 
     final colors = Theme.of(context).colorScheme;

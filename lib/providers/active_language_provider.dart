@@ -10,8 +10,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'vocabulary_provider.dart';
-import '../services/crash_loop_guard.dart';
-import '../services/database_integrity_service.dart';
 
 /// The public catalog supplies metadata, not proof that a pack has been mounted
 /// into the content database. Never use its is_active field as install status.
@@ -30,6 +28,7 @@ final activeLanguageProvider =
     StateNotifierProvider<ActiveLanguageNotifier, ActiveLanguageState>((ref) {
   final notifier =
       ActiveLanguageNotifier(ref, ref.watch(languagePackStorageProvider));
+  unawaited(notifier.initialize());
   return notifier;
 });
 
@@ -121,14 +120,12 @@ class ActiveLanguageState {
     required Set<String> installedCodes,
     required Map<String, double> downloadProgress,
     required Set<String> downloadingCodes,
-    Set<String> quarantinedCodes = const <String>{},
     required this.isLoadingCatalog,
     this.errorMessage,
   })  : remotePacks = List.unmodifiable(remotePacks),
         installedCodes = Set.unmodifiable(installedCodes),
         downloadProgress = Map.unmodifiable(downloadProgress),
-        downloadingCodes = Set.unmodifiable(downloadingCodes),
-        quarantinedCodes = Set.unmodifiable(quarantinedCodes);
+        downloadingCodes = Set.unmodifiable(downloadingCodes);
 
   factory ActiveLanguageState.initial() => ActiveLanguageState(
         activeLanguageCode: 'de',
@@ -144,13 +141,10 @@ class ActiveLanguageState {
   final Set<String> installedCodes;
   final Map<String, double> downloadProgress;
   final Set<String> downloadingCodes;
-  final Set<String> quarantinedCodes;
   final bool isLoadingCatalog;
   final String? errorMessage;
 
-  bool isInstalled(String code) =>
-      !quarantinedCodes.contains(code) &&
-      (code == 'de' || installedCodes.contains(code));
+  bool isInstalled(String code) => code == 'de' || installedCodes.contains(code);
   bool isDownloading(String code) => downloadingCodes.contains(code);
 
   /// Keep installed packs visible even when the network catalog is unavailable.
@@ -199,7 +193,6 @@ class ActiveLanguageState {
     Set<String>? installedCodes,
     Map<String, double>? downloadProgress,
     Set<String>? downloadingCodes,
-    Set<String>? quarantinedCodes,
     bool? isLoadingCatalog,
     String? errorMessage,
     bool clearError = false,
@@ -210,7 +203,6 @@ class ActiveLanguageState {
       installedCodes: installedCodes ?? this.installedCodes,
       downloadProgress: downloadProgress ?? this.downloadProgress,
       downloadingCodes: downloadingCodes ?? this.downloadingCodes,
-      quarantinedCodes: quarantinedCodes ?? this.quarantinedCodes,
       isLoadingCatalog: isLoadingCatalog ?? this.isLoadingCatalog,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
@@ -350,69 +342,25 @@ class LanguagePackStorage {
 
 class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
   ActiveLanguageNotifier(this._ref, this._storage)
-      : super(ActiveLanguageState.initial()) {
-    DatabaseIntegrityService.instance.quarantined.addListener(_onQuarantine);
-    _onQuarantine();
-  }
-
-  void _onQuarantine() {
-    if (!mounted) return;
-    final codes =
-        DatabaseIntegrityService.instance.quarantined.value.keys.toSet();
-    final changed = codes.length != state.quarantinedCodes.length ||
-        !codes.containsAll(state.quarantinedCodes);
-    final selected = codes.contains(state.activeLanguageCode)
-        ? 'de'
-        : state.activeLanguageCode;
-    final switched = selected != state.activeLanguageCode;
-    if (!changed && !switched) return;
-    state = state.copyWith(
-      quarantinedCodes: codes,
-      activeLanguageCode: selected,
-    );
-    _ref.invalidate(vocabularyListProvider);
-  }
-
-  @override
-  void dispose() {
-    DatabaseIntegrityService.instance.quarantined.removeListener(_onQuarantine);
-    super.dispose();
-  }
+      : super(ActiveLanguageState.initial());
 
   final Ref _ref;
   final LanguagePackStorage _storage;
 
-  Future<void>? _localInitialization;
-  String? _savedActive;
-
-  /// Heavy pack verification and network access are activated by user action.
-  Future<void> initialize({bool refreshRemoteCatalog = true}) async {
-    await (_localInitialization ??= _restoreLocalState());
-    if (!mounted || !refreshRemoteCatalog) return;
-    await refreshCatalog();
-    if (!mounted) return;
-    final savedActive = _savedActive;
-    if (savedActive != null && state.isInstalled(savedActive) &&
-        state.activeLanguageCode != savedActive) {
-      state = state.copyWith(activeLanguageCode: savedActive);
-      _ref.invalidate(vocabularyListProvider);
-    }
-  }
-
-  Future<void> _restoreLocalState() async {
+  Future<void> initialize() async {
+    String? savedActive;
+    String? cachedManifest;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedActive = prefs.getString(_activeKey);
-      _savedActive = savedActive;
-      final cachedManifest = prefs.getString(_manifestCacheKey);
+      savedActive = prefs.getString(_activeKey);
+      cachedManifest = prefs.getString(_manifestCacheKey);
       if (cachedManifest != null && mounted) {
         final cachedPacks = LanguagePackMetadata.parseManifest(cachedManifest);
-        await CrashLoopGuard.waitForIntegrityWindow();
         final installed = await _storage.findInstalled(cachedPacks);
         if (mounted) {
           state = state.copyWith(
             remotePacks: cachedPacks,
-            installedCodes: {...installed, 'de'},
+            installedCodes: installed,
             activeLanguageCode:
                 savedActive != null && installed.contains(savedActive)
                     ? savedActive
@@ -421,9 +369,15 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
         }
       }
     } catch (_) {
-      // Without a verified installed pack, German remains the safe fallback.
-    } finally {
-      if (mounted) state = state.copyWith(isLoadingCatalog: false);
+      // The bundled German pack remains usable without preferences or network.
+    }
+    if (!mounted) return;
+    await refreshCatalog();
+    if (!mounted) return;
+    if (savedActive != null && state.isInstalled(savedActive) &&
+        state.activeLanguageCode != savedActive) {
+      state = state.copyWith(activeLanguageCode: savedActive);
+      _ref.invalidate(vocabularyListProvider);
     }
   }
 
@@ -433,7 +387,6 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
     try {
       final raw = await _storage.fetchManifest();
       final packs = LanguagePackMetadata.parseManifest(raw);
-      await CrashLoopGuard.waitForIntegrityWindow();
       final found = await _storage.findInstalled(packs);
       if (!mounted) return;
       final existing = {...state.installedCodes, ...found, 'de'};

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'resilient_text_container.dart';
 
 /// Whether [langCode] normally uses right-to-left script direction.
 ///
@@ -82,12 +81,12 @@ class BidiLexiconView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (sourceWord.trim().isNotEmpty)
-              ResilientTextContainer(
-                text: _isolateBidi(sourceWord),
+              Text(
+                _isolateBidi(sourceWord),
                 textDirection: sourceDirection,
                 textAlign: TextAlign.start,
                 style: sourceStyle ?? textTheme.titleLarge,
-                maxLines: 3,
+                semanticsLabel: sourceWord,
               ),
             if (phonetic != null) ...<Widget>[
               if (sourceWord.trim().isNotEmpty)
@@ -97,12 +96,12 @@ class BidiLexiconView extends StatelessWidget {
             if (targetExplanation.trim().isNotEmpty) ...<Widget>[
               if (sourceWord.trim().isNotEmpty || phonetic != null)
                 const SizedBox(height: 8),
-              ResilientTextContainer(
-                text: _isolateBidi(targetExplanation),
+              Text(
+                _isolateBidi(targetExplanation),
                 textDirection: interfaceDirection,
                 textAlign: TextAlign.start,
                 style: explanationStyle ?? textTheme.bodyMedium,
-                maxLines: 8,
+                semanticsLabel: targetExplanation,
               ),
             ],
           ],
