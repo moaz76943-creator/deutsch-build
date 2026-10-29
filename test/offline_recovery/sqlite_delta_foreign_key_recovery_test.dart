@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:deutsch_bilarabi/services/delta_patch_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Cross-component recovery contract: a valid checksum and integrity_check
@@ -29,7 +28,7 @@ void main() {
 
   setUp(() async {
     scratch = await Directory.systemTemp.createTemp('offline_delta_recovery_');
-    installed = File(scratch.path + '/fr.sqlite');
+    installed = File('${scratch.path}/fr.sqlite');
     final db = await openFile(installed);
     try {
       await db.execute('CREATE TABLE parent (id INTEGER PRIMARY KEY)');
@@ -57,7 +56,7 @@ void main() {
 
   test('an orphaned candidate passes integrity_check but fails FK check',
       () async {
-    final candidate = File(scratch.path + '/orphaned.sqlite');
+    final candidate = File('${scratch.path}/orphaned.sqlite');
     await installed.copy(candidate.path);
     final db = await openFile(candidate);
     try {
@@ -76,7 +75,7 @@ void main() {
   test('FK-corrupt delta must not replace last-known-good SQLite',
       () async {
     final originalHash = await fileHash(installed);
-    final candidate = File(scratch.path + '/expected_broken.sqlite');
+    final candidate = File('${scratch.path}/expected_broken.sqlite');
     await installed.copy(candidate.path);
 
     final candidateDb = await openFile(candidate);
@@ -124,7 +123,7 @@ void main() {
       )),
     );
     expect(await fileHash(installed), originalHash);
-    expect(await File(installed.path + '.delta-staging').exists(), isFalse);
+    expect(await File('${installed.path}.delta-staging').exists(), isFalse);
 
     final restored = await openFile(installed);
     try {

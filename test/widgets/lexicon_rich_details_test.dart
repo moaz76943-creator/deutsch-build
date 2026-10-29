@@ -100,7 +100,7 @@ void main() {
 
   testWidgets('IPA and examples are rendered from original lexicon fields',
       (tester) async {
-    await tester.pumpWidget(MaterialApp(
+    await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
         body: LexiconRichDetails(
           entry: <String, dynamic>{

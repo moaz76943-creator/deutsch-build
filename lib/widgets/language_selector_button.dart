@@ -98,7 +98,8 @@ class LanguageSelectorButton extends ConsumerWidget {
                       const LanguageManagerScreen(),
                   transitionDuration: const Duration(milliseconds: 280),
                   reverseTransitionDuration: const Duration(milliseconds: 220),
-                  transitionsBuilder: (_, animation, secondaryAnimation, child) {
+                  transitionsBuilder:
+                      (_, animation, secondaryAnimation, child) {
                     final progress = animation.drive(
                       CurveTween(curve: Curves.easeOutCubic),
                     );
