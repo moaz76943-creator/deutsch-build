@@ -34,11 +34,21 @@ class PooledDatabaseManager {
   final LinkedHashMap<String, Database> _connections =
       LinkedHashMap<String, Database>();
   final Map<String, int> _leases = <String, int>{};
+  final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
   Future<void> _mutexTail = Future<void>.value();
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
   List<String> get leastToMostRecentlyUsed =>
       List<String>.unmodifiable(_connections.keys);
+
+  void _notifyWaiters() {
+    for (final completer in _waitQueue) {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    }
+    _waitQueue.clear();
+  }
 
   Future<T> _locked<T>(Future<T> Function() operation) {
     final result = Completer<T>();
@@ -60,10 +70,20 @@ class PooledDatabaseManager {
     return code;
   }
 
-  Future<Database> open(String languageCode) =>
-      _locked(() => _openLocked(_normalizeCode(languageCode)));
+  Future<Database> open(String languageCode) async {
+    final code = _normalizeCode(languageCode);
+    while (true) {
+      final db = await _locked(() => _tryOpenLocked(code));
+      if (db != null) {
+        return db;
+      }
+      final completer = Completer<void>();
+      _waitQueue.add(completer);
+      await completer.future;
+    }
+  }
 
-  Future<Database> _openLocked(String code) async {
+  Future<Database?> _tryOpenLocked(String code) async {
     final existing = _connections.remove(code);
     if (existing != null && existing.isOpen) {
       _connections[code] = existing;
@@ -77,7 +97,7 @@ class PooledDatabaseManager {
         orElse: () => '',
       );
       if (evict.isEmpty) {
-        throw StateError('All pooled content databases are in use');
+        return null;
       }
       await _closeLocked(evict);
     }
@@ -103,11 +123,21 @@ class PooledDatabaseManager {
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    final db = await _locked(() async {
-      final opened = await _openLocked(code);
-      _leases[code] = (_leases[code] ?? 0) + 1;
-      return opened;
-    });
+    Database? db;
+    while (db == null) {
+      db = await _locked(() async {
+        final opened = await _tryOpenLocked(code);
+        if (opened != null) {
+          _leases[code] = (_leases[code] ?? 0) + 1;
+        }
+        return opened;
+      });
+      if (db == null) {
+        final completer = Completer<void>();
+        _waitQueue.add(completer);
+        await completer.future;
+      }
+    }
 
     try {
       return await action(db);
@@ -116,6 +146,7 @@ class PooledDatabaseManager {
         final count = (_leases[code] ?? 1) - 1;
         if (count == 0) {
           _leases.remove(code);
+          _notifyWaiters();
         } else {
           _leases[code] = count;
         }
@@ -142,6 +173,7 @@ class PooledDatabaseManager {
       }
       await db.close();
     }
+    _notifyWaiters();
   }
 
   /// Closes all open connections that are not currently leased by active operations.
