@@ -20,7 +20,7 @@ void main() {
       const mixedText = 'مرحبا World';
 
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: Directionality(
               textDirection: TextDirection.rtl,
@@ -46,7 +46,7 @@ void main() {
       const cjkText = '你好，世界';
 
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: Directionality(
               textDirection: TextDirection.ltr,
@@ -70,7 +70,7 @@ void main() {
       const devanagariText = 'नमस्ते';
 
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: Directionality(
               textDirection: TextDirection.ltr,
