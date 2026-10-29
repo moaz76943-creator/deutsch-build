@@ -40,25 +40,33 @@ class _SpeedQuizScreenState extends State<SpeedQuizScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         'النقاط: $_score',
-                        style: const TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(
+                            color: Color(0xFF38BDF8),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         '⏳ الوقت: $_timeLeft ث',
-                        style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(
+                            color: Color(0xFFEF4444),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
                     ),
                   ],
@@ -70,7 +78,8 @@ class _SpeedQuizScreenState extends State<SpeedQuizScreen> {
                     children: <Widget>[
                       Text(
                         _currentQuestion['question']!,
-                        style: AppTypography.display.copyWith(color: Colors.white, fontSize: 22),
+                        style: AppTypography.display
+                            .copyWith(color: Colors.white, fontSize: 22),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -86,17 +95,21 @@ class _SpeedQuizScreenState extends State<SpeedQuizScreen> {
                         backgroundColor: Colors.white.withValues(alpha: 0.08),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
-                      onPressed: _isPlaying ? () {
-                        setState(() {
-                          _score += 10;
-                        });
-                      } : null,
+                      onPressed: _isPlaying
+                          ? () {
+                              setState(() {
+                                _score += 10;
+                              });
+                            }
+                          : null,
                       child: Text(
                         option,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600),
                       ),
                     ),
                   );
