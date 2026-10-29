@@ -1,41 +1,37 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'dart:async';
-import '../architecture/operation_result.dart';
 import 'bounded_retry_policy.dart';
-import 'failure_reasons.dart';
 import 'feature_recovery_outcome.dart';
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 class FeatureBoundary extends StatefulWidget {
   final String featureName;
   final Widget child;
   final Widget Function(BuildContext context, Object error)? fallbackBuilder;
+<<<<<<< HEAD
   final Widget Function(BuildContext context, FeatureFailureReason reason)?
       degradedBuilder;
   final Future<void> Function()? initializationAction;
   final BoundedRetryPolicy? retryPolicy;
   final String? sessionId;
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   const FeatureBoundary({
     super.key,
     required this.featureName,
     required this.child,
     this.fallbackBuilder,
+<<<<<<< HEAD
     this.degradedBuilder,
     this.initializationAction,
     this.retryPolicy,
     this.sessionId,
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   });
-
-  /// Critical storage and vault failures leave the boundary. Optional
-  /// failures stay in the degraded UI and must not be rethrown from here.
-  static void report(BuildContext context, Object error) {
-    if (context.findAncestorStateOfType<_FeatureBoundaryState>() == null) {
-      throw StateError('FeatureBoundary.report requires a FeatureBoundary');
-    }
-    if (error is StorageFailure || error is CriticalIntegrityFailure) {
-      throw error;
-    }
-  }
 
   @override
   State<FeatureBoundary> createState() => _FeatureBoundaryState();
@@ -43,14 +39,18 @@ class FeatureBoundary extends StatefulWidget {
 
 class _FeatureBoundaryState extends State<FeatureBoundary> {
   Object? _caughtError;
+<<<<<<< HEAD
   FeatureRecoveryOutcome? _outcome;
-  bool _isInitializing = false;
+  final bool _isInitializing = false;
   String? _activeSessionId;
   bool _isDisposed = false;
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _activeSessionId = widget.sessionId;
     if (widget.initializationAction != null) {
       _runInitialization();
@@ -102,12 +102,18 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
 
   static Widget _defaultFallback(
       BuildContext context, String featureName, Object? error) {
+=======
+  }
+
+  static Widget _defaultFallback(BuildContext context, String featureName, Object? error) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+<<<<<<< HEAD
             Icon(Icons.error_outline, size: 36, color: Colors.red.shade400),
             const SizedBox(height: 12),
             Text(
@@ -116,6 +122,16 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Colors.red.shade700,
+=======
+            Icon(Icons.auto_awesome, size: 36, color: Colors.blueGrey.shade400),
+            const SizedBox(height: 12),
+            Text(
+              'جاري تحديث $featureName تلقائياً...',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.blueGrey.shade700,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
               ),
             ),
           ],
@@ -123,13 +139,10 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       ),
     );
   }
+<<<<<<< HEAD
 
   static Widget _defaultDegraded(
-    BuildContext context,
-    String featureName,
-    FeatureFailureReason reason, {
-    VoidCallback? onRetry,
-  }) {
+      BuildContext context, String featureName, FeatureFailureReason reason) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -176,15 +189,21 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       return Column(mainAxisSize: MainAxisSize.min, children: [
         widget.degradedBuilder?.call(context, degradedOutcome.reason) ??
             _defaultDegraded(
-              context,
-              widget.featureName,
-              degradedOutcome.reason,
-              onRetry: _runInitialization,
-            ),
+                context, widget.featureName, degradedOutcome.reason),
         Flexible(child: widget.child),
       ]);
     }
 
+=======
+
+  @override
+  Widget build(BuildContext context) {
+    if (_caughtError != null) {
+      return widget.fallbackBuilder?.call(context, _caughtError!) ??
+          _defaultFallback(context, widget.featureName, _caughtError);
+    }
+
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return widget.child;
   }
 }
