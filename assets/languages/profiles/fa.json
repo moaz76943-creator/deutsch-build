@@ -1,0 +1,22 @@
+{
+  "isoCode": "fa",
+  "autonym": "فارسی",
+  "englishName": "Persian",
+  "scriptDirection": "rtl",
+  "scriptFamily": "Perso-Arabic",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasEzafeConstruction": true,
+    "hasDefiniteObjectMarker": true,
+    "additionalLetters": ["پ", "چ", "ژ", "گ"]
+  }
+}
