@@ -14,7 +14,7 @@ void main() {
     test('Safe cold-start behavior', () {
       final decision = engine.evaluateStateDetailed(languagePair: 'en-de');
       expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason.reason, contains('cold-start'));
+      expect(decision.reason, contains('cold-start'));
     });
 
     test('Isolated language pairs', () {
@@ -63,7 +63,7 @@ void main() {
         ));
       }
 
-      final decision = engine.evaluateStateDetailed(languagePair: 'default');
+      final decision = engine.evaluateStateDetailed();
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
     });
 
@@ -128,7 +128,7 @@ void main() {
       // and 0.4 > 0.3, we should stay in reduceExtraneousLoad (hysteresis).
       final decision = engine.evaluateStateDetailed();
       expect(decision.action, AdaptationAction.reduceExtraneousLoad);
-      expect(decision.reason.reason, contains('Hysteresis'));
+      expect(decision.reason, contains('Hysteresis'));
     });
 
     test('Noisy metrics (negative latency/taps)', () {
@@ -162,7 +162,7 @@ void main() {
 
       final decision = engine.evaluateStateDetailed();
       expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason.reason, contains('blocked: unverified'));
+      expect(decision.reason, contains('blocked: unverified'));
     });
 
     test('CEFR verified allows deepening', () {
