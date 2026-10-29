@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
@@ -39,7 +40,7 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   int _activeJobs = 0;
   int _generation = 0;
-  final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
+  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
@@ -114,7 +115,7 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   void _unpackAndExecute(dynamic task) {
-    if (task is _QueuedTask<dynamic, dynamic>) {
+    if (task is _QueuedTask) {
       _executeQueuedTask(task);
     }
   }
@@ -132,6 +133,11 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
     Future.microtask(() async {
       try {
+        // Do not pass `queuedTask` or anything referencing Completer into compute.
+        // Copy task and message to local vars to avoid capturing `this` or `queuedTask`.
+        // To be completely safe from capturing the current context, we should pass the task directly
+        // back to compute if it's already a static top-level function, but if it is a closure we might still have problems.
+        // Dart's compute expects a top-level or static function.
         final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
 
         if (queuedTask.generation == _generation) {
@@ -157,12 +163,30 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
   Future<double> calculateNewEaseFactor(double currentEase, int rating) {
     return executeTask<Map<String, dynamic>, double>(
-        _heavySrsMath, <String, dynamic>{'ease': currentEase, 'rating': rating});
+        _heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
 
   // دالة رياضية معزولة تماماً (SM-2 Logic)
   static double _heavySrsMath(dynamic rawData) {
     final data = rawData as Map<String, dynamic>;
+=======
+import 'package:flutter/foundation.dart';
+
+/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
+class PersistentCpuWorker {
+  final PersistentCpuWorker instance = PersistentCpuWorker._init();
+
+  PersistentCpuWorker._init();
+
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
+    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
+    return await compute(heavySrsMath, {'ease': currentEase, 'rating': rating});
+  }
+
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  double heavySrsMath(Map<String, dynamic> data) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
 
