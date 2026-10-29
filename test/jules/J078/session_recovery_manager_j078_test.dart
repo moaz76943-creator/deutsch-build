@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
-import 'dart:convert';
 
 void main() {
   group('J078 Recovery Tests', () {

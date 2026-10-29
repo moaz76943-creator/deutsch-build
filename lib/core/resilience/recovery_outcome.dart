@@ -36,13 +36,8 @@ class RecoveryOutcome<T> {
 }
 
 class FailureCategorization {
-  /// Typed storage failures are always terminal. Vault and integrity messages
-  /// stay terminal too: an optional plugin must not swallow them and retry.
-  static bool isCritical(Object error) {
-    if (error is StorageFailure) return true;
-    final errorString = error.toString().toLowerCase();
-    return errorString.contains('vault') || errorString.contains('integrity');
-  }
-
+  /// Only typed integrity errors are terminal. String-matching on "vault" or
+  /// "integrity" could misclassify optional plugins and lead to startup loops.
+  static bool isCritical(Object error) => error is StorageFailure;
   static bool isRecoverable(Object error) => !isCritical(error);
 }
