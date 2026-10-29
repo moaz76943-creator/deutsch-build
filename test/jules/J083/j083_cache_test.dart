@@ -99,14 +99,14 @@ void main() {
         ]);
       }
 
-      // Should hit maxCapacity of 50
+      // Should hit maxCapacity of 20
       int count = 0;
       for (int i = 0; i < 100; i++) {
         final key = l1Cache.generateKey('lang$i', 'target', '1.0.0');
         if (l1Cache.has(key)) count++;
       }
 
-      expect(count, lessThanOrEqualTo(50));
+      expect(count, lessThanOrEqualTo(20));
       expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(15 * 1024 * 1024));
     });
 

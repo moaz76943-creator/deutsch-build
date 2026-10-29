@@ -73,7 +73,7 @@ void main() {
         ]);
       }
 
-      // Since maxCapacity is 50, checking if length bounds are enforced indirectly
+      // Since maxCapacity is 100, checking if length bounds are enforced indirectly
       // by asserting the first elements are evicted
       expect(l1Cache.has('lang_0'), isFalse);
       expect(l1Cache.has('lang_149'), isTrue);
@@ -114,7 +114,7 @@ void main() {
 
       l1Cache.trimMemoryPressure();
 
-      // Should cut down capacity (e.g. max 50 / 2 = 25 roughly)
+      // Should cut down capacity (e.g. max 100 / 2 = 50 roughly)
       expect(l1Cache.has('lang_0'), isFalse);
       expect(l1Cache.has('lang_99'), isTrue);
     });
