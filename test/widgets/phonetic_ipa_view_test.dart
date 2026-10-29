@@ -111,6 +111,7 @@ void main() {
       ]) {
         await tester.pumpWidget(
           MaterialApp(
+            themeAnimationDuration: Duration.zero,
             theme: ThemeData(brightness: brightness),
             home: const Scaffold(
               body: PhoneticIpaView(ipa: '/ˈdɔʏtʃ/'),
