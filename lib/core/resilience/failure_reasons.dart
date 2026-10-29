@@ -1,33 +1,13 @@
-abstract class FeatureFailure implements Exception {
-  final String message;
-  const FeatureFailure(this.message);
+import '../architecture/operation_result.dart';
 
-  @override
-  String toString() => '$runtimeType: $message';
+class MissingOfflineVoiceFailure extends OperationFailure {
+  const MissingOfflineVoiceFailure() : super('MISSING_VOICE', 'Offline voice not found');
 }
 
-abstract class OptionalFeatureFailure extends FeatureFailure {
-  const OptionalFeatureFailure(super.message);
+class MissingDictionaryFailure extends OperationFailure {
+  const MissingDictionaryFailure() : super('MISSING_DICT', 'Optional dictionary not found');
 }
 
-class MissingOfflineVoiceFailure extends OptionalFeatureFailure {
-  const MissingOfflineVoiceFailure(
-      [super.message = 'Offline voice is missing']);
-}
-
-class MissingDictionaryFailure extends OptionalFeatureFailure {
-  const MissingDictionaryFailure([super.message = 'Dictionary is missing']);
-}
-
-abstract class CriticalIntegrityFailure extends FeatureFailure {
-  const CriticalIntegrityFailure(super.message);
-}
-
-class InvalidVaultFailure extends CriticalIntegrityFailure {
-  const InvalidVaultFailure([super.message = 'Invalid vault detected']);
-}
-
-class StorageIntegrityFailure extends CriticalIntegrityFailure {
-  const StorageIntegrityFailure(
-      [super.message = 'Storage integrity compromised']);
+class InvalidVaultFailure extends OperationFailure {
+  const InvalidVaultFailure() : super('INVALID_VAULT', 'Vault is invalid or corrupted');
 }

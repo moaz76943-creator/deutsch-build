@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'feature_recovery_outcome.dart';
+import 'failure_categorization.dart';
 
 class BoundedRetryPolicy {
   final int maxAttempts;
@@ -29,8 +30,8 @@ class BoundedRetryPolicy {
         final outcome = RecoveryOutcomeHelper.classifyFailure(error);
 
         // Don't retry on blocked critical errors
-        if (outcome is RecoveryBlocked) {
-          return outcome;
+        if (outcome is RecoveryBlocked || FailureCategorization.isCritical(error)) {
+          rethrow;
         }
 
         if (attempts >= maxAttempts) {
@@ -49,7 +50,7 @@ class BoundedRetryPolicy {
           // If we want to support widget unmounting safely we should track the timer,
           // but since this is just an async operation that's decoupled, await Future.delayed
           // and just exit early if disposed. For tests we will configure initialDelay to 0.
-          await Future.delayed(delay);
+          await Future<void>.delayed(delay);
         }
       }
     }
