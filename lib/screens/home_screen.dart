@@ -1,4 +1,5 @@
 import 'srs_flashcard_deck_screen.dart';
+import 'license_attribution_screen.dart';
 import 'package:deutsch_bilarabi/design_system/app_base_cards.dart' hide AppBaseGlassCard;
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
