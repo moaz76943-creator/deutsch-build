@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import '../design_system/design_system.dart';
 import 'grammar_guide_screen.dart';
@@ -63,8 +64,7 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                       const CircleAvatar(
                         radius: 24,
                         backgroundColor: Colors.white24,
-                        child:
-                            Icon(Icons.flash_on_rounded, color: Colors.white),
+                        child: Icon(Icons.flash_on_rounded, color: Colors.white),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -73,13 +73,11 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                           children: <Widget>[
                             Text(
                               _verbData['verb'] as String,
-                              style: AppTypography.display
-                                  .copyWith(color: Colors.white, fontSize: 20),
+                              style: AppTypography.display.copyWith(color: Colors.white, fontSize: 20),
                             ),
                             Text(
                               _verbData['type'] as String,
-                              style: AppTypography.body.copyWith(
-                                  color: Colors.white70, fontSize: 12),
+                              style: AppTypography.body.copyWith(color: Colors.white70, fontSize: 12),
                             ),
                           ],
                         ),
@@ -89,19 +87,15 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                 ),
                 const SizedBox(height: 18),
                 Row(
-                  children:
-                      ['المضارع (Präsens)', 'الماضي (Perfekt)'].map((tense) {
+                  children: ['المضارع (Präsens)', 'الماضي (Perfekt)'].map((tense) {
                     final isSel = _selectedTense == tense;
                     return Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: ChoiceChip(
-                          label: Center(
-                              child: Text(tense,
-                                  style: const TextStyle(fontSize: 12))),
+                          label: Center(child: Text(tense, style: const TextStyle(fontSize: 12))),
                           selected: isSel,
-                          onSelected: (_) =>
-                              setState(() => _selectedTense = tense),
+                          onSelected: (_) => setState(() => _selectedTense = tense),
                         ),
                       ),
                     );
@@ -116,20 +110,17 @@ class _VerbConjugationScreenState extends State<VerbConjugationScreen> {
                       final pronoun = forms.keys.elementAt(idx);
                       final conjugated = forms[pronoun]!;
                       return AppBaseGlassCard(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             Text(
                               pronoun,
-                              style: AppTypography.title.copyWith(
-                                  color: Colors.white70, fontSize: 16),
+                              style: AppTypography.title.copyWith(color: Colors.white70, fontSize: 16),
                             ),
                             Text(
                               conjugated,
-                              style: AppTypography.display.copyWith(
-                                  color: const Color(0xFF38BDF8), fontSize: 18),
+                              style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 18),
                             ),
                           ],
                         ),

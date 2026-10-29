@@ -1,9 +1,4 @@
-enum LanguageReadinessTier {
-  nominal,
-  assetsReady,
-  ttsVerified,
-  productionReady
-}
+enum LanguageReadinessTier { nominal, assetsReady, ttsVerified, productionReady }
 
 /// مصفوفة تفصل بين السعة الاسمية والجاهزية الإنتاجية الفعلية لكل لغة
 class LanguageReadinessMatrix {
