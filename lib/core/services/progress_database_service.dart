@@ -44,6 +44,13 @@ class ProgressDatabaseService {
     required String conceptId,
     required bool isCorrect,
   }) async {
+    if (conceptId.trim().isEmpty) {
+      throw ArgumentError.value(
+        conceptId,
+        'conceptId',
+        'Concept id cannot be empty',
+      );
+    }
     final db = await getDatabase();
     final now = DateTime.now().millisecondsSinceEpoch;
 

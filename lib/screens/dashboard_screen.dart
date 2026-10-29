@@ -69,6 +69,20 @@ class DashboardScreen extends StatelessWidget {
                       await emergency.loadLibrary();
                       return emergency.EmergencyPhrasebookScreen();
                     }),
+                    _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded,
+                        const SrsFlashcardDeckScreen()),
+                    _buildActionCard(
+                        context,
+                        'التراخيص والمصادر',
+                        Icons.verified_user_rounded,
+                        const LicenseAttributionScreen()),
+                    _buildActionCard(context, 'المفكرة الشخصية',
+                        Icons.book_rounded, const VocabularyJournalScreen()),
+                    _buildActionCard(
+                        context,
+                        'طوارئ السفر',
+                        Icons.local_hospital_rounded,
+                        const EmergencyPhrasebookScreen()),
                   ],
                 ),
               ],
