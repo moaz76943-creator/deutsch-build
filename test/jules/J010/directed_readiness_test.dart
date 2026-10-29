@@ -14,12 +14,12 @@ void main() {
     test('Evaluating A->B separately from B->A (Directed pair evaluation)', () {
       // ar -> de should be ready (both production ready)
       engine.updatePackStatus('de', const LanguagePackGateResult(PackGateStatus.approved));
-      const pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
+      final pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
       final resultArToDe = engine.resolvePair(pairArToDe);
       expect(resultArToDe.state, equals(PairReadinessState.ready));
 
       // de -> ar: source is de, target is ar. If pack ar is not installed/unknown, missingPack
-      const pairDeToAr = DirectedPairId(sourceLocale: 'de', targetLocale: 'ar', semanticVersion: '1.0.0');
+      final pairDeToAr = DirectedPairId(sourceLocale: 'de', targetLocale: 'ar', semanticVersion: '1.0.0');
       final resultDeToAr = engine.resolvePair(pairDeToAr);
       expect(resultDeToAr.state, equals(PairReadinessState.missingPack));
 
@@ -29,42 +29,42 @@ void main() {
     });
 
     test('Rejecting identical-language pairs', () {
-      const pairDeToDe = DirectedPairId(sourceLocale: 'de', targetLocale: 'de', semanticVersion: '1.0.0');
+      final pairDeToDe = DirectedPairId(sourceLocale: 'de', targetLocale: 'de', semanticVersion: '1.0.0');
       final result = engine.resolvePair(pairDeToDe);
       expect(result.state, equals(PairReadinessState.identical));
     });
 
     test('Rejecting unsupported and nominal languages', () {
       // fr is assetsReady, not productionReady
-      const pairArToFr = DirectedPairId(sourceLocale: 'ar', targetLocale: 'fr', semanticVersion: '1.0.0');
+      final pairArToFr = DirectedPairId(sourceLocale: 'ar', targetLocale: 'fr', semanticVersion: '1.0.0');
       final result = engine.resolvePair(pairArToFr);
       expect(result.state, equals(PairReadinessState.unsupportedTarget));
 
-      const pairFrToDe = DirectedPairId(sourceLocale: 'fr', targetLocale: 'de', semanticVersion: '1.0.0');
+      final pairFrToDe = DirectedPairId(sourceLocale: 'fr', targetLocale: 'de', semanticVersion: '1.0.0');
       final result2 = engine.resolvePair(pairFrToDe);
       expect(result2.state, equals(PairReadinessState.unsupportedSource));
 
       // zh is nominal/unsupported (fallback)
-      const pairArToZh = DirectedPairId(sourceLocale: 'ar', targetLocale: 'zh', semanticVersion: '1.0.0');
+      final pairArToZh = DirectedPairId(sourceLocale: 'ar', targetLocale: 'zh', semanticVersion: '1.0.0');
       final result3 = engine.resolvePair(pairArToZh);
       expect(result3.state, equals(PairReadinessState.unsupportedTarget));
     });
 
     test('Testing different pack states (schema mismatch, rejected)', () {
       engine.updatePackStatus('de', const LanguagePackGateResult(PackGateStatus.schemaMismatch, 'missing vocab'));
-      const pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
+      final pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
       final result = engine.resolvePair(pairArToDe);
       expect(result.state, equals(PairReadinessState.schemaMismatch));
 
       engine.updatePackStatus('en', const LanguagePackGateResult(PackGateStatus.missingChecksum, 'bad checksum'));
-      const pairArToEn = DirectedPairId(sourceLocale: 'ar', targetLocale: 'en', semanticVersion: '1.0.0');
+      final pairArToEn = DirectedPairId(sourceLocale: 'ar', targetLocale: 'en', semanticVersion: '1.0.0');
       final result2 = engine.resolvePair(pairArToEn);
       expect(result2.state, equals(PairReadinessState.rejectedPack));
     });
 
     test('Explicit invalidation on pack changes and handling stale readiness', () {
       engine.updatePackStatus('de', const LanguagePackGateResult(PackGateStatus.approved));
-      const pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
+      final pairArToDe = DirectedPairId(sourceLocale: 'ar', targetLocale: 'de', semanticVersion: '1.0.0');
       expect(engine.resolvePair(pairArToDe).state, equals(PairReadinessState.ready));
 
       engine.invalidatePack('de');
