@@ -1,18 +1,33 @@
 class TrieNode {
   final Map<String, TrieNode> children = {};
-  final List<String> wordIds = [];
+  final Set<String> wordIds = {};
 }
 
 class TrieSearchEngine {
-  final TrieNode _root = TrieNode();
+  TrieNode _root = TrieNode();
+
+  final int maxNodes;
+  final int maxResults;
+  int _nodeCount = 1;
+  String? _contentVersion;
+
+  TrieSearchEngine({this.maxNodes = 100000, this.maxResults = 50});
+
+  String? get contentVersion => _contentVersion;
+
+  void reset({String? contentVersion}) {
+    _root = TrieNode();
+    _nodeCount = 1;
+    _contentVersion = contentVersion;
+  }
 
   /// تطبيع نصي عالمي يدعم اللاتينية، السلافية، والتشكيل العربي
   static String normalizeUniversal(String text) {
     if (text.isEmpty) return text;
     String res = text.toLowerCase().trim();
 
-    // إزالة التشكيل العربي
-    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+    // إزالة التشكيل العربي، التطويل، والنيقود العبري
+    res = res.replaceAll(RegExp(r'[\u0640\u064B-\u065F\u0670\u0591-\u05C7]'), '');
 
     // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
     final diacritics = {
@@ -37,9 +52,14 @@ class TrieSearchEngine {
   void insert(String word, String id) {
     final normalized = normalizeUniversal(word);
     TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      current = current.children.putIfAbsent(char, () => TrieNode());
+    for (final rune in normalized.runes) {
+      final char = String.fromCharCode(rune);
+      if (!current.children.containsKey(char)) {
+        if (_nodeCount >= maxNodes) break;
+        current.children[char] = TrieNode();
+        _nodeCount++;
+      }
+      current = current.children[char]!;
       current.wordIds.add(id);
     }
   }
@@ -47,11 +67,16 @@ class TrieSearchEngine {
   List<String> searchPrefix(String prefix) {
     final normalized = normalizeUniversal(prefix);
     TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
+    for (final rune in normalized.runes) {
+      final char = String.fromCharCode(rune);
       if (!current.children.containsKey(char)) return [];
       current = current.children[char]!;
     }
-    return current.wordIds.toSet().toList();
+
+    final results = current.wordIds.toList();
+    if (results.length > maxResults) {
+      return results.sublist(0, maxResults);
+    }
+    return results;
   }
 }
