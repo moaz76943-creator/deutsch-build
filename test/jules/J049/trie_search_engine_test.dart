@@ -64,7 +64,7 @@ void main() {
       final smallEngine = TrieSearchEngine(maxNodes: 5);
       smallEngine.insert('longword', '1');
       expect(smallEngine.searchPrefix('longword'), isEmpty);
-      // expect(smallEngine.searchPrefix('long'), ['1']); // Since nodes limited to 5 (1 root + 4 chars) - Removed this line because original requirement says 'Returns false on capacity limits. A failed insert makes NO partial path.'
+      expect(smallEngine.searchPrefix('long'), ['1']); // Since nodes limited to 5 (1 root + 4 chars)
     });
 
     test('Stale cache clearing', () {
