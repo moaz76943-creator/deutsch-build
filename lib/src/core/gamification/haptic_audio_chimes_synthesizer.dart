@@ -10,7 +10,7 @@ enum HapticPatternType {
 
 class HapticPulse {
   final int durationMs;
-  final double intensity;
+  final double intensity; // 0.0 to 1.0
 
   const HapticPulse(this.durationMs, this.intensity);
 }
@@ -30,7 +30,7 @@ class ProceduralTone {
 }
 
 class HapticAudioChimesSynthesizer {
-  static const int sampleRate = 22050;
+  static const int sampleRate = 22050; // Standard low-RAM audio rate
 
   const HapticAudioChimesSynthesizer();
 
@@ -48,8 +48,8 @@ class HapticAudioChimesSynthesizer {
   /// Synthesizes a warm, non-punitive gentle chime for review retry.
   Int16List synthesizeGentleRetryChime() {
     final tones = [
-      const ProceduralTone(frequencyHz: 392.00, durationMs: 90),
-      const ProceduralTone(frequencyHz: 329.63, durationMs: 120),
+      const ProceduralTone(frequencyHz: 392.00, durationMs: 90), // G4
+      const ProceduralTone(frequencyHz: 329.63, durationMs: 120), // E4
     ];
     return _renderTonesSequence(tones);
   }
@@ -57,10 +57,10 @@ class HapticAudioChimesSynthesizer {
   /// Synthesizes celebratory multi-chord fanfare for level-up.
   Int16List synthesizeLevelUpFanfare() {
     final tones = [
-      const ProceduralTone(frequencyHz: 523.25, durationMs: 60),
-      const ProceduralTone(frequencyHz: 659.25, durationMs: 60),
-      const ProceduralTone(frequencyHz: 783.99, durationMs: 60),
-      const ProceduralTone(frequencyHz: 1046.50, durationMs: 200),
+      const ProceduralTone(frequencyHz: 523.25, durationMs: 60), // C5
+      const ProceduralTone(frequencyHz: 659.25, durationMs: 60), // E5
+      const ProceduralTone(frequencyHz: 783.99, durationMs: 60), // G5
+      const ProceduralTone(frequencyHz: 1046.50, durationMs: 200), // C6
     ];
     return _renderTonesSequence(tones);
   }
@@ -102,6 +102,7 @@ class HapticAudioChimesSynthesizer {
         final double t = i / sampleRate;
         final double progress = i / toneSamples;
 
+        // Envelope: linear attack, exponential decay
         double envelope = 1.0;
         if (t * 1000.0 < tone.attackMs) {
           envelope = (t * 1000.0) / tone.attackMs;
@@ -109,6 +110,7 @@ class HapticAudioChimesSynthesizer {
           envelope = math.exp(-3.5 * progress);
         }
 
+        // Pure harmonic sine wave with 10% overtone for richness
         final double sampleValue = (math.sin(angularFreq * t) + 0.1 * math.sin(angularFreq * 2.0 * t)) * envelope;
         final int int16Val = (sampleValue * 30000.0).clamp(-32768.0, 32767.0).round();
         pcm[offset + i] = int16Val;

@@ -11,6 +11,7 @@ void main() {
       expect(pcm.isNotEmpty, isTrue);
       expect(pcm.length, greaterThan(2000));
 
+      // Verify no clipping overflow
       for (final sample in pcm) {
         expect(sample, greaterThanOrEqualTo(-32768));
         expect(sample, lessThanOrEqualTo(32767));
