@@ -1,0 +1,19 @@
+{
+  "isoCode": "lv",
+  "autonym": "Latviešu",
+  "englishName": "Latvian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 6,
+  "caseNames": ["Nominatīvs", "Ģenitīvs", "Datīvs", "Akuzatīvs", "Instrumentālis", "Lokātīvs"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "fixedInitialStress": true
+  }
+}
