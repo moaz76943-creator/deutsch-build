@@ -66,6 +66,8 @@ class _AccumulatedHit {
 /// 15 ms guarantee: the first emission depends on actual SQLite I/O latency.
 /// Late results can reorder earlier snapshots; only completed pages are stable.
 class SearchFusionService {
+  int _searchGeneration = 0;
+
   SearchFusionService({MountedPackSearch? search, FtsSearchService? fts})
       : _search = search ??
             ((query, languageCode, limit) =>
@@ -134,8 +136,10 @@ class SearchFusionService {
     }
     unawaited(Future.wait(completed).then((_) => events.close()));
 
+    final currentGeneration = ++_searchGeneration;
     final responses = <String, List<Map<String, dynamic>>>{};
     await for (final answer in events.stream) {
+      if (currentGeneration != _searchGeneration) break;
       responses[answer.languageCode] = answer.rows;
       final ranked = _fuse(responses, active, term.toLowerCase());
       final complete = responses.length == languages.length;
@@ -179,11 +183,17 @@ class SearchFusionService {
         final language = _normalizeCode(
           (row['language_code'] ?? code).toString(),
         );
+        if (language != activeLanguage && !sortedCodes.contains(language)) {
+          continue;
+        }
         final surface =
             (row['surface'] ?? row['display_text'] ?? '').toString().trim();
         if (surface.isEmpty) continue;
         final lemma = (row['lemma'] ?? surface).toString().trim();
-        final key = '$language|${lemma.toLowerCase()}';
+        final id = (row['id'] ?? '').toString();
+        final key = id.isNotEmpty
+            ? '$language|${lemma.toLowerCase()}|$id'
+            : '$language|${lemma.toLowerCase()}|row_$index';
         final translation =
             (row['translation_ar'] ?? '').toString().toLowerCase();
         final tier =
