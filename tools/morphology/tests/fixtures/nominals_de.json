@@ -1,0 +1,66 @@
+{
+  "nominals": [
+    {
+      "id": "de:Kind",
+      "lemma": "Kind",
+      "part_of_speech": "noun",
+      "gender": "neuter",
+      "number": "singular",
+      "declensions": [
+        {
+          "id": "de:Kind:nom:pl",
+          "grammatical_case": "nominative",
+          "number": "plural",
+          "definiteness": "definite",
+          "inflected_form": "Kinder"
+        }
+      ]
+    },
+    {
+      "id": "de:Tor_neu",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "neuter",
+      "number": "singular",
+      "declensions": [
+        {
+          "id": "de:Tor_neu:nom:sg",
+          "grammatical_case": "nominative",
+          "number": "singular",
+          "definiteness": "definite",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "de:Tor_neu:nom:pl",
+          "grammatical_case": "nominative",
+          "number": "plural",
+          "definiteness": "definite",
+          "inflected_form": "Tore"
+        }
+      ]
+    },
+    {
+      "id": "de:Tor_masc",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "masculine",
+      "number": "singular",
+      "declensions": [
+        {
+          "id": "de:Tor_masc:nom:sg",
+          "grammatical_case": "nominative",
+          "number": "singular",
+          "definiteness": "definite",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "de:Tor_masc:nom:pl",
+          "grammatical_case": "nominative",
+          "number": "plural",
+          "definiteness": "definite",
+          "inflected_form": "Toren"
+        }
+      ]
+    }
+  ]
+}

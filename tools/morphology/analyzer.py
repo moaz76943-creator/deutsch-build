@@ -12,11 +12,16 @@ class AnalysisResult:
     tags: List[str]
 
 class LanguageProfile:
+    def __init__(self, max_recursion_depth: int = 4, max_evaluations: int = 100):
+        self.max_recursion_depth = max_recursion_depth
+        self.max_evaluations = max_evaluations
+
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         raise NotImplementedError()
 
 class TurkishProfile(LanguageProfile):
     def __init__(self):
+        super().__init__()
         self.suffixes = [
             ("ler", ["PL"]), ("lar", ["PL"]),
             ("de", ["LOC"]), ("da", ["LOC"]), ("te", ["LOC"]), ("ta", ["LOC"]),
@@ -27,9 +32,13 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        evaluations = [0]
+
         def decompose(current_word: str, current_tags: List[str], depth: int):
-            if depth > analyzer.max_recursion_depth:
+            if depth > self.max_recursion_depth or evaluations[0] >= self.max_evaluations:
                 return
+
+            evaluations[0] += 1
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
                 results.append(AnalysisResult(word, nom['lemma'], nom['id'], nom['part_of_speech'], list(reversed(current_tags))))
@@ -60,6 +69,7 @@ class TurkishProfile(LanguageProfile):
 
 class FinnishProfile(LanguageProfile):
     def __init__(self):
+        super().__init__()
         self.suffixes = [
             ("ssa", ["INE"]), ("ssä", ["INE"]),
             ("sta", ["ELA"]), ("stä", ["ELA"]),
@@ -69,9 +79,13 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        evaluations = [0]
+
         def decompose(current_word: str, current_tags: List[str], depth: int):
-            if depth > analyzer.max_recursion_depth:
+            if depth > self.max_recursion_depth or evaluations[0] >= self.max_evaluations:
                 return
+
+            evaluations[0] += 1
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
                 results.append(AnalysisResult(word, nom['lemma'], nom['id'], nom['part_of_speech'], list(reversed(current_tags))))
@@ -104,6 +118,9 @@ class FinnishProfile(LanguageProfile):
         return True
 
 class GermanProfile(LanguageProfile):
+    def __init__(self):
+        super().__init__()
+
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
 
@@ -130,12 +147,14 @@ class GermanProfile(LanguageProfile):
             stem1 = word[:-1]
             if len(stem1) > 0:
                 for n in analyzer.lookup_nominal_form(stem1):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                    if n['number'].lower() in ('pl', 'plural'):
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
         if word.endswith("en"):
             stem2 = word[:-2]
             if len(stem2) > 0:
                 for n in analyzer.lookup_nominal_form(stem2):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                    if n['number'].lower() in ('pl', 'plural'):
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results
 
@@ -145,7 +164,6 @@ class MorphologyAnalyzer:
         for db in self.dbs:
             db.row_factory = sqlite3.Row
         self.profile = profile
-        self.max_recursion_depth = 4
         self.max_results = 50
 
     def close(self):
