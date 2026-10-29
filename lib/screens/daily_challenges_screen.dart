@@ -66,8 +66,8 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Expanded(child: Column(
+                    children: <Column>[
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
@@ -80,7 +80,7 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                             style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
-                      )),
+                      ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[

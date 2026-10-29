@@ -1,187 +1,70 @@
-<<<<<<< HEAD
-import 'dart:async';
-import 'dart:collection';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'offline_audio_capability.dart';
-
-class _AudioRequest {
-  final String text;
-  final String locale;
-  final double speechRate;
-  final Completer<bool> completer;
-
-  _AudioRequest(this.text, this.locale, this.speechRate, this.completer);
-}
-
-class OfflineAudioPool with WidgetsBindingObserver {
-  static final OfflineAudioPool _instance = OfflineAudioPool._internal();
-  factory OfflineAudioPool() => _instance;
-
-  OfflineAudioPool._internal() {
-    WidgetsBinding.instance.addObserver(this);
-    _initTts();
-  }
-=======
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:deutsch_bilarabi/core/audio/bcp47_locale_registry.dart';
 
 class OfflineAudioPool {
   static final OfflineAudioPool _instance = OfflineAudioPool._internal();
   factory OfflineAudioPool() => _instance;
-  OfflineAudioPool._internal();
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  OfflineAudioPool._internal() {
+    _initTts();
+  }
 
   final FlutterTts _tts = FlutterTts();
   bool _isPlaying = false;
+  bool _isDisposed = false;
   bool get isPlaying => _isPlaying;
 
   String _activeLocale = '';
   double _activeSpeechRate = -1.0;
-<<<<<<< HEAD
 
-  int _pairGenerationToken = 0;
-  final int maxQueueSize = 5;
-  final Queue<_AudioRequest> _requestQueue = Queue<_AudioRequest>();
-  bool _isProcessingQueue = false;
-
-  void _initTts() {
-    // We enable deterministic playback completion tracking for the queue using awaitSpeakCompletion.
-    _tts.awaitSpeakCompletion(true);
-
-    _tts.setCompletionHandler(() {
-      _isPlaying = false;
-    });
-    _tts.setErrorHandler((msg) {
-      _isPlaying = false;
-    });
-    _tts.setCancelHandler(() {
-      _isPlaying = false;
-    });
+  Future<void> _initTts() async {
+    try {
+      await _tts.awaitSpeakCompletion(true);
+    } catch (_) {}
   }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      stop();
-    }
-  }
-
-  void markPairChange() {
-    _pairGenerationToken++;
-    stop();
-    _clearQueue();
-  }
-
-  void _clearQueue() {
-    while (_requestQueue.isNotEmpty) {
-      final req = _requestQueue.removeFirst();
-      if (!req.completer.isCompleted) {
-        req.completer.complete(false); // Reject stale callback
-      }
-    }
-  }
-
-  Future<bool> playWord(
-    String text, {
-    String locale = 'de-DE',
-    double speechRate = 0.45,
-  }) async {
-    final effectiveLocale = OfflineAudioCapability.getFallbackLocale(locale);
-    if (effectiveLocale == null) {
-      // Missing voice handling, never fall back silently
-      return false;
-    }
-
-    final completer = Completer<bool>();
-    final request = _AudioRequest(text, effectiveLocale, speechRate, completer);
-
-    if (_requestQueue.length >= maxQueueSize) {
-      final oldReq = _requestQueue.removeFirst();
-      if (!oldReq.completer.isCompleted) {
-        oldReq.completer.complete(false);
-      }
-    }
-
-    _requestQueue.add(request);
-    _processQueue();
-
-    return completer.future;
-  }
-
-  Future<void> _processQueue() async {
-    if (_isProcessingQueue || _requestQueue.isEmpty) return;
-    _isProcessingQueue = true;
-
-    while (_requestQueue.isNotEmpty) {
-      final currentGeneration = _pairGenerationToken;
-      final req = _requestQueue.removeFirst();
-
-      try {
-        await _tts.stop();
-        _isPlaying = true;
-
-        if (_activeLocale != req.locale) {
-          final isLangAvailable = await _tts.setLanguage(req.locale);
-          if (isLangAvailable == 0 || isLangAvailable == false) {
-            _isPlaying = false;
-            if (!req.completer.isCompleted) req.completer.complete(false);
-            continue; // Skip this word, it doesn't have a local speech engine
-          }
-          _activeLocale = req.locale;
-        }
-
-        if (_activeSpeechRate != req.speechRate) {
-          await _tts.setSpeechRate(req.speechRate);
-          _activeSpeechRate = req.speechRate;
-        }
-
-        if (currentGeneration != _pairGenerationToken) {
-          _isPlaying = false;
-          if (!req.completer.isCompleted) req.completer.complete(false);
-          continue;
-        }
-
-        await _tts.speak(req.text);
-
-        if (currentGeneration == _pairGenerationToken) {
-          if (!req.completer.isCompleted) req.completer.complete(true);
-        } else {
-          if (!req.completer.isCompleted) req.completer.complete(false);
-        }
-      } catch (_) {
-        if (!req.completer.isCompleted) req.completer.complete(false);
-      } finally {
-        _isPlaying = false;
-      }
-    }
-
-    _isProcessingQueue = false;
-  }
-
-  Future<void> stop() async {
-    _clearQueue();
-=======
 
   Future<void> playWord(
     String text, {
-    String locale = 'de-DE',
+    String locale = 'de-DE', // bcp47 locale
     double speechRate = 0.45,
   }) async {
+    if (_isDisposed) return;
     try {
       await _tts.stop();
       _isPlaying = true;
 
+      // Voice check logic (don't play if missing, check regional fallback)
+      bool installed = await _tts.isLanguageInstalled(locale) as bool? ?? false;
+      String targetLocale = locale;
+
+      if (!installed) {
+        String? fallback = Bcp47LocaleRegistry.getFallbackLocale(locale);
+        if (fallback != null) {
+          bool fbInstalled = await _tts.isLanguageInstalled(fallback) as bool? ?? false;
+          if (fbInstalled) {
+            targetLocale = fallback;
+            installed = true;
+          }
+        }
+      }
+
+      if (!installed) {
+        // Voice is not installed locally, reject playback gracefully
+        return;
+      }
+
+      if (_isDisposed) return; // double check
+
       // Zero-latency optimization: only update channel state if parameters changed
-      if (_activeLocale != locale) {
-        await _tts.setLanguage(locale);
-        _activeLocale = locale;
+      if (_activeLocale != targetLocale) {
+        await _tts.setLanguage(targetLocale);
+        _activeLocale = targetLocale;
       }
       if (_activeSpeechRate != speechRate) {
         await _tts.setSpeechRate(speechRate);
         _activeSpeechRate = speechRate;
       }
 
+      if (_isDisposed) return;
       await _tts.speak(text);
     } catch (_) {
     } finally {
@@ -190,7 +73,7 @@ class OfflineAudioPool {
   }
 
   Future<void> stop() async {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    if (_isDisposed) return;
     try {
       await _tts.stop();
     } catch (_) {}
@@ -198,11 +81,12 @@ class OfflineAudioPool {
   }
 
   void dispose() {
-<<<<<<< HEAD
-    WidgetsBinding.instance.removeObserver(this);
-    stop();
-=======
+    if (_isDisposed) return;
+    _isDisposed = true;
+    _isPlaying = false;
+    try {
+      _tts.stop();
+    } catch (_) {}
     // Release cached audio resources
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }
