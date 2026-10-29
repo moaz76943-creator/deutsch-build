@@ -1,17 +1,11 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../services/hybrid_audio_service.dart';
+import 'dart:math';
 import '../core/srs/review_command_port.dart';
+<<<<<<< HEAD
 import '../services/database_service.dart';
 import '../widgets/lexicon_rich_details.dart';
 import '../widgets/language_selector_button.dart';
 import '../widgets/phonetic_ipa_view.dart';
-import '../services/language_pack_manager.dart';
 import '../widgets/resilient_text_container.dart';
 import 'word_deep_dive_sheet.dart' show WordDeepDiveSheet;
 
@@ -26,151 +20,70 @@ class FlashcardsScreen extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<FlashcardsScreen> createState() => _FlashcardsScreenState();
+=======
+import '../core/audio/offline_audio_manager.dart';
+import '../services/database_service.dart';
+
+Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
+  final db = await DatabaseService.instance.contentDb;
+  return await db.rawQuery(
+    '''
+    SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence
+    FROM lexemes AS l
+    LEFT JOIN examples AS e
+      ON e.concept_id = l.concept_id AND e.language_code = l.language_code
+    WHERE l.language_code = ?
+    LIMIT 10
+    ''',
+    [targetLangCode],
+  );
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
 
-class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _flipController;
-  late final Animation<double> _flipAnimation;
-  final HybridAudioService _audio = HybridAudioService();
+class FlashcardsScreen extends StatefulWidget {
+  const FlashcardsScreen({super.key});
+  @override
+  State<FlashcardsScreen> createState() => _FlashcardsScreenState();
+}
 
-  List<Map<String, dynamic>> _cards = <Map<String, dynamic>>[];
-  String _languageCode = 'de';
-  int _cardIndex = 0;
-  int _completedCount = 0;
-  int _loadGeneration = 0;
-  bool _isLoading = false;
-  bool _hasStarted = false;
-  bool _restoringLanguage = false;
-  bool _isFlipped = false;
-  bool _isSubmitting = false;
-  ReviewRating? _failedRating;
-  String? _error;
-
-  Map<String, dynamic>? get _currentCard =>
-      _cards.isEmpty ? null : _cards[_cardIndex];
+class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerProviderStateMixin {
+  late AnimationController flipController;
+  late Animation<double> flipAnimation;
+  bool isFlipped = false;
+  bool isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _flipController = AnimationController(
+    flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    _flipAnimation = Tween<double>(begin: 0, end: 1).animate(_flipController);
+    flipAnimation = Tween<double>(begin: 0, end: 1).animate(flipController);
   }
 
   @override
   void dispose() {
-    _loadGeneration++;
-    _flipController.dispose();
-    unawaited(_audio.dispose());
+    flipController.dispose();
+    OfflineAudioManager.instance.stop();
     super.dispose();
   }
 
-  Future<void> _beginReview() async {
-    if (_hasStarted) return;
+  void toggleFlip() {
+    if (isSubmitting) return;
     setState(() {
-      _hasStarted = true;
-      _isLoading = true;
+      isFlipped = !isFlipped;
     });
-    _restoringLanguage = true;
-    try {
-      await ref
-          .read(activeLanguageProvider.notifier)
-          .initialize(refreshRemoteCatalog: false);
-    } catch (_) {
-      // The bundled German language remains the safe offline fallback.
-    } finally {
-      _restoringLanguage = false;
-    }
-    if (!mounted) return;
-    await _loadCards(ref.read(activeLanguageCodeProvider));
-  }
-
-  Future<void> _loadCards(String languageCode) async {
-    unawaited(_audio.stop());
-    final generation = ++_loadGeneration;
-    if (!mounted) return;
-    setState(() {
-      _languageCode = languageCode;
-      _isLoading = true;
-      _completedCount = 0;
-      _isFlipped = false;
-      _failedRating = null;
-      _error = null;
-    });
-    _flipController.reset();
-    try {
-      final cards = await loadFlashcardsSafe(languageCode);
-      if (!mounted || generation != _loadGeneration) return;
-      setState(() {
-        _cards = cards;
-        _cardIndex = 0;
-        _isLoading = false;
-      });
-    } catch (_) {
-      if (!mounted || generation != _loadGeneration) return;
-      setState(() {
-        _cards = <Map<String, dynamic>>[];
-        _cardIndex = 0;
-        _isLoading = false;
-        _error = 'حزمة هذه اللغة غير متاحة للمراجعة.';
-      });
-    }
-  }
-
-  static Map<String, dynamic> _fields(Map<String, dynamic> row) {
-    if (row['fields'] is Map) {
-      return Map<String, dynamic>.from(row['fields'] as Map);
-    }
-    final raw = row['fields_json'];
-    if (raw is String) {
-      try {
-        final decoded = jsonDecode(raw);
-        if (decoded is Map) return Map<String, dynamic>.from(decoded);
-      } catch (_) {}
-    }
-    return <String, dynamic>{};
-  }
-
-  static String _string(Map<String, dynamic> data, List<String> keys) {
-    for (final key in keys) {
-      final value = data[key];
-      if (value is String && value.trim().isNotEmpty) return value.trim();
-    }
-    return '';
-  }
-
-  static String? _optionalField(
-    Map<String, dynamic> fields,
-    Map<String, dynamic> card,
-    List<String> keys,
-  ) {
-    final value = _string(<String, dynamic>{...fields, ...card}, keys);
-    return value.isEmpty ? null : value;
-  }
-
-  String get _headword {
-    final card = _currentCard;
-    if (card == null) return '';
-    return _string(card, <String>['lemma', 'surface', 'display_text']);
-  }
-
-  void _toggleFlip() {
-    if (_isSubmitting || _currentCard == null) return;
-    setState(() => _isFlipped = !_isFlipped);
-    if (_isFlipped) {
-      _flipController.forward();
-      if (_headword.isNotEmpty) {
-        unawaited(_playCardAudio());
-      }
+    if (isFlipped) {
+      flipController.forward();
+      OfflineAudioManager.instance.speak("das Buch");
     } else {
-      _flipController.reverse();
+      flipController.reverse();
     }
   }
 
-  Future<void> _playCardAudio() async {
+<<<<<<< HEAD
+  Future<void> playCardAudio() async {
     final card = _currentCard;
     if (card == null) return;
     final fields = _fields(card);
@@ -184,11 +97,13 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     );
   }
 
-  Future<void> _handleRating(ReviewRating rating) async {
-    if (_isSubmitting || _cards.isEmpty) return;
-    final card = _currentCard;
-    if (card == null) return;
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  Future<void> handleRating(ReviewRating rating) async {
+    if (isSubmitting) return;
+    setState(() => isSubmitting = true);
 
+<<<<<<< HEAD
     final generation = _loadGeneration;
     final languageCode = _languageCode;
     final lexemeId = (card['lexeme_id'] ?? card['id'])?.toString().trim() ?? '';
@@ -198,38 +113,26 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
       ReviewRating.good => 3,
       ReviewRating.easy => 4,
     };
+=======
+    await Future.delayed(const Duration(milliseconds: 300));
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
-    setState(() {
-      _isSubmitting = true;
-      _failedRating = null;
-    });
-    try {
-      if (lexemeId.isEmpty) {
-        throw StateError('Cannot persist a review without a lexeme ID');
-      }
-      await DatabaseService.instance.gradeAndPersistSrs(
-        lexemeId: lexemeId,
-        languageCode: languageCode,
-        grade: grade,
-      );
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          if (generation == _loadGeneration) _failedRating = rating;
-          _isSubmitting = false;
-        });
-      }
-      return; // The current card is retained for an explicit retry.
+    if (mounted) {
+      setState(() {
+        isSubmitting = false;
+        toggleFlip();
+      });
     }
+<<<<<<< HEAD
 
     // The card may advance only after the transaction has committed.
     if (!mounted) return;
     if (generation != _loadGeneration) {
-      setState(() => _isSubmitting = false);
+      setState(() => isSubmitting = false);
       return;
     }
     try {
-      await _flipController.reverse();
+      await flipController.reverse();
     } catch (_) {
       // The review is already persisted; animation failure must not regrade it.
     }
@@ -240,14 +143,17 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
         _cards = List<Map<String, dynamic>>.from(_cards)..removeAt(_cardIndex);
         _cardIndex = _cards.isEmpty ? 0 : _cardIndex % _cards.length;
         _completedCount++;
-        _isFlipped = false;
+        isFlipped = false;
       }
-      _isSubmitting = false;
+      isSubmitting = false;
     });
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     ref.listen<String>(activeLanguageCodeProvider, (previous, next) {
       if (_hasStarted &&
           !_restoringLanguage &&
@@ -264,20 +170,23 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
         title:
             const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
         actions: const <Widget>[LanguageSelectorButton()],
+=======
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
         child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.white24,
-              ),
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: LinearProgressIndicator(value: 0.3, backgroundColor: Colors.white24),
             ),
             Expanded(
+<<<<<<< HEAD
               child: !_hasStarted
                   ? Center(
                       child: ElevatedButton.icon(
@@ -296,12 +205,12 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                                       : 'لا توجد بطاقات مستحقة للمراجعة اليوم.')),
                             )
                           : GestureDetector(
-                              onTap: _toggleFlip,
+                              onTap: toggleFlip,
                               child: Center(
                                 child: AnimatedBuilder(
-                                  animation: _flipAnimation,
+                                  animation: flipAnimation,
                                   builder: (context, child) {
-                                    final angle = _flipAnimation.value * pi;
+                                    final angle = flipAnimation.value * pi;
                                     final isFront = angle < pi / 2;
                                     return Transform(
                                       alignment: Alignment.center,
@@ -316,12 +225,34 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                                 ),
                               ),
                             ),
+=======
+              child: GestureDetector(
+                onTap: _toggleFlip,
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _flipAnimation,
+                    builder: (context, child) {
+                      final angle = _flipAnimation.value * pi;
+                      final isFront = angle < pi / 2;
+                      return Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.001)
+                          ..rotateX(angle),
+                        child: isFront ? _buildFrontAppBaseGlassCard() : _buildBackAppBaseGlassCard(),
+                      );
+                    },
+                  ),
+                ),
+              ),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
             ),
-            if (_cards.isNotEmpty && _isFlipped)
+            if (isFlipped)
               Padding(
+<<<<<<< HEAD
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                child: _isSubmitting
+                child: isSubmitting
                     ? const CircularProgressIndicator()
                     : Column(
                         mainAxisSize: MainAxisSize.min,
@@ -333,7 +264,7 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                               style: TextStyle(color: Colors.redAccent),
                             ),
                             TextButton.icon(
-                              onPressed: () => _handleRating(_failedRating!),
+                              onPressed: () => handleRating(_failedRating!),
                               icon: const Icon(Icons.refresh),
                               label: const Text('إعادة المحاولة'),
                             ),
@@ -355,12 +286,31 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
                           ),
                         ],
                       ),
+=======
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                child: _isSubmitting
+                  ? const CircularProgressIndicator()
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildRatingButton('مجدداً', Colors.redAccent, ReviewRating.again),
+                        _buildRatingButton('صعب', Colors.orangeAccent, ReviewRating.hard),
+                        _buildRatingButton('جيد', Colors.blueAccent, ReviewRating.good),
+                        _buildRatingButton('سهل', Colors.green, ReviewRating.easy),
+                      ],
+                    ),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
               )
-            else if (_cards.isNotEmpty)
+            else
               const Padding(
+<<<<<<< HEAD
                 padding: EdgeInsets.all(40),
                 child: Text('اضغط للكشف والاستماع',
                     style: TextStyle(color: Colors.white54)),
+=======
+                padding: EdgeInsets.all(40.0),
+                child: Text('اضغط للكشف والاستماع', style: TextStyle(color: Colors.white54)),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
               ),
           ],
         ),
@@ -368,136 +318,89 @@ class _FlashcardsScreenState extends ConsumerState<FlashcardsScreen>
     );
   }
 
-  Widget _buildFrontCard() {
-    final card = _currentCard!;
-    final fields = _fields(card);
-    final ipa = _string(<String, dynamic>{...fields, ...card},
-        <String>['ipa', 'phonetic_ipa', 'ipa_transcription']);
+  Widget buildFrontAppBaseGlassCard() {
     return Container(
-      width: double.infinity,
+      width: 320,
       height: 400,
-      constraints: const BoxConstraints(maxWidth: 320),
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(24),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ResilientTextContainer(
-              child: Directionality(
-                textDirection: LanguagePackManager.isRtlLanguage(_languageCode)
-                    ? TextDirection.rtl
-                    : TextDirection.ltr,
-                child: Text(
-                  _headword,
-                  maxLines: 6,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            if (ipa.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 14),
-              PhoneticIpaView(ipa: ipa),
-            ],
-          ],
-        ),
+      alignment: Alignment.center,
+      child: const Text(
+        'das Buch',
+        style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildBackCard() {
-    final card = _currentCard!;
-    final fields = _fields(card);
-    final translation = _string(<String, dynamic>{...fields, ...card},
-        <String>['meaning', 'translation_ar', 'translation', 'definition_ar']);
+  Widget buildBackAppBaseGlassCard() {
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateX(pi),
       child: Container(
-        width: double.infinity,
+        width: 320,
         height: 400,
-        constraints: const BoxConstraints(maxWidth: 320),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: const Color(0xFF334155),
           borderRadius: BorderRadius.circular(24),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
         ),
-        // All optional sections scroll rather than overflowing a flipped card.
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              if (translation.isNotEmpty) ...<Widget>[
-                ResilientTextContainer(
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Text(
-                      translation,
-                      maxLines: 8,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 22, color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              LexiconRichDetails(
-                partOfSpeech: _optionalField(fields, card, const <String>[
-                  'part_of_speech',
-                  'pos',
-                ]),
-                gender: _optionalField(fields, card, const <String>[
-                  'gender',
-                  'article',
-                ]),
-                pluralForm: _optionalField(fields, card, const <String>[
-                  'plural',
-                  'plural_form',
-                ]),
-                explanation: translation.isEmpty
-                    ? _optionalField(fields, card, const <String>[
-                        'definition',
-                        'explanation',
-                      ])
-                    : null,
-                explanationLanguageCode: 'ar',
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+<<<<<<< HEAD
+          children: <Widget>[
+            ResilientTextContainer(
+              text: _headword,
+              maxLines: 6,
+              textDirection: isRtlLanguage(_languageCode)
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              TextButton.icon(
-                onPressed: () => WordDeepDiveSheet.show(
-                  context,
-                  wordData: card,
-                ),
-                icon: const Icon(Icons.info_outline),
-                label: const Text('تفاصيل المفردة'),
-              ),
+            ),
+            if (ipa.isNotEmpty) ...<Widget>[
+              SizedBox(height: 14),
+              PhoneticIpaView(ipa: ipa),
             ],
-          ),
+=======
+          children: [
+            Text('الكتاب', style: TextStyle(fontSize: 32, fontFamily: 'Cairo', color: Colors.white)),
+            SizedBox(height: 20),
+            Text('Ich lese ein Buch.', style: TextStyle(fontSize: 18, color: Colors.white70)),
+            Text('أنا أقرأ كتاباً.', style: TextStyle(fontSize: 18, fontFamily: 'Cairo', color: Colors.white70)),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+          ],
         ),
       ),
     );
   }
 
-  Widget _ratingButton(String label, Color color, ReviewRating rating) {
+  Widget buildRatingButton(String label, Color color, ReviewRating rating) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withAlpha(51),
         foregroundColor: color,
+        elevation: 0,
         minimumSize: const Size(70, 56),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      onPressed: () => _handleRating(rating),
+      onPressed: () => handleRating(rating),
+<<<<<<< HEAD
       child: Text(
         label,
         style:
             const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
       ),
+=======
+      child: Text(label, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     );
   }
 }

@@ -102,6 +102,7 @@ class _DbHealthScreenState extends State<DbHealthScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
+<<<<<<< HEAD
                                     Text('اللغة: ${entry.key.toUpperCase()}',
                                         style: const TextStyle(
                                             color: Colors.white70,
@@ -111,6 +112,10 @@ class _DbHealthScreenState extends State<DbHealthScreen> {
                                             color: Color(0xFF38BDF8),
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold)),
+=======
+                                    Expanded(child: Text('اللغة: ${entry.key.toUpperCase()}', style: const TextStyle(color: Colors.white70, fontSize: 13))),
+                                    Text('${entry.value} مفردة', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 13, fontWeight: FontWeight.bold)),
+>>>>>>> origin/staging/v2-full-platform-9617688105299726044
                                   ],
                                 ),
                               );

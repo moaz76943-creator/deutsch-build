@@ -56,30 +56,28 @@ class RepairPlanner:
             if path.startswith("/") or ".." in path.split("/"):
                 raise ValueError(f"Unsafe path detected: {path}")
 
-    def generate_plan(self, failure_signature: str, dry_run: bool = False, new_input: bool = False) -> dict:
+    def generate_plan(self, failure_signature: str, dry_run: bool = False) -> dict:
         category = self.classify_failure(failure_signature)
 
         target_paths = self._calculate_paths(category, failure_signature)
         self._validate_paths(target_paths)
 
-        if failure_signature in self._history and not new_input:
+        if failure_signature in self._history:
             raise ValueError("Duplicate attempt blocked")
         self._history[failure_signature] = True
 
         transformation = TRANSFORMATIONS[category]
         plan_id = str(uuid.uuid4())
 
-        from tools.automation.scope_guard import ScopeGuard
-        guard = ScopeGuard(owner="RepairPlanner")
-        for path in target_paths:
-            guard.add_allowed_path(path)
+        # Hard fail if missing
+        from tools.agent_contract.guard import ScopeGuard
+        guard = ScopeGuard(target_paths)
 
         leases = []
         if not dry_run:
             for path in target_paths:
-                if not guard.request_ownership(path):
-                    raise RuntimeError("Failed to acquire lock")
-                leases.append(path)
+                with guard.lease_file(path):
+                    leases.append(path)
 
         return {
             "plan_id": plan_id,
