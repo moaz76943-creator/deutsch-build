@@ -1,165 +1,227 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
+class MockJ095Contract implements J095VerificationContract {
+  @override
+  bool hasMandatoryEvidence = true;
+  @override
+  bool hasStaleEvidence = false;
+  @override
+  bool hasNewDartErrors = false;
+  @override
+  bool hasMemoryRegression = false;
+  @override
+  bool hasFTS5Regression = false;
+  @override
+  bool hasCorruptStorage = false;
+  @override
+  bool isNormalStartupVerified = true;
+  @override
+  bool isSafeModeBehaviorVerified = true;
+}
+
+class MockJ025Contract implements J025LanguageContract {
+  @override
+  bool hasLocalPackEvidence = true;
+  @override
+  bool isMetadataOnly = false;
+}
+
+class MockOptionalFeatureContract implements OptionalFeatureContract {
+  @override
+  bool isTtsAvailable = true;
+}
+
 void main() {
-  group('ProductionAcceptanceGate Tests', () {
-    test('missing mandatory evidence -> notVerified / failed', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: false,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: false,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
+  setUp(() {
+    ProductionAcceptanceGate.resetState();
+  });
+
+  group('ProductionAcceptanceGate - evaluatePromotion', () {
+    test('missing mandatory evidence -> notVerified', () {
+      final contract = MockJ095Contract()..hasMandatoryEvidence = false;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        optionalTtsAvailable: true,
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
-
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.notVerified);
+      expect(result, equals(PromotionEligibility.notVerified));
     });
 
-    test('failed benchmarks (regressions) -> blocked', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: true,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
+    test('stale evidence -> notVerified', () {
+      final contract = MockJ095Contract()..hasStaleEvidence = true;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        optionalTtsAvailable: true,
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
-
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
+      expect(result, equals(PromotionEligibility.notVerified));
     });
 
-    test('corrupt storage / critical failures -> failed', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: false,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
-        isOfflineSafe: true,
-        isStorageGuarded: false,
-        isLifecycleManaged: true,
-        optionalTtsAvailable: true,
-      );
-
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.notVerified);
-    });
-
-    test('optional TTS absence -> degraded', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: false,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
+    test('null J095 contract -> notVerified', () {
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        optionalTtsAvailable: false,
+        j095contract: null,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
-
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.degraded);
+      expect(result, equals(PromotionEligibility.notVerified));
     });
 
-    test('stale evidence -> fail closed', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: false,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
+    test('base app readiness fails -> blocked', () {
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: false, // This makes verifyAppReadiness fail
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: MockJ095Contract(),
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
+      );
+      expect(result, equals(PromotionEligibility.blocked));
+    });
+
+    test('new Dart errors -> blocked', () {
+      final contract = MockJ095Contract()..hasNewDartErrors = true;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        optionalTtsAvailable: true,
-        isStale: true,
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
-
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.notVerified);
+      expect(result, equals(PromotionEligibility.blocked));
     });
 
-    test('existing public API verifyAppReadiness backward compatibility', () {
-      final result = ProductionAcceptanceGate.verifyAppReadiness(
+    test('memory regression -> blocked', () {
+      final contract = MockJ095Contract()..hasMemoryRegression = true;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
-      expect(result, true);
-
-      final resultFalse = ProductionAcceptanceGate.verifyAppReadiness(
-        isOfflineSafe: true,
-        isStorageGuarded: false,
-        isLifecycleManaged: true,
-      );
-      expect(resultFalse, false);
+      expect(result, equals(PromotionEligibility.blocked));
     });
 
-    test('language readiness matrix integration - production ready', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: false,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
+    test('FTS5 regression -> blocked', () {
+      final contract = MockJ095Contract()..hasFTS5Regression = true;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        optionalTtsAvailable: true,
-        languageCode: 'en',
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
-
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.approved);
+      expect(result, equals(PromotionEligibility.blocked));
     });
 
-    test('language readiness matrix integration - not production ready', () {
-      final evidence = AcceptanceEvidence(
-        hasJ025Contract: true,
-        hasJ095Contract: true,
-        dartErrorsDetected: false,
-        memoryRegressionConfirmed: false,
-        fts5RegressionConfirmed: false,
-        normalStartupVerified: true,
-        safeModeVerified: true,
+    test('corrupt storage -> blocked', () {
+      final contract = MockJ095Contract()..hasCorruptStorage = true;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        optionalTtsAvailable: true,
-        languageCode: 'fr',
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
       );
+      expect(result, equals(PromotionEligibility.blocked));
+    });
 
-      final result = ProductionAcceptanceGate.evaluate(evidence);
-      expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.notVerified);
+    test('normal startup not verified -> blocked', () {
+      final contract = MockJ095Contract()..isNormalStartupVerified = false;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
+      );
+      expect(result, equals(PromotionEligibility.blocked));
+    });
+
+    test('safe mode behavior not verified -> blocked', () {
+      final contract = MockJ095Contract()..isSafeModeBehaviorVerified = false;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: contract,
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
+      );
+      expect(result, equals(PromotionEligibility.blocked));
+    });
+
+    test('language pack missing local evidence -> blocked', () {
+      final lang = MockJ025Contract()..hasLocalPackEvidence = false;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: MockJ095Contract(),
+        languages: [lang],
+        optionalFeatures: MockOptionalFeatureContract(),
+      );
+      expect(result, equals(PromotionEligibility.blocked));
+    });
+
+    test('language is metadata only -> blocked', () {
+      final lang = MockJ025Contract()..isMetadataOnly = true;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: MockJ095Contract(),
+        languages: [lang],
+        optionalFeatures: MockOptionalFeatureContract(),
+      );
+      expect(result, equals(PromotionEligibility.blocked));
+    });
+
+    test('optional TTS absent -> degraded (but not blocked)', () {
+      final optional = MockOptionalFeatureContract()..isTtsAvailable = false;
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: MockJ095Contract(),
+        languages: [MockJ025Contract()],
+        optionalFeatures: optional,
+      );
+      expect(result, equals(PromotionEligibility.degraded));
+      expect(ProductionAcceptanceGate.lastApprovedConfiguration, isNotNull);
+    });
+
+    test('all conditions met -> approved', () {
+      final result = ProductionAcceptanceGate.evaluatePromotion(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        j095contract: MockJ095Contract(),
+        languages: [MockJ025Contract()],
+        optionalFeatures: MockOptionalFeatureContract(),
+      );
+      expect(result, equals(PromotionEligibility.approved));
+
+      final config = ProductionAcceptanceGate.lastApprovedConfiguration;
+      expect(config, isNotNull);
+      expect(config!.isOfflineSafe, isTrue);
+      expect(config.isStorageGuarded, isTrue);
+      expect(config.isLifecycleManaged, isTrue);
     });
   });
 }

@@ -1,48 +1,90 @@
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
 import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
 import 'package:deutsch_bilarabi/core/catalog/language_readiness_matrix.dart';
-import 'package:deutsch_bilarabi/core/catalog/language_pair_readiness.dart';
-import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
+import 'dart:collection';
+
+enum PairReadinessState {
+  usable,
+  unsupportedSource,
+  unsupportedTarget,
+  identicalLanguages,
+  missingPack,
+  rejectedPack,
+}
 
 class CatalogReadinessEngine {
-  final Map<String, LanguagePackGateResult> _packStatusCache = {};
+  final Map<String, LanguagePackGateResult> _admittedPacks = {};
 
-  void invalidatePack(String code) {
-    _packStatusCache.remove(code);
+  // Bounded LRU cache to avoid allocating 9,900 pairs in memory.
+  final LinkedHashMap<String, PairReadinessState> _evaluatedPairs =
+      LinkedHashMap<String, PairReadinessState>();
+  final int _maxCacheSize = 100;
+
+  PairReadinessState resolveReadiness(DirectedPairId pair) {
+    final cacheKey = pair.uniqueKey;
+
+    if (_evaluatedPairs.containsKey(cacheKey)) {
+      final state = _evaluatedPairs[cacheKey]!;
+      _evaluatedPairs.remove(cacheKey);
+      _evaluatedPairs[cacheKey] = state;
+      return state;
+    }
+
+    final state = _evaluate(pair);
+
+    _evaluatedPairs[cacheKey] = state;
+    if (_evaluatedPairs.length > _maxCacheSize) {
+      _evaluatedPairs.remove(_evaluatedPairs.keys.first);
+    }
+
+    return state;
   }
 
-  void admitPack(String code, LanguagePackGateResult result) {
-    _packStatusCache[code] = result;
+  PairReadinessState _evaluate(DirectedPairId pair) {
+    if (pair.isReflexive) {
+      return PairReadinessState.identicalLanguages;
+    }
+
+    final sourceTier = LanguageReadinessMatrix.getTier(pair.sourceLocale);
+    if (sourceTier == LanguageReadinessTier.nominal) {
+      return PairReadinessState.unsupportedSource;
+    }
+
+    final targetTier = LanguageReadinessMatrix.getTier(pair.targetLocale);
+    if (targetTier == LanguageReadinessTier.nominal) {
+      return PairReadinessState.unsupportedTarget;
+    }
+
+    final packResult = _admittedPacks[pair.uniqueKey];
+    if (packResult == null) {
+      return PairReadinessState.missingPack;
+    }
+
+    if (packResult.status != PackGateStatus.approved) {
+      return PairReadinessState.rejectedPack;
+    }
+
+    return PairReadinessState.usable;
   }
 
-  PairReadinessState resolvePairReadiness(DirectedPairId pairId) {
-    if (pairId.isReflexive) {
-      return PairReadinessState.reflexive;
-    }
+  void registerPack({
+    required DirectedPairId pair,
+    required String packCode,
+    required int wordCount,
+    required String? checksum,
+  }) {
+    final result = LanguagePackAcceptanceGate.evaluatePack(
+      packCode: packCode,
+      wordCount: wordCount,
+      checksum: checksum,
+    );
 
-    final sourceTier = LanguageReadinessMatrix.getTier(pairId.sourceLocale);
-    final targetTier = LanguageReadinessMatrix.getTier(pairId.targetLocale);
+    _admittedPacks[pair.uniqueKey] = result;
+    _evaluatedPairs.remove(pair.uniqueKey);
+  }
 
-    final targetStatus = _packStatusCache[pairId.targetLocale];
-
-    // Rejected packs make the pair completely unsupported
-    if (targetStatus != null && targetStatus.status == PackGateStatus.rejected) {
-      return PairReadinessState.unsupported;
-    }
-
-    // A pack that is not approved yet is "registered" (if nominal tier) or "verified" (if asset ready but no pack)
-    if (targetStatus == null || targetStatus.status != PackGateStatus.approved) {
-      if (sourceTier == LanguageReadinessTier.nominal || targetTier == LanguageReadinessTier.nominal) {
-        return PairReadinessState.registered;
-      }
-      return PairReadinessState.verified;
-    }
-
-    // We have an approved pack.
-    if (targetTier == LanguageReadinessTier.productionReady && sourceTier == LanguageReadinessTier.productionReady) {
-       return PairReadinessState.usable;
-    }
-
-    // Otherwise it is installed but not production usable yet.
-    return PairReadinessState.installed;
+  void unregisterPack(DirectedPairId pair) {
+    _admittedPacks.remove(pair.uniqueKey);
+    _evaluatedPairs.remove(pair.uniqueKey);
   }
 }
