@@ -1,6 +1,6 @@
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 
-class GermanGrammarProvider implements LanguageGrammarRuleProvider {
+class GermanGrammarProvider extends LanguageGrammarRuleProvider {
   static final GermanGrammarProvider instance =
       GermanGrammarProvider._internal();
   GermanGrammarProvider._internal();
