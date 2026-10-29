@@ -50,10 +50,6 @@ class SrsEngine {
     );
   }
 
-<<<<<<< HEAD
-  /// Legacy compatibility placeholder; NOT a durable progress writer.
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   static Future<void> processReview([
     dynamic p1,
     dynamic p2,
@@ -68,65 +64,29 @@ class SrsEngine {
     required int previousInterval,
     double morphologicalMultiplier = 1.0,
   }) {
-<<<<<<< HEAD
-    if (grade < 0 ||
-        grade > 5 ||
-        repetitions < 0 ||
-        previousInterval < 0 ||
-        !previousEaseFactor.isFinite ||
-        previousEaseFactor <= 0 ||
-        !morphologicalMultiplier.isFinite ||
-        morphologicalMultiplier <= 0) {
-      throw ArgumentError('Malformed legacy SRS review inputs');
-    }
-    var nextRepetitions = repetitions.clamp(0, maxRepetitions).toInt();
-    var nextInterval = previousInterval.clamp(0, maxIntervalDays).toInt();
-    final ease = previousEaseFactor.clamp(1.3, 3.0).toDouble();
-    final multiplier = morphologicalMultiplier.clamp(0.25, 4.0).toDouble();
-=======
     int nextRepetitions = repetitions;
     int nextInterval = previousInterval;
     double nextEaseFactor = previousEaseFactor;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     if (grade >= 3) {
-      if (nextRepetitions == 0) {
+      if (repetitions == 0) {
         nextInterval = 1;
-<<<<<<< HEAD
-      } else if (nextRepetitions == 1) {
-        nextInterval = 6; // Stable legacy policy; no unverified 1.05 change.
-      } else {
-        nextInterval = (nextInterval * ease * multiplier)
-            .round()
-            .clamp(1, maxIntervalDays)
-            .toInt();
-      }
-      nextRepetitions = (nextRepetitions + 1).clamp(0, maxRepetitions).toInt();
-=======
       } else if (repetitions == 1) {
         nextInterval = 6;
       } else {
         nextInterval = (previousInterval * previousEaseFactor * morphologicalMultiplier).round();
       }
       nextRepetitions += 1;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     } else {
       nextRepetitions = 0;
       nextInterval = 1;
     }
 
-<<<<<<< HEAD
-    final nextEaseFactor =
-        (ease + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)))
-            .clamp(1.3, 3.0)
-            .toDouble();
-=======
     nextEaseFactor = previousEaseFactor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
     if (nextEaseFactor < 1.3) {
       nextEaseFactor = 1.3;
     }
 
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return {
       'repetitions': nextRepetitions,
       'interval': nextInterval,
