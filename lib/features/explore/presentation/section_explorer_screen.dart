@@ -378,7 +378,7 @@ class _SectionExplorerScreenState extends State<SectionExplorerScreen> {
                       final item = displayList[index];
                       final pos = item['part_of_speech'] ?? 'noun';
                       final word = item['word'] ?? item['display_text'] ?? '';
- 
+
                       return Directionality(
                         textDirection: isCurrentRtl ? TextDirection.rtl : TextDirection.ltr,
                         child: ListTile(
