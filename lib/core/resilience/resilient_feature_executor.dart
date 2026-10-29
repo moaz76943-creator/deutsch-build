@@ -1,8 +1,6 @@
 import 'dart:async';
 import '../concurrency/cancellation_token.dart';
 import 'recovery_outcome.dart';
-import 'failure_categorization.dart';
-
 
 /// Optional work only. Results from a previous UI/session generation are stale.
 class ResilientFeatureExecutor {

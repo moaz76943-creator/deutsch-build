@@ -20,7 +20,7 @@ class DataIntegritySigner {
 
     // Check for required algorithm metadata
     final algorithm = manifest['algorithm'];
-    if (algorithm != 'fnv1a') return false;
+    if (algorithm is! String || algorithm != 'fnv1a') return false;
 
     // Check for required hash
     final expectedHash = manifest['hash'];

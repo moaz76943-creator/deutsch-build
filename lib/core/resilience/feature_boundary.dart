@@ -1,30 +1,36 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'dart:async';
 import 'bounded_retry_policy.dart';
 import 'feature_recovery_outcome.dart';
-import 'failure_categorization.dart';
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 class FeatureBoundary extends StatefulWidget {
   final String featureName;
   final Widget child;
   final Widget Function(BuildContext context, Object error)? fallbackBuilder;
+<<<<<<< HEAD
   final Widget Function(BuildContext context, FeatureFailureReason reason)?
       degradedBuilder;
   final Future<void> Function()? initializationAction;
   final BoundedRetryPolicy? retryPolicy;
   final String? sessionId;
-  final void Function(Object, StackTrace)? onCriticalFailure;
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   const FeatureBoundary({
     super.key,
     required this.featureName,
     required this.child,
     this.fallbackBuilder,
+<<<<<<< HEAD
     this.degradedBuilder,
     this.initializationAction,
     this.retryPolicy,
     this.sessionId,
-    this.onCriticalFailure,
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   });
 
   @override
@@ -33,14 +39,18 @@ class FeatureBoundary extends StatefulWidget {
 
 class _FeatureBoundaryState extends State<FeatureBoundary> {
   Object? _caughtError;
+<<<<<<< HEAD
   FeatureRecoveryOutcome? _outcome;
-  bool _isInitializing = false;
+  final bool _isInitializing = false;
   String? _activeSessionId;
   bool _isDisposed = false;
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _activeSessionId = widget.sessionId;
     if (widget.initializationAction != null) {
       _runInitialization();
@@ -53,9 +63,6 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
     if (widget.sessionId != oldWidget.sessionId) {
       _activeSessionId = widget.sessionId;
       // Stale callback protection via new sessionId
-      if (widget.initializationAction != null) {
-        _runInitialization();
-      }
     }
   }
 
@@ -66,58 +73,47 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
   }
 
   Future<void> _runInitialization() async {
+    if (_isInitializing) return;
+
     setState(() {
       _isInitializing = true;
-      _caughtError = null;
     });
 
     final policy = widget.retryPolicy ?? BoundedRetryPolicy();
     final currentSession = _activeSessionId;
 
-    try {
-      final outcome = await policy.execute<void>(() async {
-        await widget.initializationAction!();
-      }, sessionId: currentSession, isDisposed: () => _isDisposed || _activeSessionId != currentSession);
+    final outcome = await policy.execute<void>(() async {
+      await widget.initializationAction!();
+    }, sessionId: currentSession, isDisposed: () => _isDisposed);
 
-      if (!mounted || _activeSessionId != currentSession) {
-        // Reject stale callback if session changed or unmounted
-        return;
-      }
-
-      setState(() {
-        _outcome = outcome;
-        _isInitializing = false;
-        if (outcome is RecoveryBlocked) {
-          _caughtError = outcome.message;
-        }
-      });
-    } catch (e, stack) {
-       if (FailureCategorization.isCritical(e)) {
-           // For tests, allow interception without crashing the zone if fallback works
-           if (!mounted) return;
-           setState(() {
-              _isInitializing = false;
-              _caughtError = e;
-           });
-           widget.onCriticalFailure?.call(e, stack);
-       } else {
-           if (!mounted) return;
-           setState(() {
-             _isInitializing = false;
-             _caughtError = e;
-           });
-       }
+    if (!mounted || _activeSessionId != currentSession) {
+      // Reject stale callback if session changed or unmounted
+      return;
     }
+
+    setState(() {
+      _outcome = outcome;
+      _isInitializing = false;
+      if (outcome is RecoveryBlocked) {
+        _caughtError = outcome.message;
+      }
+    });
   }
 
   static Widget _defaultFallback(
       BuildContext context, String featureName, Object? error) {
+=======
+  }
+
+  static Widget _defaultFallback(BuildContext context, String featureName, Object? error) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+<<<<<<< HEAD
             Icon(Icons.error_outline, size: 36, color: Colors.red.shade400),
             const SizedBox(height: 12),
             Text(
@@ -126,6 +122,16 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Colors.red.shade700,
+=======
+            Icon(Icons.auto_awesome, size: 36, color: Colors.blueGrey.shade400),
+            const SizedBox(height: 12),
+            Text(
+              'جاري تحديث $featureName تلقائياً...',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.blueGrey.shade700,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
               ),
             ),
           ],
@@ -133,9 +139,10 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       ),
     );
   }
+<<<<<<< HEAD
 
   static Widget _defaultDegraded(
-      BuildContext context, String featureName, FeatureFailureReason reason, void Function()? onRetry) {
+      BuildContext context, String featureName, FeatureFailureReason reason) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -145,7 +152,7 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
             Icon(Icons.warning_amber, size: 36, color: Colors.orange.shade400),
             const SizedBox(height: 12),
             Text(
-              'حدث خطأ في $featureName',
+              'يعمل $featureName بوضع محدود',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -168,26 +175,7 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
   @override
   Widget build(BuildContext context) {
     if (_isInitializing) {
-      return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.auto_awesome, size: 36, color: Colors.blueGrey.shade400),
-            const SizedBox(height: 12),
-            Text(
-              'جاري تحديث ${widget.featureName} تلقائياً...',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.blueGrey.shade700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_caughtError != null || _outcome is RecoveryBlocked) {
@@ -201,11 +189,21 @@ class _FeatureBoundaryState extends State<FeatureBoundary> {
       return Column(mainAxisSize: MainAxisSize.min, children: [
         widget.degradedBuilder?.call(context, degradedOutcome.reason) ??
             _defaultDegraded(
-                context, widget.featureName, degradedOutcome.reason, _runInitialization),
+                context, widget.featureName, degradedOutcome.reason),
         Flexible(child: widget.child),
       ]);
     }
 
+=======
+
+  @override
+  Widget build(BuildContext context) {
+    if (_caughtError != null) {
+      return widget.fallbackBuilder?.call(context, _caughtError!) ??
+          _defaultFallback(context, widget.featureName, _caughtError);
+    }
+
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     return widget.child;
   }
 }
