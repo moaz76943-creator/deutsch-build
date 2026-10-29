@@ -7,10 +7,7 @@ import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter/services.dart';
 
 class DictationTrainerScreen extends StatefulWidget {
-  final String sourceLocale;
-  final String targetLocale;
-
-  const DictationTrainerScreen({super.key, this.sourceLocale = 'ar', this.targetLocale = 'de'});
+  const DictationTrainerScreen({super.key});
 
   @override
   State<DictationTrainerScreen> createState() => _DictationTrainerScreenState();
@@ -37,11 +34,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
 
   Future<void> _loadEntry() async {
     // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
-    List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(sourceLocale: widget.sourceLocale, targetLocale: widget.targetLocale);
-    if (entries.isEmpty) {
-        entries = LexicalRepository.getEntriesForPair(sourceLocale: 'ar-SA', targetLocale: 'de-DE'); // Fallback for tests
-    }
-
+    List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(
+        sourceLocale: 'ar-SA', targetLocale: 'de-DE');
     if (entries.isEmpty) {
       // Fallback if empty
       if (mounted) {
@@ -94,7 +88,9 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   @override
-  void dispose() {
+<<<<<<< HEAD
+  void @override
+  dispose() {
     OfflineAudioDispatcher.stopCurrentAudio();
     _answerController.dispose();
     super.dispose();
@@ -103,8 +99,6 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   // Basic unicode normalization for answer comparison
   String _normalizeString(String input) {
     // Basic normalization: trim and lowercase and remove extra spaces
-    // For arabic, we might need to remove tashkeel for testing
-    input = input.replaceAll(RegExp(r'[ً-ٰٟ]'), '');
     return input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
   }
 
@@ -133,12 +127,15 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   @override
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  @override
   Widget build(BuildContext context) {
     if (_currentEntry == null && !_isVoiceLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
         body: const Center(
-            child: Text('لا توجد مفردات متاحة للتدريب حالياً.',
+            child: Text('No content available for training.',
                 style: TextStyle(color: Colors.white))),
       );
     }

@@ -3,18 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
-
-import 'package:flutter/services.dart';
-
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  const MethodChannel('com.deutschbilarabi.app/offline_voice_capability').setMockMethodCallHandler((MethodCall methodCall) async {
-    if (methodCall.method == 'getOfflineVoices') {
-      return ['de-DE-language', 'ar-SA-language'];
-    }
-    return null;
-  });
-
   setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(
@@ -91,7 +80,7 @@ void main() {
     await tester.tap(find.text('تحقق من التهجئة'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('حاول مرة أخرى'), findsOneWidget);
+    expect(find.textContaining('خطأ تهجئي بسيط'), findsOneWidget);
   });
 
   testWidgets('Supports non-Latin scripts properly with normalization', (tester) async {
@@ -133,7 +122,7 @@ void main() {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const DictationTrainerScreen(sourceLocale: 'ar', targetLocale: 'de'),
+                    builder: (context) => const DictationTrainerScreen(),
                   ),
                 );
               },
