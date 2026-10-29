@@ -1,8 +1,29 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    const MethodChannel('flutter_tts').setMockMethodCallHandler((MethodCall methodCall) async {
+      if (methodCall.method == 'getVoices') {
+        return [
+          {'name': 'de-DE-default', 'locale': 'de-DE'},
+          {'name': 'en-US-default', 'locale': 'en-US'},
+        ];
+      }
+      if (methodCall.method == 'getLanguages') {
+        return ['de-DE', 'en-US'];
+      }
+      if (methodCall.method == 'stop') {
+        return 1;
+      }
+      return null;
+    });
+  });
 
   test('OfflineAudioPool - Singleton and State Verification', () {
     final pool1 = OfflineAudioPool();
@@ -11,25 +32,16 @@ void main() {
     expect(pool1.isPlaying, isFalse);
   });
 
-  test('OfflineAudioPool - Cancellation bounds queue size', () async {
-    // Note: Due to MissingPluginException in headless unit tests,
-    // we catch exceptions on playWord rather than failing the test.
+  test('OfflineAudioPool - AppLifecycleState.paused triggers stop()', () {
     final pool = OfflineAudioPool();
-    await pool.stop();
-    expect(pool.isPlaying, isFalse);
-
-    pool.playWord("test1").catchError((_) {});
-    pool.playWord("test2").catchError((_) {});
-    pool.playWord("test3").catchError((_) {});
-    pool.playWord("test4").catchError((_) {});
-
-    await pool.stop();
+    pool.didChangeAppLifecycleState(AppLifecycleState.paused);
     expect(pool.isPlaying, isFalse);
   });
 
-  test('OfflineAudioPool - Missing voice gracefully fails', () async {
+  test('OfflineAudioPool - ignores playback if voice is missing', () async {
     final pool = OfflineAudioPool();
-    final isCapable = await pool.verifyOfflineCapability('zz-ZZ');
-    expect(isCapable, isFalse);
+    // ar-SA is not in the mock verified locales
+    await pool.playWord('test', locale: 'ar-SA', generationToken: 1);
+    expect(pool.isPlaying, isFalse);
   });
 }

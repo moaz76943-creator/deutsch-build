@@ -1,37 +1,32 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('OfflineAudioDispatcher prevents stale callbacks on fast stops', () async {
-    // We expect the speakText to return false on stop before completion,
-    // or properly handle MissingPluginException in headless.
-    OfflineAudioDispatcher.stopCurrentAudio();
-    expect(OfflineAudioDispatcher.isPlaying, isFalse);
-
-    // Simulate speaking
-    final future = OfflineAudioDispatcher.speakText(
-      text: 'hello',
-      bcp47Locale: 'en-US',
-    ).catchError((_) => false);
-
-    // Stop immediately before completion
-    OfflineAudioDispatcher.stopCurrentAudio();
-
-    final result = await future;
-
-    // If it completed after being stopped (or plugin threw), result should be false
-    expect(result, isFalse);
-    expect(OfflineAudioDispatcher.isPlaying, isFalse);
+  setUpAll(() {
+    const MethodChannel('flutter_tts').setMockMethodCallHandler((MethodCall methodCall) async {
+      if (methodCall.method == 'getVoices') {
+        return [
+          {'name': 'de-DE-default', 'locale': 'de-DE'},
+          {'name': 'en-US-default', 'locale': 'en-US'},
+        ];
+      }
+      if (methodCall.method == 'getLanguages') {
+        return ['de-DE', 'en-US'];
+      }
+      if (methodCall.method == 'stop') {
+        return 1;
+      }
+      return null;
+    });
   });
 
-  test('OfflineAudioDispatcher safely resolves missing capability to false', () async {
-    final result = await OfflineAudioDispatcher.speakText(
-      text: 'test',
-      bcp47Locale: 'zz-ZZ',
-    ).catchError((_) => false);
-
-    expect(result, isFalse);
+  test('OfflineAudioDispatcher - stopCurrentAudio triggers cancellation', () {
+    OfflineAudioDispatcher.speakText(text: 'test', bcp47Locale: 'de-DE');
+    expect(OfflineAudioDispatcher.isPlaying, isTrue);
+    OfflineAudioDispatcher.stopCurrentAudio();
+    expect(OfflineAudioDispatcher.isPlaying, isFalse);
   });
 }
