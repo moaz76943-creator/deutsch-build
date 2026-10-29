@@ -13,7 +13,7 @@ concurrency:
 jobs:
   release:
     if: github.repository == 'sali97m-cpu/deutsch-bilarabi' && github.ref_name == 'main' && vars.LOCAL_RELEASE_RUNNER_ENABLED == 'true'
-    runs-on: [self-hosted, linux, android-build]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout canonical main
