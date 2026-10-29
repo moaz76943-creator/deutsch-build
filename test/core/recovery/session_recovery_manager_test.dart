@@ -21,13 +21,15 @@ void main() {
         sessionId: 'sess_123',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 5,
+<<<<<<< HEAD
         timestamp: nowSec,
+=======
+        timestamp: 1728468000,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       );
 
       await recoveryManager.persistSession(session);
-      final restored = recoveryManager.restoreSession(
-        currentTimestamp: nowSec,
-      );
+      final restored = recoveryManager.restoreSession();
 
       expect(restored, isNotNull);
       expect(restored?.sessionId, 'sess_123');
@@ -53,7 +55,11 @@ void main() {
         sessionId: 'sess_456',
         currentRoute: '/home',
         lastItemIndex: 0,
+<<<<<<< HEAD
         timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+=======
+        timestamp: 1728468100,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       );
       await recoveryManager.persistSession(session);
       await recoveryManager.clearSession();

@@ -91,7 +91,7 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        isRouteValid: (route) => route == '/valid_route',
+        isValidRoute: (route) => route == '/valid_route',
       );
 
       expect(restored, isNull);
