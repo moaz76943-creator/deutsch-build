@@ -51,7 +51,7 @@ class HybridAudioService {
     void Function(String message)? onUnavailable,
   }) async {
     if (text.trim().isEmpty) return false;
-    final tag = _tts.getTtsLocale(languageCode);
+    final tag = LanguagePackManager.resolveTtsLocale(languageCode);
     void unavailable() {
       final message = fallbackMessage(languageCode, ipa: ipa);
       try {

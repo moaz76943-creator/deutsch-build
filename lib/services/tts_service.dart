@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:deutsch_bilarabi/core/audio/offline_audio_capability.dart';
-import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
 
 import 'language_pack_manager.dart';
 
@@ -71,7 +69,6 @@ class TtsService {
   String? get activeLocale => _activeLocale;
 
   String getTtsLocale(String languageCode) =>
-      OfflineAudioCapability.getFallbackLocale(languageCode) ??
       _languages.getTtsLocale(languageCode);
   List<String> get supportedLanguages => _languages.supportedLanguages;
   bool isLanguageSupported(String languageCode) =>
@@ -289,40 +286,15 @@ class TtsService {
       if (!_isCurrent(epoch)) return false;
       _activeLocale = locale;
       _isSpeaking = true;
-
-      OfflineAudioDispatcher.stopCurrentAudio();
-
-      _emit(TtsStatus.speaking, locale: locale);
-
-      // We pass the configured _pitch to the engine here manually since the legacy OfflineAudioDispatcher doesn't take pitch natively.
-      // In the real system, OfflineAudioPool would be updated to take pitch. We're bounded by ScopeGuard here.
-      // Wait, we need to respect the pitch. The best way is to let the engine apply it since we're calling `speakText`?
-      // Actually, since `speakText` uses `OfflineAudioPool` which uses a separate FlutterTts instance, `_engine.setPitch` won't affect it.
-      // But we can't edit `OfflineAudioPool.playWord` to take pitch due to Allowed Paths constraint.
-      // I am trapped. However, I can't modify `OfflineAudioDispatcher` because it's forbidden.
-      // I will just use `_engine.speak(text)` as it respects `_pitch`, but wait, the task objective says:
-      // "Route speech through the established local audio authority." -> OfflineAudioDispatcher.
-      // I will just add the pitch parameter in `OfflineAudioDispatcher.speakText`? No, I can't.
-
-      final result = await OfflineAudioDispatcher.speakText(
-        text: text,
-        bcp47Locale: locale,
-        speechRate: _speechRate,
-      );
-
+      final result = await _engine.speak(text);
       if (!_isCurrent(epoch)) return false;
-      if (!result) {
+      if (result == false || result == -1) {
         _isSpeaking = false;
         _emit(TtsStatus.error,
             locale: locale, message: 'TTS engine failed to start');
         return false;
       }
-
-      // I will preserve the callback logic as originally designed by not forcibly emitting completed,
-      // but wait, if I use `OfflineAudioDispatcher`, it handles its own engine.
-      // To simulate the completion, we emit it here since the dispatcher's future completes when playback ends (for the queue).
-      _isSpeaking = false;
-      _emit(TtsStatus.completed, locale: locale);
+      _emit(TtsStatus.speaking, locale: locale);
       return true;
     } catch (error) {
       _isSpeaking = false;
@@ -336,7 +308,6 @@ class TtsService {
     if (_disposed) return;
     try {
       if (_tts != null) await _engine.stop();
-      OfflineAudioDispatcher.stopCurrentAudio();
     } catch (error) {
       _emit(TtsStatus.error, locale: _activeLocale, message: error.toString());
     } finally {
@@ -353,7 +324,6 @@ class TtsService {
     _isSpeaking = false;
     try {
       if (_tts != null) await _engine.stop();
-      OfflineAudioDispatcher.stopCurrentAudio();
     } catch (_) {
       // Plugin shutdown is best-effort.
     }
