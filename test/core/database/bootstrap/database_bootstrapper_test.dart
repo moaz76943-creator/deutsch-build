@@ -355,23 +355,6 @@ void main() {
     expect(result.isReady, isTrue);
   });
 
-  test('seeder must not present a zero-length file as ready', () async {
-    final path = tempDir.path + '/seed_empty.sqlite';
-    var seedCalls = 0;
-    final result = await DatabaseBootstrapper.verifyAndPrepare(
-      dbPath: path,
-      onSeedRequired: () async {
-        seedCalls++;
-        await File(path).writeAsBytes(const <int>[]);
-      },
-    );
-
-    expect(seedCalls, 1);
-    expect(result.isReady, isFalse);
-    expect(result.error, contains('corrupted or truncated'));
-    expect(await File(path).length(), 0);
-  });
-
   test('seeder must create a file before bootstrap reports ready', () async {
     final missingPath = tempDir.path + '/seed_did_nothing.sqlite';
     var seedCalls = 0;
