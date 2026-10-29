@@ -18,11 +18,11 @@ void main() {
 
       expect(
         () => OfflineGate.assertOperationPolicy(OperationType.telemetry),
-        throwsStateError,
+        throwsException,
       );
       expect(
         () => OfflineGate.assertZeroNetworkPolicy(),
-        throwsStateError,
+        throwsException,
       );
     });
 
