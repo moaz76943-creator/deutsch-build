@@ -1,167 +1,110 @@
 import 'dart:async';
 import 'dart:collection';
 
-/// An ownership token. Its disposed state is kept on the token itself instead
-/// of in the global registry, so releasing thousands of screens stays O(active).
-class LifecycleOwner {
+class _LifecycleEntry {
+  final FutureOr<void> Function() dispose;
+  final Object? owner;
+  const _LifecycleEntry(this.dispose, this.owner);
+}
+
+
+/// Prefer one token per screen/session. Disposal stays on the token itself,
+/// so the singleton need not retain a reference to each retired owner.
+class LifecycleOwnerToken {
   bool _disposed = false;
   bool get isDisposed => _disposed;
 }
-
-class _LifecycleEntry {
-  _LifecycleEntry(this.dispose, this.owner);
-  final FutureOr<void> Function() dispose;
-  final Object? owner;
-}
-
-/// Tracks temporary UI resources; never owns persistent learner data.
+/// Scoped, idempotent cleanup. Disposed owner tombstones are explicitly bounded,
+/// unlike the unbounded singleton set in the proposed J079 implementation.
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
-  static const int maxTrackedResources = 4096;
-  static const int maxLegacyOwnerTombstones = 256;
-  static const Duration disposerTimeout = Duration(seconds: 5);
+  static const int maxRememberedOwners = 128;
+  static const Duration cleanupTimeout = Duration(seconds: 2);
 
-  final List<_LifecycleEntry> _entries = <_LifecycleEntry>[];
-  final LinkedHashSet<Object> _legacyDisposedOwners = LinkedHashSet<Object>();
-  final List<void Function()> _memoryPressureListeners = <void Function()>[];
+  final List<_LifecycleEntry> _entries = [];
+  final LinkedHashSet<Object> _disposedOwners = LinkedHashSet<Object>();
   bool _isDisposed = false;
 
-  bool get isDisposed => _isDisposed;
-  int get trackedResourceCount => _entries.length;
-  int get legacyTombstoneCount => _legacyDisposedOwners.length;
-
-  void registerSubscription(
-    StreamSubscription<dynamic> subscription, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(subscription.cancel, owner: owner ?? ownerKey);
+  void registerSubscription(StreamSubscription<dynamic> sub, {Object? owner}) {
+    registerResource(sub.cancel, owner: owner);
   }
 
-  void registerTimer(
-    Timer timer, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(timer.cancel, owner: owner ?? ownerKey);
+  void registerTimer(Timer timer, {Object? owner}) {
+    registerResource(timer.cancel, owner: owner);
   }
 
-  void registerCleanupCallback(
-    FutureOr<void> Function() callback, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    registerResource(callback, owner: owner ?? ownerKey);
-  }
-
-  void registerResource(
-    FutureOr<void> Function() onDispose, {
-    Object? owner,
-    String? ownerKey,
-  }) {
-    final effectiveOwner = owner ?? ownerKey;
-    if (_isDisposed ||
-        (effectiveOwner is LifecycleOwner && effectiveOwner.isDisposed) ||
-        (effectiveOwner != null && _legacyDisposedOwners.contains(effectiveOwner))) {
-      _disposeLate(onDispose);
+  void registerResource(FutureOr<void> Function() onDispose, {Object? owner}) {
+    final ownerDisposed = owner is LifecycleOwnerToken
+        ? owner.isDisposed
+        : owner != null && _disposedOwners.contains(owner);
+    if (_isDisposed || ownerDisposed) {
+      // Execute synchronously when possible, while safely observing async errors.
+      try {
+        final result = onDispose();
+        if (result is Future) {
+          unawaited(result.timeout(cleanupTimeout).then<void>(
+            (_) {},
+            onError: (Object _, StackTrace __) {},
+          ));
+        }
+      } catch (_) {
+        // An independent disposer must not crash a lifecycle transition.
+      }
       return;
     }
-    if (_entries.length >= maxTrackedResources) {
-      _disposeLate(onDispose);
-      throw StateError('Lifecycle resource capacity exceeded');
-    }
-    _entries.add(_LifecycleEntry(onDispose, effectiveOwner));
+    _entries.add(_LifecycleEntry(onDispose, owner));
   }
 
-  void registerMemoryPressureListener(void Function() listener) {
-    if (_isDisposed) return;
-    _memoryPressureListeners.add(listener);
-  }
-
-  void unregisterMemoryPressureListener(void Function() listener) {
-    _memoryPressureListeners.remove(listener);
-  }
-
-  void notifyMemoryPressure() {
-    if (_isDisposed) return;
-    for (final listener in List<void Function()>.from(_memoryPressureListeners)) {
-      try {
-        listener();
-      } catch (_) {}
+  Future<void> _disposeEntry(_LifecycleEntry entry) async {
+    try {
+      await Future<void>.sync(entry.dispose).timeout(cleanupTimeout);
+    } catch (_) {
+      // Failure or timeout cannot prevent other resources being released.
     }
   }
-
-  Future<void> disposeOwner(String ownerKey) => disposeByOwner(ownerKey);
 
   Future<void> disposeByOwner(Object owner) async {
     if (_isDisposed) return;
-    if (owner is LifecycleOwner) {
+    if (owner is LifecycleOwnerToken) {
+      // This is a lifetime property on the token, not a global strong ref.
       owner._disposed = true;
     } else {
-      // Bounded fallback for old primitive owner IDs.
-      _legacyDisposedOwners.remove(owner);
-      _legacyDisposedOwners.add(owner);
-      if (_legacyDisposedOwners.length > maxLegacyOwnerTombstones) {
-        _legacyDisposedOwners.remove(_legacyDisposedOwners.first);
+      // Compatibility fallback for pre-existing string/object owners.
+      _disposedOwners.remove(owner);
+      _disposedOwners.add(owner);
+      while (_disposedOwners.length > maxRememberedOwners) {
+        _disposedOwners.remove(_disposedOwners.first);
       }
     }
 
-    final disposing = <_LifecycleEntry>[];
-    _entries.removeWhere((entry) {
-      if (identical(entry.owner, owner) || entry.owner == owner) {
-        disposing.add(entry);
-        return true;
-      }
-      return false;
-    });
-    for (final entry in disposing.reversed) {
-      await _safeDispose(entry.dispose);
+    final owned = _entries.where((entry) => entry.owner == owner).toList();
+    _entries.removeWhere((entry) => entry.owner == owner);
+    for (final entry in owned.reversed) {
+      await _disposeEntry(entry);
     }
   }
 
   Future<void> disposeAll() async {
     if (_isDisposed) return;
     _isDisposed = true;
-    final disposing = _entries.reversed.toList(growable: false);
+    final entries = _entries.reversed.toList();
     _entries.clear();
-    _legacyDisposedOwners.clear();
-    for (final entry in disposing) {
-      if (entry.owner is LifecycleOwner) {
-        (entry.owner! as LifecycleOwner)._disposed = true;
-      }
-      await _safeDispose(entry.dispose);
+    _disposedOwners.clear();
+    for (final entry in entries) {
+      await _disposeEntry(entry);
     }
   }
 
-  Future<void> _safeDispose(FutureOr<void> Function() disposer) async {
-    try {
-      await Future<void>.sync(disposer).timeout(disposerTimeout);
-    } catch (_) {
-      // One invalid resource must not prevent independent resource cleanup.
-    }
-  }
+  bool get isDisposed => _isDisposed;
 
-  void _disposeLate(FutureOr<void> Function() disposer) {
-    try {
-      final result = disposer();
-      if (result is Future) {
-        result.timeout(disposerTimeout).then<void>((_) {},
-            onError: (Object _, StackTrace __) {});
-      }
-    } catch (_) {
-      // A synchronous late disposer is also best-effort.
-    }
-  }
+  // Observability for deterministic bounded-memory tests.
+  int get rememberedDisposedOwnerCount => _disposedOwners.length;
 
-  /// Tests only. Not a production lifecycle resurrection API.
   void resetForTesting() {
     _entries.clear();
-    _legacyDisposedOwners.clear();
-    _memoryPressureListeners.clear();
+    _disposedOwners.clear();
     _isDisposed = false;
   }
-
-  void reset() => resetForTesting();
 }

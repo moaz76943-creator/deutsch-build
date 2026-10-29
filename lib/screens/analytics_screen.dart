@@ -29,7 +29,7 @@ class AnalyticsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Expanded(child: Text('--%', softWrap: true, style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32))),
+                        Text('--%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
                         const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
                       ],
                     ),
@@ -79,21 +79,18 @@ class AnalyticsScreen extends StatelessWidget {
               Text('النشاط الأسبوعي للمراجعة', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 10),
               AppBaseGlassCard(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _bar('سبت', 0.4),
-                      _bar('أحد', 0.7),
-                      _bar('اثنين', 0.9),
-                      _bar('ثلاثاء', 0.5),
-                      _bar('أربعاء', 0.85),
-                      _bar('خميس', 1.0, isHighest: true),
-                      _bar('جمعة', 0.3),
-                    ],
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _bar('سبت', 0.4),
+                    _bar('أحد', 0.7),
+                    _bar('اثنين', 0.9),
+                    _bar('ثلاثاء', 0.5),
+                    _bar('أربعاء', 0.85),
+                    _bar('خميس', 1.0, isHighest: true),
+                    _bar('جمعة', 0.3),
+                  ],
                 ),
               ),
             ],

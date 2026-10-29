@@ -1,6 +1,6 @@
 import 'dart:io';
 
-enum DatabaseInstallStatus { installed, alreadyExists, corrupted, failed, rejected }
+enum DatabaseInstallStatus { installed, alreadyExists, corrupted, failed }
 
 class DatabaseInstallResult {
   final DatabaseInstallStatus status;
@@ -14,9 +14,12 @@ class AtomicDatabaseInstaller {
   static Future<DatabaseInstallResult> installDatabaseAtomically({
     required String sourcePath,
     required String targetPath,
-    Future<bool> Function(File file)? verifier,
-    Future<void> Function(File file, String reason)? onQuarantine,
   }) async {
+    final targetFile = File(targetPath);
+    if (await targetFile.exists()) {
+      return const DatabaseInstallResult(DatabaseInstallStatus.alreadyExists);
+    }
+
     final tempPath = '$targetPath.tmp';
     final tempFile = File(tempPath);
 
@@ -39,21 +42,6 @@ class AtomicDatabaseInstaller {
           DatabaseInstallStatus.corrupted,
           'حجم الملف المنسوخ فارغ',
         );
-      }
-
-      if (verifier != null) {
-        final isValid = await verifier(tempFile);
-        if (!isValid) {
-          if (onQuarantine != null) {
-             await onQuarantine(tempFile, 'Validation failed during atomic install');
-          } else {
-             if (await tempFile.exists()) await tempFile.delete();
-          }
-          return const DatabaseInstallResult(
-            DatabaseInstallStatus.rejected,
-            'Verification failed',
-          );
-        }
       }
 
       // نقل ذري للمسار النهائي

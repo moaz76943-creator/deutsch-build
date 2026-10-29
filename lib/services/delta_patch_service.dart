@@ -95,13 +95,6 @@ class DeltaPatchService {
       if (check.length != 1 || check.first.values.first != 'ok') {
         throw StateError('SQLite integrity check failed');
       }
-      // integrity_check does not report orphaned foreign keys. Reject a
-      // candidate with broken references before replacing last-known-good,
-      // even when SQLite foreign_keys enforcement was disabled by the opener.
-      final foreignKeyViolations = await db.rawQuery('PRAGMA foreign_key_check');
-      if (foreignKeyViolations.isNotEmpty) {
-        throw StateError('SQLite foreign key check failed');
-      }
       await db.close();
       db = null;
       final digest = await _sha(staged);

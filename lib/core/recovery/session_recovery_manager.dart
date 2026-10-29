@@ -1,10 +1,17 @@
-import 'dart:async';
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Navigation metadata only. SRS transactions are never replayed by recovery.
+/// Checkpoint metadata only; SRS progress is owned by its transactional store.
 class SessionState {
+  final String sessionId;
+  final String currentRoute;
+  final int lastItemIndex;
+  final int timestamp;
+  final String sourceLocale;
+  final String targetLocale;
+  final String semanticVersion;
+  final List<String> committedReviewIds;
+
   SessionState({
     required this.sessionId,
     required this.currentRoute,
@@ -13,158 +20,100 @@ class SessionState {
     this.sourceLocale = '',
     this.targetLocale = '',
     this.semanticVersion = '',
-    String? languagePairKey,
-    List<String> committedReviewIds = const <String>[],
-  })  : _languagePairKey = languagePairKey,
-        committedReviewIds = List<String>.unmodifiable(committedReviewIds);
+    this.committedReviewIds = const [],
+  });
 
-  final String sessionId;
-  final String currentRoute;
-  final int lastItemIndex;
-  final int timestamp;
-  final String sourceLocale;
-  final String targetLocale;
-  final String semanticVersion;
-  final String? _languagePairKey;
-  final List<String> committedReviewIds;
+  Map<String, dynamic> toMap() => {
+    'session_id': sessionId,
+    'current_route': currentRoute,
+    'last_item_index': lastItemIndex,
+    'timestamp': timestamp,
+    'source_locale': sourceLocale,
+    'target_locale': targetLocale,
+    'semantic_version': semanticVersion,
+    'committed_review_ids': committedReviewIds,
+  };
 
-  String? get languagePairKey =>
-      (sourceLocale.isNotEmpty && targetLocale.isNotEmpty)
-          ? '${sourceLocale}_$targetLocale'
-          : _languagePairKey;
-
-  Map<String, dynamic> toMap() => <String, dynamic>{
-        'session_id': sessionId,
-        'current_route': currentRoute,
-        'last_item_index': lastItemIndex,
-        'timestamp': timestamp,
-        'source_locale': sourceLocale,
-        'target_locale': targetLocale,
-        'semantic_version': semanticVersion,
-        if (languagePairKey != null) 'language_pair_key': languagePairKey,
-        'committed_review_ids': committedReviewIds,
-      };
-
-  factory SessionState.fromMap(Map<String, dynamic> map) {
-    final source = map['source_locale'] as String? ?? '';
-    final target = map['target_locale'] as String? ?? '';
-    final pairKey = map['language_pair_key'] as String?;
-    String effectiveSource = source;
-    String effectiveTarget = target;
-    if (effectiveSource.isEmpty &&
-        effectiveTarget.isEmpty &&
-        pairKey != null &&
-        pairKey.contains('_')) {
-      final parts = pairKey.split('_');
-      effectiveSource = parts[0];
-      effectiveTarget = parts[1];
-    }
-    return SessionState(
-      sessionId: map['session_id'] as String,
-      currentRoute: map['current_route'] as String,
-      lastItemIndex: map['last_item_index'] as int,
-      timestamp: map['timestamp'] as int,
-      sourceLocale: effectiveSource,
-      targetLocale: effectiveTarget,
-      semanticVersion: map['semantic_version'] as String? ?? '',
-      languagePairKey: pairKey,
-      committedReviewIds:
-          (map['committed_review_ids'] as List<dynamic>? ?? const <dynamic>[])
-              .cast<String>(),
-    );
-  }
+  factory SessionState.fromMap(Map<String, dynamic> map) => SessionState(
+    sessionId: map['session_id'] as String,
+    currentRoute: map['current_route'] as String,
+    lastItemIndex: map['last_item_index'] as int,
+    timestamp: map['timestamp'] as int,
+    sourceLocale: map['source_locale'] as String? ?? '',
+    targetLocale: map['target_locale'] as String? ?? '',
+    semanticVersion: map['semantic_version'] as String? ?? '',
+    committedReviewIds: (map['committed_review_ids'] as List<dynamic>?)
+        ?.map((item) => item as String).toList(growable: false) ?? const [],
+  );
 }
 
 class CheckpointEnvelope {
-  static const int currentVersion = 2;
-
-  const CheckpointEnvelope({
-    this.version = currentVersion,
-    required this.state,
-    this.recoveryAttempts = 0,
-  });
-
   final int version;
   final SessionState state;
   final int recoveryAttempts;
 
-  Map<String, dynamic> toMap() => <String, dynamic>{
-        'version': version,
-        'state': state.toMap(),
-        'recovery_attempts': recoveryAttempts,
-        'recoveryAttempts': recoveryAttempts,
-      };
+  const CheckpointEnvelope({
+    required this.version,
+    required this.state,
+    this.recoveryAttempts = 0,
+  });
 
-  factory CheckpointEnvelope.fromMap(Map<String, dynamic> value) {
-    if (!value.containsKey('version')) {
-      return CheckpointEnvelope(
-        version: 1,
-        state: SessionState.fromMap(value),
-        recoveryAttempts: 0,
-      );
-    }
-    final rawState = value['state'];
-    final stateMap = rawState is Map
-        ? Map<String, dynamic>.from(rawState)
-        : <String, dynamic>{};
+  Map<String, dynamic> toMap() => {
+    'version': version,
+    'state': state.toMap(),
+    'recovery_attempts': recoveryAttempts,
+  };
+
+  factory CheckpointEnvelope.fromMap(Map<String, dynamic> map) {
     return CheckpointEnvelope(
-      version: value['version'] as int? ?? currentVersion,
-      state: SessionState.fromMap(stateMap),
-      recoveryAttempts: (value['recovery_attempts'] ?? value['recoveryAttempts'])
-              as int? ??
-          0,
+      version: map['version'] as int,
+      state: SessionState.fromMap(map['state'] as Map<String, dynamic>),
+      recoveryAttempts: map['recovery_attempts'] as int? ?? 0,
     );
   }
 }
 
 class SessionRecoveryManager {
-  SessionRecoveryManager(
-    this._preferences, {
-    int Function()? clock,
-    this.maxRecoveryAttempts = 3,
-    this.maxCheckpointAgeMs = 24 * 60 * 60 * 1000,
-  })  : assert(maxRecoveryAttempts > 0),
-        assert(maxCheckpointAgeMs > 0),
-        _clock = clock ?? (() => DateTime.now().millisecondsSinceEpoch);
-
   static const String _storageKey = 'deutsch_active_session_recovery_v1';
   static const int checkpointVersion = 2;
-  static const int maxCommittedReviewIds = 256;
-  static const int maxCheckpointBytes = 128 * 1024;
-
-  static Future<void> _storageTail = Future<void>.value();
-  static Future<T> _exclusively<T>(Future<T> Function() operation) async {
-    final previous = _storageTail;
-    final completion = Completer<void>();
-    _storageTail = completion.future;
-    await previous;
-    try {
-      return await operation();
-    } finally {
-      completion.complete();
-    }
-  }
-
-  final SharedPreferences _preferences;
+  static const int maxReviewIds = 256;
+  static const int maxCheckpointBytes = 64 * 1024;
+  // Process-local reservation gate. SharedPreferences is not transactional;
+  // duplicate simultaneous callbacks must not both consume the same attempt.
+  static bool _recoveryReservationInFlight = false;
+  final SharedPreferences _prefs;
   final int Function() _clock;
   final int maxRecoveryAttempts;
   final int maxCheckpointAgeMs;
-  SessionState? _activatedState;
 
-  Future<void> persistSession(SessionState state, {int attempts = 0}) =>
-      _exclusively(() => _persistUnlocked(state, attempts: attempts));
+  SessionRecoveryManager(
+    this._prefs, {
+    int Function()? clock,
+    this.maxRecoveryAttempts = 3,
+    this.maxCheckpointAgeMs = 24 * 60 * 60 * 1000,
+  }) : _clock = clock ?? (() => DateTime.now().millisecondsSinceEpoch);
 
-  Future<void> _persistUnlocked(SessionState state, {int attempts = 0}) async {
-    if (!_hasValidCoreFields(state) ||
-        state.committedReviewIds.length > maxCommittedReviewIds ||
-        attempts < 0) {
-      throw ArgumentError('Invalid session checkpoint');
+  bool _valid(SessionState state) {
+    if (state.sessionId.trim().isEmpty || state.sessionId.length > 128 ||
+        !state.currentRoute.startsWith('/') ||
+        state.currentRoute.contains('..') || state.currentRoute.length > 256 ||
+        state.lastItemIndex < 0 || state.timestamp <= 0 ||
+        state.sourceLocale.isEmpty || state.targetLocale.isEmpty ||
+        state.sourceLocale.length > 40 || state.targetLocale.length > 40 ||
+        state.semanticVersion.length > 80 ||
+        state.committedReviewIds.length > maxReviewIds) {
+      return false;
     }
     final seen = <String>{};
     for (final id in state.committedReviewIds) {
-      if (id.isEmpty || id.length > 128 || !seen.add(id)) {
-        throw ArgumentError('Invalid or duplicate committed review ID');
-      }
+      if (id.isEmpty || id.length > 128 || !seen.add(id)) return false;
+    }
+    return true;
+  }
+
+  Future<void> persistSession(SessionState state, {int attempts = 0}) async {
+    if (!_valid(state) || attempts < 0 || attempts > maxRecoveryAttempts) {
+      throw ArgumentError('Invalid checkpoint metadata');
     }
     final raw = jsonEncode(CheckpointEnvelope(
       version: checkpointVersion,
@@ -172,163 +121,98 @@ class SessionRecoveryManager {
       recoveryAttempts: attempts,
     ).toMap());
     if (utf8.encode(raw).length > maxCheckpointBytes) {
-      throw ArgumentError('Session checkpoint exceeds byte limit');
+      throw ArgumentError('Checkpoint exceeds bounded metadata storage');
     }
-    if (!await _preferences.setString(_storageKey, raw)) {
-      throw StateError('Checkpoint persistence was not acknowledged');
+    if (!await _prefs.setString(_storageKey, raw)) {
+      throw StateError('Checkpoint write not confirmed');
     }
   }
 
-  CheckpointEnvelope? _readEnvelope() {
-    final raw = _preferences.getString(_storageKey);
-    if (raw == null ||
-        raw.isEmpty ||
-        raw.length > maxCheckpointBytes ||
-        utf8.encode(raw).length > maxCheckpointBytes) {
+  CheckpointEnvelope? _validatedCheckpoint({
+    required String? expectedSourceLocale,
+    required String? expectedTargetLocale,
+    required bool Function(String)? isValidRoute,
+  }) {
+    // Never auto-restore an unknown pair or an unchecked route.
+    if (expectedSourceLocale == null || expectedSourceLocale.isEmpty ||
+        expectedTargetLocale == null || expectedTargetLocale.isEmpty ||
+        isValidRoute == null || maxRecoveryAttempts <= 0 ||
+        maxCheckpointAgeMs <= 0) {
+      return null;
+    }
+    final raw = _prefs.getString(_storageKey);
+    if (raw == null || raw.isEmpty || utf8.encode(raw).length > maxCheckpointBytes) {
       return null;
     }
     try {
-      final parsed = jsonDecode(raw);
-      if (parsed is! Map) return null;
-      final envelope =
-          CheckpointEnvelope.fromMap(Map<String, dynamic>.from(parsed));
-      final ids = envelope.state.committedReviewIds;
-      if ((envelope.version != 1 && envelope.version != checkpointVersion) ||
-          envelope.recoveryAttempts < 0 ||
-          !_hasValidCoreFields(envelope.state) ||
-          ids.length > maxCommittedReviewIds ||
-          ids.any((id) => id.isEmpty || id.length > 128) ||
-          ids.toSet().length != ids.length) {
+      final env = CheckpointEnvelope.fromMap(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
+      final state = env.state;
+      final age = _clock() - state.timestamp;
+      if (env.version != checkpointVersion ||
+          env.recoveryAttempts < 0 ||
+          env.recoveryAttempts >= maxRecoveryAttempts ||
+          !_valid(state) ||
+          state.sourceLocale != expectedSourceLocale ||
+          state.targetLocale != expectedTargetLocale ||
+          age < 0 || age > maxCheckpointAgeMs ||
+          !isValidRoute(state.currentRoute)) {
         return null;
       }
-      return envelope;
+      return env;
     } catch (_) {
+      // Keep the checkpoint for diagnosis; never mutate learner progress.
       return null;
     }
   }
 
-  bool _hasValidCoreFields(SessionState state) =>
-      state.sessionId.isNotEmpty &&
-      state.sessionId.length <= 128 &&
-      state.currentRoute.startsWith('/') &&
-      state.currentRoute.length <= 256 &&
-      state.lastItemIndex >= 0 &&
-      state.timestamp > 0;
-
-  /// General or legacy recovery inspection.
+  /// Compatibility reader. Read-only, fail-closed: never consumes an attempt
+  /// or restores a session without independently supplied pair/route identity.
   SessionState? restoreSession({
-    String? expectedLanguagePair,
-    List<String>? validRoutes,
-    bool Function(String route)? isDestinationValid,
-  }) {
-    final envelope = _readEnvelope();
-    if (envelope == null) return null;
-    final state = envelope.state;
+    String? expectedSourceLocale,
+    String? expectedTargetLocale,
+    bool Function(String)? isValidRoute,
+  }) => _validatedCheckpoint(
+    expectedSourceLocale: expectedSourceLocale,
+    expectedTargetLocale: expectedTargetLocale,
+    isValidRoute: isValidRoute,
+  )?.state;
 
-    if (envelope.recoveryAttempts >= maxRecoveryAttempts) {
-      clearSession();
-      return null;
-    }
-
-    final now = _clock();
-    if (now - state.timestamp > maxCheckpointAgeMs) {
-      clearSession();
-      return null;
-    }
-
-    if (expectedLanguagePair != null) {
-      final pairKey = state.languagePairKey;
-      if (pairKey != null && pairKey != expectedLanguagePair) {
-        clearSession();
-        return null;
-      }
-    }
-
-    if (validRoutes != null && !validRoutes.contains(state.currentRoute)) {
-      clearSession();
-      return null;
-    }
-
-    if (isDestinationValid != null && !isDestinationValid(state.currentRoute)) {
-      clearSession();
-      return null;
-    }
-
-    return state;
-  }
-
-  /// Activation is strictly pair-scoped and one-shot per manager lifetime.
-  /// Durable recovery-attempt accounting completes before the caller receives
-  /// any restorable state; simultaneous callers cannot double-navigate.
-  Future<SessionState?> restoreForPair({
+  /// Reserve an attempt *durably before* presenting the restored session.
+  /// Call this for actual recovery rather than the read-only compatibility API.
+  Future<SessionState?> restoreAndMarkAttempt({
     required String expectedSourceLocale,
     required String expectedTargetLocale,
     required bool Function(String) isValidRoute,
-    String? expectedSemanticVersion,
-  }) =>
-      _exclusively(() async {
-        if (_activatedState != null ||
-            expectedSourceLocale.isEmpty ||
-            expectedTargetLocale.isEmpty) {
-          return null;
-        }
-        final envelope = _readEnvelope();
-        if (envelope == null ||
-            envelope.version != checkpointVersion ||
-            envelope.recoveryAttempts >= maxRecoveryAttempts) {
-          return null;
-        }
-        final state = envelope.state;
-        if (state.sourceLocale.isEmpty ||
-            state.targetLocale.isEmpty ||
-            state.sourceLocale != expectedSourceLocale ||
-            state.targetLocale != expectedTargetLocale ||
-            (expectedSemanticVersion != null &&
-                (state.semanticVersion.isEmpty ||
-                    state.semanticVersion != expectedSemanticVersion)) ||
-            !isValidRoute(state.currentRoute)) {
-          return null;
-        }
-        final age = _clock() - state.timestamp;
-        if (age < 0 || age > maxCheckpointAgeMs) return null;
-        try {
-          await _persistUnlocked(
-            state,
-            attempts: envelope.recoveryAttempts + 1,
-          );
-          _activatedState = state;
-          return state;
-        } catch (_) {
-          return null;
-        }
-      });
+  }) async {
+    // Reserve synchronously before the first await so two UI callbacks
+    // cannot independently read the same recovery counter.
+    if (_recoveryReservationInFlight) return null;
+    _recoveryReservationInFlight = true;
+    try {
+      final envelope = _validatedCheckpoint(
+        expectedSourceLocale: expectedSourceLocale,
+        expectedTargetLocale: expectedTargetLocale,
+        isValidRoute: isValidRoute,
+      );
+      if (envelope == null) return null;
+      try {
+        await persistSession(
+          envelope.state,
+          attempts: envelope.recoveryAttempts + 1,
+        );
+      } catch (_) {
+        // Never expose a checkpoint when its reservation was not persisted.
+        return null;
+      }
+      return envelope.state;
+    } finally {
+      _recoveryReservationInFlight = false;
+    }
+  }
 
-  /// Only the exact, previously activated directed session can acknowledge
-  /// a stable restore; a newer checkpoint is never overwritten.
-  Future<bool> markRestoreStable(String sessionId) => _exclusively(() async {
-        final activated = _activatedState;
-        final current = _readEnvelope();
-        if (activated == null ||
-            current == null ||
-            current.version != checkpointVersion ||
-            activated.sessionId != sessionId ||
-            current.state.sessionId != activated.sessionId ||
-            current.state.sourceLocale != activated.sourceLocale ||
-            current.state.targetLocale != activated.targetLocale ||
-            current.state.semanticVersion != activated.semanticVersion ||
-            current.state.timestamp != activated.timestamp) {
-          return false;
-        }
-        try {
-          await _persistUnlocked(current.state);
-          return true;
-        } catch (_) {
-          return false;
-        }
-      });
-
-  Future<void> clearSession() => _exclusively(() async {
-        await _preferences.remove(_storageKey);
-        _activatedState = null;
-      });
+  Future<void> clearSession() async {
+    await _prefs.remove(_storageKey);
+  }
 }

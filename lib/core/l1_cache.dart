@@ -1,133 +1,132 @@
 import 'cache/lru_memory_cache.dart';
 
 class CacheIdentity {
-  const CacheIdentity({
-    required this.language,
-    this.direction = 'unknown',
-    this.packVersion = 0,
-  });
-
   final String language;
   final String direction;
   final int packVersion;
 
+  const CacheIdentity({
+    required this.language,
+    this.direction = 'legacy',
+    this.packVersion = 0,
+  });
+
   @override
-  bool operator ==(Object other) =>
-      other is CacheIdentity &&
-      language == other.language &&
-      direction == other.direction &&
+  bool operator ==(Object other) => other is CacheIdentity &&
+      language == other.language && direction == other.direction &&
       packVersion == other.packVersion;
 
   @override
   int get hashCode => Object.hash(language, direction, packVersion);
 }
 
-/// Synchronous bounded L1 compatibility facade. Long-lived lexical data
-/// belongs in SQLite/isolated workers, not an unbounded widget-side map.
 class L1VocabularyCache {
-  L1VocabularyCache._internal()
-      : _memoryCache = LruMemoryCache<CacheIdentity,
-            List<Map<String, dynamic>>>(
-          maxCapacity: maximumIdentities,
-          maxMemoryBudget: maximumEstimatedBytes,
-          sizeEstimator: (_, value) => _estimate(value),
-        );
-
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
 
-  static const int maximumIdentities = 50;
-  static const int maximumEstimatedBytes = 5 * 1024 * 1024;
-  static const int _maxNodes = 20000;
-  final LruMemoryCache<CacheIdentity, List<Map<String, dynamic>>> _memoryCache;
+  static const int maxCacheBytes = 5 * 1024 * 1024;
+  static const int maxIdentities = 50;
+  late final LruMemoryCache<CacheIdentity, List<Map<String, dynamic>>> _cache;
 
-  static int _estimate(Object? root) {
-    var nodes = 0;
-    int visit(Object? value, int depth) {
-      if (++nodes > _maxNodes || depth > 8) return maximumEstimatedBytes + 1;
-      if (value == null || value is bool || value is num) return 16;
-      if (value is String) return 32 + value.length * 2;
-      if (value is List) {
-        var bytes = 48 + value.length * 8;
-        for (final element in value) {
-          bytes += visit(element, depth + 1);
-          if (bytes > maximumEstimatedBytes) break;
-        }
-        return bytes;
-      }
-      if (value is Map) {
-        var bytes = 72 + value.length * 16;
-        for (final entry in value.entries) {
-          if (entry.key is! String) return maximumEstimatedBytes + 1;
-          bytes += visit(entry.key, depth + 1);
-          bytes += visit(entry.value, depth + 1);
-          if (bytes > maximumEstimatedBytes) break;
-        }
-        return bytes;
-      }
-      return maximumEstimatedBytes + 1; // Unknown mutable object: fail closed.
-    }
-    return visit(root, 0);
+  L1VocabularyCache._internal() {
+    _cache = LruMemoryCache(
+      maxCapacity: maxIdentities,
+      maxMemoryBudget: maxCacheBytes,
+      sizeEstimator: (key, data) => _sizeOf(data),
+    );
   }
 
-  static Object? _freeze(Object? value) {
+  // A conservative, bounded estimate for the owned immutable snapshot.
+  // Rejected nested structures cannot hide additional retained references.
+  static int _sizeOf(Object? value, [int depth = 0]) {
+    if (depth > 12) throw ArgumentError('Cache nesting too deep');
+    if (value == null || value is bool || value is num) return 16;
+    if (value is String) return 48 + value.length * 2;
     if (value is List) {
-      return List<Object?>.unmodifiable(value.map(_freeze));
+      if (value.length > 10000) throw ArgumentError('Cache list too large');
+      var size = 64;
+      for (final item in value) {
+        size += _sizeOf(item, depth + 1);
+        if (size > maxCacheBytes) return size;
+      }
+      return size;
     }
     if (value is Map) {
-      final frozen = <String, dynamic>{};
+      if (value.length > 10000) throw ArgumentError('Cache map too large');
+      var size = 96;
       for (final entry in value.entries) {
-        frozen[entry.key as String] = _freeze(entry.value);
+        size += _sizeOf(entry.key, depth + 1);
+        size += _sizeOf(entry.value, depth + 1);
+        if (size > maxCacheBytes) return size;
       }
-      return Map<String, dynamic>.unmodifiable(frozen);
+      return size;
     }
-    return value;
+    throw ArgumentError('Cache payload must contain JSON-like values');
   }
 
-  void put(String langCode, List<Map<String, dynamic>> items,
-      {String direction = 'unknown', int packVersion = 0}) {
-    final key = CacheIdentity(
-      language: langCode,
-      direction: direction,
-      packVersion: packVersion,
+  static Object? _freeze(Object? value, [int depth = 0]) {
+    if (depth > 12) throw ArgumentError('Cache nesting too deep');
+    if (value is List) {
+      if (value.length > 10000) throw ArgumentError('Cache list too large');
+      return List<dynamic>.unmodifiable(
+        value.map((element) => _freeze(element, depth + 1)),
+      );
+    }
+    if (value is Map) {
+      if (value.length > 10000) throw ArgumentError('Cache map too large');
+      final result = <String, dynamic>{};
+      for (final entry in value.entries) {
+        if (entry.key is! String) throw ArgumentError('Cache keys must be strings');
+        result[entry.key as String] = _freeze(entry.value, depth + 1);
+      }
+      return Map<String, dynamic>.unmodifiable(result);
+    }
+    if (value == null || value is bool || value is num || value is String) {
+      return value;
+    }
+    throw ArgumentError('Unsupported cache payload');
+  }
+
+  bool put(String langCode, List<Map<String, dynamic>> items, {
+    String direction = 'legacy', int packVersion = 0,
+  }) {
+    if (langCode.isEmpty || direction.isEmpty || packVersion < 0) {
+      throw ArgumentError('Invalid cache identity');
+    }
+    // Reject oversized source collections before allocating an owned copy.
+    if (_sizeOf(items) > maxCacheBytes) return false;
+    final immutable = List<Map<String, dynamic>>.unmodifiable(
+      items.map((row) => _freeze(row) as Map<String, dynamic>),
     );
-    // Reject oversized inputs BEFORE copying nested values.
-    if (langCode.isEmpty ||
-        direction.isEmpty ||
-        packVersion < 0 ||
-        _estimate(items) > maximumEstimatedBytes) {
-      return;
-    }
-    final immutableItems = List<Map<String, dynamic>>.unmodifiable(
-        items.map((item) => _freeze(item)! as Map<String, dynamic>));
-    _memoryCache.put(key, immutableItems);
+    return _cache.put(
+      CacheIdentity(language: langCode, direction: direction,
+          packVersion: packVersion),
+      immutable,
+    );
   }
 
-  List<Map<String, dynamic>>? get(String langCode,
-      {String direction = 'unknown', int packVersion = 0}) =>
-      _memoryCache.get(CacheIdentity(
-          language: langCode, direction: direction, packVersion: packVersion));
+  List<Map<String, dynamic>>? get(String langCode, {
+    String direction = 'legacy', int packVersion = 0,
+  }) => _cache.get(CacheIdentity(
+    language: langCode, direction: direction, packVersion: packVersion,
+  ));
 
-  bool has(String langCode,
-      {String direction = 'unknown', int packVersion = 0}) =>
-      _memoryCache.containsKey(CacheIdentity(
-          language: langCode, direction: direction, packVersion: packVersion));
+  bool has(String langCode, {
+    String direction = 'legacy', int packVersion = 0,
+  }) => _cache.containsKey(CacheIdentity(
+    language: langCode, direction: direction, packVersion: packVersion,
+  ));
 
-  void invalidateStale(String langCode, String direction,
-      int currentPackVersion) {
-    final stale = _memoryCache.keys
-        .where((identity) => identity.language == langCode &&
-            identity.direction == direction &&
-            identity.packVersion != currentPackVersion)
-        .toList(growable: false);
-    for (final key in stale) {
-      _memoryCache.remove(key);
+  void invalidateStale(String langCode, String direction, int version) {
+    final obsolete = _cache.keys.where((key) => key.language == langCode &&
+        key.direction == direction && key.packVersion != version).toList();
+    for (final key in obsolete) {
+      _cache.remove(key);
     }
   }
 
-  int get length => _memoryCache.length;
-  int get estimatedMemoryUsageBytes => _memoryCache.currentMemory;
-  int get retainedIdentities => _memoryCache.length;
-  void onMemoryPressure() => _memoryCache.onMemoryPressure();
-  void clear() => _memoryCache.clear();
+  int get estimatedMemoryBytes => _cache.currentMemory;
+  int get identityCount => _cache.length;
+  void onMemoryPressure() => _cache.onMemoryPressure();
+  void clear() => _cache.clear();
 }

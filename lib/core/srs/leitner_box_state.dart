@@ -8,7 +8,6 @@ class LeitnerCardState {
   final double easeFactor;
   final int consecutiveSuccesses;
 
-  // Permit reading legacy persisted records; validate before scheduling.
   const LeitnerCardState({
     required this.cardId,
     required this.currentBox,
@@ -19,7 +18,5 @@ class LeitnerCardState {
   });
 
   bool get isDueForReview =>
-      isDueAt(DateTime.now().millisecondsSinceEpoch);
-
-  bool isDueAt(int currentEpoch) => currentEpoch >= nextReviewEpoch;
+      DateTime.now().millisecondsSinceEpoch >= nextReviewEpoch;
 }

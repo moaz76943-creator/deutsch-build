@@ -83,8 +83,6 @@ class LemmatizationService {
     }
   }
 
-  /// Return a single lemma only when that result is unambiguous.
-  /// Choosing the first lexeme by SQL order is not linguistic evidence.
   Future<String?> resolve(
     String inflectedForm, {
     String languageCode = 'de',
@@ -92,11 +90,9 @@ class LemmatizationService {
     final matches = await lookup(
       inflectedForm,
       languageCode: languageCode,
-      limit: 2,
+      limit: 1,
     );
-    if (matches.isEmpty) return null;
-    if (matches.length > 1) return null;
-    return matches.single.lemma;
+    return matches.isEmpty ? null : matches.first.lemma;
   }
 
   /// Intercept only unsuccessful normal searches, then retry attested lemmas.
@@ -110,14 +106,11 @@ class LemmatizationService {
     final originals = await searchDictionary(query, code);
     if (originals.isNotEmpty) return originals;
 
-    // Detect a fourth competing lemma rather than silently truncating
-    // ambiguity to the first three candidates.
     final matches = await lookup(
       query,
       languageCode: code,
-      limit: maxFallbackLemmas + 1,
+      limit: maxFallbackLemmas,
     );
-    if (matches.length != 1) return originals;
     final tried = <String>{query.trim().toLowerCase()};
     for (final match in matches) {
       final lemma = match.lemma.trim();

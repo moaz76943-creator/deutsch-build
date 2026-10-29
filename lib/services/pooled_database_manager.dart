@@ -128,20 +128,6 @@ class PooledDatabaseManager {
     _connections.remove(code);
   }
 
-  /// Closes all open connections that are not currently leased by active operations.
-  /// Safely avoids throwing if other connections are leased; returns count of closed connections.
-  Future<int> closeUnleased() => _locked(() async {
-        var closedCount = 0;
-        final unleased = _connections.keys
-            .where((code) => (_leases[code] ?? 0) == 0)
-            .toList(growable: false);
-        for (final code in unleased) {
-          await _closeLocked(code);
-          closedCount++;
-        }
-        return closedCount;
-      });
-
   Future<void> closeAll() => _locked(() async {
         if (_leases.values.any((count) => count > 0)) {
           throw StateError('Cannot close leased content databases');

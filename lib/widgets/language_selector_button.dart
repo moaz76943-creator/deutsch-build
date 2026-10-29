@@ -31,7 +31,7 @@ Future<bool> checkShouldShowLanguagePicker() async {
 Future<bool> markLanguagePickerCompleted() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    return await prefs.setBool(_languagePickerCompletedKey, true);
+    return prefs.setBool(_languagePickerCompletedKey, true);
   } catch (_) {
     return false;
   }

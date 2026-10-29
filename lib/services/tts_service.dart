@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show TextDirection;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import 'language_pack_manager.dart';

@@ -101,7 +101,7 @@ class ProgressBackupService {
     final List<Map<String, Object?>> rows;
     final List<Map<String, dynamic>> bookmarks;
     if (active) {
-      final snapshot = await vault.exportOperationalSnapshot();
+      final snapshot = await vault!.exportOperationalSnapshot();
       rows = snapshot['srs']!
           .map((e) => _asBackupSrs(e)).toList(growable: false);
       bookmarks = snapshot['bookmarks']!;

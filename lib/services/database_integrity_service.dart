@@ -69,7 +69,7 @@ class DatabaseIntegrityService {
       if (closeMounted != null) await closeMounted();
       if (reinstall != null) await reinstall();
       final db = await remount();
-      return await checkMountedPack(languageCode, db);
+      return checkMountedPack(languageCode, db);
     } catch (error) {
       await quarantine(languageCode, error);
       return false;

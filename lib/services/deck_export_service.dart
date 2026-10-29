@@ -316,11 +316,11 @@ class DeckExportService {
         ..addFile(ArchiveFile('collection.anki2', sqliteBytes.length, sqliteBytes))
         ..addFile(ArchiveFile('media', mediaBytes.length, mediaBytes));
       final encoded = ZipEncoder().encode(archive);
-      if (encoded.isEmpty) throw StateError('Anki ZIP encoding failed');
+      if (encoded == null) throw StateError('Anki ZIP encoding failed');
       final directory = await _downloadsDirectory();
       await directory.create(recursive: true);
       final output = File(p.join(directory.path, _fileStem(name) + '.apkg'));
-      return await output.writeAsBytes(encoded, flush: true);
+      return output.writeAsBytes(encoded, flush: true);
     } finally {
       if (db != null && db.isOpen) await db.close();
       if (await scratch.exists()) await scratch.delete(recursive: true);
