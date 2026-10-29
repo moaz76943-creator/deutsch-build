@@ -77,7 +77,6 @@ class SearchFusionService {
 
   static const int rrfK = 60;
   final MountedPackSearch _search;
-  int _generation = 0;
 
   Stream<SearchFusionPage> search({
     required String query,
@@ -94,7 +93,6 @@ class SearchFusionService {
     }
     final active = _normalizeCode(activeLanguageCode);
     final term = query.trim();
-    final currentGeneration = ++_generation;
     if (term.isEmpty || term.runes.length > 30) {
       yield const SearchFusionPage(
         pageIndex: 0,
@@ -138,7 +136,6 @@ class SearchFusionService {
 
     final responses = <String, List<Map<String, dynamic>>>{};
     await for (final answer in events.stream) {
-      if (_generation != currentGeneration) break;
       responses[answer.languageCode] = answer.rows;
       final ranked = _fuse(responses, active, term.toLowerCase());
       final complete = responses.length == languages.length;
@@ -182,12 +179,11 @@ class SearchFusionService {
         final language = _normalizeCode(
           (row['language_code'] ?? code).toString(),
         );
-        if (language != activeLanguage) continue;
         final surface =
             (row['surface'] ?? row['display_text'] ?? '').toString().trim();
         if (surface.isEmpty) continue;
         final lemma = (row['lemma'] ?? surface).toString().trim();
-        final key = '$language|${row['id'] ?? row['lexeme_id'] ?? surface}';
+        final key = '$language|${lemma.toLowerCase()}';
         final translation =
             (row['translation_ar'] ?? '').toString().toLowerCase();
         final tier =
