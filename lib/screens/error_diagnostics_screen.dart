@@ -7,8 +7,16 @@ class ErrorDiagnosticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> logs = [
-      {"time": "04:00 AM", "type": "INFO", "msg": "تم تهيئة قاعدة البيانات المحلية بنجاح."},
-      {"time": "03:55 AM", "type": "SUCCESS", "msg": "تم مزامنة الكلمات الجديدة مع سجل SRS."},
+      {
+        "time": "04:00 AM",
+        "type": "INFO",
+        "msg": "تم تهيئة قاعدة البيانات المحلية بنجاح."
+      },
+      {
+        "time": "03:55 AM",
+        "type": "SUCCESS",
+        "msg": "تم مزامنة الكلمات الجديدة مع سجل SRS."
+      },
     ];
 
     return Scaffold(
@@ -26,7 +34,8 @@ class ErrorDiagnosticsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const Text('سجل الأحداث والأخطاء البرمجية (Logs):', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const Text('سجل الأحداث والأخطاء البرمجية (Logs):',
+                    style: TextStyle(color: Colors.white70, fontSize: 14)),
                 const SizedBox(height: 12),
                 Expanded(
                   child: ListView.builder(
@@ -41,14 +50,28 @@ class ErrorDiagnosticsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
-                                  Text(log['type']!, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold)),
+<<<<<<< HEAD
+                                  Text(log['type']!,
+                                      style: const TextStyle(
+                                          color: Color(0xFF34D399),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold)),
+                                  Text(log['time']!,
+                                      style: const TextStyle(
+                                          color: Colors.white54, fontSize: 11)),
+=======
+                                  Expanded(child: Text(log['type']!, style: const TextStyle(color: Color(0xFF34D399), fontSize: 12, fontWeight: FontWeight.bold))),
                                   Text(log['time']!, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+>>>>>>> origin/staging/v2-full-platform-9617688105299726044
                                 ],
                               ),
                               const SizedBox(height: 6),
-                              Text(log['msg']!, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                              Text(log['msg']!,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 13)),
                             ],
                           ),
                         ),

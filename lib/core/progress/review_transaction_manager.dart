@@ -1,56 +1,52 @@
+import '../architecture/directed_pair_id.dart';
+import '../srs/review_command_port.dart';
 import 'review_transaction_envelope.dart';
 import 'transaction_persistence_port.dart';
-import 'transaction_state.dart';
-import '../srs/review_command_port.dart';
 
+/// Validates the immutable review contract before forwarding to one durable
+/// transaction authority. Never independently updates progress or SRS.
 class ReviewTransactionManager {
   final TransactionPersistencePort persistencePort;
+  final DateTime Function() clock;
 
-  ReviewTransactionManager(this.persistencePort);
+  ReviewTransactionManager(this.persistencePort, {DateTime Function()? clock})
+      : clock = clock ?? DateTime.now;
 
-  Future<void> processTransaction(
-    ReviewCommand command,
-    Future<void> Function() performCommit,
-  ) async {
-    final String languagePairKey = '${command.sourceLanguageId}->${command.targetLanguageId}';
-
-    final ReviewTransactionEnvelope envelope = ReviewTransactionEnvelope(
+  Future<ReviewCommitResult> processTransaction(ReviewCommand command) async {
+    final pair = DirectedPairId(
+      sourceLocale: command.sourceLanguageId,
+      targetLocale: command.targetLanguageId,
+      semanticVersion: command.semanticVersion,
+    );
+    if (command.reviewId.trim().isEmpty ||
+        command.cardId.trim().isEmpty ||
+        command.facetKey.trim().isEmpty ||
+        command.sourceLanguageId != command.sourceLanguageId.trim() ||
+        command.targetLanguageId != command.targetLanguageId.trim() ||
+        command.semanticVersion.trim().isEmpty ||
+        command.semanticVersion != command.semanticVersion.trim() ||
+        !pair.isValidForLearning() ||
+        command.pairEpoch < 0) {
+      throw ArgumentError('Invalid review event, version, or directed pair');
+    }
+    final envelope = ReviewTransactionEnvelope(
       reviewEventId: command.reviewId,
       learnerContentKey: command.cardId,
       rating: command.rating.index,
-      timestamp: DateTime.now(),
-      languagePairKey: languagePairKey,
+      timestamp: clock().toUtc(),
+      languagePairKey: pair.uniqueKey,
     );
+    return persistencePort.commitOnce(command: command, envelope: envelope);
+  }
+}
 
-    final existingState = await persistencePort.getTransactionState(command.reviewId);
-    final existingEnvelope = await persistencePort.getTransactionEnvelope(command.reviewId);
+/// Adapt the verified atomic manager to widgets without exposing DB internals.
+class DurableReviewCommandPort implements ReviewCommandPort {
+  final ReviewTransactionManager manager;
+  const DurableReviewCommandPort(this.manager);
 
-    if (existingState != null && existingEnvelope != null) {
-      if (existingEnvelope.languagePairKey != languagePairKey ||
-          existingEnvelope.learnerContentKey != command.cardId ||
-          existingEnvelope.rating != command.rating.index) {
-        throw Exception('Duplicate command with conflicting data for reviewId: ${command.reviewId}');
-      }
-
-      if (existingState == TransactionState.committed) {
-        return; // Idempotent success
-      }
-    }
-
-    if (existingState == null) {
-      await persistencePort.saveTransaction(envelope, TransactionState.pending);
-    } else {
-      await persistencePort.updateTransactionState(command.reviewId, TransactionState.pending);
-    }
-
-    try {
-      await performCommit();
-      await persistencePort.updateTransactionState(command.reviewId, TransactionState.committed);
-    } catch (e) {
-      // Depending on the exact failure type we might want to distinguish between failed and recoverable,
-      // but for this implementation we can consider commit failures as recoverable.
-      await persistencePort.updateTransactionState(command.reviewId, TransactionState.recoverable);
-      rethrow;
-    }
+  @override
+  Future<void> submit(ReviewCommand command) async {
+    await manager.processTransaction(command);
   }
 }
