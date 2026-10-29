@@ -2,44 +2,74 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
 
 void main() {
-  test('ReviewCommand equality and hashCode based on reviewId', () {
-    const command1 = ReviewCommand(
-      reviewId: 'id_123',
-      sourceLanguageId: 'en',
-      targetLanguageId: 'de',
-      cardId: 'card_1',
-      facetKey: 'facet_1',
-      pairEpoch: 1,
-      rating: ReviewRating.good,
-      hinted: false,
-    );
+  group('ReviewCommand Deduplication Tests', () {
+    test('Identical reviewIds are considered equal', () {
+      const cmd1 = ReviewCommand(
+        reviewId: 'rev-123',
+        sourceLanguageId: 'de',
+        targetLanguageId: 'ar',
+        cardId: 'card-abc',
+        facetKey: 'vocab',
+        pairEpoch: 1000,
+        rating: ReviewRating.good,
+        hinted: false,
+      );
 
-    const command2 = ReviewCommand(
-      reviewId: 'id_123', // Same ID
-      sourceLanguageId: 'en',
-      targetLanguageId: 'de',
-      cardId: 'card_2', // Different card
-      facetKey: 'facet_2',
-      pairEpoch: 2,
-      rating: ReviewRating.hard, // Different rating
-      hinted: true,
-    );
+      const cmd2 = ReviewCommand(
+        reviewId: 'rev-123',
+        sourceLanguageId: 'en', // Different payload
+        targetLanguageId: 'ar',
+        cardId: 'card-xyz',
+        facetKey: 'grammar',
+        pairEpoch: 2000,
+        rating: ReviewRating.easy,
+        hinted: true,
+      );
 
-    const command3 = ReviewCommand(
-      reviewId: 'id_456', // Different ID
-      sourceLanguageId: 'en',
-      targetLanguageId: 'de',
-      cardId: 'card_1',
-      facetKey: 'facet_1',
-      pairEpoch: 1,
-      rating: ReviewRating.good,
-      hinted: false,
-    );
+      const cmd3 = ReviewCommand(
+        reviewId: 'rev-999',
+        sourceLanguageId: 'de',
+        targetLanguageId: 'ar',
+        cardId: 'card-abc',
+        facetKey: 'vocab',
+        pairEpoch: 1000,
+        rating: ReviewRating.good,
+        hinted: false,
+      );
 
-    expect(command1, equals(command2));
-    expect(command1.hashCode, equals(command2.hashCode));
+      expect(cmd1 == cmd2, isTrue); // Same ID
+      expect(cmd1.hashCode == cmd2.hashCode, isTrue);
 
-    expect(command1, isNot(equals(command3)));
-    expect(command1.hashCode, isNot(equals(command3.hashCode)));
+      expect(cmd1 == cmd3, isFalse); // Different ID
+      expect(cmd1.hashCode == cmd3.hashCode, isFalse);
+    });
+
+    test('Set insertion deduplicates by reviewId', () {
+      final set = <ReviewCommand>{};
+
+      set.add(const ReviewCommand(
+        reviewId: 'rev-001',
+        sourceLanguageId: 'de',
+        targetLanguageId: 'ar',
+        cardId: 'c1',
+        facetKey: 'f1',
+        pairEpoch: 1,
+        rating: ReviewRating.good,
+        hinted: false,
+      ));
+
+      set.add(const ReviewCommand(
+        reviewId: 'rev-001',
+        sourceLanguageId: 'de',
+        targetLanguageId: 'ar',
+        cardId: 'c1',
+        facetKey: 'f1',
+        pairEpoch: 1,
+        rating: ReviewRating.good,
+        hinted: false,
+      ));
+
+      expect(set.length, 1);
+    });
   });
 }
