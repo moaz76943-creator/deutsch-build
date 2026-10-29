@@ -1,6 +1,5 @@
 import 'dart:io';
 
-<<<<<<< HEAD
 enum DatabaseInstallStatus {
   installed,
   replaced,
@@ -8,9 +7,6 @@ enum DatabaseInstallStatus {
   corrupted,
   failed
 }
-=======
-enum DatabaseInstallStatus { installed, alreadyExists, corrupted, failed }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 class DatabaseInstallResult {
   final DatabaseInstallStatus status;
@@ -24,18 +20,12 @@ class AtomicDatabaseInstaller {
   static Future<DatabaseInstallResult> installDatabaseAtomically({
     required String sourcePath,
     required String targetPath,
-<<<<<<< HEAD
     bool allowReplacement = false,
   }) async {
     final targetFile = File(targetPath);
     final targetExists = await targetFile.exists();
 
     if (targetExists && !allowReplacement) {
-=======
-  }) async {
-    final targetFile = File(targetPath);
-    if (await targetFile.exists()) {
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
       return const DatabaseInstallResult(DatabaseInstallStatus.alreadyExists);
     }
 
@@ -65,6 +55,16 @@ class AtomicDatabaseInstaller {
         return const DatabaseInstallResult(
           DatabaseInstallStatus.corrupted,
           'حجم الملف المنسوخ فارغ',
+        );
+      }
+
+      // For testing insufficient disk / interrupted write, we simulate it by checking if copy worked fully
+      final srcLength = await sourceFile.length();
+      if (length != srcLength) {
+         if (await tempFile.exists()) await tempFile.delete();
+         return const DatabaseInstallResult(
+          DatabaseInstallStatus.failed,
+          'الملف المنسوخ غير مكتمل',
         );
       }
 

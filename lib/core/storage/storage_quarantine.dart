@@ -14,11 +14,8 @@ class QuarantinedData {
 
 class StorageQuarantine {
   final List<QuarantinedData> _quarantine = [];
-<<<<<<< HEAD
 
   static const int _retentionDays = 30;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   void isolateCorruptData({
     required String id,
