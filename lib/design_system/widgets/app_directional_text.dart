@@ -27,8 +27,7 @@ class AppDirectionalText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveDirection = forceDirection ??
-        (_isRTL(text) ? TextDirection.rtl : TextDirection.ltr);
+    final effectiveDirection = forceDirection ?? (_isRTL(text) ? TextDirection.rtl : TextDirection.ltr);
 
     return Directionality(
       textDirection: effectiveDirection,
