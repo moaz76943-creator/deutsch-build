@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 class DataIntegritySigner {
+  static const String approvedTrustedKey = 'trusted_key_v1';
+
   static int computeChecksum(String payload) {
     final bytes = utf8.encode(payload);
     var hash = 0xcbf29ce484222325;
@@ -15,26 +17,23 @@ class DataIntegritySigner {
     return computeChecksum(payload) == expectedChecksum;
   }
 
-  static bool verifyManifest(Map<String, dynamic>? manifest, String? payload) {
-    if (manifest == null || payload == null) return false;
+  static bool verifyManifest(Map<String, dynamic> manifest) {
+    final signatureBlock = manifest['signature'];
+    if (signatureBlock == null || signatureBlock is! Map) return false;
 
-    // Check for required algorithm metadata
-    final algorithm = manifest['algorithm'];
-    if (algorithm != 'fnv1a') return false;
+    final keyId = signatureBlock['keyId'];
+    if (keyId != approvedTrustedKey) return false;
 
-    // Check for required hash
-    final expectedHash = manifest['hash'];
-    if (expectedHash == null || expectedHash is! int) return false;
+    final algorithm = signatureBlock['algorithm'];
+    if (algorithm != 'FNV-1a') return false;
 
-    // Check expiration if present
-    final expiresAt = manifest['expiresAt'];
-    if (expiresAt != null && expiresAt is int) {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      if (now > expiresAt) {
-        return false;
-      }
-    }
+    final hashValue = signatureBlock['hash'];
+    if (hashValue == null || hashValue is! int) return false;
 
-    return verifyIntegrity(payload, expectedHash);
+    final payload = manifest['payload'];
+    if (payload == null) return false;
+
+    final payloadString = jsonEncode(payload);
+    return verifyIntegrity(payloadString, hashValue);
   }
 }
