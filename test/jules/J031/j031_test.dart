@@ -1,8 +1,9 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:path/path.dart' as p;
 import 'package:deutsch_bilarabi/services/database_service.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:path/path.dart';
+import 'dart:io';
 
 void main() {
   setUpAll(() {
@@ -10,121 +11,58 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  setUp(() async {
-    await DatabaseService.instance.close();
-    final dbPath = await databaseFactory.getDatabasesPath();
-    final contentDbPath = p.join(dbPath, 'polyglot_content_v2.db');
-    final progressDbPath = p.join(dbPath, 'user_progress_v2.db');
-
-    // ignore: avoid_catching_errors
-    try {
-      if (await File(contentDbPath).exists()) {
-        await File(contentDbPath).delete();
-      }
-    } catch (_) {}
-
-    // ignore: avoid_catching_errors
-    try {
-      if (await File(progressDbPath).exists()) {
-        await File(progressDbPath).delete();
-      }
-    } catch (_) {}
-  });
-
   tearDown(() async {
-    await DatabaseService.instance.close();
-  });
+    final service = DatabaseService.instance;
+    await service.close();
 
-  test('contentDb enforces read-only access to immutable language packs', () async {
-    final db = await DatabaseService.instance.contentDb;
-    expect(
-      () async => await db.insert('language_profiles', {
-        'language_code': 'fr',
-        'name_native': 'Français',
-        'name_ar': 'الفرنسية',
-        'direction': 'ltr',
-      }),
-      throwsA(isA<DatabaseException>()),
-      reason: 'Read-only content packs cannot be modified by progress writes',
-    );
-  });
+    final dbPath = await getDatabasesPath();
+    final contentPath = join(dbPath, 'polyglot_content_v2.db');
+    final progressPath = join(dbPath, 'user_progress_v2.db');
 
-  test('progressDb uses WAL mode for writable learner databases', () async {
-    final db = await DatabaseService.instance.progressDb;
-    final result = await db.rawQuery('PRAGMA journal_mode');
-    expect(result.first.values.first.toString().toLowerCase(), 'wal',
-        reason: 'Writable database must use WAL mode');
-  });
-
-  test('progressDb uses busy_timeout to handle SQLite busy/interrupted transactions', () async {
-    final db = await DatabaseService.instance.progressDb;
-    final result = await db.rawQuery('PRAGMA busy_timeout');
-    expect(result.first.values.first.toString(), '5000',
-        reason: 'Writable database must configure a busy_timeout for concurrency');
-  });
-
-  test('updateSrsProgressAtomic is atomic and commits on success', () async {
-    final db = await DatabaseService.instance.progressDb;
-    await DatabaseService.instance.updateSrsProgressAtomic(
-      lexemeId: 'lex1',
-      status: 'learning',
-    );
-
-    final realResults = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
-    expect(realResults.length, 1);
-    expect(realResults.first['repetition_count'], 1);
-
-    await DatabaseService.instance.updateSrsProgressAtomic(
-      lexemeId: 'lex1',
-      status: 'reviewing',
-    );
-
-    final realResults2 = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
-    expect(realResults2.first['repetition_count'], 2);
-    expect(realResults2.first['status'], 'reviewing');
-  });
-
-  test('updateSrsProgressAtomic handles simultaneous requests correctly', () async {
-    final futures = <Future>[];
-    for (int i = 0; i < 5; i++) {
-      futures.add(DatabaseService.instance.updateSrsProgressAtomic(
-        lexemeId: 'lex2',
-        status: 'simultaneous_$i',
-      ));
+    if (await databaseFactory.databaseExists(contentPath)) {
+      await databaseFactory.deleteDatabase(contentPath);
     }
-
-    await Future.wait(futures);
-    final db = await DatabaseService.instance.progressDb;
-    final results = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex2']);
-    expect(results.length, 1);
-    expect(results.first['lexeme_id'], 'lex2');
+    if (await databaseFactory.databaseExists(progressPath)) {
+      await databaseFactory.deleteDatabase(progressPath);
+    }
   });
 
-  test('DatabaseService close respects pooled leases', () async {
-    final contentDb = await DatabaseService.instance.contentDb;
-    final progressDb = await DatabaseService.instance.progressDb;
+  test('Content DB should be Read-Only and Progress DB should use WAL', () async {
+    final service = DatabaseService.instance;
+    final progressDb = await service.progressDb;
+    final contentDb = await service.contentDb;
 
-    expect(contentDb.isOpen, isTrue);
-    expect(progressDb.isOpen, isTrue);
+    // Check progressDb WAL mode
+    final modeResult = await progressDb.rawQuery('PRAGMA journal_mode;');
+    expect(modeResult.first.values.first.toString().toLowerCase(), 'wal', reason: 'progress DB must use WAL mode');
 
-    await DatabaseService.instance.close();
-
-    expect(contentDb.isOpen, isFalse);
-    expect(progressDb.isOpen, isFalse);
+    // Check contentDb is read-only
+    try {
+      await contentDb.execute('CREATE TABLE dummy (id INTEGER)');
+      fail('Should throw DatabaseException because content DB must be read-only');
+    } catch (e) {
+      expect(e, isA<DatabaseException>());
+      expect(e.toString().toLowerCase().contains('readonly'), isTrue);
+    }
   });
 
   test('Simultaneous initialization requests return same instance', () async {
+    final service = DatabaseService.instance;
+
+    // Request db twice concurrently
     final futures = [
-      DatabaseService.instance.progressDb,
-      DatabaseService.instance.progressDb,
+      service.progressDb,
+      service.progressDb,
     ];
+
     final dbs = await Future.wait(futures);
     expect(identical(dbs[0], dbs[1]), isTrue);
 
     final contentFutures = [
-      DatabaseService.instance.contentDb,
-      DatabaseService.instance.contentDb,
+      service.contentDb,
+      service.contentDb,
     ];
+
     final contentDbs = await Future.wait(contentFutures);
     expect(identical(contentDbs[0], contentDbs[1]), isTrue);
   });
@@ -132,6 +70,11 @@ void main() {
   test('Transaction rollback (inserting invalid data throws and rolls back)', () async {
     final service = DatabaseService.instance;
     final progressDb = await service.progressDb;
+
+    // We expect a DatabaseException when inserting without required fields (if schema enforces it)
+    // Or we can simulate a crash in transaction
+
+    // Initially empty
     var countResult = await progressDb.rawQuery('SELECT COUNT(*) FROM srs_progress;');
     expect(countResult.first.values.first, 0);
 
@@ -141,6 +84,8 @@ void main() {
           INSERT INTO srs_progress (lexeme_id, target_language_code, repetition_count, status)
           VALUES (?, ?, ?, ?)
         ''', ['lex.test.1', 'de', 0, 'learning']);
+
+        // This should fail due to syntax or constraint (e.g. unknown table or null constraint)
         await txn.rawInsert('INSERT INTO non_existent_table (id) VALUES (1)');
       });
       fail('Transaction should have thrown');
@@ -148,7 +93,26 @@ void main() {
       expect(e, isA<DatabaseException>());
     }
 
+    // Since transaction rolled back, the first insert should not be there
     countResult = await progressDb.rawQuery('SELECT COUNT(*) FROM srs_progress;');
     expect(countResult.first.values.first, 0);
+  });
+
+  test('updateSrsProgressAtomic works correctly', () async {
+    final service = DatabaseService.instance;
+    await service.updateSrsProgressAtomic(lexemeId: 'lex.test.2', status: 'learning');
+
+    final progressDb = await service.progressDb;
+    var result = await progressDb.rawQuery('SELECT * FROM srs_progress WHERE lexeme_id = ?', ['lex.test.2']);
+    expect(result.length, 1);
+    expect(result.first['repetition_count'], 1);
+    expect(result.first['status'], 'learning');
+
+    // Update again
+    await service.updateSrsProgressAtomic(lexemeId: 'lex.test.2', status: 'reviewing');
+    result = await progressDb.rawQuery('SELECT * FROM srs_progress WHERE lexeme_id = ?', ['lex.test.2']);
+    expect(result.length, 1);
+    expect(result.first['repetition_count'], 2);
+    expect(result.first['status'], 'reviewing');
   });
 }

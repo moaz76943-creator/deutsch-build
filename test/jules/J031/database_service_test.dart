@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 void main() {
@@ -14,20 +15,10 @@ void main() {
     final dbPath = await getDatabasesPath();
     final cDbPath = join(dbPath, 'polyglot_content_v2.db');
     final pDbPath = join(dbPath, 'user_progress_v2.db');
-
+    if (await File(cDbPath).exists()) await File(cDbPath).delete();
+    if (await File(pDbPath).exists()) await File(pDbPath).delete();
     // Make sure service state is clean
     await DatabaseService.instance.close();
-
-    if (await File(cDbPath).exists()) {
-      try {
-        await File(cDbPath).delete();
-      } catch (_) {}
-    }
-    if (await File(pDbPath).exists()) {
-      try {
-        await File(pDbPath).delete();
-      } catch (_) {}
-    }
   });
 
   tearDown(() async {
