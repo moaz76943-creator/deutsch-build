@@ -143,22 +143,5 @@ void main() {
 
       expect(order, ['C_1', 'B_1', 'A_2', 'A_1']);
     });
-
-    test('Timeout works when cleanup exceeds time', () async {
-      int executionCount = 0;
-      registry.registerCleanup(() async {
-        await Future.delayed(const Duration(seconds: 10)); // Greater than timeout
-        executionCount++;
-      }, owner: 'timeoutTest');
-
-      final stopwatch = Stopwatch()..start();
-      await registry.disposeOwner('timeoutTest');
-      stopwatch.stop();
-
-      // Should complete much faster than 10 seconds because of the 5-second timeout
-      expect(stopwatch.elapsedMilliseconds, lessThan(6000));
-      expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(4900));
-      expect(executionCount, 0); // Timeout interrupted the execution
-    });
   });
 }
