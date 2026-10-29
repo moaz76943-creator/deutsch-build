@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:archive/archive_io.dart';
+import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -16,9 +16,6 @@ class DeckExportWord {
     required this.front,
     required this.back,
     required this.tag,
-    this.example,
-    this.cefr,
-    this.grammar,
   });
 
   final String lexemeId;
@@ -26,9 +23,6 @@ class DeckExportWord {
   final String front;
   final String back;
   final String tag;
-  final String? example;
-  final String? cefr;
-  final String? grammar;
 }
 
 /// Local-only personal taxonomy and Anki 2.1 legacy package exporter.
@@ -189,23 +183,12 @@ class DeckExportService {
           }
           final back = (fields['translation_ar'] ?? fields['translation'] ?? '')
               .toString();
-          String? example;
-          String? cefr;
-          String? grammar;
-          if (fields['isCefrVerified'] == true) {
-            example = (fields['example_ar'] ?? fields['example'])?.toString();
-            cefr = fields['cefr']?.toString();
-            grammar = fields['grammar']?.toString();
-          }
           words.add(DeckExportWord(
             lexemeId: row['id'].toString(),
             languageCode: item.key,
             front: front,
             back: back,
             tag: name.replaceAll(RegExp(r'\s+'), '_'),
-            example: example,
-            cefr: cefr,
-            grammar: grammar,
           ));
         }
       }
@@ -223,25 +206,16 @@ class DeckExportService {
     bool dueOnly = false,
   }) async {
     final words = await loadWords(deckName: deckName, dueOnly: dueOnly);
+    final buffer = StringBuffer('Front\tBack\tTags\n');
+    for (final word in words) {
+      buffer.writeln(
+        '${_tsv(word.front)}\t${_tsv(word.back)}\t${_tsv(word.tag)}',
+      );
+    }
     final directory = await _downloadsDirectory();
     await directory.create(recursive: true);
-    final stem = _fileStem(deckName);
-    final tempFile = File(p.join(directory.path, '$stem.csv.tmp'));
-    final finalFile = File(p.join(directory.path, '$stem.csv'));
-
-    final sink = tempFile.openWrite(encoding: utf8);
-    try {
-      sink.writeln('Front\tBack\tTags');
-      for (final word in words) {
-        sink.writeln(
-          '${_tsv(word.front)}\t${_tsv(word.back)}\t${_tsv(word.tag)}',
-        );
-      }
-      await sink.flush();
-    } finally {
-      await sink.close();
-    }
-    return tempFile.rename(finalFile.path);
+    final file = File(p.join(directory.path, '${_fileStem(deckName)}.csv'));
+    return file.writeAsString(buffer.toString(), encoding: utf8, flush: true);
   }
 
   /// Produces a standard zip APKG with a real Anki v11 SQLite collection.
@@ -373,40 +347,17 @@ class DeckExportService {
       });
       await db.close();
       db = null;
-
       final sqliteBytes = await collectionFile.readAsBytes();
       final mediaBytes = utf8.encode('{}');
-
-      final dbChecksum = sha256.convert(sqliteBytes).toString();
-      final manifestMap = <String, Object?>{
-        'version': 1,
-        'deckName': name,
-        'timestamp': DateTime.now().toIso8601String(),
-        'checksum': dbChecksum,
-      };
-      final manifestBytes = utf8.encode(jsonEncode(manifestMap));
-
-      final mediaFile = File(p.join(scratch.path, 'media'));
-      await mediaFile.writeAsBytes(mediaBytes, flush: true);
-
-      final manifestFile = File(p.join(scratch.path, 'manifest.json'));
-      await manifestFile.writeAsBytes(manifestBytes, flush: true);
-
+      final archive = Archive()
+        ..addFile(
+            ArchiveFile('collection.anki2', sqliteBytes.length, sqliteBytes))
+        ..addFile(ArchiveFile('media', mediaBytes.length, mediaBytes));
+      final encoded = ZipEncoder().encode(archive);
       final directory = await _downloadsDirectory();
       await directory.create(recursive: true);
-
-      final stem = _fileStem(name);
-      final tempFile = File(p.join(directory.path, '$stem.apkg.tmp'));
-      final finalFile = File(p.join(directory.path, '$stem.apkg'));
-
-      final encoder = ZipFileEncoder();
-      encoder.create(tempFile.path);
-      encoder.addFile(collectionFile);
-      encoder.addFile(mediaFile);
-      encoder.addFile(manifestFile);
-      encoder.close();
-
-      return tempFile.rename(finalFile.path);
+      final output = File(p.join(directory.path, '${_fileStem(name)}.apkg'));
+      return output.writeAsBytes(encoded, flush: true);
     } finally {
       if (db != null && db.isOpen) await db.close();
       if (await scratch.exists()) await scratch.delete(recursive: true);

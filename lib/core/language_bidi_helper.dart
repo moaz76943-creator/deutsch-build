@@ -3,7 +3,17 @@ import 'package:flutter/material.dart';
 /// Comprehensive BiDi & Typography controller for all 100 polyglot languages
 class LanguageBiDiHelper {
   static const Set<String> _rtlLanguagePrefixes = {
-    'ar', 'fa', 'ur', 'ps', 'sd', 'ku', 'ug', 'ckb', 'he', 'iw', 'yi'
+    'ar',
+    'fa',
+    'ur',
+    'ps',
+    'sd',
+    'ku',
+    'ug',
+    'ckb',
+    'he',
+    'iw',
+    'yi'
   };
 
   /// Resolves text direction from any BCP-47 locale code
@@ -32,7 +42,8 @@ class LanguageBiDiHelper {
       return 1.45;
     }
     // Complex Indic scripts and Thai/Lao: room for vertical tone/vowel stacking
-    if (['hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'th', 'lo', 'my'].contains(prefix)) {
+    if (['hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'th', 'lo', 'my']
+        .contains(prefix)) {
       return 1.40;
     }
     // CJK Box glyph balance
