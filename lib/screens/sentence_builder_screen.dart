@@ -31,7 +31,8 @@ class _SentenceBuilderScreenState extends State<SentenceBuilderScreen> {
               children: <Widget>[
                 Text(
                   'رتب الكلمات لتكوين معنى: "أنا أحب شرب القهوة"',
-                  style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
+                  style: AppTypography.title
+                      .copyWith(color: Colors.white, fontSize: 16),
                 ),
                 const SizedBox(height: 20),
                 Container(
@@ -40,14 +41,16 @@ class _SentenceBuilderScreenState extends State<SentenceBuilderScreen> {
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: _targetSentence.map((word) {
                       return InputChip(
-                        label: Text(word, style: const TextStyle(color: Colors.white)),
+                        label: Text(word,
+                            style: const TextStyle(color: Colors.white)),
                         backgroundColor: const Color(0xFF2F6BFF),
                         onDeleted: () {
                           setState(() {
@@ -66,7 +69,9 @@ class _SentenceBuilderScreenState extends State<SentenceBuilderScreen> {
                   alignment: WrapAlignment.center,
                   children: _availableWords.map((word) {
                     return ActionChip(
-                      label: Text(word, style: const TextStyle(color: Colors.white, fontSize: 15)),
+                      label: Text(word,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 15)),
                       backgroundColor: Colors.white.withValues(alpha: 0.15),
                       onPressed: () {
                         setState(() {
