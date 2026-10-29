@@ -6,7 +6,8 @@ class UnifiedSrsScheduler {
 
   final List<ReviewTransactionEnvelope> _inMemoryJournal = [];
 
-  Future<void> processReviewTransaction(ReviewTransactionEnvelope envelope) async {
+  Future<void> processReviewTransaction(
+      ReviewTransactionEnvelope envelope) async {
     // معالجة ذرية للحدث ومنع التكرار
     final alreadyExists = _inMemoryJournal.any(
       (e) => e.reviewEventId == envelope.reviewEventId,
@@ -16,5 +17,6 @@ class UnifiedSrsScheduler {
     }
   }
 
-  List<ReviewTransactionEnvelope> get history => List.unmodifiable(_inMemoryJournal);
+  List<ReviewTransactionEnvelope> get history =>
+      List.unmodifiable(_inMemoryJournal);
 }

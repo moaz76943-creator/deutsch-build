@@ -38,7 +38,8 @@ class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
     AppCognitiveTokens.triggerSuccessHaptic();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('درع التجميد نشط لحماية مسار تعلّمك (${widget.languageCode.toUpperCase()}) 🛡️'),
+        content: Text(
+            'درع التجميد نشط لحماية مسار تعلّمك (${widget.languageCode.toUpperCase()}) 🛡️'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -51,8 +52,18 @@ class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
     final currentDay = now.day;
 
     final monthNames = [
-      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+      'يناير',
+      'فبراير',
+      'مارس',
+      'أبريل',
+      'مايو',
+      'يونيو',
+      'يوليو',
+      'أغسطس',
+      'سبتمبر',
+      'أكتوبر',
+      'نوفمبر',
+      'ديسمبر'
     ];
     final currentMonthTitle = '${monthNames[now.month - 1]} ${now.year}';
 
@@ -91,7 +102,8 @@ class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
                           const SizedBox(height: 6),
                           const Text(
                             'استمر في الدراسة يومياً لترسيخ التعلم',
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 12),
                           ),
                         ],
                       ),
@@ -104,13 +116,15 @@ class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text(
-                                currentMonthTitle,
-                                style: AppTypography.title.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
+                              Expanded(
+                          child: Text(
+                            currentMonthTitle,
+                            style: AppTypography.title.copyWith(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                               const Icon(
                                 Icons.calendar_month_rounded,
                                 color: Color(0xFF38BDF8),

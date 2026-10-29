@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -25,7 +24,9 @@ class SqliteEmbeddedOpusSource implements EmbeddedOpusSource {
       return raw is Uint8List ? raw : null;
     } on DatabaseException catch (error) {
       if (error.toString().contains('no such table') ||
-          error.toString().contains('no such column')) return null;
+          error.toString().contains('no such column')) {
+        return null;
+      }
       rethrow;
     }
   }
@@ -38,15 +39,17 @@ abstract class EmbeddedOpusPlayer {
 
 class AndroidEmbeddedOpusPlayer implements EmbeddedOpusPlayer {
   const AndroidEmbeddedOpusPlayer();
-  static const channel = MethodChannel(
-      'com.deutschbilarabi.app/recorded_audio_player');
+  static const channel =
+      MethodChannel('com.deutschbilarabi.app/recorded_audio_player');
 
   @override
   Future<bool> play(Uint8List oggOpus) async {
     try {
       return await channel.invokeMethod<bool>(
-        'playOpusBytes', <String, Object>{'bytes': oggOpus},
-      ) ?? false;
+            'playOpusBytes',
+            <String, Object>{'bytes': oggOpus},
+          ) ??
+          false;
     } on PlatformException {
       return false;
     } on MissingPluginException {
@@ -64,7 +67,8 @@ class EmbeddedAudioStreamer {
   EmbeddedAudioStreamer({
     required EmbeddedOpusSource source,
     EmbeddedOpusPlayer? player,
-  }) : _source = source, _player = player ?? const AndroidEmbeddedOpusPlayer();
+  })  : _source = source,
+        _player = player ?? const AndroidEmbeddedOpusPlayer();
 
   static const int maximumClipBytes = 8 * 1024 * 1024;
   final EmbeddedOpusSource _source;
@@ -78,9 +82,14 @@ class EmbeddedAudioStreamer {
 
   /// Accepts Ogg-wrapped Opus, not raw codec frames.
   Future<bool> playBytes(Uint8List data) async {
-    if (data.length < 8 || data.length > maximumClipBytes ||
-        data[0] != 0x4f || data[1] != 0x67 ||
-        data[2] != 0x67 || data[3] != 0x53) return false;
+    if (data.length < 8 ||
+        data.length > maximumClipBytes ||
+        data[0] != 0x4f ||
+        data[1] != 0x67 ||
+        data[2] != 0x67 ||
+        data[3] != 0x53) {
+      return false;
+    }
     return _player.play(data);
   }
 

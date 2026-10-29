@@ -47,7 +47,7 @@ void main() {
     expect(
       await service.recover(
         languageCode: 'de',
-        remount: () async => throw FileSystemException('missing'),
+        remount: () async => throw const FileSystemException('missing'),
       ),
       isFalse,
     );
