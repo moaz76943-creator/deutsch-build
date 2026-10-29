@@ -6,7 +6,7 @@ class SrSimulationTest {
     double easeFactor = 2.5;
     int interval = 1;
     int repetitions = 0;
-
+    
     final random = Random(42); // Seed ثابت لضمان حتمية واختبار النتائج بدقة
     int anomaliesFound = 0;
 
@@ -18,9 +18,9 @@ class SrSimulationTest {
         if (repetitions == 0) {
           interval = 1;
         } else if (repetitions == 1) {
-          interval = 4;
+          interval = 6;
         } else {
-          interval = (interval * easeFactor * 1.05).round();
+          interval = (interval * easeFactor).round();
         }
         repetitions++;
       } else {
@@ -29,17 +29,13 @@ class SrSimulationTest {
       }
 
       // حساب معامل السهولة الجديد حسب معيار SM-2 الأصلي
-      easeFactor =
-          easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
       if (easeFactor < 1.3) {
         easeFactor = 1.3;
       }
 
       // فحص القيود الرياضية والتحقق من عدم حدوث شذوذ
-      if (easeFactor.isNaN ||
-          easeFactor.isInfinite ||
-          interval < 1 ||
-          repetitions < 0) {
+      if (easeFactor.isNaN || easeFactor.isInfinite || interval < 1 || repetitions < 0) {
         anomaliesFound++;
       }
     }
@@ -48,9 +44,7 @@ class SrSimulationTest {
       'totalEvaluations': 50000,
       'anomaliesCount': anomaliesFound,
       'finalEaseFactor': easeFactor,
-      'status': anomaliesFound == 0
-          ? 'PASSED: SRS SM-2 is mathematically stable.'
-          : 'FAILED: Anomalies detected.'
+      'status': anomaliesFound == 0 ? 'PASSED: SRS SM-2 is mathematically stable.' : 'FAILED: Anomalies detected.'
     };
   }
 }
