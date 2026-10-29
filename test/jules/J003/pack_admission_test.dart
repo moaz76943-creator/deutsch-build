@@ -98,7 +98,7 @@ void main() {
 
     expect(result, isFalse);
     expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(quarantine.isolatedItems.first.diagnosticReason, contains('Invalid SQLite header signature'));
+    expect(quarantine.isolatedItems.first.diagnosticReason, contains('Failed to open or query SQLite database'));
   });
 
   test('Wrong hash', () async {
