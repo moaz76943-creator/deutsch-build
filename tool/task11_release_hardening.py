@@ -75,7 +75,7 @@ def _permissions(root: ET.Element) -> set[str]:
     return {
         node.attrib[ANDROID_NAME]
         for node in root.findall("uses-permission")
-        if ANDROID_NAME in node.attrib
+        if ANDROID_NAME in node.attrib and node.attrib.get(TOOLS_NODE) != "remove"
     }
 
 
