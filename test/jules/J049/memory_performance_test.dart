@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/services/trie_search_engine.dart';
 
 void main() {
   test('Trie memory and performance', () {
-    final engine = TrieSearchEngine(maxNodes: 500000, maxSearchResults: 10);
+    final engine = TrieSearchEngine(maxNodes: 500000, maxResults: 10);
 
     final stopwatch = Stopwatch()..start();
     // Insert many words with common prefixes
