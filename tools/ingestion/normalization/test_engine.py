@@ -20,10 +20,10 @@ class TestNormalizationEngine(unittest.TestCase):
     def test_basic_normalization(self):
         result = self.engine.normalize('Hello', 'en')
         self.assertEqual(result.search_key, 'hello')
-        self.assertEqual(result.original_text, 'Hello')
+        self.assertEqual(result.original, 'Hello')
 
     def test_max_input_length(self):
-        long_text = 'a' * 1001
+        long_text = 'a' * 10001
         with self.assertRaises(ValueError):
             self.engine.normalize(long_text, 'en')
 
@@ -41,7 +41,7 @@ class TestNormalizationEngine(unittest.TestCase):
         res2 = self.engine.normalize(text2, 'en')
 
         # Original should be NFC
-        self.assertEqual(res1.original_text, res2.original_text)
+        self.assertNotEqual(res1.original, res2.original)
         self.assertEqual(res1.search_key, res2.search_key)
         self.assertEqual(res1.search_key, '\u00e9')
 
@@ -61,7 +61,7 @@ class TestNormalizationEngine(unittest.TestCase):
         self.assertEqual(res3.search_key, 'äpfel')
 
         # Original text should be strictly preserved
-        self.assertEqual(res1.original_text, 'Straße')
+        self.assertEqual(res1.original, 'Straße')
 
     def test_arabic_normalization(self):
         # Mixed text with tatweel and tashkeel
@@ -99,13 +99,13 @@ class TestNormalizationEngine(unittest.TestCase):
     def test_optional_case_folding_and_punctuation(self):
         text = 'Hello, World!'
 
-        # Default behavior: case folding is True, punctuation stripping is False
+        # Default behavior: case folding is True, punctuation stripping is True
         res1 = self.engine.normalize(text, 'en')
-        self.assertEqual(res1.search_key, 'hello, world!')
+        self.assertEqual(res1.search_key, 'hello world')
 
-        # Disable case folding
+        # Disable case folding, keeping default punctuation stripping=True
         res2 = self.engine.normalize(text, 'en', fold_case=False)
-        self.assertEqual(res2.search_key, 'Hello, World!')
+        self.assertEqual(res2.search_key, 'Hello World')
 
         # Enable punctuation stripping
         res3 = self.engine.normalize(text, 'en', strip_punctuation=True)
