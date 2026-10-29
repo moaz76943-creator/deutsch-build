@@ -37,9 +37,13 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('الأدوات التعليمية السريعة:', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('الأدوات التعليمية السريعة:',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                
+
                 // اختصارات سريعة
                 GridView.count(
                   crossAxisCount: 2,
@@ -49,10 +53,20 @@ class DashboardScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   childAspectRatio: 1.3,
                   children: <Widget>[
-                    _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded, const SrsFlashcardDeckScreen()),
-                    _buildActionCard(context, 'التراخيص والمصادر', Icons.verified_user_rounded, const LicenseAttributionScreen()),
-                    _buildActionCard(context, 'المفكرة الشخصية', Icons.book_rounded, const VocabularyJournalScreen()),
-                    _buildActionCard(context, 'طوارئ السفر', Icons.local_hospital_rounded, const EmergencyPhrasebookScreen()),
+                    _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded,
+                        const SrsFlashcardDeckScreen()),
+                    _buildActionCard(
+                        context,
+                        'التراخيص والمصادر',
+                        Icons.verified_user_rounded,
+                        const LicenseAttributionScreen()),
+                    _buildActionCard(context, 'المفكرة الشخصية',
+                        Icons.book_rounded, const VocabularyJournalScreen()),
+                    _buildActionCard(
+                        context,
+                        'طوارئ السفر',
+                        Icons.local_hospital_rounded,
+                        const EmergencyPhrasebookScreen()),
                   ],
                 ),
               ],
@@ -66,17 +80,24 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildStatItem(String label, String value) {
     return Column(
       children: <Widget>[
-        Text(value, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(value,
+            style: const TextStyle(
+                color: Color(0xFF38BDF8),
+                fontSize: 16,
+                fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(label,
+            style: const TextStyle(color: Colors.white70, fontSize: 11)),
       ],
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, IconData icon, Widget targetScreen) {
+  Widget _buildActionCard(
+      BuildContext context, String title, IconData icon, Widget targetScreen) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => targetScreen));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => targetScreen));
       },
       child: AppBaseGlassCard(
         padding: const EdgeInsets.all(16),
@@ -85,7 +106,12 @@ class DashboardScreen extends StatelessWidget {
           children: <Widget>[
             Icon(icon, color: const Color(0xFF34D399), size: 32),
             const SizedBox(height: 10),
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+            Text(title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center),
           ],
         ),
       ),

@@ -48,8 +48,10 @@ class StorageMigrationService {
   final DatabaseCloserCallback _closeContentDb;
 
   static Future<void> _missingDatabaseCloser(String languageCode) async {
-    throw StateError('A database close callback is required to move an open SQLite pack');
+    throw StateError(
+        'A database close callback is required to move an open SQLite pack');
   }
+
   final bool _androidPlatform;
 
   static final RegExp _filename = RegExp(
@@ -175,7 +177,7 @@ class StorageMigrationService {
     }
 
     await targetDir.create(recursive: true);
-    final staging = File(target.path + '.migrating');
+    final staging = File('${target.path}.migrating');
     if (await FileSystemEntity.type(staging.path, followLinks: false) !=
         FileSystemEntityType.notFound) {
       throw StateError('Another pack migration is staged');

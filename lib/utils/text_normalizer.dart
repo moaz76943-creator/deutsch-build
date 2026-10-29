@@ -85,7 +85,8 @@ class TextNormalizer {
 
   static String _fold(String input, {required bool expandUmlauts}) {
     // Accept NFD German spellings too (a + combining diaeresis, etc.).
-    final lower = input.toLowerCase()
+    final lower = input
+        .toLowerCase()
         .replaceAll('a\u0308', 'ä')
         .replaceAll('o\u0308', 'ö')
         .replaceAll('u\u0308', 'ü');
