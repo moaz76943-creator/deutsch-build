@@ -4,8 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-import '../core/audio/offline_audio_capability.dart';
-import '../core/audio/offline_audio_dispatcher.dart';
 import 'language_pack_manager.dart';
 
 /// Device capability state. A registered language is not necessarily voiced.
@@ -71,84 +69,12 @@ class TtsService {
   String? get activeLocale => _activeLocale;
 
   String getTtsLocale(String languageCode) =>
-      OfflineAudioCapability.getFallbackLocale(languageCode) ?? '';
-  List<String> get supportedLanguages => [
-        'af',
-        'am',
-        'ar',
-        'az',
-        'be',
-        'bg',
-        'bn',
-        'bs',
-        'ca',
-        'cs',
-        'cy',
-        'da',
-        'de',
-        'el',
-        'en',
-        'eo',
-        'es',
-        'et',
-        'eu',
-        'fa',
-        'fi',
-        'fil',
-        'fr',
-        'ga',
-        'gl',
-        'gu',
-        'ha',
-        'he',
-        'hi',
-        'hr',
-        'hu',
-        'hy',
-        'id',
-        'ig',
-        'is',
-        'it',
-        'ja',
-        'jv',
-        'ka',
-        'kk',
-        'km',
-        'kn',
-        'ko',
-        'ku',
-        'ky',
-        'la',
-        'nl',
-        'no',
-        'pl',
-        'pt',
-        'ro',
-        'ru',
-        'sk',
-        'sl',
-        'sq',
-        'sr',
-        'sv',
-        'sw',
-        'ta',
-        'te',
-        'th',
-        'tr',
-        'uk',
-        'ur',
-        'vi',
-        'zh'
-      ];
-  bool isLanguageSupported(String languageCode) => true;
-  TextDirection textDirectionFor(String languageCode) {
-    final lower = languageCode.toLowerCase();
-    final isRtl = lower.startsWith('ar') ||
-        lower.startsWith('he') ||
-        lower.startsWith('fa') ||
-        lower.startsWith('ur');
-    return isRtl ? TextDirection.rtl : TextDirection.ltr;
-  }
+      _languages.getTtsLocale(languageCode);
+  List<String> get supportedLanguages => _languages.supportedLanguages;
+  bool isLanguageSupported(String languageCode) =>
+      _languages.isLanguageSupported(languageCode);
+  TextDirection textDirectionFor(String languageCode) =>
+      _languages.textDirectionFor(languageCode);
 
   static double _bounded(
     double value,
@@ -177,15 +103,27 @@ class TtsService {
     });
   }
 
-  Future<void> _applyParameters() async {
-    await _engine.setSpeechRate(_speechRate);
-    await _engine.setVolume(_volume);
-    await _engine.setPitch(_pitch);
-  }
-
   Future<bool> _initialize() async {
     _emit(TtsStatus.initializing);
     try {
+      _engine.setStartHandler(() {
+        if (_isSpeaking) _emit(TtsStatus.speaking, locale: _activeLocale);
+      });
+      _engine.setCompletionHandler(() {
+        if (!_isSpeaking) return;
+        _isSpeaking = false;
+        _emit(TtsStatus.completed, locale: _activeLocale);
+      });
+      _engine.setCancelHandler(() {
+        _isSpeaking = false;
+        _emit(TtsStatus.stopped, locale: _activeLocale);
+      });
+      _engine.setErrorHandler((message) {
+        _isSpeaking = false;
+        _emit(TtsStatus.error,
+            locale: _activeLocale, message: message.toString());
+      });
+      await _engine.awaitSpeakCompletion(false);
       await _applyParameters();
       if (_disposed) return false;
       _ready = true;
@@ -196,6 +134,12 @@ class TtsService {
       _emit(TtsStatus.unavailable, message: error.toString());
       return false;
     }
+  }
+
+  Future<void> _applyParameters() async {
+    await _engine.setSpeechRate(_speechRate);
+    await _engine.setVolume(_volume);
+    await _engine.setPitch(_pitch);
   }
 
   /// Limits: speech rate/volume 0..1, pitch 0.5..2.0. Default rate: 0.48.
@@ -328,24 +272,29 @@ class TtsService {
       return false;
     }
     try {
+      // Engine cancellation is local; the original Unicode text is unchanged.
+      await _engine.stop();
       if (!_isCurrent(epoch)) return false;
-      _activeLocale = locale;
-      _isSpeaking = true;
-      _emit(TtsStatus.speaking, locale: locale);
-      final result = await OfflineAudioDispatcher.speakText(
-        text: text,
-        bcp47Locale: locale,
-        speechRate: _speechRate,
-      );
+      final selected = await _engine.setLanguage(locale);
       if (!_isCurrent(epoch)) return false;
-      if (result == false) {
-        _isSpeaking = false;
+      if (selected == false || (selected is num && selected < 0)) {
         _emit(TtsStatus.voiceMissing,
             locale: locale, message: 'TTS engine rejected $locale');
         return false;
       }
-      _isSpeaking = false;
-      _emit(TtsStatus.completed, locale: locale);
+      await _applyParameters();
+      if (!_isCurrent(epoch)) return false;
+      _activeLocale = locale;
+      _isSpeaking = true;
+      final result = await _engine.speak(text);
+      if (!_isCurrent(epoch)) return false;
+      if (result == false || result == -1) {
+        _isSpeaking = false;
+        _emit(TtsStatus.error,
+            locale: locale, message: 'TTS engine failed to start');
+        return false;
+      }
+      _emit(TtsStatus.speaking, locale: locale);
       return true;
     } catch (error) {
       _isSpeaking = false;
@@ -358,7 +307,7 @@ class TtsService {
     ++_requestEpoch;
     if (_disposed) return;
     try {
-      OfflineAudioDispatcher.stopCurrentAudio();
+      if (_tts != null) await _engine.stop();
     } catch (error) {
       _emit(TtsStatus.error, locale: _activeLocale, message: error.toString());
     } finally {
@@ -374,7 +323,7 @@ class TtsService {
     onStatus = null;
     _isSpeaking = false;
     try {
-      OfflineAudioDispatcher.stopCurrentAudio();
+      if (_tts != null) await _engine.stop();
     } catch (_) {
       // Plugin shutdown is best-effort.
     }

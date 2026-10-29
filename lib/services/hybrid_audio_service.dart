@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../core/audio/offline_audio_capability.dart';
 import 'language_pack_manager.dart';
 import 'tts_service.dart';
 
@@ -34,25 +33,7 @@ class HybridAudioService {
   bool _busy = false;
 
   static String fallbackMessage(String languageCode, {String? ipa}) {
-    const languageNames = {
-      'de-DE': 'الألمانية (Deutsch)',
-      'de': 'الألمانية (Deutsch)',
-      'ar-SA': 'العربية',
-      'ar': 'العربية',
-      'en-US': 'الإنجليزية (English)',
-      'en': 'الإنجليزية (English)',
-      'fr-FR': 'الفرنسية (Français)',
-      'fr': 'الفرنسية (Français)',
-      'es-ES': 'الإسبانية (Español)',
-      'es': 'الإسبانية (Español)',
-      'tr-TR': 'التركية (Türkçe)',
-      'tr': 'التركية (Türkçe)',
-      'ru-RU': 'الروسية (Русский)',
-      'ru': 'الروسية (Русский)',
-      'zh-CN': 'الصينية (中文)',
-      'zh': 'الصينية (中文)',
-    };
-    final languageName = languageNames[languageCode] ?? languageCode;
+    final languageName = LanguagePackManager.getLanguageName(languageCode);
     final transcription = ipa?.trim() ?? '';
     final pronunciation = transcription.isEmpty
         ? 'IPA transcription is not available.'
@@ -70,7 +51,7 @@ class HybridAudioService {
     void Function(String message)? onUnavailable,
   }) async {
     if (text.trim().isEmpty) return false;
-    final tag = OfflineAudioCapability.getFallbackLocale(languageCode) ?? '';
+    final tag = LanguagePackManager.resolveTtsLocale(languageCode);
     void unavailable() {
       final message = fallbackMessage(languageCode, ipa: ipa);
       try {
