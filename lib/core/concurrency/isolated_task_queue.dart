@@ -1,5 +1,23 @@
 import 'dart:async';
+
 import 'cancellation_token.dart';
+import 'worker_task.dart';
+
+class TaskBudget {
+  final int maxConcurrentTasks;
+  final int maxQueueSize;
+  final int activeTasksCount;
+  final int pendingTasksCount;
+
+  const TaskBudget({
+    required this.maxConcurrentTasks,
+    required this.maxQueueSize,
+    required this.activeTasksCount,
+    required this.pendingTasksCount,
+  });
+
+  bool get isSaturated => activeTasksCount >= maxConcurrentTasks && pendingTasksCount >= maxQueueSize;
+}
 
 enum TaskPriority { high, normal, low }
 
@@ -26,9 +44,9 @@ class IsolatedTaskQueue {
   final int maxQueueSize;
   final int maxConcurrentTasks;
   final List<PrioritizedTask<dynamic>> _queue = [];
-  final List<PrioritizedTask<dynamic>> _activeTasksList = [];
-  final Map<String, Completer<dynamic>> _activeOrPending = {};
-
+  int _activeTasksCount = 0;
+  final Map<String, CancellationToken> _activeTokens = {};
+  final Set<String> _activeTaskIds = {};
   bool _isPaused = false;
 
   IsolatedTaskQueue({
@@ -36,20 +54,30 @@ class IsolatedTaskQueue {
     this.maxConcurrentTasks = 1,
   });
 
+  TaskBudget get budget => TaskBudget(
+    maxConcurrentTasks: maxConcurrentTasks,
+    maxQueueSize: maxQueueSize,
+    activeTasksCount: _activeTasksCount,
+    pendingTasksCount: _queue.length,
+  );
+
   int get length => _queue.length;
-  int get activeTasks => _activeTasksList.length;
-  int get remainingCapacity => maxQueueSize - _queue.length;
-  bool get isPaused => _isPaused;
 
-  void pause() {
-    _isPaused = true;
-  }
-
-  void resume(int activeEpoch) {
-    if (_isPaused) {
-      _isPaused = false;
-      _processNext();
-    }
+  Future<T?> enqueueWorkerTask<T>({
+    required WorkerTask<T> workerTask,
+    required int currentEpoch,
+    required TaskPriority priority,
+  }) {
+    final token = CancellationToken();
+    return enqueue<T>(
+      id: workerTask.taskId,
+      currentEpoch: currentEpoch,
+      priority: priority,
+      cancellationToken: token,
+      action: () async {
+        return await workerTask.execute(token).timeout(workerTask.timeout);
+      },
+    );
   }
 
   Future<T?> enqueue<T>({
@@ -59,33 +87,18 @@ class IsolatedTaskQueue {
     required Future<T> Function() action,
     CancellationToken? cancellationToken,
   }) {
-    if (_activeOrPending.containsKey(id)) {
-      return _activeOrPending[id]!.future as Future<T?>;
+    if (_activeTaskIds.contains(id) || _queue.any((t) => t.id == id)) {
+      return Future.value(null);
     }
 
-    if (_queue.length + _activeTasksList.length >= maxQueueSize) {
-      bool removedAny = false;
-      for (int i = _queue.length - 1; i >= 0; i--) {
-        if (_queue[i].priority == TaskPriority.low) {
-          final t = _queue.removeAt(i);
-          _activeOrPending.remove(t.id);
-          if (!t.completer.isCompleted) {
-            t.completer.complete(null);
-          }
-          t.cancellationToken?.cancel();
-          removedAny = true;
-          break; // Remove only one to make space
-        }
-      }
-
-      if (!removedAny || _queue.length + _activeTasksList.length >= maxQueueSize) {
+    if (_queue.length >= maxQueueSize) {
+      _queue.removeWhere((t) => t.priority == TaskPriority.low);
+      if (_queue.length >= maxQueueSize) {
         return Future.value(null);
       }
     }
 
     final completer = Completer<T?>();
-    _activeOrPending[id] = completer;
-
     final task = PrioritizedTask<T>(
       id: id,
       sessionEpoch: currentEpoch,
@@ -104,92 +117,84 @@ class IsolatedTaskQueue {
     }
     _queue.insert(insertIndex, task);
 
-    // Yield control before processing so synchronous enqueueing blocks don't trigger the task immediately
-    Future.microtask(() => _processNext());
+    _processNext();
     return completer.future;
+  }
+
+  void pause() {
+    _isPaused = true;
+  }
+
+  void resume(int activeEpoch) {
+    _isPaused = false;
+    cancelStaleTasks(activeEpoch);
+    _processNext();
   }
 
   void cancelStaleTasks(int activeEpoch) {
     _queue.removeWhere((task) {
       if (task.sessionEpoch != activeEpoch) {
-        _activeOrPending.remove(task.id);
+        task.cancellationToken?.cancel();
         if (!task.completer.isCompleted) {
           task.completer.complete(null);
         }
-        task.cancellationToken?.cancel();
         return true;
       }
       return false;
     });
-
-    for (final task in _activeTasksList) {
-      if (task.sessionEpoch != activeEpoch) {
-         task.cancellationToken?.cancel();
-      }
-    }
   }
 
   Future<void> _processNext() async {
-    if (_isPaused || _activeTasksList.length >= maxConcurrentTasks || _queue.isEmpty) return;
+    if (_isPaused) return;
 
-    // Prevent CPU-intensive work from silently running in long synchronous operations
-    // on the Flutter UI isolate by yielding to the event loop.
-    await Future.delayed(Duration.zero);
+    while (_activeTasksCount < maxConcurrentTasks && _queue.isNotEmpty) {
+      _activeTasksCount++;
+      final currentTask = _queue.removeAt(0);
+      _activeTaskIds.add(currentTask.id);
+      if (currentTask.cancellationToken != null) {
+        _activeTokens[currentTask.id] = currentTask.cancellationToken!;
+      }
 
-    if (_isPaused || _activeTasksList.length >= maxConcurrentTasks || _queue.isEmpty) return;
+      // Fire and forget execution to allow the loop to start multiple tasks concurrently
+      _executeTask(currentTask);
+    }
+  }
 
-    final currentTask = _queue.removeAt(0);
-    _activeTasksList.add(currentTask);
-
-    _runTask(currentTask);
-
-    if (_activeTasksList.length < maxConcurrentTasks && _queue.isNotEmpty) {
+  Future<void> _executeTask(PrioritizedTask<dynamic> currentTask) async {
+    try {
+      try {
+        final result = await currentTask.action();
+        if (!currentTask.completer.isCompleted) {
+          currentTask.completer.complete(result);
+        }
+      } catch (e) {
+        if (!currentTask.completer.isCompleted) {
+          currentTask.completer.completeError(e);
+        }
+      }
+    } finally {
+      _activeTasksCount--;
+      _activeTaskIds.remove(currentTask.id);
+      _activeTokens.remove(currentTask.id);
+      // Check queue for next task if we finished and there is capacity
       _processNext();
     }
   }
 
-  Future<void> _runTask(PrioritizedTask task) async {
-    try {
-      if (!_isPaused && !(task.cancellationToken?.isCancelled ?? false)) {
-        final result = await task.action();
-        // Even if cancelled during execution, complete it if we finished.
-        // We will let the user side handle token states.
-        if (!task.completer.isCompleted) {
-          task.completer.complete(result);
-        }
-      } else {
-        if (!task.completer.isCompleted) {
-          task.completer.complete(null);
-        }
-      }
-    } catch (e) {
-      if (!task.completer.isCompleted) {
-        task.completer.completeError(e);
-      }
-    } finally {
-      _activeOrPending.remove(task.id);
-      _activeTasksList.remove(task);
-      if (!_isPaused) {
-        _processNext();
-      }
-    }
-  }
+  static Future<void> cooperativeYield() => Future.delayed(Duration.zero);
 
   void clear() {
     for (final task in _queue) {
+      task.cancellationToken?.cancel();
       if (!task.completer.isCompleted) {
         task.completer.complete(null);
       }
-      task.cancellationToken?.cancel();
     }
     _queue.clear();
 
-    for (final task in _activeTasksList) {
-      task.cancellationToken?.cancel();
+    for (final token in _activeTokens.values) {
+      token.cancel();
     }
-    // We do not clear _activeTasksList here because they are executing
-    // and will remove themselves when done.
-
-    _activeOrPending.clear();
+    // Active tasks will complete and clean themselves up from _activeTaskIds and _activeTokens.
   }
 }

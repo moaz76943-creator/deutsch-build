@@ -1,3 +1,4 @@
+import 'srs_flashcard_deck_screen.dart';
 import 'package:deutsch_bilarabi/design_system/app_base_cards.dart' hide AppBaseGlassCard;
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
@@ -26,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final db = await DatabaseService.instance.progressDb;
       // حساب عدد الكلمات اللي تم التفاعل معها
-      final result = await db.query('srs_progress', columns: ['COUNT(*) as count']);
+      final result = await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
       final count = (result.first['count'] as int?) ?? 0;
       
       if (mounted) {
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: <Widget>[
                       Icon(Icons.local_fire_department_rounded, color: Color(0xFFF39C6B), size: 20),
                       SizedBox(width: 4),
-                      Text('5 أيام', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      Text('ابدأ اليوم', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -151,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: 'شروحات A1',
                     icon: Icons.menu_book_rounded,
                     gradient: AppGradients.blueCard,
-                    onTap: () {},
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SrsFlashcardDeckScreen())),
                   ),
                 ),
               ],
