@@ -5,7 +5,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,15 +64,11 @@ class LanguagePackMetadata {
   static final _safeFilename = RegExp(r'^[A-Za-z0-9_-]+\.pack\.gz$');
   static final _safeDigest = RegExp(r'^[a-fA-F0-9]{64}$');
 
-  // Fail closed on unbounded untrusted archive sizes before disk or network I/O.
-  static const int maxArchiveBytes = 64 * 1024 * 1024;
-
   bool get canDownload =>
       code != 'de' &&
       isAvailable &&
       sizeBytes != null &&
       sizeBytes! > 0 &&
-      sizeBytes! <= maxArchiveBytes &&
       packFile != null &&
       _safeFilename.hasMatch(packFile!) &&
       sha256Hex != null &&
@@ -264,28 +259,11 @@ class LanguagePackStorage {
     }
   }
 
-  // Reject symlinks anywhere in the archive path, not only the file and
-  // immediate parent. A symlinked grandparent can otherwise redirect reads,
-  // promotion or deletion outside managed storage while checks appear clean.
-  static Future<bool> _hasArchiveSymlink(File file) async {
-    var path = file.absolute.path;
-    while (true) {
-      if (await FileSystemEntity.type(path, followLinks: false) ==
-          FileSystemEntityType.link) {
-        return true;
-      }
-      final parent = File(path).parent.path;
-      if (parent == path) return false;
-      path = parent;
-    }
-  }
-
   Future<Set<String>> findInstalled(List<LanguagePackMetadata> packs) async {
     final installed = <String>{'de'};
     for (final pack in packs) {
       if (pack.code == 'de' || pack.sizeBytes == null) continue;
       final file = await _packFile(pack.code);
-      if (await _hasArchiveSymlink(file)) continue;
       if (await file.exists() &&
           await file.length() == pack.sizeBytes &&
           pack.sha256Hex != null &&
@@ -305,9 +283,6 @@ class LanguagePackStorage {
     final directory = await _directory;
     await directory.create(recursive: true);
     final target = await _packFile(pack.code);
-    if (await _hasArchiveSymlink(target)) {
-      throw const FormatException('Archive target is a symbolic link.');
-    }
     final expectedHash = pack.sha256Hex!.toLowerCase();
 
     // Re-verify a cached file before considering it a successful download.
@@ -319,10 +294,7 @@ class LanguagePackStorage {
       }
     }
 
-    // Stage in a unique directory on the target filesystem so concurrent
-    // downloads never share or clean up another download's partial file.
-    final stagingDirectory = await directory.createTemp('.${pack.code}-');
-    final temporary = File('${stagingDirectory.path}/${pack.code}.pack.gz');
+    final temporary = File('${target.path}.partial');
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 12);
     try {
@@ -346,68 +318,29 @@ class LanguagePackStorage {
                 'Pack is larger than its manifest size.');
           }
           writer.add(chunk);
-          // 100% is reserved for a hash-verified, promoted archive.
-          onProgress((received / pack.sizeBytes!).clamp(0.0, 0.99).toDouble());
+          onProgress((received / pack.sizeBytes!).clamp(0.0, 1.0));
         }
         await writer.flush();
       } finally {
         await writer.close();
       }
-      await promoteVerifiedArchive(
-        stagedFile: temporary,
-        targetFile: target,
-        expectedSize: pack.sizeBytes!,
-        expectedHash: expectedHash,
-      );
+      if (received != pack.sizeBytes) {
+        throw const FormatException('Pack size does not match the manifest.');
+      }
+      if (await _fileDigest(temporary.path) != expectedHash) {
+        throw const FormatException('Pack checksum verification failed.');
+      }
+      if (await target.exists()) await target.delete();
+      await temporary.rename(target.path);
       onProgress(1);
     } finally {
       client.close(force: true);
-      // Cleanup is scoped to this operation's unique staging directory.
-      // Never delete the existing installed archive during error recovery.
-      try {
-        if (await stagingDirectory.exists()) {
-          await stagingDirectory.delete(recursive: true);
-        }
-      } on FileSystemException {
-        // A cleanup error cannot invalidate an already committed archive.
-      }
+      if (await temporary.exists()) await temporary.delete();
     }
-  }
-
-  /// Promote only fully downloaded, hash-verified bytes. Android/POSIX rename
-  /// atomically replaces the destination without a delete-before-rename gap.
-  /// If validation or rename fails, the old archive remains untouched.
-  @visibleForTesting
-  Future<void> promoteVerifiedArchive({
-    required File stagedFile,
-    required File targetFile,
-    required int expectedSize,
-    required String expectedHash,
-  }) async {
-    if (expectedSize <= 0 ||
-        expectedSize > LanguagePackMetadata.maxArchiveBytes ||
-        !LanguagePackMetadata._safeDigest.hasMatch(expectedHash) ||
-        !targetFile.path.endsWith('.pack.gz')) {
-      throw const FormatException('Invalid archive promotion metadata.');
-    }
-    if (await _hasArchiveSymlink(stagedFile) ||
-        await _hasArchiveSymlink(targetFile)) {
-      throw const FormatException('Archive path is a symbolic link.');
-    }
-    if (await stagedFile.length() != expectedSize) {
-      throw const FormatException('Pack size does not match the manifest.');
-    }
-    if (await _fileDigest(stagedFile.path) != expectedHash.toLowerCase()) {
-      throw const FormatException('Pack checksum verification failed.');
-    }
-    await stagedFile.rename(targetFile.path);
   }
 
   Future<void> delete(String code) async {
     final file = await _packFile(code);
-    if (await _hasArchiveSymlink(file)) {
-      throw const FormatException('Archive path is a symbolic link.');
-    }
     if (!await file.exists()) {
       throw StateError('No managed archive exists for $code');
     }
