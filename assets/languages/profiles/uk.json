@@ -1,0 +1,22 @@
+{
+  "isoCode": "uk",
+  "autonym": "Українська",
+  "englishName": "Ukrainian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Cyrillic",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 7,
+  "caseNames": ["Називний", "Родовий", "Давальний", "Знахідний", "Орудний", "Місцевий", "Кличний"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": false,
+    "hasVocativeCase": true,
+    "hasAnimacyDistinction": true,
+    "hasVerbalAspectPairs": true
+  }
+}

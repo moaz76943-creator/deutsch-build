@@ -1,0 +1,22 @@
+{
+  "isoCode": "pl",
+  "autonym": "Polski",
+  "englishName": "Polish",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 7,
+  "caseNames": ["Mianownik", "Dopełniacz", "Celownik", "Biernik", "Narzędnik", "Miejscownik", "Wołacz"],
+  "genders": ["m_personal", "m_animate", "m_inanimate", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasVocativeCase": true,
+    "hasVirileGender": true,
+    "hasVerbalAspectPairs": true
+  }
+}
