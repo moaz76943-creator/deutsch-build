@@ -14,12 +14,14 @@ class QuarantinedData {
 
 class StorageQuarantine {
   final List<QuarantinedData> _quarantine = [];
+  static const int _retentionDays = 30;
 
   void isolateCorruptData({
     required String id,
     required String rawJson,
     required String reason,
   }) {
+    _enforceBoundedRetention();
     _quarantine.add(QuarantinedData(
       id: id,
       rawJson: rawJson,
@@ -31,5 +33,12 @@ class StorageQuarantine {
   List<QuarantinedData> get isolatedItems => List.unmodifiable(_quarantine);
   void clearResolved(String id) {
     _quarantine.removeWhere((item) => item.id == id);
+  }
+
+  void _enforceBoundedRetention() {
+    final nowEpoch = DateTime.now().millisecondsSinceEpoch;
+    const retentionMs = _retentionDays * 24 * 60 * 60 * 1000;
+    _quarantine
+        .removeWhere((item) => (nowEpoch - item.timestampEpoch) > retentionMs);
   }
 }
