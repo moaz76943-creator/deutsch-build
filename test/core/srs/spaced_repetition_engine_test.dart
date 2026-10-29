@@ -3,83 +3,13 @@ import 'package:deutsch_bilarabi/core/srs/spaced_repetition_engine.dart';
 import 'package:deutsch_bilarabi/core/srs/leitner_box_state.dart';
 
 void main() {
-  group('SpacedRepetitionEngine Tests', () {
-    const int fixedEpoch = 1704067200000; // 2024-01-01 00:00:00 UTC
-    const int _oneDayMs = 86400000;
-
-    test('Rating 0-1 (Hard/Again) drops to Box 1 and decreases ease', () {
+  group('SpacedRepetitionEngine', () {
+    test('rejects rating outside 0-3 range', () {
       const state = LeitnerCardState(
-        cardId: 'card-1',
-        currentBox: LeitnerBox.box3,
-        lastReviewedEpoch: fixedEpoch - _oneDayMs * 7,
-        nextReviewEpoch: fixedEpoch,
-        easeFactor: 2.0,
-        consecutiveSuccesses: 5,
-      );
-
-      final nextState = SpacedRepetitionEngine.calculateNextInterval(
-        previousState: state,
-        rating: 1,
-        currentTimeEpoch: fixedEpoch,
-      );
-
-      expect(nextState.currentBox, LeitnerBox.box1);
-      expect(nextState.easeFactor, closeTo(1.8, 0.0001)); // 2.0 - 0.2
-      expect(nextState.consecutiveSuccesses, 0);
-      expect(nextState.nextReviewEpoch, fixedEpoch + _oneDayMs);
-      expect(nextState.lastReviewedEpoch, fixedEpoch);
-    });
-
-    test('Rating 2 (Good) promotes box without changing ease', () {
-      const state = LeitnerCardState(
-        cardId: 'card-1',
+        cardId: '1',
         currentBox: LeitnerBox.box1,
-        lastReviewedEpoch: fixedEpoch - _oneDayMs,
-        nextReviewEpoch: fixedEpoch,
-        easeFactor: 2.5,
-        consecutiveSuccesses: 0,
-      );
-
-      final nextState = SpacedRepetitionEngine.calculateNextInterval(
-        previousState: state,
-        rating: 2,
-        currentTimeEpoch: fixedEpoch,
-      );
-
-      expect(nextState.currentBox, LeitnerBox.box2); // Promoted to box 2
-      expect(nextState.easeFactor, 2.5); // Unchanged
-      expect(nextState.consecutiveSuccesses, 1);
-      expect(nextState.nextReviewEpoch, fixedEpoch + (3 * _oneDayMs)); // box2 interval is 3
-    });
-
-    test('Rating 3 (Easy) promotes box and increases ease (up to max 3.0)', () {
-      const state = LeitnerCardState(
-        cardId: 'card-1',
-        currentBox: LeitnerBox.box4,
-        lastReviewedEpoch: fixedEpoch - _oneDayMs * 14,
-        nextReviewEpoch: fixedEpoch,
-        easeFactor: 2.9,
-        consecutiveSuccesses: 3,
-      );
-
-      final nextState = SpacedRepetitionEngine.calculateNextInterval(
-        previousState: state,
-        rating: 3,
-        currentTimeEpoch: fixedEpoch,
-      );
-
-      expect(nextState.currentBox, LeitnerBox.box5);
-      expect(nextState.easeFactor, 3.0); // 2.9 + 0.15 clamped to 3.0
-      expect(nextState.consecutiveSuccesses, 4);
-      expect(nextState.nextReviewEpoch, fixedEpoch + (30 * _oneDayMs)); // box5 interval is 30
-    });
-
-    test('Rejects invalid rating', () {
-      const state = LeitnerCardState(
-        cardId: 'card-1',
-        currentBox: LeitnerBox.box1,
-        lastReviewedEpoch: fixedEpoch,
-        nextReviewEpoch: fixedEpoch,
+        lastReviewedEpoch: 0,
+        nextReviewEpoch: 0,
       );
 
       expect(
@@ -97,6 +27,137 @@ void main() {
         ),
         throwsArgumentError,
       );
+    });
+
+    test('rejects NaN easeFactor in previousState', () {
+      final state = LeitnerCardState(
+        cardId: '1',
+        currentBox: LeitnerBox.box1,
+        lastReviewedEpoch: 0,
+        nextReviewEpoch: 0,
+        easeFactor: double.nan,
+      );
+
+      expect(
+        () => SpacedRepetitionEngine.calculateNextInterval(
+          previousState: state,
+          rating: 2,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('prevents duplicate review processing (debounce)', () {
+      final nowMs = DateTime(2023, 1, 1).millisecondsSinceEpoch;
+      final state = LeitnerCardState(
+        cardId: '1',
+        currentBox: LeitnerBox.box2,
+        lastReviewedEpoch: nowMs,
+        nextReviewEpoch: nowMs + 86400000,
+        easeFactor: 2.5,
+        consecutiveSuccesses: 1,
+      );
+
+      // Try processing again immediately
+      final newState = SpacedRepetitionEngine.calculateNextInterval(
+        previousState: state,
+        rating: 3,
+        currentTimeMs: nowMs + 30000, // +30 seconds
+      );
+
+      // State should remain unchanged
+      expect(newState.currentBox, state.currentBox);
+      expect(newState.lastReviewedEpoch, state.lastReviewedEpoch);
+    });
+
+    test('processes failure (rating 0-1) correctly', () {
+      final nowMs = DateTime(2023, 1, 1).millisecondsSinceEpoch;
+      final state = LeitnerCardState(
+        cardId: '1',
+        currentBox: LeitnerBox.box3,
+        lastReviewedEpoch: nowMs - 100000, // Passed debounce
+        nextReviewEpoch: nowMs,
+        easeFactor: 2.5,
+        consecutiveSuccesses: 2,
+      );
+
+      final newState = SpacedRepetitionEngine.calculateNextInterval(
+        previousState: state,
+        rating: 1,
+        currentTimeMs: nowMs,
+      );
+
+      expect(newState.currentBox, LeitnerBox.box1);
+      expect(newState.consecutiveSuccesses, 0);
+      expect(newState.easeFactor, 2.3); // 2.5 - 0.2
+      expect(newState.lastReviewedEpoch, nowMs);
+      expect(newState.nextReviewEpoch, nowMs + 86400000); // 1 day
+    });
+
+    test('processes success (rating 2-3) correctly', () {
+      final nowMs = DateTime(2023, 1, 1).millisecondsSinceEpoch;
+      final state = LeitnerCardState(
+        cardId: '1',
+        currentBox: LeitnerBox.box1,
+        lastReviewedEpoch: nowMs - 100000,
+        nextReviewEpoch: nowMs,
+        easeFactor: 2.5,
+        consecutiveSuccesses: 0,
+      );
+
+      final newState = SpacedRepetitionEngine.calculateNextInterval(
+        previousState: state,
+        rating: 2,
+        currentTimeMs: nowMs,
+      );
+
+      expect(newState.currentBox, LeitnerBox.box2); // Moved to box 2
+      expect(newState.consecutiveSuccesses, 1);
+      expect(newState.easeFactor, 2.5); // Remains 2.5 since rating was not 3
+      expect(newState.nextReviewEpoch, nowMs + (3 * 86400000)); // 3 days
+    });
+
+    test('ease factor bounds maintained', () {
+      final nowMs = DateTime(2023, 1, 1).millisecondsSinceEpoch;
+      final state = LeitnerCardState(
+        cardId: '1',
+        currentBox: LeitnerBox.box1,
+        lastReviewedEpoch: nowMs - 100000,
+        nextReviewEpoch: nowMs,
+        easeFactor: 3.0,
+        consecutiveSuccesses: 0,
+      );
+
+      final newState = SpacedRepetitionEngine.calculateNextInterval(
+        previousState: state,
+        rating: 3,
+        currentTimeMs: nowMs,
+      );
+
+      // Max is 3.0, so 3.0 + 0.15 should clamp to 3.0
+      expect(newState.easeFactor, 3.0);
+    });
+
+    test('legacy persisted review results are processed correctly', () {
+      const state = LeitnerCardState(
+        cardId: 'legacy-1',
+        currentBox: LeitnerBox.box5,
+        lastReviewedEpoch: 1600000000000,
+        nextReviewEpoch: 1600000000000,
+        easeFactor: 2.1,
+        consecutiveSuccesses: 10,
+      );
+
+      final newState = SpacedRepetitionEngine.calculateNextInterval(
+        previousState: state,
+        rating: 3,
+        currentTimeMs: 1610000000000,
+      );
+
+      // Should stay in box5 (clamped) but update last/next review epochs and successes
+      expect(newState.currentBox, LeitnerBox.box5);
+      expect(newState.consecutiveSuccesses, 11);
+      expect(newState.easeFactor, 2.25);
     });
   });
 }

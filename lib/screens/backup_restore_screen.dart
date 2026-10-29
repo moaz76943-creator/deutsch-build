@@ -27,11 +27,13 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final backupFile = File('${directory.path}/deutsch_backup_$timestamp.json');
+      final backupFile =
+          File('${directory.path}/deutsch_backup_$timestamp.json');
       await backupFile.writeAsString(jsonEncode(data));
 
       setState(() {
-        _statusMessage = 'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
+        _statusMessage =
+            'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
       });
     } catch (e) {
       setState(() => _statusMessage = 'فشل تصدير النسخة: $e');
@@ -55,10 +57,16 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         return;
       }
 
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files
+          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
       final latest = files.first;
       final raw = await latest.readAsString();
-      final Map<String, dynamic> data = jsonDecode(raw);
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        setState(() => _statusMessage = 'ملف النسخة الاحتياطية غير صالح.');
+        return;
+      }
+      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded);
 
       final prefs = await SharedPreferences.getInstance();
       for (final entry in data.entries) {

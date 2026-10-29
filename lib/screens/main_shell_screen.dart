@@ -1,5 +1,6 @@
 import 'package:deutsch_bilarabi/design_system/floating_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'home_screen.dart';
 import 'curriculum_units_screen.dart';
@@ -25,22 +26,32 @@ class _MainShellScreenState extends State<MainShellScreen> {
       const ProfileHubScreen(),
     ];
 
-    return Scaffold(
+    final shell = Scaffold(
       extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: FloatingBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const <NavBarItemData>[
-          NavBarItemData(icon: Icons.home_rounded, label: 'الرئيسية'),
-          NavBarItemData(icon: Icons.menu_book_rounded, label: 'الدروس'),
-          NavBarItemData(icon: Icons.translate_rounded, label: 'المعجم'),
-          NavBarItemData(icon: Icons.person_rounded, label: 'حسابي'),
-        ],
-      ),
+      bottomNavigationBar: MediaQuery.viewInsetsOf(context).bottom > 0
+          ? null
+          : FloatingBottomNavBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: const <NavBarItemData>[
+                NavBarItemData(icon: Icons.home_rounded, label: 'الرئيسية'),
+                NavBarItemData(icon: Icons.menu_book_rounded, label: 'الدروس'),
+                NavBarItemData(icon: Icons.translate_rounded, label: 'المعجم'),
+                NavBarItemData(icon: Icons.person_rounded, label: 'حسابي'),
+              ],
+            ),
     );
+    // Screens reached from onboarding tests and deep links still need the
+    // root provider container. The application root already provides one.
+    try {
+      ProviderScope.containerOf(context);
+      return shell;
+    } on StateError {
+      return ProviderScope(child: shell);
+    }
   }
 }
