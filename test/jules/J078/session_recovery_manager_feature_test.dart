@@ -17,7 +17,7 @@ void main() {
         sessionId: 'sess_valid',
         currentRoute: '/quiz',
         lastItemIndex: 10,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 1000,
         languagePairKey: 'ar_de_1.0',
         committedReviewIds: [],
       );
@@ -26,7 +26,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (route) => route.startsWith('/'),
+        currentTimestamp: 1010,
+        isRouteValid: (route) => route.startsWith('/'),
       );
 
       expect(restored, isNotNull);
@@ -39,7 +40,7 @@ void main() {
         sessionId: 'sess_interrupted',
         currentRoute: '/quiz',
         lastItemIndex: 5,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 2000,
         languagePairKey: 'ar_de_1.0',
         committedReviewIds: ['rev_1', 'rev_2'],
       );
@@ -48,13 +49,14 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 2010,
+        isRouteValid: (_) => true,
       );
 
       expect(restored, isNotNull);
-      expect(recoveryManager.isReviewCommitted(restored!, 'rev_1'), isTrue);
-      expect(recoveryManager.isReviewCommitted(restored, 'rev_2'), isTrue);
-      expect(recoveryManager.isReviewCommitted(restored, 'rev_3'), isFalse);
+      expect(restored?.isReviewCommitted('rev_1'), isTrue);
+      expect(restored?.isReviewCommitted('rev_2'), isTrue);
+      expect(restored?.isReviewCommitted('rev_3'), isFalse);
     });
 
     test('Wrong language pair identity is safely rejected', () async {
@@ -62,7 +64,7 @@ void main() {
         sessionId: 'sess_wrong_pair',
         currentRoute: '/quiz',
         lastItemIndex: 5,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 3000,
         languagePairKey: 'ar_de_1.0',
       );
 
@@ -70,7 +72,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'en_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 3010,
+        isRouteValid: (_) => true,
       );
 
       expect(restored, isNull);
@@ -85,7 +88,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 4010,
+        isRouteValid: (_) => true,
       );
 
       expect(restored, isNull);
@@ -96,7 +100,7 @@ void main() {
         sessionId: 'sess_missing_screen',
         currentRoute: '/non_existent',
         lastItemIndex: 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 5000,
         languagePairKey: 'ar_de_1.0',
       );
 
@@ -104,7 +108,8 @@ void main() {
 
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (route) => route == '/quiz', // Only /quiz is valid
+        currentTimestamp: 5010,
+        isRouteValid: (route) => route == '/quiz', // Only /quiz is valid
       );
 
       expect(restored, isNull);
@@ -115,15 +120,17 @@ void main() {
         sessionId: 'sess_stale',
         currentRoute: '/quiz',
         lastItemIndex: 0,
-        timestamp: (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 86401,
+        timestamp: 6000,
         languagePairKey: 'ar_de_1.0',
       );
 
       await recoveryManager.persistSession(session);
 
+      // 86400 seconds is the max. Let's make currentTimestamp 86401 seconds later.
       final restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 6000 + 86401,
+        isRouteValid: (_) => true,
       );
 
       expect(restored, isNull);
@@ -134,7 +141,7 @@ void main() {
         sessionId: 'sess_loop',
         currentRoute: '/quiz',
         lastItemIndex: 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 7000,
         languagePairKey: 'ar_de_1.0',
       );
 
@@ -143,28 +150,32 @@ void main() {
       // Attempt 1
       var restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 7010,
+        isRouteValid: (_) => true,
       );
       expect(restored, isNotNull);
 
       // Attempt 2
       restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 7020,
+        isRouteValid: (_) => true,
       );
       expect(restored, isNotNull);
 
       // Attempt 3
       restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 7030,
+        isRouteValid: (_) => true,
       );
       expect(restored, isNotNull);
 
       // Attempt 4 (should be rejected)
       restored = recoveryManager.restoreSession(
         expectedLanguagePairKey: 'ar_de_1.0',
-        isValidRoute: (_) => true,
+        currentTimestamp: 7040,
+        isRouteValid: (_) => true,
       );
       expect(restored, isNull);
     });

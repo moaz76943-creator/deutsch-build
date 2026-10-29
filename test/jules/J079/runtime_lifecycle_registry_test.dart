@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 
 void main() {
@@ -142,6 +143,30 @@ void main() {
       await registry.disposeAll();
 
       expect(order, ['C_1', 'B_1', 'A_2', 'A_1']);
+    });
+
+    test('Bounded cleanup timeout is enforced and swallowed', () {
+      fakeAsync((async) {
+        int completedCleanups = 0;
+
+        registry.registerCleanup(() async {
+          // Just returning a future that will never complete
+          final c = Completer<void>();
+          return c.future;
+        }, owner: 'featureB');
+
+        registry.registerCleanup(() {
+          completedCleanups++;
+        }, owner: 'featureB');
+
+        // We can't await this normally in fakeAsync without it blocking indefinitely,
+        // so we fire it without await, and use fakeAsync to advance time.
+        registry.disposeOwner('featureB');
+
+        async.elapse(const Duration(seconds: 5));
+
+        expect(completedCleanups, 1);
+      });
     });
   });
 }
