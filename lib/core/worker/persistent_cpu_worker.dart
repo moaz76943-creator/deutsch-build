@@ -1,37 +1,31 @@
 <<<<<<< HEAD
 import 'dart:async';
-import 'dart:collection';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 
-class WorkerQueueExhaustedException implements Exception {
-  final String message;
-  WorkerQueueExhaustedException([this.message = "Worker queue is full"]);
-  @override
-  String toString() => message;
-}
+/// Master Constitution Section 10 Compliant CPU Worker:
+/// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
+/// execution timeout watchdog, and safe resource disposal to prevent leaks.
+class PersistentCpuWorker {
+  int _activeGeneration = 0;
+  bool _isDisposed = false;
+  Completer<dynamic>? _pendingCompleter;
 
-class WorkerCancelledException implements Exception {
-  final String message;
-  WorkerCancelledException([this.message = "Task was cancelled"]);
-  @override
-  String toString() => message;
-}
+  int get currentGeneration => _activeGeneration;
+  bool get isDisposed => _isDisposed;
 
-class _QueuedTask<Q, R> {
-  final ComputeCallback<Q, R> task;
-  final Q message;
-  final Completer<R> completer;
-  final int generation;
+  /// Submits an asynchronous CPU task. Only the latest generation result is accepted.
+  Future<T?> executeTask<T>({
+    required Future<T> Function() computation,
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    if (_isDisposed) {
+      throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
+    }
 
-  _QueuedTask({
-    required this.task,
-    required this.message,
-    required this.completer,
-    required this.generation,
-  });
-}
+    final generation = ++_activeGeneration;
+    final completer = Completer<T?>();
+    _pendingCompleter = completer;
 
+<<<<<<< HEAD
 class PersistentCpuWorker with WidgetsBindingObserver {
   static PersistentCpuWorker instance = PersistentCpuWorker._init();
 
@@ -49,13 +43,14 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   void _registerObserver() {
+=======
+>>>>>>> origin/staging/v2-full-platform
     try {
-      WidgetsBinding.instance.addObserver(this);
-    } catch (_) {
-      // Ignore if not initialized
-    }
-  }
+      final result = await computation().timeout(timeout, onTimeout: () {
+        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
+      });
 
+<<<<<<< HEAD
   @visibleForTesting
   static void resetForTesting() {
     instance.dispose();
@@ -74,12 +69,35 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     for (final task in _queue) {
       if (!task.completer.isCompleted) {
         task.completer.completeError(WorkerCancelledException());
+=======
+      // Latest-Wins policy: drop result if generation has advanced
+      if (_isDisposed || generation != _activeGeneration) {
+        return null;
+>>>>>>> origin/staging/v2-full-platform
       }
+
+      completer.complete(result);
+      return result;
+    } catch (e, st) {
+      if (generation == _activeGeneration && !completer.isCompleted) {
+        completer.completeError(e, st);
+      }
+      return null;
     }
-    _queue.clear();
   }
 
+  /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
+  void cancelActiveOperations() {
+    _activeGeneration++;
+    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
+      _pendingCompleter!.complete(null);
+      _pendingCompleter = null;
+    }
+  }
+
+  /// Safe disposal freeing all worker references and cancelling subscriptions
   void dispose() {
+<<<<<<< HEAD
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
@@ -195,5 +213,9 @@ class PersistentCpuWorker {
     if (newEase < 1.3) newEase = 1.3;
 
     return newEase;
+=======
+    _isDisposed = true;
+    cancelActiveOperations();
+>>>>>>> origin/staging/v2-full-platform
   }
 }
