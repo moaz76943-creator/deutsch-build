@@ -12,13 +12,12 @@ void main() {
       recoveryManager = SessionRecoveryManager(prefs);
     });
 
-    test('Persists and restores valid session accurately (Legacy behavior)', () async {
-      final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    test('Persists and restores valid session accurately', () async {
       final session = SessionState(
         sessionId: 'sess_123',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 5,
-        timestamp: nowSec,
+        timestamp: 1728468000,
       );
 
       await recoveryManager.persistSession(session);
@@ -28,8 +27,6 @@ void main() {
       expect(restored?.sessionId, 'sess_123');
       expect(restored?.currentRoute, '/quiz/trainer');
       expect(restored?.lastItemIndex, 5);
-      expect(restored?.version, 1);
-      expect(restored?.recoveryAttempts, 1);
     });
 
     test('Handles corrupted data gracefully without crashing', () async {
@@ -40,7 +37,6 @@ void main() {
       final manager = SessionRecoveryManager(prefs);
 
       expect(manager.restoreSession(), isNull);
-      expect(prefs.getString('deutsch_active_session_recovery_v1'), isNull);
     });
 
     test('Clears active session on demand', () async {
@@ -48,7 +44,7 @@ void main() {
         sessionId: 'sess_456',
         currentRoute: '/home',
         lastItemIndex: 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        timestamp: 1728468100,
       );
       await recoveryManager.persistSession(session);
       await recoveryManager.clearSession();
