@@ -9,14 +9,8 @@ void main() {
     var called = false;
     String? banner;
     final service = HybridAudioService(
-      voiceProbe: (_) async {
-        called = true;
-        return true;
-      },
-      speechPlayback: (_, __) async {
-        called = true;
-        return true;
-      },
+      voiceProbe: (_) async { called = true; return true; },
+      speechPlayback: (_, __) async { called = true; return true; },
     );
     final played = await service.play(
       text: 'test',
@@ -34,10 +28,7 @@ void main() {
     String? banner;
     final service = HybridAudioService(
       voiceProbe: (_) async => false,
-      speechPlayback: (_, __) async {
-        spoken = true;
-        return true;
-      },
+      speechPlayback: (_, __) async { spoken = true; return true; },
     );
     expect(
       await service.play(
@@ -52,33 +43,24 @@ void main() {
     expect(banner, contains('Audio not available'));
   });
 
-  test(
-      'screen-facing playAudio uses the selected language and exposes IPA fallback',
-      () async {
+  test('screen-facing playAudio uses the selected language and exposes IPA fallback', () async {
     String? message;
     String? locale;
     final unavailable = HybridAudioService(
       voiceProbe: (_) async => false,
-      speechPlayback: (text, tag) async => throw StateError('must not speak'),
+      speechPlayback: (_, _) async => throw StateError('must not speak'),
     );
-    expect(
-        await unavailable.playAudio(
-          text: 'Merhaba',
-          languageCode: 'tr',
-          ipa: 'mɛɾhaba',
-          onUnavailable: (text) => message = text,
-        ),
-        isFalse);
+    expect(await unavailable.playAudio(
+      text: 'Merhaba', languageCode: 'tr', ipa: 'mɛɾhaba',
+      onUnavailable: (text) => message = text,
+    ), isFalse);
     expect(message, contains('/mɛɾhaba/'));
     final available = HybridAudioService(
       voiceProbe: (_) async => true,
-      speechPlayback: (_, tag) async {
-        locale = tag;
-        return true;
-      },
+      speechPlayback: (_, tag) async { locale = tag; return true; },
     );
-    expect(
-        await available.playAudio(text: 'Bonjour', languageCode: 'fr'), isTrue);
+    expect(await available.playAudio(
+      text: 'Bonjour', languageCode: 'fr'), isTrue);
     expect(locale, 'fr-FR');
   });
 

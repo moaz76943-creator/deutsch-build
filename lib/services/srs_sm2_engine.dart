@@ -1,4 +1,3 @@
-
 class Sm2ReviewResult {
   final double easeFactor;
   final int intervalDays;
@@ -15,38 +14,52 @@ class Sm2ReviewResult {
 
 class SrsSm2Engine {
   static const double minEaseFactor = 1.3;
+  static const double maxEaseFactor = 3.0;
+  static const int maxIntervalDays = 36500;
+  static const int maxRepetitions = 1000000;
 
-  /// q: تقييم المستخدم من 1 إلى 4 (أو 0 إلى 5)
+  /// Backwards-compatible SM-2 calculator; 0..5 rating, no I/O.
   static Sm2ReviewResult calculateNextReview({
     required int quality,
     required double currentEaseFactor,
     required int repetitions,
     required int intervalDays,
+    DateTime? currentTime,
   }) {
-    final int q = quality.clamp(1, 5);
-    double newEf = currentEaseFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
-    if (newEf < minEaseFactor) newEf = minEaseFactor;
+    if (quality < 0 || quality > 5 ||
+        repetitions < 0 || repetitions > maxRepetitions ||
+        intervalDays < 0 || intervalDays > maxIntervalDays ||
+        !currentEaseFactor.isFinite) {
+      throw ArgumentError('Malformed SM-2 input state');
+    }
+    // Preserve the historical mapping of 0 to quality 1.
+    final int q = quality.clamp(1, 5).toInt();
+    final baseEase = currentEaseFactor.clamp(minEaseFactor, maxEaseFactor).toDouble();
+    final proposedEase = baseEase +
+        (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+    final newEase = proposedEase.clamp(minEaseFactor, maxEaseFactor).toDouble();
 
     int newReps = repetitions;
     int newInterval = 1;
-
     if (q < 3) {
       newReps = 0;
-      newInterval = 1;
     } else {
       if (repetitions == 0) {
         newInterval = 1;
       } else if (repetitions == 1) {
         newInterval = 6;
       } else {
-        newInterval = (intervalDays * newEf).round();
+        final proposed = intervalDays * newEase;
+        if (!proposed.isFinite) throw ArgumentError('Invalid interval');
+        newInterval = proposed.round().clamp(1, maxIntervalDays).toInt();
       }
-      newReps += 1;
+      if (newReps < maxRepetitions) newReps++;
     }
 
-    final DateTime nextDate = DateTime.now().add(Duration(days: newInterval));
+    final nextDate = (currentTime ?? DateTime.now())
+        .add(Duration(days: newInterval));
     return Sm2ReviewResult(
-      easeFactor: newEf,
+      easeFactor: newEase,
       intervalDays: newInterval,
       repetitions: newReps,
       nextReviewDate: nextDate,

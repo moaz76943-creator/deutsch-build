@@ -14,7 +14,7 @@ class FakeCipher implements VaultCipher {
         ...data.map((value)=>value^0x55)]);
   @override
   Future<Uint8List> decrypt(String id,Uint8List data) async =>
-      Uint8List.fromList(data.skip(29).map((value)=>value^0x55).toList());
+      Uint8List.fromList(data.skip(29).map((value)=>value^0x55));
 }
 class SoftwareEnvelopeCipher extends FakeCipher {
   @override

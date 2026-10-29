@@ -1,164 +1,228 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../architecture/operation_result.dart';
 import '../contracts/ui_state.dart';
 import 'content_cancellation_token.dart';
 import 'resilient_state_builder.dart';
 
+/// An on-screen, bounded and cancellation-aware view of one offline request.
+/// Cancellation prevents stale UI updates; it cannot abort arbitrary I/O.
 class ResilientAsyncBuilder<T> extends StatefulWidget {
-  final Future<T?> Function(ContentCancellationToken token) futureBuilder;
-  final Widget Function(BuildContext context, T data) dataBuilder;
-  final Duration timeout;
-  final String? emptyMessage;
-
   const ResilientAsyncBuilder({
     super.key,
     required this.futureBuilder,
     required this.dataBuilder,
+    this.requestKey,
     this.timeout = const Duration(seconds: 10),
     this.emptyMessage,
+    this.loadingBuilder,
+    this.emptyBuilder,
+    this.errorBuilder,
   });
 
+  final Future<T?> Function(ContentCancellationToken token) futureBuilder;
+  final Widget Function(BuildContext context, T data) dataBuilder;
+  final Object? requestKey;
+  final Duration timeout;
+  final String? emptyMessage;
+  final Widget Function(BuildContext context)? loadingBuilder;
+  final Widget Function(BuildContext context, String? message)? emptyBuilder;
+  final Widget Function(BuildContext context, Object error, String? message)?
+      errorBuilder;
+
   @override
-  State<ResilientAsyncBuilder<T>> createState() => _ResilientAsyncBuilderState<T>();
+  State<ResilientAsyncBuilder<T>> createState() =>
+      _ResilientAsyncBuilderState<T>();
 }
 
 class _ResilientAsyncBuilderState<T> extends State<ResilientAsyncBuilder<T>> {
-  late ContentCancellationToken _cancellationToken;
+  ContentCancellationToken? _active;
   UIState<T> _state = UIState<T>.loading();
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _load();
   }
 
-  void _fetchData() {
-    _cancellationToken = ContentCancellationToken();
+  @override
+  void didUpdateWidget(covariant ResilientAsyncBuilder<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.requestKey != widget.requestKey ||
+        oldWidget.futureBuilder != widget.futureBuilder ||
+        oldWidget.timeout != widget.timeout) {
+      _load();
+    }
+  }
+
+  void _load() {
+    _active?.cancel();
+    final token = ContentCancellationToken();
+    _active = token;
     _state = UIState<T>.loading();
-
-    widget.futureBuilder(_cancellationToken).timeout(
-      widget.timeout,
-    ).then((result) {
-      if (_cancellationToken.isCancelled) return;
-
-      if (mounted) {
-        setState(() {
-          if (result == null) {
-            _state = UIState<T>.empty(widget.emptyMessage);
-          } else {
-            _state = UIState<T>.data(result);
-          }
-        });
-      }
-    }).catchError((error) {
-      if (_cancellationToken.isCancelled) return;
-
-      if (mounted) {
-        setState(() {
-          if (error is StorageFailure) {
-            _state = UIState<T>.corrupted(error, 'Storage data corruption detected.');
-          } else if (error is ContentFailure) {
-            _state = UIState<T>.empty(widget.emptyMessage ?? 'Content not found.');
-          } else {
-            _state = UIState<T>.failed(ContentFailure('async_error', error.toString()), 'An unexpected error occurred.');
-          }
-        });
-      }
+    Future<T?>.sync(() => widget.futureBuilder(token))
+        .timeout(widget.timeout)
+        .then((result) {
+      if (!mounted || token.isCancelled) return;
+      setState(() {
+        _state = result == null
+            ? UIState<T>.empty(widget.emptyMessage)
+            : UIState<T>.data(result);
+      });
+    }, onError: (Object error, StackTrace stack) {
+      if (!mounted || token.isCancelled) return;
+      setState(() {
+        if (error is StorageFailure) {
+          _state = UIState<T>.corrupted(
+            error,
+            'Local content cannot be read.',
+          );
+        } else if (error is ContentFailure) {
+          _state = UIState<T>.empty(widget.emptyMessage);
+        } else {
+          _state = UIState<T>.failed(
+            ContentFailure('ui_async_failure', 'Offline request failed'),
+            'Unable to load content.',
+          );
+        }
+      });
     });
   }
 
   @override
   void dispose() {
-    _cancellationToken.cancel();
+    _active?.cancel();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ResilientStateBuilder<T>(
-      state: _state,
-      dataBuilder: widget.dataBuilder,
-    );
-  }
+  Widget build(BuildContext context) => ResilientStateBuilder<T>(
+        state: _state,
+        dataBuilder: widget.dataBuilder,
+        loadingBuilder: widget.loadingBuilder,
+        emptyBuilder: widget.emptyBuilder,
+        errorBuilder: widget.errorBuilder,
+      );
 }
 
+/// Adapts a typed domain result without writing progress or SRS state.
 class ResilientOperationBuilder<T> extends StatefulWidget {
-  final Future<OperationResult<T>> Function(ContentCancellationToken token) operation;
-  final Widget Function(BuildContext context, T data) dataBuilder;
-  final Widget Function(BuildContext context, T data, String? message)? degradedBuilder;
-  final Duration timeout;
-
   const ResilientOperationBuilder({
     super.key,
     required this.operation,
     required this.dataBuilder,
     this.degradedBuilder,
+    this.requestKey,
     this.timeout = const Duration(seconds: 10),
   });
 
+  final Future<OperationResult<T>> Function(ContentCancellationToken token)
+      operation;
+  final Widget Function(BuildContext context, T data) dataBuilder;
+  final Widget Function(BuildContext context, T data, String? message)?
+      degradedBuilder;
+  final Object? requestKey;
+  final Duration timeout;
+
   @override
-  State<ResilientOperationBuilder<T>> createState() => _ResilientOperationBuilderState<T>();
+  State<ResilientOperationBuilder<T>> createState() =>
+      _ResilientOperationBuilderState<T>();
 }
 
-class _ResilientOperationBuilderState<T> extends State<ResilientOperationBuilder<T>> {
-  late ContentCancellationToken _cancellationToken;
+class _ResilientOperationBuilderState<T>
+    extends State<ResilientOperationBuilder<T>> {
+  ContentCancellationToken? _active;
   UIState<T> _state = UIState<T>.loading();
 
   @override
   void initState() {
     super.initState();
-    _executeOperation();
+    _load();
   }
 
-  void _executeOperation() {
-    _cancellationToken = ContentCancellationToken();
+  @override
+  void didUpdateWidget(covariant ResilientOperationBuilder<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.requestKey != widget.requestKey ||
+        oldWidget.operation != widget.operation ||
+        oldWidget.timeout != widget.timeout) {
+      _load();
+    }
+  }
+
+  void _load() {
+    _active?.cancel();
+    final token = ContentCancellationToken();
+    _active = token;
     _state = UIState<T>.loading();
-
-    widget.operation(_cancellationToken).timeout(
-      widget.timeout,
-    ).then((result) {
-      if (_cancellationToken.isCancelled) return;
-
-      if (mounted) {
-        setState(() {
-          if (result.isSuccess) {
-            _state = UIState<T>.data(result.data);
-          } else {
-            final failure = result.failure;
-            if (failure is StorageFailure) {
-              _state = UIState<T>.corrupted(failure, 'Storage corruption detected.');
-            } else if (failure is ContentFailure) {
-              _state = UIState<T>.empty('Content missing.');
+    Future<OperationResult<T>>.sync(() => widget.operation(token))
+        .timeout(widget.timeout)
+        .then((result) {
+      if (!mounted || token.isCancelled) return;
+      setState(() {
+        if (result.isSuccess) {
+          // The result contract permits a null payload even when marked
+          // successful. Never let its force-unwrapping getter escape as an
+          // uncaught exception from a Future completion callback.
+          try {
+            final value = result.data;
+            if (value == null) {
+              _state = UIState<T>.failed(
+                const ContentFailure(
+                  'ui_invalid_success',
+                  'The operation returned no data',
+                ),
+                'Unable to load content.',
+              );
             } else {
-               _state = UIState<T>.failed(failure, 'Operation failed.');
+              _state = UIState<T>.data(value);
             }
+          } catch (_) {
+            _state = UIState<T>.failed(
+              const ContentFailure(
+                'ui_invalid_success',
+                'The operation returned no usable data',
+              ),
+              'Unable to load content.',
+            );
           }
-        });
-      }
-    }).catchError((error) {
-      if (_cancellationToken.isCancelled) return;
-
-      if (mounted) {
-        setState(() {
-           _state = UIState<T>.failed(ContentFailure('async_error', error.toString()), 'An unexpected error occurred.');
-        });
-      }
+          return;
+        }
+        final failure = result.failure;
+        if (failure is StorageFailure) {
+          _state = UIState<T>.corrupted(
+            failure,
+            'Local content cannot be read.',
+          );
+        } else if (failure is ContentFailure) {
+          _state = UIState<T>.empty('No offline content available.');
+        } else {
+          _state = UIState<T>.failed(failure, 'Unable to load content.');
+        }
+      });
+    }, onError: (Object error, StackTrace stack) {
+      if (!mounted || token.isCancelled) return;
+      setState(() {
+        _state = UIState<T>.failed(
+          ContentFailure('ui_operation_failure', 'Offline operation failed'),
+          'Unable to load content.',
+        );
+      });
     });
   }
 
   @override
   void dispose() {
-    _cancellationToken.cancel();
+    _active?.cancel();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ResilientStateBuilder<T>(
-      state: _state,
-      dataBuilder: widget.dataBuilder,
-      degradedBuilder: widget.degradedBuilder,
-    );
-  }
+  Widget build(BuildContext context) => ResilientStateBuilder<T>(
+        state: _state,
+        dataBuilder: widget.dataBuilder,
+        degradedBuilder: widget.degradedBuilder,
+      );
 }
