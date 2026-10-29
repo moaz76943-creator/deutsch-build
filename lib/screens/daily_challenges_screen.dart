@@ -118,7 +118,7 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                           child: Row(
                             children: <Widget>[
                               Text(
-                                item['icon']!,
+                                item['icon']! as String,
                                 style: const TextStyle(fontSize: 28),
                               ),
                               const SizedBox(width: 14),
@@ -127,7 +127,7 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Text(
-                                      item['title']!,
+                                      item['title']! as String,
                                       style: AppTypography.display.copyWith(
                                         color: isDone ? Colors.white.withValues(alpha: 0.5) : Colors.white,
                                         fontSize: 16,
@@ -138,7 +138,7 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                                     Row(
                                       children: <Widget>[
                                         Text(
-                                          item['reward']!,
+                                          item['reward']! as String,
                                           style: const TextStyle(color: Color(0xFF34D399), fontSize: 13, fontWeight: FontWeight.w600),
                                         ),
                                         const SizedBox(width: 10),
