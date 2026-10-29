@@ -1,15 +1,46 @@
 abstract class OperationFailure {
   final String code;
   final String message;
-  const OperationFailure(this.code, this.message);
+
+  /// Raw cause is not exposed through a public property or toString.
+  final Object? _cause;
+  const OperationFailure(this.code, this.message, [this._cause]);
+
+  /// Bounded diagnostic check whether an underlying cause is present.
+  bool get hasCause => _cause != null;
+
+  @override
+  String toString() => 'OperationFailure(code: $code, message: $message)';
 }
 
 class StorageFailure extends OperationFailure {
-  const StorageFailure(super.code, super.message);
+  const StorageFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class ContentFailure extends OperationFailure {
-  const ContentFailure(super.code, super.message);
+  const ContentFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
+}
+
+class UnavailableFailure extends OperationFailure {
+  const UnavailableFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
+}
+
+class InvalidInputFailure extends OperationFailure {
+  const InvalidInputFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
+}
+
+class CancelledFailure extends OperationFailure {
+  const CancelledFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
+}
+
+class IncompatibleVersionFailure extends OperationFailure {
+  const IncompatibleVersionFailure(String code, String message, [Object? cause])
+      : super(code, message, cause);
 }
 
 class OperationResult<T> {
@@ -20,6 +51,17 @@ class OperationResult<T> {
   const OperationResult.failure(this._failure) : _data = null;
 
   bool get isSuccess => _failure == null;
-  T get data => _data!;
-  OperationFailure get failure => _failure!;
+  T get data {
+    if (!isSuccess) {
+      throw StateError('Cannot read data from a failed operation');
+    }
+    return _data as T;
+  }
+
+  OperationFailure get failure {
+    if (isSuccess) {
+      throw StateError('Cannot read failure from a successful operation');
+    }
+    return _failure!;
+  }
 }

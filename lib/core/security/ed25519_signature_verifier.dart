@@ -1,6 +1,5 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 
 /// التحقق من تواقيع الحزم الرقمية بواسطة خوارزمية Ed25519 (Study 06 / RFC 8032)
 /// يضمن أصالة الحزم التعليمية ومطابقتها للمصدر المعتمد بدون اعتماد على مكتبات C أصلية
@@ -146,25 +145,71 @@ class _EdwardsPoint {
 
 /// سجل المفاتيح العامة المعتمدة ومفاتيح الناشرين الموثوقين
 class PackTrustRegistry {
-  // مفاتيح عامة معتمدة للتطوير والاختبار - لا تتضمن أي مفاتيح خاصة
-  static final Map<String, String> _trustedPublicKeys = {
-    'official-publisher-dev': '3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c',
+  /// مفاتيح عامة معروفة من اختبارات RFC 8032 حيث مفاتيحها الخاصة معروفة للعامة.
+  /// يحظر تماماً قبول هذه المفاتيح في بيئة الإنتاج أو تفويض حزم تعليمية من خلالها.
+  static const Set<String> knownInsecureTestKeys = {
+    // RFC 8032 Test Vector 1
+    'd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a',
+    // RFC 8032 Test Vector 2
+    '3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c',
+    // RFC 8032 Test Vector 3
+    'fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025',
   };
 
+  // المفاتيح الرسمية المعتمدة - لا تتضمن أي مفاتيح اختبار أو مفاتيح خاصة
+  static final Map<String, String> _trustedPublicKeys = {};
   static final Set<String> _revokedKeyFingerprints = {};
 
+  /// فحص ما إذا كان المفتاح موثوقاً ومعتمداً
+  /// في بيئة الإنتاج يرفض تماماً أي مفتاح اختبار عام معروف
   static bool isKeyTrusted(String keyHex) {
+    final normalized = keyHex.trim().toLowerCase();
+    // مفاتيح الاختبار العامة مرفوضة قطعياً في بيئة الإنتاج
+    if (knownInsecureTestKeys.contains(normalized)) {
+      return false;
+    }
+    if (_revokedKeyFingerprints.contains(normalized)) return false;
+    return _trustedPublicKeys.values.contains(normalized);
+  }
+
+  /// تسجيل مفتاح ناشر موثوق
+  static void registerTrustedKey(String publisherId, String publicKeyHex) {
+    final normalized = publicKeyHex.trim().toLowerCase();
+    if (knownInsecureTestKeys.contains(normalized)) {
+      throw ArgumentError(
+        'Security Error: Cannot register publicly known RFC 8032 test key in production registry',
+      );
+    }
+    _trustedPublicKeys[publisherId] = normalized;
+  }
+
+  /// إلغاء الثقة في مفتاح عام محدد
+  static void revokeKey(String publicKeyHex) {
+    _revokedKeyFingerprints.add(publicKeyHex.trim().toLowerCase());
+  }
+
+  /// تسجيل مفتاح مخصص للاختبارات المعزولة فقط (يحظر في بيئة Release)
+  @visibleForTesting
+  static void registerTestKeyForTesting(String publisherId, String publicKeyHex) {
+    if (kReleaseMode) {
+      throw StateError('Cannot register test keys in release mode');
+    }
+    _trustedPublicKeys[publisherId] = publicKeyHex.trim().toLowerCase();
+  }
+
+  /// فحص موثوقية المفتاح في بيئة الاختبار
+  @visibleForTesting
+  static bool isKeyTrustedForTesting(String keyHex) {
     final normalized = keyHex.trim().toLowerCase();
     if (_revokedKeyFingerprints.contains(normalized)) return false;
     return _trustedPublicKeys.values.contains(normalized);
   }
 
-  static void registerTrustedKey(String publisherId, String publicKeyHex) {
-    _trustedPublicKeys[publisherId] = publicKeyHex.trim().toLowerCase();
-  }
-
-  static void revokeKey(String publicKeyHex) {
-    _revokedKeyFingerprints.add(publicKeyHex.trim().toLowerCase());
+  /// مسح سجل المفاتيح لإعادة التهيئة في الاختبارات
+  @visibleForTesting
+  static void clearRegistryForTesting() {
+    _trustedPublicKeys.clear();
+    _revokedKeyFingerprints.clear();
   }
 
   static Uint8List? hexToBytes(String hex) {
