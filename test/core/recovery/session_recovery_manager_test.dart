@@ -9,7 +9,10 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      recoveryManager = SessionRecoveryManager(prefs);
+      recoveryManager = SessionRecoveryManager(
+        prefs,
+        clock: () => 1728468000, // mock clock matching timestamp to bypass age check
+      );
     });
 
     test('Persists and restores valid session accurately (Legacy behavior)', () async {
@@ -18,11 +21,15 @@ void main() {
         sessionId: 'sess_123',
         currentRoute: '/quiz/trainer',
         lastItemIndex: 5,
+<<<<<<< HEAD
         timestamp: nowSec,
+=======
+        timestamp: 1728468000,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       );
 
       await recoveryManager.persistSession(session);
-      final restored = recoveryManager.restoreSession(currentTimestampSec: nowSec);
+      final restored = recoveryManager.restoreSession();
 
       expect(restored, isNotNull);
       expect(restored?.sessionId, 'sess_123');
@@ -44,12 +51,15 @@ void main() {
     });
 
     test('Clears active session on demand', () async {
-      final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final session = SessionState(
         sessionId: 'sess_456',
         currentRoute: '/home',
         lastItemIndex: 0,
-        timestamp: nowSec,
+<<<<<<< HEAD
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+=======
+        timestamp: 1728468100,
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       );
       await recoveryManager.persistSession(session);
       await recoveryManager.clearSession();
