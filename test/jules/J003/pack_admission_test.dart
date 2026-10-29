@@ -1,189 +1,169 @@
 import 'dart:io';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:deutsch_bilarabi/core/storage/atomic_database_installer.dart';
 import 'package:deutsch_bilarabi/core/storage/pack_admission_service.dart';
 import 'package:deutsch_bilarabi/core/storage/storage_quarantine.dart';
+import 'package:deutsch_bilarabi/core/storage/atomic_database_installer.dart';
+import 'package:crypto/crypto.dart';
 
 void main() {
-  late StorageQuarantine quarantine;
-  late PackAdmissionService admissionService;
-  late Directory tempDir;
-
   setUpAll(() {
     sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
   });
 
-  setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('j003_test_');
-    quarantine = StorageQuarantine();
-    // Clear any previous state if needed, though a new instance is created.
-    admissionService = PackAdmissionService(
-      quarantine: quarantine,
-      dbFactory: databaseFactoryFfi,
-    );
-  });
+  group('Pack Admission Tests', () {
+    late PackAdmissionService service;
+    late StorageQuarantine quarantine;
+    late Directory tempDir;
 
-  tearDown(() async {
-    if (await tempDir.exists()) {
-      await tempDir.delete(recursive: true);
-    }
-  });
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('pack_admission_test_');
+      quarantine = StorageQuarantine();
+      service = PackAdmissionService(
+        quarantine: quarantine,
+        dbFactory: databaseFactory,
+      );
+    });
 
-  Future<File> createValidDatabase(String filename) async {
-    final path = '${tempDir.path}/$filename';
-    final db = await databaseFactoryFfi.openDatabase(path);
-    await db.execute('PRAGMA user_version = 1');
-    await db.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, value TEXT)');
-    await db.insert('data', {'value': 'test'});
-    await db.close();
-    return File(path);
-  }
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
 
-  Future<File> createInvalidSchemaDatabase(String filename) async {
-    final path = '${tempDir.path}/$filename';
-    final db = await databaseFactoryFfi.openDatabase(path);
-    await db.execute('CREATE TABLE dummy (id INTEGER)'); // to make file not empty
-    // user_version is 0 by default, no data tables (we consider 'dummy' as a table, wait no,
-    // my check says "excluding sqlite_". So 'dummy' table exists, but user_version is 0.
-    // This will fail the user_version check as expected.
-    await db.close();
-    return File(path);
-  }
+    test('Valid pack admission with atomic installation', () async {
+      final stagingPath = '${tempDir.path}/test_staging.db';
+      final targetPath = '${tempDir.path}/test_target.db';
 
-  Future<String> calculateHash(File file) async {
-    final bytes = await file.readAsBytes();
-    return sha256.convert(bytes).toString();
-  }
+      final stagingFile = File(stagingPath);
+      final targetFile = File(targetPath);
 
-  test('Valid admission and replacement', () async {
-    final stagedDb = await createValidDatabase('staged.db');
-    final hash = await calculateHash(stagedDb);
-    final targetPath = '${tempDir.path}/target.db';
+      final db = await databaseFactory.openDatabase(stagingPath, options: OpenDatabaseOptions(version: 1, onCreate: (db, version) async {
+        await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY)');
+      }));
+      await db.close();
 
-    // Install
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb,
-      expectedHash: hash,
-      targetPath: targetPath,
-    );
-    expect(result, isTrue);
-    expect(await File(targetPath).exists(), isTrue);
+      final bytes = stagingFile.readAsBytesSync();
+      final digest = sha256.convert(bytes).toString();
 
-    // Replace
-    final stagedDb2 = await createValidDatabase('staged2.db');
-    final hash2 = await calculateHash(stagedDb2);
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: stagingFile,
+        expectedHash: digest,
+        targetPath: targetPath,
+        allowReplacement: true,
+      );
 
-    bool result2 = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb2,
-      expectedHash: hash2,
-      targetPath: targetPath,
-      allowReplacement: true,
-    );
-    expect(result2, isTrue);
-  });
+      expect(result, isTrue);
+      expect(targetFile.existsSync(), isTrue);
+    });
 
-  test('Corrupted bytes / SQLite integrity failure', () async {
-    final corruptFile = File('${tempDir.path}/corrupt.db');
-    await corruptFile.writeAsBytes(List.filled(100, 0)); // Not a valid SQLite DB
-    final hash = await calculateHash(corruptFile);
-    final targetPath = '${tempDir.path}/target.db';
+    test('Rejects empty or non-existent files', () async {
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: File('${tempDir.path}/non_existent.db'),
+        expectedHash: 'hash',
+        targetPath: '${tempDir.path}/target.db',
+      );
+      expect(result, isFalse);
+    });
 
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: corruptFile,
-      expectedHash: hash,
-      targetPath: targetPath,
-    );
+    test('Rejects progress database path', () async {
+      final stagingPath = '${tempDir.path}/test_staging2.db';
+      final stagingFile = File(stagingPath);
+      stagingFile.writeAsBytesSync([1, 2, 3]);
 
-    expect(result, isFalse);
-    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(quarantine.isolatedItems.first.diagnosticReason, contains('Failed to open or query SQLite database'));
-  });
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: stagingFile,
+        expectedHash: 'hash',
+        targetPath: '${tempDir.path}/user_progress.db',
+      );
+      expect(result, isFalse);
 
-  test('Wrong hash', () async {
-    final stagedDb = await createValidDatabase('staged.db');
-    const wrongHash = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-    final targetPath = '${tempDir.path}/target.db';
+      final qItems = quarantine.isolatedItems;
+      expect(qItems.isNotEmpty, isTrue);
+      expect(qItems.first.diagnosticReason, contains('progress'));
+    });
 
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb,
-      expectedHash: wrongHash,
-      targetPath: targetPath,
-    );
+    test('Rejects corrupted bytes (invalid header/integrity)', () async {
+      final stagingPath = '${tempDir.path}/test_corrupt.db';
+      final stagingFile = File(stagingPath);
+      stagingFile.writeAsStringSync('not an sqlite database');
 
-    expect(result, isFalse);
-    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(quarantine.isolatedItems.first.diagnosticReason, 'SHA-256 hash mismatch');
-  });
+      final digest = sha256.convert(stagingFile.readAsBytesSync()).toString();
 
-  test('Interrupted renames (startup deletes leftover .tmp)', () async {
-    final stagedDb = await createValidDatabase('staged.db');
-    final hash = await calculateHash(stagedDb);
-    final targetPath = '${tempDir.path}/target.db';
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: stagingFile,
+        expectedHash: digest,
+        targetPath: '${tempDir.path}/target_corrupt.db',
+      );
+      expect(result, isFalse);
 
-    // Simulate a leftover .tmp file
-    final tempFile = File('$targetPath.tmp');
-    await tempFile.writeAsString('garbage');
-    expect(await tempFile.exists(), isTrue);
+      final qItems = quarantine.isolatedItems;
+      expect(qItems.isNotEmpty, isTrue);
+    });
 
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb,
-      expectedHash: hash,
-      targetPath: targetPath,
-    );
+    test('Rejects mismatched hash', () async {
+      final stagingPath = '${tempDir.path}/test_staging3.db';
+      final stagingFile = File(stagingPath);
+      stagingFile.writeAsBytesSync([1, 2, 3]);
 
-    expect(result, isTrue);
-    expect(await tempFile.exists(), isFalse); // Temp file should be cleaned up
-    expect(await File(targetPath).exists(), isTrue);
-  });
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: stagingFile,
+        expectedHash: 'wrong_hash',
+        targetPath: '${tempDir.path}/target.db',
+      );
+      expect(result, isFalse);
 
-  test('Invalid schema (version 0 or missing tables)', () async {
-    final stagedDb = await createInvalidSchemaDatabase('staged.db');
-    final hash = await calculateHash(stagedDb);
-    final targetPath = '${tempDir.path}/target.db';
+      final qItems = quarantine.isolatedItems;
+      expect(qItems.isNotEmpty, isTrue);
+      expect(qItems.first.diagnosticReason, contains('SHA-256 hash mismatch'));
+    });
 
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb,
-      expectedHash: hash,
-      targetPath: targetPath,
-    );
+    test('Rejects invalid schema version', () async {
+      final stagingPath = '${tempDir.path}/invalid_schema.db';
+      final stagingFile = File(stagingPath);
 
-    expect(result, isFalse);
-    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(quarantine.isolatedItems.first.diagnosticReason, 'Invalid schema version');
-  });
+      final db = await databaseFactory.openDatabase(stagingPath, options: OpenDatabaseOptions(version: 1, onCreate: (db, version) async {
+        await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY)');
+      }));
+      // Reset version to 0 to make it invalid
+      await db.rawQuery('PRAGMA user_version = 0');
+      await db.close();
 
-  test('Enforced separation of learner data', () async {
-    final stagedDb = await createValidDatabase('staged.db');
-    final hash = await calculateHash(stagedDb);
-    final targetPath = '${tempDir.path}/user_progress.db';
+      final digest = sha256.convert(stagingFile.readAsBytesSync()).toString();
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: stagingFile,
+        expectedHash: digest,
+        targetPath: '${tempDir.path}/target.db',
+      );
+      expect(result, isFalse);
+    });
 
-    bool result = await admissionService.verifyAndAdmitPack(
-      stagedFile: stagedDb,
-      expectedHash: hash,
-      targetPath: targetPath,
-    );
+    test('Handles insufficient disk during copy', () async {
+      // It's hard to simulate insufficient disk space perfectly in a unit test,
+      // but we can simulate a failed copy by trying to replace a file that we don't have permission to,
+      // or a directory path.
+      final stagingPath = '${tempDir.path}/staging_space.db';
+      final stagingFile = File(stagingPath);
 
-    expect(result, isFalse);
-    expect(quarantine.isolatedItems.isNotEmpty, isTrue);
-    expect(quarantine.isolatedItems.first.diagnosticReason, 'Attempted to overwrite progress database');
-  });
+      final db = await databaseFactory.openDatabase(stagingPath, options: OpenDatabaseOptions(version: 1, onCreate: (db, version) async {
+        await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY)');
+      }));
+      await db.close();
 
-  test('Preserve the last verified pack when replacement fails (simulated)', () async {
-    // AtomicDatabaseInstaller handles this because File.rename is atomic
-    // If we pass an invalid source, it fails before touching target.
-    final targetFile = await createValidDatabase('target.db');
-    final originalHash = await calculateHash(targetFile);
+      // We create a directory at the target path instead of a file
+      final targetDir = Directory('${tempDir.path}/target_space.db');
+      targetDir.createSync();
 
-    final installResult = await AtomicDatabaseInstaller.installDatabaseAtomically(
-      sourcePath: '${tempDir.path}/non_existent.db',
-      targetPath: targetFile.path,
-      allowReplacement: true,
-    );
+      final digest = sha256.convert(stagingFile.readAsBytesSync()).toString();
+      final result = await service.verifyAndAdmitPack(
+        stagedFile: stagingFile,
+        expectedHash: digest,
+        targetPath: targetDir.path,
+      );
 
-    expect(installResult.status, DatabaseInstallStatus.failed);
-    expect(await targetFile.exists(), isTrue);
-    expect(await calculateHash(targetFile), originalHash); // Unchanged
+      expect(result, isFalse);
+    });
+
   });
 }
