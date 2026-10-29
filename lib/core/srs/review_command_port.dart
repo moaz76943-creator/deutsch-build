@@ -34,6 +34,19 @@ class ReviewCommand {
 
   @override
   int get hashCode => reviewId.hashCode;
+
+  /// Payload identity for one [reviewId]. A repeated id with a different
+  /// pair, card, or rating is a conflict, not a silent replay.
+  bool samePayloadAs(ReviewCommand other) {
+    return sourceLanguageId == other.sourceLanguageId &&
+        targetLanguageId == other.targetLanguageId &&
+        semanticVersion == other.semanticVersion &&
+        cardId == other.cardId &&
+        facetKey == other.facetKey &&
+        pairEpoch == other.pairEpoch &&
+        rating == other.rating &&
+        hinted == other.hinted;
+  }
 }
 
 abstract interface class ReviewCommandPort {
