@@ -29,7 +29,7 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored?.sessionId, 'legacy_123');
-
+      expect(restored?.sourceLocale, '');
       expect(restored?.committedReviewIds, isEmpty);
     });
 
@@ -58,7 +58,8 @@ void main() {
         currentRoute: '/quiz/trainer',
         lastItemIndex: 0,
         timestamp: 1000000,
-        languagePairKey: 'de_ar',
+        sourceLocale: 'de',
+        targetLocale: 'ar',
       );
       final manager = SessionRecoveryManager(
         prefs,
@@ -68,7 +69,8 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        expectedLanguagePairKey: 'en_ar',
+        expectedSourceLocale: 'en',
+        expectedTargetLocale: 'ar',
       );
 
       expect(restored, isNull);
