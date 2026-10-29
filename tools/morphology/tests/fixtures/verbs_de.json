@@ -1,0 +1,52 @@
+{
+  "verbs": [
+    {
+      "verb_id": "v_machen",
+      "infinitive": "machen",
+      "translation_ar": "يصنع",
+      "frequency_rank": 1,
+      "conjugations": [
+        {
+          "conjugation_id": "c_machen_pres_1s",
+          "tense": "present",
+          "person": "1s",
+          "conjugated_form": "mache"
+        },
+        {
+          "conjugation_id": "c_machen_part_perf",
+          "tense": "PART_PERF",
+          "person": "none",
+          "conjugated_form": "gemacht"
+        }
+      ]
+    },
+    {
+      "verb_id": "v_gehen",
+      "infinitive": "gehen",
+      "translation_ar": "يذهب",
+      "frequency_rank": 2,
+      "conjugations": [
+        {
+          "conjugation_id": "c_gehen_past_3s",
+          "tense": "past",
+          "person": "3s",
+          "conjugated_form": "ging"
+        }
+      ]
+    },
+    {
+      "verb_id": "v_arbeiten",
+      "infinitive": "arbeiten",
+      "translation_ar": "يعمل",
+      "frequency_rank": 3,
+      "conjugations": [
+        {
+          "conjugation_id": "c_arbeiten_pres_3s",
+          "tense": "present",
+          "person": "3s",
+          "conjugated_form": "arbeitet"
+        }
+      ]
+    }
+  ]
+}
