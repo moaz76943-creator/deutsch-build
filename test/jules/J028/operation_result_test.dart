@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 void main() {
   group('OperationResult', () {
     test('success outcome has data and no failure', () {
-      final result = OperationResult<String>.success('test_data');
+      const result = OperationResult<String>.success('test_data');
 
       expect(result.isSuccess, isTrue);
       expect(result.data, 'test_data');
@@ -12,8 +12,8 @@ void main() {
     });
 
     test('failure outcome has failure and no data', () {
-      final failure = StorageFailure('ERR_1', 'Storage failed');
-      final result = OperationResult<String>.failure(failure);
+      const failure = StorageFailure('ERR_1', 'Storage failed');
+      const result = OperationResult<String>.failure(failure);
 
       expect(result.isSuccess, isFalse);
       expect(result.failure, failure);
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('typed outcome: unavailable', () {
-      final cause = FormatException('Network down');
+      const cause = FormatException('Network down');
       final result = OperationResult<int>.unavailable('NET_ERR', 'System unavailable', cause);
 
       expect(result.isSuccess, isFalse);
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('OperationResult<void> works without throwing on data access', () {
-      final result = OperationResult<void>.success(null);
+      const result = OperationResult<void>.success(null);
       expect(result.isSuccess, isTrue);
       expect(() => result.data, returnsNormally);
 

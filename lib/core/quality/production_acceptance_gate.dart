@@ -249,10 +249,11 @@ class ProductionAcceptanceGate {
       isLifecycleManaged: isLifecycleManaged,
     );
     final result = evaluateReadiness(contract);
-    return result.outcome == GateOutcome.passed;
+    return result.outcome @override
+  == GateOutcome.passed;
   }
 
-  static J095VerificationResult evaluateReadiness(
+  J095VerificationResult evaluateReadiness(
       J025StartupContract contract) {
     if (!contract.hasExecutedTests) {
       return const J095VerificationResult(
@@ -335,7 +336,7 @@ class ProductionAcceptanceGate {
     );
   }
 
-  static PromotionEligibility evaluatePromotion({
+  PromotionEligibility evaluatePromotion({
     J025StartupContract? startupContract,
     J095VerificationResult? verificationResult,
     List<LanguageReadinessEvidence>? languageEvidence,

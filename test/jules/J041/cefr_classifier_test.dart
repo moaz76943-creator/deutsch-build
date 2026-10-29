@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 
 // Use relative import for the file in lib/services
-import '../../../lib/services/cefr_classifier.dart';
+import 'package:deutsch_bilarabi/services/cefr_classifier.dart';
 
 void main() {
   group('CefrClassifier - Legacy Methods', () {
@@ -45,7 +45,7 @@ void main() {
 
   group('CefrClassifier - Evidence-based Word Classification', () {
     test('Explicit policy overrides other sources (Arabic)', () {
-      final evidence = LexicalEvidence(
+      const evidence = LexicalEvidence(
         languageCode: 'ar',
         explicitLevel: CefrLevel.b1,
         sourceLevelMap: {
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('Verified sources are used when explicit policy is missing (German)', () {
-      final evidence = LexicalEvidence(
+      const evidence = LexicalEvidence(
         languageCode: 'de',
         sourceLevelMap: {
           'goethe_institut': CefrLevel.b2,
@@ -77,7 +77,7 @@ void main() {
     });
 
     test('Unsupported / Unknown when insufficient evidence (Japanese)', () {
-      final evidence = LexicalEvidence(
+      const evidence = LexicalEvidence(
         languageCode: 'ja',
       );
 
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('Handles source map with only unknown levels', () {
-      final evidence = LexicalEvidence(
+      const evidence = LexicalEvidence(
         languageCode: 'en',
         sourceLevelMap: {
           'source_a': CefrLevel.unknown,
@@ -104,7 +104,7 @@ void main() {
 
   group('CefrClassifier - Evidence-based Example Classification', () {
     test('Explicit policy is respected for examples', () {
-      final evidence = ExampleEvidence(
+      const evidence = ExampleEvidence(
         languageCode: 'fr',
         explicitLevel: CefrLevel.c1,
         wordsLevels: [CefrLevel.a1, CefrLevel.a2],
@@ -116,7 +116,7 @@ void main() {
     });
 
     test('Verified source map is respected for examples', () {
-      final evidence = ExampleEvidence(
+      const evidence = ExampleEvidence(
         languageCode: 'es',
         sourceLevelMap: {
           'textbook_x': CefrLevel.b1,
@@ -130,7 +130,7 @@ void main() {
     });
 
     test('Infers difficulty from words levels with bump (cap at C2)', () {
-      final evidence = ExampleEvidence(
+      const evidence = ExampleEvidence(
         languageCode: 'it',
         wordsLevels: [CefrLevel.a1, CefrLevel.b1, CefrLevel.a2],
       );
@@ -143,7 +143,7 @@ void main() {
     });
 
     test('Inferred difficulty does not exceed C2', () {
-      final evidence = ExampleEvidence(
+      const evidence = ExampleEvidence(
         languageCode: 'ru',
         wordsLevels: [CefrLevel.c2, CefrLevel.a1],
       );
@@ -155,7 +155,7 @@ void main() {
     });
 
     test('Returns unknown for examples with no valid words or sources', () {
-      final evidence = ExampleEvidence(
+      const evidence = ExampleEvidence(
         languageCode: 'zh',
         wordsLevels: [CefrLevel.unknown, CefrLevel.unknown],
       );

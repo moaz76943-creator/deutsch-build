@@ -1,11 +1,14 @@
 import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
+<<<<<<< HEAD
 import '../../screens/onboarding_screen.dart';
 import '../../services/database_service.dart';
 import '../../core/catalog/language_readiness_matrix.dart';
 import '../../services/language_pack_manager.dart';
 import '../../core/language_bidi_helper.dart';
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 /// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
 class FastOnboardingScreen extends StatefulWidget {

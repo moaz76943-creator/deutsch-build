@@ -80,8 +80,8 @@ void main() {
     });
 
     test('rejects stale asynchronous updates correctly', () {
-      final identity1 = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 100, contentVersion: 'v1');
-      final identity2 = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 90, contentVersion: 'v1');
+      const identity1 = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 100, contentVersion: 'v1');
+      const identity2 = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 90, contentVersion: 'v1');
 
       l1Cache.putWithIdentity('lang_en', [
         {'id': 'fresh_data'}
@@ -97,8 +97,8 @@ void main() {
     });
 
     test('invalidates stale entries scoped by language/direction for newer pairEpoch', () {
-      final oldIdentity = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 100, contentVersion: 'v1');
-      final newIdentity = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 110, contentVersion: 'v1');
+      const oldIdentity = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 100, contentVersion: 'v1');
+      const newIdentity = CacheIdentity(language: 'en', direction: 'en_es', pairEpoch: 110, contentVersion: 'v1');
 
       l1Cache.putWithIdentity('lang_en_v1', [{'id': 'old'}], oldIdentity);
       l1Cache.putWithIdentity('lang_en_v2', [{'id': 'new'}], newIdentity);

@@ -99,18 +99,18 @@ void main() {
 
   group('StreakFreezeLedger replay and repeated freeze tests', () {
     test('repeated freeze prevention', () {
-      final ledger = StreakFreezeLedger();
+      const ledger = StreakFreezeLedger();
       final dt = DateTime(2023, 1, 1, 12, 0);
 
       final l1 = ledger.recordUsage('miss', now: dt);
-      final l2 = l1.recordUsage('miss', now: dt.add(Duration(hours: 1)));
+      final l2 = l1.recordUsage('miss', now: dt.add(const Duration(hours: 1)));
 
       expect(l1.remainingShields, 1);
       expect(l2.remainingShields, 1); // Should not consume another
     });
 
     test('freeze consumption', () {
-      final ledger = StreakFreezeLedger();
+      const ledger = StreakFreezeLedger();
       final dt1 = DateTime(2023, 1, 1, 12, 0);
       final dt2 = DateTime(2023, 1, 2, 12, 0);
       final dt3 = DateTime(2023, 1, 3, 12, 0);

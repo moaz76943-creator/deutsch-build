@@ -34,7 +34,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('التخزين المؤقت للبيانات الصوتية',
@@ -47,7 +47,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _offlineAudioMode,
                         activeThumbColor: const Color(0xFF38BDF8),
@@ -66,7 +66,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('ضغط حزم البيانات والملفات',
@@ -79,7 +79,7 @@ class _SmartDataSaverScreenState extends State<SmartDataSaverScreen> {
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _compressData,
                         activeThumbColor: const Color(0xFF38BDF8),

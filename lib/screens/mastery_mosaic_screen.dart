@@ -98,9 +98,13 @@ class _MasteryMosaicScreenState extends State<MasteryMosaicScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
+<<<<<<< HEAD
                                     Text('حقل: ${entry.key}',
                                         style: const TextStyle(
                                             color: Colors.white, fontSize: 13)),
+=======
+                                    Expanded(child: Text('حقل: ${entry.key}', style: const TextStyle(color: Colors.white, fontSize: 13))),
+>>>>>>> origin/staging/v2-full-platform-9617688105299726044
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 4),

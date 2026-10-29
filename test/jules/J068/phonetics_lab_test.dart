@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:deutsch_bilarabi/screens/phonetics_lab_screen.dart';
 import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
-import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
 
 void main() {
   Widget createTestWidget() {

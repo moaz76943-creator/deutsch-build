@@ -53,6 +53,7 @@ class DashboardScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   childAspectRatio: 1.3,
                   children: <Widget>[
+<<<<<<< HEAD
                     _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded,
                         const SrsFlashcardDeckScreen()),
                     _buildActionCard(
@@ -67,6 +68,12 @@ class DashboardScreen extends StatelessWidget {
                         'طوارئ السفر',
                         Icons.local_hospital_rounded,
                         const EmergencyPhrasebookScreen()),
+=======
+                    _buildActionCard(context, 'مراجعة SRS', Icons.style_rounded, const SrsFlashcardDeckScreen()),
+                    _buildActionCard(context, 'التراخيص والمصادر', Icons.verified_user_rounded, const LicenseAttributionScreen()),
+                    _buildActionCard(context, 'المفكرة الشخصية', Icons.book_rounded, const VocabularyJournalScreen()),
+                    _buildActionCard(context, 'طوارئ السفر', Icons.local_hospital_rounded, const EmergencyPhrasebookScreen()),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                   ],
                 ),
               ],

@@ -1,25 +1,22 @@
-import 'dart:collection';
 import 'package:characters/characters.dart';
 
 class TrieNode {
-  final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = LinkedHashSet<String>();
+  final Map<String, TrieNode> children = {};
+  final List<String> wordIds = [];
 }
 
-/// A bounded, language-specific *search-key* index. It does not mutate or
-/// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
-  static const int maxInputCodeUnits = 2048;
-  static const int maxIdCodeUnits = 128;
-  TrieNode _root = TrieNode();
-  int _nodeCount = 1;
-
   final String languageCode;
   final String? directedPairKey;
   final int maxNodes;
   final int maxResultsPerNode;
   final int maxSearchResults;
   final int maxWordGraphemes;
+  final int maxInputCodeUnits;
+  final int maxIdCodeUnits;
+
+  TrieNode _root = TrieNode();
+  int _nodeCount = 1;
 
   TrieSearchEngine({
     this.languageCode = 'und',
@@ -28,6 +25,8 @@ class TrieSearchEngine {
     this.maxResultsPerNode = 50,
     this.maxSearchResults = 50,
     this.maxWordGraphemes = 256,
+    this.maxInputCodeUnits = 1024,
+    this.maxIdCodeUnits = 128,
   }) {
     if (maxNodes < 2 ||
         maxResultsPerNode < 1 ||
@@ -37,14 +36,16 @@ class TrieSearchEngine {
     }
   }
 
-  static String normalizeForLanguage(String text, String language) {
+  String normalizeForLanguage(String text, String language) {
     if (text.isEmpty) return '';
     final lang = language.split('-').first.toLowerCase();
+
     // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
     // Unicode lowercasing. Prefer exact keys to false cross-lexeme matches.
     String result = (lang == 'tr' || lang == 'az')
         ? text.trim()
         : text.trim().toLowerCase();
+
     if (lang == 'de') {
       result = result
           .replaceAll('ä', 'ae')
@@ -60,21 +61,53 @@ class TrieSearchEngine {
         '',
       );
     }
+
+    // General latin fold for other languages or default diacritics
+    final diacritics = {
+      'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+      'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+      'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+      'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+      'ú': 'u', 'ù': 'u', 'û': 'u',
+      'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+    };
+
+    diacritics.forEach((k, v) {
+      result = result.replaceAll(k, v);
+    });
+
     return result;
   }
 
   // Legacy static entrypoints retained; universal no longer means Latin fold.
-  static String normalizeUniversal(String text) =>
-      normalizeForLanguage(text, 'und');
-  static String normalizeGerman(String text) =>
-      normalizeForLanguage(text, 'de');
+  static String normalizeUniversal(String text) {
+      if (text.isEmpty) return text;
+      String res = text.toLowerCase().trim();
+      res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+      final diacritics = {
+        'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+        'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u',
+        'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+      };
 
-  bool _matchesScope(String? pairKey) =>
+      diacritics.forEach((k, v) {
+        res = res.replaceAll(k, v);
+      });
+
+      return res;
+  }
+
+  static String normalizeGerman(String text) => normalizeUniversal(text);
+
+  bool matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
   /// Returns false on capacity limits. A failed insert makes NO partial path.
   bool tryInsert(String word, String id, {String? pairKey}) {
-    if (!_matchesScope(pairKey) ||
+    if (!matchesScope(pairKey) ||
         id.isEmpty ||
         word.length > maxInputCodeUnits ||
         id.length > maxIdCodeUnits) {
@@ -88,6 +121,7 @@ class TrieSearchEngine {
     // Preflight both capacity dimensions before touching the index.
     TrieNode? cursor = _root;
     var missingNodes = 0;
+
     for (final unit in units) {
       if (cursor == null) {
         missingNodes++;
@@ -105,6 +139,7 @@ class TrieSearchEngine {
         }
       }
     }
+
     if (_nodeCount + missingNodes > maxNodes) return false;
 
     var current = _root;
@@ -114,7 +149,7 @@ class TrieSearchEngine {
         _nodeCount++;
       }
       current = current.children[unit]!;
-      if (current.wordIds.length < maxResultsPerNode) {
+      if (!current.wordIds.contains(id) && current.wordIds.length < maxResultsPerNode) {
         current.wordIds.add(id);
       }
     }
@@ -127,7 +162,7 @@ class TrieSearchEngine {
   }
 
   List<String> searchPrefix(String prefix, {String? pairKey}) {
-    if (!_matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
+    if (!matchesScope(pairKey) || prefix.length > maxInputCodeUnits) {
       return <String>[];
     }
     final normalized = normalizeForLanguage(prefix, languageCode);

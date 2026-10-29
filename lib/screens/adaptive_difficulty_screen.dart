@@ -35,7 +35,7 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Column(
+                      const Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text('تفعيل التكيّف التلقائي',
@@ -48,7 +48,7 @@ class _AdaptiveDifficultyScreenState extends State<AdaptiveDifficultyScreen> {
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 12)),
                         ],
-                      ),
+                      )),
                       Switch(
                         value: _adaptiveActive,
                         activeThumbColor: const Color(0xFF38BDF8),

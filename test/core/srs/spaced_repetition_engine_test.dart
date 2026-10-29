@@ -5,7 +5,7 @@ import 'package:deutsch_bilarabi/core/srs/leitner_box_state.dart';
 void main() {
   group('SpacedRepetitionEngine', () {
     test('rejects rating outside 0-3 range', () {
-      final state = LeitnerCardState(
+      const state = LeitnerCardState(
         cardId: '1',
         currentBox: LeitnerBox.box1,
         lastReviewedEpoch: 0,
@@ -139,7 +139,7 @@ void main() {
     });
 
     test('legacy persisted review results are processed correctly', () {
-      final state = LeitnerCardState(
+      const state = LeitnerCardState(
         cardId: 'legacy-1',
         currentBox: LeitnerBox.box5,
         lastReviewedEpoch: 1600000000000,

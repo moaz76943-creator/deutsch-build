@@ -145,9 +145,7 @@ void main() {
       await runZonedGuarded(() async {
          await tester.pump();
       }, (error, stack) {
-        if (caughtException == null) {
-          caughtException = error;
-        }
+        caughtException ??= error;
       });
 
       // Expect to catch the error and for it to be an InvalidVaultFailure

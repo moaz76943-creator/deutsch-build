@@ -8,6 +8,8 @@ class VocabularyRepository {
   static const String _key = 'vocabulary_list';
   static const String _legacyKey = 'custom_vocabulary';
 
+  List<Map<String, dynamic>> _offlineCache = [];
+
   Future<Database> _getDb() async {
     final db = await DatabaseService.instance.progressDb;
     await db.execute('''
@@ -31,22 +33,26 @@ class VocabularyRepository {
 
   Future<List<Map<String, dynamic>>> getVocabularyList() async {
     try {
-      final db = await _getDb();
+      final db = await _getDb().timeout(const Duration(seconds: 5));
       final List<Map<String, dynamic>> records = await db.query(
         'vocabulary_items',
         orderBy: 'rowid ASC',
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (records.isEmpty) {
-        return await _seedAndMigrate(db);
+        final seeded = await _seedAndMigrate(db);
+        _offlineCache = seeded;
+        return seeded;
       }
 
-      return records.map((row) {
+      final results = records.map((row) {
         final jsonStr = row['json_data'] as String;
         return Map<String, dynamic>.from(jsonDecode(jsonStr) as Map);
       }).toList();
+      _offlineCache = results;
+      return results;
     } catch (_) {
-      return [];
+      return _offlineCache;
     }
   }
 
