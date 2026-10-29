@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
 import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
+=======
+import '../design_system/design_system.dart';
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 class QuizExerciseScreen extends StatefulWidget {
   const QuizExerciseScreen({super.key});
@@ -13,6 +17,7 @@ class QuizExerciseScreen extends StatefulWidget {
 
 class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
   int? _selectedOption;
+<<<<<<< HEAD
 
   List<LexicalEntry> _entries = [];
   LexicalEntry? _currentEntry;
@@ -94,6 +99,16 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
       }
     }
   }
+=======
+  final int _correctOption = 1;
+
+  final List<String> _options = const [
+    'der Haus',
+    'das Haus',
+    'die Haus',
+    'den Haus',
+  ];
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   @override
   Widget build(BuildContext context) {
@@ -136,15 +151,21 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Text(
+<<<<<<< HEAD
                   'اختر الترجمة أو المصطلح الصحيح:',
                   style: AppTypography.title
                       .copyWith(color: Colors.white, fontSize: 18),
+=======
+                  'اختر أداة التعريف الصحيحة للكلمة التالية:',
+                  style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                 ),
                 const SizedBox(height: 16),
                 AppBaseGlassCard(
                   gradient: AppGradients.purpleCard,
                   padding: const EdgeInsets.symmetric(vertical: 28),
                   child: Center(
+<<<<<<< HEAD
                     child: Directionality(
                       textDirection: LanguageBiDiHelper.getDirection(
                           _currentEntry!.sourceLocale),
@@ -154,12 +175,18 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                             .copyWith(color: Colors.white, fontSize: 26),
                         textAlign: TextAlign.center,
                       ),
+=======
+                    child: Text(
+                      'المنزل (... Haus)',
+                      style: AppTypography.display.copyWith(color: Colors.white, fontSize: 26),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 ...List.generate(_options.length, (index) {
                   final isSelected = _selectedOption == index;
+<<<<<<< HEAD
                   final isCorrect = _isAnswered && index == _correctOption;
                   final isWrong =
                       _isAnswered && isSelected && index != _correctOption;
@@ -174,19 +201,34 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                   } else if (isSelected) {
                     customGrad = const LinearGradient(
                         colors: [Color(0xFF38BDF8), Color(0xFF0284C7)]);
+=======
+                  final isCorrect = isSelected && index == _correctOption;
+                  final isWrong = isSelected && index != _correctOption;
+
+                  Gradient? customGrad;
+                  if (isCorrect) {
+                    customGrad = const LinearGradient(colors: [Color(0xFF065F46), Color(0xFF047857)]);
+                  } else if (isWrong) {
+                    customGrad = const LinearGradient(colors: [Color(0xFF991B1B), Color(0xFFB91C1C)]);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                   }
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: AppBaseGlassCard(
+<<<<<<< HEAD
                       onTap: _isAnswered
                           ? null
                           : () => setState(() => _selectedOption = index),
+=======
+                      onTap: () => setState(() => _selectedOption = index),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       gradient: customGrad,
                       child: Row(
                         children: <Widget>[
                           CircleAvatar(
                             radius: 14,
+<<<<<<< HEAD
                             backgroundColor:
                                 Colors.white.withValues(alpha: 0.2),
                             child: Text('${index + 1}',
@@ -203,6 +245,15 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                                     color: Colors.white, fontSize: 16),
                               ),
                             ),
+=======
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            child: Text('${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                          ),
+                          const SizedBox(width: 14),
+                          Text(
+                            _options[index],
+                            style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                           ),
                         ],
                       ),
@@ -211,6 +262,7 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                 }),
                 const Spacer(),
                 ElevatedButton(
+<<<<<<< HEAD
                   onPressed:
                       (_selectedOption == null || _isSubmitting || _isAnswered)
                           ? null
@@ -222,6 +274,10 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
                       : const Text('تحقق من الإجابة'),
+=======
+                  onPressed: _selectedOption == null ? null : () {},
+                  child: const Text('تحقق من الإجابة'),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                 ),
               ],
             ),
