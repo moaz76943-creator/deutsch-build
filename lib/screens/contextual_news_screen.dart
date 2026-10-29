@@ -47,11 +47,9 @@ class ContextualNewsScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                article['title']!,
-                                style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 16),
-                              ),
+                            Text(
+                              article['title']!,
+                              style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 16),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

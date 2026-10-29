@@ -49,8 +49,7 @@ class LexicalRepository {
     required String targetLocale,
   }) {
     return _inMemoryStore
-        .where((e) =>
-            e.sourceLocale == sourceLocale && e.targetLocale == targetLocale)
+        .where((e) => e.sourceLocale == sourceLocale && e.targetLocale == targetLocale)
         .toList();
   }
 }

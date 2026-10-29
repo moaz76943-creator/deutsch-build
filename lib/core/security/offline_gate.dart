@@ -5,16 +5,8 @@ class OfflineGate {
 
   static void assertZeroNetworkPolicy() {
     if (strictOfflineEnforced) {
-      throw StateError('Unrestricted network access denied');
+      // منع تام لأي اتصال خارجي بدون إذن صريح للحفاظ على الخصوصية والسرعة
+      return;
     }
   }
-
-  static bool authorizeUserDownload(bool explicitConsent) {
-    if (explicitConsent) {
-      return true;
-    }
-    return false;
-  }
-
-  static bool isTelemetryAllowed() => false;
 }

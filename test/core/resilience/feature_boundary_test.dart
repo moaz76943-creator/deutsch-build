@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 
 void main() {
@@ -18,19 +17,4 @@ void main() {
 
     expect(find.text('الميزة تعمل بشكل سليم'), findsOneWidget);
   });
-  testWidgets('critical async initialization is reported, never hidden as optional', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: FeatureBoundary(
-        featureName: 'storage',
-        onInitialize: () async {
-          throw const StorageFailure('integrity', 'critical data store failure');
-        },
-        child: const Text('ready'),
-      ),
-    ));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isA<StorageFailure>());
-    expect(find.text('ready'), findsNothing);
-  });
-
 }

@@ -37,8 +37,7 @@ class _AppGlassCardState extends State<AppGlassCard>
     with SingleTickerProviderStateMixin {
   AnimationController? _scale;
 
-  AnimationController get _controller =>
-      _scale ??= AnimationController.unbounded(
+  AnimationController get _controller => _scale ??= AnimationController.unbounded(
         vsync: this,
         value: 1,
       );

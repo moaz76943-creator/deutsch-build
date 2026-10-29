@@ -49,8 +49,7 @@ class _Wave02HubScreenState extends State<Wave02HubScreen> {
               children: [
                 Text(
                   _verbExercise.promptClause,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -112,8 +111,7 @@ class _Wave02HubScreenState extends State<Wave02HubScreen> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Text('التركيب: ',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('التركيب: ', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(
                       _assembledParts.join(''),
                       style: const TextStyle(fontSize: 16, color: Colors.blue),
@@ -122,8 +120,7 @@ class _Wave02HubScreenState extends State<Wave02HubScreen> {
                     if (_assembledParts.isNotEmpty)
                       IconButton(
                         icon: const Icon(Icons.refresh, size: 20),
-                        onPressed: () =>
-                            setState(() => _assembledParts.clear()),
+                        onPressed: () => setState(() => _assembledParts.clear()),
                       ),
                   ],
                 ),
@@ -131,8 +128,7 @@ class _Wave02HubScreenState extends State<Wave02HubScreen> {
                   const SizedBox(height: 6),
                   Text(
                     'النتيجة: ${_puzzle.gender} ${_puzzle.combinedWord} — ${_puzzle.arabicMeaning}',
-                    style: const TextStyle(
-                        color: Colors.teal, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
                   ),
                   const Text(
                     'قاعدة: الأداة تأخذ جنس الكلمة الأخيرة دائماً (das Haus -> das Krankenhaus).',
@@ -193,11 +189,8 @@ class _Wave02HubScreenState extends State<Wave02HubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text(subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: 13)),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13)),
             const Divider(),
             content,
           ],

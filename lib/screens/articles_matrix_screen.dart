@@ -59,8 +59,7 @@ class ArticlesMatrixScreen extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       c['case']!,
-                      style: AppTypography.title.copyWith(
-                          color: const Color(0xFFF39C6B), fontSize: 16),
+                      style: AppTypography.title.copyWith(color: const Color(0xFFF39C6B), fontSize: 16),
                     ),
                     const SizedBox(height: 14),
                     Row(
@@ -85,8 +84,7 @@ class ArticlesMatrixScreen extends StatelessWidget {
   Widget _cell(String label, String value, Color color) {
     return Column(
       children: <Widget>[
-        Text(label,
-            style: const TextStyle(color: Colors.white60, fontSize: 11)),
+        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
         const SizedBox(height: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -97,8 +95,7 @@ class ArticlesMatrixScreen extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: TextStyle(
-                color: color, fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ),
       ],
