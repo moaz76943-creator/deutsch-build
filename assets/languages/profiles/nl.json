@@ -1,0 +1,23 @@
+{
+  "isoCode": "nl",
+  "autonym": "Nederlands",
+  "englishName": "Dutch",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["common", "n"],
+  "hasArticles": true,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "verbSecondOrder": true,
+    "subordinateSOV": true,
+    "hasDiminutives": true,
+    "articleTypes": ["de", "het"],
+    "auxiliaries": ["zijn", "hebben"]
+  }
+}
