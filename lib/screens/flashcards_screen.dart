@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import '../widgets/language_selector_button.dart';
 import '../core/srs/review_command_port.dart';
 import '../core/audio/offline_audio_manager.dart';
 import '../services/local_database_service.dart';
 
 Future<List<Map<String, dynamic>>> loadFlashcardsSafe(String targetLangCode) async {
-  final db = await LocalDatabaseService.instance.getContentDb(targetLangCode);
+  final db = await LocalDatabaseService.instance.database;
   return await db.rawQuery(
     '''
     SELECT l.lexeme_id, l.article, l.lemma, l.plural, e.translation_ar, e.sentence 
@@ -81,7 +80,6 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
     return Scaffold(
       appBar: AppBar(
         title: const Text('مراجعة اليوم', style: TextStyle(fontFamily: 'Cairo')),
-        actions: const [LanguageSelectorButton()],
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
