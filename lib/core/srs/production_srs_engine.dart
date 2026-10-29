@@ -25,7 +25,21 @@ class ProductionSrsEngine {
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
+    DateTime? currentTime,
+    DateTime? now,
   }) {
+    if (currentIntervalDays < 0) {
+      throw ArgumentError('currentIntervalDays cannot be negative');
+    }
+    if (currentRepetitions < 0) {
+      throw ArgumentError('currentRepetitions cannot be negative');
+    }
+    if (!currentEaseFactor.isFinite || currentEaseFactor <= 0) {
+      throw ArgumentError(
+        'currentEaseFactor must be a positive finite number',
+      );
+    }
+
     int newRepetitions = currentRepetitions;
     int newInterval = currentIntervalDays;
     double newEase = currentEaseFactor;
@@ -42,7 +56,12 @@ class ProductionSrsEngine {
         } else if (newRepetitions == 1) {
           newInterval = 3;
         } else {
-          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
+          newInterval = math.max(
+              1,
+              (currentIntervalDays *
+                      currentEaseFactor *
+                      morphologicalMultiplier)
+                  .round());
         }
         newRepetitions += 1;
         break;
@@ -52,20 +71,29 @@ class ProductionSrsEngine {
         } else if (newRepetitions == 1) {
           newInterval = 5;
         } else {
-          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
+          newInterval = math.max(
+              1,
+              (currentIntervalDays *
+                      currentEaseFactor *
+                      1.3 *
+                      morphologicalMultiplier)
+                  .round());
         }
         newRepetitions += 1;
         newEase = math.min(2.5, currentEaseFactor + 0.15);
         break;
     }
 
-    final now = DateTime.now();
-    final nextDate = now.add(Duration(days: math.max(1, newInterval)));
+    final boundedInterval = math.min(36500, math.max(1, newInterval));
+    final boundedRepetitions = math.min(1000000, newRepetitions);
+    final boundedEase = newEase.clamp(1.3, 3.0).toDouble();
+    final clock = currentTime ?? now ?? DateTime.now();
+    final nextDate = clock.add(Duration(days: boundedInterval));
 
     return SrsCardReviewResult(
-      nextIntervalDays: newInterval,
-      easeFactor: newEase,
-      repetitionCount: newRepetitions,
+      nextIntervalDays: boundedInterval,
+      easeFactor: boundedEase,
+      repetitionCount: boundedRepetitions,
       nextReviewDate: nextDate,
     );
   }
