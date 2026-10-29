@@ -9,12 +9,25 @@ class AndroidOfflineVoiceCapabilityProbe {
     try {
       final locales = <String>{};
       final voices = await _tts.getVoices;
+<<<<<<< HEAD
+      if (voices == null) return [];
+
+      final List<String> locales = [];
+      if (voices is Iterable) {
+        for (final voice in voices) {
+          if (voice is Map) {
+            final locale = voice['locale'] as String?;
+            if (locale != null) {
+              locales.add(locale);
+            }
+=======
       if (voices is List) {
         for (final voice in voices) {
           if (voice is! Map) continue;
           final locale = voice['locale'];
           if (locale is String && locale.isNotEmpty) {
             locales.add(locale);
+>>>>>>> origin/staging/v2-full-platform
           }
         }
       }

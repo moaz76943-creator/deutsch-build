@@ -1,6 +1,9 @@
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:deutsch_bilarabi/core/audio/audio_generation_tracker.dart';
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/staging/v2-full-platform
 /// The platform TTS channel must not exist until an actual playback request.
 class OfflineAudioManager {
   static final OfflineAudioManager instance = OfflineAudioManager._init();
@@ -16,7 +19,6 @@ class OfflineAudioManager {
   FlutterTts? _flutterTts;
   Future<void>? _initialization;
   String _currentLocale = 'de-DE';
-  final AudioGenerationTracker _generationTracker = AudioGenerationTracker();
 
   bool get isAudioInitialized => _flutterTts != null;
 

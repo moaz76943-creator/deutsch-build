@@ -72,11 +72,6 @@ class LocalLearningAnalytics {
 
   static Map<String, PairMetrics> _aggregateHistory(
       Map<String, dynamic> input) {
-<<<<<<< HEAD
-    final List<dynamic> historyMaps = input['history'] as List<dynamic>? ?? <dynamic>[];
-    final int windowDays = input['windowDays'] as int? ?? 30;
-    final DateTime currentUtc = DateTime.parse(input['currentUtc'] as String);
-=======
     final historyValue = input['history'];
     final List<dynamic> historyMaps =
         historyValue is List ? historyValue : const <dynamic>[];
@@ -87,7 +82,6 @@ class LocalLearningAnalytics {
       return <String, PairMetrics>{};
     }
     final DateTime currentUtc = DateTime.parse(currentValue);
->>>>>>> origin/staging/v2-full-platform
     final DateTime threshold = currentUtc.subtract(Duration(days: windowDays));
 
     // Deduplicate by reviewEventId and safely parse
