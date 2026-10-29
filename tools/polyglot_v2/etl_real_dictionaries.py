@@ -152,7 +152,7 @@ def process():
                 print(f"[{code}] INVALID build: {e}")
                 continue
 
-            bundle_dir = PACKS_DIR / code / "bundles"
+            bundle_dir = PACKS_DIR / code
             bundle_dir.mkdir(parents=True, exist_ok=True)
 
             dest_db = bundle_dir / f"{code}-1.0.0.pack.gz"
@@ -169,7 +169,10 @@ def process():
             size = dest_db.stat().st_size
             if size > MAX_SIZE:
                 print(f"[{code}] INVALID: output size {size} exceeds {MAX_SIZE}")
-                sys.exit(1)
+                dest_db.unlink()
+                if dest_sha.exists():
+                    dest_sha.unlink()
+                continue
 
             print(f"[{code}] READY: {dest_db} ({size} bytes)")
 
