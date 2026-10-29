@@ -33,23 +33,9 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   child: AppBaseGlassCard(
                     padding: const EdgeInsets.all(16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EmergencyPhrasebookDetailScreen(item: item),
-                        ),
-                      );
-                    },
                     child: Row(
                       children: <Widget>[
-                        Hero(
-                          tag: 'emergency_phrase_${item['title']}',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Text(item['icon']!, style: const TextStyle(fontSize: 32)),
-                          ),
-                        ),
+                        Text(item['icon']!, style: const TextStyle(fontSize: 32)),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -66,51 +52,6 @@ class EmergencyPhrasebookScreen extends StatelessWidget {
                   ),
                 );
               },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class EmergencyPhrasebookDetailScreen extends StatelessWidget {
-  final Map<String, String> item;
-
-  const EmergencyPhrasebookDetailScreen({super.key, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(item['title']!),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
-        child: SafeArea(
-          child: Center(
-            child: AppBaseGlassCard(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Hero(
-                    tag: 'emergency_phrase_${item['title']}',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Text(item['icon']!, style: const TextStyle(fontSize: 96)),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(item['title']!, style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  Text(item['trans']!, style: const TextStyle(color: Color(0xFF34D399), fontSize: 18), textAlign: TextAlign.center),
-                ],
-              ),
             ),
           ),
         ),
