@@ -34,6 +34,7 @@ class PooledDatabaseManager {
   final LinkedHashMap<String, Database> _connections =
       LinkedHashMap<String, Database>();
   final Map<String, int> _leases = <String, int>{};
+  final List<Completer<void>> _slotWaiters = <Completer<void>>[];
   Future<void> _mutexTail = Future<void>.value();
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
@@ -60,8 +61,13 @@ class PooledDatabaseManager {
     return code;
   }
 
-  Future<Database> open(String languageCode) =>
-      _locked(() => _openLocked(_normalizeCode(languageCode)));
+  Future<Database> open(String languageCode) => _locked(() async {
+        try {
+          return await _openLocked(_normalizeCode(languageCode));
+        } on _PoolSaturated {
+          throw StateError('All pooled content databases are in use');
+        }
+      });
 
   Future<Database> _openLocked(String code) async {
     final existing = _connections.remove(code);
@@ -77,7 +83,7 @@ class PooledDatabaseManager {
         orElse: () => '',
       );
       if (evict.isEmpty) {
-        throw StateError('All pooled content databases are in use');
+        throw const _PoolSaturated();
       }
       await _closeLocked(evict);
     }
@@ -98,28 +104,48 @@ class PooledDatabaseManager {
   }
 
   /// Pins a handle for a bounded operation. Never evicts a leased handle.
+  ///
+  /// If every connection is already leased, the caller waits for a release
+  /// instead of failing the lesson read.
   Future<T> withDatabase<T>(
     String languageCode,
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    final db = await _locked(() async {
-      final opened = await _openLocked(code);
-      _leases[code] = (_leases[code] ?? 0) + 1;
-      return opened;
-    });
-
-    try {
-      return await action(db);
-    } finally {
+    while (true) {
+      final waiter = Completer<void>();
+      Database? leased;
+      var waiting = false;
       await _locked(() async {
-        final count = (_leases[code] ?? 1) - 1;
-        if (count == 0) {
-          _leases.remove(code);
-        } else {
-          _leases[code] = count;
+        try {
+          final opened = await _openLocked(code);
+          _leases[code] = (_leases[code] ?? 0) + 1;
+          leased = opened;
+        } on _PoolSaturated {
+          _slotWaiters.add(waiter);
+          waiting = true;
         }
       });
+      if (waiting) {
+        await waiter.future;
+        continue;
+      }
+      try {
+        return await action(leased!);
+      } finally {
+        await _locked(() async {
+          final count = (_leases[code] ?? 1) - 1;
+          if (count <= 0) {
+            _leases.remove(code);
+          } else {
+            _leases[code] = count;
+          }
+          if (_slotWaiters.isNotEmpty) {
+            final next = _slotWaiters.removeAt(0);
+            if (!next.isCompleted) next.complete();
+          }
+        });
+      }
     }
   }
 
@@ -166,4 +192,8 @@ class PooledDatabaseManager {
           await _closeLocked(code);
         }
       });
+}
+
+class _PoolSaturated implements Exception {
+  const _PoolSaturated();
 }
