@@ -19,7 +19,12 @@ class LeitnerCardState {
         assert(consecutiveSuccesses >= 0,
             'consecutiveSuccesses cannot be negative');
 
+<<<<<<< HEAD
   bool get isDueForReview => isDueAt(DateTime.now().millisecondsSinceEpoch);
 
   bool isDueAt(int nowEpoch) => nowEpoch >= nextReviewEpoch;
+=======
+  bool get isDueForReview =>
+      DateTime.now().millisecondsSinceEpoch >= nextReviewEpoch;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

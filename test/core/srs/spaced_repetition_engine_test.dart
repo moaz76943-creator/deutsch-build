@@ -17,7 +17,7 @@ void main() {
           previousState: state,
           rating: -1,
         ),
-        throwsA(isA<Error>()),
+        throwsArgumentError,
       );
 
       expect(
@@ -25,23 +25,25 @@ void main() {
           previousState: state,
           rating: 4,
         ),
-        throwsA(isA<Error>()),
+        throwsArgumentError,
       );
     });
 
     test('rejects NaN easeFactor in previousState', () {
+      final state = LeitnerCardState(
+        cardId: '1',
+        currentBox: LeitnerBox.box1,
+        lastReviewedEpoch: 0,
+        nextReviewEpoch: 0,
+        easeFactor: double.nan,
+      );
+
       expect(
         () => SpacedRepetitionEngine.calculateNextInterval(
-          previousState: LeitnerCardState(
-            cardId: '1',
-            currentBox: LeitnerBox.box1,
-            lastReviewedEpoch: 0,
-            nextReviewEpoch: 0,
-            easeFactor: double.nan,
-          ),
+          previousState: state,
           rating: 2,
         ),
-        throwsA(isA<Error>()),
+        throwsArgumentError,
       );
     });
 
