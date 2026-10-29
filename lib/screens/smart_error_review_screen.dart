@@ -52,8 +52,7 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                    border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: <Widget>[
@@ -65,15 +64,12 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                           children: <Widget>[
                             Text(
                               'ذاكرة التصحيح التكيفي',
-                              style: AppTypography.display
-                                  .copyWith(color: Colors.white, fontSize: 16),
+                              style: AppTypography.display.copyWith(color: Colors.white, fontSize: 16),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'هنا يتم جمع الكلمات والقواعد التي واجهت صعوبة فيها لتثبيتها نهائياً.',
-                              style: AppTypography.body.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 12),
+                              style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
                             ),
                           ],
                         ),
@@ -84,8 +80,7 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'قائمة المراجعة الحالية (${_errorItems.length} عناصر)',
-                  style: AppTypography.display
-                      .copyWith(color: Colors.white, fontSize: 18),
+                  style: AppTypography.display.copyWith(color: Colors.white, fontSize: 18),
                 ),
                 const SizedBox(height: 12),
                 Expanded(
@@ -102,36 +97,21 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
-<<<<<<< HEAD
                                   Text(
                                     item['word']!,
-                                    style: AppTypography.display.copyWith(
-                                        color: const Color(0xFF38BDF8),
-                                        fontSize: 20),
+                                    style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 20),
                                   ),
-=======
-                                  Expanded(
-                              child: Text(
-                                item['word']!,
-                                style: AppTypography.display.copyWith(color: const Color(0xFF38BDF8), fontSize: 20),
-                              ),
-                            ),
->>>>>>> origin/staging/v2-full-platform-9617688105299726044
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.08),
+                                      color: Colors.white.withValues(alpha: 0.08),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
                                       item['language']!,
-                                      style: const TextStyle(
-                                          color: Colors.white70, fontSize: 11),
+                                      style: const TextStyle(color: Colors.white70, fontSize: 11),
                                     ),
                                   ),
                                 ],
@@ -139,15 +119,12 @@ class _SmartErrorReviewScreenState extends State<SmartErrorReviewScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 'المعنى: ${item['translation']}',
-                                style: AppTypography.body.copyWith(
-                                    color: Colors.white, fontSize: 14),
+                                style: AppTypography.body.copyWith(color: Colors.white, fontSize: 14),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 ' القاعدة: ${item['rule']}',
-                                style: AppTypography.body.copyWith(
-                                    color: const Color(0xFF34D399),
-                                    fontSize: 12),
+                                style: AppTypography.body.copyWith(color: const Color(0xFF34D399), fontSize: 12),
                               ),
                             ],
                           ),

@@ -106,14 +106,13 @@ class HybridAudioService {
     String? ipa,
     BuildContext? context,
     void Function(String message)? onUnavailable,
-  }) =>
-      play(
-        text: text,
-        languageCode: languageCode,
-        ipa: ipa,
-        context: context,
-        onUnavailable: onUnavailable,
-      );
+  }) => play(
+    text: text,
+    languageCode: languageCode,
+    ipa: ipa,
+    context: context,
+    onUnavailable: onUnavailable,
+  );
 
   /// Bounded stop to avoid waiting forever on a broken platform channel.
   Future<void> stop() async {

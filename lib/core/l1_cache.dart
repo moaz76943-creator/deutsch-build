@@ -1,121 +1,36 @@
-<<<<<<< HEAD
-import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
-import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
+import 'dart:collection';
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
   L1VocabularyCache._internal();
 
-<<<<<<< HEAD
-  L1VocabularyCache._internal() {
-    _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
-      maxCapacity: 100,
-      maxMemoryBytes: 10 * 1024 * 1024, // 10MB budget
-      onEvict: (key) {
-        _identities.remove(key);
-      },
-    );
-  }
-
-  late final LruMemoryCache<String, List<Map<String, dynamic>>> _memoryCache;
-
-  final Map<String, CacheIdentity> _identities = {};
-
-  int _measureSize(List<Map<String, dynamic>> items) {
-    int size = 0;
-    for (final item in items) {
-      for (final entry in item.entries) {
-        size += entry.key.length * 2; // ~2 bytes per char
-        if (entry.value is String) {
-          size += (entry.value as String).length * 2;
-        } else if (entry.value is num) {
-          size += 8; // 8 bytes for double/int
-        } else if (entry.value is bool) {
-          size += 1;
-        } else {
-          size += 16; // rough fallback
-        }
-      }
-    }
-    return size;
-  }
-
-  void putWithIdentity(String langCode, List<Map<String, dynamic>> items,
-      CacheIdentity identity) {
-    // Check if stale
-    if (_identities.containsKey(langCode)) {
-      final existingIdentity = _identities[langCode]!;
-      if (existingIdentity.language == identity.language &&
-          existingIdentity.direction == identity.direction &&
-          existingIdentity.contentVersion == identity.contentVersion &&
-          existingIdentity.pairEpoch > identity.pairEpoch) {
-        return; // Reject stale asynchronous update
-      }
-    }
-
-    _invalidateStale(identity);
-
-    final size = _measureSize(items);
-    _memoryCache.put(langCode, List.unmodifiable(items), itemSizeBytes: size);
-    _identities[langCode] = identity;
-  }
-
-  void _invalidateStale(CacheIdentity newIdentity) {
-    final keysToRemove = <String>[];
-    for (final entry in _identities.entries) {
-      final id = entry.value;
-      if (id.language == newIdentity.language &&
-          id.direction == newIdentity.direction) {
-        if (id.contentVersion != newIdentity.contentVersion ||
-            id.pairEpoch < newIdentity.pairEpoch) {
-          keysToRemove.add(entry.key);
-        }
-      }
-    }
-    for (final k in keysToRemove) {
-      _memoryCache.remove(k);
-      _identities.remove(k);
-    }
-  }
-
-  // Legacy fallback
-  void put(String langCode, List<Map<String, dynamic>> items) {
-    _memoryCache.put(langCode, List.unmodifiable(items),
-        itemSizeBytes: _measureSize(items));
-  }
-
-  List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache.get(langCode);
-  }
-
-  bool has(String langCode) => _memoryCache.containsKey(langCode);
-
-  void clear() {
-    _memoryCache.clear();
-    // _identities is implicitly cleared via onEvict callbacks
-  }
-
-  void trimMemoryPressure() {
-    _memoryCache.trimMemoryPressure();
-  }
-=======
-  final Map<String, List<Map<String, dynamic>>> _memoryCache = {};
+  static const int defaultMaxCapacity = 3;
+  final int maxCapacity = defaultMaxCapacity;
+  final LinkedHashMap<String, List<Map<String, dynamic>>> _memoryCache =
+      LinkedHashMap<String, List<Map<String, dynamic>>>();
 
   void put(String langCode, List<Map<String, dynamic>> items) {
+    if (_memoryCache.containsKey(langCode)) {
+      _memoryCache.remove(langCode);
+    } else if (_memoryCache.length >= maxCapacity) {
+      _memoryCache.remove(_memoryCache.keys.first);
+    }
     _memoryCache[langCode] = List.unmodifiable(items);
   }
 
   List<Map<String, dynamic>>? get(String langCode) {
-    return _memoryCache[langCode];
+    if (!_memoryCache.containsKey(langCode)) return null;
+    final value = _memoryCache.remove(langCode)!;
+    _memoryCache[langCode] = value;
+    return value;
   }
 
   bool has(String langCode) => _memoryCache.containsKey(langCode);
 
+  int get length => _memoryCache.length;
+
   void clear() {
     _memoryCache.clear();
   }
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

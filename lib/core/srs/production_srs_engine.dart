@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-
-=======
-// ignore_for_file: prefer_const_constructors
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 import 'dart:math' as math;
 
 enum SrsRating { hard, good, easy }
@@ -21,92 +16,83 @@ class SrsCardReviewResult {
   });
 }
 
+/// Pure bounded scheduling math. This does not persist progress or award XP.
 class ProductionSrsEngine {
-  /// معالجة مراجعة البطاقة وفق خوارزمية SM-2 المعدلة رياضياً
+  static const int maxIntervalDays = 36500;
+  static const int maxRepetitions = 1000000;
+
   static SrsCardReviewResult processReview({
     required int currentIntervalDays,
     required double currentEaseFactor,
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
+    DateTime? currentTime,
   }) {
-<<<<<<< HEAD
-    if (currentIntervalDays < 0) {
-      throw ArgumentError('currentIntervalDays cannot be negative');
+    if (currentIntervalDays < 0 || currentIntervalDays > maxIntervalDays) {
+      throw ArgumentError.value(currentIntervalDays, 'currentIntervalDays');
     }
-    if (currentRepetitions < 0) {
-      throw ArgumentError('currentRepetitions cannot be negative');
+    if (currentRepetitions < 0 || currentRepetitions > maxRepetitions) {
+      throw ArgumentError.value(currentRepetitions, 'currentRepetitions');
     }
-    if (currentEaseFactor.isNaN) {
-      throw ArgumentError('currentEaseFactor cannot be NaN');
+    if (!currentEaseFactor.isFinite) {
+      throw ArgumentError.value(currentEaseFactor, 'currentEaseFactor');
+    }
+    if (!morphologicalMultiplier.isFinite ||
+        morphologicalMultiplier < 0.1 ||
+        morphologicalMultiplier > 10.0) {
+      throw ArgumentError.value(morphologicalMultiplier, 'morphologicalMultiplier');
     }
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    int newRepetitions = currentRepetitions;
-    int newInterval = currentIntervalDays;
-    double newEase = currentEaseFactor;
+    final ease = currentEaseFactor.clamp(1.3, 2.5).toDouble();
+    int repetitions = currentRepetitions;
+    int interval;
+    double newEase = ease;
 
     switch (rating) {
       case SrsRating.hard:
-        newRepetitions = 0;
-        newInterval = 1;
-        newEase = math.max(1.3, currentEaseFactor - 0.2);
+        repetitions = 0;
+        interval = 1;
+        newEase = math.max(1.3, ease - 0.2);
         break;
       case SrsRating.good:
-        if (newRepetitions == 0) {
-          newInterval = 1;
-        } else if (newRepetitions == 1) {
-          newInterval = 3;
+        if (repetitions == 0) {
+          interval = 1;
+        } else if (repetitions == 1) {
+          interval = 3;
         } else {
-<<<<<<< HEAD
-          newInterval = math.max(
-              1,
-              (currentIntervalDays *
-                      currentEaseFactor *
-                      morphologicalMultiplier)
-                  .round());
-=======
-          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+          interval = _boundedInterval(
+            currentIntervalDays * ease * morphologicalMultiplier,
+          );
         }
-        newRepetitions += 1;
+        repetitions = math.min(maxRepetitions, repetitions + 1);
         break;
       case SrsRating.easy:
-        if (newRepetitions == 0) {
-          newInterval = 2;
-        } else if (newRepetitions == 1) {
-          newInterval = 5;
+        if (repetitions == 0) {
+          interval = 2;
+        } else if (repetitions == 1) {
+          interval = 5;
         } else {
-<<<<<<< HEAD
-          newInterval = math.max(
-              1,
-              (currentIntervalDays *
-                      currentEaseFactor *
-                      1.3 *
-                      morphologicalMultiplier)
-                  .round());
-=======
-          newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+          interval = _boundedInterval(
+            currentIntervalDays * ease * 1.3 * morphologicalMultiplier,
+          );
         }
-        newRepetitions += 1;
-        newEase = math.min(2.5, currentEaseFactor + 0.15);
+        repetitions = math.min(maxRepetitions, repetitions + 1);
+        newEase = math.min(2.5, ease + 0.15);
         break;
     }
 
-<<<<<<< HEAD
     final now = currentTime ?? DateTime.now();
-=======
-    final now = DateTime.now();
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    final nextDate = now.add(Duration(days: math.max(1, newInterval)));
-
     return SrsCardReviewResult(
-      nextIntervalDays: newInterval,
+      nextIntervalDays: interval,
       easeFactor: newEase,
-      repetitionCount: newRepetitions,
-      nextReviewDate: nextDate,
+      repetitionCount: repetitions,
+      nextReviewDate: now.add(Duration(days: interval)),
     );
+  }
+
+  static int _boundedInterval(double days) {
+    if (!days.isFinite) throw ArgumentError.value(days, 'intervalDays');
+    return days.round().clamp(1, maxIntervalDays).toInt();
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:deutsch_bilarabi/services/sqlite_maintenance_service.dart';
@@ -42,7 +43,7 @@ void main() {
 
   setUp(() async {
     directory = await Directory.systemTemp.createTemp('wal-test-');
-    database = _FakeDatabase('${directory.path}/progress.sqlite');
+    database = _FakeDatabase(directory.path + '/progress.sqlite');
   });
   tearDown(() async => directory.delete(recursive: true));
 
@@ -54,7 +55,7 @@ void main() {
     expect(report.walBytes, 0);
     expect(report.checkpointAttempted, false);
 
-    await File('${database.path}-wal')
+    await File(database.path + '-wal')
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024, 0));
     report = await maintenance.maintain();
     expect(report.checkpointAttempted, false);
@@ -62,9 +63,9 @@ void main() {
   });
 
   test('checkpoints a WAL above 4 MiB and reports SHM size', () async {
-    await File('${database.path}-wal')
+    await File(database.path + '-wal')
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
-    await File('${database.path}-shm').writeAsBytes(<int>[1, 2, 3]);
+    await File(database.path + '-shm').writeAsBytes(<int>[1, 2, 3]);
     final maintenance = SqliteMaintenanceService(
       progressDatabase: () async => database,
     );
@@ -77,7 +78,7 @@ void main() {
 
   test('honors cooldown and does not vacuum unless idle and opted-in',
       () async {
-    await File('${database.path}-wal')
+    await File(database.path + '-wal')
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
     final maintenance = SqliteMaintenanceService(
       progressDatabase: () async => database,
@@ -92,7 +93,7 @@ void main() {
   });
 
   test('incremental vacuum is capped on explicit idle', () async {
-    await File('${database.path}-wal')
+    await File(database.path + '-wal')
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
     final maintenance = SqliteMaintenanceService(
       progressDatabase: () async => database,
@@ -104,7 +105,7 @@ void main() {
   });
 
   test('reports SQLITE_BUSY without deleting the WAL', () async {
-    final wal = File('${database.path}-wal');
+    final wal = File(database.path + '-wal');
     await wal.writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
     database.checkpoint = <Map<String, Object?>>[
       <String, Object?>{'busy': 1, 'log': 200, 'checkpointed': 0},
@@ -119,7 +120,7 @@ void main() {
 
   test('paused lifecycle triggers non-blocking checkpoint and detaches',
       () async {
-    await File('${database.path}-wal')
+    await File(database.path + '-wal')
         .writeAsBytes(List<int>.filled(4 * 1024 * 1024 + 1, 0));
     final maintenance = SqliteMaintenanceService(
       progressDatabase: () async => database,

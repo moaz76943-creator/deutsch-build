@@ -1,9 +1,4 @@
-enum ReviewRating {
-  again,
-  hard,
-  good,
-  easy,
-}
+enum ReviewRating { again, hard, good, easy }
 
 class SrsItemState {
   final int repetitions;
@@ -18,8 +13,8 @@ class SrsItemState {
     this.easeFactor = 2.5,
     DateTime? nextReviewDate,
     DateTime? lastReviewed,
-  })  : nextReviewDate = nextReviewDate ?? DateTime.now(),
-        lastReviewed = lastReviewed ?? DateTime.now();
+  }) : nextReviewDate = nextReviewDate ?? DateTime.now(),
+       lastReviewed = lastReviewed ?? DateTime.now();
 
   dynamic operator [](String key) {
     switch (key) {
@@ -39,26 +34,23 @@ class SrsItemState {
   }
 }
 
+/// Legacy compatibility math. State persistence belongs to the atomic
+/// scheduler/database owner; never acknowledge a durable write from here.
 class SrsEngine {
+  static const int maxIntervalDays = 36500;
+  static const int maxRepetitions = 1000000;
+
   static Future<SrsItemState> getItemState(dynamic key) async {
     return SrsItemState(
-      repetitions: 0,
-      interval: 1,
-      easeFactor: 2.5,
+      repetitions: 0, interval: 1, easeFactor: 2.5,
       nextReviewDate: DateTime.now().add(const Duration(days: 1)),
       lastReviewed: DateTime.now(),
     );
   }
 
-<<<<<<< HEAD
-  /// Legacy compatibility placeholder; NOT a durable progress writer.
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  /// This historical compatibility entry point is not a persistence layer.
   static Future<void> processReview([
-    dynamic p1,
-    dynamic p2,
-    dynamic p3,
-    dynamic p4,
+    dynamic p1, dynamic p2, dynamic p3, dynamic p4,
   ]) async {}
 
   static Map<String, dynamic> calculateNextReview({
@@ -68,69 +60,43 @@ class SrsEngine {
     required int previousInterval,
     double morphologicalMultiplier = 1.0,
   }) {
-<<<<<<< HEAD
-    if (grade < 0 ||
-        grade > 5 ||
-        repetitions < 0 ||
-        previousInterval < 0 ||
+    if (grade < 0 || grade > 5 ||
+        repetitions < 0 || repetitions > maxRepetitions ||
+        previousInterval < 0 || previousInterval > maxIntervalDays ||
         !previousEaseFactor.isFinite ||
-        previousEaseFactor <= 0 ||
         !morphologicalMultiplier.isFinite ||
-        morphologicalMultiplier <= 0) {
-      throw ArgumentError('Malformed legacy SRS review inputs');
+        morphologicalMultiplier < 0.1 ||
+        morphologicalMultiplier > 10) {
+      throw ArgumentError('Malformed legacy review inputs');
     }
-    var nextRepetitions = repetitions.clamp(0, maxRepetitions).toInt();
-    var nextInterval = previousInterval.clamp(0, maxIntervalDays).toInt();
     final ease = previousEaseFactor.clamp(1.3, 3.0).toDouble();
-    final multiplier = morphologicalMultiplier.clamp(0.25, 4.0).toDouble();
-=======
     int nextRepetitions = repetitions;
-    int nextInterval = previousInterval;
-    double nextEaseFactor = previousEaseFactor;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    int nextInterval = 1;
 
     if (grade >= 3) {
-      if (nextRepetitions == 0) {
+      if (repetitions == 0) {
         nextInterval = 1;
-<<<<<<< HEAD
-      } else if (nextRepetitions == 1) {
-        nextInterval = 6; // Stable legacy policy; no unverified 1.05 change.
-      } else {
-        nextInterval = (nextInterval * ease * multiplier)
-            .round()
-            .clamp(1, maxIntervalDays)
-            .toInt();
-      }
-      nextRepetitions = (nextRepetitions + 1).clamp(0, maxRepetitions).toInt();
-=======
       } else if (repetitions == 1) {
+        // Preserve existing schedules: do not apply Jules' speculative 4 days.
         nextInterval = 6;
       } else {
-        nextInterval = (previousInterval * previousEaseFactor * morphologicalMultiplier).round();
+        final proposed = previousInterval * ease * morphologicalMultiplier;
+        if (!proposed.isFinite) throw ArgumentError('Unbounded interval');
+        nextInterval = proposed.round().clamp(1, maxIntervalDays).toInt();
       }
-      nextRepetitions += 1;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+      if (nextRepetitions < maxRepetitions) nextRepetitions++;
     } else {
       nextRepetitions = 0;
       nextInterval = 1;
     }
 
-<<<<<<< HEAD
-    final nextEaseFactor =
-        (ease + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)))
-            .clamp(1.3, 3.0)
-            .toDouble();
-=======
-    nextEaseFactor = previousEaseFactor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
-    if (nextEaseFactor < 1.3) {
-      nextEaseFactor = 1.3;
-    }
-
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    final rawEase = ease +
+        (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
+    final nextEase = rawEase.clamp(1.3, 3.0).toDouble();
     return {
       'repetitions': nextRepetitions,
       'interval': nextInterval,
-      'easeFactor': double.parse(nextEaseFactor.toStringAsFixed(2)),
+      'easeFactor': double.parse(nextEase.toStringAsFixed(2)),
     };
   }
 }
