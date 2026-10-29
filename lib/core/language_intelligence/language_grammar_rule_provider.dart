@@ -14,7 +14,6 @@ enum GrammaticalCategory {
   preposition,
   particle,
   unknown,
-<<<<<<< HEAD
 }
 
 enum GrammaticalNumber {
@@ -99,20 +98,15 @@ class GrammarCapabilityProfile {
     this.isAnalytic = false,
     this.hasNounClasses = false,
   });
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
 
 abstract class LanguageGrammarRuleProvider {
   String get languageCode;
 
-<<<<<<< HEAD
   /// Returns the grammar capability profile for the specific language
   GrammarCapabilityProfile get capabilityProfile =>
       const GrammarCapabilityProfile();
 
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   /// استنتاج الجنس النحوي للكلمة
   GrammaticalGender determineGender(String word, {String? article});
 
