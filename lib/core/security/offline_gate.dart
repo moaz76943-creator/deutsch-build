@@ -10,10 +10,9 @@ class OfflineGate {
   }
 
   static bool authorizeUserDownload(bool explicitConsent) {
-    if (explicitConsent) {
-      return true;
-    }
-    return false;
+    // Only permit optional user-requested downloads explicitly authorized.
+    // Ensure this doesn't enable general unrestricted network access.
+    return explicitConsent == true;
   }
 
   static bool isTelemetryAllowed() => false;
