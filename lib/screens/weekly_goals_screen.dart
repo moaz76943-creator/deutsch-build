@@ -79,7 +79,7 @@ class WeeklyGoalsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDayRow(String day, stringDuration, bool completed) {
+  Widget _buildDayRow(String day, String stringDuration, bool completed) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(

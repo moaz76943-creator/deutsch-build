@@ -13,22 +13,27 @@ class ReviewTransactionManager {
       : clock = clock ?? DateTime.now;
 
   Future<ReviewCommitResult> processTransaction(ReviewCommand command) async {
-    final pair = DirectedPairId(
-      sourceLocale: command.sourceLanguageId,
-      targetLocale: command.targetLanguageId,
-      semanticVersion: command.semanticVersion,
-    );
+    final source = command.sourceLanguageId;
+    final target = command.targetLanguageId;
+    final version = command.semanticVersion;
     if (command.reviewId.trim().isEmpty ||
         command.cardId.trim().isEmpty ||
         command.facetKey.trim().isEmpty ||
-        command.sourceLanguageId != command.sourceLanguageId.trim() ||
-        command.targetLanguageId != command.targetLanguageId.trim() ||
-        command.semanticVersion.trim().isEmpty ||
-        command.semanticVersion != command.semanticVersion.trim() ||
-        !pair.isValidForLearning() ||
+        source.isEmpty ||
+        target.isEmpty ||
+        source != source.trim() ||
+        target != target.trim() ||
+        version.trim().isEmpty ||
+        version != version.trim() ||
+        source == target ||
         command.pairEpoch < 0) {
       throw ArgumentError('Invalid review event, version, or directed pair');
     }
+    final pair = DirectedPairId(
+      sourceLocale: source,
+      targetLocale: target,
+      semanticVersion: version,
+    );
     final envelope = ReviewTransactionEnvelope(
       reviewEventId: command.reviewId,
       learnerContentKey: command.cardId,
