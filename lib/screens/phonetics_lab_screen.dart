@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
-// import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
+=======
+import 'package:deutsch_bilarabi/design_system/design_system.dart';
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
-class PhoneticsLabScreen extends StatefulWidget {
+class PhoneticsLabScreen extends StatelessWidget {
   const PhoneticsLabScreen({super.key});
 
   @override
+<<<<<<< HEAD
   State<PhoneticsLabScreen> createState() => _PhoneticsLabScreenState();
 }
 
@@ -42,26 +47,17 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
       "langCode": "tr-TR",
       "hasAudio": false
     },
-    {
-      "symbol": "unverified",
-      "ipa": "غير متوفر",
-      "desc": "غير متوفر",
-      "lang": "غير متوفر",
-      "langCode": "none",
-      "hasAudio": false,
-      "isUnverified": true
-    }
   ];
 
   @override
   void dispose() {
-    OfflineAudioDispatcher.stopCurrentAudio();
+    OfflineAudioPool().stop();
     super.dispose();
   }
 
   Future<void> _playAudio(int index) async {
     if (_isPlaying) {
-      OfflineAudioDispatcher.stopCurrentAudio();
+      OfflineAudioPool().stop();
       if (_currentlyPlayingIndex == index) {
         setState(() {
           _isPlaying = false;
@@ -100,7 +96,16 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
   }
 
   @override
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+  @override
   Widget build(BuildContext context) {
+    final List<Map<String, String>> sounds = [
+      {"symbol": "ä / ö / ü", "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية", "lang": "الألمانية"},
+      {"symbol": "ñ", "desc": "حرف النون المضخم في اللغة الإسبانية", "lang": "الإسبانية"},
+      {"symbol": "ğ", "desc": "الحرف الصامت أو الناعم في اللغة التركية", "lang": "التركية"},
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('معمل تدريب الصوتيات ومخارج الحروف'),
@@ -123,13 +128,19 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
+<<<<<<< HEAD
               itemCount: _sounds.length,
               itemBuilder: (context, index) {
                 final item = _sounds[index];
                 final hasAudio = item['hasAudio'] as bool;
-                final isUnverified = item['isUnverified'] == true;
-                final isCurrentPlaying = _currentlyPlayingIndex == index && _isPlaying;
+                final isCurrentPlaying =
+                    _currentlyPlayingIndex == index && _isPlaying;
 
+=======
+              itemCount: sounds.length,
+              itemBuilder: (context, index) {
+                final item = sounds[index];
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                 return Container(
                   margin: const EdgeInsets.only(bottom: 14),
                   child: AppBaseGlassCard(
@@ -139,38 +150,67 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
+<<<<<<< HEAD
+                            color:
+                                const Color(0xFF34D399).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+=======
                             color: const Color(0xFF34D399).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            item['symbol'] as String,
-                            style: const TextStyle(
-                                color: Color(0xFF34D399),
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
+                            item['symbol']!,
+                            style: const TextStyle(color: Color(0xFF34D399), fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
+                        const SizedBox(width: 16),
+                        Expanded(
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+<<<<<<< HEAD
+                                item['symbol'] as String,
+                                style: const TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+=======
+                                item['lang']!,
+                                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
+                                child: Text(
+                                  item['ipa'] as String,
+                                  style: const TextStyle(
+                                      color: Color(0xFF6EE7B7), fontSize: 14),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item['desc']!,
+                                style: AppTypography.body.copyWith(color: Colors.white, fontSize: 14),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+                              ),
+                            ],
+                          ),
+                        ),
+<<<<<<< HEAD
                         const SizedBox(width: 16),
                         Expanded(
                           child: Semantics(
                             label: item['desc'] as String,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
                                 Text(
                                   item['lang'] as String,
                                   style: const TextStyle(
                                       color: Color(0xFF38BDF8), fontSize: 12),
-                                ),
-                                const SizedBox(height: 4),
-                                Directionality(
-                                  textDirection: TextDirection.ltr,
-                                  child: Text(
-                                    item['ipa'] as String,
-                                    style: const TextStyle(
-                                        color: Color(0xFF6EE7B7), fontSize: 14),
-                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -192,18 +232,6 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                                 ? FontAwesomeIcons.stop
                                 : FontAwesomeIcons.volumeHigh,
                           )
-                        else if (isUnverified)
-                          const Tooltip(
-                            message: 'النطق الصوتي غير متوفر حالياً',
-                            child: Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Icon(
-                                Icons.volume_off,
-                                color: Colors.white38,
-                                size: 20,
-                              ),
-                            ),
-                          )
                         else
                           const Tooltip(
                             message: 'النطق الصوتي غير متوفر حالياً',
@@ -216,11 +244,14 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                               ),
                             ),
                           ),
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                       ],
                     ),
                   ),
-                );
-              },
+                )
+              }
+return null;,
             ),
           ),
         ),
