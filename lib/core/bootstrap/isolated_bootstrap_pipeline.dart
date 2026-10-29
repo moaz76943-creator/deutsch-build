@@ -28,34 +28,6 @@ class IsolatedBootstrapPipeline {
 
     for (final step in steps) {
       try {
-<<<<<<< HEAD
-        final received = await step.execute().timeout(
-              step.timeout ?? defaultStepTimeout,
-            );
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: !step.isCritical &&
-                  received.status == BootstrapStepStatus.fatalFailure
-              ? BootstrapStepStatus.recoverableFailure
-              : received.status,
-          message: received.message,
-        );
-      } on TimeoutException {
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: step.isCritical
-              ? BootstrapStepStatus.fatalFailure
-              : BootstrapStepStatus.recoverableFailure,
-          message: 'Phase timed out',
-        );
-      } catch (_) {
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: step.isCritical
-              ? BootstrapStepStatus.fatalFailure
-              : BootstrapStepStatus.recoverableFailure,
-          message: 'Phase failed',
-=======
         final res = await step.execute();
         results.add(res);
         if (res.status == BootstrapStepStatus.fatalFailure) {
@@ -68,7 +40,6 @@ class IsolatedBootstrapPipeline {
             status: BootstrapStepStatus.fatalFailure,
             message: e.toString(),
           ),
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
         );
         break;
       }
