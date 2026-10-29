@@ -1,0 +1,23 @@
+{
+  "isoCode": "ja",
+  "autonym": "日本語",
+  "englishName": "Japanese",
+  "scriptDirection": "ltr",
+  "scriptFamily": "CJK (Kanji, Hiragana, Katakana)",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasGrammaticalParticles": true,
+    "hasHonorificLevels": true,
+    "hasCounters": true,
+    "particleList": ["wa", "ga", "o", "ni", "de", "to", "e", "kara", "made"]
+  }
+}
