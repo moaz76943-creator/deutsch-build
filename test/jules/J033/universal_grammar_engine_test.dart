@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_capabilities.dart';
+import 'package:deutsch_bilarabi/core/language_intelligence/grammar_profile.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/universal_grammar_provider.dart';
 import 'package:deutsch_bilarabi/core/language_intelligence/universal_grammar_engine.dart';
@@ -7,11 +9,9 @@ import 'package:deutsch_bilarabi/core/language_intelligence/universal_grammar_en
 
 class EnglishGrammarProvider extends UniversalGrammarProvider {
   @override
-  String get languageCode => 'en';
-
-  @override
   GrammarProfile get profile => const GrammarProfile(
-        supportedFeatures: {GrammarFeature.analytic, GrammarFeature.number, GrammarFeature.tense, GrammarFeature.person},
+        languageCode: 'en',
+        capabilities: {GrammarCapability.analytic, GrammarCapability.number, GrammarCapability.tense, GrammarCapability.person},
       );
 
   @override
@@ -23,11 +23,9 @@ class EnglishGrammarProvider extends UniversalGrammarProvider {
 
 class TurkishGrammarProvider extends UniversalGrammarProvider {
   @override
-  String get languageCode => 'tr';
-
-  @override
   GrammarProfile get profile => const GrammarProfile(
-        supportedFeatures: {GrammarFeature.agglutinative, GrammarFeature.grammaticalCase, GrammarFeature.number},
+        languageCode: 'tr',
+        capabilities: {GrammarCapability.agglutinative, GrammarCapability.caseSystem, GrammarCapability.number},
       );
 
   @override
@@ -41,15 +39,13 @@ class TurkishGrammarProvider extends UniversalGrammarProvider {
 
 class ArabicGrammarProvider extends UniversalGrammarProvider {
   @override
-  String get languageCode => 'ar';
-
-  @override
   GrammarProfile get profile => const GrammarProfile(
-        supportedFeatures: {
-          GrammarFeature.rootPattern,
-          GrammarFeature.gender,
-          GrammarFeature.number,
-          GrammarFeature.grammaticalCase,
+        languageCode: 'ar',
+        capabilities: {
+          GrammarCapability.rootPattern,
+          GrammarCapability.gender,
+          GrammarCapability.number,
+          GrammarCapability.caseSystem,
         },
       );
 
@@ -62,15 +58,13 @@ class ArabicGrammarProvider extends UniversalGrammarProvider {
 
 class RussianGrammarProvider extends UniversalGrammarProvider {
   @override
-  String get languageCode => 'ru';
-
-  @override
   GrammarProfile get profile => const GrammarProfile(
-        supportedFeatures: {
-          GrammarFeature.inflectional,
-          GrammarFeature.gender,
-          GrammarFeature.grammaticalCase,
-          GrammarFeature.number,
+        languageCode: 'ru',
+        capabilities: {
+          GrammarCapability.inflectional,
+          GrammarCapability.gender,
+          GrammarCapability.caseSystem,
+          GrammarCapability.number,
         },
       );
 

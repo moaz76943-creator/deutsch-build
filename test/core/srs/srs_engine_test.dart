@@ -125,7 +125,7 @@ void main() {
 
   group('SpacedRepetitionEngine tests', () {
     test('calculateNextInterval - successful rating', () {
-      const previousState = LeitnerCardState(
+      final previousState = LeitnerCardState(
         cardId: 'c1',
         currentBox: LeitnerBox.box1,
         lastReviewedEpoch: 0,
@@ -147,7 +147,7 @@ void main() {
     });
 
     test('calculateNextInterval - failure rating', () {
-      const previousState = LeitnerCardState(
+      final previousState = LeitnerCardState(
         cardId: 'c1',
         currentBox: LeitnerBox.box3,
         lastReviewedEpoch: 0,
@@ -169,7 +169,7 @@ void main() {
     });
 
     test('LeitnerCardState isDueAt', () {
-      const state = LeitnerCardState(
+      final state = LeitnerCardState(
         cardId: 'c1',
         currentBox: LeitnerBox.box1,
         lastReviewedEpoch: 0,
@@ -206,7 +206,7 @@ void main() {
       final mockDelegate = MockReviewCommandPort();
       final port = IdempotentReviewCommandPort(mockDelegate);
 
-      const command1 = ReviewCommand(
+      final command1 = ReviewCommand(
         reviewId: 'r1',
         sourceLanguageId: 'de',
         targetLanguageId: 'ar',
@@ -217,7 +217,7 @@ void main() {
         hinted: false,
       );
 
-      const command2 = ReviewCommand(
+      final command2 = ReviewCommand(
         reviewId: 'r1', // same id
         sourceLanguageId: 'de',
         targetLanguageId: 'ar',
@@ -228,7 +228,7 @@ void main() {
         hinted: false,
       );
 
-      const command3 = ReviewCommand(
+      final command3 = ReviewCommand(
         reviewId: 'r2', // different id
         sourceLanguageId: 'de',
         targetLanguageId: 'ar',
