@@ -6,7 +6,7 @@ void main() {
 
   setUp(() {
     worker = PersistentCpuWorker.instance;
-    PersistentCpuWorker.resetForTesting();
+    worker.reset();
   });
 
   group('PersistentCpuWorker - Core Calculations', () {
@@ -26,8 +26,8 @@ void main() {
       worker.setMaxQueueSize(2);
 
       // Start 2 jobs that will take some time
-      final future1 = worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
-      final future2 = worker.calculateNewEaseFactor(2.5, 4).catchError((_) => 0.0);
+      final future1 = worker.calculateNewEaseFactor(2.5, 4);
+      final future2 = worker.calculateNewEaseFactor(2.5, 4);
 
       // The 3rd job should immediately throw due to queue exhaustion
       expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<WorkerQueueExhaustedException>()));
@@ -45,12 +45,12 @@ void main() {
   });
 
   group('PersistentCpuWorker - Cancellation & Disposal', () {
-    test('cancelAll rejects stale results', () async {
+    test('cancelCurrentGeneration rejects stale results', () async {
       // Start a job
       final future = worker.calculateNewEaseFactor(2.5, 4);
 
       // Cancel generation immediately
-      worker.cancelAll();
+      worker.cancelCurrentGeneration();
 
       // The job should complete but throw WorkerCancelledException before returning
       expect(() => future, throwsA(isA<WorkerCancelledException>()));
