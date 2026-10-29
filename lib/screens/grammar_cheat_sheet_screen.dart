@@ -7,9 +7,21 @@ class GrammarCheatSheetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> rules = [
-      {"title": "أدوات التعريف الألمانية (Der / Die / Das)", "desc": "Der (مذكر), Die (مؤنث / جمع), Das (محايد)", "lang": "الألمانية"},
-      {"title": "تصريف الأفعال في الحاضر (Präsens)", "desc": "إضافة نهايات محددة حسب الضمير (ich -e, du -st, er/sie/es -t)", "lang": "الألمانية"},
-      {"title": "أفعال الكينونة والملكيه الأساسية", "desc": "sein (يكون) و haben (يملك) وتصريفاتهما في الجملة", "lang": "الألمانية"},
+      {
+        "title": "أدوات التعريف الألمانية (Der / Die / Das)",
+        "desc": "Der (مذكر), Die (مؤنث / جمع), Das (محايد)",
+        "lang": "الألمانية"
+      },
+      {
+        "title": "تصريف الأفعال في الحاضر (Präsens)",
+        "desc": "إضافة نهايات محددة حسب الضمير (ich -e, du -st, er/sie/es -t)",
+        "lang": "الألمانية"
+      },
+      {
+        "title": "أفعال الكينونة والملكيه الأساسية",
+        "desc": "sein (يكون) و haben (يملك) وتصريفاتهما في الجملة",
+        "lang": "الألمانية"
+      },
     ];
 
     return Scaffold(
@@ -37,12 +49,16 @@ class GrammarCheatSheetScreen extends StatelessWidget {
                       children: <Widget>[
                         Text(
                           rule['title']!,
-                          style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           rule['desc']!,
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 14),
                         ),
                       ],
                     ),
