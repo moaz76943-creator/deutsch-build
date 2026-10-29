@@ -9,7 +9,8 @@ String _ipaBody(String value) =>
     value.trim().replaceAll(RegExp(r'^/+|/+$'), '').trim();
 
 /// Whether a word has usable phonetic transcription to display.
-bool hasPhoneticData(String? ipa) => ipa != null && _ipaBody(ipa).isNotEmpty;
+bool hasPhoneticData(String? ipa) =>
+    ipa != null && _ipaBody(ipa).isNotEmpty;
 
 /// Wraps an IPA transcription in one pair of phonemic slashes.
 ///

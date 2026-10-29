@@ -29,7 +29,7 @@ class AnalyticsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
+                        Text('--%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
                         const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
                       ],
                     ),
@@ -53,7 +53,7 @@ class AnalyticsScreen extends StatelessWidget {
                         children: <Widget>[
                           const Icon(Icons.bolt_rounded, color: Color(0xFFF39C6B), size: 28),
                           const SizedBox(height: 8),
-                          Text('142', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 22)),
+                          Text('--', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 22)),
                           const Text('كلمة متقنة بالـ SRS', style: TextStyle(color: Colors.white60, fontSize: 11)),
                         ],
                       ),
