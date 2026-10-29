@@ -40,12 +40,8 @@ class PackManager {
   }) async {
     final code = _language(languageCode);
     return _dbService.withContentDb<List<Map<String, dynamic>>>(
-      code,
-      (db) => queryConceptsBySectionFromDb(
-        db,
-        sectionId: sectionId,
-        cefr: cefr,
-        languageCode: code,
+      code, (db) => queryConceptsBySectionFromDb(
+        db, sectionId: sectionId, cefr: cefr, languageCode: code,
       ),
     );
   }
@@ -67,9 +63,6 @@ class PackManager {
     final section = sectionId.trim();
     final level = cefr.trim().toUpperCase();
     if (section.isEmpty || level.isEmpty) return <Map<String, dynamic>>[];
-
-    // Bind JSON paths as SQL values instead of embedding a Dart-interpolated
-    // '$' path in the SQL string. Preserve language/section parameter isolation.
     final rows = await db.rawQuery('''
       SELECT DISTINCT s.concept_id, l.id AS lexeme_id, l.surface AS word,
         l.part_of_speech, l.fields_json, l.sort_key
@@ -77,21 +70,13 @@ class PackManager {
       JOIN lexicon AS l ON l.id = s.lexeme_id
       WHERE l.language_code = ? AND l.cefr_level = ?
         AND (
-          EXISTS (SELECT 1 FROM json_each(s.payload_json, ?)
+          EXISTS (SELECT 1 FROM json_each(s.payload_json, '\$.semantic_tags')
                   WHERE value = ?)
-          OR EXISTS (SELECT 1 FROM json_each(s.payload_json, ?)
+          OR EXISTS (SELECT 1 FROM json_each(s.payload_json, '\$.domains')
                      WHERE value = ?)
         )
       ORDER BY l.sort_key, l.id, s.concept_id LIMIT ?
-    ''', <Object?>[
-      code,
-      level,
-      r'$.semantic_tags',
-      section,
-      r'$.domains',
-      section,
-      limit,
-    ]);
+    ''', <Object?>[code, level, section, section, limit]);
 
     return rows.map((row) {
       final fields = jsonDecode(row['fields_json']?.toString() ?? '{}');
@@ -122,25 +107,20 @@ class PackManager {
     }).toList(growable: false);
   }
 
-  static Future<List<Map<String, dynamic>>> searchInstant(String query,
-          {String? languageCode}) =>
-      _dbService.searchDictionary(
-        query,
-        _language(languageCode),
-        limit: 20,
-      );
+  static Future<List<Map<String, dynamic>>> searchInstant(
+    String query, {String? languageCode}
+  ) => _dbService.searchDictionary(
+    query, _language(languageCode), limit: 20,
+  );
 
   /// Missing optional quiz tables are not synthesized from example sentences.
-  static Future<List<Map<String, dynamic>>> getExercises(String conceptId,
-      {String? languageCode, int limit = 12}) async {
+  static Future<List<Map<String, dynamic>>> getExercises(
+    String conceptId, {String? languageCode, int limit = 12}
+  ) async {
     final code = _language(languageCode);
     return _dbService.withContentDb<List<Map<String, dynamic>>>(
-      code,
-      (db) => queryExercisesFromDb(
-        db,
-        conceptId: conceptId,
-        languageCode: code,
-        limit: limit,
+      code, (db) => queryExercisesFromDb(
+        db, conceptId: conceptId, languageCode: code, limit: limit,
       ),
     );
   }
@@ -163,22 +143,16 @@ class PackManager {
     );
     if (table.isEmpty) return <Map<String, dynamic>>[];
     final columns = (await db.rawQuery('PRAGMA table_info(exercises)'))
-        .map((row) => row['name'])
-        .whereType<String>()
-        .toSet();
+        .map((row) => row['name']).whereType<String>().toSet();
     const required = <String>{
-      'concept_id',
-      'language_code',
-      'prompt',
-      'correct_answer',
-      'distractors_json',
+      'concept_id', 'language_code', 'prompt',
+      'correct_answer', 'distractors_json',
     };
     if (!columns.containsAll(required)) {
       throw StateError('Incompatible optional exercises table');
     }
     final order = columns.contains('exercise_id')
-        ? 'exercise_id'
-        : 'prompt, correct_answer';
+        ? 'exercise_id' : 'prompt, correct_answer';
     final rows = await db.rawQuery(
       'SELECT prompt, correct_answer, distractors_json FROM exercises '
       'WHERE concept_id = ? AND language_code = ? '
@@ -186,21 +160,19 @@ class PackManager {
       <Object?>[conceptId, code, limit],
     );
     for (final row in rows) {
-      if (row['prompt'] is! String ||
-          row['correct_answer'] is! String ||
+      if (row['prompt'] is! String || row['correct_answer'] is! String ||
           row['distractors_json'] is! String ||
           (row['prompt'] as String).trim().isEmpty ||
           (row['correct_answer'] as String).trim().isEmpty) {
         throw const FormatException('Malformed exercise');
       }
       final distractors = jsonDecode(row['distractors_json'] as String);
-      if (distractors is! List || distractors.any((item) => item is! String)) {
+      if (distractors is! List ||
+          distractors.any((item) => item is! String)) {
         throw const FormatException('Malformed exercise distractors');
       }
     }
-    return rows
-        .map((r) => Map<String, dynamic>.from(r))
-        .toList(growable: false);
+    return rows.map((r) => Map<String, dynamic>.from(r)).toList(growable: false);
   }
 
   /// Resolve stable lexeme identity before recording a concept-level quiz.
@@ -237,11 +209,8 @@ class PackManager {
   }) async {
     final code = _language(languageCode);
     final lexemeId = await _dbService.withContentDb<String?>(
-      code,
-      (db) => resolveLexemeIdForConcept(
-        db,
-        conceptId: conceptId,
-        languageCode: code,
+      code, (db) => resolveLexemeIdForConcept(
+        db, conceptId: conceptId, languageCode: code,
       ),
     );
     if (lexemeId == null) {
