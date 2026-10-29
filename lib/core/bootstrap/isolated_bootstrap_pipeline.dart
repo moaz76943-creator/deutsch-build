@@ -22,32 +22,16 @@ abstract class BootstrapStep {
   bool get isCritical => true;
   Duration get timeout => const Duration(seconds: 5);
   Future<BootstrapStepResult> execute();
-
-  // Existing steps remain source-compatible. Optional steps may opt out of
-  // startup-fatal classification without hiding their failures.
-  bool get isCritical => true;
-  Duration? get timeout => null;
 }
 
-<<<<<<< HEAD
 /// Isolated bootstrap pipeline with parallel execution of non-dependent steps
 /// for reduced startup latency, plus per-step timing for measurement.
-=======
-/// Bounded sequential bootstrap: each dependency is probed once, and a fatal
-/// failure prevents dependent steps from running. Timeouts do not cancel the
-/// underlying future; callers must ignore obsolete results after disposal.
->>>>>>> origin/staging/v2-full-platform
 class IsolatedBootstrapPipeline {
   final List<BootstrapStep> steps;
-  final Duration defaultStepTimeout;
 
-  IsolatedBootstrapPipeline(
-    this.steps, {
-    this.defaultStepTimeout = const Duration(seconds: 6),
-  });
+  IsolatedBootstrapPipeline(this.steps);
 
   Future<List<BootstrapStepResult>> runPipeline() async {
-<<<<<<< HEAD
     if (steps.isEmpty) return [];
 
     // Run all steps in parallel for measurable startup improvement.
@@ -56,43 +40,6 @@ class IsolatedBootstrapPipeline {
     final results = await Future.wait(futures);
 
     // Preserve original order in the returned list.
-=======
-    final results = <BootstrapStepResult>[];
-    for (final step in steps) {
-      BootstrapStepResult result;
-      try {
-        final received = await step.execute().timeout(
-              step.timeout ?? defaultStepTimeout,
-            );
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: !step.isCritical &&
-                  received.status == BootstrapStepStatus.fatalFailure
-              ? BootstrapStepStatus.recoverableFailure
-              : received.status,
-          message: received.message,
-        );
-      } on TimeoutException {
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: step.isCritical
-              ? BootstrapStepStatus.fatalFailure
-              : BootstrapStepStatus.recoverableFailure,
-          message: 'Phase timed out',
-        );
-      } catch (_) {
-        result = BootstrapStepResult(
-          stepName: step.name,
-          status: step.isCritical
-              ? BootstrapStepStatus.fatalFailure
-              : BootstrapStepStatus.recoverableFailure,
-          message: 'Phase failed',
-        );
-      }
-      results.add(result);
-      if (result.status == BootstrapStepStatus.fatalFailure) break;
-    }
->>>>>>> origin/staging/v2-full-platform
     return results;
   }
 
