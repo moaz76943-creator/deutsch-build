@@ -12,9 +12,12 @@ import '../utils/fuzzy_search_engine.dart';
 List<Map<String, dynamic>> _decodeFtsRows(Map<String, Object?> request) {
   final code = request['languageCode'] as String;
   final rows = request['rows'] as List;
-  return rows.map((item) => FtsSearchService._unpack(
-    Map<String, Object?>.from(item as Map), code,
-  )).toList(growable: false);
+  return rows
+      .map((item) => FtsSearchService._unpack(
+            Map<String, Object?>.from(item as Map),
+            code,
+          ))
+      .toList(growable: false);
 }
 
 List<String> _suggestOffThread(Map<String, Object?> request) {
@@ -69,7 +72,6 @@ class FtsSearchService {
     );
   }
 
-
   /// Active dictionary pipeline: attested lemma first, then normal search,
   /// then at most three offline typo suggestions if there were no hits.
   Future<SearchFeedback<Map<String, dynamic>>> searchDictionaryWithFeedback(
@@ -107,18 +109,25 @@ class FtsSearchService {
           lemma.trim().toLowerCase() != term.toLowerCase()) {
         final canonical = lemma.trim();
         final found = await searchDatabase(
-          database, canonical, languageCode: languageCode, limit: limit,
+          database,
+          canonical,
+          languageCode: languageCode,
+          limit: limit,
         );
         if (found.isNotEmpty) {
           return SearchFeedback(
-            results: found, resolvedLemma: canonical,
+            results: found,
+            resolvedLemma: canonical,
           );
         }
       }
     }
 
     final results = await searchDatabase(
-      database, term, languageCode: languageCode, limit: limit,
+      database,
+      term,
+      languageCode: languageCode,
+      limit: limit,
     );
     if (results.isNotEmpty ||
         term.isEmpty ||
@@ -130,7 +139,7 @@ class FtsSearchService {
       r"SELECT surface FROM lexicon WHERE surface LIKE ? ESCAPE '\' "
       'ORDER BY surface COLLATE NOCASE LIMIT ?',
       <Object?>[
-        _escapeLike(firstGlyph) + '%',
+        '${_escapeLike(firstGlyph)}%',
         FuzzySearchEngine.maxCandidateChecks.clamp(1, 50),
       ],
     );
@@ -178,7 +187,7 @@ class FtsSearchService {
             WHEN l.surface = ? COLLATE NOCASE THEN 0
             WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
             ELSE 2
-          END, length(l.surface), l.rowid
+          END, bm25(lexicon_fts), length(l.surface), l.rowid
           LIMIT ?
         ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
       } on DatabaseException catch (_) {
@@ -193,7 +202,8 @@ class FtsSearchService {
     final code = languageCode.trim().toLowerCase().replaceAll('_', '-');
     return compute(_decodeFtsRows, <String, Object?>{
       'languageCode': code,
-      'rows': rows.map((row) => Map<String, Object?>.from(row))
+      'rows': rows
+          .map((row) => Map<String, Object?>.from(row))
           .toList(growable: false),
     });
   }
