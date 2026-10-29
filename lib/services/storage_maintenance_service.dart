@@ -54,22 +54,8 @@ class StorageCleanupReport {
 /// integrity_check or a pack manifest. Valid-header files are never deleted.
 class StorageMaintenanceService {
   static const List<int> _sqliteSignature = <int>[
-    83,
-    81,
-    76,
-    105,
-    116,
-    101,
-    32,
-    102,
-    111,
-    114,
-    109,
-    97,
-    116,
-    32,
-    51,
-    0,
+    83, 81, 76, 105, 116, 101, 32, 102,
+    111, 114, 109, 97, 116, 32, 51, 0,
   ];
 
   final Directory packDirectory;
@@ -139,8 +125,9 @@ class StorageMaintenanceService {
       directory = parent;
     }
 
-    final executables =
-        Platform.isAndroid ? <String>['/system/bin/df', 'df'] : <String>['df'];
+    final executables = Platform.isAndroid
+        ? <String>['/system/bin/df', 'df']
+        : <String>['df'];
 
     for (final executable in executables) {
       for (final flags in <String>['-kP', '-k']) {

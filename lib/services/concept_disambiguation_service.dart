@@ -45,9 +45,8 @@ class ConceptDisambiguationService {
       return const <String, String>{};
     }
     final active = _language(activeLanguageCode).split('-').first;
-    final targets = _connections.entries
-        .where((entry) => entry.key.split('-').first != active)
-        .toList(growable: false);
+    final targets = _connections.entries.where((entry) =>
+        entry.key.split('-').first != active).toList(growable: false);
     if (targets.isEmpty) return const <String, String>{};
 
     final matches = <String, String>{};
@@ -64,27 +63,23 @@ class ConceptDisambiguationService {
     final remaining = lookupBudget - watch.elapsed;
     await Future.any<void>([
       Future.wait(jobs).then<void>((_) {}),
-      Future<void>.delayed(
-          remaining > Duration.zero ? remaining : Duration.zero),
+      Future<void>.delayed(remaining > Duration.zero
+          ? remaining : Duration.zero),
     ]);
     expired = true;
     return Map<String, String>.unmodifiable(matches);
   }
 
   static Future<String?> _lookup(
-    Database db,
-    String conceptId,
-    int senseIndex,
-    String part,
+    Database db, String conceptId, int senseIndex, String part,
   ) async {
     try {
       if (!db.isOpen) return null;
       final info = await db.rawQuery('PRAGMA table_info(concepts)');
       final columns = info.map((r) => r['name']).whereType<String>().toSet();
-      if (!columns.containsAll(
-          {'concept_id', 'surface', 'sense_index', 'part_of_speech'})) {
-        return null;
-      }
+      if (!columns.containsAll({
+        'concept_id', 'surface', 'sense_index', 'part_of_speech'
+      })) return null;
 
       // LIMIT 2 detects duplicate/ambiguous senses rather than guessing.
       final rows = await db.rawQuery(
@@ -94,7 +89,8 @@ class ConceptDisambiguationService {
       );
       if (rows.length != 1) return null;
       final value = rows.single['surface'];
-      return value is String && value.trim().isNotEmpty ? value : null;
+      return value is String && value.trim().isNotEmpty
+          ? value : null;
     } catch (_) {
       // A closed, locked or older schema must not block other packs.
       return null;
@@ -103,7 +99,8 @@ class ConceptDisambiguationService {
 
   static String _language(String value) {
     final normalized = value.trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$')
+        .hasMatch(normalized)) {
       throw ArgumentError.value(value, 'languageCode', 'Invalid language tag');
     }
     return normalized;
