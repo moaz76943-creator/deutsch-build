@@ -29,7 +29,7 @@ class AnalyticsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Text('88.4%', style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32)),
+                        Expanded(child: Text('--%', softWrap: true, style: AppTypography.display.copyWith(color: Colors.white, fontSize: 32))),
                         const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
                       ],
                     ),
@@ -53,7 +53,7 @@ class AnalyticsScreen extends StatelessWidget {
                         children: <Widget>[
                           const Icon(Icons.bolt_rounded, color: Color(0xFFF39C6B), size: 28),
                           const SizedBox(height: 8),
-                          Text('142', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 22)),
+                          Text('--', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 22)),
                           const Text('كلمة متقنة بالـ SRS', style: TextStyle(color: Colors.white60, fontSize: 11)),
                         ],
                       ),
@@ -79,18 +79,21 @@ class AnalyticsScreen extends StatelessWidget {
               Text('النشاط الأسبوعي للمراجعة', style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 10),
               AppBaseGlassCard(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    _bar('سبت', 0.4),
-                    _bar('أحد', 0.7),
-                    _bar('اثنين', 0.9),
-                    _bar('ثلاثاء', 0.5),
-                    _bar('أربعاء', 0.85),
-                    _bar('خميس', 1.0, isHighest: true),
-                    _bar('جمعة', 0.3),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _bar('سبت', 0.4),
+                      _bar('أحد', 0.7),
+                      _bar('اثنين', 0.9),
+                      _bar('ثلاثاء', 0.5),
+                      _bar('أربعاء', 0.85),
+                      _bar('خميس', 1.0, isHighest: true),
+                      _bar('جمعة', 0.3),
+                    ],
+                  ),
                 ),
               ),
             ],

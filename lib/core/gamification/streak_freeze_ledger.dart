@@ -18,27 +18,13 @@ class StreakFreezeLedger {
   int get remainingShields => totalShields - usageHistory.length;
   bool get canConsume => remainingShields > 0;
 
-  StreakFreezeLedger recordUsage(String reason, {DateTime? timestamp}) {
+  StreakFreezeLedger recordUsage(String reason) {
     if (!canConsume) return this;
-
-    final usedAt = timestamp ?? DateTime.now();
-    final localUsedAt = usedAt.toLocal();
-    final today = DateTime(localUsedAt.year, localUsedAt.month, localUsedAt.day);
-
-    for (final record in usageHistory) {
-      final localRecord = record.usedAt.toLocal();
-      final recordDay = DateTime(localRecord.year, localRecord.month, localRecord.day);
-      if (recordDay == today) {
-        // Prevent duplicate freeze consumption on the same local day
-        return this;
-      }
-    }
-
     return StreakFreezeLedger(
       totalShields: totalShields,
       usageHistory: [
         ...usageHistory,
-        FreezeUsageRecord(usedAt: usedAt, reason: reason),
+        FreezeUsageRecord(usedAt: DateTime.now(), reason: reason),
       ],
     );
   }
