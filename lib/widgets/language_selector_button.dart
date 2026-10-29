@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -89,6 +90,8 @@ class LanguageSelectorButton extends ConsumerWidget {
                   Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () {
+              // An explicit visit starts cached-pack verification and catalog IO.
+              unawaited(ref.read(activeLanguageProvider.notifier).initialize());
               Navigator.of(context).push<void>(
                 PageRouteBuilder<void>(
                   pageBuilder: (_, animation, secondaryAnimation) =>
