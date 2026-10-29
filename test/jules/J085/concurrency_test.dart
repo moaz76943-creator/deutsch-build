@@ -221,11 +221,8 @@ void main() {
          priority: TaskPriority.normal,
        );
 
-       try {
-         await future;
-       } catch(e) {
-         // expected to throw TimeoutException, but the goal is to verify taskStarted
-       }
+       final result = await future;
+       expect(result, isNull);
        expect(taskStarted, isTrue); // it should start and then get cancelled by timeout, returning null
     });
   });
