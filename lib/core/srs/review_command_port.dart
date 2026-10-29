@@ -1,7 +1,3 @@
-import '../../services/database_service.dart';
-import '../srs_scheduler.dart';
-import '../progress/review_transaction_envelope.dart';
-
 /// هوية المراجعة والتقييم لضمان عدم ازدواجية احتساب النقاط (XP)
 /// ولضمان ارتباطها بالزوج اللغوي الموجه الصحيح.
 enum ReviewRating { again, hard, good, easy }
@@ -34,52 +30,22 @@ abstract interface class ReviewCommandPort {
   Future<void> submit(ReviewCommand command);
 }
 
-/// التنفيذ المعتمد لمنفذ أوامر التقييم:
-/// يحقق المعالجة الذرية، ومنع التكرار (Idempotency)، وعزل الزوج اللغوي،
-/// والتخزين الأحادي المعتمد في SQLite.
-class UnifiedReviewCommandAdapter implements ReviewCommandPort {
-  const UnifiedReviewCommandAdapter({DatabaseService? databaseService})
-      : _databaseService = databaseService;
+class IdempotentReviewCommandPort implements ReviewCommandPort {
+  final ReviewCommandPort _delegate;
+  final Set<String> _processedReviewIds = {};
+  static const int _maxCacheSize = 1000;
 
-  final DatabaseService? _databaseService;
-
-  DatabaseService get _db => _databaseService ?? DatabaseService.instance;
-
-  static int ratingToGrade(ReviewRating rating) {
-    switch (rating) {
-      case ReviewRating.again:
-        return 0;
-      case ReviewRating.hard:
-        return 2;
-      case ReviewRating.good:
-        return 3;
-      case ReviewRating.easy:
-        return 4;
-    }
-  }
+  IdempotentReviewCommandPort(this._delegate);
 
   @override
   Future<void> submit(ReviewCommand command) async {
-    final grade = ratingToGrade(command.rating);
-    final now = DateTime.now().toUtc();
-
-    // 1. معالجة الحدث عبر سجل المراجعات الموحد مع منع التكرار
-    final envelope = ReviewTransactionEnvelope(
-      reviewEventId: command.reviewId,
-      learnerContentKey: command.cardId,
-      rating: grade,
-      timestamp: now,
-      languagePairKey: '${command.sourceLanguageId}_${command.targetLanguageId}',
-    );
-    await UnifiedSrsScheduler.instance.processReviewTransaction(envelope);
-
-    // 2. الحفظ الذري كـ Single-writer في SQLite مع فحص المفتاح لمنع التكرار
-    await _db.gradeAndPersistSrs(
-      lexemeId: command.cardId,
-      languageCode: command.targetLanguageId,
-      grade: grade,
-      reviewedAt: now,
-      reviewEventId: command.reviewId,
-    );
+    if (_processedReviewIds.contains(command.reviewId)) {
+      return;
+    }
+    if (_processedReviewIds.length >= _maxCacheSize) {
+      _processedReviewIds.remove(_processedReviewIds.first);
+    }
+    _processedReviewIds.add(command.reviewId);
+    await _delegate.submit(command);
   }
 }

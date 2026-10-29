@@ -14,7 +14,7 @@ class AppTypography {
         color: color ?? Colors.white,
       );
     }
-    
+
     // الإعداد الافتراضي للغات اللاتينية والآسيوية (مثل الألمانية)
     return TextStyle(
       fontSize: fontSize,
@@ -26,14 +26,14 @@ class AppTypography {
   /// يغلف النص بحدود اتجاه صارمة لمنع انقلاب علامات الترقيم في النصوص المختلطة
   static Widget buildBiDiText(String text, LanguageIdentity identity, {TextStyle? style}) {
     return Directionality(
-      textDirection: identity.writingDirection == WritingDirection.rtl 
-          ? TextDirection.rtl 
+      textDirection: identity.writingDirection == WritingDirection.rtl
+          ? TextDirection.rtl
           : TextDirection.ltr,
       child: Text(
         text,
         style: style ?? getSafeStyle(identity),
-        textAlign: identity.writingDirection == WritingDirection.rtl 
-            ? TextAlign.right 
+        textAlign: identity.writingDirection == WritingDirection.rtl
+            ? TextAlign.right
             : TextAlign.left,
       ),
     );

@@ -1,250 +1,135 @@
-import 'package:deutsch_bilarabi/core/services/pack_manager.dart';
-import 'package:deutsch_bilarabi/features/flashcards/language_aware_answer_validator.dart';
-import 'package:deutsch_bilarabi/features/flashcards/learning_review_coordinator.dart';
-import 'package:deutsch_bilarabi/features/flashcards/verified_exercise.dart';
 import 'package:flutter/material.dart';
-
 import '../design_system/design_system.dart';
 
-class QuizExerciseScreen extends StatefulWidget {
-  const QuizExerciseScreen({
-    super.key,
-    this.conceptId,
-    this.sourceLanguageCode = 'ar',
-    this.targetLanguageCode = 'de',
-    this.exerciseLoader,
-    this.reviewCoordinator,
-  });
+import 'dart:math';
+import 'package:deutsch_bilarabi/core/lexical_repository.dart';
+import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
+import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 
-  final String? conceptId;
-  final String sourceLanguageCode;
-  final String targetLanguageCode;
-  final VerifiedExerciseLoader? exerciseLoader;
-  final LearningReviewCoordinator? reviewCoordinator;
+class QuizExerciseScreen extends StatefulWidget {
+  const QuizExerciseScreen({super.key, this.sourceLocale = 'ar', this.targetLocale = 'de'});
+  final String sourceLocale;
+  final String targetLocale;
 
   @override
   State<QuizExerciseScreen> createState() => _QuizExerciseScreenState();
 }
 
-class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
-  final List<VerifiedExercise> _exercises = <VerifiedExercise>[];
-  late final LearningReviewCoordinator _reviewCoordinator;
-  late final bool _ownsReviewCoordinator;
-  late final String _sessionId;
 
-  int _currentIndex = 0;
-  int _loadGeneration = 0;
-  String? _selectedOption;
-  String? _feedback;
-  String? _unavailableMessage;
-  bool _isLoading = true;
+class _QuestionData {
+  final LexicalEntry entry;
+  final List<String> options;
+  final int correctIndex;
+
+  _QuestionData({required this.entry, required this.options, required this.correctIndex});
+}
+
+class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
+  int? _selectedOption;
   bool _isSubmitting = false;
-  bool _isResolved = false;
-  bool _isSkipped = false;
-  bool _sessionComplete = false;
+  int _currentQuestionIndex = 0;
+  List<_QuestionData> _questions = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _sessionId = DateTime.now().toUtc().microsecondsSinceEpoch.toString();
-    _ownsReviewCoordinator = widget.reviewCoordinator == null;
-    _reviewCoordinator = widget.reviewCoordinator ??
-        LearningReviewCoordinator(
-          writer: ({
-            required learnerContentId,
-            required targetLanguageCode,
-            required grade,
-          }) async {
-            await PackManager.recordQuizResult(
-              conceptId: learnerContentId,
-              isCorrect: grade >= 3,
-              languageCode: targetLanguageCode,
-            );
-          },
-        );
-    _loadExercises();
+    _loadData();
   }
 
-  Future<void> _loadExercises() async {
-    final conceptId = widget.conceptId?.trim() ?? '';
-    final generation = ++_loadGeneration;
-    if (conceptId.isEmpty) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _unavailableMessage =
-              'لا يوجد تمرين موثّق محدد لهذا السياق. لم يتم إنشاء سؤال بديل.';
-        });
+  void _loadData() {
+    final allEntries = LexicalRepository.getEntriesForPair(
+      sourceLocale: widget.sourceLocale,
+      targetLocale: widget.targetLocale,
+    );
+
+    if (allEntries.length >= 4) {
+      final random = Random();
+      final questions = <_QuestionData>[];
+      for (final entry in allEntries) {
+        final distractors = allEntries
+            .where((e) => e.id != entry.id)
+            .map((e) => e.targetTerm)
+            .toList()
+          ..shuffle(random);
+
+        if (distractors.length < 3) continue;
+
+        final options = distractors.take(3).toList()..add(entry.targetTerm);
+        options.shuffle(random);
+        questions.add(_QuestionData(
+          entry: entry,
+          options: options,
+          correctIndex: options.indexOf(entry.targetTerm),
+        ));
       }
-      return;
+      questions.shuffle(random);
+      _questions = questions.take(10).toList(); // Max 10 questions per session
     }
 
-    if (mounted) {
-      setState(() {
-        _isLoading = true;
-        _unavailableMessage = null;
-      });
-    }
-
-    final loader = widget.exerciseLoader ??
-        (String concept, String language) => PackManager.getExercises(
-              concept,
-              languageCode: language,
-            );
-
-    try {
-      final rows = await loader(conceptId, widget.targetLanguageCode);
-      if (!mounted || generation != _loadGeneration) {
-        return;
-      }
-      final parsed = <VerifiedExercise>[];
-      for (final row in rows) {
-        parsed.add(
-          VerifiedExercise.fromPackRow(
-            row,
-            conceptId: conceptId,
-            languageCode: widget.targetLanguageCode,
-          ),
-        );
-      }
-      setState(() {
-        _exercises
-          ..clear()
-          ..addAll(parsed);
-        _currentIndex = 0;
-        _selectedOption = null;
-        _feedback = null;
-        _isResolved = false;
-        _isSkipped = false;
-        _sessionComplete = false;
-        _isLoading = false;
-        if (parsed.isEmpty) {
-          _unavailableMessage =
-              'لا يتوفر تمرين موثّق لهذا المفهوم في الحزمة المحلية.';
-        }
-      });
-    } catch (_) {
-      if (!mounted || generation != _loadGeneration) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-        _unavailableMessage =
-            'تعذر تحميل التمرين الموثّق. لم يتم احتساب أي نتيجة.';
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _loadGeneration++;
-    if (_ownsReviewCoordinator) {
-      _reviewCoordinator.dispose();
-    }
-    super.dispose();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _checkAnswer() async {
-    if (_selectedOption == null ||
-        _isResolved ||
-        _isSubmitting ||
-        _exercises.isEmpty) {
-      return;
-    }
-
-    final exercise = _exercises[_currentIndex];
-    final validation = LanguageAwareAnswerValidator.validate(
-      answer: _selectedOption!,
-      acceptedAnswers: <String>[exercise.correctAnswer],
-      languageCode: exercise.languageCode,
-    );
-    if (validation == AnswerValidationResult.unavailable) {
-      setState(() {
-        _feedback = 'الإجابة المرجعية غير متاحة؛ لم يتم احتساب النتيجة.';
-        _isResolved = true;
-      });
-      return;
-    }
-
-    final isCorrect = validation == AnswerValidationResult.correct;
-    final eventId =
-        'quiz:' + _sessionId + ':' + exercise.stableKey + ':' + _currentIndex.toString();
+    if (_selectedOption == null || _isSubmitting) return;
 
     setState(() {
       _isSubmitting = true;
     });
-    try {
-      final status = await _reviewCoordinator.submit(
-        eventId: eventId,
-        learnerContentId: exercise.conceptId,
-        sourceLanguageCode: widget.sourceLanguageCode,
-        targetLanguageCode: widget.targetLanguageCode,
-        grade: isCorrect ? 3 : 0,
-      );
-      if (!mounted) {
-        return;
-      }
+
+    final currentQ = _questions[_currentQuestionIndex];
+    final isCorrect = _selectedOption == currentQ.correctIndex;
+
+    await SrsCompatBridge.instance.recordReviewCompat(
+      contentKey: currentQ.entry.id,
+      rating: isCorrect ? 2 : 0,
+      sourceIso: widget.sourceLocale,
+      targetIso: widget.targetLocale,
+    );
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (mounted) {
       setState(() {
-        _isResolved = true;
-        _feedback = status == ReviewSubmissionStatus.accepted
-            ? (isCorrect
-                ? 'إجابة صحيحة. تم حفظ المراجعة محلياً.'
-                : 'إجابة غير صحيحة. تم حفظ المراجعة محلياً.')
-            : status == ReviewSubmissionStatus.duplicate
-                ? 'تم تجاهل محاولة مكررة ولم تُحتسب مرتين.'
-                : 'لم تتوفر خدمة حفظ المراجعة.';
+        _selectedOption = null;
+        _isSubmitting = false;
+        if (_currentQuestionIndex < _questions.length - 1) {
+          _currentQuestionIndex++;
+        } else {
+          _questions = []; // Finished state
+        }
       });
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _feedback = 'تعذر حفظ النتيجة محلياً؛ لم يتم احتسابها.';
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
     }
   }
 
-  void _skipExercise() {
-    if (_isSubmitting || _isResolved || _exercises.isEmpty) {
-      return;
-    }
-    setState(() {
-      _isSkipped = true;
-      _isResolved = true;
-      _feedback = 'تم تخطي السؤال دون تعديل سجل SRS.';
-    });
-  }
-
-  void _nextExercise() {
-    if (!_isResolved || _exercises.isEmpty) {
-      return;
-    }
-    if (_currentIndex >= _exercises.length - 1) {
-      setState(() {
-        _sessionComplete = true;
-      });
-      return;
-    }
-    setState(() {
-      _currentIndex++;
-      _selectedOption = null;
-      _feedback = null;
-      _isResolved = false;
-      _isSkipped = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('تمرين القواعد'), backgroundColor: Colors.transparent, elevation: 0),
+        extendBodyBehindAppBar: true,
+        body: Container(
+          decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
+          child: const Center(
+            child: Text('لا يوجد محتوى كافٍ (4 مفردات على الأقل)', style: TextStyle(color: Colors.white, fontSize: 18)),
+          ),
+        ),
+      );
+    }
+
+    final currentQ = _questions[_currentQuestionIndex];
+    final dir = LanguageBiDiHelper.getDirection(widget.targetLocale);
+    final promptDir = LanguageBiDiHelper.getDirection(widget.sourceLocale);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تمرين موثّق'),
+        title: Text('تمرين (${_currentQuestionIndex + 1}/${_questions.length})'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -254,175 +139,85 @@ class _QuizExerciseScreenState extends State<QuizExerciseScreen> {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-            child: _buildBody(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Directionality(
+                  textDirection: promptDir,
+                  child: Text(
+                    'اختر الترجمة الصحيحة للكلمة التالية:',
+                    style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                AppBaseGlassCard(
+                  gradient: AppGradients.purpleCard,
+                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  child: Center(
+                    child: Directionality(
+                      textDirection: promptDir,
+                      child: Text(
+                        currentQ.entry.sourceMeaning,
+                        style: AppTypography.display.copyWith(color: Colors.white, fontSize: 26),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Directionality(
+                  textDirection: dir,
+                  child: Column(
+                    children: List.generate(currentQ.options.length, (index) {
+                      final isSelected = _selectedOption == index;
+                      final isAnswerRevealed = _isSubmitting;
+                      final isCorrectOption = index == currentQ.correctIndex;
+
+                      Gradient? customGrad;
+                      if (isAnswerRevealed) {
+                        if (isCorrectOption) {
+                          customGrad = const LinearGradient(colors: [Color(0xFF065F46), Color(0xFF047857)]);
+                        } else if (isSelected && !isCorrectOption) {
+                          customGrad = const LinearGradient(colors: [Color(0xFF991B1B), Color(0xFFB91C1C)]);
+                        }
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AppBaseGlassCard(
+                          onTap: _isSubmitting ? null : () => setState(() => _selectedOption = index),
+                          gradient: customGrad,
+                          child: Row(
+                            children: <Widget>[
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                child: Text('${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Text(
+                                  currentQ.options[index],
+                                  style: AppTypography.title.copyWith(color: Colors.white, fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: _selectedOption == null || _isSubmitting ? null : _checkAnswer,
+                  child: const Text('تحقق من الإجابة'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_unavailableMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              _unavailableMessage!,
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(color: Colors.white70),
-            ),
-            if ((widget.conceptId?.trim() ?? '').isNotEmpty) ...<Widget>[
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: _loadExercises,
-                child: const Text('إعادة المحاولة'),
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-    if (_sessionComplete) {
-      return Center(
-        child: Text(
-          'اكتملت التمارين الموثّقة المتاحة.',
-          textAlign: TextAlign.center,
-          style: AppTypography.title.copyWith(color: Colors.white),
-        ),
-      );
-    }
-
-    final exercise = _exercises[_currentIndex];
-    final options = exercise.options;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Text(
-          'السؤال ' +
-              (_currentIndex + 1).toString() +
-              ' من ' +
-              _exercises.length.toString(),
-          style: AppTypography.body.copyWith(color: Colors.white60),
-        ),
-        const SizedBox(height: 12),
-        AppBaseGlassCard(
-          gradient: AppGradients.purpleCard,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 28),
-          child: Text(
-            exercise.prompt,
-            textAlign: TextAlign.center,
-            style: AppTypography.display.copyWith(
-              color: Colors.white,
-              fontSize: 22,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Expanded(
-          child: ListView.builder(
-            itemCount: options.length,
-            itemBuilder: (context, index) {
-              final option = options[index];
-              final isSelected = _selectedOption == option;
-              final isCorrect = _isResolved &&
-                  LanguageAwareAnswerValidator.validate(
-                        answer: option,
-                        acceptedAnswers: <String>[exercise.correctAnswer],
-                        languageCode: exercise.languageCode,
-                      ) ==
-                      AnswerValidationResult.correct;
-              final isWrongSelection =
-                  _isResolved && isSelected && !isCorrect && !_isSkipped;
-
-              Gradient? customGradient;
-              if (isCorrect) {
-                customGradient = const LinearGradient(
-                  colors: <Color>[Color(0xFF065F46), Color(0xFF047857)],
-                );
-              } else if (isWrongSelection) {
-                customGradient = const LinearGradient(
-                  colors: <Color>[Color(0xFF991B1B), Color(0xFFB91C1C)],
-                );
-              }
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: AppBaseGlassCard(
-                  onTap: _isResolved || _isSubmitting
-                      ? null
-                      : () {
-                          setState(() {
-                            _selectedOption = option;
-                          });
-                        },
-                  gradient: customGradient,
-                  child: Row(
-                    children: <Widget>[
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        child: Text(
-                          (index + 1).toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          option,
-                          style: AppTypography.title.copyWith(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        if (_feedback != null) ...<Widget>[
-          Text(
-            _feedback!,
-            textAlign: TextAlign.center,
-            style: AppTypography.body.copyWith(color: Colors.white70),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (_isResolved)
-          ElevatedButton(
-            onPressed: _nextExercise,
-            child: Text(
-              _currentIndex == _exercises.length - 1 ? 'إنهاء' : 'التالي',
-            ),
-          )
-        else ...<Widget>[
-          ElevatedButton(
-            onPressed:
-                _selectedOption == null || _isSubmitting ? null : _checkAnswer,
-            child: _isSubmitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('تحقق من الإجابة'),
-          ),
-          TextButton(
-            onPressed: _isSubmitting ? null : _skipExercise,
-            child: const Text('تخطي دون احتساب'),
-          ),
-        ],
-      ],
     );
   }
 }
