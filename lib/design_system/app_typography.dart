@@ -1,127 +1,74 @@
 import 'package:flutter/material.dart';
-import '../core/text/language_identity.dart';
 
-class AppTypography {
-  /// Returns safe font settings based on the language profile with appropriate fallbacks
-  static TextStyle getSafeStyle(LanguageIdentity identity,
-      {double fontSize = 16.0, Color? color}) {
-    List<String> fallbacks =
-        _getFallbacksForProfile(identity.typographyProfile);
+abstract final class AppTextDirection {
+  static TextDirection forLanguageCode(String languageCode) {
+    final code = languageCode.trim().toLowerCase().split(RegExp('[-_]')).first;
+    return switch (code) {
+      'ar' || 'fa' || 'ur' => TextDirection.rtl,
+      _ => TextDirection.ltr,
+    };
+  }
+}
 
-    if (identity.typographyProfile == 'cairo') {
-      return TextStyle(
+abstract final class AppTypography {
+  static TextStyle get display => TextStyle(
         fontFamily: 'Cairo',
-        fontFamilyFallback: fallbacks,
-        fontSize: fontSize,
-        height: 1.45,
-        color: color ?? Colors.white,
+        fontSize: 30,
+        fontWeight: FontWeight.w900,
+        height: 1.18,
       );
-    }
 
-    return TextStyle(
-      fontFamilyFallback: fallbacks,
-      fontSize: fontSize,
-      height: 1.2,
-      color: color ?? Colors.white,
-    );
-  }
+  static TextStyle get title => TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        height: 1.3,
+      );
 
-  static List<String> _getFallbacksForProfile(String typographyProfile) {
-    switch (typographyProfile) {
-      case 'cairo':
-      case 'arabic':
-        return ['NotoSansArabic'];
-      case 'hebrew':
-        return ['NotoSansHebrew'];
-      case 'devanagari':
-        return ['NotoSansDevanagari'];
-      case 'ethiopic':
-        return ['NotoSansEthiopic'];
-      case 'georgian':
-        return ['NotoSansGeorgian'];
-      case 'armenian':
-        return ['NotoSansArmenian'];
-      case 'cjk':
-        return ['NotoSansSC'];
-      default:
-        // No eager loading of fonts - rely on system defaults if not explicitly supported
-        return [];
-    }
-  }
+  static TextStyle get body => TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.55,
+      );
 
-  /// Wraps text with strict directionality to prevent punctuation flipping in mixed-script texts
-  static Widget buildBiDiText(String text, LanguageIdentity identity,
-      {TextStyle? style}) {
+  static TextStyle get label => TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        height: 1.35,
+      );
+}
+
+class AppDirectionalText extends StatelessWidget {
+  const AppDirectionalText(
+    this.text, {
+    required this.languageCode,
+    this.style,
+    this.textAlign,
+    this.maxLines,
+    this.overflow,
+    super.key,
+  });
+
+  final String text;
+  final String languageCode;
+  final TextStyle? style;
+  final TextAlign? textAlign;
+  final int? maxLines;
+  final TextOverflow? overflow;
+
+  @override
+  Widget build(BuildContext context) {
     return Directionality(
-      textDirection: identity.writingDirection == WritingDirection.rtl
-          ? TextDirection.rtl
-          : TextDirection.ltr,
+      textDirection: AppTextDirection.forLanguageCode(languageCode),
       child: Text(
         text,
-        style: style ?? getSafeStyle(identity),
-        textAlign: identity.writingDirection == WritingDirection.rtl
-            ? TextAlign.right
-            : TextAlign.left,
+        style: style ?? AppTypography.body,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
       ),
     );
   }
-
-  static const List<String> fallbackFontFamilies = [
-    'Noto Sans Arabic',
-    'Noto Sans Hebrew',
-    'Noto Sans Devanagari',
-    'Noto Sans Ethiopic',
-    'Noto Sans SC',
-    'Noto Sans Georgian',
-    'Noto Sans Armenian',
-  ];
-
-  static const TextStyle label = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-  );
-
-  static const TextStyle display = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
-  );
-
-  static const TextStyle title = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-  );
-
-  static const TextStyle h1 = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-  );
-
-  static const TextStyle h2 = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 20,
-    fontWeight: FontWeight.bold,
-  );
-
-  static const TextStyle body = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 16,
-    fontWeight: FontWeight.normal,
-  );
-
-  static const TextStyle caption = TextStyle(
-    fontFamily: 'Cairo',
-    fontFamilyFallback: fallbackFontFamilies,
-    fontSize: 12,
-    fontWeight: FontWeight.w300,
-  );
 }

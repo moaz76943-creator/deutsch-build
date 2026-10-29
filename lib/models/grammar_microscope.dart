@@ -1,4 +1,4 @@
-import 'package:deutsch_bilarabi/core/srs_facets.dart';
+import '../core/srs_facets.dart';
 
 final class GrammarExampleDetail {
   const GrammarExampleDetail({required this.german, required this.arabic});
