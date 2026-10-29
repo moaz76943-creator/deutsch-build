@@ -74,7 +74,7 @@ void main() {
         eligibleContentKeys: eligible,
         events: events,
         masteryThreshold: 2,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       // Only 1 introduced, 1 success (others deduplicated)
@@ -97,7 +97,7 @@ void main() {
         eligibleContentKeys: eligible,
         events: events,
         masteryThreshold: 2,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       // It should only pick up en_es events
@@ -115,7 +115,7 @@ void main() {
         targetLanguageId: 'es',
         eligibleContentKeys: eligible,
         events: events,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       // Invalid card999 is ignored
@@ -136,7 +136,7 @@ void main() {
         targetLanguageId: 'es',
         eligibleContentKeys: eligible,
         events: events,
-        now: defaultTime, // `now` is before `futureTime`
+        timestamp: defaultTime, // `now` is before `futureTime`
       );
 
       expect(projection.introducedCardCount, 0);
@@ -155,7 +155,7 @@ void main() {
         targetLanguageId: 'es',
         eligibleContentKeys: eligible,
         events: events,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
         boundedReplayWindow: const Duration(days: 365),
       );
 
@@ -178,7 +178,7 @@ void main() {
         eligibleContentKeys: {'card1', 'card2'},
         events: events,
         masteryThreshold: 2,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       expect(projection.introducedCardCount, 2);
