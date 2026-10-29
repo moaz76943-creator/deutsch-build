@@ -1,0 +1,23 @@
+{
+  "isoCode": "vi",
+  "autonym": "Tiếng Việt",
+  "englishName": "Vietnamese",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin (Chữ Quốc ngữ)",
+  "typology": "SVO",
+  "morphologyType": "Isolating",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "tonesCount": 6,
+    "hasKinshipPronouns": true,
+    "hasClassifiers": true,
+    "hasComplexDiacritics": true
+  }
+}
