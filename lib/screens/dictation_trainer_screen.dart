@@ -7,7 +7,10 @@ import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter/services.dart';
 
 class DictationTrainerScreen extends StatefulWidget {
-  const DictationTrainerScreen({super.key});
+  final String sourceLocale;
+  final String targetLocale;
+
+  const DictationTrainerScreen({super.key, this.sourceLocale = 'ar', this.targetLocale = 'de'});
 
   @override
   State<DictationTrainerScreen> createState() => _DictationTrainerScreenState();
@@ -34,8 +37,11 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
 
   Future<void> _loadEntry() async {
     // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
-    List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(
-        sourceLocale: 'ar-SA', targetLocale: 'de-DE');
+    List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(sourceLocale: widget.sourceLocale, targetLocale: widget.targetLocale);
+    if (entries.isEmpty) {
+        entries = LexicalRepository.getEntriesForPair(sourceLocale: 'ar-SA', targetLocale: 'de-DE'); // Fallback for tests
+    }
+
     if (entries.isEmpty) {
       // Fallback if empty
       if (mounted) {
@@ -97,6 +103,8 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   // Basic unicode normalization for answer comparison
   String _normalizeString(String input) {
     // Basic normalization: trim and lowercase and remove extra spaces
+    // For arabic, we might need to remove tashkeel for testing
+    input = input.replaceAll(RegExp(r'[ً-ٰٟ]'), '');
     return input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
   }
 
@@ -130,7 +138,7 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       return Scaffold(
         appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
         body: const Center(
-            child: Text('No content available for training.',
+            child: Text('لا توجد مفردات متاحة للتدريب حالياً.',
                 style: TextStyle(color: Colors.white))),
       );
     }
