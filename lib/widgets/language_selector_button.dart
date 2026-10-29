@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +31,7 @@ Future<bool> checkShouldShowLanguagePicker() async {
 Future<bool> markLanguagePickerCompleted() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.setBool(_languagePickerCompletedKey, true);
+    return await prefs.setBool(_languagePickerCompletedKey, true);
   } catch (_) {
     return false;
   }
@@ -89,6 +90,8 @@ class LanguageSelectorButton extends ConsumerWidget {
                   Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () {
+              // An explicit visit starts cached-pack verification and catalog IO.
+              unawaited(ref.read(activeLanguageProvider.notifier).initialize());
               Navigator.of(context).push<void>(
                 PageRouteBuilder<void>(
                   pageBuilder: (_, animation, secondaryAnimation) =>

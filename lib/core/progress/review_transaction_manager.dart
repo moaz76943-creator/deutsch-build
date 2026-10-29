@@ -1,70 +1,47 @@
 import '../srs/review_command_port.dart';
 import 'review_transaction_envelope.dart';
-import 'transaction_state.dart';
+import 'transaction_persistence_port.dart';
 
-class ReviewTransactionManager {
-  final Map<String, TransactionState> _transactions = {};
+/// Validates commands and delegates all state mutation to one atomic store.
+/// Do not connect this to an in-memory implementation in production.
+class ReviewTransactionManager implements ReviewCommandPort {
+  final TransactionPersistencePort persistencePort;
+  final DateTime Function() clock;
 
-  String _deriveLanguagePairKey(ReviewCommand command) {
-    return '${command.sourceLanguageId}_${command.targetLanguageId}';
-  }
+  ReviewTransactionManager(
+    this.persistencePort, {
+    DateTime Function()? clock,
+  }) : clock = clock ?? DateTime.now;
 
-  void restoreHistory(List<ReviewTransactionEnvelope> history) {
-    for (final envelope in history) {
-      _transactions[envelope.reviewEventId] = TransactionCommitted(envelope);
+  Future<TransactionCommitOutcome> processTransaction(ReviewCommand command) async {
+    if (command.reviewId.trim().isEmpty ||
+        command.cardId.trim().isEmpty ||
+        command.facetKey.trim().isEmpty ||
+        command.sourceLanguageId.trim().isEmpty ||
+        command.targetLanguageId.trim().isEmpty ||
+        command.sourceLanguageId == command.targetLanguageId ||
+        command.pairEpoch < 0) {
+      throw ArgumentError('Invalid review identity or directed language pair');
     }
-  }
-
-  TransactionState getTransactionState(String reviewEventId) {
-    return _transactions[reviewEventId] ?? TransactionRecoverable(Exception('Not found')); // Just for querying if needed, or maybe just exposing the map
-  }
-
-  Future<TransactionState> executeTransaction(
-    ReviewCommand command,
-    Future<void> Function(ReviewTransactionEnvelope) commitFn,
-  ) async {
-    if (command.reviewId.isEmpty) {
-      return TransactionFailed(ArgumentError('reviewId cannot be empty'));
-    }
-
-    final languagePairKey = _deriveLanguagePairKey(command);
-
-    final existingState = _transactions[command.reviewId];
-
-    if (existingState is TransactionPending) {
-      return TransactionFailed(StateError('Transaction already pending'));
-    }
-
-    if (existingState is TransactionCommitted) {
-      if (existingState.envelope.languagePairKey == languagePairKey) {
-        return existingState; // Idempotent success
-      } else {
-        return TransactionFailed(
-            StateError('Transaction already committed for a different language pair'));
-      }
-    }
-
-    _transactions[command.reviewId] = TransactionPending();
 
     final envelope = ReviewTransactionEnvelope(
       reviewEventId: command.reviewId,
       learnerContentKey: command.cardId,
       rating: command.rating.index,
-      timestamp: DateTime.now(), // Or we could inject time
-      languagePairKey: languagePairKey,
+      timestamp: clock().toUtc(),
+      // Match the current runtime pair prefix. The durable port MUST also
+      // include pairEpoch and facetKey from command in its unique identity.
+      languagePairKey:
+          command.sourceLanguageId + '_' + command.targetLanguageId,
     );
+    return await persistencePort.commitReviewAtomically(
+      command: command,
+      envelope: envelope,
+    );
+  }
 
-    try {
-      await commitFn(envelope);
-      final committedState = TransactionCommitted(envelope);
-      _transactions[command.reviewId] = committedState;
-      return committedState;
-    } catch (e) {
-      // Depending on the error we could return Recoverable or Failed
-      // For now, let's treat general exceptions as Recoverable so they can be retried
-      final recoverableState = TransactionRecoverable(e);
-      _transactions[command.reviewId] = recoverableState;
-      return recoverableState;
-    }
+  @override
+  Future<void> submit(ReviewCommand command) async {
+    await processTransaction(command);
   }
 }

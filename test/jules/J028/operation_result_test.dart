@@ -19,5 +19,9 @@ void main() {
     const bad = StorageFailure('STORAGE', 'read unavailable', 'secret token');
     expect(bad.toString(), isNot(contains('secret token')));
     expect(bad.toString(), contains('STORAGE'));
+    expect(bad.hasCause, isTrue);
+
+    const noCause = StorageFailure('STORAGE', 'read unavailable');
+    expect(noCause.hasCause, isFalse);
   });
 }
