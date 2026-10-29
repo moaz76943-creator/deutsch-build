@@ -19,7 +19,8 @@ class DatabaseBootstrapper {
 
       if (!await file.exists()) {
         if (onSeedRequired != null) {
-          debugPrint('[Bootstrap] قاعدة البيانات غير موجودة، بدء التثبيت الأولي...');
+          debugPrint(
+              '[Bootstrap] قاعدة البيانات غير موجودة، بدء التثبيت الأولي...');
           await onSeedRequired();
         } else {
           return const DatabaseBootstrapResult(
@@ -27,6 +28,15 @@ class DatabaseBootstrapper {
             error: 'Database file missing and no seeder provided',
           );
         }
+      }
+
+      // An unsuccessful seeder must never turn a missing pack into READY.
+      // This is a read-only readiness check: do not delete or recreate data.
+      if (!await file.exists()) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Database file still missing after seeding',
+        );
       }
 
       // فحص أولي لوجود ترويسة SQLite القياسية (SQLite format 3)
