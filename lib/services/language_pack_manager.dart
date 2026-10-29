@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import 'package:flutter/widgets.dart';
 
 class LanguagePackManager {
@@ -11,13 +10,6 @@ class LanguagePackManager {
     'tr-TR',
     'ru-RU',
     'zh-CN'
-=======
-// ignore_for_file: unused_import
-
-class LanguagePackManager {
-  static List<String> supportedBcp47Locales = [
-    'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   ];
 
   static const Map<String, String> _languageNames = {
@@ -35,74 +27,8 @@ class LanguagePackManager {
     return _languageNames[localeCode] ?? localeCode;
   }
 
-<<<<<<< HEAD
   static List<String> get supportedLanguages => [
-        'af',
-        'am',
-        'ar',
-        'az',
-        'be',
-        'bg',
-        'bn',
-        'bs',
-        'ca',
-        'cs',
-        'cy',
-        'da',
-        'de',
-        'el',
-        'en',
-        'eo',
-        'es',
-        'et',
-        'eu',
-        'fa',
-        'fi',
-        'fil',
-        'fr',
-        'ga',
-        'gl',
-        'gu',
-        'ha',
-        'he',
-        'hi',
-        'hr',
-        'hu',
-        'hy',
-        'id',
-        'ig',
-        'is',
-        'it',
-        'ja',
-        'jv',
-        'ka',
-        'kk',
-        'km',
-        'kn',
-        'ko',
-        'ku',
-        'ky',
-        'la',
-        'nl',
-        'no',
-        'pl',
-        'pt',
-        'ro',
-        'ru',
-        'sk',
-        'sl',
-        'sq',
-        'sr',
-        'sv',
-        'sw',
-        'ta',
-        'te',
-        'th',
-        'tr',
-        'uk',
-        'ur',
-        'vi',
-        'zh'
+        'af', 'am', 'ar', 'az', 'be', 'bg', 'bn', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'eo', 'es', 'et', 'eu', 'fa', 'fi', 'fil', 'fr', 'ga', 'gl', 'gu', 'ha', 'he', 'hi', 'hr', 'hu', 'hy', 'id', 'ig', 'is', 'it', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'la', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'sk', 'sl', 'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'th', 'tr', 'uk', 'ur', 'vi', 'zh'
       ];
 
   static String getTtsLocale(String languageCode) => languageCode;
@@ -125,27 +51,12 @@ class LanguagePackManager {
         lower.startsWith('he') ||
         lower.startsWith('fa') ||
         lower.startsWith('ur');
-=======
-  // دعم استدعاء الدالة سواء كـ static أو من خلال كائن instance
-  String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
-
-  static bool isLocaleSupported(String localeCode) {
-    if (localeCode.isEmpty) return false;
-    if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
-    return supportedBcp47Locales.contains(localeCode);
-  }
-
-  static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
-    if (!isLocaleSupported(bcp47Locale)) return false;
-    return true;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   static TextDirection textDirectionFor(String code) {
     return isRtlLanguage(code) ? TextDirection.rtl : TextDirection.ltr;
   }
 
-  // Instance delegates لتفادي أخطاء الاستدعاء عبر الكائنات
   List<String> get supportedLanguagesInstance => supportedLanguages;
   List<String> get supportedLanguagesList => supportedLanguages;
   List<String> get supportedLanguagesField => supportedLanguages;
