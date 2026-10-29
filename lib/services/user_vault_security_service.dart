@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
-import 'package:synchronized/synchronized.dart';
 
 import 'srs_scheduler_service.dart';
 
@@ -107,8 +106,6 @@ class UserVaultSecurityService {
 
   static bool _keyUnavailable = false;
 
-  final Lock _lock = Lock(reentrant: true);
-
   static void _markKeyRecovered() {
     _keyUnavailable = false;
     recoveryMessage.value = null;
@@ -157,62 +154,48 @@ class UserVaultSecurityService {
   static String _index(String id) => sha256.convert(utf8.encode(id)).toString();
 
   Future<void> putRecord(String id, Uint8List plaintext) async {
-    return _lock.synchronized(() async {
-      _validateId(id);
-      if (plaintext.length > maximumRecordBytes) {
-        throw ArgumentError.value(
-            plaintext.length, 'plaintext', 'Record too large');
-      }
-      // Encryption completes before any SQLite write.
-      final ciphertext = await _cipher.encrypt(id, plaintext);
-      if (ciphertext.length < 29 || (ciphertext[0] != 1 && ciphertext[0] != 2)) {
-        throw CorruptRecordException('Invalid encrypted vault envelope');
-      }
-      if (listEquals(ciphertext, plaintext)) {
-        throw CorruptRecordException('Silent plaintext downgrade detected');
-      }
-      final database = await _db;
-      await database.insert(
-          'vault_entries',
-          <String, Object>{
-            'record_hash': _index(id),
-            'ciphertext': ciphertext,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    });
+    _validateId(id);
+    if (plaintext.length > maximumRecordBytes) {
+      throw ArgumentError.value(
+          plaintext.length, 'plaintext', 'Record too large');
+    }
+    // Encryption completes before any SQLite write.
+    final ciphertext = await _cipher.encrypt(id, plaintext);
+    if (ciphertext.length < 29 || (ciphertext[0] != 1 && ciphertext[0] != 2)) {
+      throw StateError('Invalid encrypted vault envelope');
+    }
+    final database = await _db;
+    await database.insert(
+        'vault_entries',
+        <String, Object>{
+          'record_hash': _index(id),
+          'ciphertext': ciphertext,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Uint8List?> readRecord(String id) async {
-    return _lock.synchronized(() async {
-      _validateId(id);
-      final database = await _db;
-      final rows = await database.query('vault_entries',
-          columns: <String>['ciphertext'],
-          where: 'record_hash = ?',
-          whereArgs: <Object>[_index(id)],
-          limit: 1);
-      if (rows.isEmpty) return null;
-      final encrypted = rows.single['ciphertext'];
-      if (encrypted is! Uint8List ||
-          encrypted.length < 29 ||
-          (encrypted[0] != 1 && encrypted[0] != 2)) {
-        throw CorruptRecordException('Vault record is corrupt');
-      }
-      try {
-        return await _cipher.decrypt(id, encrypted);
-      } catch (e) {
-        if (e is VaultException) rethrow;
-        throw TamperedRecordException('Vault record decryption failed');
-      }
-    });
+    _validateId(id);
+    final database = await _db;
+    final rows = await database.query('vault_entries',
+        columns: <String>['ciphertext'],
+        where: 'record_hash = ?',
+        whereArgs: <Object>[_index(id)],
+        limit: 1);
+    if (rows.isEmpty) return null;
+    final encrypted = rows.single['ciphertext'];
+    if (encrypted is! Uint8List ||
+        encrypted.length < 29 ||
+        (encrypted[0] != 1 && encrypted[0] != 2)) {
+      throw StateError('Vault record is corrupt');
+    }
+    return _cipher.decrypt(id, encrypted);
   }
 
   Future<void> deleteRecord(String id) async {
-    return _lock.synchronized(() async {
-      _validateId(id);
-      await (await _db).delete('vault_entries',
-          where: 'record_hash = ?', whereArgs: <Object>[_index(id)]);
-    });
+    _validateId(id);
+    await (await _db).delete('vault_entries',
+        where: 'record_hash = ?', whereArgs: <Object>[_index(id)]);
   }
 
   static const String _operationalReadyId = 'progress/v1/ready';
@@ -263,8 +246,7 @@ class UserVaultSecurityService {
   /// the phase-3 migration, without replacing newer active SRS values.
   Future<Map<String, List<Map<String, dynamic>>>>
       exportOperationalSnapshot() async {
-    return _lock.synchronized(() async {
-      return (await _db).transaction((txn) async {
+    return (await _db).transaction((txn) async {
       final records = <String, List<Map<String, dynamic>>>{
         'srs': <Map<String, dynamic>>[],
         'bookmarks': <Map<String, dynamic>>[],
@@ -365,8 +347,7 @@ class UserVaultSecurityService {
                   .compareTo((b['lexeme_id'] ?? b['id']).toString());
         });
       }
-        return records;
-      });
+      return records;
     });
   }
 
@@ -379,8 +360,7 @@ class UserVaultSecurityService {
             Map<String, Object?> local, Map<String, Object?> incoming)
         incomingWins,
   }) async {
-    return _lock.synchronized(() async {
-      return (await _db).transaction((txn) async {
+    return (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
       var inserted = 0, updated = 0, unchanged = 0;
       var bookmarkInserted = 0, bookmarkUpdated = 0;
@@ -425,45 +405,23 @@ class UserVaultSecurityService {
           bookmarkUpdated++;
         }
       }
-        return {
-          'inserted': inserted,
-          'updated': updated,
-          'unchanged': unchanged,
-          'bookmarksInserted': bookmarkInserted,
-          'bookmarksUpdated': bookmarkUpdated,
-        };
-      });
+      return {
+        'inserted': inserted,
+        'updated': updated,
+        'unchanged': unchanged,
+        'bookmarksInserted': bookmarkInserted,
+        'bookmarksUpdated': bookmarkUpdated,
+      };
     });
   }
 
   // Archive encryption uses the same hardware/software AES vault key.
   // Archives are device-bound (not cross-device password backups).
-  Future<Uint8List> sealArchiveChunk(int index, Uint8List data) async {
-    return _lock.synchronized(() async {
-      final ciphertext = await _cipher.encrypt('progress-backup/v2/chunk/$index', data);
-      if (ciphertext.length < 29 || (ciphertext[0] != 1 && ciphertext[0] != 2)) {
-        throw CorruptRecordException('Invalid encrypted vault envelope');
-      }
-      if (listEquals(ciphertext, data)) {
-        throw CorruptRecordException('Silent plaintext downgrade detected');
-      }
-      return ciphertext;
-    });
-  }
+  Future<Uint8List> sealArchiveChunk(int index, Uint8List data) =>
+      _cipher.encrypt('progress-backup/v2/chunk/$index', data);
 
-  Future<Uint8List> unsealArchiveChunk(int index, Uint8List data) async {
-    return _lock.synchronized(() async {
-      if (data.length < 29 || (data[0] != 1 && data[0] != 2)) {
-        throw CorruptRecordException('Vault archive chunk is corrupt');
-      }
-      try {
-        return await _cipher.decrypt('progress-backup/v2/chunk/$index', data);
-      } catch (e) {
-        if (e is VaultException) rethrow;
-        throw TamperedRecordException('Vault archive chunk decryption failed');
-      }
-    });
-  }
+  Future<Uint8List> unsealArchiveChunk(int index, Uint8List data) =>
+      _cipher.decrypt('progress-backup/v2/chunk/$index', data);
 
   static String _progressKey(String kind, String id, String languageCode) {
     if (id.trim().isEmpty || languageCode.trim().isEmpty) {
@@ -528,9 +486,8 @@ class UserVaultSecurityService {
     required int grade,
     DateTime? reviewedAt,
   }) async {
-    return _lock.synchronized(() async {
-      final key = _progressKey('srs', lexemeId, languageCode);
-      return (await _db).transaction((txn) async {
+    final key = _progressKey('srs', lexemeId, languageCode);
+    return (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
       final prior = _decodeProgress(await _readEncryptedFrom(txn, key));
       final state = prior.isEmpty
@@ -557,9 +514,8 @@ class UserVaultSecurityService {
             'status': schedule.repetitionCount > 1 ? 'review' : 'learning',
           }))),
           replace: true);
-        await _catalogMutation(txn, 'srs', lexemeId, languageCode, add: true);
-        return schedule;
-      });
+      await _catalogMutation(txn, 'srs', lexemeId, languageCode, add: true);
+      return schedule;
     });
   }
 
@@ -567,10 +523,8 @@ class UserVaultSecurityService {
     required String lexemeId,
     required String languageCode,
   }) async {
-    return _lock.synchronized(() async {
-      final bytes = await readRecord(_progressKey('srs', lexemeId, languageCode));
-      return bytes == null ? null : _decodeProgress(bytes);
-    });
+    final bytes = await readRecord(_progressKey('srs', lexemeId, languageCode));
+    return bytes == null ? null : _decodeProgress(bytes);
   }
 
   /// Preserves the older increment-only API for its existing consumers.
@@ -579,9 +533,8 @@ class UserVaultSecurityService {
     required String languageCode,
     required String status,
   }) async {
-    return _lock.synchronized(() async {
-      final key = _progressKey('srs', lexemeId, languageCode);
-      await (await _db).transaction((txn) async {
+    final key = _progressKey('srs', lexemeId, languageCode);
+    await (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
       final prior = _decodeProgress(await _readEncryptedFrom(txn, key));
       prior.addAll({
@@ -593,11 +546,10 @@ class UserVaultSecurityService {
         'ease_factor': (prior['ease_factor'] as num?)?.toDouble() ?? 2.5,
         'status': status,
       });
-        await _writeEncrypted(
-            txn, key, Uint8List.fromList(utf8.encode(jsonEncode(prior))),
-            replace: true);
-        await _catalogMutation(txn, 'srs', lexemeId, languageCode, add: true);
-      });
+      await _writeEncrypted(
+          txn, key, Uint8List.fromList(utf8.encode(jsonEncode(prior))),
+          replace: true);
+      await _catalogMutation(txn, 'srs', lexemeId, languageCode, add: true);
     });
   }
 
@@ -606,16 +558,14 @@ class UserVaultSecurityService {
     required String languageCode,
     required Map<String, dynamic> data,
   }) async {
-    return _lock.synchronized(() async {
-      final key = _progressKey('bookmark', bookmarkId, languageCode);
-      await (await _db).transaction((txn) async {
+    final key = _progressKey('bookmark', bookmarkId, languageCode);
+    await (await _db).transaction((txn) async {
       await _ensureFreshReady(txn);
-        await _writeEncrypted(
-            txn, key, Uint8List.fromList(utf8.encode(jsonEncode(data))),
-            replace: true);
-        await _catalogMutation(txn, 'bookmark', bookmarkId, languageCode,
-            add: true);
-      });
+      await _writeEncrypted(
+          txn, key, Uint8List.fromList(utf8.encode(jsonEncode(data))),
+          replace: true);
+      await _catalogMutation(txn, 'bookmark', bookmarkId, languageCode,
+          add: true);
     });
   }
 
@@ -623,24 +573,20 @@ class UserVaultSecurityService {
     required String bookmarkId,
     required String languageCode,
   }) async {
-    return _lock.synchronized(() async {
-      final bytes =
-          await readRecord(_progressKey('bookmark', bookmarkId, languageCode));
-      return bytes == null ? null : _decodeProgress(bytes);
-    });
+    final bytes =
+        await readRecord(_progressKey('bookmark', bookmarkId, languageCode));
+    return bytes == null ? null : _decodeProgress(bytes);
   }
 
   Future<void> deleteOperationalBookmark({
     required String bookmarkId,
     required String languageCode,
   }) async {
-    return _lock.synchronized(() async {
-      final key = _progressKey('bookmark', bookmarkId, languageCode);
-      await (await _db).transaction((txn) async {
-        await _ensureFreshReady(txn);
-        await txn.delete('vault_entries',
-            where: 'record_hash = ?', whereArgs: <Object>[_index(key)]);
-      });
+    final key = _progressKey('bookmark', bookmarkId, languageCode);
+    await (await _db).transaction((txn) async {
+      await _ensureFreshReady(txn);
+      await txn.delete('vault_entries',
+          where: 'record_hash = ?', whereArgs: <Object>[_index(key)]);
     });
   }
 
@@ -766,10 +712,7 @@ class UserVaultSecurityService {
     }
     final cipher = await _cipher.encrypt(id, plaintext);
     if (cipher.length < 29 || (cipher[0] != 1 && cipher[0] != 2)) {
-      throw CorruptRecordException('Vault cipher returned an invalid envelope');
-    }
-    if (listEquals(cipher, plaintext)) {
-      throw CorruptRecordException('Silent plaintext downgrade detected');
+      throw StateError('Vault cipher returned an invalid envelope');
     }
     await destination.insert(
         'vault_entries',
@@ -794,14 +737,9 @@ class UserVaultSecurityService {
     if (encrypted is! Uint8List ||
         encrypted.length < 29 ||
         (encrypted[0] != 1 && encrypted[0] != 2)) {
-      throw CorruptRecordException('Vault record is corrupt');
+      throw StateError('Vault record is corrupt');
     }
-    try {
-      return await _cipher.decrypt(id, encrypted);
-    } catch (e) {
-      if (e is VaultException) rethrow;
-      throw TamperedRecordException('Vault record decryption failed');
-    }
+    return _cipher.decrypt(id, encrypted);
   }
 
   Future<void> _verifyLegacySnapshot(
@@ -976,15 +914,4 @@ class UserVaultSecurityService {
       tableRowCounts: Map<String, int>.unmodifiable(counts),
     );
   }
-}
-
-
-class LegacyProgressMigrationResult {
-  final bool migrated;
-  final Map<String, int> tableRowCounts;
-
-  const LegacyProgressMigrationResult({
-    required this.migrated,
-    required this.tableRowCounts,
-  });
 }
