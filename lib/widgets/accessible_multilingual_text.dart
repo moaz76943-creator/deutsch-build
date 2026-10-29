@@ -1,44 +1,55 @@
 import 'package:flutter/material.dart';
-import '../core/language_bidi_helper.dart';
-import '../core/design/bidi_text_isolator.dart';
+import 'package:deutsch_bilarabi/core/bidi_helper.dart';
+import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
+import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
 
 class AccessibleMultilingualText extends StatelessWidget {
   final String text;
-  final String bcp47Code;
+  final String languageCode;
   final TextStyle? style;
+  final TextAlign? textAlign;
   final int? maxLines;
   final TextOverflow? overflow;
   final String? semanticLabel;
+  final bool protectPunctuation;
 
-  const AccessibleMultilingualText(
-    this.text, {
+  const AccessibleMultilingualText({
     super.key,
-    required this.bcp47Code,
+    required this.text,
+    required this.languageCode,
     this.style,
+    this.textAlign,
     this.maxLines,
     this.overflow,
     this.semanticLabel,
+    this.protectPunctuation = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final direction = LanguageBiDiHelper.getDirection(bcp47Code);
-    final lineHeight = LanguageBiDiHelper.getLineHeight(bcp47Code);
+    if (text.isEmpty) return const SizedBox.shrink();
+
+    final direction = LanguageBiDiHelper.getDirection(languageCode);
     final isRtl = direction == TextDirection.rtl;
 
-    // Isolate text to prevent punctuation bleeding and guarantee correct rendering
-    final isolatedText = BiDiTextIsolator.wrapDirectional(text, isRtl: isRtl);
+    String displayText = text;
+    if (protectPunctuation) {
+      displayText = isRtl ? BiDiHelper.wrapRtl(text) : BiDiHelper.wrapLtr(text);
+    }
 
-    return Directionality(
+    return Semantics(
+      label: semanticLabel ?? text,
       textDirection: direction,
-      child: Text(
-        isolatedText,
-        maxLines: maxLines,
-        overflow: overflow ?? TextOverflow.visible,
-        semanticsLabel: semanticLabel ?? text,
+      child: AppDirectionalText(
+        displayText,
         style: (style ?? const TextStyle()).copyWith(
-          height: lineHeight,
+          height:
+              style?.height ?? LanguageBiDiHelper.getLineHeight(languageCode),
         ),
+        forceDirection: direction,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
       ),
     );
   }

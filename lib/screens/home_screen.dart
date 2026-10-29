@@ -1,4 +1,10 @@
+<<<<<<< HEAD
+import 'srs_flashcard_deck_screen.dart';
+import 'package:deutsch_bilarabi/design_system/app_base_cards.dart'
+    hide AppBaseGlassCard;
+=======
 import 'package:deutsch_bilarabi/design_system/app_base_cards.dart' hide AppBaseGlassCard;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
@@ -26,9 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final db = await DatabaseService.instance.progressDb;
       // حساب عدد الكلمات اللي تم التفاعل معها
-      final result = await db.query('srs_progress', columns: ['COUNT(*) as count']);
+      final result =
+          await db.query('srs_progress', columns: ['COUNT(*) as count']);
       final count = (result.first['count'] as int?) ?? 0;
-      
+
       if (mounted) {
         setState(() {
           _learnedWordsCount = count;
@@ -64,31 +71,45 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: <Widget>[
                       Text(
                         'أهلاً بك يا بطل! 🇩🇪',
-                        style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
+                        style: AppTypography.title
+                            .copyWith(color: Colors.white, fontSize: 18),
                       ),
-                      _isLoading 
-                        ? const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF38BDF8)))
-                        : Text(
-                            'مستوى A1 • $_learnedWordsCount كلمة قيد التعلم',
-                            style: AppTypography.body.copyWith(
-                              color: Colors.white.withValues(alpha: 0.75),
-                              fontSize: 12,
+                      _isLoading
+                          ? const SizedBox(
+                              height: 14,
+                              width: 14,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Color(0xFF38BDF8)))
+                          : Text(
+                              'مستوى A1 • $_learnedWordsCount كلمة قيد التعلم',
+                              style: AppTypography.body.copyWith(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(
                     children: <Widget>[
-                      Icon(Icons.local_fire_department_rounded, color: Color(0xFFF39C6B), size: 20),
+                      Icon(Icons.local_fire_department_rounded,
+                          color: Color(0xFFF39C6B), size: 20),
                       SizedBox(width: 4),
+<<<<<<< HEAD
+                      Text('ابدأ اليوم',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+=======
                       Text('5 أيام', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                     ],
                   ),
                 ),
@@ -102,12 +123,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: <Widget>[
                   Text(
                     'مسار اليوم التعليمي',
-                    style: AppTypography.title.copyWith(color: Colors.white, fontSize: 20),
+                    style: AppTypography.title
+                        .copyWith(color: Colors.white, fontSize: 20),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'الوحدة 1: أدوات التعريف der, die, das وتصريف الأفعال الأساسية.',
-                    style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                    style: AppTypography.body
+                        .copyWith(color: Colors.white.withValues(alpha: 0.9)),
                   ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
@@ -125,7 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             Text(
               'أدوات التدريب السريعة',
-              style: AppTypography.title.copyWith(color: Colors.white, fontSize: 18),
+              style: AppTypography.title
+                  .copyWith(color: Colors.white, fontSize: 18),
             ),
             const SizedBox(height: 12),
             Row(
@@ -139,8 +163,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
-                      ).then((_) => _loadStats()); // تحديث العداد بعد العودة من المراجعة
+                        MaterialPageRoute(
+                            builder: (_) => const FlashcardsScreen()),
+                      ).then((_) =>
+                          _loadStats()); // تحديث العداد بعد العودة من المراجعة
                     },
                   ),
                 ),
@@ -151,7 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: 'شروحات A1',
                     icon: Icons.menu_book_rounded,
                     gradient: AppGradients.blueCard,
+<<<<<<< HEAD
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const SrsFlashcardDeckScreen())),
+=======
                     onTap: () {},
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
                   ),
                 ),
               ],

@@ -1,6 +1,16 @@
 import 'dart:io';
 
-enum DatabaseInstallStatus { installed, replaced, alreadyExists, corrupted, failed }
+<<<<<<< HEAD
+enum DatabaseInstallStatus {
+  installed,
+  replaced,
+  alreadyExists,
+  corrupted,
+  failed
+}
+=======
+enum DatabaseInstallStatus { installed, alreadyExists, corrupted, failed }
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 class DatabaseInstallResult {
   final DatabaseInstallStatus status;
@@ -14,12 +24,18 @@ class AtomicDatabaseInstaller {
   static Future<DatabaseInstallResult> installDatabaseAtomically({
     required String sourcePath,
     required String targetPath,
+<<<<<<< HEAD
     bool allowReplacement = false,
   }) async {
     final targetFile = File(targetPath);
     final targetExists = await targetFile.exists();
 
     if (targetExists && !allowReplacement) {
+=======
+  }) async {
+    final targetFile = File(targetPath);
+    if (await targetFile.exists()) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
       return const DatabaseInstallResult(DatabaseInstallStatus.alreadyExists);
     }
 
@@ -57,9 +73,9 @@ class AtomicDatabaseInstaller {
       // If this fails, the original targetFile is untouched.
       await tempFile.rename(targetPath);
 
-      return DatabaseInstallResult(
-        targetExists ? DatabaseInstallStatus.replaced : DatabaseInstallStatus.installed
-      );
+      return DatabaseInstallResult(targetExists
+          ? DatabaseInstallStatus.replaced
+          : DatabaseInstallStatus.installed);
     } catch (e) {
       if (await tempFile.exists()) {
         await tempFile.delete();

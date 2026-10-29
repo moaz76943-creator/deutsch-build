@@ -20,7 +20,7 @@ class MockVaultCipher implements VaultCipher {
     if (!ciphertext.endsWith('-$id')) {
       throw Exception('Mock decryption failed: ID mismatch');
     }
-    final prefix = 'ENCRYPTED(';
+    const prefix = 'ENCRYPTED(';
     final suffix = ')-$id';
     if (ciphertext.startsWith(prefix) && ciphertext.endsWith(suffix)) {
       return ciphertext.substring(prefix.length, ciphertext.length - suffix.length);

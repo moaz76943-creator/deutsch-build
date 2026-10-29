@@ -1,15 +1,19 @@
 import 'dart:async';
 
+<<<<<<< HEAD
 import 'package:flutter/foundation.dart';
 
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
 class RuntimeLifecycleRegistry {
   RuntimeLifecycleRegistry._();
   static final RuntimeLifecycleRegistry instance = RuntimeLifecycleRegistry._();
 
+<<<<<<< HEAD
   final Map<String, List<FutureOr<void> Function()>> _cleanups = {};
   final Set<String> _disposedOwners = {};
-  bool _isDisposed = false;
+  final bool _isDisposed = false;
 
   bool get isDisposed => _isDisposed;
 
@@ -17,7 +21,8 @@ class RuntimeLifecycleRegistry {
     return _isDisposed || _disposedOwners.contains(owner);
   }
 
-  void registerSubscription(StreamSubscription<dynamic> sub, {String owner = 'global'}) {
+  void registerSubscription(StreamSubscription<dynamic> sub,
+      {String owner = 'global'}) {
     registerCleanup(() => sub.cancel(), owner: owner);
   }
 
@@ -27,7 +32,8 @@ class RuntimeLifecycleRegistry {
     }, owner: owner);
   }
 
-  void registerCleanup(FutureOr<void> Function() cleanup, {String owner = 'global'}) {
+  void registerCleanup(FutureOr<void> Function() cleanup,
+      {String owner = 'global'}) {
     if (isOwnerDisposed(owner)) {
       _safeCleanup(cleanup);
       return;
@@ -38,25 +44,45 @@ class RuntimeLifecycleRegistry {
   Future<void> disposeOwner(String owner) async {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
-    await _disposeOwnerResources(owner);
+    await disposeOwnerResources(owner);
+=======
+  final List<StreamSubscription<dynamic>> subscriptions = [];
+  final List<Timer> timers = [];
+  bool isDisposed = false;
+
+  void registerSubscription(StreamSubscription<dynamic> sub) {
+    if (isDisposed) {
+      sub.cancel();
+      return;
+    }
+    subscriptions.add(sub);
+  }
+
+  void registerTimer(Timer timer) {
+    if (isDisposed) {
+      timer.cancel();
+      return;
+    }
+    timers.add(timer);
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   Future<void> disposeAll() async {
-    if (_isDisposed) return;
-    _isDisposed = true;
+    isDisposed = true;
+<<<<<<< HEAD
 
     final owners = _cleanups.keys.toList().reversed;
     for (final owner in owners) {
       if (!_disposedOwners.contains(owner)) {
         _disposedOwners.add(owner);
-        await _disposeOwnerResources(owner);
+        await disposeOwnerResources(owner);
       }
     }
 
     _cleanups.clear();
   }
 
-  Future<void> _disposeOwnerResources(String owner) async {
+  Future<void> disposeOwnerResources(String owner) async {
     final cleanups = _cleanups[owner];
     if (cleanups == null || cleanups.isEmpty) return;
 
@@ -65,11 +91,22 @@ class RuntimeLifecycleRegistry {
     _cleanups.remove(owner); // clear before execution to handle race conditions
 
     for (final cleanup in callbacks) {
-      await _safeCleanup(cleanup);
+      await safeCleanup(cleanup);
+=======
+    for (final timer in timers) {
+      timer.cancel();
     }
+    timers.clear();
+
+    for (final sub in subscriptions) {
+      await sub.cancel();
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
+    }
+    subscriptions.clear();
   }
 
-  Future<void> _safeCleanup(FutureOr<void> Function() cleanup) async {
+<<<<<<< HEAD
+  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
       if (result is Future) {
@@ -102,6 +139,9 @@ class RuntimeLifecycleRegistry {
   void resetForTest() {
     _cleanups.clear();
     _disposedOwners.clear();
-    _isDisposed = false;
+    isDisposed = false;
   }
+=======
+  bool get isDisposed => isDisposed;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }

@@ -1,8 +1,23 @@
-// ignore_for_file: unused_import
+<<<<<<< HEAD
+import 'package:flutter/widgets.dart';
 
 class LanguagePackManager {
   static const List<String> supportedBcp47Locales = [
+    'de-DE',
+    'ar-SA',
+    'en-US',
+    'fr-FR',
+    'es-ES',
+    'tr-TR',
+    'ru-RU',
+    'zh-CN'
+=======
+// ignore_for_file: unused_import
+
+class LanguagePackManager {
+  static List<String> supportedBcp47Locales = [
     'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   ];
 
   static const Map<String, String> _languageNames = {
@@ -20,14 +35,98 @@ class LanguagePackManager {
     return _languageNames[localeCode] ?? localeCode;
   }
 
-  static List<String> get supportedLanguages {
-     return ['af', 'am', 'ar', 'az', 'be', 'bg', 'bn', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'eo', 'es', 'et', 'eu', 'fa', 'fi', 'fil', 'fr', 'ga', 'gl', 'gu', 'ha', 'he', 'hi', 'hr', 'hu', 'hy', 'id', 'ig', 'is', 'it', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'la', 'lang_01', 'lang_02', 'lang_03', 'lang_04', 'lang_05', 'lang_06', 'lang_07', 'lang_08', 'lang_09', 'lang_10', 'lang_11', 'lang_12', 'lang_13', 'lang_14', 'lang_15', 'lang_16', 'lang_17', 'lang_18', 'lang_19', 'lang_20', 'lang_21', 'lang_22', 'lang_23', 'lang_24', 'lang_25', 'lang_26', 'lang_27', 'lang_28', 'lang_29', 'lang_30', 'lang_31', 'lang_32', 'lang_33', 'lang_34', 'lang_35', 'lang_36', 'lang_37', 'lang_38', 'lang_39', 'lang_40', 'lang_41', 'lang_42', 'lang_43', 'lang_44', 'lang_45', 'lang_46', 'lang_47', 'lang_48', 'lang_49', 'lang_50', 'lang_51', 'lang_52', 'lang_53', 'lang_54'];
+<<<<<<< HEAD
+  static List<String> get supportedLanguages => [
+        'af',
+        'am',
+        'ar',
+        'az',
+        'be',
+        'bg',
+        'bn',
+        'bs',
+        'ca',
+        'cs',
+        'cy',
+        'da',
+        'de',
+        'el',
+        'en',
+        'eo',
+        'es',
+        'et',
+        'eu',
+        'fa',
+        'fi',
+        'fil',
+        'fr',
+        'ga',
+        'gl',
+        'gu',
+        'ha',
+        'he',
+        'hi',
+        'hr',
+        'hu',
+        'hy',
+        'id',
+        'ig',
+        'is',
+        'it',
+        'ja',
+        'jv',
+        'ka',
+        'kk',
+        'km',
+        'kn',
+        'ko',
+        'ku',
+        'ky',
+        'la',
+        'nl',
+        'no',
+        'pl',
+        'pt',
+        'ro',
+        'ru',
+        'sk',
+        'sl',
+        'sq',
+        'sr',
+        'sv',
+        'sw',
+        'ta',
+        'te',
+        'th',
+        'tr',
+        'uk',
+        'ur',
+        'vi',
+        'zh'
+      ];
+
+  static String getTtsLocale(String languageCode) => languageCode;
+  String getLanguageNameInstance(String localeCode) =>
+      getLanguageName(localeCode);
+
+  static bool isLocalesSupported(String localeCode) {
+    if (localeCode.isEmpty) return false;
+    return true;
   }
 
-  static String getTtsLocale(String languageCode) {
-    return languageCode;
-  }
+  static bool isLanguagesSupported(String languageCode) =>
+      isLocalesSupported(languageCode);
+  bool isLanguageSupported(String languageCode) =>
+      isLocalesSupported(languageCode);
 
+  static bool isRtlLanguage(String code) {
+    final lower = code.toLowerCase();
+    return lower.startsWith('ar') ||
+        lower.startsWith('he') ||
+        lower.startsWith('fa') ||
+        lower.startsWith('ur');
+=======
+  // دعم استدعاء الدالة سواء كـ static أو من خلال كائن instance
   String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
 
   static bool isLocaleSupported(String localeCode) {
@@ -39,5 +138,26 @@ class LanguagePackManager {
   static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
     if (!isLocaleSupported(bcp47Locale)) return false;
     return true;
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
+
+  static TextDirection textDirectionFor(String code) {
+    return isRtlLanguage(code) ? TextDirection.rtl : TextDirection.ltr;
+  }
+
+  // Instance delegates لتفادي أخطاء الاستدعاء عبر الكائنات
+  List<String> get supportedLanguagesInstance => supportedLanguages;
+  List<String> get supportedLanguagesList => supportedLanguages;
+  List<String> get supportedLanguagesField => supportedLanguages;
+  String resolveTtsLocale(String code) => getTtsLocale(code);
+}
+
+extension LanguagePackManagerInstanceExt on LanguagePackManager {
+  List<String> get supportedLanguages => LanguagePackManager.supportedLanguages;
+  String getTtsLocale(String code) => LanguagePackManager.getTtsLocale(code);
+  bool isLanguagesSupported(String code) =>
+      LanguagePackManager.isLanguagesSupported(code);
+  TextDirection textDirectionFor(String code) =>
+      LanguagePackManager.textDirectionFor(code);
+  bool isRtlLanguage(String code) => LanguagePackManager.isRtlLanguage(code);
 }
