@@ -1,0 +1,20 @@
+{
+  "isoCode": "te",
+  "autonym": "తెలుగు",
+  "englishName": "Telugu",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Telugu",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 8,
+  "caseNames": ["Prathama", "Dvitiya", "Trutiya", "Chaturdhi", "Panchami", "Shashti", "Saptami", "Sambodhana"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "allWordsEndInVowel": true,
+    "hasRetroflexConsonants": true
+  }
+}

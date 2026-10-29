@@ -1,0 +1,20 @@
+{
+  "isoCode": "kn",
+  "autonym": "ಕನ್ನಡ",
+  "englishName": "Kannada",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Kannada",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 7,
+  "caseNames": ["Prathama", "Dvitiya", "Trutiya", "Chaturthi", "Panchami", "Shasthi", "Saptami"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "extensivelyAgglutinative": true,
+    "hasRetroflexConsonants": true
+  }
+}
