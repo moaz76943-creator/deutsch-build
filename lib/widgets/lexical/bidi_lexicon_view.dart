@@ -31,8 +31,7 @@ class BidiLexiconView extends StatelessWidget {
               children: [
                 if (article != null && article!.isNotEmpty)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.2),
@@ -40,8 +39,7 @@ class BidiLexiconView extends StatelessWidget {
                     ),
                     child: Text(
                       article!,
-                      style:
-                          AppTypography.label.copyWith(color: Colors.blue[200]),
+                      style: AppTypography.label.copyWith(color: Colors.blue[200]),
                     ),
                   ),
                 AccessibleMultilingualText(

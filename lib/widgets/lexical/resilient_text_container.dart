@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 class ResilientTextContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
