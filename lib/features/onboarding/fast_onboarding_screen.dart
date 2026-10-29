@@ -1,16 +1,8 @@
-import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
-import '../../screens/flashcards_screen.dart';
-<<<<<<< HEAD
-import '../../screens/onboarding_screen.dart';
-import '../../services/database_service.dart';
+import '../../screens/main_shell_screen.dart';
 import '../../core/catalog/language_readiness_matrix.dart';
-import '../../services/language_pack_manager.dart';
-import '../../core/language_bidi_helper.dart';
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// مسار الصفر-إلى-واحد: أسرع تجربة وصول لأول بطاقة بدون إنترنت
 class FastOnboardingScreen extends StatefulWidget {
   const FastOnboardingScreen({super.key});
 
@@ -19,109 +11,193 @@ class FastOnboardingScreen extends StatefulWidget {
 }
 
 class _FastOnboardingScreenState extends State<FastOnboardingScreen> {
-  bool _isNavigating = false;
-  bool _hasError = false;
-  TextDirection _errorDirection = TextDirection.rtl;
+  bool _isLoading = true;
+  String? _selectedSource;
+  String? _selectedTarget;
+  bool _isMissingPack = false;
 
   @override
   void initState() {
     super.initState();
-    _checkState();
+    _checkExistingSelection();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Resolve basic direction from current context as fallback
-    _errorDirection = Directionality.maybeOf(context) ?? TextDirection.rtl;
-  }
+  Future<void> _checkExistingSelection() async {
+    final prefs = await SharedPreferences.getInstance();
+    final source = prefs.getString('onboarding_source');
+    final target = prefs.getString('onboarding_target');
 
-  Future<void> _checkState() async {
-    if (!mounted) return;
-    try {
-      final db = await DatabaseService.instance.progressDb;
-      final result =
-          await db.rawQuery('SELECT COUNT(*) as count FROM srs_progress');
-      final count = (result.first['count'] as int?) ?? 0;
-
-      if (!mounted) return;
-
-      if (count > 0) {
-        if (!_isNavigating) {
-          _isNavigating = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const MainShellScreen()),
-          );
-        }
-        return;
+    if (source != null && target != null) {
+      if (mounted) {
+        _completeOnboarding(source, target);
       }
-
-      // New user: Resolve available learning paths instead of hardcoding 'de'
-      String? selectedPath;
-      String? selectedPack;
-
-      for (final bcp47Locale in LanguagePackManager.supportedBcp47Locales) {
-        final langCode = bcp47Locale.split('-').first.toLowerCase();
-
-        // Skip user language (Arabic in this case, although we should query actual UI lang ideally)
-        if (langCode == 'ar') continue;
-
-        final isReady = LanguageReadinessMatrix.isProductionReady(langCode);
-        final isMounted =
-            await LanguagePackManager.verifyAndMountOfflinePack(bcp47Locale);
-
-        if (isReady && isMounted) {
-          selectedPath = langCode;
-          selectedPack = bcp47Locale;
-          break; // Prefer the first available path (e.g. 'de-DE' since it's first)
-        }
-      }
-
-      if (!mounted) return;
-
-      if (selectedPath != null && selectedPack != null) {
-        if (!_isNavigating) {
-          _isNavigating = true;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => OnboardingScreen(
-                onStart: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
-                  );
-                },
-              ),
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _hasError = true;
-          // Dynamically set RTL/LTR based on system language or default ar-SA for error screen
-          _errorDirection = LanguageBiDiHelper.getDirection('ar-SA');
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
+    } else {
       setState(() {
-        _hasError = true;
-        _errorDirection = LanguageBiDiHelper.getDirection('ar-SA');
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveSelectionAndComplete(String source, String target) async {
+    if (source == target) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('onboarding_source', source);
+    await prefs.setString('onboarding_target', target);
+
+    if (mounted) {
+      _completeOnboarding(source, target);
+    }
+  }
+
+  void _completeOnboarding(String source, String target) {
+    if (LanguageReadinessMatrix.isProductionReady(target)) {
+       Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainShellScreen()),
+      );
+    } else {
+      setState(() {
+        _isLoading = false;
+        _isMissingPack = true;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainShellScreen()),
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F172A),
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.blueAccent),
+        ),
       );
-    });
+    }
 
-    return const Scaffold(
-      backgroundColor: Color(0xFF0F172A),
-      body: Center(
-        child: CircularProgressIndicator(color: Colors.blueAccent),
+    if (_isMissingPack) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Language pack unavailable.',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _isMissingPack = false;
+                  });
+                },
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // List of standard languages
+    final languages = [
+      {'code': 'en', 'name': 'English'},
+      {'code': 'de', 'name': 'Deutsch'},
+      {'code': 'ar', 'name': 'العربية'},
+      {'code': 'fr', 'name': 'Français'},
+      {'code': 'es', 'name': 'Español'},
+    ];
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F172A),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 48.0), // 48 is top+bottom padding
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Welcome',
+                        style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      const Text(
+                        'I speak (Interface Language):',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedSource,
+                        dropdownColor: const Color(0xFF1E293B),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          filled: true,
+                          fillColor: Color(0xFF1E293B),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: languages.map((l) => DropdownMenuItem(
+                          value: l['code'],
+                          child: Text(l['name']!),
+                        )).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedSource = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'I want to learn:',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedTarget,
+                        dropdownColor: const Color(0xFF1E293B),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          filled: true,
+                          fillColor: Color(0xFF1E293B),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: languages.map((l) => DropdownMenuItem(
+                          value: l['code'],
+                          child: Text(l['name']!),
+                        )).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedTarget = val;
+                          });
+                        },
+                      ),
+                      const Expanded(child: SizedBox(height: 24)),
+                      ElevatedButton(
+                        onPressed: (_selectedSource != null && _selectedTarget != null && _selectedSource != _selectedTarget)
+                            ? () => _saveSelectionAndComplete(_selectedSource!, _selectedTarget!)
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text('Start Learning', style: TextStyle(fontSize: 18)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+        ),
       ),
     );
   }
