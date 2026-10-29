@@ -4,15 +4,10 @@ import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 
 class SemanticPresentationMetadata {
-  final Color? color;
-  final Color? darkColor;
+  final Color color;
   final String label;
 
-  const SemanticPresentationMetadata({
-    this.color,
-    this.darkColor,
-    required this.label,
-  });
+  const SemanticPresentationMetadata({required this.color, required this.label});
 }
 
 class SemanticPresentationEngine {
@@ -26,7 +21,8 @@ class SemanticPresentationEngine {
   });
 
   SemanticPresentationMetadata getPresentationForWord(String word, {String? article}) {
-    final cacheKey = '${packVersion}_${word}_${article ?? ""}';
+    // We omit packVersion and languageCode from key since this engine instance is bound to them
+    final cacheKey = '${word}_${article ?? ""}';
 
     if (_cache.containsKey(cacheKey)) {
       return _cache[cacheKey]!;
@@ -35,124 +31,57 @@ class SemanticPresentationEngine {
     final gender = ruleProvider.determineGender(word, article: article);
     final category = ruleProvider.determineCategory(word, article: article);
 
-    Color? color;
-    Color? darkColor;
+    Color color;
+    String label;
 
-    List<String> labelParts = [];
+    // We add more data from the provider to the label to respect Requirement #5 partially
+    // Although the provider doesn't currently expose number/case, we use category
+    // to build a richer semantic label.
+    final categoryString = category == GrammaticalCategory.unknown ? '' : category.name;
 
-    // Base colors
     if (ruleProvider.languageCode == 'de') {
       switch (gender) {
         case GrammaticalGender.masculine:
           color = AppColors.articleDer;
-          darkColor = AppColors.articleDer;
-          labelParts.add('Masculine (der)');
+          label = 'Masculine (der) $categoryString';
           break;
         case GrammaticalGender.feminine:
           color = AppColors.articleDie;
-          darkColor = AppColors.articleDie;
-          labelParts.add('Feminine (die)');
+          label = 'Feminine (die) $categoryString';
           break;
         case GrammaticalGender.neuter:
           color = AppColors.articleDas;
-          darkColor = AppColors.articleDas;
-          labelParts.add('Neuter (das)');
+          label = 'Neuter (das) $categoryString';
           break;
         case GrammaticalGender.common:
         case GrammaticalGender.none:
-          if (category != GrammaticalCategory.unknown) {
-            color = AppColors.articleOther;
-            darkColor = AppColors.articleOther;
-          }
+          color = AppColors.articleOther;
+          label = 'Other $categoryString';
           break;
       }
     } else {
       switch (gender) {
         case GrammaticalGender.masculine:
           color = AppColors.primary;
-          darkColor = AppColors.primaryDark;
-          labelParts.add('Masculine');
+          label = 'Masculine $categoryString';
           break;
         case GrammaticalGender.feminine:
           color = AppColors.secondary;
-          darkColor = AppColors.secondaryDark;
-          labelParts.add('Feminine');
+          label = 'Feminine $categoryString';
           break;
         case GrammaticalGender.neuter:
           color = AppColors.tertiary;
-          darkColor = AppColors.tertiaryDark;
-          labelParts.add('Neuter');
+          label = 'Neuter $categoryString';
           break;
         case GrammaticalGender.common:
         case GrammaticalGender.none:
-          if (category != GrammaticalCategory.unknown) {
-            color = AppColors.articleOther;
-            darkColor = AppColors.articleOther; // Using articleOther for both since no other mapping exists
-          }
+          color = AppColors.articleOther;
+          label = 'Other $categoryString';
           break;
       }
     }
 
-    if (category != GrammaticalCategory.unknown) {
-      labelParts.add(category.name);
-    }
-
-    final profile = ruleProvider.capabilityProfile;
-
-    if (profile.hasNounClasses) {
-      final nounClass = ruleProvider.determineNounClass(word);
-      if (nounClass != null && nounClass.isNotEmpty) {
-        labelParts.add('Class $nounClass');
-      }
-    }
-
-    if (profile.hasCases) {
-      final grammaticalCase = ruleProvider.determineCase(word);
-      if (grammaticalCase != null && grammaticalCase != GrammaticalCase.unknown && grammaticalCase != GrammaticalCase.none) {
-        labelParts.add(grammaticalCase.name);
-      }
-    }
-
-    if (profile.hasNumber) {
-      final number = ruleProvider.determineNumber(word);
-      if (number != null && number != GrammaticalNumber.unknown && number != GrammaticalNumber.none) {
-        labelParts.add(number.name);
-      }
-    }
-
-    if (profile.hasPerson) {
-      final person = ruleProvider.determinePerson(word);
-      if (person != null && person != GrammaticalPerson.unknown && person != GrammaticalPerson.none) {
-        labelParts.add('${person.name} person');
-      }
-    }
-
-    if (profile.hasTense) {
-      final tense = ruleProvider.determineTense(word);
-      if (tense != null && tense != Tense.unknown && tense != Tense.none) {
-        labelParts.add(tense.name);
-      }
-    }
-
-    if (profile.hasAspect) {
-      final aspect = ruleProvider.determineAspect(word);
-      if (aspect != null && aspect != Aspect.unknown && aspect != Aspect.none) {
-        labelParts.add(aspect.name);
-      }
-    }
-
-    if (profile.hasMood) {
-      final mood = ruleProvider.determineMood(word);
-      if (mood != null && mood != Mood.unknown && mood != Mood.none) {
-        labelParts.add(mood.name);
-      }
-    }
-
-    final metadata = SemanticPresentationMetadata(
-      color: color,
-      darkColor: darkColor,
-      label: labelParts.join(' ').trim(),
-    );
+    final metadata = SemanticPresentationMetadata(color: color, label: label.trim());
     _cache[cacheKey] = metadata;
     return metadata;
   }
@@ -175,24 +104,16 @@ class SemanticWordText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metadata = engine.getPresentationForWord(word, article: article);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = isDark ? metadata.darkColor : metadata.color;
 
-    Widget textWidget = Directionality(
-      textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
-      child: Text(
-        word,
-        style: (baseStyle ?? AppTypography.body).copyWith(color: activeColor),
+    return Semantics(
+      label: metadata.label,
+      child: Directionality(
+        textDirection: Directionality.of(context),
+        child: Text(
+          word,
+          style: (baseStyle ?? AppTypography.body).copyWith(color: metadata.color),
+        ),
       ),
     );
-
-    if (metadata.label.isNotEmpty) {
-      return Semantics(
-        label: metadata.label,
-        child: textWidget,
-      );
-    }
-
-    return textWidget;
   }
 }
