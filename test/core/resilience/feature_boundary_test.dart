@@ -4,7 +4,8 @@ import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
 
 void main() {
-  testWidgets('FeatureBoundary يمنع تعطل الواجهة عند حدوث أي خطأ داخلي', (tester) async {
+  testWidgets('FeatureBoundary يمنع تعطل الواجهة عند حدوث أي خطأ داخلي',
+      (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -18,19 +19,22 @@ void main() {
 
     expect(find.text('الميزة تعمل بشكل سليم'), findsOneWidget);
   });
-  testWidgets('critical async initialization is reported, never hidden as optional', (tester) async {
+  testWidgets(
+      'critical async initialization is reported, never hidden as optional',
+      (tester) async {
     await tester.pumpWidget(MaterialApp(
       home: FeatureBoundary(
         featureName: 'storage',
-        onInitialize: () async {
-          throw const StorageFailure('integrity', 'critical data store failure');
+        initializationAction: () async {
+          throw const StorageFailure(
+              'integrity', 'critical data store failure');
         },
         child: const Text('ready'),
       ),
     ));
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isA<StorageFailure>());
+    expect(tester.takeException(), isNull);
+    expect(find.text('تعذر تشغيل storage'), findsOneWidget);
     expect(find.text('ready'), findsNothing);
   });
-
 }

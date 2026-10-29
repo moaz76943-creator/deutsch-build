@@ -5,6 +5,7 @@ import 'package:deutsch_bilarabi/core/atomic_attempt_manager.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues(<String, Object>{});
 
   group('Golden Content Validator Tests', () {
     test('يتحقق من صحة أداة التعريف der/die/das', () {
@@ -40,11 +41,36 @@ void main() {
   });
 
   group('Atomic Attempt Persistence Tests', () {
+    setUp(() {
+      AtomicAttemptManager.debugReset();
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      AtomicAttemptManager.debugAllowPlatform = true;
+    });
+
+    tearDown(AtomicAttemptManager.debugReset);
+
     test('يمنع معالجة نفس المحاولة أكثر من مرة', () async {
-      SharedPreferences.setMockInitialValues({});
       const attemptId = 'task_101_attempt';
 
       expect(await AtomicAttemptManager.isAttemptProcessed(attemptId), isFalse);
+      await AtomicAttemptManager.markAttemptProcessed(attemptId);
+      expect(await AtomicAttemptManager.isAttemptProcessed(attemptId), isTrue);
+      await AtomicAttemptManager.markAttemptProcessed(attemptId);
+      expect(await AtomicAttemptManager.isAttemptProcessed(attemptId), isTrue);
+    });
+
+    test('يعيد القراءة من المخزن بعد مسح الذاكرة', () async {
+      const attemptId = 'task_202_attempt';
+      await AtomicAttemptManager.markAttemptProcessed(attemptId);
+
+      AtomicAttemptManager.debugForgetProcessedMemory();
+      expect(await AtomicAttemptManager.isAttemptProcessed(attemptId), isTrue);
+    });
+
+    test('لا ينتظر قناة المنصة عندما يكون الاختبار بلا مخزن وهمي', () async {
+      AtomicAttemptManager.debugAllowPlatform = false;
+      const attemptId = 'task_303_attempt';
+
       await AtomicAttemptManager.markAttemptProcessed(attemptId);
       expect(await AtomicAttemptManager.isAttemptProcessed(attemptId), isTrue);
     });
