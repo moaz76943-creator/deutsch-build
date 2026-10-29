@@ -114,9 +114,26 @@ class TestAnalyzer(unittest.TestCase):
         analyzer = MorphologyAnalyzer([self.noun_db_path], de)
 
         res = analyzer.analyze("Toren")
-        self.assertEqual(len(res), 3)
+        self.assertEqual(len(res), 2)
 
         analyzer.close()
 
+
+    def test_combining_marks(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('n1', 'üzüm', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        tr = get_profile("tr")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], tr)
+
+        word = "u\u0308zu\u0308mu\u0308mu\u0308z"
+        res = analyzer.analyze(word)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].surface, word)
+        self.assertEqual(res[0].lemma, "üzüm")
+        self.assertEqual(res[0].tags, ["POSS1P"])
+        analyzer.close()
+
 if __name__ == '__main__':
+
     unittest.main()
