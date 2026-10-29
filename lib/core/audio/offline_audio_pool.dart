@@ -112,8 +112,7 @@ class OfflineAudioPool with WidgetsBindingObserver {
         _isPlaying = true;
 
         if (_activeLocale != req.locale) {
-          dynamic isLangAvailable = await _tts.setLanguage(req.locale);
-          if (isLangAvailable is int) isLangAvailable = (isLangAvailable == 1);
+          final isLangAvailable = await _tts.setLanguage(req.locale);
           if (isLangAvailable == 0 || isLangAvailable == false) {
             _isPlaying = false;
             if (!req.completer.isCompleted) req.completer.complete(false);

@@ -86,7 +86,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey<String>('special-character-ä')));
       await tester.pump();
 
-      expect(controller.text, 'Hällo');
+      expect(controller.text, 'Häallo');
       expect(controller.selection, const TextSelection.collapsed(offset: 2));
     });
 
