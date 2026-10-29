@@ -2,108 +2,226 @@ import 'package:flutter/material.dart';
 
 enum CefrLevel { a1, a2, b1, b2, c1, c2, unknown }
 
+enum CefrGroup { beginner, intermediate, advanced, unknown }
+
 enum CefrGrouping { beginner, intermediate, advanced, unknown }
 
-enum CefrEvidenceSource {
-  explicitPolicy,
-  certifiedCorpus,
-  inferredDifficulty,
-  none,
-}
+enum CefrClassificationMethod { explicit, inferred }
 
-class CefrEvidence {
-  const CefrEvidence({
-    this.source = CefrEvidenceSource.none,
-    this.confidence = 0.0,
-    this.explicitLevel,
+enum CefrEvidenceConfidence { high, medium, low, none }
+
+sealed class LinguisticEvidence {
+  const LinguisticEvidence({
+    required this.languageId,
+    this.sourceProvidedCefr,
   });
 
-  final CefrEvidenceSource source;
-  final double confidence;
-  final CefrLevel? explicitLevel;
+  final String languageId;
+  final CefrLevel? sourceProvidedCefr;
+}
 
-  bool get isSufficient =>
-      source != CefrEvidenceSource.none && confidence >= 0.5 && explicitLevel != null;
+final class LexicalEntryEvidence extends LinguisticEvidence {
+  const LexicalEntryEvidence({
+    required super.languageId,
+    super.sourceProvidedCefr,
+    this.frequencyRank,
+    this.charLength,
+    this.isCompound,
+  });
+
+  final int? frequencyRank;
+  final int? charLength;
+  final bool? isCompound;
+}
+
+final class LearningExampleEvidence extends LinguisticEvidence {
+  const LearningExampleEvidence({
+    required super.languageId,
+    super.sourceProvidedCefr,
+    this.wordCount,
+    this.maxWordFrequencyRank,
+    this.clauseCount,
+  });
+
+  final int? wordCount;
+  final int? maxWordFrequencyRank;
+  final int? clauseCount;
+}
+
+final class CefrClassification {
+  const CefrClassification({
+    required this.level,
+    required this.grouping,
+    required this.method,
+    required this.confidence,
+    this.details,
+  });
+
+  final CefrLevel level;
+  final CefrGrouping grouping;
+  final CefrClassificationMethod method;
+  final CefrEvidenceConfidence confidence;
+  final String? details;
+}
+
+enum EvidenceSource {
+  explicitPolicy,
+  verifiedSource,
+  inferredDifficulty,
+  unsupported,
+}
+
+class ClassificationResult {
+  const ClassificationResult({
+    required this.level,
+    required this.source,
+    required this.confidence,
+  });
+
+  final CefrLevel level;
+  final EvidenceSource source;
+  final double confidence;
+}
+
+class LexicalEvidence {
+  const LexicalEvidence({
+    required this.languageCode,
+    this.explicitLevel,
+    this.sourceLevelMap = const {},
+  });
+
+  final String languageCode;
+  final CefrLevel? explicitLevel;
+  final Map<String, CefrLevel> sourceLevelMap;
+}
+
+class ExampleEvidence {
+  const ExampleEvidence({
+    required this.languageCode,
+    this.explicitLevel,
+    this.sourceLevelMap = const {},
+    this.wordsLevels = const [],
+  });
+
+  final String languageCode;
+  final CefrLevel? explicitLevel;
+  final Map<String, CefrLevel> sourceLevelMap;
+  final List<CefrLevel> wordsLevels;
 }
 
 class CefrClassifier {
   /// تحديد المستوى بناءً على ترتيب الشيوع وطول الكلمة لأي لغة
-  /// Deprecated: Uses unsupported heuristics. Use classifyWord or classifyExample instead.
-  @Deprecated('Use classifyWord instead')
+  /// (Deprecated: No longer supported due to inaccuracy. Always returns unknown)
   static CefrLevel detectLevel(int frequencyRank, int charLength) {
     return CefrLevel.unknown;
   }
 
-  static int _getSourceWeight(CefrEvidenceSource source) {
-    switch (source) {
-      case CefrEvidenceSource.explicitPolicy: return 3;
-      case CefrEvidenceSource.certifiedCorpus: return 2;
-      case CefrEvidenceSource.inferredDifficulty: return 1;
-      case CefrEvidenceSource.none: return 0;
+  static ClassificationResult classifyWord(LexicalEvidence evidence) {
+    if (evidence.explicitLevel != null &&
+        evidence.explicitLevel != CefrLevel.unknown) {
+      return ClassificationResult(
+        level: evidence.explicitLevel!,
+        source: EvidenceSource.explicitPolicy,
+        confidence: 1.0,
+      );
     }
-  }
 
-  static CefrEvidence? _resolveConflict(Iterable<CefrEvidence> evidenceList) {
-    CefrEvidence? bestEvidence;
-    bool isAmbiguous = false;
-
-    for (final evidence in evidenceList) {
-      if (!evidence.isSufficient) continue;
-
-      if (bestEvidence == null) {
-        bestEvidence = evidence;
-        continue;
+    if (evidence.sourceLevelMap.isNotEmpty) {
+      // Find the highest confidence based on agreement, or fallback deterministically
+      final levels = evidence.sourceLevelMap.values
+          .where((l) => l != CefrLevel.unknown)
+          .toList();
+      if (levels.isEmpty) {
+        return const ClassificationResult(
+          level: CefrLevel.unknown,
+          source: EvidenceSource.unsupported,
+          confidence: 0.0,
+        );
       }
 
-      final currentWeight = _getSourceWeight(evidence.source);
-      final bestWeight = _getSourceWeight(bestEvidence.source);
-
-      if (currentWeight > bestWeight) {
-        bestEvidence = evidence;
-        isAmbiguous = false;
-      } else if (currentWeight == bestWeight) {
-        if (evidence.confidence > bestEvidence.confidence) {
-          bestEvidence = evidence;
-          isAmbiguous = false;
-        } else if (evidence.confidence == bestEvidence.confidence && evidence.explicitLevel != bestEvidence.explicitLevel) {
-          isAmbiguous = true;
+      // Resolve conflicts by picking the highest level among sources to be safe (or most frequent, etc)
+      // Let's take the maximum level (which is deterministic).
+      CefrLevel highestLevel = levels.first;
+      for (var l in levels) {
+        if (l.index > highestLevel.index) {
+          highestLevel = l;
         }
       }
+
+      return ClassificationResult(
+        level: highestLevel,
+        source: EvidenceSource.verifiedSource,
+        confidence: 0.8,
+      );
     }
 
-    if (isAmbiguous) return null;
-    return bestEvidence;
+    return const ClassificationResult(
+      level: CefrLevel.unknown,
+      source: EvidenceSource.unsupported,
+      confidence: 0.0,
+    );
   }
 
-  /// Classify a single word based on linguistic evidence.
-  static CefrLevel classifyWord(Iterable<CefrEvidence> evidenceList) {
-    if (evidenceList.isEmpty) return CefrLevel.unknown;
-
-    final best = _resolveConflict(evidenceList);
-    if (best != null && best.isSufficient) {
-      return best.explicitLevel!;
+  static ClassificationResult classifyExample(ExampleEvidence evidence) {
+    if (evidence.explicitLevel != null &&
+        evidence.explicitLevel != CefrLevel.unknown) {
+      return ClassificationResult(
+        level: evidence.explicitLevel!,
+        source: EvidenceSource.explicitPolicy,
+        confidence: 1.0,
+      );
     }
-    return CefrLevel.unknown;
-  }
 
-  /// Classify an example sentence or phrase based on linguistic evidence.
-  /// Example complexity might require higher confidence or explicit policy.
-  static CefrLevel classifyExample(Iterable<CefrEvidence> evidenceList) {
-    if (evidenceList.isEmpty) return CefrLevel.unknown;
-
-    final best = _resolveConflict(evidenceList);
-
-    if (best != null && best.isSufficient) {
-      if (best.source == CefrEvidenceSource.inferredDifficulty) {
-        // Inferred difficulty is less reliable for examples than words.
-        if (best.confidence < 0.8) return CefrLevel.unknown;
+    if (evidence.sourceLevelMap.isNotEmpty) {
+      final levels = evidence.sourceLevelMap.values
+          .where((l) => l != CefrLevel.unknown)
+          .toList();
+      if (levels.isNotEmpty) {
+        CefrLevel highestLevel = levels.first;
+        for (var l in levels) {
+          if (l.index > highestLevel.index) {
+            highestLevel = l;
+          }
+        }
+        return ClassificationResult(
+          level: highestLevel,
+          source: EvidenceSource.verifiedSource,
+          confidence: 0.8,
+        );
       }
-      return best.explicitLevel!;
     }
-    return CefrLevel.unknown;
+
+    // Infer difficulty from words levels
+    final validWordLevels =
+        evidence.wordsLevels.where((l) => l != CefrLevel.unknown).toList();
+    if (validWordLevels.isNotEmpty) {
+      CefrLevel maxLevel = validWordLevels.first;
+      for (var l in validWordLevels) {
+        if (l.index > maxLevel.index) {
+          maxLevel = l;
+        }
+      }
+
+      // Bump level for examples if we have complex words, but cap at C2
+      int nextIndex = maxLevel.index + 1;
+      if (nextIndex > CefrLevel.c2.index) {
+        nextIndex = CefrLevel.c2.index;
+      }
+
+      return ClassificationResult(
+        level: CefrLevel.values[nextIndex],
+        source: EvidenceSource.inferredDifficulty,
+        confidence: 0.6,
+      );
+    }
+
+    return const ClassificationResult(
+      level: CefrLevel.unknown,
+      source: EvidenceSource.unsupported,
+      confidence: 0.0,
+    );
   }
 
-  /// Groups a CEFR level into a broader category.
   static CefrGrouping getGrouping(CefrLevel level) {
     switch (level) {
       case CefrLevel.a1:
@@ -115,34 +233,204 @@ class CefrClassifier {
       case CefrLevel.c1:
       case CefrLevel.c2:
         return CefrGrouping.advanced;
-      default:
+      case CefrLevel.unknown:
         return CefrGrouping.unknown;
     }
+  }
+
+  static CefrGroup getGroup(CefrLevel level) {
+    switch (level) {
+      case CefrLevel.a1:
+      case CefrLevel.a2:
+        return CefrGroup.beginner;
+      case CefrLevel.b1:
+      case CefrLevel.b2:
+        return CefrGroup.intermediate;
+      case CefrLevel.c1:
+      case CefrLevel.c2:
+        return CefrGroup.advanced;
+      case CefrLevel.unknown:
+        return CefrGroup.unknown;
+    }
+  }
+
+  static CefrClassification classifyLexicalEntry(
+      LexicalEntryEvidence evidence) {
+    if (evidence.sourceProvidedCefr != null &&
+        evidence.sourceProvidedCefr != CefrLevel.unknown) {
+      return CefrClassification(
+        level: evidence.sourceProvidedCefr!,
+        grouping: getGrouping(evidence.sourceProvidedCefr!),
+        method: CefrClassificationMethod.explicit,
+        confidence: CefrEvidenceConfidence.high,
+        details: 'Explicit source metadata',
+      );
+    }
+
+    if (evidence.frequencyRank == null) {
+      return const CefrClassification(
+        level: CefrLevel.unknown,
+        grouping: CefrGrouping.unknown,
+        method: CefrClassificationMethod.inferred,
+        confidence: CefrEvidenceConfidence.none,
+        details: 'Insufficient evidence',
+      );
+    }
+
+    // Language-specific profiles for inferred level based on frequency and traits
+    final lang = evidence.languageId.toLowerCase();
+    CefrLevel inferred;
+    CefrEvidenceConfidence conf = CefrEvidenceConfidence.medium;
+
+    // Very basic mapping for fallback, treating languages differently.
+    int rank = evidence.frequencyRank!;
+    bool compound = evidence.isCompound ?? false;
+
+    if (lang == 'de') {
+      if (rank <= 500) {
+        inferred = CefrLevel.a1;
+      } else if (rank <= 2000)
+        inferred = CefrLevel.a2;
+      else if (rank <= 4000)
+        inferred = CefrLevel.b1;
+      else if (rank <= 8000)
+        inferred = CefrLevel.b2;
+      else
+        inferred = CefrLevel.c1;
+
+      if (compound && inferred == CefrLevel.a1) {
+        inferred = CefrLevel.a2; // Compounds are generally harder
+      }
+    } else if (lang == 'ar') {
+      if (rank <= 600) {
+        inferred = CefrLevel.a1;
+      } else if (rank <= 2500)
+        inferred = CefrLevel.a2;
+      else if (rank <= 5000)
+        inferred = CefrLevel.b1;
+      else if (rank <= 10000)
+        inferred = CefrLevel.b2;
+      else
+        inferred = CefrLevel.c1;
+    } else {
+      // Generic fallback
+      if (rank <= 1000) {
+        inferred = CefrLevel.a1;
+      } else if (rank <= 3000)
+        inferred = CefrLevel.a2;
+      else if (rank <= 6000)
+        inferred = CefrLevel.b1;
+      else if (rank <= 10000)
+        inferred = CefrLevel.b2;
+      else
+        inferred = CefrLevel.c1;
+      conf = CefrEvidenceConfidence.low;
+    }
+
+    // If length is extremely long but rank is high, could bump difficulty
+    if (evidence.charLength != null && evidence.charLength! > 15) {
+      if (inferred == CefrLevel.a1) {
+        inferred = CefrLevel.a2;
+      } else if (inferred == CefrLevel.a2) inferred = CefrLevel.b1;
+    }
+
+    return CefrClassification(
+      level: inferred,
+      grouping: getGrouping(inferred),
+      method: CefrClassificationMethod.inferred,
+      confidence: conf,
+      details: 'Inferred from frequency profile',
+    );
+  }
+
+  static CefrClassification classifyLearningExample(
+      LearningExampleEvidence evidence) {
+    if (evidence.sourceProvidedCefr != null &&
+        evidence.sourceProvidedCefr != CefrLevel.unknown) {
+      return CefrClassification(
+        level: evidence.sourceProvidedCefr!,
+        grouping: getGrouping(evidence.sourceProvidedCefr!),
+        method: CefrClassificationMethod.explicit,
+        confidence: CefrEvidenceConfidence.high,
+        details: 'Explicit source metadata',
+      );
+    }
+
+    if (evidence.wordCount == null && evidence.maxWordFrequencyRank == null) {
+      return const CefrClassification(
+        level: CefrLevel.unknown,
+        grouping: CefrGrouping.unknown,
+        method: CefrClassificationMethod.inferred,
+        confidence: CefrEvidenceConfidence.none,
+        details: 'Insufficient evidence',
+      );
+    }
+
+    CefrLevel inferred = CefrLevel.unknown;
+
+    // Determine complexity based on word count and max frequency rank
+    int wc = evidence.wordCount ?? 0;
+    int clauses = evidence.clauseCount ?? 1;
+    int maxRank = evidence.maxWordFrequencyRank ?? 1000;
+
+    if (maxRank <= 500 && wc <= 5 && clauses == 1) {
+      inferred = CefrLevel.a1;
+    } else if (maxRank <= 2000 && wc <= 10 && clauses <= 2) {
+      inferred = CefrLevel.a2;
+    } else if (maxRank <= 5000 && wc <= 15) {
+      inferred = CefrLevel.b1;
+    } else if (maxRank <= 10000) {
+      inferred = CefrLevel.b2;
+    } else {
+      inferred = CefrLevel.c1;
+    }
+
+    return CefrClassification(
+      level: inferred,
+      grouping: getGrouping(inferred),
+      method: CefrClassificationMethod.inferred,
+      confidence: CefrEvidenceConfidence.medium,
+      details: 'Inferred from example complexity',
+    );
   }
 
   /// التسمية المعيارية الدولية الصالحة لجميع اللغات الـ 100
   static String getCode(CefrLevel level) {
     switch (level) {
-      case CefrLevel.a1: return 'A1';
-      case CefrLevel.a2: return 'A2';
-      case CefrLevel.b1: return 'B1';
-      case CefrLevel.b2: return 'B2';
-      case CefrLevel.c1: return 'C1';
-      case CefrLevel.c2: return 'C2';
-      default: return '--';
+      case CefrLevel.a1:
+        return 'A1';
+      case CefrLevel.a2:
+        return 'A2';
+      case CefrLevel.b1:
+        return 'B1';
+      case CefrLevel.b2:
+        return 'B2';
+      case CefrLevel.c1:
+        return 'C1';
+      case CefrLevel.c2:
+        return 'C2';
+      default:
+        return '--';
     }
   }
 
   /// وصف المستوى باللغة العربية
   static String getLabelAr(CefrLevel level) {
     switch (level) {
-      case CefrLevel.a1: return 'A1 (مبتدئ)';
-      case CefrLevel.a2: return 'A2 (أساسي)';
-      case CefrLevel.b1: return 'B1 (متوسط)';
-      case CefrLevel.b2: return 'B2 (متقدم)';
-      case CefrLevel.c1: return 'C1 (احترافي)';
-      case CefrLevel.c2: return 'C2 (إتقان تام)';
-      default: return 'عام';
+      case CefrLevel.a1:
+        return 'A1 (مبتدئ)';
+      case CefrLevel.a2:
+        return 'A2 (أساسي)';
+      case CefrLevel.b1:
+        return 'B1 (متوسط)';
+      case CefrLevel.b2:
+        return 'B2 (متقدم)';
+      case CefrLevel.c1:
+        return 'C1 (احترافي)';
+      case CefrLevel.c2:
+        return 'C2 (إتقان تام)';
+      default:
+        return 'عام';
     }
   }
 
@@ -152,13 +440,19 @@ class CefrClassifier {
   /// ألوان التمييز البصري لكل مستوى
   static Color getLevelColor(CefrLevel level) {
     switch (level) {
-      case CefrLevel.a1: return const Color(0xFF10B981); // زمردي
-      case CefrLevel.a2: return const Color(0xFF06B6D4); // سماوي
-      case CefrLevel.b1: return const Color(0xFFF59E0B); // كهرماني
-      case CefrLevel.b2: return const Color(0xFFF97316); // برتقالي
+      case CefrLevel.a1:
+        return const Color(0xFF10B981); // زمردي
+      case CefrLevel.a2:
+        return const Color(0xFF06B6D4); // سماوي
+      case CefrLevel.b1:
+        return const Color(0xFFF59E0B); // كهرماني
+      case CefrLevel.b2:
+        return const Color(0xFFF97316); // برتقالي
       case CefrLevel.c1:
-      case CefrLevel.c2: return const Color(0xFFEF4444); // أحمر
-      default: return const Color(0xFF6B7280);
+      case CefrLevel.c2:
+        return const Color(0xFFEF4444); // أحمر
+      default:
+        return const Color(0xFF6B7280);
     }
   }
 }
