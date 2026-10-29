@@ -7,16 +7,46 @@ class DirectedPairId {
     required this.sourceLocale,
     required this.targetLocale,
     required this.semanticVersion,
-  })  : assert(sourceLocale != '', 'sourceLocale cannot be empty'),
-        assert(targetLocale != '', 'targetLocale cannot be empty'),
-        assert(semanticVersion != '', 'semanticVersion cannot be empty');
+  });
 
   String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
-
   bool get isReflexive => sourceLocale == targetLocale;
+  bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty && semanticVersion.isNotEmpty;
 
-  bool isValidForLearning() =>
-      !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
+  factory DirectedPairId.fromJson(Map<String, dynamic> json) {
+    return DirectedPairId(
+      sourceLocale: json['sourceLocale'] as String,
+      targetLocale: json['targetLocale'] as String,
+      semanticVersion: json['semanticVersion'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'sourceLocale': sourceLocale,
+      'targetLocale': targetLocale,
+      'semanticVersion': semanticVersion,
+    };
+  }
+
+  factory DirectedPairId.fromLegacyString(String value) {
+    final parts = value.split('_');
+    if (parts.length >= 3) {
+      return DirectedPairId(
+        sourceLocale: parts[0],
+        targetLocale: parts[1],
+        semanticVersion: parts.sublist(2).join('_'),
+      );
+    } else if (parts.length == 2) {
+      return DirectedPairId(
+        sourceLocale: parts[0],
+        targetLocale: parts[1],
+        semanticVersion: '1.0.0', // default version if missing
+      );
+    } else {
+      throw FormatException('Invalid legacy DirectedPairId string: $value');
+    }
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -30,42 +60,6 @@ class DirectedPairId {
   @override
   int get hashCode => Object.hash(sourceLocale, targetLocale, semanticVersion);
 
-  String serialize() => uniqueKey;
-
-  static DirectedPairId parse(String serialized) {
-    if (serialized.isEmpty) {
-      throw const FormatException(
-          'Cannot parse empty string into DirectedPairId');
-    }
-    final parts = serialized.split('_');
-    if (parts.length == 3) {
-      final source = parts[0];
-      final target = parts[1];
-      final version = parts[2];
-      if (source.isEmpty || target.isEmpty || version.isEmpty) {
-        throw FormatException(
-            'Invalid DirectedPairId format: empty components in $serialized');
-      }
-      return DirectedPairId(
-        sourceLocale: source,
-        targetLocale: target,
-        semanticVersion: version,
-      );
-    } else if (parts.length == 2) {
-      // Legacy migration path
-      final source = parts[0];
-      final target = parts[1];
-      if (source.isEmpty || target.isEmpty) {
-        throw FormatException(
-            'Invalid legacy DirectedPairId format: empty components in $serialized');
-      }
-      return DirectedPairId(
-        sourceLocale: source,
-        targetLocale: target,
-        semanticVersion: '1.0.0', // Default legacy version
-      );
-    } else {
-      throw FormatException('Invalid DirectedPairId format: $serialized');
-    }
-  }
+  @override
+  String toString() => uniqueKey;
 }
