@@ -1,48 +1,14 @@
 import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter/foundation.dart';
 
 import 'database_service.dart';
-import 'lemmatization_service.dart';
-import '../utils/fuzzy_search_engine.dart';
 
-// Neither the SQLite connection nor plugin services cross isolate boundaries.
-// Only at most 50 materialized SQL rows and primitive payloads are transferred.
-List<Map<String, dynamic>> _decodeFtsRows(Map<String, Object?> request) {
-  final code = request['languageCode'] as String;
-  final rows = request['rows'] as List;
-  return rows.map((item) => FtsSearchService._unpack(
-    Map<String, Object?>.from(item as Map), code,
-  )).toList(growable: false);
-}
-
-List<String> _suggestOffThread(Map<String, Object?> request) {
-  return FuzzySearchEngine.didYouMean(
-    request['query'] as String,
-    List<String>.from(request['candidates'] as List),
-  );
-}
-
-/// Structured search metadata while retaining the legacy List-returning API.
-class SearchFeedback<T> {
-  const SearchFeedback({
-    required this.results,
-    this.resolvedLemma,
-    this.suggestions = const <String>[],
-  });
-  final List<T> results;
-  final String? resolvedLemma;
-  final List<String> suggestions;
-}
-
-/// Read-only, language-scoped lookup against build-time FTS5 indexes.
+/// Read-only, per-language lookup against build-time FTS5 trigram indexes.
 ///
 /// The pack builder preserves lexicon.rowid in lexicon_fts.rowid. No runtime
 /// migration, index creation, or duplication into an in-memory trie occurs.
-/// The existing DatabaseService opens content packs read-only. Public v2
-/// uses unicode61; older packs may use trigram. An empty MATCH therefore
-/// still needs bounded prefix/substring fallback.
+/// The existing DatabaseService opens content packs read-only.
 ///
 /// Search of 1-2 Unicode scalars, or devices without FTS5, uses a NOCASE
 /// B-tree prefix query first, then a legacy substring scan if more results
@@ -58,94 +24,14 @@ class FtsSearchService {
   Future<List<Map<String, dynamic>>> searchDictionary(
     String query,
     String languageCode, {
-    int limit = 50,
+    int limit = 20,
   }) async {
-    return _databaseService.withContentDb(
-      languageCode,
-      (database) => searchDatabase(
-        database,
-        query,
-        languageCode: languageCode,
-        limit: limit,
-      ),
-    );
-  }
-
-
-  /// Active dictionary pipeline: attested lemma first, then normal search,
-  /// then at most three offline typo suggestions if there were no hits.
-  Future<SearchFeedback<Map<String, dynamic>>> searchDictionaryWithFeedback(
-    String query,
-    String languageCode, {
-    int limit = 50,
-  }) async {
-    return _databaseService.withContentDb(
-      languageCode,
-      (database) => searchDatabaseWithFeedback(
-        database,
-        query,
-        languageCode: languageCode,
-        limit: limit,
-      ),
-    );
-  }
-
-  Future<SearchFeedback<Map<String, dynamic>>> searchDatabaseWithFeedback(
-    Database database,
-    String query, {
-    required String languageCode,
-    int limit = 50,
-  }) async {
-    if (limit < 1 || limit > 50) {
-      throw RangeError.range(limit, 1, 50, 'limit');
-    }
-    final code = _normalizeLanguageCode(languageCode);
-    final term = query.trim();
-    if (term.isNotEmpty) {
-      final lemma = await LemmatizationService(
-        openContentDb: (_) async => database,
-      ).resolve(term, languageCode: code);
-      if (lemma != null &&
-          lemma.trim().isNotEmpty &&
-          lemma.trim().toLowerCase() != term.toLowerCase()) {
-        final canonical = lemma.trim();
-        final found = await searchDatabase(
-          database, canonical, languageCode: code, limit: limit,
-        );
-        if (found.isNotEmpty) {
-          return SearchFeedback(
-            results: found, resolvedLemma: canonical,
-          );
-        }
-      }
-    }
-
-    final results = await searchDatabase(
-      database, term, languageCode: code, limit: limit,
-    );
-    if (results.isNotEmpty ||
-        term.isEmpty ||
-        term.runes.length > FuzzySearchEngine.maxQueryRunes) {
-      return SearchFeedback(results: results);
-    }
-    final firstGlyph = String.fromCharCodes(<int>[term.runes.first]);
-    final candidates = await database.rawQuery(
-      r"SELECT surface FROM lexicon WHERE language_code = ? AND surface LIKE ? ESCAPE '\' "
-      'ORDER BY surface COLLATE NOCASE LIMIT ?',
-      <Object?>[
-        code,
-        _escapeLike(firstGlyph) + '%',
-        FuzzySearchEngine.maxCandidateChecks.clamp(1, 50),
-      ],
-    );
-    return SearchFeedback(
-      results: results,
-      suggestions: await compute(_suggestOffThread, <String, Object?>{
-        'query': term,
-        'candidates': candidates
-            .map((row) => row['surface']?.toString() ?? '')
-            .toList(growable: false),
-      }),
+    final database = await _databaseService.getContentDb(languageCode);
+    return searchDatabase(
+      database,
+      query,
+      languageCode: languageCode,
+      limit: limit,
     );
   }
 
@@ -154,22 +40,21 @@ class FtsSearchService {
     Database database,
     String query, {
     required String languageCode,
-    int limit = 50,
+    int limit = 20,
   }) async {
-    if (limit < 1 || limit > 50) {
-      throw RangeError.range(limit, 1, 50, 'limit');
+    if (limit < 1 || limit > 100) {
+      throw RangeError.range(limit, 1, 100, 'limit');
     }
-    final code = _normalizeLanguageCode(languageCode);
+
     final term = query.trim();
     List<Map<String, Object?>> rows;
     if (term.isEmpty) {
       rows = await database.rawQuery('''
         SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
         FROM lexicon
-        WHERE language_code = ?
         ORDER BY rowid
         LIMIT ?
-      ''', <Object?>[code, limit]);
+      ''', <Object?>[limit]);
     } else if (term.runes.length >= 3) {
       try {
         final phrase = '"${term.replaceAll('"', '""')}"';
@@ -178,31 +63,32 @@ class FtsSearchService {
                  l.part_of_speech, l.fields_json
           FROM lexicon_fts
           JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
-          WHERE l.language_code = ? AND lexicon_fts MATCH ?
+          WHERE lexicon_fts MATCH ?
           ORDER BY CASE
             WHEN l.surface = ? COLLATE NOCASE THEN 0
             WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
             ELSE 2
-          END, bm25(lexicon_fts), length(l.surface), l.rowid
+          END, length(l.surface), l.rowid
           LIMIT ?
-        ''', <Object?>[code, phrase, term, '${_escapeLike(term)}%', limit]);
-        if (rows.isEmpty) {
-          rows = await _fallback(database, term, code, limit);
-        }
-      } on DatabaseException catch (_) {
-        // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
-        // expression: parameterized LIKE stays available on vendor SQLite.
-        rows = await _fallback(database, term, code, limit);
+        ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+      } on DatabaseException catch (error) {
+        if (!_ftsUnavailable(error)) rethrow;
+        rows = await _fallback(database, term, limit);
       }
     } else {
-      rows = await _fallback(database, term, code, limit);
+      rows = await _fallback(database, term, limit);
     }
 
-    return compute(_decodeFtsRows, <String, Object?>{
-      'languageCode': code,
-      'rows': rows.map((row) => Map<String, Object?>.from(row))
-          .toList(growable: false),
-    });
+    final code = languageCode.trim().toLowerCase().replaceAll('_', '-');
+    return rows.map((row) => _unpack(row, code)).toList(growable: false);
+  }
+
+  static bool _ftsUnavailable(DatabaseException error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('no such module: fts5') ||
+        message.contains('no such table: lexicon_fts') ||
+        message.contains('no such tokenizer: trigram') ||
+        message.contains('unable to use function match');
   }
 
   static String _escapeLike(String text) => text
@@ -210,20 +96,9 @@ class FtsSearchService {
       .replaceAll('%', '\\%')
       .replaceAll('_', '\\_');
 
-  // Match DatabaseService's existing pack identity normalization. Do not
-  // collapse other script/region tags or substitute an unavailable language.
-  static String _normalizeLanguageCode(String value) {
-    final code = value.trim().toLowerCase().replaceAll('_', '-');
-    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(code)) {
-      throw ArgumentError.value(value, 'languageCode', 'Invalid language code');
-    }
-    return code.split('-').first == 'de' ? 'de' : code;
-  }
-
   static Future<List<Map<String, Object?>>> _fallback(
     Database database,
     String term,
-    String languageCode,
     int limit,
   ) async {
     final literal = _escapeLike(term);
@@ -231,10 +106,10 @@ class FtsSearchService {
     final prefixRows = await database.rawQuery('''
       SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
       FROM lexicon
-      WHERE language_code = ? AND surface LIKE ? ESCAPE '\\'
+      WHERE surface LIKE ? ESCAPE '\\'
       ORDER BY length(surface), rowid
       LIMIT ?
-    ''', <Object?>[languageCode, '$literal%', limit]);
+    ''', <Object?>['$literal%', limit]);
     if (prefixRows.length >= limit) return prefixRows;
 
     // Preserve substring/JSON lookup on older Android SQLite engines; this
@@ -250,14 +125,11 @@ class FtsSearchService {
     final substringRows = await database.rawQuery('''
       SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
       FROM lexicon
-      WHERE language_code = ?
-        AND (surface LIKE ? ESCAPE '\\' OR fields_json LIKE ? ESCAPE '\\')
+      WHERE (surface LIKE ? ESCAPE '\\' OR fields_json LIKE ? ESCAPE '\\')
       $exclusions
       ORDER BY length(surface), rowid
       LIMIT ?
-    ''', <Object?>[
-      languageCode, '%$literal%', '%$literal%', ...alreadyFound, remaining,
-    ]);
+    ''', <Object?>['%$literal%', '%$literal%', ...alreadyFound, remaining]);
     return <Map<String, Object?>>[...prefixRows, ...substringRows];
   }
 
@@ -271,18 +143,14 @@ class FtsSearchService {
       try {
         final decoded = jsonDecode(raw);
         if (decoded is Map) {
-          fields = <String, dynamic>{
-            for (final entry in decoded.entries)
-              if (entry.key is String) entry.key as String: entry.value,
-          };
+          fields = Map<String, dynamic>.from(decoded);
         }
-      } catch (_) {
-        // Malformed optional fields must not hide an otherwise valid lexicon row.
+      } on FormatException {
+        // Broken optional fields must not hide an otherwise valid lexicon row.
       }
     }
     final id = row['id']?.toString() ?? '';
     final surface = row['surface']?.toString() ?? '';
-    final translation = DatabaseService.resolveLexiconTranslation(fields);
     return <String, dynamic>{
       'id': id,
       'lexeme_id': id,
@@ -294,8 +162,7 @@ class FtsSearchService {
       'lemma': fields['lemma']?.toString() ?? surface,
       'article': fields['article'],
       'plural': fields['plural'],
-      'translation_ar': translation?.text,
-      'translation_language_code': translation?.languageCode,
+      'translation_ar': fields['translation_ar'] ?? fields['translation'],
       'sentence': fields['sentence'] ?? fields['example'],
       'fields_json': raw,
       'fields': fields,
