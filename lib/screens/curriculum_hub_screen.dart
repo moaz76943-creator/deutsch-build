@@ -22,14 +22,11 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
 
   Future<void> _loadMissions() async {
     try {
-<<<<<<< HEAD
       final jsonStr =
           await rootBundle.loadString('assets/data/missions_50.json');
-=======
-      final jsonStr = await rootBundle.loadString('assets/data/missions_50.json');
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
       setState(() {
-        _missions = jsonDecode(jsonStr);
+        final decoded = jsonDecode(jsonStr);
+        _missions = decoded is List ? decoded : const <dynamic>[];
         _isLoading = false;
       });
     } catch (_) {
@@ -51,22 +48,24 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
               itemCount: _missions.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                final item = _missions[index];
+                final item = _missions[index] is Map
+                    ? Map<String, dynamic>.from(_missions[index] as Map)
+                    : <String, dynamic>{};
                 return AppBaseGlassCard(
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor:
                           const Color(0xFF4F46E5).withValues(alpha: 0.1),
                       child: Text(
-                        item['level'] ?? 'A1',
+                        '${item['level'] ?? 'A1'}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    title: Text(item['titleAr'] ?? '',
+                    title: Text('${item['titleAr'] ?? ''}',
                         style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text(item['titleDe'] ?? ''),
+                    subtitle: Text('${item['titleDe'] ?? ''}'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
