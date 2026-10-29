@@ -15,7 +15,7 @@ void main() {
     });
 
     test('enforces max capacity with LRU eviction for 100 language switching', () {
-      // Assuming max capacity is 20 in the implementation we made.
+      // Assuming max capacity is 50.
       for (int i = 0; i < 100; i++) {
         final langCode = 'lang_$i';
         cache.put(langCode, [
@@ -23,24 +23,23 @@ void main() {
         ]);
       }
 
-      // Check that oldest entries (0-79) were evicted.
-      for (int i = 0; i < 80; i++) {
+      // Check that oldest entries (0-49) were evicted.
+      for (int i = 0; i < 50; i++) {
         expect(cache.has('lang_$i'), isFalse);
       }
 
-      // Check that newest entries (80-99) are still present.
-      for (int i = 80; i < 100; i++) {
+      // Check that newest entries (50-99) are still present.
+      for (int i = 50; i < 100; i++) {
         expect(cache.has('lang_$i'), isTrue);
       }
     });
 
     test('rejects oversized entries based on memory budget', () {
-      // Assuming max budget is 15MB.
-      // Make it huge enough to trigger rejection, limit is 15 * 1024 * 1024 = 15.7M
-      final hugeList = List.generate(350000, (i) => {'word': 'very_long_word_$i', 'num': 1});
-
-      cache.put('huge', hugeList);
-
+      // Assuming max budget is 5MB. We'll create a massive string to force rejection.
+      final massiveString = List.filled(3 * 1024 * 1024, 'a').join(); // ~6MB
+      cache.put('huge', [
+        {'text': massiveString}
+      ]);
       // Should not be in cache because it was rejected by the underlying budget
       expect(cache.has('huge'), isFalse);
     });
@@ -60,7 +59,7 @@ void main() {
       expect(cache.has('en', direction: 'en-es', packVersion: 2), isTrue);
 
       // Invalidate everything not matching v2
-      cache.invalidateStaleVersions('2');
+      cache.invalidateStale('en', 'en-es', 2);
 
       // v1 should be gone, v2 should remain
       expect(cache.has('en', direction: 'en-es', packVersion: 1), isFalse);
@@ -68,8 +67,8 @@ void main() {
     });
 
     test('trims cache gracefully on memory pressure', () {
-      // Add 20 items (under the 20 limit)
-      for (int i = 0; i < 20; i++) {
+      // Add 40 items (under the 50 limit)
+      for (int i = 0; i < 40; i++) {
         cache.put('lang_$i', [
           {'id': i}
         ]);
@@ -80,13 +79,13 @@ void main() {
       // Trigger memory pressure
       cache.onMemoryPressure();
 
-      // Half of max capacity is 10, so size should drop to 10.
-      // Therefore, the first 10 (oldest) elements should be evicted (20 - 10 = 10).
-      for (int i = 0; i < 10; i++) {
+      // Half of max capacity is 25, so size should drop to 25.
+      // Therefore, the first 15 (oldest) elements should be evicted (40 - 25 = 15).
+      for (int i = 0; i < 15; i++) {
         expect(cache.has('lang_$i'), isFalse, reason: 'lang_$i should be evicted');
       }
 
-      for (int i = 10; i < 20; i++) {
+      for (int i = 15; i < 40; i++) {
         expect(cache.has('lang_$i'), isTrue, reason: 'lang_$i should remain');
       }
     });
