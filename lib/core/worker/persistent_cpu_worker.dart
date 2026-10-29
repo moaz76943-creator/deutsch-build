@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
@@ -35,16 +36,15 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   static PersistentCpuWorker instance = PersistentCpuWorker._init();
 
   final int maxConcurrentTasks;
-  int _maxQueueSize;
-  bool _isDisposed = false;
+  final int maxQueueSize;
 
   int _activeJobs = 0;
   int _generation = 0;
-  final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
+  final Queue<_QueuedTask> _queue = Queue<_QueuedTask>();
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
-        _maxQueueSize = 50 {
+        maxQueueSize = 50 {
     _registerObserver();
   }
 
@@ -60,23 +60,6 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   static void resetForTesting() {
     instance.dispose();
     instance = PersistentCpuWorker._init();
-  }
-
-  @visibleForTesting
-  void reset() {
-    cancelAll();
-    _isDisposed = false;
-    _maxQueueSize = 50;
-    _activeJobs = 0;
-  }
-
-  @visibleForTesting
-  void setMaxQueueSize(int size) {
-    _maxQueueSize = size;
-  }
-
-  void cancelCurrentGeneration() {
-    cancelAll();
   }
 
   @override
@@ -101,14 +84,10 @@ class PersistentCpuWorker with WidgetsBindingObserver {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
     cancelAll();
-    _isDisposed = true;
   }
 
   Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
-    if (_isDisposed) {
-      return Future.error(StateError("Worker is disposed"));
-    }
-    if (_activeJobs >= maxConcurrentTasks && _queue.length >= _maxQueueSize) {
+    if (_queue.length >= maxQueueSize) {
       return Future.error(WorkerQueueExhaustedException());
     }
 
@@ -154,6 +133,11 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
     Future.microtask(() async {
       try {
+        // Do not pass `queuedTask` or anything referencing Completer into compute.
+        // Copy task and message to local vars to avoid capturing `this` or `queuedTask`.
+        // To be completely safe from capturing the current context, we should pass the task directly
+        // back to compute if it's already a static top-level function, but if it is a closure we might still have problems.
+        // Dart's compute expects a top-level or static function.
         final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
 
         if (queuedTask.generation == _generation) {
@@ -178,9 +162,6 @@ class PersistentCpuWorker with WidgetsBindingObserver {
 
   /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
   Future<double> calculateNewEaseFactor(double currentEase, int rating) {
-    if (currentEase < 0) {
-      return Future.error(ArgumentError("Ease cannot be negative"));
-    }
     return executeTask<Map<String, dynamic>, double>(
         _heavySrsMath, {'ease': currentEase, 'rating': rating});
   }
@@ -188,6 +169,24 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   // دالة رياضية معزولة تماماً (SM-2 Logic)
   static double _heavySrsMath(dynamic rawData) {
     final data = rawData as Map<String, dynamic>;
+=======
+import 'package:flutter/foundation.dart';
+
+/// عامل المعالجة المعزول لضمان عدم تجميد الواجهة أثناء حسابات SRS
+class PersistentCpuWorker {
+  final PersistentCpuWorker instance = PersistentCpuWorker._init();
+
+  PersistentCpuWorker._init();
+
+  /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
+  Future<double> calculateNewEaseFactor(double currentEase, int rating) async {
+    // نقل الحسابات الثقيلة إلى Isolate مستقل باستخدام compute
+    return await compute(heavySrsMath, {'ease': currentEase, 'rating': rating});
+  }
+
+  // دالة رياضية معزولة تماماً (SM-2 Logic)
+  double heavySrsMath(Map<String, dynamic> data) {
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
 
