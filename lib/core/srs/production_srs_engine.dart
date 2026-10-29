@@ -14,7 +14,9 @@ class SrsCardReviewResult {
     required this.easeFactor,
     required this.repetitionCount,
     required this.nextReviewDate,
-  });
+  })  : assert(nextIntervalDays >= 0, 'nextIntervalDays cannot be negative'),
+        assert(easeFactor >= 0, 'easeFactor cannot be negative or NaN'),
+        assert(repetitionCount >= 0, 'repetitionCount cannot be negative');
 }
 
 class ProductionSrsEngine {
@@ -25,13 +27,19 @@ class ProductionSrsEngine {
     required int currentRepetitions,
     required SrsRating rating,
     double morphologicalMultiplier = 1.0,
-    DateTime? now,
+    DateTime? currentTime,
   }) {
-    if (currentIntervalDays < 0) throw ArgumentError('Interval cannot be negative');
-    if (currentRepetitions < 0) throw ArgumentError('Repetitions cannot be negative');
-    if (currentEaseFactor.isNaN) throw ArgumentError('Ease factor cannot be NaN');
+    if (currentIntervalDays < 0) {
+      throw ArgumentError('currentIntervalDays cannot be negative');
+    }
+    if (currentEaseFactor.isNaN) {
+      throw ArgumentError('currentEaseFactor cannot be NaN');
+    }
+    if (currentRepetitions < 0) {
+      throw ArgumentError('currentRepetitions cannot be negative');
+    }
     if (morphologicalMultiplier.isNaN || morphologicalMultiplier < 0) {
-      throw ArgumentError('Invalid morphologicalMultiplier');
+      throw ArgumentError('morphologicalMultiplier must be a valid positive number');
     }
 
     int newRepetitions = currentRepetitions;
@@ -53,7 +61,6 @@ class ProductionSrsEngine {
           newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * morphologicalMultiplier).round());
         }
         newRepetitions += 1;
-        newEase = math.max(1.3, currentEaseFactor); // clamp if it was previously invalid
         break;
       case SrsRating.easy:
         if (newRepetitions == 0) {
@@ -64,12 +71,15 @@ class ProductionSrsEngine {
           newInterval = math.max(1, (currentIntervalDays * currentEaseFactor * 1.3 * morphologicalMultiplier).round());
         }
         newRepetitions += 1;
-        newEase = math.max(1.3, math.min(2.5, currentEaseFactor + 0.15));
+        newEase = math.min(2.5, currentEaseFactor + 0.15);
         break;
     }
 
-    final calculationTime = now ?? DateTime.now();
-    final nextDate = calculationTime.add(Duration(days: math.max(1, newInterval)));
+    // Correct Ease-Factor Minimum boundary
+    newEase = math.max(1.3, newEase);
+
+    final now = currentTime ?? DateTime.now();
+    final nextDate = now.add(Duration(days: math.max(1, newInterval)));
 
     return SrsCardReviewResult(
       nextIntervalDays: newInterval,

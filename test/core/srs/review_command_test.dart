@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
 
 void main() {
   test('ReviewCommand equality and hashCode based on reviewId', () {
-    const command1 = ReviewCommand(
+    final command1 = ReviewCommand(
       reviewId: 'id_123',
       sourceLanguageId: 'en',
       targetLanguageId: 'de',
@@ -14,7 +14,7 @@ void main() {
       hinted: false,
     );
 
-    const command2 = ReviewCommand(
+    final command2 = ReviewCommand(
       reviewId: 'id_123', // Same ID
       sourceLanguageId: 'en',
       targetLanguageId: 'de',
@@ -25,7 +25,7 @@ void main() {
       hinted: true,
     );
 
-    const command3 = ReviewCommand(
+    final command3 = ReviewCommand(
       reviewId: 'id_456', // Different ID
       sourceLanguageId: 'en',
       targetLanguageId: 'de',
