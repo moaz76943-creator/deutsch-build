@@ -85,7 +85,27 @@ bash "$ROOT/scripts/build_guard.sh"
 (cd "$ROOT/android" && ./gradlew --version)
 
 snapshot_lockfile
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
+=======
+run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
+>>>>>>> pr-61
+=======
+with_retry flutter pub get --enforce-lockfile
+>>>>>>> pr-136
+=======
+run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
+>>>>>>> pr-179
+=======
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
+>>>>>>> pr-188
+=======
+flutter pub get --enforce-lockfile
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
@@ -95,8 +115,18 @@ if [[ "$MODE" == "release" || "$VERIFY" == true ]]; then
   log CHECK "Mandatory local quality gate before release"
   bash "$ROOT/scripts/local_quality_gate.sh"
 fi
+<<<<<<< HEAD
+<<<<<<< HEAD
+bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Dart analysis failed"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
+=======
+bash "$ROOT/scripts/check-dart-errors.sh" || fatal "$ERR_COMP" "Blocking Dart errors or analyzer failure"
+if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh" || fatal "$ERR_SIGN" "Signing guard failed"; fi
+>>>>>>> pr-179
+=======
 bash "$ROOT/scripts/check-dart-errors.sh"
 if [[ "$MODE" == release ]]; then bash "$ROOT/scripts/signing_guard.sh"; fi
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 mkdir -p "$ROOT/build/symbols"
 log BUILD "ARM64 $MODE (incremental build and Gradle/pub caches preserved)"
@@ -106,10 +136,26 @@ if [[ "$MODE" == release ]]; then
   # a stripped AOT snapshot directly so native Termux packaging exposes no DWARF.
   build_options=(--obfuscate "--split-debug-info=$ROOT/build/symbols" --extra-gen-snapshot-options=--strip)
 fi
-flutter build apk "--$MODE" --no-pub \
+run_with_retry flutter build apk "--$MODE" --no-pub \
   --target-platform android-arm64 \
   --dart-define="DEUTSCH_JSON_CONTENT=${DEUTSCH_JSON_CONTENT:-false}" \
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
   "${build_options[@]}" || fatal --code "$ERR_COMP" "Flutter build failed"
+=======
+  "${build_options[@]}" || fatal "$ERR_COMP" "APK build failed"
+>>>>>>> pr-61
+=======
+  "${build_options[@]}" || fatal "$ERR_COMP" "Local APK build failed"
+>>>>>>> pr-179
+=======
+  "${build_options[@]}" || fatal "Flutter build apk ($MODE) failed" "$EXIT_COMP"
+>>>>>>> pr-188
+=======
+  "${build_options[@]}"
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 assert_lockfile_unchanged
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"

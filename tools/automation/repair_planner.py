@@ -59,30 +59,23 @@ class RepairPlanner:
             if path.startswith("/") or ".." in path.split("/"):
                 raise ValueError(f"Unsafe path detected: {path}")
 
-    def generate_plan(self, failure_signature: str, dry_run: bool = False, new_input: bool = False) -> dict:
+    def generate_plan(self, failure_signature: str, dry_run: bool = False) -> dict:
         category = self.classify_failure(failure_signature)
 
         target_paths = self._calculate_paths(category, failure_signature)
         self._validate_paths(target_paths)
 
-        if failure_signature in self._history and not new_input:
+        if failure_signature in self._history:
             raise ValueError("Duplicate attempt blocked")
         self._history[failure_signature] = True
 
         transformation = TRANSFORMATIONS[category]
         plan_id = str(uuid.uuid4())
 
-<<<<<<< HEAD
         # Hard fail if missing
         guard = ScopeGuard(owner="repair_planner")
         for allowed in self.allowed_paths:
             guard.add_allowed_path(allowed)
-=======
-        from tools.automation.scope_guard import ScopeGuard
-        guard = ScopeGuard(owner="RepairPlanner")
-        for path in target_paths:
-            guard.add_allowed_path(path)
->>>>>>> origin/staging/v2-full-platform
 
         leases = []
         if not dry_run:

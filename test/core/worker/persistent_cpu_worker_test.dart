@@ -1,66 +1,57 @@
-import 'dart:async';
-import 'package:test/test.dart';
-import 'package:deutsch_app/core/worker/persistent_cpu_worker.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/worker/persistent_cpu_worker.dart';
 
 void main() {
-  group('PersistentCpuWorker Lifecycle & Concurrency Tests', () {
-    late PersistentCpuWorker worker;
+  final worker = PersistentCpuWorker.instance;
+  setUp(worker.reset);
+  tearDown(worker.dispose);
 
-    setUp(() {
-      worker = PersistentCpuWorker();
-    });
-
-    tearDown(() {
-      worker.dispose();
-    });
-
-    test('Enforces latest-wins policy: drops outdated task results when new generation starts', () async {
-      // 1. Task 1 is slow (simulating heavy parsing)
-      final task1 = worker.executeTask<String>(
-        computation: () async {
-          await Future.delayed(const Duration(milliseconds: 50));
-          return 'stale_result_from_task_1';
-        },
-      );
-
-      // 2. Task 2 dispatched immediately after in the same flow (e.g. user typed new query)
-      final task2 = worker.executeTask<String>(
-        computation: () async {
-          await Future.delayed(const Duration(milliseconds: 10));
-          return 'fresh_result_from_task_2';
-        },
-      );
-
-      final results = await Future.wait([task1, task2]);
-
-      // Assert Task 1 result was dropped (null) while Task 2 succeeded
-      expect(results[0], isNull);
-      expect(results[1], equals('fresh_result_from_task_2'));
-    });
-
-    test('Explicit cancellation voids pending task without crashing worker', () async {
-      final task = worker.executeTask<String>(
-        computation: () async {
-          await Future.delayed(const Duration(milliseconds: 40));
-          return 'should_not_arrive';
-        },
-      );
-
-      // Cancel immediately (e.g. user switched language pair)
-      worker.cancelActiveOperations();
-
-      final result = await task;
-      expect(result, isNull);
-    });
-
-    test('Safe dispose prevents zombie executions and rejects new tasks', () async {
-      worker.dispose();
-      expect(worker.isDisposed, isTrue);
-
-      expect(
-        () => worker.executeTask<int>(computation: () async => 42),
-        throwsA(isA<StateError>()),
-      );
-    });
+  test('reuses the isolated worker for sequential and concurrent SRS jobs', () async {
+    final first = await worker.calculateNewEaseFactor(2.5, 4);
+    expect(first, closeTo(2.5, 0.00001));
+    final results = await Future.wait(List.generate(
+      25, (_) => worker.calculateNewEaseFactor(2.5, 1),
+    ));
+    expect(results.length, 25);
+    expect(results.every((item) => item >= 1.3), isTrue);
+    expect(worker.activeJobs, 0);
   });
+
+  test('rejects queue overflow and releases slots after completion', () async {
+    worker.setMaxQueueSize(1);
+    final pending = worker.calculateNewEaseFactor(2.5, 3);
+    await expectLater(worker.calculateNewEaseFactor(2.5, 3),
+        throwsA(isA<WorkerQueueExhaustedException>()));
+    await pending;
+    expect(worker.activeJobs, 0);
+    expect(await worker.calculateNewEaseFactor(2.5, 3), greaterThan(1.3));
+  });
+
+  test('cancellation invalidates old generation without replay', () async {
+    final pending = worker.calculateNewEaseFactor(2.5, 4);
+    worker.cancelCurrentGeneration();
+    await expectLater(pending, throwsA(isA<WorkerCancelledException>()));
+    expect(await worker.calculateNewEaseFactor(2.5, 4), isPositive);
+  });
+
+  test('dispose prevents new jobs and rejects invalid math', () async {
+    await expectLater(worker.calculateNewEaseFactor(-1, 4),
+        throwsA(isA<ArgumentError>()));
+    await expectLater(worker.calculateNewEaseFactor(2.5, 9),
+        throwsA(isA<ArgumentError>()));
+    worker.dispose();
+    await expectLater(worker.calculateNewEaseFactor(2.5, 4),
+        throwsA(isA<StateError>()));
+  });
+  test('disposing during worker startup drains active jobs', () async {
+    final pending = worker.calculateNewEaseFactor(2.5, 3);
+    worker.dispose();
+    await expectLater(pending, throwsA(anyOf(
+      isA<WorkerCancelledException>(), isA<StateError>(),
+    )));
+    expect(worker.activeJobs, 0);
+    worker.reset();
+    expect(await worker.calculateNewEaseFactor(2.5, 3), greaterThan(1.3));
+  });
+
 }
