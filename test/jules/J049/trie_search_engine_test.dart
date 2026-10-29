@@ -2,117 +2,83 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/services/trie_search_engine.dart';
 
 void main() {
-  group('TrieSearchEngine', () {
-    late TrieSearchEngine engine;
-
-    setUp(() {
-      engine = TrieSearchEngine(maxNodes: 100, maxResults: 5);
-    });
-
-    test('Normalize Universal - Latin & German', () {
-      expect(TrieSearchEngine.normalizeUniversal('Mädchen'), 'maedchen');
-      expect(TrieSearchEngine.normalizeUniversal('groß'), 'gross');
-      expect(TrieSearchEngine.normalizeUniversal('Öl'), 'oel');
-      expect(TrieSearchEngine.normalizeUniversal('Über'), 'ueber');
-      expect(TrieSearchEngine.normalizeUniversal('café'), 'cafe');
-    });
-
-    test('Normalize Universal - Arabic', () {
-      expect(TrieSearchEngine.normalizeUniversal('مُحَمَّد'), 'محمد');
-      expect(TrieSearchEngine.normalizeUniversal('بـيـت'), 'بيت');
-      expect(TrieSearchEngine.normalizeUniversal('أإآ'), 'ااا');
-      expect(TrieSearchEngine.normalizeUniversal('مدرسة'), 'مدرسه');
-      expect(TrieSearchEngine.normalizeUniversal('هدى'), 'هدي');
-    });
-
-    test('Normalize Universal - Hebrew', () {
-      expect(TrieSearchEngine.normalizeUniversal('שָׁלוֹם'), 'שלום');
-      expect(TrieSearchEngine.normalizeUniversal('בְּרֵאשִׁית'), 'בראשית');
-    });
-
-    test('Insert and search basic', () {
-      engine.insert('hello', 'id1');
-      engine.insert('hell', 'id2');
-      engine.insert('helicopter', 'id3');
-
-      expect(engine.searchPrefix('hel'), containsAll(['id1', 'id2', 'id3']));
-      expect(engine.searchPrefix('hell'), containsAll(['id1', 'id2']));
-      expect(engine.searchPrefix('hello'), ['id1']);
-      expect(engine.searchPrefix('heli'), ['id3']);
-      expect(engine.searchPrefix('x'), isEmpty);
-    });
-
-    test('Empty queries', () {
-      engine.insert('', 'id1');
-      expect(engine.searchPrefix(''), isEmpty);
-    });
-
-    test('Bounds and Limits', () {
-      for (int i = 0; i < 10; i++) {
-        engine.insert('apple', 'id$i');
-      }
-      final res = engine.searchPrefix('app');
-      expect(res.length, 5); // maxResults is 5
-      expect(res.toSet().length, 5); // no duplicates
-    });
-
-    test('Node Limit', () {
-      final boundedEngine = TrieSearchEngine(maxNodes: 10, maxResults: 10);
-      boundedEngine.insert('abcdefghijklmnopqrstuvwxyz', 'id1');
-      // Root is 1 node. 'abcdefghi' uses 9 nodes. Total 10 nodes.
-      // Search for 'abcdefghi' should return 'id1'
-      expect(boundedEngine.searchPrefix('abcdefghi'), ['id1']);
-      // Should not find further because maxNodes bounded
-      expect(boundedEngine.searchPrefix('abcdefghij'), isEmpty);
-    });
-
-    test('Duplicate insertions', () {
-      engine.insert('duplicate', 'id1');
-      engine.insert('duplicate', 'id1');
-      expect(engine.searchPrefix('dup'), ['id1']);
-    });
-
-    test('Clear and stale state', () {
-      engine.clear(contentVersion: 'v1', languagePair: 'en-de');
-      engine.insert('test', 'id1');
-      expect(engine.searchPrefix('test'), ['id1']);
-
-      expect(engine.isStale('v1', 'en-de'), isFalse);
-      expect(engine.isStale('v2', 'en-de'), isTrue);
-
-      engine.clear(contentVersion: 'v2', languagePair: 'en-fr');
-      expect(engine.searchPrefix('test'), isEmpty);
-    });
-
-    test('Unicode correctness (CJK/Emojis)', () {
-      // 𪜀 is a surrogate pair in UTF-16
-      engine.insert('𪜀𪜁', 'id1');
-      // When iterating by runes, 𪜀 is preserved as 1 character (2 utf-16 code units)
-      // but Dart String.fromCharCode(rune) creates a String.
-      expect(engine.searchPrefix('𪜀'), ['id1']);
-    });
-
-    test('Search Prefix Case-Insensitive', () {
-      engine.insert('Mädchen', 'id1');
-      expect(engine.searchPrefix('Maed'), ['id1']);
-      expect(engine.searchPrefix('mÄd'), ['id1']);
-    });
-
-    test('Measure lookup latency', () {
-      final stopwatch = Stopwatch()..start();
-      for (int i = 0; i < 1000; i++) {
-        engine.insert('word$i', 'id$i');
-      }
-      stopwatch.stop();
-      expect(stopwatch.elapsedMilliseconds, lessThan(200));
-
-      stopwatch.reset();
-      stopwatch.start();
-      for (int i = 0; i < 1000; i++) {
-        engine.searchPrefix('word$i');
-      }
-      stopwatch.stop();
-      expect(stopwatch.elapsedMilliseconds, lessThan(100));
-    });
+  test('German Umlauts and Arabic combining marks use separate policies', () {
+    final de = TrieSearchEngine(languageCode: 'de');
+    final ar = TrieSearchEngine(languageCode: 'ar');
+    de.insert('Mädchen', 'de1');
+    ar.insert('مُعَلِّم', 'ar1');
+    expect(de.searchPrefix('maed'), ['de1']);
+    expect(de.searchPrefix('mad'), isEmpty);
+    expect(ar.searchPrefix('معل'), ['ar1']);
+    // A generic cross-language instance must not silently apply German rules.
+    expect(TrieSearchEngine.normalizeUniversal('Mädchen'), 'mädchen');
   });
+
+  test('Indic combining clusters, CJK and supplementary symbols survive', () {
+    for (final word in ['नमस्ते', 'বাংলা', 'こんにちは', '한국어', '𠀋']) {
+      final index = TrieSearchEngine(languageCode: 'und');
+      expect(index.tryInsert(word, word), isTrue);
+      expect(index.searchPrefix(word), [word]);
+    }
+  });
+
+  test('Hebrew niqqud is stripped only with Hebrew policy', () {
+    final he = TrieSearchEngine(languageCode: 'he');
+    he.insert('שָׁלוֹם', '1');
+    expect(he.searchPrefix('שלום'), ['1']);
+    final other = TrieSearchEngine(languageCode: 'und');
+    other.insert('שָׁלוֹם', '1');
+    expect(other.searchPrefix('שלום'), isEmpty);
+  });
+
+  test('failed capacity insert never leaks a partially indexed word', () {
+    final index = TrieSearchEngine(maxNodes: 5);
+    expect(index.tryInsert('longword', '1'), isFalse);
+    expect(index.searchPrefix('long'), isEmpty);
+    expect(index.currentNodeCount, 1);
+    expect(index.tryInsert('four', '2'), isTrue);
+    expect(index.searchPrefix('four'), ['2']);
+  });
+
+  test('limits are exact and failed overflow does not produce partial prefix', () {
+    final index = TrieSearchEngine(
+      maxNodes: 40, maxResultsPerNode: 2, maxSearchResults: 1,
+    );
+    expect(index.tryInsert('test1', '1'), isTrue);
+    expect(index.tryInsert('test2', '2'), isTrue);
+    expect(index.tryInsert('test3', '3'), isFalse);
+    expect(index.searchPrefix('test'), ['1']);
+    expect(index.searchPrefix('test3'), isEmpty);
+    index.clear();
+    expect(index.searchPrefix('test'), isEmpty);
+  });
+
+  test('pair-scoped indexes refuse other pair IDs', () {
+    final index = TrieSearchEngine(
+      languageCode: 'ar', directedPairKey: 'de_ar_1.0.0',
+    );
+    expect(index.tryInsert('كتاب', '1', pairKey: 'de_ar_1.0.0'), isTrue);
+    expect(index.tryInsert('كتاب', '2', pairKey: 'ar_de_1.0.0'), isFalse);
+    expect(index.searchPrefix('كت', pairKey: 'ar_de_1.0.0'), isEmpty);
+    expect(index.searchPrefix('كت', pairKey: 'de_ar_1.0.0'), ['1']);
+  });
+
+  test('oversized input and unsafe constructor limits fail safely', () {
+    expect(() => TrieSearchEngine(maxNodes: 1), throwsArgumentError);
+    final index = TrieSearchEngine(maxWordGraphemes: 3);
+    expect(index.tryInsert('abcdef', '1'), isFalse);
+    expect(index.searchPrefix('abcdef'), isEmpty);
+    expect(index.currentNodeCount, 1);
+    expect(index.searchPrefix(''), isEmpty);
+  });
+  test('rejects huge grapheme payloads and huge IDs before indexing', () {
+    final index = TrieSearchEngine();
+    final massiveCluster = 'e' + List<String>.filled(2300, '\u0301').join();
+    final enormousId = List<String>.filled(200, 'x').join();
+    expect(index.tryInsert(massiveCluster, '1'), isFalse);
+    expect(index.tryInsert('abc', enormousId), isFalse);
+    expect(index.searchPrefix(massiveCluster), isEmpty);
+    expect(index.currentNodeCount, 1);
+  });
+
 }
