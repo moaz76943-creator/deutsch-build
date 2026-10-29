@@ -105,7 +105,7 @@ class AudioLocaleMapping {
     'yi': 'yi',
     'yo': 'yo-NG',
     'zh': 'zh-CN',
-    'zu': 'zu-ZA'
+    'zu': 'zu-ZA',
   };
 
   /// Explicitly approved regional fallbacks mapping
@@ -125,7 +125,9 @@ class AudioLocaleMapping {
   /// Never falls back silently to English or German unless explicitly requested.
   /// Returns null if no offline voice is available.
   static String? resolveOfflineCapability(
-      String requestedLocale, List<String> availableOfflineLocales) {
+    String requestedLocale,
+    List<String> availableOfflineLocales,
+  ) {
     // 1. Try exact match
     if (availableOfflineLocales.contains(requestedLocale)) {
       return requestedLocale;
