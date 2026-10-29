@@ -22,7 +22,7 @@ void main() {
     );
 
     final arabicStyle = AppTypography.getSafeStyle(arabicIdentity);
-    expect(arabicStyle.fontFamilyFallback, contains('Cairo'));
+    expect(arabicStyle.fontFamilyFallback, contains('NotoSansArabic'));
     expect(arabicStyle.height, 1.2);
 
     final georgianStyle = AppTypography.getSafeStyle(georgianIdentity);
@@ -37,7 +37,7 @@ void main() {
     );
     final cairoStyle = AppTypography.getSafeStyle(cairoIdentity);
     expect(cairoStyle.fontFamily, 'Cairo');
-    expect(cairoStyle.fontFamilyFallback, contains('Cairo'));
+    expect(cairoStyle.fontFamilyFallback, contains('NotoSansArabic'));
     expect(cairoStyle.height, 1.45);
 
     // Test Widget Rendering for RTL
