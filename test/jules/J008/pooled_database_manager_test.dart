@@ -14,7 +14,10 @@ void main() {
       maxConnections: 4,
       openConnection: (code) async {
         openCalls++;
-        final db = await databaseFactory.openDatabase(inMemoryDatabasePath);
+        final db = await databaseFactory.openDatabase(
+          inMemoryDatabasePath,
+          options: OpenDatabaseOptions(singleInstance: false),
+        );
         return db;
       },
     );

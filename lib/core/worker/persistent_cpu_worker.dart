@@ -17,12 +17,7 @@ class WorkerCancelledException implements Exception {
   String toString() => message;
 }
 
-abstract class _ExecutableTask {
-  void execute(PersistentCpuWorker worker);
-  void cancel();
-}
-
-class _QueuedTask<Q, R> implements _ExecutableTask {
+class _QueuedTask<Q, R> {
   final ComputeCallback<Q, R> task;
   final Q message;
   final Completer<R> completer;
@@ -34,51 +29,18 @@ class _QueuedTask<Q, R> implements _ExecutableTask {
     required this.completer,
     required this.generation,
   });
-
-  @override
-  void cancel() {
-    if (!completer.isCompleted) {
-      completer.completeError(WorkerCancelledException());
-    }
-  }
-
-  @override
-  void execute(PersistentCpuWorker worker) {
-    if (generation != worker._generation) {
-      cancel();
-      worker._pump();
-      return;
-    }
-
-    worker._activeJobs++;
-
-    Future.microtask(() async {
-      try {
-        final result = await compute<Q, R>(task, message);
-        if (generation == worker._generation) {
-          if (!completer.isCompleted) completer.complete(result);
-        } else {
-          cancel();
-        }
-      } catch (e, st) {
-        if (!completer.isCompleted) completer.completeError(e, st);
-      } finally {
-        worker._activeJobs--;
-        worker._pump();
-      }
-    });
-  }
 }
 
 class PersistentCpuWorker with WidgetsBindingObserver {
   static PersistentCpuWorker instance = PersistentCpuWorker._init();
 
   final int maxConcurrentTasks;
-  final int maxQueueSize;
+  int maxQueueSize;
+  bool _disposed = false;
 
   int _activeJobs = 0;
   int _generation = 0;
-  final Queue<_ExecutableTask> _queue = Queue<_ExecutableTask>();
+  final Queue<_QueuedTask<dynamic, dynamic>> _queue = Queue<_QueuedTask<dynamic, dynamic>>();
 
   PersistentCpuWorker._init()
       : maxConcurrentTasks = 4,
@@ -100,6 +62,22 @@ class PersistentCpuWorker with WidgetsBindingObserver {
     instance = PersistentCpuWorker._init();
   }
 
+  @visibleForTesting
+  void reset() {
+    cancelAll();
+    _disposed = false;
+  }
+
+  @visibleForTesting
+  void setMaxQueueSize(int size) {
+    maxQueueSize = size;
+  }
+
+  @visibleForTesting
+  void cancelCurrentGeneration() {
+    cancelAll();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
@@ -110,12 +88,15 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   void cancelAll() {
     _generation++;
     for (final task in _queue) {
-      task.cancel();
+      if (!task.completer.isCompleted) {
+        task.completer.completeError(WorkerCancelledException());
+      }
     }
     _queue.clear();
   }
 
   void dispose() {
+    _disposed = true;
     try {
       WidgetsBinding.instance.removeObserver(this);
     } catch (_) {}
@@ -123,6 +104,9 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   Future<R> executeTask<Q, R>(ComputeCallback<Q, R> task, Q message) {
+    if (_disposed) {
+      return Future.error(StateError('Worker is disposed'));
+    }
     if (_queue.length >= maxQueueSize) {
       return Future.error(WorkerQueueExhaustedException());
     }
@@ -142,11 +126,54 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   void _pump() {
+    if (_disposed) return;
     if (_activeJobs >= maxConcurrentTasks || _queue.isEmpty) {
       return;
     }
+
     final queuedTask = _queue.removeFirst();
-    queuedTask.execute(this);
+    _unpackAndExecute(queuedTask);
+  }
+
+  void _unpackAndExecute(dynamic task) {
+    if (task is _QueuedTask) {
+      _executeQueuedTask(task);
+    }
+  }
+
+  void _executeQueuedTask<Q, R>(_QueuedTask<Q, R> queuedTask) {
+    if (queuedTask.generation != _generation || _disposed) {
+      if (!queuedTask.completer.isCompleted) {
+        queuedTask.completer.completeError(WorkerCancelledException());
+      }
+      _pump();
+      return;
+    }
+
+    _activeJobs++;
+
+    Future.microtask(() async {
+      try {
+        final result = await compute<Q, R>(queuedTask.task, queuedTask.message);
+
+        if (queuedTask.generation == _generation && !_disposed) {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.complete(result);
+          }
+        } else {
+          if (!queuedTask.completer.isCompleted) {
+            queuedTask.completer.completeError(WorkerCancelledException());
+          }
+        }
+      } catch (e, st) {
+        if (!queuedTask.completer.isCompleted) {
+          queuedTask.completer.completeError(e, st);
+        }
+      } finally {
+        _activeJobs--;
+        _pump();
+      }
+    });
   }
 
   /// تنفيذ العمليات الحسابية الثقيلة خارج مسار الواجهة (UI Isolate)
@@ -156,9 +183,14 @@ class PersistentCpuWorker with WidgetsBindingObserver {
   }
 
   // دالة رياضية معزولة تماماً (SM-2 Logic)
-  static double _heavySrsMath(Map<String, dynamic> data) {
+  static double _heavySrsMath(dynamic rawData) {
+    final data = rawData as Map<String, dynamic>;
     double ease = data['ease'] as double;
     int rating = data['rating'] as int;
+
+    if (ease < 0) {
+      throw ArgumentError('Invalid ease');
+    }
 
     // معادلة الحفظ والمراجعة المتباعدة
     double newEase = ease + (0.1 - (5 - rating) * (0.08 + (5 - rating) * 0.02));
