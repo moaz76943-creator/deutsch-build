@@ -2,6 +2,7 @@ import 'dart:collection';
 
 class LruMemoryCache<K, V> {
   final int maxCapacity;
+<<<<<<< HEAD
   final int? maxMemoryBytes;
   final void Function(K)? onEvict;
 
@@ -15,8 +16,11 @@ class LruMemoryCache<K, V> {
     this.maxMemoryBytes,
     this.onEvict,
   });
+=======
+  final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
 
-  Iterable<K> get keys => _cache.keys;
+  LruMemoryCache({this.maxCapacity = 200});
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   V? get(K key) {
     if (!_cache.containsKey(key)) return null;
@@ -25,6 +29,7 @@ class LruMemoryCache<K, V> {
     return value;
   }
 
+<<<<<<< HEAD
   void put(K key, V value, {int itemSizeBytes = 0}) {
     if (maxMemoryBytes != null && itemSizeBytes > maxMemoryBytes!) {
       return; // Reject oversized item without caching
@@ -88,12 +93,12 @@ class LruMemoryCache<K, V> {
   int get currentMemoryBytes => _currentMemoryBytes;
 
   void clear() {
-    final keysList = List<K>.from(_cache.keys);
+    final keys = List<K>.from(_cache.keys);
     _cache.clear();
     _sizes.clear();
     _currentMemoryBytes = 0;
     if (onEvict != null) {
-      for (final key in keysList) {
+      for (final key in keys) {
         onEvict!(key);
       }
     }
@@ -101,3 +106,21 @@ class LruMemoryCache<K, V> {
 
   bool containsKey(K key) => _cache.containsKey(key);
 }
+=======
+  void put(K key, V value) {
+    if (_cache.containsKey(key)) {
+      _cache.remove(key);
+    } else if (_cache.length >= maxCapacity) {
+      final firstKey = _cache.keys.first;
+      _cache.remove(firstKey);
+    }
+    _cache[key] = value;
+  }
+
+  int get length => _cache.length;
+
+  void clear() => _cache.clear();
+
+  bool containsKey(K key) => _cache.containsKey(key);
+}
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
