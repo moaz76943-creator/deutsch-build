@@ -1,4 +1,3 @@
-import '../../screens/main_shell_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/flashcards_screen.dart';
 
@@ -11,7 +10,7 @@ class FastOnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainShellScreen()),
+        MaterialPageRoute(builder: (_) => const FlashcardsScreen()),
       );
     });
     return const Scaffold(
