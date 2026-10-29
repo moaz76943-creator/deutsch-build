@@ -8,7 +8,7 @@ on:
 permissions: {}
 
 env:
-  PRIVACY_POLICY_URL: https://sali97m-cpu.github.io/deutsch-bilarabi/privacy.html
+  PRIVACY_POLICY_URL: https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html
 
 concurrency:
   group: privacy-policy-health-check

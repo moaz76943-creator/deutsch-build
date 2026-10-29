@@ -11,6 +11,51 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
+<<<<<<< HEAD
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        // Secure session and pack storage channels
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidSecureSessionStorage.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidSecureSessionStorage(this))
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidPackDatabaseKeyStore.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidPackDatabaseKeyStore(this))
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidRecordedAudioPlayer.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidRecordedAudioPlayer(this))
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidGamificationClockIntegritySource.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidGamificationClockIntegritySource(this))
+
+        // Pronunciation signal probe
+        pronunciationSignalProbe = AndroidPronunciationSignalProbe(this)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidPronunciationSignalProbe.CHANNEL_NAME,
+        ).setMethodCallHandler(pronunciationSignalProbe)
+
+        // Play Integrity API for app and device attestation (required for production integrity protection)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidPlayIntegrityManager.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidPlayIntegrityManager(this))
+
+        // Root and debugger detection
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            AndroidRootDetector.CHANNEL_NAME,
+        ).setMethodCallHandler(AndroidRootDetector(this))
+=======
     private lateinit var offlineVoiceProbe: AndroidOfflineVoiceCapabilityProbe
 
     private var processTextChannel: MethodChannel? = null
@@ -98,6 +143,7 @@ class MainActivity : FlutterActivity() {
         processTextChannel?.setMethodCallHandler(null)
         processTextChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
+>>>>>>> origin/staging/v2-full-platform
     }
 
     override fun onRequestPermissionsResult(
@@ -117,6 +163,15 @@ class MainActivity : FlutterActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+<<<<<<< HEAD
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Prevent the OS/app-switcher from exposing learning data in screenshots (privacy/security).
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        if ((applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+=======
     private fun captureProcessText(source: Intent?) {
         if (source?.action != Intent.ACTION_PROCESS_TEXT) return
         val selected = try {
@@ -191,5 +246,6 @@ class MainActivity : FlutterActivity() {
         private const val TTS_SETTINGS_CHANNEL = "com.deutsch_bilarabi.app/tts_settings"
         private const val TTS_SETTINGS_ACTION = "com.android.settings.TTS_SETTINGS"
         private const val MAX_PENDING_PROCESS_TEXT = 10
+>>>>>>> origin/staging/v2-full-platform
     }
 }

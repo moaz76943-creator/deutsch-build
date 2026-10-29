@@ -8,6 +8,54 @@ import 'language_manager_screen.dart';
 class ProfileHubScreen extends StatelessWidget {
   const ProfileHubScreen({super.key});
 
+  static const String _privacyPolicyUrl =
+      'https://moaz76943-creator.github.io/deutsch-bilarabi-privacy/privacy.html';
+
+  void _showPrivacyPolicy(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Privacy Policy'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Deutsch بالعربي prioritizes your privacy. The app is offline-first.',
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'RECORD_AUDIO (optional): Used only for on-device pronunciation practice. Audio never leaves your device.',
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'No personal data is collected or shared. Uninstalling the app removes all local data.',
+              ),
+              const SizedBox(height: 16),
+              const Text('Full policy:'),
+              SelectableText(
+                _privacyPolicyUrl,
+                style: const TextStyle(color: Colors.blue),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Note: Enable GitHub Pages on the deutsch-bilarabi-privacy repository for the public URL to be live (required for Play Console).',
+                style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,7 +86,11 @@ class ProfileHubScreen extends StatelessWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
+<<<<<<< HEAD
+                        builder: (_) => const OfflineStorageScreen()));
+=======
                         builder: (_) => const LanguageManagerScreen()));
+>>>>>>> origin/staging/v2-full-platform
               },
               child: const Row(
                 children: <Widget>[
@@ -65,6 +117,33 @@ class ProfileHubScreen extends StatelessWidget {
                 ],
               ),
             ),
+<<<<<<< HEAD
+            const SizedBox(height: 12),
+            AppBaseGlassCard(
+              onTap: () => _showPrivacyPolicy(context),
+              child: const Row(
+                children: <Widget>[
+                  Icon(Icons.privacy_tip_rounded,
+                      color: Color(0xFF60A5FA), size: 30),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text('Privacy Policy',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                        Text('View data practices & Google Play compliance',
+                            style:
+                                TextStyle(color: Colors.white60, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      color: Colors.white38, size: 16),
+=======
             const SizedBox(height: 16),
             AppBaseGlassCard(
               child: Column(
@@ -87,6 +166,7 @@ class ProfileHubScreen extends StatelessWidget {
                     },
                     child: const Text(kPrivacyPolicyUrl),
                   ),
+>>>>>>> origin/staging/v2-full-platform
                 ],
               ),
             ),
