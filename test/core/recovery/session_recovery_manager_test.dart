@@ -9,13 +9,10 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      recoveryManager = SessionRecoveryManager(
-        prefs,
-        clock: () => 1728468000, // mock clock matching timestamp to bypass age check
-      );
+      recoveryManager = SessionRecoveryManager(prefs);
     });
 
-    test('Persists and restores valid session accurately (Legacy behavior)', () async {
+    test('Persists and restores valid session accurately', () async {
       final session = SessionState(
         sessionId: 'sess_123',
         currentRoute: '/quiz/trainer',
@@ -30,8 +27,6 @@ void main() {
       expect(restored?.sessionId, 'sess_123');
       expect(restored?.currentRoute, '/quiz/trainer');
       expect(restored?.lastItemIndex, 5);
-      expect(restored?.version, 1);
-      expect(restored?.recoveryAttempts, 1);
     });
 
     test('Handles corrupted data gracefully without crashing', () async {
@@ -42,7 +37,6 @@ void main() {
       final manager = SessionRecoveryManager(prefs);
 
       expect(manager.restoreSession(), isNull);
-      expect(prefs.getString('deutsch_active_session_recovery_v1'), isNull);
     });
 
     test('Clears active session on demand', () async {

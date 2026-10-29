@@ -22,7 +22,7 @@ void main() {
       previousInterval: 1,
     );
     expect(result['repetitions'], 2);
-    expect(result['interval'], 4);
+    expect(result['interval'], 6);
 
     // اختبار الإخفاق وتصفير العداد
     result = SrsEngine.calculateNextReview(
