@@ -1,0 +1,22 @@
+{
+  "isoCode": "en",
+  "autonym": "English",
+  "englishName": "English",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": true,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": false,
+    "hasGrammaticalGender": false,
+    "auxiliaries": ["be", "have", "do"],
+    "phoneticWritingConsistency": "low"
+  }
+}
