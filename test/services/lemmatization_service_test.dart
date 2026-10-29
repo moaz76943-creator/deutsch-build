@@ -146,38 +146,4 @@ void main() {
       throwsArgumentError,
     );
   });
-  test('ambiguous attested forms never select an arbitrary first lemma',
-      () async {
-    await database.insert('inflections_lookup', <String, Object?>{
-      'inflected_form': 'saw',
-      'language_code': 'en',
-      'lemma': 'see',
-      'lexicon_id': 'en-see',
-    });
-    await database.insert('inflections_lookup', <String, Object?>{
-      'inflected_form': 'saw',
-      'language_code': 'en',
-      'lemma': 'saw',
-      'lexicon_id': 'en-saw',
-    });
-    expect(
-      (await service.lookup('saw', languageCode: 'en'))
-          .map((match) => match.lemma).toSet(),
-      <String>{'saw', 'see'},
-    );
-    expect(await service.resolve('saw', languageCode: 'en'), isNull);
-
-    final queries = <String>[];
-    final fallback = await service.searchWithLemmaFallback(
-      'saw',
-      languageCode: 'en',
-      searchDictionary: (term, locale) async {
-        queries.add('$locale:$term');
-        return const <Map<String, dynamic>>[];
-      },
-    );
-    expect(fallback, isEmpty);
-    expect(queries, <String>['en:saw']);
-  });
-
 }

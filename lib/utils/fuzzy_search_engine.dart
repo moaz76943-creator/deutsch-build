@@ -64,9 +64,7 @@ class FuzzySearchEngine {
         final insertion = matrix[i + 1][j] + 1;
         final deletion = matrix[i][j + 1] + 1;
         final transposition = matrix[previousRow][previousColumn] +
-            (i - previousRow - 1) +
-            1 +
-            (j - previousColumn - 1);
+            (i - previousRow - 1) + 1 + (j - previousColumn - 1);
         var cost = substitution < insertion ? substitution : insertion;
         if (deletion < cost) cost = deletion;
         if (transposition < cost) cost = transposition;
@@ -176,7 +174,8 @@ class FuzzySearchEngine {
         phonetic,
       );
       var insertAt = 0;
-      while (insertAt < best.length && _compare(best[insertAt], next) <= 0) {
+      while (insertAt < best.length &&
+          _compare(best[insertAt], next) <= 0) {
         insertAt++;
       }
       if (insertAt >= maxSuggestions) continue;

@@ -60,7 +60,7 @@ void main() {
       });
     }
     await db.insert('lexicon', <String, Object>{
-      'id': 'lex.$language.1',
+      'id': 'lex.' + language + '.1',
       'surface': 'test',
       'part_of_speech': 'noun',
       'language_code': language,

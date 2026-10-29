@@ -44,15 +44,14 @@ class DiagnosticLedgerService {
         // Keep a single record strictly below the file cap.
         var bytes = utf8.encode('$line\n');
         if (bytes.length > maximumBytes ~/ 4) {
-          bytes = utf8.encode('${jsonEncode(<String, String>{
-                'time': DateTime.now().toUtc().toIso8601String(),
-                'category': category,
-                'language': languageCode,
-                'error': 'Error description exceeds the offline ledger limit',
-              })}\n');
+          bytes = utf8.encode(jsonEncode(<String, String>{
+            'time': DateTime.now().toUtc().toIso8601String(),
+            'category': category,
+            'language': languageCode,
+            'error': 'Error description exceeds the offline ledger limit',
+          }) + '\n');
         }
-        final existing =
-            await file.exists() ? await file.readAsBytes() : <int>[];
+        final existing = await file.exists() ? await file.readAsBytes() : <int>[];
         if (existing.length + bytes.length <= maximumBytes) {
           await file.writeAsBytes(<int>[...existing, ...bytes], flush: true);
         } else {
