@@ -1,58 +1,43 @@
 import 'package:flutter/material.dart';
-import '../design_system/design_system.dart';
-import 'package:deutsch_bilarabi/services/language_pack_manager.dart';
+import '../services/database_integrity_service.dart';
+import '../services/database_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LanguageManagerScreen extends StatefulWidget {
+import '../providers/active_language_provider.dart';
+
+/// Remote metadata and verified on-device archives, never fabricated pack sizes.
+class LanguageManagerScreen extends ConsumerWidget {
   const LanguageManagerScreen({super.key});
 
-  @override
-  State<LanguageManagerScreen> createState() => _LanguageManagerScreenState();
-}
-
-class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
-  bool _isLoading = false;
-  late List<Map<String, dynamic>> _languages;
+  static const _background = Color(0xFF0F172A);
+  static const _card = Color(0xFF1E293B);
+  static const _accent = Color(0xFF38BDF8);
 
   @override
-  void initState() {
-    super.initState();
-    _languages = LanguagePackManager.supportedLanguages.map((code) {
-      final name = LanguagePackManager.getLanguageName(code);
-      final isDefault = ['de', 'ar', 'en'].contains(code);
-      return {
-        'code': code,
-        'name': name,
-        'downloaded': isDefault,
-        'size': '${(3.2 + (code.hashCode.abs() % 25) / 10).toStringAsFixed(1)} MB',
-      };
-    }).toList();
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(activeLanguageProvider);
+    final packs = state.visiblePacks;
 
-  Future<void> _toggleDownload(int index) async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    final item = _languages[index];
-    final willDownload = !(item["downloaded"] as bool);
-    if (willDownload) {
-      final ttsLocale = LanguagePackManager.getTtsLocale(item['code'] as String);
-      await LanguagePackManager.verifyAndMountOfflinePack(ttsLocale);
-    }
-    setState(() {
-      item['downloaded'] = willDownload;
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            willDownload
-                ? 'تم تحميل وتفعيل حزمة لغة: ${item['name']}'
-                : 'تم إلغاء حزمة لغة: ${item['name']}',
-          ),
-          backgroundColor: const Color(0xFF38BDF8),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: _background,
+        appBar: AppBar(
+          title: const Text('إدارة حزم اللغات'),
+          backgroundColor: _background,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              tooltip: 'تحديث قائمة اللغات',
+              onPressed: state.isLoadingCatalog
+                  ? null
+                  : () => ref
+                      .read(activeLanguageProvider.notifier)
+                      .refreshCatalog(),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
         ),
-<<<<<<< HEAD
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -67,15 +52,20 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                       children: [
                         Text(
                           'حزم اللغات المتاحة',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'المثبتة: ${state.installedCodes.length}  •  في الكتالوج: ${state.remotePacks.length}',
+                          'المثبتة: ' +
+                              state.installedCodes.length.toString() +
+                              '  •  في الكتالوج: ' +
+                              state.remotePacks.length.toString(),
                           style: const TextStyle(color: Color(0xFFCBD5E1)),
                         ),
                         const SizedBox(height: 8),
@@ -90,99 +80,24 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                         if (state.errorMessage != null) ...[
                           const SizedBox(height: 10),
                           Row(
-=======
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة حزم اللغات (100 لغة)'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppGradients.darkScaffold),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'حمّل اللغات المتاحة للعمل بدون إنترنت (100 لغة مدعومة)',
-                  style: AppTypography.body.copyWith(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _languages.length,
-                    itemBuilder: (context, index) {
-                      final lang = _languages[index];
-                      final isDownloaded = lang['downloaded'] as bool;
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: AppBaseGlassCard(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                             children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      lang['name'] as String,
-                                      style: AppTypography.display.copyWith(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      isDownloaded
-                                          ? 'حزمة متوفرة (${lang['size']})'
-                                          : 'جاهزة للتحميل (${lang['size']})',
-                                      style: AppTypography.body.copyWith(
-                                        color: isDownloaded
-                                            ? const Color(0xFF34D399)
-                                            : Colors.white.withValues(alpha: 0.5),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              const Icon(
+                                Icons.info_outline_rounded,
+                                color: Color(0xFFFBBF24),
+                                size: 18,
                               ),
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isDownloaded
-                                      ? Colors.white.withValues(alpha: 0.1)
-                                      : const Color(0xFF38BDF8),
-                                  foregroundColor: isDownloaded
-                                      ? Colors.white
-                                      : Colors.black,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  state.errorMessage!,
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDE68A),
+                                    fontSize: 12,
                                   ),
                                 ),
-                                onPressed: _isLoading ? null : () => _toggleDownload(index),
-                                icon: Icon(
-                                  isDownloaded ? Icons.check_rounded : Icons.download_rounded,
-                                  size: 18,
-                                ),
-                                label: Text(isDownloaded ? 'مثبت' : 'تنزيل'),
                               ),
                             ],
                           ),
-<<<<<<< HEAD
                         ],
                       ],
                     ),
@@ -201,7 +116,8 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
                         itemCount: packs.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
                         itemBuilder: (context, index) =>
                             _packCard(context, ref, state, packs[index]),
                       ),
@@ -213,7 +129,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
           ),
         ),
       ),
-    )
+    );
   }
 
   Widget _packCard(
@@ -298,7 +214,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${pack.name} • ${pack.code.toUpperCase()}',
+                        pack.name + ' • ' + pack.code.toUpperCase(),
                         textDirection: TextDirection.ltr,
                         style: const TextStyle(
                           color: Color(0xFFCBD5E1),
@@ -307,7 +223,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'الحجم: ${_formattedSize(pack.sizeBytes)}',
+                        'الحجم: ' + _formattedSize(pack.sizeBytes),
                         style: const TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 12,
@@ -327,16 +243,10 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                         _statusChip('Built-in', const Color(0xFFCBD5E1)),
                       ],
                     ],
-=======
-                        ),
-                      );
-                    },
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
                   ),
                 ),
               ],
             ),
-<<<<<<< HEAD
             if (isDownloading) ...[
               const SizedBox(height: 14),
               LinearProgressIndicator(
@@ -348,7 +258,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
               ),
               const SizedBox(height: 5),
               Text(
-                '${(progress * 100).toStringAsFixed(0)}%',
+                (progress * 100).toStringAsFixed(0) + '%',
                 textDirection: TextDirection.ltr,
                 textAlign: TextAlign.end,
                 style: const TextStyle(color: Colors.white70),
@@ -366,17 +276,12 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                     onPressed: () => _runAction(
                       context,
                       () async {
-                        final recovered =
-                            await DatabaseIntegrityService.instance.recover(
+                        final recovered = await DatabaseIntegrityService.instance.recover(
                           languageCode: pack.code,
-                          closeMounted: () => DatabaseService.instance
-                              .closeContentDb(pack.code),
-                          remount: () =>
-                              DatabaseService.instance.getContentDb(pack.code),
+                          closeMounted: () => DatabaseService.instance.closeContentDb(pack.code),
+                          remount: () => DatabaseService.instance.getContentDb(pack.code),
                         );
-                        if (!recovered) {
-                          throw StateError('Pack still quarantined');
-                        }
+                        if (!recovered) throw StateError('Pack still quarantined');
                       },
                       'تم فحص القاعدة المحلية بنجاح.',
                     ),
@@ -392,7 +297,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
                               () => ref
                                   .read(activeLanguageProvider.notifier)
                                   .selectLanguage(pack.code),
-                              'تم اختيار اللغة: ${pack.nativeName}',
+                              'تم اختيار اللغة: ' + pack.nativeName,
                             ),
                   ),
                 if (!isInstalled)
@@ -431,7 +336,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
           ],
         ),
       ),
-    )
+    );
   }
 
   Widget _statusChip(String label, Color color) {
@@ -484,19 +389,22 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('حذف حزمة اللغة؟'),
         content: Text(
-          'سيُحذف الأرشيف المحلي للغة ${pack.nativeName} لتحرير مساحة التخزين. لا يمكن حذف الألمانية المضمنة.',
+          'سيُحذف الأرشيف المحلي للغة ' +
+              pack.nativeName +
+              ' لتحرير مساحة التخزين. لا يمكن حذف الألمانية المضمنة.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('إلغاء'),
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
           ),
-        ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('حذف'),
+          ),
+        ],
       ),
     );
-<<<<<<< HEAD
     if (approved != true || !context.mounted) return;
     await _runAction(
       context,
@@ -521,7 +429,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('تعذر تنفيذ العملية: $error')),
+          SnackBar(content: Text('تعذر تنفيذ العملية: ' + error.toString())),
         );
     }
   }
@@ -529,7 +437,7 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
   String _formattedSize(int? bytes) {
     if (bytes == null) return 'غير معروف';
     final megabytes = bytes / (1024 * 1024);
-    return '${megabytes.toStringAsFixed(megabytes < 0.01 ? 4 : 2)} MB';
+    return megabytes.toStringAsFixed(megabytes < 0.01 ? 4 : 2) + ' MB';
   }
 
   String _flagFor(String code) {
@@ -564,7 +472,5 @@ class _LanguageManagerScreenState extends State<LanguageManagerScreen> {
       'hu': '🇭🇺',
     };
     return flags[code] ?? '🌐';
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 }

@@ -23,8 +23,8 @@ class PooledDatabaseManager {
     DatabaseFlushHook? beforeClose,
   })  : _openConnection = openConnection,
         _beforeClose = beforeClose {
-    if (maxConnections < 1) {
-      throw RangeError.range(maxConnections, 1, null, 'maxConnections');
+    if (maxConnections < 1 || maxConnections > 4) {
+      throw RangeError.range(maxConnections, 1, 4, 'maxConnections');
     }
   }
 
@@ -69,8 +69,6 @@ class PooledDatabaseManager {
       _connections[code] = existing;
       return existing;
     }
-
-    // Close excess idle connections before opening a new one
     while (_connections.length >= maxConnections) {
       final evict = _connections.keys.firstWhere(
         (key) => (_leases[key] ?? 0) == 0,
@@ -81,15 +79,7 @@ class PooledDatabaseManager {
       }
       await _closeLocked(evict);
     }
-
-    Database? opened;
-    try {
-      opened = await _openConnection(code);
-    } catch (e) {
-      // If opening fails, do not add to connections, let the error propagate
-      rethrow;
-    }
-
+    final opened = await _openConnection(code);
     if (!opened.isOpen) {
       throw StateError('Connection for $code is already closed');
     }
@@ -108,7 +98,6 @@ class PooledDatabaseManager {
       _leases[code] = (_leases[code] ?? 0) + 1;
       return opened;
     });
-
     try {
       return await action(db);
     } finally {
@@ -130,18 +119,13 @@ class PooledDatabaseManager {
     if ((_leases[code] ?? 0) != 0) {
       throw StateError('Cannot close an in-use content database: $code');
     }
-    final db = _connections.remove(code);
+    final db = _connections[code];
     if (db == null) return;
     if (db.isOpen) {
-      if (_beforeClose != null) {
-        try {
-          await _beforeClose!(db);
-        } catch (_) {
-          // Ignore errors in beforeClose during eviction to guarantee close
-        }
-      }
+      if (_beforeClose != null) await _beforeClose!(db);
       await db.close();
     }
+    _connections.remove(code);
   }
 
   /// Closes all open connections that are not currently leased by active operations.

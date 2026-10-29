@@ -43,19 +43,12 @@ class DeltaPatchService {
     final expected = patch['expectedSha256'];
     final baseExpected = patch['baseSha256'];
     final operations = patch['operations'];
-    if (from is! int ||
-        from < 0 ||
-        to is! int ||
-        to <= from ||
-        expected is! String ||
-        !_hashFormat.hasMatch(expected) ||
+    if (from is! int || from < 0 || to is! int || to <= from ||
+        expected is! String || !_hashFormat.hasMatch(expected) ||
         (baseExpected != null &&
             (baseExpected is! String || !_hashFormat.hasMatch(baseExpected))) ||
-        operations is! List ||
-        operations.isEmpty ||
-        operations.length > 5000) {
-      throw const FormatException(
-          'Invalid patch versions, digest or operations');
+        operations is! List || operations.isEmpty || operations.length > 5000) {
+      throw const FormatException('Invalid patch versions, digest or operations');
     }
     if (!await databaseFile.exists()) {
       throw StateError('SQLite file is not installed');
@@ -70,7 +63,7 @@ class DeltaPatchService {
     if (baseExpected != null && !_same(before, baseExpected)) {
       throw StateError('Base SHA-256 mismatch');
     }
-    final staged = File('${databaseFile.path}.delta-staging');
+    final staged = File(databaseFile.path + '.delta-staging');
     if (await staged.exists()) {
       throw StateError('Unrecovered or concurrent delta staging file');
     }
@@ -105,8 +98,7 @@ class DeltaPatchService {
       // integrity_check does not report orphaned foreign keys. Reject a
       // candidate with broken references before replacing last-known-good,
       // even when SQLite foreign_keys enforcement was disabled by the opener.
-      final foreignKeyViolations =
-          await db.rawQuery('PRAGMA foreign_key_check');
+      final foreignKeyViolations = await db.rawQuery('PRAGMA foreign_key_check');
       if (foreignKeyViolations.isNotEmpty) {
         throw StateError('SQLite foreign key check failed');
       }
@@ -138,12 +130,9 @@ class DeltaPatchService {
     if (kind == 'sql') {
       final sql = op['sql'];
       final arguments = op['args'] ?? <Object?>[];
-      if (sql is! String ||
-          !_dml.hasMatch(sql.trim()) ||
-          sql.contains(';') ||
-          sql.contains('--') ||
-          sql.contains('/*') ||
-          arguments is! List) {
+      if (sql is! String || !_dml.hasMatch(sql.trim()) ||
+          sql.contains(';') || sql.contains('--') ||
+          sql.contains('/*') || arguments is! List) {
         throw const FormatException('Only one bound DML statement is allowed');
       }
       await txn.execute(sql, arguments.map<Object?>((v) => _bind(v)).toList());
@@ -153,8 +142,7 @@ class DeltaPatchService {
     if (kind == 'insert') {
       final values = _values(op['values']);
       if (values.isEmpty) throw const FormatException('Empty INSERT');
-      await txn.insert(table, values,
-          conflictAlgorithm: ConflictAlgorithm.abort);
+      await txn.insert(table, values, conflictAlgorithm: ConflictAlgorithm.abort);
       return;
     }
     if (kind != 'update' && kind != 'delete') {
@@ -197,9 +185,7 @@ class DeltaPatchService {
   }
 
   static Object? _bind(Object? value) {
-    if (value == null ||
-        value is String ||
-        value is num ||
+    if (value == null || value is String || value is num ||
         value is List<int>) {
       return value;
     }

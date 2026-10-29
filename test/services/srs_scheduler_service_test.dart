@@ -1,5 +1,6 @@
 import 'package:deutsch_bilarabi/services/srs_scheduler_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {

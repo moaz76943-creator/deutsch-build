@@ -63,7 +63,7 @@ void main() {
       final archive = Archive();
       final content = utf8.encode('{"valid": true}');
       archive.addFile(ArchiveFile('metadata/pack.json', content.length, content));
-      final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive));
+      final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive)!);
 
       final outDir = Directory('${tempDir.path}/extracted');
       final result = await SecureArchiveExtractor.extractZipBytes(
@@ -81,7 +81,7 @@ void main() {
       final archive = Archive();
       final content = Uint8List(2048); // 2 KB
       archive.addFile(ArchiveFile('huge.bin', content.length, content));
-      final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive));
+      final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive)!);
 
       final outDir = Directory('${tempDir.path}/extracted_bomb');
       expect(
