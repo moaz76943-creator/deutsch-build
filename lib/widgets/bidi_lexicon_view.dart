@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'resilient_text_container.dart';
 
 /// Whether [langCode] normally uses right-to-left script direction.
 ///
@@ -49,7 +48,6 @@ class BidiLexiconView extends StatelessWidget {
     required this.targetExplanation,
     this.sourceStyle,
     this.explanationStyle,
-    this.phonetic,
   });
 
   final String sourceWord;
@@ -57,8 +55,6 @@ class BidiLexiconView extends StatelessWidget {
   final String targetExplanation;
   final TextStyle? sourceStyle;
   final TextStyle? explanationStyle;
-  /// Optional pronunciation placed directly below the headword.
-  final Widget? phonetic;
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +64,6 @@ class BidiLexiconView extends StatelessWidget {
     final interfaceDirection = Directionality.of(context);
     final textTheme = Theme.of(context).textTheme;
 
-    if (sourceWord.trim().isEmpty &&
-        targetExplanation.trim().isEmpty &&
-        phonetic == null) {
-      return const SizedBox.shrink();
-    }
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -81,30 +71,21 @@ class BidiLexiconView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            if (sourceWord.trim().isNotEmpty)
-              ResilientTextContainer(
-                text: _isolateBidi(sourceWord),
-                textDirection: sourceDirection,
-                textAlign: TextAlign.start,
-                style: sourceStyle ?? textTheme.titleLarge,
-                maxLines: 3,
-              ),
-            if (phonetic != null) ...<Widget>[
-              if (sourceWord.trim().isNotEmpty)
-                const SizedBox(height: 8),
-              phonetic!,
-            ],
-            if (targetExplanation.trim().isNotEmpty) ...<Widget>[
-              if (sourceWord.trim().isNotEmpty || phonetic != null)
-                const SizedBox(height: 8),
-              ResilientTextContainer(
-                text: _isolateBidi(targetExplanation),
-                textDirection: interfaceDirection,
-                textAlign: TextAlign.start,
-                style: explanationStyle ?? textTheme.bodyMedium,
-                maxLines: 8,
-              ),
-            ],
+            Text(
+              _isolateBidi(sourceWord),
+              textDirection: sourceDirection,
+              textAlign: TextAlign.start,
+              style: sourceStyle ?? textTheme.titleLarge,
+              semanticsLabel: sourceWord,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isolateBidi(targetExplanation),
+              textDirection: interfaceDirection,
+              textAlign: TextAlign.start,
+              style: explanationStyle ?? textTheme.bodyMedium,
+              semanticsLabel: targetExplanation,
+            ),
           ],
         ),
       ),

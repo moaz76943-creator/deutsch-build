@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
@@ -16,40 +15,6 @@ class PackDownloaderService {
   static const String defaultManifestUrl =
       'https://raw.githubusercontent.com/moaz76943-creator/-offline-packs-store/main/manifest.json';
   static const String _bundleFormat = 'json-gzip-v1';
-  static const int maxUncompressedPackBytes = 64 * 1024 * 1024;
-
-  /// Decode gzip incrementally; reject oversized payloads before retaining
-  /// the chunk. The limit applies to the expanded JSON envelope (including
-  /// embedded Base64), not merely the compressed download size.
-  ///
-  /// [maxExpandedBytes] may be reduced for isolated boundary tests but never
-  /// increased beyond the production 64 MiB ceiling.
-  static Future<Uint8List> decodeGzipEnvelope(
-    Stream<List<int>> compressedChunks, {
-    int maxExpandedBytes = maxUncompressedPackBytes,
-  }) async {
-    if (maxExpandedBytes < 1 ||
-        maxExpandedBytes > maxUncompressedPackBytes) {
-      throw RangeError.range(
-        maxExpandedBytes, 1, maxUncompressedPackBytes, 'maxExpandedBytes',
-      );
-    }
-    final expanded = BytesBuilder(copy: false);
-    var expandedBytes = 0;
-    await for (final chunk in compressedChunks.transform(gzip.decoder)) {
-      // Subtraction avoids overflow even for a malicious length.
-      if (chunk.length > maxExpandedBytes - expandedBytes) {
-        throw StateError(
-          'Uncompressed pack envelope exceeds the '
-          '${maxExpandedBytes} byte limit (64 MiB maximum)',
-        );
-      }
-      expanded.add(chunk);
-      expandedBytes += chunk.length;
-    }
-    return expanded.takeBytes();
-  }
-
   static final Map<String, http.Client> _activeClients = <String, http.Client>{};
   static final Set<String> _cancelledDownloads = <String>{};
 
@@ -363,9 +328,8 @@ class PackDownloaderService {
     File archive,
     _PackDescriptor descriptor,
   ) async {
-    // Never materialize the compressed file in RAM. Stop expansion at 64 MiB
-    // before JSON or Base64 decoding can amplify memory consumption further.
-    final decompressed = await decodeGzipEnvelope(archive.openRead());
+    final compressed = await archive.readAsBytes();
+    final decompressed = gzip.decode(compressed);
     final decoded = jsonDecode(utf8.decode(decompressed));
     if (decoded is! Map) {
       throw const FormatException('Pack envelope must be an object');

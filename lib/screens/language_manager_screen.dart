@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/database_integrity_service.dart';
-import '../services/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/active_language_provider.dart';
@@ -139,7 +137,6 @@ class LanguageManagerScreen extends ConsumerWidget {
     LanguagePackMetadata pack,
   ) {
     final isGerman = pack.code == 'de';
-    final isQuarantined = state.quarantinedCodes.contains(pack.code);
     final isActive = state.activeLanguageCode == pack.code;
     final isInstalled = state.isInstalled(pack.code);
     final isDownloading = state.isDownloading(pack.code);
@@ -148,10 +145,7 @@ class LanguageManagerScreen extends ConsumerWidget {
 
     final String status;
     final Color statusColor;
-    if (isQuarantined) {
-      status = 'معزولة — قاعدة غير سليمة';
-      statusColor = const Color(0xFFFCA5A5);
-    } else if (isDownloading) {
+    if (isDownloading) {
       status = 'جارٍ التنزيل';
       statusColor = _accent;
     } else if (isActive) {
@@ -269,23 +263,6 @@ class LanguageManagerScreen extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                if (isQuarantined)
-                  _actionButton(
-                    icon: Icons.refresh_rounded,
-                    label: 'إعادة فحص محلية',
-                    onPressed: () => _runAction(
-                      context,
-                      () async {
-                        final recovered = await DatabaseIntegrityService.instance.recover(
-                          languageCode: pack.code,
-                          closeMounted: () => DatabaseService.instance.closeContentDb(pack.code),
-                          remount: () => DatabaseService.instance.getContentDb(pack.code),
-                        );
-                        if (!recovered) throw StateError('Pack still quarantined');
-                      },
-                      'تم فحص القاعدة المحلية بنجاح.',
-                    ),
-                  ),
                 if (isInstalled && !isActive)
                   _actionButton(
                     icon: Icons.play_arrow_rounded,
