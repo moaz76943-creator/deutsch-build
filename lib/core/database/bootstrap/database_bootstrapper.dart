@@ -29,6 +29,15 @@ class DatabaseBootstrapper {
         }
       }
 
+      // An unsuccessful seeder must never turn a missing pack into READY.
+      // This is a read-only readiness check: do not delete or recreate data.
+      if (!await file.exists()) {
+        return const DatabaseBootstrapResult(
+          isReady: false,
+          error: 'Database file still missing after seeding',
+        );
+      }
+
       // فحص أولي لوجود ترويسة SQLite القياسية (SQLite format 3)
       if (await file.exists()) {
         final length = await file.length();
