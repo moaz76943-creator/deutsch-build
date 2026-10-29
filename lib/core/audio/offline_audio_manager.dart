@@ -1,16 +1,10 @@
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:deutsch_bilarabi/core/audio/audio_generation_tracker.dart';
 
-<<<<<<< HEAD
 /// The platform TTS channel must not exist until an actual playback request.
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 class OfflineAudioManager {
   static final OfflineAudioManager instance = OfflineAudioManager._init();
-  final FlutterTts _flutterTts = FlutterTts();
-  final String _currentLocale = 'de-DE';
 
-<<<<<<< HEAD
   OfflineAudioManager._init() : _createTts = FlutterTts.new;
 
   /// Provides a deterministic lazy factory for focused unit tests.
@@ -45,15 +39,18 @@ class OfflineAudioManager {
     String locale = 'de-DE',
     double rate = 0.4,
   }) async {
+    final int thisGeneration = _generationTracker.nextGeneration();
     if (text.trim().isEmpty) return;
     try {
       await _ensureInitialized();
       final tts = _flutterTts!;
       await tts.stop();
+      if (!_generationTracker.isCurrent(thisGeneration)) return;
       if (_currentLocale != locale) {
         await tts.setLanguage(locale);
         _currentLocale = locale;
       }
+      if (!_generationTracker.isCurrent(thisGeneration)) return;
       await tts.setSpeechRate(rate);
       await tts.speak(text);
     } catch (_) {
@@ -61,39 +58,14 @@ class OfflineAudioManager {
     }
   }
 
+
+
   Future<void> stop() async {
+    _generationTracker.reset();
     final tts = _flutterTts;
     if (tts == null) return;
     try {
       await tts.stop();
-=======
-  OfflineAudioManager._init() {
-    setupTts();
-  }
-
-  Future<void> setupTts() async {
-    try {
-      await _flutterTts.setLanguage('de-DE');
-      await _flutterTts.setSpeechRate(0.4);
-      await _flutterTts.setVolume(1.0);
-    } catch (_) {}
-  }
-
-  Future<void> speak(String text, {String locale = 'de-DE', double rate = 0.4}) async {
-    try {
-      await stop();
-      if (_currentLocale != locale) {
-        await _flutterTts.setLanguage(locale);
-        _currentLocale = locale;
-      }
-      await _flutterTts.speak(text);
-    } catch (_) {}
-  }
-
-  Future<void> stop() async {
-    try {
-      await _flutterTts.stop();
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
     } catch (_) {}
   }
 }
