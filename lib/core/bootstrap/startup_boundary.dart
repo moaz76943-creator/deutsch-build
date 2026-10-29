@@ -331,16 +331,13 @@ class _StartupBoundaryState extends State<StartupBoundary> {
       case StartupState.INITIALIZING:
         return const Scaffold(
           body: Center(
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('جاري تهيئة التطبيق دون اتصال...'),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('جاري تهيئة التطبيق دون اتصال...'),
+              ],
             ),
           ),
         );
