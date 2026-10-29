@@ -102,8 +102,8 @@ void main() {
       const ledger = StreakFreezeLedger();
       final dt = DateTime(2023, 1, 1, 12, 0);
 
-      final l1 = ledger.recordUsage('miss', timestamp: dt);
-      final l2 = l1.recordUsage('miss', timestamp: dt.add(const Duration(hours: 1)));
+      final l1 = ledger.recordUsage('miss', now: dt);
+      final l2 = l1.recordUsage('miss', now: dt.add(const Duration(hours: 1)));
 
       expect(l1.remainingShields, 1);
       expect(l2.remainingShields, 1); // Should not consume another
@@ -115,13 +115,13 @@ void main() {
       final dt2 = DateTime(2023, 1, 2, 12, 0);
       final dt3 = DateTime(2023, 1, 3, 12, 0);
 
-      final l1 = ledger.recordUsage('miss1', timestamp: dt1);
+      final l1 = ledger.recordUsage('miss1', now: dt1);
       expect(l1.remainingShields, 1);
 
-      final l2 = l1.recordUsage('miss2', timestamp: dt2);
+      final l2 = l1.recordUsage('miss2', now: dt2);
       expect(l2.remainingShields, 0);
 
-      final l3 = l2.recordUsage('miss3', timestamp: dt3);
+      final l3 = l2.recordUsage('miss3', now: dt3);
       expect(l3.remainingShields, 0); // Out of shields
     });
   });

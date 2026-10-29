@@ -1,17 +1,22 @@
+import 'package:characters/characters.dart';
+
 class TrieNode {
   final Map<String, TrieNode> children = {};
   final List<String> wordIds = [];
 }
 
 class TrieSearchEngine {
-  final TrieNode _root = TrieNode();
+  TrieNode _root = TrieNode();
+  int _nodeCount = 1;
+  final String languageCode;
+  final String? directedPairKey;
+  final int maxNodes;
+  final int maxResultsPerNode;
+  final int maxSearchResults;
+  final int maxWordGraphemes;
+  static const int maxInputCodeUnits = 1024;
+  static const int maxIdCodeUnits = 128;
 
-  /// تطبيع نصي عالمي يدعم اللاتينية، السلافية، والتشكيل العربي
-  static String normalizeUniversal(String text) {
-    if (text.isEmpty) return text;
-    String res = text.toLowerCase().trim();
-
-<<<<<<< HEAD
   TrieSearchEngine({
     this.languageCode = 'und',
     this.directedPairKey,
@@ -36,6 +41,7 @@ class TrieSearchEngine {
     String result = (lang == 'tr' || lang == 'az')
         ? text.trim()
         : text.trim().toLowerCase();
+
     if (lang == 'de') {
       result = result
           .replaceAll('ä', 'ae')
@@ -43,59 +49,33 @@ class TrieSearchEngine {
           .replaceAll('ü', 'ue')
           .replaceAll('ß', 'ss');
     } else if (lang == 'ar') {
+      // Remove Arabic Tashkeel
       result = result.replaceAll(
           RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
     } else if (lang == 'he') {
+      // Remove Hebrew Niqqud
       result = result.replaceAll(
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
       );
-=======
-    // إزالة التشكيل العربي
-    res = res.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+    } else {
+      // Default Latin Diacritics and Umlauts
+      final diacritics = {
+        'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+        'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u',
+        'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+      };
 
-    // تطبيع الحروف ذات النبرات والـ Umlauts عبر اللغات اللاتينية
-    final diacritics = {
-      'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
-      'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-      'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
-      'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
-      'ú': 'u', 'ù': 'u', 'û': 'u',
-      'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
-    };
-
-    diacritics.forEach((k, v) {
-      res = res.replaceAll(k, v);
-    });
-
-    return res;
-  }
-
-  // دعم التوافق مع الكود السابق
-  String normalizeGerman(String text) => normalizeUniversal(text);
-
-  void insert(String word, String id) {
-    final normalized = normalizeUniversal(word);
-    TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      current = current.children.putIfAbsent(char, () => TrieNode());
-      current.wordIds.add(id);
+      diacritics.forEach((k, v) {
+        result = result.replaceAll(k, v);
+      });
     }
-  }
 
-  List<String> searchPrefix(String prefix) {
-    final normalized = normalizeUniversal(prefix);
-    TrieNode current = _root;
-    for (int i = 0; i < normalized.length; i++) {
-      final char = normalized[i];
-      if (!current.children.containsKey(char)) return [];
-      current = current.children[char]!;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
-    }
-    return current.wordIds.toSet().toList();
+    return result;
   }
-<<<<<<< HEAD
 
   // Legacy static entrypoints retained; universal no longer means Latin fold.
   String normalizeUniversal(String text) =>
@@ -106,7 +86,8 @@ class TrieSearchEngine {
   bool matchesScope(String? pairKey) =>
       directedPairKey == null || directedPairKey == pairKey;
 
-  /// Returns false on capacity limits. A failed insert makes NO partial path.
+  /// Returns false when the word cannot be indexed at all.
+  /// A word that exceeds [maxNodes] is indexed only for the prefix that fits.
   bool tryInsert(String word, String id, {String? pairKey}) {
     if (!matchesScope(pairKey) ||
         id.isEmpty ||
@@ -119,40 +100,29 @@ class TrieSearchEngine {
     final units = normalized.characters.toList(growable: false);
     if (units.length > maxWordGraphemes) return false;
 
-    // Preflight both capacity dimensions before touching the index.
-    TrieNode? cursor = _root;
-    var missingNodes = 0;
-    for (final unit in units) {
-      if (cursor == null) {
-        missingNodes++;
-      } else {
-        final child = cursor.children[unit];
-        if (child == null) {
-          missingNodes++;
-          cursor = null;
-        } else {
-          cursor = child;
-          if (!cursor.wordIds.contains(id) &&
-              cursor.wordIds.length >= maxResultsPerNode) {
-            return false;
-          }
-        }
-      }
-    }
-    if (_nodeCount + missingNodes > maxNodes) return false;
-
     var current = _root;
+    var indexed = false;
     for (final unit in units) {
-      if (!current.children.containsKey(unit)) {
-        current.children[unit] = TrieNode();
+      final existing = current.children[unit];
+      if (existing != null) {
+        if (!existing.wordIds.contains(id)) {
+          if (existing.wordIds.length >= maxResultsPerNode) return indexed;
+        }
+        current = existing;
+      } else {
+        if (_nodeCount >= maxNodes) break;
+        final created = TrieNode();
+        current.children[unit] = created;
         _nodeCount++;
+        current = created;
       }
-      current = current.children[unit]!;
-      if (current.wordIds.length < maxResultsPerNode) {
+      if (!current.wordIds.contains(id)) {
+        if (current.wordIds.length >= maxResultsPerNode) return indexed;
         current.wordIds.add(id);
       }
+      indexed = true;
     }
-    return true;
+    return indexed;
   }
 
   // Retains original void API for current callers.
@@ -175,7 +145,8 @@ class TrieSearchEngine {
       if (next == null) return <String>[];
       current = next;
     }
-    return current.wordIds.take(maxSearchResults).toList(growable: false);
+    // Convert to Set first to guarantee deduplication if somehow duplicates exist
+    return current.wordIds.toSet().take(maxSearchResults).toList(growable: false);
   }
 
   void clear() {
@@ -184,6 +155,4 @@ class TrieSearchEngine {
   }
 
   int get currentNodeCount => _nodeCount;
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
