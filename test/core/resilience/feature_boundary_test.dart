@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 import 'package:deutsch_bilarabi/core/resilience/feature_boundary.dart';
+import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 
 void main() {
-  testWidgets('FeatureBoundary يمنع تعطل الواجهة عند حدوث أي خطأ داخلي', (tester) async {
+  testWidgets('FeatureBoundary يعرض المحتوى عند عدم وجود خطأ', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -18,19 +18,42 @@ void main() {
 
     expect(find.text('الميزة تعمل بشكل سليم'), findsOneWidget);
   });
-  testWidgets('critical async initialization is reported, never hidden as optional', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: FeatureBoundary(
-        featureName: 'storage',
-        onInitialize: () async {
-          throw const StorageFailure('integrity', 'critical data store failure');
-        },
-        child: const Text('ready'),
+
+  testWidgets('FeatureBoundary يلتقط الأخطاء غير الحرجة ويعرض الواجهة البديلة', (tester) async {
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FeatureBoundary(
+            featureName: 'اختبار الحماية',
+            child: Container(key: key, child: const Text('الميزة تعمل بشكل سليم')),
+          ),
+        ),
       ),
-    ));
+    );
+
+    FeatureBoundary.of(key.currentContext!)!.reportError(Exception('Network error'));
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isA<StorageFailure>());
-    expect(find.text('ready'), findsNothing);
+
+    expect(find.text('تعذر تشغيل اختبار الحماية'), findsOneWidget);
   });
 
+  testWidgets('FeatureBoundary يُمرر الأخطاء الحرجة للأعلى', (tester) async {
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FeatureBoundary(
+            featureName: 'اختبار الحماية',
+            child: Container(key: key, child: const Text('الميزة تعمل بشكل سليم')),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      () => FeatureBoundary.of(key.currentContext!)!.reportError(const StorageFailure('E1', 'Storage corrupted vault')),
+      throwsA(isA<StorageFailure>()),
+    );
+  });
 }
