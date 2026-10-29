@@ -1,55 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:deutsch_bilarabi/core/bidi_helper.dart';
-import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
+import 'package:deutsch_bilarabi/core/language_bidi_helper.dart';
+import 'package:deutsch_bilarabi/core/design/bidi_text_isolator.dart';
 
 class AccessibleMultilingualText extends StatelessWidget {
   final String text;
-  final String languageCode;
+  final String locale;
   final TextStyle? style;
+  final String? semanticLabel;
   final TextAlign? textAlign;
   final int? maxLines;
   final TextOverflow? overflow;
-  final String? semanticLabel;
-  final bool protectPunctuation;
 
-  const AccessibleMultilingualText({
+  const AccessibleMultilingualText(
+    this.text, {
     super.key,
-    required this.text,
-    required this.languageCode,
+    required this.locale,
     this.style,
+    this.semanticLabel,
     this.textAlign,
     this.maxLines,
     this.overflow,
-    this.semanticLabel,
-    this.protectPunctuation = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (text.isEmpty) return const SizedBox.shrink();
-
-    final direction = LanguageBiDiHelper.getDirection(languageCode);
-    final isRtl = direction == TextDirection.rtl;
-
-    String displayText = text;
-    if (protectPunctuation) {
-      displayText = isRtl ? BiDiHelper.wrapRtl(text) : BiDiHelper.wrapLtr(text);
+    if (text.isEmpty) {
+      return const SizedBox.shrink();
     }
+
+    final direction = LanguageBiDiHelper.getDirection(locale);
+    final isRtl = direction == TextDirection.rtl;
+    final lineHeight = LanguageBiDiHelper.getLineHeight(locale);
+
+    // Protect text selection, URLs and embedded punctuation using isolation markers.
+    final isolatedText = BiDiTextIsolator.wrapDirectional(text, isRtl: isRtl);
+
+    final defaultStyle = style ?? const TextStyle();
+    final combinedStyle = defaultStyle.copyWith(
+      height: defaultStyle.height ?? lineHeight,
+    );
 
     return Semantics(
       label: semanticLabel ?? text,
       textDirection: direction,
-      child: AppDirectionalText(
-        displayText,
-        style: (style ?? const TextStyle()).copyWith(
-          height:
-              style?.height ?? LanguageBiDiHelper.getLineHeight(languageCode),
+      child: ExcludeSemantics(
+        child: AppDirectionalText(
+          isolatedText,
+          style: combinedStyle,
+          forceDirection: direction,
+          textAlign: textAlign,
+          maxLines: maxLines,
+          overflow: overflow,
         ),
-        forceDirection: direction,
-        textAlign: textAlign,
-        maxLines: maxLines,
-        overflow: overflow,
       ),
     );
   }
