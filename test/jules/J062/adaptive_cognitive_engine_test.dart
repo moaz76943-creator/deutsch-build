@@ -1,137 +1,161 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/cognitive/cognitive_metric_record.dart';
-import 'package:deutsch_bilarabi/core/cognitive/adaptive_cognitive_engine.dart';
+import '../../../lib/core/cognitive/adaptive_cognitive_engine.dart';
+import '../../../lib/core/cognitive/cognitive_metric_record.dart';
 
 void main() {
-  group('Adaptive Cognitive Engine Tests', () {
-    late AdaptiveCognitiveEngine engine;
+  late AdaptiveCognitiveEngine engine;
 
-    setUp(() {
-      engine = AdaptiveCognitiveEngine.instance;
-      engine.clearSession(); // Clear all state
-    });
+  setUp(() {
+    engine = AdaptiveCognitiveEngine.instance;
+    engine.clearSession();
+  });
 
-    test('safe cold-start behavior when no history exists', () {
-      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
-      expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason, isA<InsufficientData>());
-    });
+  CognitiveMetricRecord createRecord({
+    String pairKey = 'en_ar',
+    bool isCorrect = true,
+    int latencyMs = 1000,
+    int hesitationTaps = 0,
+    int? srsGrade,
+    String? cefrLevel,
+    bool cefrVerified = false,
+  }) {
+    return CognitiveMetricRecord(
+      sessionEventId: 'ev_123',
+      contentKey: 'word_1',
+      responseLatency: Duration(milliseconds: latencyMs),
+      isCorrect: isCorrect,
+      hesitationTaps: hesitationTaps,
+      recordedAt: DateTime.now(),
+      pairKey: pairKey,
+      srsGrade: srsGrade,
+      cefrLevel: cefrLevel,
+      cefrVerified: cefrVerified,
+    );
+  }
 
-    test('repeated mistakes lead to fatigue detection', () {
-      for (int i = 0; i < 5; i++) {
-        engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'EVT_$i',
-          contentKey: 'CARD_$i',
-          responseLatency: const Duration(milliseconds: 6000),
-          hesitationTaps: 2,
-          isCorrect: false,
-          recordedAt: DateTime.now(),
-          targetLanguageCode: 'de',
-        ));
-      }
+  test('cold start should return maintainFlow', () {
+    final decision = engine.evaluateDetailedState(pairKey: 'new_pair');
+    expect(decision.action, AdaptationAction.maintainFlow);
+    expect(decision.reason, AdaptationReason.coldStart);
+  });
 
-      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
-      expect(decision.action, AdaptationAction.reduceExtraneousLoad);
-      expect(decision.reason, isA<FatigueDetected>());
-    });
+  test('fatigue detected with high latency', () {
+    engine.observe(createRecord(latencyMs: 6000));
+    engine.observe(createRecord(latencyMs: 6000));
+    engine.observe(createRecord(latencyMs: 6000));
 
-    test('improvement and mastery lead to deeper challenge', () {
-      for (int i = 0; i < 4; i++) {
-        engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'EVT_FAST_$i',
-          contentKey: 'CARD_FAST_$i',
-          responseLatency: const Duration(milliseconds: 1200),
-          hesitationTaps: 0,
-          isCorrect: true,
-          recordedAt: DateTime.now(),
-          targetLanguageCode: 'de',
-        ));
-      }
+    final decision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(decision.action, AdaptationAction.reduceExtraneousLoad);
+    expect(decision.reason, AdaptationReason.fatigueDetected);
+  });
 
-      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
-      expect(decision.action, AdaptationAction.deepenLinguisticChallenge);
-      expect(decision.reason, isA<ConsistentMastery>());
-    });
+  test('repeated mistakes triggers reduceExtraneousLoad', () {
+    engine.observe(createRecord(isCorrect: false));
+    engine.observe(createRecord(isCorrect: false));
+    engine.observe(createRecord(isCorrect: false));
 
-    test('one language pair\'s performance does not affect another', () {
-      // Add mastery records for 'de'
-      for (int i = 0; i < 4; i++) {
-        engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'EVT_FAST_$i',
-          contentKey: 'CARD_FAST_$i',
-          responseLatency: const Duration(milliseconds: 1200),
-          hesitationTaps: 0,
-          isCorrect: true,
-          recordedAt: DateTime.now(),
-          targetLanguageCode: 'de',
-        ));
-      }
+    final decision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(decision.action, AdaptationAction.reduceExtraneousLoad);
+    expect(decision.reason, AdaptationReason.repeatedMistakes);
+  });
 
-      // 'es' should still be in a cold-start state
-      final esDecision = engine.evaluateDetailedState(targetLanguageCode: 'es');
-      expect(esDecision.action, AdaptationAction.maintainFlow);
-      expect(esDecision.reason, isA<InsufficientData>());
-    });
+  test('high strain from multiple factors', () {
+    engine.observe(createRecord(hesitationTaps: 2, latencyMs: 3500, srsGrade: 0));
+    engine.observe(createRecord(hesitationTaps: 2, latencyMs: 3500, srsGrade: 0));
 
-    test('noisy/malformed metrics do not break computation', () {
-      engine.observe(CognitiveMetricRecord(
-        sessionEventId: 'EVT_NOISE',
-        contentKey: 'CARD_NOISE',
-        responseLatency: const Duration(milliseconds: -1000), // Negative latency
-        hesitationTaps: -1, // Negative taps
-        isCorrect: true,
-        recordedAt: DateTime.now(),
-        targetLanguageCode: 'de',
-      ));
+    final decision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(decision.action, AdaptationAction.reduceExtraneousLoad);
+    expect(decision.reason, AdaptationReason.highStrain);
+  });
 
-      final decision = engine.evaluateDetailedState(targetLanguageCode: 'de');
-      // Should not crash, and a single item should result in stable flow or sufficient data
-      expect(decision.action, AdaptationAction.maintainFlow);
-      expect(decision.reason, isA<StableFlow>());
-    });
+  test('mastery detected with fast and correct responses', () {
+    engine.observe(createRecord(latencyMs: 1000, srsGrade: 3));
+    engine.observe(createRecord(latencyMs: 1200, srsGrade: 3));
+    engine.observe(createRecord(latencyMs: 1100, srsGrade: 3));
 
-    test('hysteresis prevents oscillating difficulty', () {
-      final now = DateTime.now();
+    final decision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(decision.action, AdaptationAction.deepenLinguisticChallenge);
+    expect(decision.reason, AdaptationReason.masteryDetected);
+  });
 
-      // Trigger fatigue
-      for (int i = 0; i < 5; i++) {
-        engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'EVT_FATIGUE_$i',
-          contentKey: 'CARD_$i',
-          responseLatency: const Duration(milliseconds: 6000),
-          hesitationTaps: 2,
-          isCorrect: false,
-          recordedAt: now,
-          targetLanguageCode: 'de',
-        ));
-      }
+  test('hysteresis prevents rapid oscillation', () {
+    // Establish state 1
+    engine.observe(createRecord(latencyMs: 6000));
+    engine.observe(createRecord(latencyMs: 6000));
+    engine.observe(createRecord(latencyMs: 6000));
+    final dec1 = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(dec1.action, AdaptationAction.reduceExtraneousLoad);
 
-      // Initial decision should be reduce load
-      final decision1 = engine.evaluateDetailedState(targetLanguageCode: 'de', currentTime: now);
-      expect(decision1.action, AdaptationAction.reduceExtraneousLoad);
+    // Simulate fast responses to push out the fatigue records from the window
+    engine.observe(createRecord(latencyMs: 1000));
+    engine.observe(createRecord(latencyMs: 1000));
+    engine.observe(createRecord(latencyMs: 1000));
+    // Now window has [6000, 6000, 1000, 1000, 1000], average strain drops,
+    // fatigue is no longer met, mastery is met. But hysteresis should block it.
+    final dec2 = engine.evaluateDetailedState(pairKey: 'en_ar');
 
-      // Now add 5 fast/correct answers immediately after (without time passing)
-      for (int i = 0; i < 5; i++) {
-        engine.observe(CognitiveMetricRecord(
-          sessionEventId: 'EVT_FAST_$i',
-          contentKey: 'CARD_$i',
-          responseLatency: const Duration(milliseconds: 1200),
-          hesitationTaps: 0,
-          isCorrect: true,
-          recordedAt: now,
-          targetLanguageCode: 'de',
-        ));
-      }
+    expect(dec2.action, AdaptationAction.reduceExtraneousLoad);
+    expect(dec2.reason, AdaptationReason.hysteresisActive);
+  });
 
-      // Should be blocked by hysteresis (return the previous state's action + HysteresisCoolDown)
-      final decision2 = engine.evaluateDetailedState(targetLanguageCode: 'de', currentTime: now.add(const Duration(minutes: 1)));
-      expect(decision2.action, AdaptationAction.reduceExtraneousLoad);
-      expect(decision2.reason, isA<HysteresisCoolDown>());
+  test('noisy metrics detected', () {
+    engine.observe(createRecord(latencyMs: 6000, isCorrect: false)); // strain high
+    engine.observe(createRecord(latencyMs: 500, isCorrect: true, srsGrade: 3)); // strain 0
+    engine.observe(createRecord(latencyMs: 6000, isCorrect: false)); // strain high
+    engine.observe(createRecord(latencyMs: 500, isCorrect: true, srsGrade: 3)); // strain 0
 
-      // After 6 minutes, it should allow change to deepen challenge
-      final decision3 = engine.evaluateDetailedState(targetLanguageCode: 'de', currentTime: now.add(const Duration(minutes: 6)));
-      expect(decision3.action, AdaptationAction.deepenLinguisticChallenge);
-      expect(decision3.reason, isA<ConsistentMastery>());
-    });
+    final decision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(decision.reason, AdaptationReason.noisyMetrics);
+    expect(decision.action, AdaptationAction.maintainFlow);
+  });
+
+  test('pair isolation works correctly', () {
+    engine.observe(createRecord(pairKey: 'en_ar', latencyMs: 1000));
+    engine.observe(createRecord(pairKey: 'en_ar', latencyMs: 1000));
+    engine.observe(createRecord(pairKey: 'en_ar', latencyMs: 1000));
+
+    engine.observe(createRecord(pairKey: 'fr_ar', latencyMs: 6000));
+    engine.observe(createRecord(pairKey: 'fr_ar', latencyMs: 6000));
+    engine.observe(createRecord(pairKey: 'fr_ar', latencyMs: 6000));
+
+    final enArDecision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(enArDecision.action, AdaptationAction.deepenLinguisticChallenge);
+
+    final frArDecision = engine.evaluateDetailedState(pairKey: 'fr_ar');
+    expect(frArDecision.action, AdaptationAction.reduceExtraneousLoad);
+  });
+
+  test('malformed records are ignored', () {
+    engine.observe(createRecord(latencyMs: -100)); // malformed latency
+    engine.observe(createRecord(hesitationTaps: -1)); // malformed hesitation
+    engine.observe(createRecord(srsGrade: 5)); // malformed grade
+
+    final decision = engine.evaluateDetailedState(pairKey: 'en_ar');
+    expect(decision.reason, AdaptationReason.coldStart);
+  });
+
+  test('cefrLevel is only saved if verified', () {
+    engine.observe(createRecord(cefrLevel: 'A1', cefrVerified: false));
+    expect(engine.getVerifiedCefr('en_ar'), isNull);
+
+    engine.observe(createRecord(cefrLevel: 'A2', cefrVerified: true));
+    expect(engine.getVerifiedCefr('en_ar'), 'A2');
+  });
+
+  test('daily updates are idempotent', () {
+    final history = [
+      createRecord(latencyMs: 1000),
+      createRecord(latencyMs: 1000),
+      createRecord(latencyMs: 1000),
+    ];
+
+    engine.processDailyUpdates(DateTime.now(), history);
+    final decision1 = engine.evaluateDetailedState(pairKey: 'en_ar');
+
+    engine.processDailyUpdates(DateTime.now(), history);
+    final decision2 = engine.evaluateDetailedState(pairKey: 'en_ar');
+
+    expect(decision1.action, decision2.action);
+    expect(decision1.reason, decision2.reason);
   });
 }
