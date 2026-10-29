@@ -1,0 +1,23 @@
+{
+  "isoCode": "zh",
+  "autonym": "中文",
+  "englishName": "Chinese",
+  "scriptDirection": "ltr",
+  "scriptFamily": "CJK (Hanzi)",
+  "typology": "SVO",
+  "morphologyType": "Isolating",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "tonesCount": 4,
+    "hasMeasureWords": true,
+    "aspectParticles": ["le", "zhe", "guo"],
+    "hasRomanizationPinyin": true
+  }
+}
