@@ -1,0 +1,20 @@
+{
+  "isoCode": "tk",
+  "autonym": "Türkmençe",
+  "englishName": "Turkmen",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 6,
+  "caseNames": ["Baş", "Eýelik", "Ýöneliş", "Ýeňiş", "Wagt-orun", "Çykyş"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasVowelHarmony": true,
+    "hasAgglutinativeSuffixes": true
+  }
+}

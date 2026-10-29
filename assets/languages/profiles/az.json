@@ -1,0 +1,20 @@
+{
+  "isoCode": "az",
+  "autonym": "Azərbaycanca",
+  "englishName": "Azerbaijani",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 6,
+  "caseNames": ["Adlıq", "Yiyəlik", "Yönlük", "Təsirlik", "Yerlik", "Çıxışlıq"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasVowelHarmony": true,
+    "hasAgglutinativeSuffixes": true
+  }
+}
