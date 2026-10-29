@@ -52,15 +52,20 @@ class LanguageManagerScreen extends ConsumerWidget {
                       children: [
                         Text(
                           'حزم اللغات المتاحة',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'المثبتة: ${state.installedCodes.length}  •  في الكتالوج: ${state.remotePacks.length}',
+                          'المثبتة: ' +
+                              state.installedCodes.length.toString() +
+                              '  •  في الكتالوج: ' +
+                              state.remotePacks.length.toString(),
                           style: const TextStyle(color: Color(0xFFCBD5E1)),
                         ),
                         const SizedBox(height: 8),
@@ -111,7 +116,8 @@ class LanguageManagerScreen extends ConsumerWidget {
                       child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
                         itemCount: packs.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
                         itemBuilder: (context, index) =>
                             _packCard(context, ref, state, packs[index]),
                       ),
@@ -136,10 +142,9 @@ class LanguageManagerScreen extends ConsumerWidget {
     final isQuarantined = state.quarantinedCodes.contains(pack.code);
     final isActive = state.activeLanguageCode == pack.code;
     final isInstalled = state.isInstalled(pack.code);
-    final hasArchive = state.hasVerifiedArchive(pack.code);
     final isDownloading = state.isDownloading(pack.code);
     final progress = state.downloadProgress[pack.code] ?? 0.0;
-    final canDownload = pack.canDownload && !isInstalled && !hasArchive && !isDownloading;
+    final canDownload = pack.canDownload && !isInstalled && !isDownloading;
 
     final String status;
     final Color statusColor;
@@ -155,9 +160,6 @@ class LanguageManagerScreen extends ConsumerWidget {
     } else if (isInstalled) {
       status = 'مثبتة';
       statusColor = const Color(0xFF86EFAC);
-    } else if (hasArchive) {
-      status = 'أرشيف محمّل — لم يُثبّت';
-      statusColor = const Color(0xFFFCD34D);
     } else if (pack.canDownload) {
       status = 'قابلة للتنزيل';
       statusColor = const Color(0xFFFCD34D);
@@ -212,7 +214,7 @@ class LanguageManagerScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${pack.name} • ${pack.code.toUpperCase()}',
+                        pack.name + ' • ' + pack.code.toUpperCase(),
                         textDirection: TextDirection.ltr,
                         style: const TextStyle(
                           color: Color(0xFFCBD5E1),
@@ -221,7 +223,7 @@ class LanguageManagerScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'الحجم: ${_formattedSize(pack.sizeBytes)}',
+                        'الحجم: ' + _formattedSize(pack.sizeBytes),
                         style: const TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 12,
@@ -256,7 +258,7 @@ class LanguageManagerScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                '${(progress * 100).toStringAsFixed(0)}%',
+                (progress * 100).toStringAsFixed(0) + '%',
                 textDirection: TextDirection.ltr,
                 textAlign: TextAlign.end,
                 style: const TextStyle(color: Colors.white70),
@@ -274,17 +276,12 @@ class LanguageManagerScreen extends ConsumerWidget {
                     onPressed: () => _runAction(
                       context,
                       () async {
-                        final recovered =
-                            await DatabaseIntegrityService.instance.recover(
+                        final recovered = await DatabaseIntegrityService.instance.recover(
                           languageCode: pack.code,
-                          closeMounted: () => DatabaseService.instance
-                              .closeContentDb(pack.code),
-                          remount: () =>
-                              DatabaseService.instance.getContentDb(pack.code),
+                          closeMounted: () => DatabaseService.instance.closeContentDb(pack.code),
+                          remount: () => DatabaseService.instance.getContentDb(pack.code),
                         );
-                        if (!recovered) {
-                          throw StateError('Pack still quarantined');
-                        }
+                        if (!recovered) throw StateError('Pack still quarantined');
                       },
                       'تم فحص القاعدة المحلية بنجاح.',
                     ),
@@ -300,10 +297,10 @@ class LanguageManagerScreen extends ConsumerWidget {
                               () => ref
                                   .read(activeLanguageProvider.notifier)
                                   .selectLanguage(pack.code),
-                              'تم اختيار اللغة: ${pack.nativeName}',
+                              'تم اختيار اللغة: ' + pack.nativeName,
                             ),
                   ),
-                if (!isInstalled && !hasArchive)
+                if (!isInstalled)
                   _actionButton(
                     icon: Icons.download_rounded,
                     label: 'تنزيل',
@@ -313,11 +310,11 @@ class LanguageManagerScreen extends ConsumerWidget {
                               () => ref
                                   .read(activeLanguageProvider.notifier)
                                   .downloadPack(pack.code),
-                              'تم التحقق من الأرشيف؛ لم يُثبّت المحتوى بعد.',
+                              'تم حفظ الأرشيف والتحقق من سلامته.',
                             )
                         : null,
                   ),
-                if (hasArchive && !isGerman && !isActive)
+                if (isInstalled && !isGerman && !isActive)
                   _actionButton(
                     icon: Icons.delete_outline_rounded,
                     label: 'حذف',
@@ -392,7 +389,9 @@ class LanguageManagerScreen extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('حذف حزمة اللغة؟'),
         content: Text(
-          'سيُحذف الأرشيف المحمّل للغة ${pack.nativeName} فقط. لن تتأثر بيانات التقدم والمراجعة.',
+          'سيُحذف الأرشيف المحلي للغة ' +
+              pack.nativeName +
+              ' لتحرير مساحة التخزين. لا يمكن حذف الألمانية المضمنة.',
         ),
         actions: [
           TextButton(
@@ -410,7 +409,7 @@ class LanguageManagerScreen extends ConsumerWidget {
     await _runAction(
       context,
       () => ref.read(activeLanguageProvider.notifier).deletePack(pack.code),
-      'تم حذف الأرشيف المحمّل.',
+      'تم حذف الأرشيف المحلي.',
     );
   }
 
@@ -430,7 +429,7 @@ class LanguageManagerScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('تعذر تنفيذ العملية: $error')),
+          SnackBar(content: Text('تعذر تنفيذ العملية: ' + error.toString())),
         );
     }
   }
@@ -438,7 +437,7 @@ class LanguageManagerScreen extends ConsumerWidget {
   String _formattedSize(int? bytes) {
     if (bytes == null) return 'غير معروف';
     final megabytes = bytes / (1024 * 1024);
-    return '${megabytes.toStringAsFixed(megabytes < 0.01 ? 4 : 2)} MB';
+    return megabytes.toStringAsFixed(megabytes < 0.01 ? 4 : 2) + ' MB';
   }
 
   String _flagFor(String code) {

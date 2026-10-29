@@ -4,11 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Only actual filenames emitted by _exportBackup may be restored.
-/// The caller supplies the basename from a directory scan that does not follow links.
-bool isLocalBackupFilename(String filename) =>
-    RegExp(r'^deutsch_backup_[0-9]+\.json$').hasMatch(filename);
-
 class BackupRestoreScreen extends StatefulWidget {
   const BackupRestoreScreen({super.key});
 
@@ -32,13 +27,11 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final backupFile =
-          File('${directory.path}/deutsch_backup_$timestamp.json');
+      final backupFile = File('${directory.path}/deutsch_backup_$timestamp.json');
       await backupFile.writeAsString(jsonEncode(data));
 
       setState(() {
-        _statusMessage =
-            'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
+        _statusMessage = 'تم تصدير النسخة الاحتياطية بنجاح إلى:\n${backupFile.path}';
       });
     } catch (e) {
       setState(() => _statusMessage = 'فشل تصدير النسخة: $e');
@@ -52,9 +45,9 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final files = directory
-          .listSync(followLinks: false)
+          .listSync()
           .whereType<File>()
-          .where((f) => isLocalBackupFilename(f.uri.pathSegments.last))
+          .where((f) => f.path.contains('deutsch_backup_'))
           .toList();
 
       if (files.isEmpty) {
@@ -62,16 +55,10 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         return;
       }
 
-      files
-          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
       final latest = files.first;
       final raw = await latest.readAsString();
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        setState(() => _statusMessage = 'ملف النسخة الاحتياطية غير صالح.');
-        return;
-      }
-      final Map<String, dynamic> data = Map<String, dynamic>.from(decoded);
+      final Map<String, dynamic> data = jsonDecode(raw);
 
       final prefs = await SharedPreferences.getInstance();
       for (final entry in data.entries) {

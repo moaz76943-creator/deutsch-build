@@ -14,27 +14,4 @@ class DataIntegritySigner {
   static bool verifyIntegrity(String payload, int expectedChecksum) {
     return computeChecksum(payload) == expectedChecksum;
   }
-
-  static bool verifyManifest(Map<String, dynamic>? manifest, String? payload) {
-    if (manifest == null || payload == null) return false;
-
-    // Check for required algorithm metadata
-    final algorithm = manifest['algorithm'];
-    if (algorithm != 'fnv1a') return false;
-
-    // Check for required hash
-    final expectedHash = manifest['hash'];
-    if (expectedHash == null || expectedHash is! int) return false;
-
-    // Check expiration if present
-    final expiresAt = manifest['expiresAt'];
-    if (expiresAt != null && expiresAt is int) {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      if (now > expiresAt) {
-        return false;
-      }
-    }
-
-    return verifyIntegrity(payload, expectedHash);
-  }
 }
