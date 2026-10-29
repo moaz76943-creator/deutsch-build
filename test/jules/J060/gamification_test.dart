@@ -109,7 +109,7 @@ void main() {
         DateTime(2023, 1, 3, 10, 0, 0), // Gap of 1 day (Jan 2 missed)
       ];
 
-      const ledger = StreakFreezeLedger(totalShields: 2);
+      final ledger = const StreakFreezeLedger(totalShields: 2);
       final today = DateTime(2023, 1, 4);
 
       final projection = GamificationProjectionEngine.projectStreak(
@@ -128,7 +128,7 @@ void main() {
         DateTime(2023, 1, 5, 10, 0, 0), // Missed 2, 3, 4. Requires 3 freezes.
       ];
 
-      const ledger = StreakFreezeLedger(totalShields: 2);
+      final ledger = const StreakFreezeLedger(totalShields: 2);
       final today = DateTime(2023, 1, 6);
 
       final projection = GamificationProjectionEngine.projectStreak(

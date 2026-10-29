@@ -36,10 +36,7 @@ class GamificationProjectionEngine {
       if (event.rating < 0 || event.rating > 3) continue;
 
       // Filter invalid timestamps (e.g., from the future)
-      if (event.timestamp
-          .isAfter(DateTime.now().add(const Duration(days: 1)))) {
-        continue;
-      }
+      if (event.timestamp.isAfter(DateTime.now().add(const Duration(days: 1)))) continue;
 
       final existing = latestEvents[event.learnerContentKey];
       if (existing == null || event.timestamp.isAfter(existing.timestamp)) {
@@ -54,8 +51,7 @@ class GamificationProjectionEngine {
 
     for (final event in latestEvents.values) {
       introducedCount++;
-      if (event.rating >= 2) {
-        // good or easy
+      if (event.rating >= 2) { // good or easy
         recalledCount++;
         // Consider it mastered if it has a high rating.
         // A more complex mastery rule could be based on multiple reviews,
@@ -79,8 +75,7 @@ class GamificationProjectionEngine {
       recalledCardCount: recalledCount,
       masteredCardCount: masteredCount,
       dueCardCount: 0, // Simplified for projection
-      lastEvidenceUtc:
-          lastEvidence ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      lastEvidenceUtc: lastEvidence ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       masteryRevision: latestEvents.length,
     );
   }
@@ -144,8 +139,7 @@ class GamificationProjectionEngine {
           if (currentLedger.canConsume) {
             // Provide a timestamp that falls on the missed day
             final missedDay = lastDay.add(const Duration(days: 1));
-            currentLedger = currentLedger.recordUsage('streak_recovery',
-                timestamp: missedDay);
+            currentLedger = currentLedger.recordUsage('streak_recovery', timestamp: missedDay);
             currentStreak++;
             gapsToFill--;
             lastDay = missedDay;
@@ -169,15 +163,13 @@ class GamificationProjectionEngine {
     // Now check if there's a gap between the last activity and today
     final differenceToToday = todayLocal.difference(lastDay).inDays;
     if (differenceToToday > 1) {
-      int gapsToFill = differenceToToday -
-          1; // don't count today as missed yet if they haven't played, only past days
+      int gapsToFill = differenceToToday - 1; // don't count today as missed yet if they haven't played, only past days
       bool streakBroken = false;
 
       while (gapsToFill > 0) {
         if (currentLedger.canConsume) {
           final missedDay = lastDay.add(const Duration(days: 1));
-          currentLedger = currentLedger.recordUsage('streak_recovery',
-              timestamp: missedDay);
+          currentLedger = currentLedger.recordUsage('streak_recovery', timestamp: missedDay);
           gapsToFill--;
           lastDay = missedDay;
         } else {
