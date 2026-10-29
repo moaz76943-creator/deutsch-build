@@ -39,6 +39,12 @@ class CurriculumUnitsScreen extends StatelessWidget {
       child: SafeArea(
         child: ListView.separated(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 96),
+          // Performance: limit the area that is pre-built beyond the viewport.
+          // Default is 250; a moderate value balances smoothness vs memory.
+          cacheExtent: 300,
+          // Items are pure StatelessWidgets with no need to preserve state
+          // when scrolled off-screen. Disabling reduces memory pressure.
+          addAutomaticKeepAlives: false,
           itemCount: units.length,
           separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
