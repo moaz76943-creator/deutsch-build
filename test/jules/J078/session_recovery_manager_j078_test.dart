@@ -69,8 +69,7 @@ void main() {
       await manager.persistSession(session);
 
       final restored = manager.restoreSession(
-        expectedSourceLocale: 'en',
-        expectedTargetLocale: 'ar',
+        expectedLanguagePairKey: 'en_ar',
       );
 
       expect(restored, isNull);
