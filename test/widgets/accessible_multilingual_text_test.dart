@@ -25,7 +25,7 @@ void main() {
     expect(wrapper.properties.value, isNull,
       reason: 'Repeating the label in value makes TalkBack speak it twice');
     final text = tester.widget<Text>(find.byType(Text).last);
-    expect(text.textSpan!.locale!.toLanguageTag(), 'de-DE');
+    expect((text.textSpan! as TextSpan).locale!.toLanguageTag(), 'de-DE');
   });
 
   testWidgets('sets RTL direction without changing the host app locale', (tester) async {

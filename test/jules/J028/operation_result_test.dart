@@ -2,26 +2,42 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
 
 void main() {
-  test('success and failure payloads use typed accessors', () {
-    const good = OperationResult<int>.success(12);
-    const bad = OperationResult<int>.failure(
-      InvalidInputFailure('INVALID', 'bad input'),
-    );
-    expect(good.isSuccess, isTrue);
-    expect(good.data, 12);
-    expect(() => good.failure, throwsStateError);
-    expect(bad.isSuccess, isFalse);
-    expect(bad.failure, isA<InvalidInputFailure>());
-    expect(() => bad.data, throwsStateError);
-  });
+  group('OperationResult', () {
+    test('Success returns data and throws on failure access', () {
+      final result = OperationResult<String>.success('Hello');
 
-  test('private low-level causes are not logged', () {
-    const bad = StorageFailure('STORAGE', 'read unavailable', 'secret token');
-    expect(bad.toString(), isNot(contains('secret token')));
-    expect(bad.toString(), contains('STORAGE'));
-    expect(bad.hasCause, isTrue);
+      expect(result.isSuccess, isTrue);
+      expect(result.data, 'Hello');
+      expect(() => result.failure, throwsStateError);
+    });
 
-    const noCause = StorageFailure('STORAGE', 'read unavailable');
-    expect(noCause.hasCause, isFalse);
+    test('Failure returns failure and throws on data access', () {
+      final failure = InvalidInputFailure('400', 'Bad Request');
+      final result = OperationResult<String>.failure(failure);
+
+      expect(result.isSuccess, isFalse);
+      expect(result.failure, failure);
+      expect(() => result.data, throwsStateError);
+    });
+
+    test('Typed failures work correctly', () {
+      expect(UnavailableFailure('1', 'a').code, '1');
+      expect(InvalidInputFailure('2', 'b').message, 'b');
+      expect(CancelledFailure('3', 'c').cause, null);
+      expect(IncompatibleVersionFailure('4', 'd', Exception('cause')).cause, isA<Exception>());
+      expect(StorageFailure('5', 'e').code, '5');
+      expect(ContentFailure('6', 'f').message, 'f');
+    });
+
+    test('toString hides sensitive cause data', () {
+      final sensitiveData = {'user': 'johndoe', 'score': 100};
+      final failure = InvalidInputFailure('ERR_123', 'Invalid input provided', sensitiveData);
+
+      final stringRepr = failure.toString();
+      expect(stringRepr, contains('ERR_123'));
+      expect(stringRepr, contains('Invalid input provided'));
+      expect(stringRepr, isNot(contains('johndoe')));
+      expect(stringRepr, isNot(contains('sensitiveData')));
+    });
   });
 }

@@ -1,152 +1,87 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/catalog/directed_readiness_engine.dart';
+import 'package:deutsch_bilarabi/core/catalog/catalog_readiness_engine.dart';
+import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
+import 'package:deutsch_bilarabi/core/catalog/language_pair_readiness.dart';
+import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
 
 void main() {
-  group('DirectedReadinessEngine', () {
-    late DirectedReadinessEngine engine;
+  late CatalogReadinessEngine engine;
 
-    setUp(() {
-      engine = DirectedReadinessEngine();
-    });
+  setUp(() {
+    engine = CatalogReadinessEngine();
+  });
 
-    test('should reject identical pairs immediately', () {
-      final state = engine.evaluatePair('de', 'de');
-      expect(state.isUsable, isFalse);
-      expect(state, isA<IdenticalPairState>());
-    });
+  test('Reflexive pairs return reflexive state', () {
+    final pair = DirectedPairId(sourceLocale: 'de', targetLocale: 'de', semanticVersion: '1.0');
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.reflexive);
+  });
 
-    test('should reject unsupported pairs even if individual languages are valid', () {
-      // Both languages are valid and production ready
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'en', wordCount: 100, checksum: 'abc');
+  test('Rejected target pack returns unsupported state', () {
+    final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+    engine.admitPack('de', const LanguagePackGateResult(PackGateStatus.rejected));
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.unsupported);
+  });
 
-      // But pair is not explicitly authorized
-      final state = engine.evaluatePair('de', 'en');
-      expect(state.isUsable, isFalse);
-      expect(state, isA<UnsupportedPairState>());
-    });
+  test('Nominal tier source or target without pack returns registered state', () {
+    final pair = DirectedPairId(sourceLocale: 'it', targetLocale: 'ru', semanticVersion: '1.0');
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.registered);
+  });
 
-    test('should reject unregistered languages', () {
-      engine.authorizeDirectedPair('xy', 'de');
-      final state = engine.evaluatePair('xy', 'de'); // xy is not in LanguageRegistry
-      expect(state.isUsable, isFalse);
-      expect(state, isA<UnregisteredLanguageState>());
-    });
+  test('Missing packs for assetsReady languages return verified', () {
+    // 'fr' and 'es' are assetsReady
+    final pair = DirectedPairId(sourceLocale: 'es', targetLocale: 'fr', semanticVersion: '1.0');
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.verified);
+  });
 
-    test('should reject languages not production ready', () {
-      engine.authorizeDirectedPair('fr', 'de');
-      final state = engine.evaluatePair('fr', 'de'); // fr is assetsReady, not productionReady
-      expect(state.isUsable, isFalse);
-      expect(state, isA<UnverifiedLanguageState>());
-    });
+  test('Approved packs without productionReady return installed', () {
+    final pair = DirectedPairId(sourceLocale: 'es', targetLocale: 'fr', semanticVersion: '1.0');
+    engine.admitPack('fr', const LanguagePackGateResult(PackGateStatus.approved));
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.installed);
+  });
 
-    test('should report missing pack for production ready language', () {
-      engine.authorizeDirectedPair('ar', 'de');
-      final state = engine.evaluatePair('ar', 'de'); // ar is productionReady, but no pack submitted
-      expect(state.isUsable, isFalse);
-      expect(state, isA<MissingPackState>());
-    });
+  test('Approved packs with productionReady return usable', () {
+    // 'en' and 'de' are productionReady
+    final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+    engine.admitPack('de', const LanguagePackGateResult(PackGateStatus.approved));
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.usable);
+  });
 
-    test('should report invalid pack', () {
-      engine.authorizeDirectedPair('de', 'ar');
+  test('Evaluates A->B separately from B->A', () {
+    final ab = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
+    final ba = DirectedPairId(sourceLocale: 'de', targetLocale: 'en', semanticVersion: '1.0');
 
-      // Submit a valid pack for 'de'
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      // Submit an invalid pack for 'ar' (missing checksum)
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: null);
+    // Admit 'de' pack but not 'en' pack
+    engine.admitPack('de', const LanguagePackGateResult(PackGateStatus.approved));
 
-      final state = engine.evaluatePair('de', 'ar');
-      expect(state.isUsable, isFalse);
-      expect(state, isA<InvalidPackState>());
-    });
+    expect(engine.resolvePairReadiness(ab), PairReadinessState.usable);
+    expect(engine.resolvePairReadiness(ba), PairReadinessState.verified); // because 'en' pack is not admitted
+  });
 
-    test('should return ReadyState for fully valid pair', () {
-      engine.authorizeDirectedPair('de', 'ar');
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: 'abc');
+  test('State invalidation clears readiness (stale readiness test)', () {
+    final pair = DirectedPairId(sourceLocale: 'en', targetLocale: 'de', semanticVersion: '1.0');
 
-      final state = engine.evaluatePair('de', 'ar');
-      expect(state.isUsable, isTrue);
-      expect(state, isA<ReadyState>());
-    });
+    engine.admitPack('de', const LanguagePackGateResult(PackGateStatus.approved));
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.usable);
 
-    test('reverse pair evaluates independently (same result for valid symmetric but conceptually different)', () {
-      engine.authorizeDirectedPair('de', 'ar');
-      engine.authorizeDirectedPair('ar', 'de');
+    engine.invalidatePack('de');
+    expect(engine.resolvePairReadiness(pair), PairReadinessState.verified);
+  });
 
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: 'abc');
+  test('Dynamic generation of 100 fake ids returns registered lazily', () {
+    final langs = List.generate(100, (i) => 'lang_$i');
+    int registeredCount = 0;
 
-      final stateAB = engine.evaluatePair('de', 'ar');
-      final stateBA = engine.evaluatePair('ar', 'de');
+    for (var l1 in langs) {
+      for (var l2 in langs) {
+        if (l1 == l2) continue;
+        final pair = DirectedPairId(sourceLocale: l1, targetLocale: l2, semanticVersion: '1.0');
+        final state = engine.resolvePairReadiness(pair);
 
-      expect(stateAB, isA<ReadyState>());
-      expect(stateBA, isA<ReadyState>());
-    });
-
-    test('reverse pair is unsupported if not authorized', () {
-      engine.authorizeDirectedPair('de', 'ar');
-      // Only A->B is authorized, B->A is not
-
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: 'abc');
-
-      final stateAB = engine.evaluatePair('de', 'ar');
-      final stateBA = engine.evaluatePair('ar', 'de');
-
-      expect(stateAB, isA<ReadyState>());
-      expect(stateBA, isA<UnsupportedPairState>());
-    });
-
-    test('cache invalidation works when pack is invalidated', () {
-      engine.authorizeDirectedPair('de', 'ar');
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: 'abc');
-
-      // Both should be ready
-      expect(engine.evaluatePair('de', 'ar'), isA<ReadyState>());
-
-      // Invalidate 'ar' pack
-      engine.invalidatePack('ar');
-
-      // Cache should be cleared, pair should now be MissingPackState for 'ar'
-      final state = engine.evaluatePair('de', 'ar');
-      expect(state, isA<MissingPackState>());
-    });
-
-    test('cache invalidation works when pack is updated with invalid data', () {
-      engine.authorizeDirectedPair('de', 'ar');
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: 'abc');
-
-      expect(engine.evaluatePair('de', 'ar'), isA<ReadyState>());
-
-      // Submit invalid 'ar' pack (no checksum)
-      engine.submitPackForEvaluation(packCode: 'ar', wordCount: 100, checksum: null);
-
-      final state = engine.evaluatePair('de', 'ar');
-      expect(state, isA<InvalidPackState>());
-    });
-
-    test('lazy caching does not grow unboundedly (max 50 test)', () {
-      // Register valid packs for 'de' and 'en'
-      engine.submitPackForEvaluation(packCode: 'de', wordCount: 100, checksum: 'xyz');
-      engine.submitPackForEvaluation(packCode: 'en', wordCount: 100, checksum: 'abc');
-
-      // Evaluate 100 distinct pairs
-      // By authorizing and evaluating 100 pairs, we push 100 items into the cache.
-      for (int i = 0; i < 100; i++) {
-        final targetIso = 'lang$i';
-        engine.authorizeDirectedPair('de', targetIso);
-        engine.evaluatePair('de', targetIso);
+        expect(state, PairReadinessState.registered);
+        registeredCount++;
       }
+    }
 
-      // Authorize and evaluate 'de' -> 'en' again
-      engine.authorizeDirectedPair('de', 'en');
-      final state = engine.evaluatePair('de', 'en');
-      expect(state, isA<ReadyState>());
-
-      // Because max cache size is 50, memory stays bounded.
-    });
+    expect(registeredCount, 9900);
   });
 }

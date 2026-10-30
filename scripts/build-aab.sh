@@ -24,12 +24,12 @@ python3 tool/phase17_production_gate.py
 SYMBOL_DIR="$ROOT/build/symbols"
 flutter build appbundle --release \
   --obfuscate \
-  --split-debug-info="$SYMBOL_DIR"
+  --split-debug-info="$SYMBOL_DIR" || fatal --code "$ERR_COMP" "flutter build appbundle failed"
 
 AAB="$ROOT/build/app/outputs/bundle/release/app-release.aab"
-[[ -f "$AAB" && -s "$AAB" ]] || fatal "Release AAB was not produced: $AAB"
-command -v jarsigner >/dev/null 2>&1 || fatal "jarsigner is required to verify the release AAB signature"
-jarsigner -verify -strict "$AAB" >/dev/null
+[[ -f "$AAB" && -s "$AAB" ]] || fatal --code "$ERR_VERIFY" "Release AAB was not produced: $AAB"
+command -v jarsigner >/dev/null 2>&1 || fatal --code "$ERR_ENV" "jarsigner is required to verify the release AAB signature"
+jarsigner -verify -strict "$AAB" >/dev/null || fatal --code "$ERR_VERIFY" "jarsigner verification failed for AAB"
 
 SHA256="$(sha256sum "$AAB" | awk '{print $1}')"
 SIZE_BYTES="$(wc -c < "$AAB" | tr -d ' ')"

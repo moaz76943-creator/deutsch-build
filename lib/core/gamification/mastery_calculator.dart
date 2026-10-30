@@ -37,9 +37,9 @@ class MasteryCalculator {
       final currentSuccesses = cardSuccesses[cardKey] ?? 0;
 
       if (review.rating >= 2) {
-        cardSuccesses[cardKey] = currentSuccesses + 1;
+         cardSuccesses[cardKey] = currentSuccesses + 1;
       } else {
-        cardSuccesses[cardKey] = 0; // reset on failure
+         cardSuccesses[cardKey] = 0; // reset on failure
       }
 
       // Track last real evidence
@@ -61,9 +61,7 @@ class MasteryCalculator {
 
     // Reject negative or impossible mastery calculations.
     if (eligibleCardCount < 0) eligibleCardCount = 0;
-    if (introducedCount > eligibleCardCount) {
-      introducedCount = eligibleCardCount;
-    }
+    if (introducedCount > eligibleCardCount) introducedCount = eligibleCardCount;
     if (recalledCount > introducedCount) recalledCount = introducedCount;
     if (masteredCount > eligibleCardCount) masteredCount = eligibleCardCount;
 

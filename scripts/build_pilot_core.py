@@ -32,6 +32,97 @@ def fetch_tatoeba_example(de_word):
         pass
     return None, None
 
+def _sync_row_to_arabic(cur_ar, ar_lex_cols, ar_con_cols, row, de_concepts):
+    """يعالج صفًا واحدًا من المعجم الألماني ويدرجه في قاعدة العربية"""
+    de_id, surface, pos, cefr, ipa, fields_json = row
+    c_info = de_concepts.get(de_id, (surface, "{}"))
+    lemma, legacy_raw = c_info
+
+    ar_translation = ""
+    article = ""
+    try:
+        leg_data = json.loads(legacy_raw) if legacy_raw else {}
+        ar_translation = leg_data.get("translation_ar") or leg_data.get("translation", "")
+        article = leg_data.get("article") or leg_data.get("gender_article", "")
+    except Exception:
+        pass
+
+    if not ar_translation:
+        ar_translation = surface
+
+    # إدراج أو تحديث المعجم في قاعدة العربية
+    lex_data = {}
+    for c in ar_lex_cols:
+        if c in ("id", "concept_id", "word_id"):
+            lex_data[c] = de_id
+        elif c in ("surface", "lemma", "word"):
+            lex_data[c] = ar_translation
+        elif c in ("part_of_speech", "pos"):
+            lex_data[c] = pos
+        elif c == "cefr_level":
+            lex_data[c] = cefr
+        elif c == "ipa":
+            lex_data[c] = ipa
+        elif c == "language_code":
+            lex_data[c] = "ar"
+        elif c == "direction":
+            lex_data[c] = "rtl"
+        elif c == "fields_json":
+            lex_data[c] = json.dumps({"de_surface": surface, "article": article}, ensure_ascii=False)
+
+    cols_str = ", ".join(lex_data.keys())
+    placeholders = ", ".join(["?"] * len(lex_data))
+    cur_ar.execute(f"INSERT OR REPLACE INTO lexicon ({cols_str}) VALUES ({placeholders});", list(lex_data.values()))
+
+    # إدراج المفهوم في جدول المفاهيم العربي
+    con_data = {}
+    for c in ar_con_cols:
+        if c in ("concept_id", "id"):
+            con_data[c] = de_id
+        elif c in ("lemma", "surface"):
+            con_data[c] = ar_translation
+        elif c in ("part_of_speech", "pos"):
+            con_data[c] = pos
+        elif c == "cefr":
+            con_data[c] = cefr
+        elif c == "direction":
+            con_data[c] = "rtl"
+        elif c in ("legacy_fields_json", "metadata_json"):
+            con_data[c] = json.dumps({"original_de": surface, "article": article, "translation": ar_translation}, ensure_ascii=False)
+
+    if con_data:
+        c_cols = ", ".join(con_data.keys())
+        c_place = ", ".join(["?"] * len(con_data))
+        cur_ar.execute(f"INSERT OR REPLACE INTO concepts ({c_cols}) VALUES ({c_place});", list(con_data.values()))
+
+    return 1, 1 if con_data else 0
+
+
+def _update_fts_index(conn_ar, cur_ar):
+    """تحديث جداول البحث السريع FTS5 إن وجدت"""
+    print("🔍 [3/4] تحديث جداول البحث السريع...")
+    cur_ar.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='lexicon_fts';")
+    if cur_ar.fetchone():
+        try:
+            cur_ar.execute("DELETE FROM lexicon_fts;")
+            cur_ar.execute("INSERT INTO lexicon_fts(rowid, surface) SELECT rowid, surface FROM lexicon;")
+            conn_ar.commit()
+            print("✅ تم تحديث فهرس البحث السريع FTS5.")
+        except Exception as e:
+            print(f"⚠️ تخطي FTS5: {e}")
+
+
+def _compress_packs(de_db, ar_db):
+    """ضغط الحزم المحدثة كملفات pack.gz"""
+    print("📦 [4/4] تحديث حزم التوزيع المضغوطة (.pack.gz)...")
+    for lang, db_file in [("de", de_db), ("ar", ar_db)]:
+        gz_file = f"assets/content/packs/{lang}/{lang}-1.0.0.pack.gz"
+        with open(db_file, "rb") as f_in:
+            with gzip.open(gz_file, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        print(f"✅ تم إنشاء: {gz_file} ({os.path.getsize(gz_file) // 1024} KB)")
+
+
 def main():
     if not os.path.exists(DE_DB) or not os.path.exists(AR_DB):
         print("❌ خطأ: إحدى قواعد البيانات غير موجودة في المسار المحدد.")
@@ -60,95 +151,19 @@ def main():
     inserted_con = 0
 
     for row in de_lexicon:
-        de_id, surface, pos, cefr, ipa, fields_json = row
-        c_info = de_concepts.get(de_id, (surface, "{}"))
-        lemma, legacy_raw = c_info
-        
-        ar_translation = ""
-        article = ""
-        try:
-            leg_data = json.loads(legacy_raw) if legacy_raw else {}
-            ar_translation = leg_data.get("translation_ar") or leg_data.get("translation", "")
-            article = leg_data.get("article") or leg_data.get("gender_article", "")
-        except Exception:
-            pass
-
-        if not ar_translation:
-            ar_translation = surface
-
-        # إدراج أو تحديث المعجم في قاعدة العربية
-        lex_data = {}
-        for c in ar_lex_cols:
-            if c in ("id", "concept_id", "word_id"):
-                lex_data[c] = de_id
-            elif c in ("surface", "lemma", "word"):
-                lex_data[c] = ar_translation
-            elif c in ("part_of_speech", "pos"):
-                lex_data[c] = pos
-            elif c == "cefr_level":
-                lex_data[c] = cefr
-            elif c == "ipa":
-                lex_data[c] = ipa
-            elif c == "language_code":
-                lex_data[c] = "ar"
-            elif c == "direction":
-                lex_data[c] = "rtl"
-            elif c == "fields_json":
-                lex_data[c] = json.dumps({"de_surface": surface, "article": article}, ensure_ascii=False)
-
-        cols_str = ", ".join(lex_data.keys())
-        placeholders = ", ".join(["?"] * len(lex_data))
-        cur_ar.execute(f"INSERT OR REPLACE INTO lexicon ({cols_str}) VALUES ({placeholders});", list(lex_data.values()))
-        inserted_lex += 1
-
-        # إدراج المفهوم في جدول المفاهيم العربي
-        con_data = {}
-        for c in ar_con_cols:
-            if c in ("concept_id", "id"):
-                con_data[c] = de_id
-            elif c in ("lemma", "surface"):
-                con_data[c] = ar_translation
-            elif c in ("part_of_speech", "pos"):
-                con_data[c] = pos
-            elif c == "cefr":
-                con_data[c] = cefr
-            elif c == "direction":
-                con_data[c] = "rtl"
-            elif c in ("legacy_fields_json", "metadata_json"):
-                con_data[c] = json.dumps({"original_de": surface, "article": article, "translation": ar_translation}, ensure_ascii=False)
-
-        if con_data:
-            c_cols = ", ".join(con_data.keys())
-            c_place = ", ".join(["?"] * len(con_data))
-            cur_ar.execute(f"INSERT OR REPLACE INTO concepts ({c_cols}) VALUES ({c_place});", list(con_data.values()))
-            inserted_con += 1
+        lex_count, con_count = _sync_row_to_arabic(cur_ar, ar_lex_cols, ar_con_cols, row, de_concepts)
+        inserted_lex += lex_count
+        inserted_con += con_count
 
     conn_ar.commit()
     print(f"✅ تمت مزامنة {inserted_lex} كلمة في lexicon العربي و {inserted_con} مفهوم في concepts.")
 
-    # [3/4] إنشاء وتحديث فهارس البحث FTS5 إن وجدت
-    print("🔍 [3/4] تحديث جداول البحث السريع...")
-    cur_ar.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='lexicon_fts';")
-    if cur_ar.fetchone():
-        try:
-            cur_ar.execute("DELETE FROM lexicon_fts;")
-            cur_ar.execute("INSERT INTO lexicon_fts(rowid, surface) SELECT rowid, surface FROM lexicon;")
-            conn_ar.commit()
-            print("✅ تم تحديث فهرس البحث السريع FTS5.")
-        except Exception as e:
-            print(f"⚠️ تخطي FTS5: {e}")
+    _update_fts_index(conn_ar, cur_ar)
 
     conn_de.close()
     conn_ar.close()
 
-    # [4/4] ضغط الحزم المحدثة كملفات pack.gz
-    print("📦 [4/4] تحديث حزم التوزيع المضغوطة (.pack.gz)...")
-    for lang, db_file in [("de", DE_DB), ("ar", AR_DB)]:
-        gz_file = f"assets/content/packs/{lang}/{lang}-1.0.0.pack.gz"
-        with open(db_file, "rb") as f_in:
-            with gzip.open(gz_file, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        print(f"✅ تم إنشاء: {gz_file} ({os.path.getsize(gz_file) // 1024} KB)")
+    _compress_packs(DE_DB, AR_DB)
 
     print("\n🎉 اكتملت العملية بنجاح! أصبحت الحزمة العربية والألمانية تحتويان على 1,000 مفهوم متزامن بالكامل.")
 

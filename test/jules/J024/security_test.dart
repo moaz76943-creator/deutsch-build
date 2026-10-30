@@ -1,117 +1,86 @@
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/security/offline_gate.dart';
 import 'package:deutsch_bilarabi/core/security/data_integrity_signer.dart';
 import 'package:deutsch_bilarabi/core/security/storage_guard.dart';
 
 void main() {
-  group('OfflineGate', () {
-    test('denies general network requests', () {
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.general), isFalse);
-      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.general), throwsException);
+  group('OfflineGate J024 Tests', () {
+    test('OfflineGate denies network access by default', () {
+      expect(OfflineGate.isNetworkRequestPermitted(), isFalse);
+      expect(OfflineGate.strictOfflineEnforced, isTrue);
+
+      expect(
+        () => OfflineGate.assertZeroNetworkPolicy(),
+        throwsA(isA<StateError>()),
+      );
     });
 
-    test('denies telemetry requests', () {
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.telemetry), isFalse);
-      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.telemetry), throwsException);
+    test('OfflineGate authorizes download strictly on consent', () {
+      expect(OfflineGate.authorizeUserDownload(true), isTrue);
+      expect(OfflineGate.authorizeUserDownload(false), isFalse);
+
+      // Ensure authorization doesn't flip global state
+      expect(OfflineGate.strictOfflineEnforced, isTrue);
+      expect(OfflineGate.isNetworkRequestPermitted(), isFalse);
     });
 
-    test('permits authorized user-directed downloads', () {
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.userDirectedDownload, authorizationToken: 'user_auth_123'), isTrue);
-      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.userDirectedDownload, authorizationToken: 'user_auth_123'), returnsNormally);
-    });
-
-    test('denies unauthorized user-directed downloads', () {
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.userDirectedDownload), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperationType.userDirectedDownload, authorizationToken: 'invalid_token'), isFalse);
-      expect(() => OfflineGate.assertZeroNetworkPolicy(NetworkOperationType.userDirectedDownload), throwsException);
-    });
-  });
-
-  group('DataIntegritySigner', () {
-    const payload = '{"key":"value"}';
-    final validChecksum = DataIntegritySigner.computeChecksum(payload);
-
-    test('verifies valid manifest', () {
-      final manifestJson = jsonEncode({
-        'hash': validChecksum,
-        'capabilities': ['content_v1'],
-      });
-      expect(DataIntegritySigner.verifyManifest(manifestJson), isTrue);
-    });
-
-    test('rejects missing capabilities in manifest', () {
-      final manifestJson = jsonEncode({
-        'hash': validChecksum,
-      });
-      expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
-    });
-
-    test('rejects unsupported capabilities in manifest', () {
-      final manifestJson = jsonEncode({
-        'hash': validChecksum,
-        'capabilities': ['content_v3_unsupported'],
-      });
-      expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
-    });
-
-    test('rejects expired manifest', () {
-      final manifestJson = jsonEncode({
-        'hash': validChecksum,
-        'capabilities': ['content_v1'],
-        'expiresAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-      });
-      expect(DataIntegritySigner.verifyManifest(manifestJson), isFalse);
-    });
-
-    test('verifies valid content integrity', () {
-      final manifestJson = jsonEncode({
-        'hash': validChecksum,
-        'capabilities': ['content_v1'],
-      });
-      expect(DataIntegritySigner.verifyContentIntegrity(payload, manifestJson), isTrue);
-    });
-
-    test('rejects invalid content hash', () {
-      const alteredPayload = '{"key":"altered"}';
-      final manifestJson = jsonEncode({
-        'hash': validChecksum, // Hash corresponds to original payload
-        'capabilities': ['content_v1'],
-      });
-      expect(DataIntegritySigner.verifyContentIntegrity(alteredPayload, manifestJson), isFalse);
-    });
-
-    test('rejects forged/invalid manifest json', () {
-      expect(DataIntegritySigner.verifyContentIntegrity(payload, 'not_json'), isFalse);
+    test('OfflineGate denies telemetry', () {
+      expect(OfflineGate.isTelemetryAllowed(), isFalse);
     });
   });
 
-  group('StorageGuard', () {
-    const validPayload = '{"key":"value"}';
-    const invalidPayload = 'not_json';
-    final validChecksum = DataIntegritySigner.computeChecksum(validPayload);
-    final manifestJson = jsonEncode({
-      'hash': validChecksum,
-      'capabilities': ['content_v1'],
+  group('DataIntegritySigner J024 Tests', () {
+    final validPayload = '{"data": "test"}';
+    final validHash = DataIntegritySigner.computeChecksum(validPayload);
+
+    test('DataIntegritySigner rejects missing/empty payload', () {
+      final manifest = {'algorithm': 'fnv1a', 'hash': validHash};
+      expect(DataIntegritySigner.verifyManifest(manifest, null), isFalse);
+      expect(DataIntegritySigner.verifyManifest(manifest, ''), isFalse);
     });
 
-    test('permits local read/write on valid json', () {
-      expect(StorageGuard.checkAccess(StorageAccessType.read, validPayload), isTrue);
-      expect(StorageGuard.checkAccess(StorageAccessType.write, validPayload), isTrue);
+    test('DataIntegritySigner rejects invalid algorithm', () {
+      final manifest = {'algorithm': 'sha256', 'hash': validHash};
+      expect(DataIntegritySigner.verifyManifest(manifest, validPayload), isFalse);
+
+      final manifest2 = {'hash': validHash};
+      expect(DataIntegritySigner.verifyManifest(manifest2, validPayload), isFalse);
     });
 
-    test('denies access on invalid json (fail-closed)', () {
-      expect(StorageGuard.checkAccess(StorageAccessType.read, invalidPayload), isFalse);
-      expect(StorageGuard.checkAccess(StorageAccessType.write, invalidPayload), isFalse);
+    test('DataIntegritySigner rejects missing or invalid hash', () {
+      final manifest = {'algorithm': 'fnv1a'};
+      expect(DataIntegritySigner.verifyManifest(manifest, validPayload), isFalse);
+
+      final manifest2 = {'algorithm': 'fnv1a', 'hash': 'not-an-int'};
+      expect(DataIntegritySigner.verifyManifest(manifest2, validPayload), isFalse);
+
+      final manifest3 = {'algorithm': 'fnv1a', 'hash': 12345};
+      expect(DataIntegritySigner.verifyManifest(manifest3, validPayload), isFalse);
     });
 
-    test('permits access when manifest validation passes', () {
-      expect(StorageGuard.checkAccess(StorageAccessType.read, validPayload, manifestJson: manifestJson), isTrue);
+    test('DataIntegritySigner rejects expired manifest or invalid expiresAt', () {
+      final pastDate = DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch;
+      final manifest = {'algorithm': 'fnv1a', 'hash': validHash, 'expiresAt': pastDate};
+      expect(DataIntegritySigner.verifyManifest(manifest, validPayload), isFalse);
+
+      final manifest2 = {'algorithm': 'fnv1a', 'hash': validHash, 'expiresAt': 'not-an-int'};
+      expect(DataIntegritySigner.verifyManifest(manifest2, validPayload), isFalse);
     });
 
-    test('denies access when manifest validation fails', () {
-      const alteredPayload = '{"key":"altered"}';
-      expect(StorageGuard.checkAccess(StorageAccessType.read, alteredPayload, manifestJson: manifestJson), isFalse);
+    test('DataIntegritySigner accepts valid manifest', () {
+      final futureDate = DateTime.now().add(const Duration(days: 1)).millisecondsSinceEpoch;
+      final manifest = {'algorithm': 'fnv1a', 'hash': validHash, 'expiresAt': futureDate};
+      expect(DataIntegritySigner.verifyManifest(manifest, validPayload), isTrue);
+
+      final manifest2 = {'algorithm': 'fnv1a', 'hash': validHash};
+      expect(DataIntegritySigner.verifyManifest(manifest2, validPayload), isTrue);
+    });
+  });
+
+  group('StorageGuard J024 Tests', () {
+    test('StorageGuard allows local read/write', () {
+      expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
+      expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
     });
   });
 }

@@ -1,6 +1,6 @@
-import 'package:deutsch_bilarabi/core/architecture/directed_pair_id.dart';
-import 'package:deutsch_bilarabi/core/catalog/language_pack_gate.dart';
-import 'package:deutsch_bilarabi/core/catalog/language_readiness_matrix.dart';
+import '../architecture/directed_pair_id.dart';
+import 'language_pack_gate.dart';
+import 'language_readiness_matrix.dart';
 import 'dart:collection';
 
 enum PairReadinessState {
@@ -10,6 +10,7 @@ enum PairReadinessState {
   identicalLanguages,
   missingPack,
   rejectedPack,
+  silentPivotPrevented,
 }
 
 class CatalogReadinessEngine {
@@ -53,6 +54,11 @@ class CatalogReadinessEngine {
     final targetTier = LanguageReadinessMatrix.getTier(pair.targetLocale);
     if (targetTier == LanguageReadinessTier.nominal) {
       return PairReadinessState.unsupportedTarget;
+    }
+
+    if (sourceTier != LanguageReadinessTier.productionReady &&
+        targetTier != LanguageReadinessTier.productionReady) {
+      return PairReadinessState.silentPivotPrevented;
     }
 
     final packResult = _admittedPacks[pair.uniqueKey];

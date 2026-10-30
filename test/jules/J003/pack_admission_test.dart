@@ -2,27 +2,26 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:path/path.dart' as p;
 import 'package:deutsch_bilarabi/core/storage/pack_admission_service.dart';
-import 'package:deutsch_bilarabi/core/storage/atomic_database_installer.dart';
 import 'package:deutsch_bilarabi/core/storage/storage_quarantine.dart';
-import 'test_setup.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
+  late PackAdmissionService service;
+  late StorageQuarantine quarantine;
+  late Directory tempDir;
+
   setUpAll(() {
-    setupSqfliteFfi();
+    sqfliteFfiInit();
   });
 
-  late Directory tempDir;
-  late StorageQuarantine quarantine;
-  late PackAdmissionService admissionService;
-  late String quarantineDir;
-
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp('pack_admission_test_');
-    quarantineDir = p.join(tempDir.path, 'quarantine');
     quarantine = StorageQuarantine();
-    admissionService = PackAdmissionService(quarantine: quarantine);
+    service = PackAdmissionService(
+      quarantine: quarantine,
+      dbFactory: databaseFactoryFfi,
+    );
+    tempDir = await Directory.systemTemp.createTemp('j003_test_');
   });
 
   tearDown(() async {
@@ -31,276 +30,234 @@ void main() {
     }
   });
 
-  Future<File> createValidDatabase(String path) async {
-    final dbPath = p.join(tempDir.path, path);
-    final db = await databaseFactory.openDatabase(dbPath);
-
-    // Valid Schema Setup
+  Future<File> createValidDatabase(String dbPath) async {
+    final db = await databaseFactoryFfi.openDatabase(dbPath);
     await db.execute('PRAGMA user_version = 1;');
-    await db.execute('''
-      CREATE TABLE language_profiles (
-        language_code TEXT PRIMARY KEY,
-        name_native TEXT NOT NULL,
-        name_ar TEXT NOT NULL,
-        direction TEXT NOT NULL
-      )
-    ''');
-    await db.insert('language_profiles', {
-      'language_code': 'de',
-      'name_native': 'Deutsch',
-      'name_ar': 'ألمانية',
-      'direction': 'ltr',
-    });
-
-    await db.execute('''
-      CREATE TABLE lexemes (
-        lexeme_id TEXT PRIMARY KEY,
-        concept_id TEXT NOT NULL,
-        language_code TEXT NOT NULL,
-        lemma TEXT NOT NULL,
-        display_text TEXT NOT NULL
-      )
-    ''');
-    await db.insert('lexemes', {
-      'lexeme_id': 'lex_1',
-      'concept_id': 'conc_1',
-      'language_code': 'de',
-      'lemma': 'hund',
-      'display_text': 'Hund',
-    });
-
+    await db.execute('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT);');
+    await db.insert('words', {'word': 'hallo'});
     await db.close();
     return File(dbPath);
   }
 
-  Future<String> calculateHash(File file) async {
-    final bytes = await file.readAsBytes();
+  String getFileHash(File file) {
+    final bytes = file.readAsBytesSync();
     return sha256.convert(bytes).toString();
   }
 
-  test('Admit valid pack successfully', () async {
-    final sourceDb = await createValidDatabase('valid_pack.db');
-    final hash = await calculateHash(sourceDb);
-    final targetPath = p.join(tempDir.path, 'target_pack.db');
+  test('Valid pack admission succeeds and installs atomically', () async {
+    final sourceFile = File(path.join(tempDir.path, 'source.db'));
+    await createValidDatabase(sourceFile.path);
+    final targetFile = File(path.join(tempDir.path, 'target.db'));
 
-    final result = await admissionService.installPack(
-      sourcePath: sourceDb.path,
-      targetPath: targetPath,
+    final hash = getFileHash(sourceFile);
+
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
       expectedHash: hash,
-      quarantineDir: quarantineDir,
+      targetPath: targetFile.path,
+      languageIdentity: 'de',
+      expectedRowCount: 1,
     );
 
-    expect(result.status, DatabaseInstallStatus.installed);
-    expect(await File(targetPath).exists(), isTrue);
-    expect((await quarantine.getIsolatedFiles(quarantineDir)).isEmpty, isTrue);
+    expect(result, isTrue);
+    expect(await targetFile.exists(), isTrue);
+    expect(quarantine.isolatedItems, isEmpty);
   });
 
-  test('Reject pack with invalid hash and quarantine it', () async {
-    final sourceDb = await createValidDatabase('invalid_hash.db');
-    final targetPath = p.join(tempDir.path, 'target_invalid_hash.db');
+  test('Rejects missing file', () async {
+    final missingFile = File(path.join(tempDir.path, 'missing.db'));
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: missingFile,
+      expectedHash: 'dummy',
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 0,
+    );
+    expect(result, isFalse);
+  });
 
-    final result = await admissionService.installPack(
-      sourcePath: sourceDb.path,
+  test('Rejects file pointing to progress database', () async {
+    final sourceFile = File(path.join(tempDir.path, 'source.db'));
+    await createValidDatabase(sourceFile.path);
+    final targetPath = path.join(tempDir.path, 'user_progress.db');
+
+    final hash = getFileHash(sourceFile);
+
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
+      expectedHash: hash,
       targetPath: targetPath,
-      expectedHash: 'bad_hash',
-      quarantineDir: quarantineDir,
+      languageIdentity: 'de',
+      expectedRowCount: 1,
     );
 
-    expect(result.status, DatabaseInstallStatus.rejected);
-    expect(await File(targetPath).exists(), isFalse);
-    final isolated = await quarantine.getIsolatedFiles(quarantineDir);
-    expect(isolated.length, 1);
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems, isNotEmpty);
+    expect(
+        quarantine.isolatedItems.first.diagnosticReason, contains('progress'));
   });
 
-  test('Reject pack with no language profiles (invalid schema)', () async {
-    final dbPath = p.join(tempDir.path, 'no_lang.db');
-    final db = await databaseFactory.openDatabase(dbPath);
+  test('Rejects empty file', () async {
+    final sourceFile = File(path.join(tempDir.path, 'empty.db'));
+    await sourceFile.writeAsBytes([]);
+
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
+      expectedHash: 'dummy',
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 0,
+    );
+
+    expect(result, isFalse);
+  });
+
+  test('Rejects file with wrong hash', () async {
+    final sourceFile = File(path.join(tempDir.path, 'source.db'));
+    await createValidDatabase(sourceFile.path);
+
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
+      expectedHash: 'wronghash',
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 0,
+    );
+
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems, isNotEmpty);
+    expect(quarantine.isolatedItems.first.diagnosticReason,
+        contains('hash mismatch'));
+  });
+
+  test('Rejects file with invalid SQLite header', () async {
+    final sourceFile = File(path.join(tempDir.path, 'corrupt.db'));
+    await sourceFile.writeAsBytes(List.generate(100, (i) => i));
+    final hash = getFileHash(sourceFile);
+
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
+      expectedHash: hash,
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 0,
+    );
+
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems, isNotEmpty);
+    expect(quarantine.isolatedItems.first.diagnosticReason, contains('header'));
+  });
+
+  test('Rejects file without tables', () async {
+    final sourceFile = File(path.join(tempDir.path, 'notables.db'));
+    final db = await databaseFactoryFfi.openDatabase(sourceFile.path);
     await db.execute('PRAGMA user_version = 1;');
-    await db.execute('CREATE TABLE language_profiles (language_code TEXT PRIMARY KEY)');
-    await db.execute('CREATE TABLE lexemes (lexeme_id TEXT PRIMARY KEY)');
-    await db.insert('lexemes', {'lexeme_id': 'lex_1'});
     await db.close();
 
-    final sourceFile = File(dbPath);
-    final hash = await calculateHash(sourceFile);
-    final targetPath = p.join(tempDir.path, 'target_no_lang.db');
+    final hash = getFileHash(sourceFile);
 
-    final result = await admissionService.installPack(
-      sourcePath: sourceFile.path,
-      targetPath: targetPath,
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
       expectedHash: hash,
-      quarantineDir: quarantineDir,
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 0,
     );
 
-    expect(result.status, DatabaseInstallStatus.rejected);
-    expect(await File(targetPath).exists(), isFalse);
-    final isolated = await quarantine.getIsolatedFiles(quarantineDir);
-    expect(isolated.length, 1);
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems, isNotEmpty);
+    expect(quarantine.isolatedItems.first.diagnosticReason,
+        contains('No data tables found'));
   });
 
-  test('Reject pack with no lexemes', () async {
-    final dbPath = p.join(tempDir.path, 'no_lex.db');
-    final db = await databaseFactory.openDatabase(dbPath);
-    await db.execute('PRAGMA user_version = 1;');
-    await db.execute('CREATE TABLE language_profiles (language_code TEXT PRIMARY KEY)');
-    await db.insert('language_profiles', {'language_code': 'de'});
-    await db.execute('CREATE TABLE lexemes (lexeme_id TEXT PRIMARY KEY)');
+  test('Rejects file with user_version <= 0', () async {
+    final sourceFile = File(path.join(tempDir.path, 'noversion.db'));
+    final db = await databaseFactoryFfi.openDatabase(sourceFile.path);
+    await db.execute('CREATE TABLE words (id INTEGER PRIMARY KEY);');
     await db.close();
 
-    final sourceFile = File(dbPath);
-    final hash = await calculateHash(sourceFile);
-    final targetPath = p.join(tempDir.path, 'target_no_lex.db');
+    final hash = getFileHash(sourceFile);
 
-    final result = await admissionService.installPack(
-      sourcePath: sourceFile.path,
-      targetPath: targetPath,
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
       expectedHash: hash,
-      quarantineDir: quarantineDir,
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 0,
     );
 
-    expect(result.status, DatabaseInstallStatus.rejected);
-    expect(await File(targetPath).exists(), isFalse);
-    final isolated = await quarantine.getIsolatedFiles(quarantineDir);
-    expect(isolated.length, 1);
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems, isNotEmpty);
+    expect(quarantine.isolatedItems.first.diagnosticReason,
+        contains('schema version'));
   });
 
-  test('Reject corrupted byte file', () async {
-    final dbPath = p.join(tempDir.path, 'corrupted.db');
-    final file = File(dbPath);
-    await file.writeAsBytes([0x00, 0x01, 0x02, 0x03]); // Not a valid SQLite DB
+  test('Atomic replacement leaves existing pack intact if not replaced',
+      () async {
+    final targetFile =
+        await createValidDatabase(path.join(tempDir.path, 'target.db'));
+    final originalHash = getFileHash(targetFile);
 
-    final hash = await calculateHash(file);
-    final targetPath = p.join(tempDir.path, 'target_corrupted.db');
+    final sourceFile = File(path.join(tempDir.path, 'source.db'));
+    await createValidDatabase(sourceFile.path);
+    final hash = getFileHash(sourceFile);
 
-    final result = await admissionService.installPack(
-      sourcePath: file.path,
-      targetPath: targetPath,
+    // We don't set allowReplacement = true
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
       expectedHash: hash,
-      quarantineDir: quarantineDir,
+      targetPath: targetFile.path,
+      languageIdentity: 'de',
+      expectedRowCount: 1,
     );
 
-    expect(result.status, DatabaseInstallStatus.rejected);
-    expect(await File(targetPath).exists(), isFalse);
-    final isolated = await quarantine.getIsolatedFiles(quarantineDir);
-    expect(isolated.length, 1);
+    expect(result, isFalse);
+    // Ensure target still exists and has original content
+    expect(getFileHash(targetFile), originalHash);
   });
 
-  test('Atomic replacement replaces existing valid pack', () async {
-    // 1. Install first valid pack
-    final source1 = await createValidDatabase('valid_pack1.db');
-    final hash1 = await calculateHash(source1);
-    final targetPath = p.join(tempDir.path, 'production.db');
+  test('Interrupted renames handled safely', () async {
+    final sourceFile = File(path.join(tempDir.path, 'source.db'));
+    await createValidDatabase(sourceFile.path);
+    final targetPath = path.join(tempDir.path, 'target.db');
 
-    final result1 = await admissionService.installPack(
-      sourcePath: source1.path,
-      targetPath: targetPath,
-      expectedHash: hash1,
-      quarantineDir: quarantineDir,
-    );
-    expect(result1.status, DatabaseInstallStatus.installed);
+    // Create a dangling .tmp file
+    final tempPath = '$targetPath.tmp';
+    await File(tempPath).writeAsBytes([1, 2, 3]);
 
-    // 2. Install second valid pack over it
-    final source2 = await createValidDatabase('valid_pack2.db');
-    // Add extra data to differentiate
-    final db2 = await databaseFactory.openDatabase(source2.path);
-    await db2.insert('lexemes', {
-      'lexeme_id': 'lex_2',
-      'concept_id': 'conc_2',
-      'language_code': 'de',
-      'lemma': 'katze',
-      'display_text': 'Katze',
-    });
-    await db2.close();
+    final hash = getFileHash(sourceFile);
 
-    final hash2 = await calculateHash(source2);
-    final result2 = await admissionService.installPack(
-      sourcePath: source2.path,
-      targetPath: targetPath,
-      expectedHash: hash2,
-      quarantineDir: quarantineDir,
-    );
-
-    expect(result2.status, DatabaseInstallStatus.installed);
-
-    // Verify it was actually replaced
-    final verifyDb = await databaseFactory.openDatabase(targetPath, options: OpenDatabaseOptions(readOnly: true));
-    final count = (await verifyDb.rawQuery('SELECT COUNT(*) FROM lexemes')).first.values.first as int;
-    await verifyDb.close();
-    expect(count, 2);
-  });
-
-  test('Failed replacement preserves previous valid pack', () async {
-    // 1. Install a valid pack
-    final validSource = await createValidDatabase('valid_pack1.db');
-    final hash1 = await calculateHash(validSource);
-    final targetPath = p.join(tempDir.path, 'production.db');
-
-    final result1 = await admissionService.installPack(
-      sourcePath: validSource.path,
-      targetPath: targetPath,
-      expectedHash: hash1,
-      quarantineDir: quarantineDir,
-    );
-    expect(result1.status, DatabaseInstallStatus.installed);
-
-    final targetFile = File(targetPath);
-    final oldStat = await targetFile.stat();
-
-    // 2. Attempt to install an invalid pack over it
-    final invalidSource = await createValidDatabase('invalid2.db'); // Valid DB but wrong hash
-    final result2 = await admissionService.installPack(
-      sourcePath: invalidSource.path,
-      targetPath: targetPath,
-      expectedHash: 'wrong_hash',
-      quarantineDir: quarantineDir,
-    );
-
-    expect(result2.status, DatabaseInstallStatus.rejected);
-
-    final newStat = await targetFile.stat();
-    expect(oldStat.modified, newStat.modified); // Make sure the original file wasn't touched
-
-    final tmpFile = File('${targetPath}.tmp');
-    expect(await tmpFile.exists(), isFalse);
-  });
-
-  test('Bounded quarantine retention across sessions', () async {
-     for(int i=0; i < 7; i++) {
-        final f = File(p.join(tempDir.path, 'bad_file_${i}.db'));
-        await f.writeAsString('bad data ${i}');
-
-        // Simulating restart by using a new StorageQuarantine instance each time
-        final q = StorageQuarantine();
-        await q.isolateCorruptFile(f, 'reason', quarantineDir);
-        await Future.delayed(const Duration(milliseconds: 10));
-     }
-
-     final isolated = await quarantine.getIsolatedFiles(quarantineDir);
-     expect(isolated.length, 5); // Max is 5
-  });
-
-  test('Interrupted rename recovers gracefully', () async {
-    // Simulate leftover tmp file from previous interrupted run
-    final targetPath = p.join(tempDir.path, 'target_pack.db');
-    final tmpFile = File('${targetPath}.tmp');
-    await tmpFile.writeAsString('leftover junk data');
-
-    final sourceDb = await createValidDatabase('valid_pack.db');
-    final hash = await calculateHash(sourceDb);
-
-    final result = await admissionService.installPack(
-      sourcePath: sourceDb.path,
-      targetPath: targetPath,
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
       expectedHash: hash,
-      quarantineDir: quarantineDir,
+      targetPath: targetPath,
+      languageIdentity: 'de',
+      expectedRowCount: 1,
     );
 
-    expect(result.status, DatabaseInstallStatus.installed);
+    expect(result, isTrue);
     expect(await File(targetPath).exists(), isTrue);
+    expect(await File(tempPath).exists(),
+        isFalse); // tmp file should be cleaned up
+  });
 
-    // The previous temp file should have been overwritten or cleaned up
-    final currentDbData = await File(targetPath).readAsBytes();
-    final sourceDbData = await sourceDb.readAsBytes();
-    expect(currentDbData, sourceDbData);
+  test('Rejects missing expected rows', () async {
+    final sourceFile = File(path.join(tempDir.path, 'source.db'));
+    await createValidDatabase(sourceFile.path);
+
+    final hash = getFileHash(sourceFile);
+
+    final result = await service.verifyAndAdmitPack(
+      stagedFile: sourceFile,
+      expectedHash: hash,
+      targetPath: path.join(tempDir.path, 'target.db'),
+      languageIdentity: 'de',
+      expectedRowCount: 50, // Expects 50 rows, but we only have 1
+    );
+
+    expect(result, isFalse);
+    expect(quarantine.isolatedItems, isNotEmpty);
+    expect(
+        quarantine.isolatedItems.last.diagnosticReason, contains('Row count'));
   });
 }

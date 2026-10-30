@@ -15,7 +15,7 @@ for path in files:
                 for idx, item in enumerate(data):
                     if isinstance(item, dict):
                         for k, v in item.items():
-                            if (v is None or v == "") and k not in ("article", "plural"):
+                            if v is None or v == "":
                                 print(f"❌ قيمة فارغة في {path} عند العنصر {idx} المفتاح '{k}'")
                                 errors += 1
     except Exception as e:

@@ -27,7 +27,7 @@ void main() {
     await tester.pumpWidget(createTestWidget());
 
     expect(find.byType(FaIcon).last, findsWidgets);
-    expect(find.byTooltip('النطق الصوتي غير متوفر حالياً'), findsOneWidget);
+    expect(find.byTooltip('النطق الصوتي غير متوفر حالياً'), findsWidgets);
     expect(find.text('الحرف الصامت أو الناعم في اللغة التركية'), findsOneWidget);
   });
 

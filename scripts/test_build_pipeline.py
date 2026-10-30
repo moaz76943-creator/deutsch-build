@@ -1,78 +1,89 @@
 import unittest
 import subprocess
-import os
 import tempfile
-from pathlib import Path
+import os
 
 class TestBuildPipeline(unittest.TestCase):
-    def setUp(self):
-        self.root = Path(__file__).resolve().parent.parent
-        self.env = os.environ.copy()
-
-    def test_missing_java(self):
-        env = self.env.copy()
+    def test_missing_flutter_environment(self):
+        """Simulates an environment with no flutter in PATH and expects ERR_ENV (10)."""
+        env = os.environ.copy()
+        # Remove flutter from path
         env["PATH"] = "/bin:/usr/bin"
-
-        proc = subprocess.run(
-            ["/bin/bash", str(self.root / "scripts" / "build_guard.sh")],
-            env=env, capture_output=True, text=True
+        process = subprocess.run(
+            ["bash", "scripts/build_guard.sh"],
+            env=env,
+            capture_output=True,
+            text=True
         )
-        self.assertNotEqual(proc.returncode, 0)
-        self.assertIn("Flutter is not in PATH", proc.stderr + proc.stdout)
+        self.assertEqual(process.returncode, 10, msg=f"Expected code 10, got {process.returncode}\n{process.stderr}")
 
-    def test_insufficient_disk(self):
-        env = self.env.copy()
-        with tempfile.TemporaryDirectory() as td:
-            mock_df = Path(td) / "df"
-            mock_df.write_text("#!/bin/bash\necho 'Filesystem 1024-blocks Used Available Capacity Mounted on'\necho '/dev/sda1 1000000 999000 500 99% /'\n")
-            mock_df.chmod(0o755)
-            env["PATH"] = f"{td}:{env.get('PATH', '')}"
-            # Need to just run check-disk-space.sh instead to isolate
-            proc = subprocess.run(
-                ["/bin/bash", str(self.root / "scripts" / "check-disk-space.sh")],
-                env=env, capture_output=True, text=True
+    def test_insufficient_disk_space(self):
+        """Mocks df to simulate insufficient disk space and expects ERR_ENV (10)."""
+        with tempfile.TemporaryDirectory() as d:
+            mock_df_path = os.path.join(d, "df")
+            with open(mock_df_path, "w") as f:
+                f.write("#!/bin/sh\n")
+                f.write('echo "Filesystem 1K-blocks Used Available Use% Mounted on"\n')
+                f.write('echo "/dev/mock 1000000 900000 500 99% /"\n') # Only 500kb available, fails check
+            os.chmod(mock_df_path, 0o755)
+
+            env = os.environ.copy()
+            env["PATH"] = d + ":" + env["PATH"]
+
+            # The check_disk_space function is used in check-disk-space.sh
+            process = subprocess.run(
+                ["bash", "-c", "source scripts/common.sh && load_toolchain && check_disk_space /"],
+                env=env,
+                capture_output=True,
+                text=True
             )
-            self.assertNotEqual(proc.returncode, 0)
-            self.assertIn("minimum", proc.stderr + proc.stdout)
+            self.assertEqual(process.returncode, 10, msg=f"Expected code 10, got {process.returncode}\n{process.stderr}")
 
-    def test_failure_propagation(self):
-        env = self.env.copy()
-        with tempfile.TemporaryDirectory() as td:
-            mock_flutter = Path(td) / "flutter"
-            mock_flutter.write_text("#!/bin/bash\nif [ \"$1\" = 'pub' ]; then echo 'SocketException: timeout'; return 1 2>/dev/null; else return 0 2>/dev/null; fi\n")
-            mock_flutter.chmod(0o755)
-            env["PATH"] = f"{td}:{env.get('PATH', '')}"
-
-            script_path = Path(td) / "test_script.sh"
-            script_path.write_text(f"""#!/bin/bash
-            source {self.root}/scripts/common.sh
-            with_retry flutter pub get
-            """)
-
-            proc = subprocess.run(
-                ["/bin/bash", str(script_path)],
-                env=env, capture_output=True, text=True
-            )
-            self.assertIn("retrying (1/3)", proc.stderr + proc.stdout)
-            self.assertIn("retrying (2/3)", proc.stderr + proc.stdout)
-            self.assertNotEqual(proc.returncode, 0)
-
-    def test_cancellation(self):
-        script = f"""
-        source {self.root}/scripts/common.sh
-        sleep 10
-        """
-        proc = subprocess.Popen(
-            ["/bin/bash", "-c", script],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    def test_redact_secrets(self):
+        """Tests if the redact_secrets sed command properly masks passwords."""
+        process = subprocess.run(
+            ["bash", "-c", "source scripts/common.sh && echo 'storePassword=secret storeFile=key.jks --pass secret2 --pass=secret3' | redact_secrets"],
+            capture_output=True,
+            text=True
         )
+        output = process.stdout.strip()
+        self.assertEqual(output, "storePassword=<REDACTED> storeFile=key.jks --pass <REDACTED> --pass=<REDACTED>")
+
+    def test_run_with_retry_transient_error(self):
+        """Tests if run_with_retry handles transient errors."""
+        script_content = '''#!/usr/bin/env bash
+source scripts/common.sh
+
+fail_then_succeed() {
+    if [ ! -f /tmp/test_transient_marker ]; then
+        touch /tmp/test_transient_marker
+        echo "Network error occurred" >&2
+        return 1
+    else
+        rm /tmp/test_transient_marker
+        echo "Success on retry"
+        return 0
+    fi
+}
+rm -f /tmp/test_transient_marker
+run_with_retry fail_then_succeed
+# We exit explicitly here to pass the exit code to python
+sys_exit_code=$?
+echo $sys_exit_code > /tmp/test_transient_code
+'''
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:
+            f.write(script_content)
+            script_path = f.name
+
         try:
-            proc.wait(timeout=0.5)
-        except subprocess.TimeoutExpired:
-            proc.terminate()
-            proc.wait()
-
-        self.assertNotEqual(proc.returncode, 0)
+            subprocess.run(["bash", script_path], capture_output=True, text=True)
+            with open("/tmp/test_transient_code", "r") as f:
+                code = int(f.read().strip())
+            self.assertEqual(code, 0, msg="Expected success on retry")
+        finally:
+            os.remove(script_path)
+            if os.path.exists("/tmp/test_transient_code"):
+                os.remove("/tmp/test_transient_code")
 
 if __name__ == '__main__':
     unittest.main()

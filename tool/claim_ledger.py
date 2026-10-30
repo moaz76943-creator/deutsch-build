@@ -20,7 +20,10 @@ import re
 import sys
 from typing import Any, Callable
 
-REPO = "sali97m-cpu/deutsch-bilarabi"
+CANONICAL_REPO = "moaz76943-creator/deutsch-build"
+HISTORICAL_REPO = "sali97m-cpu/deutsch-bilarabi"
+ALLOWED_REPOS = {CANONICAL_REPO, HISTORICAL_REPO}
+REPO = CANONICAL_REPO
 SCHEMA_VERSION = 1
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
@@ -171,7 +174,7 @@ def validate_ledger(ledger: Any, *, now: datetime) -> dict[str, Any]:
         raise LedgerError("ledger must be an object")
     if (type(ledger.get("schema_version")) is not int
             or ledger.get("schema_version") != SCHEMA_VERSION
-            or ledger.get("repo") != REPO):
+            or ledger.get("repo") not in ALLOWED_REPOS):
         raise LedgerError("wrong ledger schema/repository")
     generation = ledger.get("generation")
     if type(generation) is not int or generation < 0:
@@ -234,7 +237,9 @@ def _claim_id(task_id: str, owner_role: str, epoch: int, head_sha: str) -> str:
     # Fixed-length identity: valid maximum-length task IDs must not make the
     # generated claim_id violate this module's own 128-character ID contract.
     digest = hashlib.sha256(f"{task_id}\0{owner_role}\0{epoch}\0{head_sha}".encode()).hexdigest()[:24]
-    return f"claim/{epoch}/{digest}"
+    suffix = f"/{epoch}/{digest}"
+    limit = 128 - len("claim/") - len(suffix)
+    return f"claim/{task_id[:limit]}{suffix}"
 
 
 def acquire(

@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,11 +65,15 @@ class LanguagePackMetadata {
   static final _safeFilename = RegExp(r'^[A-Za-z0-9_-]+\.pack\.gz$');
   static final _safeDigest = RegExp(r'^[a-fA-F0-9]{64}$');
 
+  // Fail closed on unbounded untrusted archive sizes before disk or network I/O.
+  static const int maxArchiveBytes = 64 * 1024 * 1024;
+
   bool get canDownload =>
       code != 'de' &&
       isAvailable &&
       sizeBytes != null &&
       sizeBytes! > 0 &&
+      sizeBytes! <= maxArchiveBytes &&
       packFile != null &&
       _safeFilename.hasMatch(packFile!) &&
       sha256Hex != null &&
@@ -122,13 +127,15 @@ class ActiveLanguageState {
     required Map<String, double> downloadProgress,
     required Set<String> downloadingCodes,
     Set<String> quarantinedCodes = const <String>{},
+    Set<String> verifiedArchiveCodes = const <String>{},
     required this.isLoadingCatalog,
     this.errorMessage,
   })  : remotePacks = List.unmodifiable(remotePacks),
         installedCodes = Set.unmodifiable(installedCodes),
         downloadProgress = Map.unmodifiable(downloadProgress),
         downloadingCodes = Set.unmodifiable(downloadingCodes),
-        quarantinedCodes = Set.unmodifiable(quarantinedCodes);
+        quarantinedCodes = Set.unmodifiable(quarantinedCodes),
+        verifiedArchiveCodes = Set.unmodifiable(verifiedArchiveCodes);
 
   factory ActiveLanguageState.initial() => ActiveLanguageState(
         activeLanguageCode: 'de',
@@ -145,6 +152,9 @@ class ActiveLanguageState {
   final Map<String, double> downloadProgress;
   final Set<String> downloadingCodes;
   final Set<String> quarantinedCodes;
+
+  /// SHA-256 checked archives only. This is not proof that SQLite content is mounted.
+  final Set<String> verifiedArchiveCodes;
   final bool isLoadingCatalog;
   final String? errorMessage;
 
@@ -152,6 +162,7 @@ class ActiveLanguageState {
       !quarantinedCodes.contains(code) &&
       (code == 'de' || installedCodes.contains(code));
   bool isDownloading(String code) => downloadingCodes.contains(code);
+  bool hasVerifiedArchive(String code) => verifiedArchiveCodes.contains(code);
 
   /// Keep installed packs visible even when the network catalog is unavailable.
   List<LanguagePackMetadata> get visiblePacks {
@@ -200,6 +211,7 @@ class ActiveLanguageState {
     Map<String, double>? downloadProgress,
     Set<String>? downloadingCodes,
     Set<String>? quarantinedCodes,
+    Set<String>? verifiedArchiveCodes,
     bool? isLoadingCatalog,
     String? errorMessage,
     bool clearError = false,
@@ -211,6 +223,7 @@ class ActiveLanguageState {
       downloadProgress: downloadProgress ?? this.downloadProgress,
       downloadingCodes: downloadingCodes ?? this.downloadingCodes,
       quarantinedCodes: quarantinedCodes ?? this.quarantinedCodes,
+      verifiedArchiveCodes: verifiedArchiveCodes ?? this.verifiedArchiveCodes,
       isLoadingCatalog: isLoadingCatalog ?? this.isLoadingCatalog,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
@@ -222,25 +235,27 @@ class ActiveLanguageState {
 class LanguagePackStorage {
   Future<Directory> get _directory async {
     final support = await getApplicationSupportDirectory();
-    return Directory(support.path + '/language_packs');
+    return Directory('${support.path}/language_packs');
   }
 
   Future<File> _packFile(String code) async {
     if (!LanguagePackMetadata._safeCode.hasMatch(code) || code == 'de') {
       throw ArgumentError.value(code, 'code', 'Invalid downloadable code');
     }
-    return File((await _directory).path + '/' + code + '.pack.gz');
+    return File('${(await _directory).path}/$code.pack.gz');
   }
 
   Future<String> fetchManifest() async {
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 12);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 12);
     try {
       final request = await client
           .getUrl(Uri.parse(languagePackManifestUrl))
           .timeout(const Duration(seconds: 15));
-      final response = await request.close().timeout(const Duration(seconds: 15));
+      final response =
+          await request.close().timeout(const Duration(seconds: 15));
       if (response.statusCode != HttpStatus.ok) {
-        throw HttpException('Catalog HTTP status: ' + response.statusCode.toString());
+        throw HttpException('Catalog HTTP status: ${response.statusCode}');
       }
       final bytes = BytesBuilder(copy: false);
       var count = 0;
@@ -257,11 +272,28 @@ class LanguagePackStorage {
     }
   }
 
+  // Reject symlinks anywhere in the archive path, not only the file and
+  // immediate parent. A symlinked grandparent can otherwise redirect reads,
+  // promotion or deletion outside managed storage while checks appear clean.
+  static Future<bool> _hasArchiveSymlink(File file) async {
+    var path = file.absolute.path;
+    while (true) {
+      if (await FileSystemEntity.type(path, followLinks: false) ==
+          FileSystemEntityType.link) {
+        return true;
+      }
+      final parent = File(path).parent.path;
+      if (parent == path) return false;
+      path = parent;
+    }
+  }
+
   Future<Set<String>> findInstalled(List<LanguagePackMetadata> packs) async {
     final installed = <String>{'de'};
     for (final pack in packs) {
       if (pack.code == 'de' || pack.sizeBytes == null) continue;
       final file = await _packFile(pack.code);
+      if (await _hasArchiveSymlink(file)) continue;
       if (await file.exists() &&
           await file.length() == pack.sizeBytes &&
           pack.sha256Hex != null &&
@@ -281,6 +313,9 @@ class LanguagePackStorage {
     final directory = await _directory;
     await directory.create(recursive: true);
     final target = await _packFile(pack.code);
+    if (await _hasArchiveSymlink(target)) {
+      throw const FormatException('Archive target is a symbolic link.');
+    }
     final expectedHash = pack.sha256Hex!.toLowerCase();
 
     // Re-verify a cached file before considering it a successful download.
@@ -292,50 +327,97 @@ class LanguagePackStorage {
       }
     }
 
-    final temporary = File(target.path + '.partial');
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 12);
+    // Stage in a unique directory on the target filesystem so concurrent
+    // downloads never share or clean up another download's partial file.
+    final stagingDirectory = await directory.createTemp('.${pack.code}-');
+    final temporary = File('${stagingDirectory.path}/${pack.code}.pack.gz');
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 12);
     try {
       final uri = Uri.parse(_packBaseUrl + pack.packFile!);
-      final request = await client.getUrl(uri).timeout(const Duration(seconds: 15));
-      final response = await request.close().timeout(const Duration(seconds: 15));
+      final request =
+          await client.getUrl(uri).timeout(const Duration(seconds: 15));
+      final response =
+          await request.close().timeout(const Duration(seconds: 15));
       if (response.statusCode != HttpStatus.ok) {
-        throw HttpException('Pack HTTP status: ' + response.statusCode.toString());
+        throw HttpException('Pack HTTP status: ${response.statusCode}');
       }
 
       final writer = temporary.openWrite(mode: FileMode.writeOnly);
       var received = 0;
       try {
-        await for (final chunk in response.timeout(const Duration(seconds: 30))) {
+        await for (final chunk
+            in response.timeout(const Duration(seconds: 30))) {
           received += chunk.length;
           if (received > pack.sizeBytes!) {
-            throw const FormatException('Pack is larger than its manifest size.');
+            throw const FormatException(
+                'Pack is larger than its manifest size.');
           }
           writer.add(chunk);
-          onProgress((received / pack.sizeBytes!).clamp(0.0, 1.0));
+          // 100% is reserved for a hash-verified, promoted archive.
+          onProgress((received / pack.sizeBytes!).clamp(0.0, 0.99).toDouble());
         }
         await writer.flush();
       } finally {
         await writer.close();
       }
-      if (received != pack.sizeBytes) {
-        throw const FormatException('Pack size does not match the manifest.');
-      }
-      if (await _fileDigest(temporary.path) != expectedHash) {
-        throw const FormatException('Pack checksum verification failed.');
-      }
-      if (await target.exists()) await target.delete();
-      await temporary.rename(target.path);
+      await promoteVerifiedArchive(
+        stagedFile: temporary,
+        targetFile: target,
+        expectedSize: pack.sizeBytes!,
+        expectedHash: expectedHash,
+      );
       onProgress(1);
     } finally {
       client.close(force: true);
-      if (await temporary.exists()) await temporary.delete();
+      // Cleanup is scoped to this operation's unique staging directory.
+      // Never delete the existing installed archive during error recovery.
+      try {
+        if (await stagingDirectory.exists()) {
+          await stagingDirectory.delete(recursive: true);
+        }
+      } on FileSystemException {
+        // A cleanup error cannot invalidate an already committed archive.
+      }
     }
+  }
+
+  /// Promote only fully downloaded, hash-verified bytes. Android/POSIX rename
+  /// atomically replaces the destination without a delete-before-rename gap.
+  /// If validation or rename fails, the old archive remains untouched.
+  @visibleForTesting
+  Future<void> promoteVerifiedArchive({
+    required File stagedFile,
+    required File targetFile,
+    required int expectedSize,
+    required String expectedHash,
+  }) async {
+    if (expectedSize <= 0 ||
+        expectedSize > LanguagePackMetadata.maxArchiveBytes ||
+        !LanguagePackMetadata._safeDigest.hasMatch(expectedHash) ||
+        !targetFile.path.endsWith('.pack.gz')) {
+      throw const FormatException('Invalid archive promotion metadata.');
+    }
+    if (await _hasArchiveSymlink(stagedFile) ||
+        await _hasArchiveSymlink(targetFile)) {
+      throw const FormatException('Archive path is a symbolic link.');
+    }
+    if (await stagedFile.length() != expectedSize) {
+      throw const FormatException('Pack size does not match the manifest.');
+    }
+    if (await _fileDigest(stagedFile.path) != expectedHash.toLowerCase()) {
+      throw const FormatException('Pack checksum verification failed.');
+    }
+    await stagedFile.rename(targetFile.path);
   }
 
   Future<void> delete(String code) async {
     final file = await _packFile(code);
+    if (await _hasArchiveSymlink(file)) {
+      throw const FormatException('Archive path is a symbolic link.');
+    }
     if (!await file.exists()) {
-      throw StateError('No managed archive exists for ' + code);
+      throw StateError('No managed archive exists for $code');
     }
     await file.delete();
   }
@@ -392,7 +474,8 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
     await refreshCatalog();
     if (!mounted) return;
     final savedActive = _savedActive;
-    if (savedActive != null && state.isInstalled(savedActive) &&
+    if (savedActive != null &&
+        state.isInstalled(savedActive) &&
         state.activeLanguageCode != savedActive) {
       state = state.copyWith(activeLanguageCode: savedActive);
       _ref.invalidate(vocabularyListProvider);
@@ -528,7 +611,7 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
     } catch (error) {
       if (mounted) {
         state = state.copyWith(
-          errorMessage: 'فشل تنزيل الحزمة أو التحقق منها: ' + error.toString(),
+          errorMessage: 'فشل تنزيل الحزمة أو التحقق منها: $error',
         );
       }
       rethrow;
@@ -544,7 +627,9 @@ class ActiveLanguageNotifier extends StateNotifier<ActiveLanguageState> {
   }
 
   Future<void> deletePack(String langCode) async {
-    if (langCode == 'de') throw StateError('The built-in German pack is protected.');
+    if (langCode == 'de') {
+      throw StateError('The built-in German pack is protected.');
+    }
     if (langCode == state.activeLanguageCode) {
       throw StateError('Switch to another language before deleting this pack.');
     }

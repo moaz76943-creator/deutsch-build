@@ -22,8 +22,7 @@ class CacheIdentity {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(language, direction, pairEpoch, contentVersion);
+  int get hashCode => Object.hash(language, direction, pairEpoch, contentVersion);
 
   @override
   String toString() {

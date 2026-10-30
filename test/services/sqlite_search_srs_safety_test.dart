@@ -3,8 +3,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:deutsch_bilarabi/core/storage/migration_journal.dart';
-import 'package:deutsch_bilarabi/core/srs/review_command_port.dart';
-import 'package:deutsch_bilarabi/core/srs_scheduler.dart';
 import 'package:deutsch_bilarabi/services/srs_scheduler_service.dart';
 import 'package:deutsch_bilarabi/services/fts_search_service.dart';
 import 'package:deutsch_bilarabi/services/trie_search_engine.dart';

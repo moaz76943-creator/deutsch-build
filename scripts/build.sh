@@ -23,7 +23,41 @@ log CHECK "1/10 Environment"
 
 log CHECK "2/10 Dependencies"
 snapshot_lockfile
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
+=======
+with_retry flutter pub get --enforce-lockfile
+>>>>>>> pr-136
+=======
+with_retry flutter pub get --enforce-lockfile || fatal "flutter pub get failed" "$EXIT_DEP"
+>>>>>>> pr-188
+assert_lockfile_unchanged
+
+log TEST "3/10 Analyze + tests + project audits"
+flutter analyze || fatal --code "$ERR_COMP" "Flutter analyze failed"
+flutter test || fatal --code "$ERR_COMP" "Flutter tests failed"
+python -m pytest -q tests || fatal --code "$ERR_COMP" "Python tests failed"
+=======
+run_with_retry flutter pub get --enforce-lockfile || fatal "$ERR_DEP" "Dependencies resolution failed"
+assert_lockfile_unchanged
+
+log TEST "3/10 Analyze + tests + project audits"
+flutter analyze || fatal "$ERR_COMP" "Flutter analyze failed"
+flutter test || fatal "$ERR_COMP" "Flutter test failed"
+python -m pytest -q tests || fatal "$ERR_COMP" "Pytest failed"
+>>>>>>> pr-61
+
+log CHECK "4/10 Content Quality"
+python tool/quality_audit.py || fatal "$ERR_COMP" "Quality audit failed"
+=======
+run_pub_get_with_retry || fatal "$ERR_DEP" "Locked dependency resolution failed"
+=======
 flutter pub get --enforce-lockfile
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 assert_lockfile_unchanged
 
 log TEST "3/10 Analyze + tests + project audits"
@@ -32,7 +66,12 @@ flutter test
 python -m pytest -q tests
 
 log CHECK "4/10 Content Quality"
+<<<<<<< HEAD
+python tool/quality_audit.py || fatal "$ERR_COMP" "Content audit failed"
+>>>>>>> pr-179
+=======
 python tool/quality_audit.py
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
 log CHECK "5/10 Security"
 python tool/security_audit.py
@@ -45,10 +84,38 @@ fi
 
 log BUILD "7/10 Android Build ($MODE)"
 if [[ "$MODE" == "release" ]]; then
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (release) failed"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal --code "$ERR_COMP" "Flutter build apk (debug) failed"
+=======
+  run_with_retry flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "$ERR_COMP" "Release build failed"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  run_with_retry flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "$ERR_COMP" "Debug build failed"
+>>>>>>> pr-61
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "$ERR_COMP" "Release APK build failed"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "$ERR_COMP" "Debug APK build failed"
+>>>>>>> pr-179
+=======
+  flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64 || fatal "Flutter build apk (release) failed" "$EXIT_COMP"
+  APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
+else
+  flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64 || fatal "Flutter build apk (debug) failed" "$EXIT_COMP"
+>>>>>>> pr-188
+=======
   flutter build apk --release "${DART_DEFINE[@]}" --obfuscate --split-debug-info=build/symbols --target-platform android-arm64
   APK="$ROOT/build/app/outputs/flutter-apk/app-release.apk"
 else
   flutter build apk --debug "${DART_DEFINE[@]}" --target-platform android-arm64
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
   APK="$ROOT/build/app/outputs/flutter-apk/app-debug.apk"
 fi
 

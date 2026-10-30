@@ -35,7 +35,7 @@ class CefrFilterBar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return SizedBox(
-      /* height: 52 removed for flexible sizing */,
+      // Height is intentionally controlled by the surrounding layout.
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 4),

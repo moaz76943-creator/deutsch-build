@@ -3,109 +3,150 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/lifecycle/runtime_lifecycle_registry.dart';
 
 void main() {
-  late RuntimeLifecycleRegistry registry;
+  group('RuntimeLifecycleRegistry - J079', () {
+    late RuntimeLifecycleRegistry registry;
 
-  setUp(() {
-    registry = RuntimeLifecycleRegistry.instance;
-    registry.reset();
-  });
-
-  tearDown(() {
-    registry.reset();
-  });
-
-  test('Registered resources are cleaned up deterministically', () async {
-    bool timerCancelled = false;
-    bool subCancelled = false;
-    bool callbackRun = false;
-
-    final timer = Timer(const Duration(hours: 1), () {});
-    final streamController = StreamController<int>(onCancel: () {
-      subCancelled = true;
-    });
-    final sub = streamController.stream.listen((_) {});
-
-    registry.registerTimer(timer, ownerKey: 'feature_a');
-    registry.registerSubscription(sub, ownerKey: 'feature_a');
-    registry.registerCleanupCallback(() {
-      callbackRun = true;
-      timerCancelled = !timer.isActive; // check if timer was cancelled before callback
-    }, ownerKey: 'feature_a');
-
-    await registry.disposeOwner('feature_a');
-
-    expect(timer.isActive, isFalse, reason: 'Timer should be cancelled');
-    expect(subCancelled, isTrue, reason: 'Subscription should be cancelled');
-    expect(callbackRun, isTrue, reason: 'Callback should be run');
-    expect(timerCancelled, isTrue, reason: 'Timer should be cancelled before callback runs');
-  });
-
-  test('Duplicate disposal is safe', () async {
-    int cleanupCount = 0;
-    registry.registerCleanupCallback(() {
-      cleanupCount++;
-    }, ownerKey: 'feature_b');
-
-    await registry.disposeOwner('feature_b');
-    await registry.disposeOwner('feature_b'); // duplicate
-    await registry.disposeAll(); // global duplicate
-
-    expect(cleanupCount, equals(1), reason: 'Cleanup should only run once');
-  });
-
-  test('Stale callbacks cannot mutate disposed feature state', () async {
-    await registry.disposeOwner('feature_c');
-
-    bool subCancelledImm = false;
-    final streamController = StreamController<int>(onCancel: () {
-      subCancelledImm = true;
-    });
-    final sub = streamController.stream.listen((_) {});
-
-    bool callbackRunImm = false;
-
-    // Register after dispose
-    registry.registerSubscription(sub, ownerKey: 'feature_c');
-    registry.registerCleanupCallback(() {
-      callbackRunImm = true;
-    }, ownerKey: 'feature_c');
-
-    expect(subCancelledImm, isTrue, reason: 'Sub should be cancelled immediately on stale registration');
-    expect(callbackRunImm, isTrue, reason: 'Callback should be run immediately on stale registration');
-  });
-
-  test('Cleanup errors are isolated and observable locally', () async {
-    int successCount = 0;
-
-    registry.registerCleanupCallback(() {
-      throw Exception('Failing cleanup');
+    setUp(() {
+      registry = RuntimeLifecycleRegistry.instance;
+      registry.resetForTesting();
     });
 
-    registry.registerCleanupCallback(() {
-      successCount++;
+    test('deterministic shutdown (LIFO order)', () async {
+      final List<int> disposedOrder = [];
+
+      registry.registerResource(() {
+        disposedOrder.add(1);
+      });
+      registry.registerResource(() {
+        disposedOrder.add(2);
+      });
+      registry.registerResource(() {
+        disposedOrder.add(3);
+      });
+
+      await registry.disposeAll();
+
+      expect(disposedOrder, [3, 2, 1]);
     });
 
-    await expectLater(registry.disposeAll(), completes);
-    expect(successCount, equals(1), reason: 'Subsequent cleanups should run even if one throws');
-  });
+    test('repeated disposal is safe (idempotent)', () async {
+      int disposeCount = 0;
+      registry.registerResource(() {
+        disposeCount++;
+      });
 
-  test('Bounded cleanup timeouts prevent hangs', () async {
-    bool nextRun = false;
-    registry.registerCleanupCallback(() async {
-      await Future.delayed(const Duration(seconds: 10));
+      await registry.disposeAll();
+      await registry.disposeAll();
+
+      expect(disposeCount, 1);
     });
 
-    registry.registerCleanupCallback(() {
-      nextRun = true;
+    test('repeated disposeByOwner is safe (idempotent)', () async {
+      int disposeCount = 0;
+      final owner = Object();
+      registry.registerResource(() {
+        disposeCount++;
+      }, owner: owner);
+
+      await registry.disposeByOwner(owner);
+      await registry.disposeByOwner(owner);
+
+      expect(disposeCount, 1);
     });
 
-    // Time it, should be roughly 5 seconds (the timeout limit) rather than 10
-    final stopwatch = Stopwatch()..start();
-    await registry.disposeAll();
-    stopwatch.stop();
+    test('disposeByOwner cleans up specific owner only', () async {
+      final List<String> disposedList = [];
+      final ownerA = 'ownerA';
+      final ownerB = 'ownerB';
 
-    expect(stopwatch.elapsedMilliseconds >= 4900, isTrue);
-    expect(stopwatch.elapsedMilliseconds < 8000, isTrue, reason: 'Should timeout after 5 seconds and not wait 10');
-    expect(nextRun, isTrue, reason: 'Next cleanup should still execute');
+      registry.registerResource(() => disposedList.add('A1'), owner: ownerA);
+      registry.registerResource(() => disposedList.add('B1'), owner: ownerB);
+      registry.registerResource(() => disposedList.add('A2'), owner: ownerA);
+
+      await registry.disposeByOwner(ownerA);
+
+      expect(disposedList, ['A2', 'A1']);
+
+      await registry.disposeByOwner(ownerB);
+      expect(disposedList, ['A2', 'A1', 'B1']);
+    });
+
+    test('one failing disposer does not skip independent cleanup operations', () async {
+      final List<int> disposedOrder = [];
+
+      registry.registerResource(() {
+        disposedOrder.add(1);
+      });
+      registry.registerResource(() {
+        throw Exception('Boom');
+      });
+      registry.registerResource(() {
+        disposedOrder.add(3);
+      });
+
+      await registry.disposeAll();
+
+      expect(disposedOrder, [3, 1]);
+    });
+
+    test('late registrations for disposed owner are immediately disposed', () async {
+      final owner = 'disposedOwner';
+      await registry.disposeByOwner(owner);
+
+      int syncDisposeCount = 0;
+      registry.registerResource(() {
+        syncDisposeCount++;
+      }, owner: owner);
+
+      expect(syncDisposeCount, 1, reason: 'Should immediately dispose synchronously');
+
+      int asyncDisposeCount = 0;
+      registry.registerResource(() async {
+        asyncDisposeCount++;
+      }, owner: owner);
+
+      await Future.delayed(Duration.zero); // Let microtask run
+      expect(asyncDisposeCount, 1, reason: 'Should immediately dispose asynchronously');
+    });
+
+    test('late registrations when completely disposed are immediately disposed', () async {
+      await registry.disposeAll();
+
+      int syncDisposeCount = 0;
+      registry.registerResource(() {
+        syncDisposeCount++;
+      });
+
+      expect(syncDisposeCount, 1, reason: 'Should immediately dispose synchronously');
+    });
+
+    test('abandoned subscriptions are properly tracked and disposed', () async {
+      final streamController = StreamController<int>();
+      bool wasCancelled = false;
+      streamController.onCancel = () {
+        wasCancelled = true;
+      };
+
+      final sub = streamController.stream.listen((_) {});
+      registry.registerSubscription(sub);
+
+      await registry.disposeAll();
+      expect(wasCancelled, isTrue);
+    });
+
+    test('timers are cancelled upon disposeAll', () async {
+      bool timerFired = false;
+      final timer = Timer(const Duration(milliseconds: 100), () {
+        timerFired = true;
+      });
+
+      registry.registerTimer(timer);
+
+      await registry.disposeAll();
+      await Future.delayed(const Duration(milliseconds: 150));
+
+      expect(timerFired, isFalse);
+    });
+
   });
 }

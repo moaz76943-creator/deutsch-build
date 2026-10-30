@@ -1,4 +1,5 @@
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:deutsch_bilarabi/core/audio/audio_generation_tracker.dart';
 
 /// The platform TTS channel must not exist until an actual playback request.
 class OfflineAudioManager {
@@ -7,9 +8,8 @@ class OfflineAudioManager {
   OfflineAudioManager._init() : _createTts = FlutterTts.new;
 
   /// Provides a deterministic lazy factory for focused unit tests.
-  OfflineAudioManager.forTesting({
-    required FlutterTts Function() createTts,
-  }) : _createTts = createTts;
+  OfflineAudioManager.forTesting({required FlutterTts Function() createTts})
+    : _createTts = createTts;
 
   final FlutterTts Function() _createTts;
   FlutterTts? _flutterTts;
@@ -18,8 +18,7 @@ class OfflineAudioManager {
 
   bool get isAudioInitialized => _flutterTts != null;
 
-  Future<void> _ensureInitialized() =>
-      _initialization ??= _setupTts();
+  Future<void> _ensureInitialized() => _initialization ??= _setupTts();
 
   Future<void> _setupTts() async {
     final tts = _flutterTts ??= _createTts();

@@ -16,8 +16,7 @@ class DuplicatePreventingReviewCommandPort implements ReviewCommandPort {
 
   @override
   Future<void> submit(ReviewCommand command) async {
-    final commandPairKey =
-        '${command.sourceLanguageId}_${command.targetLanguageId}';
+    final commandPairKey = '${command.sourceLanguageId}_${command.targetLanguageId}';
     if (commandPairKey != expectedLanguagePairKey) {
       throw ArgumentError(
         'Language pair mismatch. Expected: $expectedLanguagePairKey, Got: $commandPairKey',

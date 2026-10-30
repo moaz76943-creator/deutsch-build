@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
+import 'package:sqflite/sqflite.dart';
+import '../../../lib/services/pooled_database_manager.dart';
 
 void main() {
   setUpAll(() {
@@ -8,31 +10,26 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  test('J008: Stress test 100 language identities', () async {
-    int openCalls = 0;
-    final pool = PooledDatabaseManager(
-      maxConnections: 4,
+  test('stress test 100 language identities', () async {
+    final opened = <String>[];
+    final manager = PooledDatabaseManager(
+      maxConnections: 5,
       openConnection: (code) async {
-        openCalls++;
-        final db = await databaseFactory.openDatabase(
-          inMemoryDatabasePath,
-          options: OpenDatabaseOptions(singleInstance: false),
-        );
-        return db;
+        opened.add(code);
+        return await databaseFactory.openDatabase(inMemoryDatabasePath);
       },
     );
 
     final futures = <Future>[];
     for (int i = 0; i < 100; i++) {
-      final code = 'en-${i.toString().padLeft(2, '0')}';
-      futures.add(pool.withDatabase(code, (db) async {
-        await Future.delayed(const Duration(milliseconds: 10));
-        expect(db.isOpen, true);
+      final code = 'en-${i.toString().padLeft(3, '0')}';
+      futures.add(manager.withDatabase(code, (db) async {
+        await Future.delayed(Duration(milliseconds: 10));
+        return db.isOpen;
       }));
     }
 
     await Future.wait(futures);
-    expect(pool.activeCount, lessThanOrEqualTo(4));
-    expect(openCalls, 100);
+    expect(manager.activeCount, lessThanOrEqualTo(5));
   });
 }

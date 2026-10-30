@@ -6,7 +6,7 @@ class FontFallbackEngine {
   /// script-specific getters if we want to restrict fallbacks.
 
   static const List<String> universalFallback = [
-    'NotoSansArabic',
+    'Cairo',
     'NotoSansHebrew',
     'NotoSansDevanagari',
     'NotoSansEthiopic',
@@ -25,7 +25,7 @@ class FontFallbackEngine {
 
     // Arabic / Persian / Urdu (0600–06FF, 0750–077F, 08A0–08FF)
     if (RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]').hasMatch(text)) {
-      fallbacks.add('NotoSansArabic');
+      fallbacks.add('Cairo');
     }
     // Hebrew (0590–05FF)
     if (RegExp(r'[\u0590-\u05FF]').hasMatch(text)) {
@@ -53,6 +53,6 @@ class FontFallbackEngine {
       fallbacks.add('NotoSansSC');
     }
 
-    return fallbacks.isEmpty ? universalFallback : fallbacks;
+    return fallbacks.isEmpty ? [] : fallbacks;
   }
 }

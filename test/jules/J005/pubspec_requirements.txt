@@ -1,25 +1,26 @@
-# Pubspec Integration Requirements for J005
-# The following must be added to pubspec.yaml under the `flutter.fonts` section
-# in order for the multi-script typography fallback engine to work correctly.
-
-  - family: NotoSansArabic
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansArabic.ttf
-  - family: NotoSansHebrew
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansHebrew.ttf
-  - family: NotoSansDevanagari
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansDevanagari.ttf
-  - family: NotoSansEthiopic
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansEthiopic.ttf
-  - family: NotoSansGeorgian
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansGeorgian.ttf
-  - family: NotoSansArmenian
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansArmenian.ttf
-  - family: NotoSansSC
-    fonts:
-      - asset: assets/fonts/fallback/NotoSansSC.ttf
+flutter:
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Variable.ttf
+    - family: NotoSansArabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic-Regular.ttf
+    - family: NotoSansHebrew
+      fonts:
+        - asset: assets/fonts/NotoSansHebrew-Regular.ttf
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
+    - family: NotoSansEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
+    - family: NotoSansGeorgian
+      fonts:
+        - asset: assets/fonts/NotoSansGeorgian-Regular.ttf
+    - family: NotoSansArmenian
+      fonts:
+        - asset: assets/fonts/NotoSansArmenian-Regular.ttf
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Regular.otf

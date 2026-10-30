@@ -43,7 +43,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('يعمل Dictionary بوضع محدود'), findsOneWidget);
+      expect(find.text('حدث خطأ في Dictionary'), findsOneWidget);
       expect(find.text('Success Data'),
           findsOneWidget); // Child still shown in degraded
     });
@@ -93,7 +93,7 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(attempts, 3);
-      expect(find.text('يعمل Network بوضع محدود'), findsOneWidget);
+      expect(find.text('حدث خطأ في Network'), findsOneWidget);
     });
 
     testWidgets('Rejects stale callback if session ID changes', (tester) async {
@@ -139,7 +139,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 150));
       expect(operationFinished, true);
       // State should not be updated to degraded because session changed
-      expect(find.text('يعمل Session بوضع محدود'), findsNothing);
+      expect(find.text('حدث خطأ في Session'), findsNothing);
     });
   });
 }

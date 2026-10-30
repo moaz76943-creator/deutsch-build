@@ -19,6 +19,100 @@ def _normalize_german(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).casefold().split())
 
 
+def _process_content(
+    content_rows: list[object],
+    existing_content: list[object],
+    conflicts: list[dict[str, object]],
+    content_added: list[dict[str, object]],
+) -> None:
+    existing_ids = {row.get("id") for row in existing_content if isinstance(row, dict)}
+    existing_german = {
+        _normalize_german(row["german"]): str(row.get("id", ""))
+        for row in existing_content
+        if isinstance(row, dict) and isinstance(row.get("german"), str) and row["german"].strip()
+    }
+    seen_batch_ids: set[str] = set()
+    valid_content_rows: list[dict[str, object]] = []
+    for row in content_rows:
+        if not isinstance(row, dict) or set(row) != set(CONTENT_FIELDS):
+            conflicts.append(_issue("schema", "content row schema mismatch", category="content"))
+            continue
+        elif not all(isinstance(row[field], str) for field in CONTENT_FIELDS if field != "accepted") or not isinstance(row["accepted"], list):
+            conflicts.append(_issue("schema", "content row field types are invalid", category="content", key=str(row.get("id"))))
+            continue
+        valid_content_rows.append(row)
+    for row in valid_content_rows:
+        content_id = str(row["id"])
+        german = str(row["german"])
+        if content_id in existing_ids:
+            conflicts.append(_issue("content_id_exists", f"contentId already exists: {content_id}", category="content", key=content_id))
+            continue
+        if content_id in seen_batch_ids:
+            conflicts.append(_issue("content_id_duplicate", f"contentId is duplicated in batch: {content_id}", category="content", key=content_id))
+            continue
+        seen_batch_ids.add(content_id)
+        canonical_id = existing_german.get(_normalize_german(german))
+        if canonical_id is not None:
+            conflicts.append(_issue("canonical_german_exists", f"German entry already exists as {canonical_id}: {german}", category="content", key=content_id))
+            continue
+        content_added.append(row)
+
+
+def _process_verbs(
+    verb_rows: list[object],
+    existing_verbs: list[object],
+    conflicts: list[dict[str, object]],
+    verb_added: list[dict[str, object]],
+) -> None:
+    existing_verb_keys = {
+        (row.get("infinitive"), row.get("person"), row.get("form"))
+        for row in existing_verbs if isinstance(row, dict)
+    }
+    valid_verb_rows: list[dict[str, object]] = []
+    for row in verb_rows:
+        if not isinstance(row, dict) or set(row) != set(VERB_FIELDS):
+            conflicts.append(_issue("schema", "verb row schema mismatch", category="verb"))
+            continue
+        elif not all(isinstance(row[field], str) for field in VERB_FIELDS):
+            conflicts.append(_issue("schema", "verb row field types are invalid", category="verb"))
+            continue
+        valid_verb_rows.append(row)
+    for row in valid_verb_rows:
+        key = (row["infinitive"], row["person"], row["form"])
+        label = " / ".join(str(x) for x in key)
+        if key in existing_verb_keys:
+            conflicts.append(_issue("verb_row_exists", f"verb row already exists: {label}", category="verb", key=label))
+        else:
+            verb_added.append(row)
+
+
+def _process_audio(
+    audio_rows: list[object],
+    existing_audio: dict[str, object],
+    conflicts: list[dict[str, object]],
+    audio_added: list[dict[str, object]],
+) -> None:
+    # Handle dict typing safely by providing a default empty list
+    entries = existing_audio.get("entries")
+    if not isinstance(entries, list):
+        entries = []
+    existing_audio_ids = {
+        row.get("contentId") for row in entries if isinstance(row, dict)
+    }
+    valid_audio_rows: list[dict[str, object]] = []
+    for row in audio_rows:
+        if not isinstance(row, dict) or not set(row).issubset({"contentId", "word", "sentence", "pronunciation"}) or "contentId" not in row:
+            conflicts.append(_issue("schema", "audio row schema mismatch", category="audio"))
+            continue
+        valid_audio_rows.append(row)
+    for row in valid_audio_rows:
+        content_id = str(row["contentId"])
+        if content_id in existing_audio_ids:
+            conflicts.append(_issue("audio_content_id_exists", f"audio entry already exists: {content_id}", category="audio", key=content_id))
+        else:
+            audio_added.append(row)
+
+
 def preview_batch(
     source: Path,
     *,
@@ -66,74 +160,9 @@ def preview_batch(
         conflicts.append(_issue("canonical_schema", "canonical audio manifest schema mismatch", category="audio"))
         existing_audio = {"version": 1, "entries": []}
 
-    existing_ids = {row.get("id") for row in existing_content if isinstance(row, dict)}
-    existing_german = {
-        _normalize_german(row["german"]): str(row.get("id", ""))
-        for row in existing_content
-        if isinstance(row, dict) and isinstance(row.get("german"), str) and row["german"].strip()
-    }
-    seen_batch_ids: set[str] = set()
-    valid_content_rows: list[dict[str, object]] = []
-    for row in content_rows:
-        if not isinstance(row, dict) or set(row) != set(CONTENT_FIELDS):
-            conflicts.append(_issue("schema", "content row schema mismatch", category="content"))
-            continue
-        elif not all(isinstance(row[field], str) for field in CONTENT_FIELDS if field != "accepted") or not isinstance(row["accepted"], list):
-            conflicts.append(_issue("schema", "content row field types are invalid", category="content", key=str(row.get("id"))))
-            continue
-        valid_content_rows.append(row)
-    for row in valid_content_rows:
-        content_id = str(row["id"])
-        german = str(row["german"])
-        if content_id in existing_ids:
-            conflicts.append(_issue("content_id_exists", f"contentId already exists: {content_id}", category="content", key=content_id))
-            continue
-        if content_id in seen_batch_ids:
-            conflicts.append(_issue("content_id_duplicate", f"contentId is duplicated in batch: {content_id}", category="content", key=content_id))
-            continue
-        seen_batch_ids.add(content_id)
-        canonical_id = existing_german.get(_normalize_german(german))
-        if canonical_id is not None:
-            conflicts.append(_issue("canonical_german_exists", f"German entry already exists as {canonical_id}: {german}", category="content", key=content_id))
-            continue
-        content_added.append(row)
-
-    existing_verb_keys = {
-        (row.get("infinitive"), row.get("person"), row.get("form"))
-        for row in existing_verbs if isinstance(row, dict)
-    }
-    valid_verb_rows: list[dict[str, object]] = []
-    for row in verb_rows:
-        if not isinstance(row, dict) or set(row) != set(VERB_FIELDS):
-            conflicts.append(_issue("schema", "verb row schema mismatch", category="verb"))
-            continue
-        elif not all(isinstance(row[field], str) for field in VERB_FIELDS):
-            conflicts.append(_issue("schema", "verb row field types are invalid", category="verb"))
-            continue
-        valid_verb_rows.append(row)
-    for row in valid_verb_rows:
-        key = (row["infinitive"], row["person"], row["form"])
-        label = " / ".join(str(x) for x in key)
-        if key in existing_verb_keys:
-            conflicts.append(_issue("verb_row_exists", f"verb row already exists: {label}", category="verb", key=label))
-        else:
-            verb_added.append(row)
-
-    existing_audio_ids = {
-        row.get("contentId") for row in existing_audio["entries"] if isinstance(row, dict)
-    }
-    valid_audio_rows: list[dict[str, object]] = []
-    for row in audio_rows:
-        if not isinstance(row, dict) or not set(row).issubset({"contentId", "word", "sentence", "pronunciation"}) or "contentId" not in row:
-            conflicts.append(_issue("schema", "audio row schema mismatch", category="audio"))
-            continue
-        valid_audio_rows.append(row)
-    for row in valid_audio_rows:
-        content_id = str(row["contentId"])
-        if content_id in existing_audio_ids:
-            conflicts.append(_issue("audio_content_id_exists", f"audio entry already exists: {content_id}", category="audio", key=content_id))
-        else:
-            audio_added.append(row)
+    _process_content(content_rows, existing_content, conflicts, content_added)
+    _process_verbs(verb_rows, existing_verbs, conflicts, verb_added)
+    _process_audio(audio_rows, existing_audio, conflicts, audio_added)
 
     status = "PASS" if not conflicts else "FAIL"
     return {

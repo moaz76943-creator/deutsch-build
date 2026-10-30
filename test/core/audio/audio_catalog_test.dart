@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/core/audio/audio_catalog.dart';
 
 void main() {
   test('AudioCatalog has 100 entries', () {
-    const fallbacksCount = 100;
+    final fallbacksCount = 100;
     int actualCount = 0;
 
     final allLangs = [

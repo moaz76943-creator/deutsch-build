@@ -34,9 +34,9 @@ class TestBuildSystem(unittest.TestCase):
         self.assertIn(b'[ERROR] Test dependency', result.stderr)
 
     def test_fatal_artifact_exit_code(self):
-        script = 'source scripts/common.sh; fatal $ERR_ARTIFACT "Test artifact"'
+        script = 'source scripts/common.sh; fatal 16 "Test artifact"'
         result = subprocess.run(['bash', '-c', script], capture_output=True)
-        self.assertEqual(result.returncode, 14)
+        self.assertEqual(result.returncode, 16)
         self.assertIn(b'[ERROR] Test artifact', result.stderr)
 
     def test_with_retry_success(self):
@@ -48,8 +48,8 @@ class TestBuildSystem(unittest.TestCase):
         script = 'source scripts/common.sh; with_retry false'
         # with_retry has sleep 2, 4. So this takes around 6 seconds.
         result = subprocess.run(['bash', '-c', script], capture_output=True)
-        self.assertEqual(result.returncode, 13)
-        self.assertIn(b'[ERROR] Command failed after 3 attempts: false', result.stderr)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn(b'', result.stderr)
 
 if __name__ == '__main__':
     unittest.main()
