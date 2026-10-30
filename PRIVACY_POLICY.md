@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** October 28, 2026
+**Last updated:** October 30, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -27,6 +27,7 @@ The app is designed to function primarily without an internet connection. Most l
 
 - **Purpose:** Optional features such as checking for content updates, downloading additional packs (if implemented), or Play Integrity checks. The core app works offline.
 - **Data:** No personal data is required or collected via the network for core functionality. Any network requests are minimal and for app functionality only. Data in transit uses modern cryptography (HTTPS).
+- **Play Integrity:** Integrity tokens may be obtained from Google Play services for app/device integrity verification. These tokens do not contain personal user data and are not used for tracking or advertising. They are processed according to Google's terms and are not stored by us beyond the immediate check.
 
 ### Local Storage
 
@@ -46,10 +47,14 @@ The app does **not** collect or access:
 
 ## Data Safety Declaration (for Google Play)
 
-- **Data collected:** None. On-device processing of optional microphone input does not leave the device and is not declared as collected data.
+Exact answers for the Play Console Data safety form (must match this policy):
+
+- **Does your app collect or share any of the required user data types?** No
+- **Data collected:** None. On-device processing of optional microphone input does not leave the device and is not declared as collected data. Play Integrity checks do not involve collection of user personal data.
 - **Data shared:** None.
+- **Is all of the user data collected by your app encrypted in transit?** N/A (no data collected); any network traffic uses HTTPS.
+- **Do you provide a way for users to request that their data is deleted?** Yes — uninstalling the app removes all local data. No server-side data exists.
 - **Security practices:** Data encrypted in transit where applicable (HTTPS); local data protected by Android sandbox and encryption where used. App uses Google Play App Signing and Play Integrity API.
-- **Users can request data deletion:** Since no server-side data is stored, uninstalling the app removes all local data. No account deletion needed.
 
 ## Permissions Summary
 
@@ -83,4 +88,4 @@ For questions about this privacy policy or data practices, contact the developer
 
 ---
 
-**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, and integrity protections are in place for production readiness.
+**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, and integrity protections are in place for production readiness.
