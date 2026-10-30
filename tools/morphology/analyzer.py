@@ -28,7 +28,7 @@ class TurkishProfile(LanguageProfile):
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
         def decompose(current_word: str, current_tags: List[str], depth: int):
-            if depth > analyzer.max_recursion_depth:
+            if depth > analyzer.max_recursion_depth or len(results) >= analyzer.max_results:
                 return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
@@ -70,7 +70,7 @@ class FinnishProfile(LanguageProfile):
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
         def decompose(current_word: str, current_tags: List[str], depth: int):
-            if depth > analyzer.max_recursion_depth:
+            if depth > analyzer.max_recursion_depth or len(results) >= analyzer.max_results:
                 return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
@@ -130,12 +130,14 @@ class GermanProfile(LanguageProfile):
             stem1 = word[:-1]
             if len(stem1) > 0:
                 for n in analyzer.lookup_nominal_form(stem1):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                    if n['number'] == 'pl':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
         if word.endswith("en"):
             stem2 = word[:-2]
             if len(stem2) > 0:
                 for n in analyzer.lookup_nominal_form(stem2):
-                    results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
+                    if n['number'] == 'pl':
+                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results
 
