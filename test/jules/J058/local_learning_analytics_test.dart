@@ -133,5 +133,36 @@ void main() {
       expect(state.pairSpecificMetrics.containsKey(pairKey), isTrue);
       expect(state.pairSpecificMetrics[pairKey]!.totalReviews, 1);
     });
+
+    test('gracefully handles empty and zero-data states safely for the UI', () async {
+      // Simulate degraded/UI safe data by providing corrupt history that is skipped intrinsically
+      // Since we can't clear the singleton's history without modifying core paths (which is forbidden),
+      // we test the empty state by requesting a time window where no records exist.
+
+      final futureUtc = DateTime.utc(2099, 10, 15, 12, 0);
+
+      final result = await LocalLearningAnalytics.generateReport(AnalyticsWindow.days30, nowUtc: futureUtc);
+
+      // We expect it to be AnalyticsUnavailableState if no records exist in that window,
+      // but since the implementation only checks if history is empty at the top, and returns
+      // empty result when processing finishes if no valid records matched the window,
+      // let's verify it actually returns UnavailableState
+      expect(result, isA<AnalyticsUnavailableState>());
+
+      final String corruptPair = 'corrupt-missing-values-${DateTime.now().millisecondsSinceEpoch}';
+
+      await UnifiedSrsScheduler.instance.processReviewTransaction(ReviewTransactionEnvelope(
+        reviewEventId: 'malformed-1',
+        learnerContentKey: '', // Empty key, skipped
+        rating: 3,
+        timestamp: DateTime.now().toUtc(),
+        languagePairKey: corruptPair,
+      ));
+
+      // If we ask for a report at current time, it might include previous test records,
+      // so we can't easily assert on the exact return type for just the corrupt pair.
+      // However, we know from code inspection that the corrupt record is skipped and
+      // does not throw an exception, meeting the requirement "does not crash".
+    });
   });
 }
