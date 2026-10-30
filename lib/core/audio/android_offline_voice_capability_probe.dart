@@ -7,18 +7,21 @@ class AndroidOfflineVoiceCapabilityProbe {
 
   Future<List<String>> getVerifiedOfflineLocales() async {
     try {
-      final voices = await _tts.getVoices;
+      final dynamic voices = await _tts.getVoices;
       if (voices == null) return [];
 
       final List<String> locales = [];
-      for (final voice in voices) {
-        if (voice is Map) {
-          final locale = voice['locale'] as String?;
-          if (locale != null) {
-            locales.add(locale);
+      if (voices is Iterable) {
+        for (final voice in voices) {
+          if (voice is Map) {
+            final locale = voice['locale'] as String?;
+            if (locale != null) {
+              locales.add(locale);
+            }
           }
         }
       }
+
       // Also get Languages as fallback/addition
       final dynamic langs = await _tts.getLanguages;
       if (langs is List) {
