@@ -114,7 +114,7 @@ class TestAnalyzer(unittest.TestCase):
         analyzer = MorphologyAnalyzer([self.noun_db_path], de)
 
         res = analyzer.analyze("Toren")
-        self.assertEqual(len(res), 3)
+        self.assertEqual(len(res), 2)
 
         analyzer.close()
 

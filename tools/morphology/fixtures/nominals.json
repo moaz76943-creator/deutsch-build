@@ -1,0 +1,98 @@
+{
+  "nominals": [
+    {
+      "id": "de:kind",
+      "lemma": "Kind",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d1",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Kinder"
+        }
+      ]
+    },
+    {
+      "id": "de:tor1",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "neu",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d2",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "d3",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Tore"
+        }
+      ]
+    },
+    {
+      "id": "de:tor2",
+      "lemma": "Tor",
+      "part_of_speech": "noun",
+      "gender": "masc",
+      "number": "sg",
+      "declensions": [
+        {
+          "id": "d4",
+          "grammatical_case": "nom",
+          "number": "sg",
+          "definiteness": "def",
+          "inflected_form": "Tor"
+        },
+        {
+          "id": "d5",
+          "grammatical_case": "nom",
+          "number": "pl",
+          "definiteness": "def",
+          "inflected_form": "Toren"
+        }
+      ]
+    },
+    {
+      "id": "tr:ev",
+      "lemma": "ev",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "tr:araba",
+      "lemma": "araba",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "fi:talo",
+      "lemma": "talo",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "fi:metsä",
+      "lemma": "metsä",
+      "part_of_speech": "noun",
+      "gender": "none",
+      "number": "sg",
+      "declensions": []
+    }
+  ]
+}
