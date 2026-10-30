@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import 'package:flutter/widgets.dart';
 
 class LanguagePackManager {
@@ -11,13 +10,6 @@ class LanguagePackManager {
     'tr-TR',
     'ru-RU',
     'zh-CN'
-=======
-// ignore_for_file: unused_import
-
-class LanguagePackManager {
-  static List<String> supportedBcp47Locales = [
-    'de-DE', 'ar-SA', 'en-US', 'fr-FR', 'es-ES', 'tr-TR', 'ru-RU', 'zh-CN'
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   ];
 
   static const Map<String, String> _languageNames = {
@@ -35,7 +27,6 @@ class LanguagePackManager {
     return _languageNames[localeCode] ?? localeCode;
   }
 
-<<<<<<< HEAD
   static List<String> get supportedLanguages => [
         'af',
         'am',
@@ -125,20 +116,6 @@ class LanguagePackManager {
         lower.startsWith('he') ||
         lower.startsWith('fa') ||
         lower.startsWith('ur');
-=======
-  // دعم استدعاء الدالة سواء كـ static أو من خلال كائن instance
-  String getLanguageNameInstance(String localeCode) => getLanguageName(localeCode);
-
-  static bool isLocaleSupported(String localeCode) {
-    if (localeCode.isEmpty) return false;
-    if (localeCode.startsWith('he') || localeCode.startsWith('iw')) return false;
-    return supportedBcp47Locales.contains(localeCode);
-  }
-
-  static Future<bool> verifyAndMountOfflinePack(String bcp47Locale) async {
-    if (!isLocaleSupported(bcp47Locale)) return false;
-    return true;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   }
 
   static TextDirection textDirectionFor(String code) {
