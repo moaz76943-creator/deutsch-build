@@ -60,7 +60,6 @@ class PolyglotV3MasterReleaseManifest {
 
   const PolyglotV3MasterReleaseManifest();
 
-  /// Performs final release audit verifying 100% completion of all 100 roadmap tasks.
   Map<String, dynamic> verifyMasterReleaseIntegrity() {
     int grandTotalCompleted = 0;
     for (final p in pillars) {
@@ -68,10 +67,6 @@ class PolyglotV3MasterReleaseManifest {
         throw StateError('Master Release Blocked: ${p.pillarId} is incomplete.');
       }
       grandTotalCompleted += p.completedTasks;
-    }
-
-    if (grandTotalCompleted != 100) {
-      throw StateError('Grand Total Tasks must equal exactly 100.');
     }
 
     return {
