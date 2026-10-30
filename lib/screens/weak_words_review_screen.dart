@@ -24,6 +24,12 @@ class WeakWordsReviewScreen extends StatelessWidget {
         child: SafeArea(
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+            // Performance: bound pre-build area beyond viewport (default ~250).
+            // Moderate value balances smoothness vs memory on longer lists.
+            cacheExtent: 300,
+            // Pure StatelessWidget items; no state to preserve when off-screen.
+            // Disabling keep-alives reduces memory pressure during scroll.
+            addAutomaticKeepAlives: false,
             itemCount: _weakWords.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
