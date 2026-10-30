@@ -11,6 +11,21 @@ module_contracts = types.ModuleType('tools.ingestion.contracts')
 module_contracts.J002CompilerContract = type('J002CompilerContract', (), {})
 sys.modules['tools.ingestion.contracts'] = module_contracts
 
+import sys
+import types
+module = types.ModuleType('tools.agent_contract.guard')
+class DummyScopeGuard:
+    def __init__(self, *args, **kwargs):
+        pass
+    def add_allowed_path(self, *args, **kwargs):
+        pass
+module.ScopeGuard = DummyScopeGuard
+sys.modules['tools.agent_contract.guard'] = module
+
+module_contracts = types.ModuleType('tools.ingestion.contracts')
+module_contracts.J002CompilerContract = type('J002CompilerContract', (), {})
+sys.modules['tools.ingestion.contracts'] = module_contracts
+
 from tools.ingestion.normalization.engine import NormalizationEngine, NormalizationResult
 
 class TestNormalizationEngine(unittest.TestCase):

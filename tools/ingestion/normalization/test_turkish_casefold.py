@@ -37,7 +37,7 @@ class TurkishCaseFoldTests(unittest.TestCase):
         self.assertEqual(self.engine.normalize("I", "en").search_key, "i")
         self.assertEqual(
             self.engine.normalize("Mädchen", "de").search_key,
-            "maedchen",
+            "mädchen",
         )
         self.assertEqual(self.engine.normalize("café", "fr").search_key, "café")
 
