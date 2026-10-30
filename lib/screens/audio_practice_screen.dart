@@ -20,7 +20,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   bool _isPlaying = false;
   double _playbackSpeed = 1.0;
   bool _isLoading = true;
-
+  
   String _germanText = '';
   String _arabicText = '';
 
@@ -44,26 +44,21 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
   Future<void> _loadRandomSentence() async {
     setState(() => _isLoading = true);
     try {
-      final db =
-          await DatabaseService.instance.getContentDb(widget.languageCode);
+      final db = await DatabaseService.instance.getContentDb(widget.languageCode);
       // سحب جملة عشوائية من قاعدة البيانات للتدرب عليها
-      final result = await db.query(
-        'examples',
-        columns: ['sentence', 'translation_ar'],
-        where: 'language_code = ?',
-        whereArgs: [widget.languageCode],
-        orderBy: 'RANDOM()',
-        limit: 1,
-      );
-
+      final result = await db.rawQuery('''
+        SELECT sentence, translation_ar 
+        FROM examples 
+        WHERE language_code = ?
+      ORDER BY RANDOM() LIMIT 1
+    ''', [widget.languageCode]);
+      
       if (result.isNotEmpty) {
         _germanText = result.first['sentence']?.toString() ?? '';
         _arabicText = result.first['translation_ar']?.toString() ?? '';
       } else {
         _germanText = widget.languageCode == 'de' ? 'Ich lerne Deutsch.' : '';
-        _arabicText = widget.languageCode == 'de'
-            ? 'أنا أتعلم الألمانية.'
-            : 'لا توجد جملة متاحة.';
+        _arabicText = widget.languageCode == 'de' ? 'أنا أتعلم الألمانية.' : 'لا توجد جملة متاحة.';
       }
     } catch (e) {
       _germanText = '';
@@ -77,8 +72,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
     if (_germanText.trim().isEmpty || _isPlaying) return;
     setState(() => _isPlaying = true);
     try {
-      await _tts
-          .configure(speechRate: _playbackSpeed)
+      await _tts.configure(speechRate: _playbackSpeed)
           .timeout(const Duration(seconds: 5));
       final played = await _audio.play(
         text: _germanText,
@@ -90,8 +84,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
       if (mounted) {
         setState(() => _isPlaying = false);
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-          content:
-              Text(HybridAudioService.fallbackMessage(widget.languageCode)),
+          content: Text(HybridAudioService.fallbackMessage(widget.languageCode)),
           behavior: SnackBarBehavior.floating,
         ));
       }
@@ -105,9 +98,7 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
 
   void _toggleSpeed() {
     setState(() {
-      _playbackSpeed = _playbackSpeed == 1.0
-          ? AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: true)
-          : AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false);
+      _playbackSpeed = _playbackSpeed == 1.0 ? AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: true) : AudioFeedbackEngine.getRecommendedSpeed(isSlowMode: false);
     });
     if (_isPlaying) unawaited(_stop()); // apply on next playback
   }
@@ -136,28 +127,23 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
               children: <Widget>[
                 const Spacer(),
                 if (_isLoading)
-                  const Center(
-                      child:
-                          CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                  const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
                 else
                   AppBaseGlassCard(
                     padding: const EdgeInsets.all(28),
                     child: Column(
                       children: <Widget>[
-                        const Icon(Icons.graphic_eq_rounded,
-                            size: 72, color: Color(0xFF38BDF8)),
+                        const Icon(Icons.graphic_eq_rounded, size: 72, color: Color(0xFF38BDF8)),
                         const SizedBox(height: 18),
                         Text(
                           _germanText,
-                          style: AppTypography.display
-                              .copyWith(color: Colors.white, fontSize: 24),
+                          style: AppTypography.display.copyWith(color: Colors.white, fontSize: 24),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           _arabicText,
-                          style: AppTypography.body.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8)),
+                          style: AppTypography.body.copyWith(color: Colors.white.withValues(alpha: 0.8)),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
@@ -166,25 +152,19 @@ class _AudioPracticeScreenState extends State<AudioPracticeScreen> {
                           children: <Widget>[
                             IconButton(
                               iconSize: 54,
-                              icon: Icon(_isPlaying
-                                  ? Icons.stop_circle_rounded
-                                  : Icons.play_circle_fill_rounded),
+                              icon: Icon(_isPlaying ? Icons.stop_circle_rounded : Icons.play_circle_fill_rounded),
                               color: const Color(0xFFF39C6B),
                               onPressed: _isPlaying ? _stop : _speak,
                             ),
                             const SizedBox(width: 16),
                             ActionChip(
-                              label: Text('${_playbackSpeed}x',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              backgroundColor:
-                                  Colors.white.withValues(alpha: 0.1),
+                              label: Text('${_playbackSpeed}x', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              backgroundColor: Colors.white.withValues(alpha: 0.1),
                               onPressed: _toggleSpeed,
                             ),
                             const SizedBox(width: 16),
                             IconButton(
-                              icon: const Icon(Icons.refresh_rounded,
-                                  color: Colors.white),
+                              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                               onPressed: _loadRandomSentence,
                               tooltip: 'جملة جديدة',
                             )

@@ -8,6 +8,6 @@ source "$ROOT/scripts/release-signing.sh"
 case "${1:-}" in
   '') prepare_release_signing --interactive ;;
   --non-interactive) prepare_release_signing ;;
-  *) fatal --code "$ERR_SIGN" "Usage: scripts/setup_local_signing.sh [--non-interactive]" ;;
+  *) fatal "Usage: scripts/setup_local_signing.sh [--non-interactive]" ;;
 esac
 log OK "Existing production signing identity verified; private local Gradle properties ready"

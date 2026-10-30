@@ -55,9 +55,9 @@ def verify_system():
 
         # 3. التأكد من عدم وجود مفاهيم بدون معجم (Orphaned Concepts)
         cur.execute(f"""
-            SELECT count(*)
-            FROM concepts c
-            LEFT JOIN lexicon l ON l.{l_id} = c.{c_id}
+            SELECT count(*) 
+            FROM concepts c 
+            LEFT JOIN lexicon l ON l.{l_id} = c.{c_id} 
             WHERE l.{l_id} IS NULL;
         """)
         orphans = cur.fetchone()[0]

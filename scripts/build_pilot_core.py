@@ -63,7 +63,7 @@ def main():
         de_id, surface, pos, cefr, ipa, fields_json = row
         c_info = de_concepts.get(de_id, (surface, "{}"))
         lemma, legacy_raw = c_info
-
+        
         ar_translation = ""
         article = ""
         try:

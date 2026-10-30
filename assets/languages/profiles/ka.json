@@ -1,0 +1,22 @@
+{
+  "isoCode": "ka",
+  "autonym": "ქართული",
+  "englishName": "Georgian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Georgian (Mkhedruli)",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 7,
+  "caseNames": ["Nominative", "Ergative", "Dative", "Genitive", "Instrumental", "Adverbial", "Vocative"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasErgativeCase": true,
+    "hasPolypersonalAgreement": true,
+    "hasHarmonicConsonantClusters": true,
+    "noGrammaticalGender": true
+  }
+}

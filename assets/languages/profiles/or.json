@@ -1,0 +1,20 @@
+{
+  "isoCode": "or",
+  "autonym": "ଓଡ଼ିଆ",
+  "englishName": "Odia",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Odia",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 6,
+  "caseNames": ["Nominative", "Accusative", "Instrumental", "Dative", "Ablative", "Genitive"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "curvedLetterShapes": true,
+    "hasPostpositions": true
+  }
+}

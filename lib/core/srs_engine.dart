@@ -68,14 +68,10 @@ class SrsEngine {
     required int previousInterval,
     double morphologicalMultiplier = 1.0,
   }) {
-    if (grade < 0 ||
-        grade > 5 ||
-        repetitions < 0 ||
-        previousInterval < 0 ||
-        !previousEaseFactor.isFinite ||
-        previousEaseFactor <= 0 ||
-        !morphologicalMultiplier.isFinite ||
-        morphologicalMultiplier <= 0) {
+    if (grade < 0 || grade > 5 ||
+        repetitions < 0 || previousInterval < 0 ||
+        !previousEaseFactor.isFinite || previousEaseFactor <= 0 ||
+        !morphologicalMultiplier.isFinite || morphologicalMultiplier <= 0) {
       throw ArgumentError('Malformed legacy SRS review inputs');
     }
     var nextRepetitions = repetitions.clamp(0, maxRepetitions).toInt();
@@ -90,20 +86,18 @@ class SrsEngine {
         nextInterval = 6; // Stable legacy policy; no unverified 1.05 change.
       } else {
         nextInterval = (nextInterval * ease * multiplier)
-            .round()
-            .clamp(1, maxIntervalDays)
-            .toInt();
+            .round().clamp(1, maxIntervalDays).toInt();
       }
-      nextRepetitions = (nextRepetitions + 1).clamp(0, maxRepetitions).toInt();
+      nextRepetitions = (nextRepetitions + 1)
+          .clamp(0, maxRepetitions).toInt();
     } else {
       nextRepetitions = 0;
       nextInterval = 1;
     }
 
-    final nextEaseFactor =
-        (ease + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)))
-            .clamp(1.3, 3.0)
-            .toDouble();
+    final nextEaseFactor = (ease +
+        (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)))
+        .clamp(1.3, 3.0).toDouble();
     return {
       'repetitions': nextRepetitions,
       'interval': nextInterval,

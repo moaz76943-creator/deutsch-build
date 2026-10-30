@@ -1,0 +1,21 @@
+{
+  "isoCode": "ga",
+  "autonym": "Gaeilge",
+  "englishName": "Irish",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "VSO",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Ainmneach", "Gairmeach", "Ginideach", "Tabharthach"],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "verbInitialOrder": true,
+    "hasInitialConsonantMutations": true,
+    "hasPrepositionalPronouns": true
+  }
+}

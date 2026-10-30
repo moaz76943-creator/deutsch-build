@@ -138,7 +138,7 @@ def main():
             cur.execute("ALTER TABLE concepts ADD COLUMN section_id TEXT;")
         if "cefr" not in c_cols:
             cur.execute("ALTER TABLE concepts ADD COLUMN cefr TEXT;")
-
+        
         cur.execute("CREATE INDEX IF NOT EXISTS idx_concepts_section_cefr ON concepts(section_id, cefr);")
 
         con_pk = "concept_id" if "concept_id" in c_cols else ("id" if "id" in c_cols else c_cols[0])

@@ -1,0 +1,20 @@
+{
+  "isoCode": "lt",
+  "autonym": "Lietuvių",
+  "englishName": "Lithuanian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 7,
+  "caseNames": ["Vardininkas", "Kilmininkas", "Naudininkas", "Galininkas", "Įnagininkas", "Vietininkas", "Šauksmininkas"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "pitchAccent": true,
+    "hasDualTraces": true
+  }
+}

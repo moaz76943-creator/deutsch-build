@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
       );
       if (existing.isNotEmpty) {
         final row = existing.first;
-        final matches = row['source_language_id'] == command.sourceLanguageId &&
+        final matches =
+            row['source_language_id'] == command.sourceLanguageId &&
             row['target_language_id'] == command.targetLanguageId &&
             row['semantic_version'] == command.semanticVersion &&
             row['language_pair_key'] == envelope.languagePairKey &&
@@ -114,15 +115,12 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
         limit > 50000) {
       throw ArgumentError('Invalid directed pair or bounded read limit');
     }
-    final key = '${sourceLanguageId}_${targetLanguageId}_$semanticVersion';
+    final key = '${sourceLanguageId}_${targetLanguageId}_${semanticVersion}';
     await database.execute(_createTable);
     final rows = await database.query(
       tableName,
       columns: <String>[
-        'review_id',
-        'card_id',
-        'rating',
-        'occurred_at_utc',
+        'review_id', 'card_id', 'rating', 'occurred_at_utc',
         'language_pair_key',
       ],
       where: 'language_pair_key = ?',
@@ -133,12 +131,12 @@ CREATE TABLE IF NOT EXISTS srs_review_event_journal_v2 (
     );
     return List<ReviewTransactionEnvelope>.unmodifiable(
       rows.map((row) => ReviewTransactionEnvelope(
-            reviewEventId: row['review_id'] as String,
-            learnerContentKey: row['card_id'] as String,
-            rating: row['rating'] as int,
-            timestamp: DateTime.parse(row['occurred_at_utc'] as String).toUtc(),
-            languagePairKey: row['language_pair_key'] as String,
-          )),
+        reviewEventId: row['review_id'] as String,
+        learnerContentKey: row['card_id'] as String,
+        rating: row['rating'] as int,
+        timestamp: DateTime.parse(row['occurred_at_utc'] as String).toUtc(),
+        languagePairKey: row['language_pair_key'] as String,
+      )),
     );
   }
 }

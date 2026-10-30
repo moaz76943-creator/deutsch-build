@@ -78,14 +78,14 @@ def prepare_db(db_path):
             direction TEXT
         );
     """)
-
+    
     cur.execute("PRAGMA table_info(concepts);")
     c_cols = [r[1] for r in cur.fetchall()]
     if "section_id" not in c_cols:
         cur.execute("ALTER TABLE concepts ADD COLUMN section_id TEXT;")
     if "cefr" not in c_cols:
         cur.execute("ALTER TABLE concepts ADD COLUMN cefr TEXT;")
-
+        
     cur.execute("CREATE INDEX IF NOT EXISTS idx_concepts_section_cefr ON concepts(section_id, cefr);")
     conn.commit()
     conn.close()

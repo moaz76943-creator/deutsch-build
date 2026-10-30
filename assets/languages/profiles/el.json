@@ -1,0 +1,21 @@
+{
+  "isoCode": "el",
+  "autonym": "Ελληνικά",
+  "englishName": "Greek",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Greek",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Ονομαστική", "Γενική", "Αιτιατική", "Κλητική"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasDistinctAlphabet": true,
+    "lossOfInfinitive": true
+  }
+}

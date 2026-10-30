@@ -17,7 +17,7 @@ def ensure_schema(conn):
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(concepts);")
     cols = [c[1] for c in cur.fetchall()]
-
+    
     # إضافة الأعمدة الناقصة في concepts
     if "section_id" not in cols:
         cur.execute("ALTER TABLE concepts ADD COLUMN section_id TEXT;")
@@ -27,7 +27,7 @@ def ensure_schema(conn):
 
     # إنشاء الفهرس المركب لتسريع التصفية حسب القسم والمرحلة
     cur.execute("""
-        CREATE INDEX IF NOT EXISTS idx_concepts_section_cefr
+        CREATE INDEX IF NOT EXISTS idx_concepts_section_cefr 
         ON concepts(section_id, cefr);
     """)
     conn.commit()

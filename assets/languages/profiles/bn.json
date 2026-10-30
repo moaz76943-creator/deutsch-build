@@ -1,0 +1,21 @@
+{
+  "isoCode": "bn",
+  "autonym": "বাংলা",
+  "englishName": "Bengali",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Bengali",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Nominative", "Objective", "Genitive", "Locative"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasMeasureWords": true,
+    "hasPostpositions": true,
+    "genderNeutralPronouns": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "isoCode": "lo",
+  "autonym": "ລາວ",
+  "englishName": "Lao",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Lao",
+  "typology": "SVO",
+  "morphologyType": "Isolating",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "isTonal": true,
+    "tonesCount": 6,
+    "hasScriptioContinua": true
+  }
+}

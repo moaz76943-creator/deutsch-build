@@ -3,31 +3,23 @@ import '../architecture/operation_result.dart';
 enum RecoveryOutcomeState { success, failed, cancelled, stale }
 
 class RecoveryOutcome<T> {
-  const RecoveryOutcome.success([this.data])
-      : state = RecoveryOutcomeState.success,
-        error = null,
-        stackTrace = null;
-
-  const RecoveryOutcome.failed(this.error, [this.stackTrace])
-      : state = RecoveryOutcomeState.failed,
-        data = null;
-
-  const RecoveryOutcome.cancelled()
-      : state = RecoveryOutcomeState.cancelled,
-        data = null,
-        error = null,
-        stackTrace = null;
-
-  const RecoveryOutcome.stale()
-      : state = RecoveryOutcomeState.stale,
-        data = null,
-        error = null,
-        stackTrace = null;
-
   final RecoveryOutcomeState state;
   final T? data;
   final Object? error;
   final StackTrace? stackTrace;
+
+  const RecoveryOutcome.success(T result)
+      : state = RecoveryOutcomeState.success,
+        data = result, error = null, stackTrace = null;
+  const RecoveryOutcome.failed(Object failure, [StackTrace? stack])
+      : state = RecoveryOutcomeState.failed,
+        data = null, error = failure, stackTrace = stack;
+  const RecoveryOutcome.cancelled()
+      : state = RecoveryOutcomeState.cancelled,
+        data = null, error = null, stackTrace = null;
+  const RecoveryOutcome.stale()
+      : state = RecoveryOutcomeState.stale,
+        data = null, error = null, stackTrace = null;
 
   bool get isSuccess => state == RecoveryOutcomeState.success;
   bool get isFailed => state == RecoveryOutcomeState.failed;
@@ -36,13 +28,10 @@ class RecoveryOutcome<T> {
 }
 
 class FailureCategorization {
-  /// Typed storage failures are always terminal. Vault and integrity messages
-  /// stay terminal too: an optional plugin must not swallow them and retry.
-  static bool isCritical(Object error) {
-    if (error is StorageFailure) return true;
-    final errorString = error.toString().toLowerCase();
-    return errorString.contains('vault') || errorString.contains('integrity');
-  }
+  static bool isCritical(Object error) =>
+      error is StorageFailure ||
+      error.toString().toLowerCase().contains('vault corruption') ||
+      error.toString().toLowerCase().contains('data integrity');
 
   static bool isRecoverable(Object error) => !isCritical(error);
 }

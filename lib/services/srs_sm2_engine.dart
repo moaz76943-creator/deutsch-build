@@ -25,17 +25,15 @@ class SrsSm2Engine {
     required int intervalDays,
     DateTime? currentTime,
   }) {
-    if (!currentEaseFactor.isFinite ||
-        currentEaseFactor <= 0 ||
-        repetitions < 0 ||
-        intervalDays < 0) {
+    if (!currentEaseFactor.isFinite || currentEaseFactor <= 0 ||
+        repetitions < 0 || intervalDays < 0) {
       throw ArgumentError('Malformed SM-2 review inputs');
     }
     final q = quality.clamp(1, 5).toInt();
     final ease = currentEaseFactor.clamp(minEaseFactor, 3.0).toDouble();
-    final newEf = (ease + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)))
-        .clamp(minEaseFactor, 3.0)
-        .toDouble();
+    final newEf = (ease +
+        (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)))
+        .clamp(minEaseFactor, 3.0).toDouble();
 
     var newReps = repetitions.clamp(0, maxRepetitions).toInt();
     var newInterval = 1;
@@ -47,10 +45,8 @@ class SrsSm2Engine {
       } else if (newReps == 1) {
         newInterval = 6;
       } else {
-        newInterval = (intervalDays.clamp(0, maxIntervalDays) * newEf)
-            .round()
-            .clamp(1, maxIntervalDays)
-            .toInt();
+        newInterval = (intervalDays.clamp(0, maxIntervalDays) *
+            newEf).round().clamp(1, maxIntervalDays).toInt();
       }
       newReps = (newReps + 1).clamp(0, maxRepetitions).toInt();
     }
@@ -59,8 +55,8 @@ class SrsSm2Engine {
       easeFactor: newEf,
       intervalDays: newInterval,
       repetitions: newReps,
-      nextReviewDate:
-          (currentTime ?? DateTime.now()).add(Duration(days: newInterval)),
+      nextReviewDate: (currentTime ?? DateTime.now())
+          .add(Duration(days: newInterval)),
     );
   }
 }

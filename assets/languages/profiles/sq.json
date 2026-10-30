@@ -1,0 +1,21 @@
+{
+  "isoCode": "sq",
+  "autonym": "Shqip",
+  "englishName": "Albanian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 5,
+  "caseNames": ["Emërore", "Gjinore", "Dhanore", "Kallëzore", "Rrjedhore"],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasSuffixedArticle": true,
+    "admirativeMood": true,
+    "lossOfInfinitive": true
+  }
+}

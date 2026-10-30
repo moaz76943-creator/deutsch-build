@@ -1,0 +1,21 @@
+{
+  "isoCode": "ms",
+  "autonym": "Bahasa Melayu",
+  "englishName": "Malay",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "hasInclusiveExclusiveWe": true,
+    "hasPluralReduplication": true,
+    "hasPrefixSuffixAffixation": true
+  }
+}

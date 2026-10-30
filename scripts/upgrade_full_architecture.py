@@ -16,7 +16,7 @@ def get_sha256(filepath):
 
 def upgrade_and_manifest():
     manifest = {"version": "1.0.0", "packs": {}}
-
+    
     if not os.path.exists(PACKS_DIR):
         print("❌ المجلد assets/content/packs غير موجود.")
         return
@@ -27,7 +27,7 @@ def upgrade_and_manifest():
     for lang in langs:
         db_path = f"{PACKS_DIR}/{lang}/sqlite/{lang}-1.0.0.sqlite"
         gz_path = f"{PACKS_DIR}/{lang}/{lang}-1.0.0.pack.gz"
-
+        
         if not os.path.exists(db_path):
             continue
 

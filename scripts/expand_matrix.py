@@ -11,7 +11,7 @@ EXPANDED_DATA = [
     ("c_pharma_10", "PHARMA", "B1", "noun", "die Nebenwirkung", "عرض جانبي", "side effect", "Hat diese Tablette Nebenwirkungen?", "هل لهذه الحبة أعراض جانبية؟"),
     ("c_pharma_11", "PHARMA", "B1", "noun", "die Dosierung", "جرعة", "dosage", "Bitte beachten Sie die Dosierung.", "يرجى مراعاة الجرعة."),
     ("c_pharma_12", "PHARMA", "B1", "verb", "behandeln", "يعالج", "treat", "Der Arzt behandelt den Patienten.", "الطبيب يعالج المريض."),
-
+    
     # --- قسم الطوارئ (EMERGENCY) ---
     ("c_emg_01", "EMERGENCY", "A1", "noun", "die Hilfe", "مساعدة", "help", "Ich brauche Hilfe!", "أحتاج إلى مساعدة!"),
     ("c_emg_02", "EMERGENCY", "A1", "noun", "der Notruf", "نداء طوارئ", "emergency call", "Wählen Sie den Notruf 112.", "اتصل برقم الطوارئ 112."),

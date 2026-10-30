@@ -1,0 +1,20 @@
+{
+  "isoCode": "as",
+  "autonym": "অসমীয়া",
+  "englishName": "Assamese",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Bengali-Assamese",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 8,
+  "caseNames": ["Prathama", "Dvitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Sambodhana"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "extensiveClassifiers": true,
+    "negativePrefixation": true
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "isoCode": "hi",
+  "autonym": "हिन्दी",
+  "englishName": "Hindi",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Devanagari",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 3,
+  "caseNames": ["Direct", "Oblique", "Vocative"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasSplitErgativity": true,
+    "hasPostpositions": true,
+    "hasAspiratedConsonants": true,
+    "verbGenderAgreement": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "isoCode": "cy",
+  "autonym": "Cymraeg",
+  "englishName": "Welsh",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "VSO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "verbInitialOrder": true,
+    "hasInitialConsonantMutations": true,
+    "hasInflectedPrepositions": true
+  }
+}
