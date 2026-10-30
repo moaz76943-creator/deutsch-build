@@ -4,6 +4,7 @@ import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(
@@ -77,6 +78,15 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Verantwordung');
     await tester.pumpAndSettle();
 
+    // First attempt
+    await tester.tap(find.text('تحقق من التهجئة'));
+    await tester.pumpAndSettle();
+
+    // Second attempt
+    await tester.tap(find.text('تحقق من التهجئة'));
+    await tester.pumpAndSettle();
+
+    // Third attempt (triggers _submitted = true)
     await tester.tap(find.text('تحقق من التهجئة'));
     await tester.pumpAndSettle();
 

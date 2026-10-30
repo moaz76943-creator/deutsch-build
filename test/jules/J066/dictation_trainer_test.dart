@@ -5,6 +5,7 @@ import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:flutter/services.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(

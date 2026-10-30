@@ -7,7 +7,14 @@ import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter/services.dart';
 
 class DictationTrainerScreen extends StatefulWidget {
-  const DictationTrainerScreen({super.key});
+  final String? sourceLocale;
+  final String? targetLocale;
+
+  const DictationTrainerScreen({
+    super.key,
+    this.sourceLocale,
+    this.targetLocale,
+  });
 
   @override
   State<DictationTrainerScreen> createState() => _DictationTrainerScreenState();
@@ -18,7 +25,7 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   bool _checked = false;
   bool _isCorrect = false;
   bool _isVoiceAvailable = false;
-  bool _isVoiceLoading = true;
+
   LexicalEntry? _currentEntry;
   int _attempts = 0;
   bool _submitted = false;
@@ -35,12 +42,12 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   Future<void> _loadEntry() async {
     // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
     List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(
-        sourceLocale: 'ar-SA', targetLocale: 'de-DE');
+        sourceLocale: widget.sourceLocale ?? 'ar-SA',
+        targetLocale: widget.targetLocale ?? 'de-DE');
     if (entries.isEmpty) {
       // Fallback if empty
       if (mounted) {
         setState(() {
-          _isVoiceLoading = false;
           _isVoiceAvailable = false;
         });
       }
@@ -74,23 +81,19 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       if (mounted) {
         setState(() {
           _isVoiceAvailable = available;
-          _isVoiceLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isVoiceAvailable = false;
-          _isVoiceLoading = false;
         });
       }
     }
   }
 
   @override
-<<<<<<< HEAD
-  void @override
-  dispose() {
+  void dispose() {
     OfflineAudioDispatcher.stopCurrentAudio();
     _answerController.dispose();
     super.dispose();
@@ -99,7 +102,11 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   // Basic unicode normalization for answer comparison
   String _normalizeString(String input) {
     // Basic normalization: trim and lowercase and remove extra spaces
-    return input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+    return input
+        .toLowerCase()
+        .replaceAll(RegExp(r'[ً-ٰٟ]'), '') // Strip Arabic diacritics
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ');
   }
 
   void _checkAnswer() {
@@ -125,25 +132,14 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       }
     });
   }
-
-  @override
-=======
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
   @override
   Widget build(BuildContext context) {
-    if (_currentEntry == null && !_isVoiceLoading) {
+    if (_currentEntry == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
         body: const Center(
-            child: Text('No content available for training.',
+            child: Text('لا توجد مفردات متاحة للتدريب حالياً.',
                 style: TextStyle(color: Colors.white))),
-      );
-    }
-
-    if (_isVoiceLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
-        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
