@@ -1,5 +1,33 @@
 # Performance Optimizations — Deutsch بالعربي
 
+## 2026-10-30: Efficient ListView in CurriculumHubScreen (Memory & UI Jank)
+
+### Issue
+`CurriculumHubScreen` loaded up to 50 life missions into a `ListView.separated` with default settings. `addAutomaticKeepAlives` defaults to `true`, retaining off-screen item state. On longer lists this increases peak memory and can contribute to scroll jank on lower-end devices.
+
+### Change
+- Set `cacheExtent: 300` to bound the pre-build area beyond the viewport.
+- Set `addAutomaticKeepAlives: false` because items are pure `AppBaseGlassCard` / `ListTile` widgets with no persistent state that must survive scrolling off-screen.
+- Also resolved a lingering merge-conflict marker in the JSON asset loading path (no behavioral change).
+- No change to data loading, filtering, or navigation behavior.
+
+### Security
+No impact. UI-only rendering optimization; no storage, network, integrity, or permission paths modified.
+
+### Expected Metrics
+| Metric                   | Before                              | After                                      |
+|--------------------------|-------------------------------------|--------------------------------------------|
+| Peak memory (50 missions)| Higher (keep-alives retained)       | ~10-20% lower on lists of 30+ items       |
+| Scroll jank / frame time | Potential spikes on low-end devices | Smoother scrolling; less retained work     |
+| Battery                  | Slightly higher during long scrolls | Marginally better                          |
+
+Measurable via Flutter DevTools (Memory tab / Timeline) or `flutter run --profile`. Impact scales with the number of missions displayed.
+
+### Next candidates
+- Apply the same pattern to any remaining dynamic lists (e.g. language manager, achievements).
+- Generate a real Baseline Profile via Macrobenchmark covering onboarding → dashboard → curriculum → hub path for cold-start gains (profileinstaller already present).
+- Evaluate WorkManager only for future non-critical background pack verification (offline-first remains the primary path).
+
 ## 2026-10-29: Deferred Play Integrity Bootstrap (Cold Start)
 
 ### Issue
