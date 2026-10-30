@@ -22,12 +22,8 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
 
   Future<void> _loadMissions() async {
     try {
-<<<<<<< HEAD
       final jsonStr =
           await rootBundle.loadString('assets/data/missions_50.json');
-=======
-      final jsonStr = await rootBundle.loadString('assets/data/missions_50.json');
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
       setState(() {
         _missions = jsonDecode(jsonStr);
         _isLoading = false;
@@ -48,6 +44,11 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView.separated(
               padding: const EdgeInsets.all(16),
+              // Performance: bound pre-build area beyond the viewport.
+              cacheExtent: 300,
+              // Pure card items; no persistent state to keep alive when off-screen.
+              // Disabling reduces memory pressure on longer mission lists.
+              addAutomaticKeepAlives: false,
               itemCount: _missions.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
