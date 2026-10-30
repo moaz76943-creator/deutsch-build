@@ -22,11 +22,15 @@ class UIState<T> {
   factory UIState.empty([String? message]) =>
       UIState._(type: UIStateType.empty, message: message);
 
-  factory UIState.data(T data) =>
-      UIState._(type: UIStateType.data, data: data);
+  factory UIState.data(T data) => UIState._(type: UIStateType.data, data: data);
 
-  factory UIState.degraded(T data, {String? message, OperationFailure? failure}) =>
-      UIState._(type: UIStateType.degraded, data: data, message: message, failure: failure);
+  factory UIState.degraded(T data,
+          {String? message, OperationFailure? failure}) =>
+      UIState._(
+          type: UIStateType.degraded,
+          data: data,
+          message: message,
+          failure: failure);
 
   factory UIState.failed(OperationFailure failure, [String? message]) =>
       UIState._(type: UIStateType.failed, failure: failure, message: message);
@@ -37,5 +41,6 @@ class UIState<T> {
   bool get isLoading => type == UIStateType.loading;
   bool get isEmpty => type == UIStateType.empty;
   bool get hasData => type == UIStateType.data || type == UIStateType.degraded;
-  bool get isFailed => type == UIStateType.failed || type == UIStateType.corrupted;
+  bool get isFailed =>
+      type == UIStateType.failed || type == UIStateType.corrupted;
 }

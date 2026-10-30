@@ -1,20 +1,35 @@
 import 'package:sqflite/sqflite.dart';
-
-import 'database_service.dart';
+import 'package:path/path.dart';
 
 class LocalDatabaseService {
   static final LocalDatabaseService instance = LocalDatabaseService._init();
+  static Database? _database;
 
   LocalDatabaseService._init();
 
-  // Compatibility alias for existing screens that load the German default.
-  Future<Database> get database => DatabaseService.instance.contentDb;
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDB('polyglot_content_v2.db');
+    return _database!;
+  }
 
-  // Delegate language-specific content and progress to the canonical service.
-  Future<Database> get contentDb => DatabaseService.instance.contentDb;
+  Future<Database> _initDB(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
 
-  Future<Database> getContentDb([String? languageCode]) =>
-      DatabaseService.instance.getContentDb(languageCode);
+    return await openDatabase(path, version: 1, onCreate: _createDB);
+  }
 
-  Future<Database> get progressDb => DatabaseService.instance.progressDb;
+  Future _createDB(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE lexemes (
+        lexeme_id TEXT PRIMARY KEY, language_code TEXT, article TEXT, lemma TEXT, plural TEXT, concept_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE examples (
+        concept_id TEXT, language_code TEXT, translation_ar TEXT, sentence TEXT
+      )
+    ''');
+  }
 }
