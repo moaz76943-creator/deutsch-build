@@ -35,6 +35,13 @@ class PooledDatabaseManager {
       LinkedHashMap<String, Database>();
   final Map<String, int> _leases = <String, int>{};
   Future<void> _mutexTail = Future<void>.value();
+  final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
+
+  void _notifyCapacity() {
+    if (_waitQueue.isNotEmpty) {
+      _waitQueue.removeFirst().complete();
+    }
+  }
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
   List<String> get leastToMostRecentlyUsed =>
@@ -61,40 +68,84 @@ class PooledDatabaseManager {
   }
 
   Future<Database> open(String languageCode) =>
-      _locked(() => _openLocked(_normalizeCode(languageCode)));
+      _openWithWait(_normalizeCode(languageCode), acquireLease: false);
 
-  Future<Database> _openLocked(String code) async {
-    final existing = _connections.remove(code);
-    if (existing != null && existing.isOpen) {
-      _connections[code] = existing;
-      return existing;
-    }
+  Future<Database> _openWithWait(String code, {required bool acquireLease}) async {
+    while (true) {
+      final canProceed = await _locked(() async {
+        if (_connections.containsKey(code)) return true;
+        if (_connections.length < maxConnections) return true;
+        if (_connections.keys.any((k) => (_leases[k] ?? 0) == 0)) return true;
+        return false;
+      });
 
-    // Close excess idle connections before opening a new one
-    while (_connections.length >= maxConnections) {
-      final evict = _connections.keys.firstWhere(
-        (key) => (_leases[key] ?? 0) == 0,
-        orElse: () => '',
-      );
-      if (evict.isEmpty) {
-        throw StateError('All pooled content databases are in use');
+      if (canProceed) {
+        break;
       }
-      await _closeLocked(evict);
+      final completer = Completer<void>();
+      _waitQueue.add(completer);
+      await completer.future;
     }
 
-    Database? opened;
     try {
-      opened = await _openConnection(code);
-    } catch (e) {
-      // If opening fails, do not add to connections, let the error propagate
+      return await _locked(() => _openLocked(code, acquireLease: acquireLease));
+    } on StateError catch (e) {
+      if (e.message == 'All pooled content databases are in use') {
+        // State changed between checking and acquiring lock, loop again
+        final completer = Completer<void>();
+        _waitQueue.add(completer);
+        await completer.future;
+        return _openWithWait(code, acquireLease: acquireLease);
+      }
       rethrow;
     }
+  }
 
-    if (!opened.isOpen) {
-      throw StateError('Connection for $code is already closed');
+  Future<Database> _openLocked(String code, {required bool acquireLease}) async {
+    try {
+      final existing = _connections.remove(code);
+      if (existing != null && existing.isOpen) {
+        _connections[code] = existing;
+        if (acquireLease) {
+          _leases[code] = (_leases[code] ?? 0) + 1;
+        }
+        return existing;
+      }
+
+      // Close excess idle connections before opening a new one
+      while (_connections.length >= maxConnections) {
+        final evict = _connections.keys.firstWhere(
+          (key) => (_leases[key] ?? 0) == 0,
+          orElse: () => '',
+        );
+        if (evict.isEmpty) {
+          // The state might have changed since we checked in _openWithWait.
+          // Throwing here will let _openWithWait catch it and retry waiting.
+          throw StateError('All pooled content databases are in use');
+        }
+        await _closeLocked(evict, notify: false);
+      }
+
+      Database? opened;
+      try {
+        opened = await _openConnection(code);
+      } catch (e) {
+        // If opening fails, do not add to connections, let the error propagate
+        rethrow;
+      }
+
+      if (!opened.isOpen) {
+        throw StateError('Connection for $code is already closed');
+      }
+      _connections[code] = opened;
+      if (acquireLease) {
+        _leases[code] = (_leases[code] ?? 0) + 1;
+      }
+      return opened;
+    } catch (e) {
+      _notifyCapacity();
+      rethrow;
     }
-    _connections[code] = opened;
-    return opened;
   }
 
   /// Pins a handle for a bounded operation. Never evicts a leased handle.
@@ -103,11 +154,7 @@ class PooledDatabaseManager {
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    final db = await _locked(() async {
-      final opened = await _openLocked(code);
-      _leases[code] = (_leases[code] ?? 0) + 1;
-      return opened;
-    });
+    final db = await _openWithWait(code, acquireLease: true);
 
     try {
       return await action(db);
@@ -119,14 +166,15 @@ class PooledDatabaseManager {
         } else {
           _leases[code] = count;
         }
+        _notifyCapacity();
       });
     }
   }
 
   Future<void> close(String languageCode) =>
-      _locked(() => _closeLocked(_normalizeCode(languageCode)));
+      _locked(() => _closeLocked(_normalizeCode(languageCode), notify: true));
 
-  Future<void> _closeLocked(String code) async {
+  Future<void> _closeLocked(String code, {bool notify = false}) async {
     if ((_leases[code] ?? 0) != 0) {
       throw StateError('Cannot close an in-use content database: $code');
     }
@@ -142,6 +190,9 @@ class PooledDatabaseManager {
       }
       await db.close();
     }
+    if (notify) {
+      _notifyCapacity();
+    }
   }
 
   /// Closes all open connections that are not currently leased by active operations.
@@ -152,8 +203,11 @@ class PooledDatabaseManager {
             .where((code) => (_leases[code] ?? 0) == 0)
             .toList(growable: false);
         for (final code in unleased) {
-          await _closeLocked(code);
+          await _closeLocked(code, notify: false);
           closedCount++;
+        }
+        if (closedCount > 0) {
+          _notifyCapacity();
         }
         return closedCount;
       });
@@ -163,7 +217,8 @@ class PooledDatabaseManager {
           throw StateError('Cannot close leased content databases');
         }
         for (final code in _connections.keys.toList(growable: false)) {
-          await _closeLocked(code);
+          await _closeLocked(code, notify: false);
         }
+        _notifyCapacity();
       });
 }
