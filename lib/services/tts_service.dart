@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_capability.dart';
 
 import 'language_pack_manager.dart';
 
@@ -166,12 +168,21 @@ class TtsService {
 
   /// Checks the requested locale rather than silently selecting English.
   /// On Android, a locale must be available AND installed for offline use.
+
   Future<bool> isVoiceAvailable(String languageCode) async {
     final locale = getTtsLocale(languageCode);
     if (locale.isEmpty) {
       _emit(TtsStatus.unsupportedLanguage, message: languageCode);
       return false;
     }
+
+    final fallback = OfflineAudioCapability.getFallbackLocale(locale);
+    if (fallback == null) {
+      _emit(TtsStatus.voiceMissing,
+          locale: locale, message: 'No offline fallback for $locale');
+      return false;
+    }
+
     if (!await initialize()) return false;
     try {
       final available = await _engine.isLanguageAvailable(locale);
@@ -258,6 +269,7 @@ class TtsService {
     });
   }
 
+
   Future<bool> _speakIfCurrent(
       int epoch, String text, String languageCode) async {
     if (!_isCurrent(epoch)) return false;
@@ -272,29 +284,24 @@ class TtsService {
       return false;
     }
     try {
-      // Engine cancellation is local; the original Unicode text is unchanged.
-      await _engine.stop();
-      if (!_isCurrent(epoch)) return false;
-      final selected = await _engine.setLanguage(locale);
-      if (!_isCurrent(epoch)) return false;
-      if (selected == false || (selected is num && selected < 0)) {
-        _emit(TtsStatus.voiceMissing,
-            locale: locale, message: 'TTS engine rejected $locale');
-        return false;
-      }
-      await _applyParameters();
-      if (!_isCurrent(epoch)) return false;
       _activeLocale = locale;
       _isSpeaking = true;
-      final result = await _engine.speak(text);
-      if (!_isCurrent(epoch)) return false;
-      if (result == false || result == -1) {
+      _emit(TtsStatus.speaking, locale: locale);
+      final result = await OfflineAudioDispatcher.speakText(
+        text: text,
+        bcp47Locale: locale,
+        speechRate: _speechRate,
+      );
+      if (!_isCurrent(epoch)) {
+         _isSpeaking = false;
+         return false;
+      }
+      if (!result) {
         _isSpeaking = false;
         _emit(TtsStatus.error,
             locale: locale, message: 'TTS engine failed to start');
         return false;
       }
-      _emit(TtsStatus.speaking, locale: locale);
       return true;
     } catch (error) {
       _isSpeaking = false;
@@ -303,11 +310,12 @@ class TtsService {
     }
   }
 
+
   Future<void> stop() async {
     ++_requestEpoch;
     if (_disposed) return;
     try {
-      if (_tts != null) await _engine.stop();
+      OfflineAudioDispatcher.stopCurrentAudio();
     } catch (error) {
       _emit(TtsStatus.error, locale: _activeLocale, message: error.toString());
     } finally {
@@ -316,6 +324,7 @@ class TtsService {
     }
   }
 
+
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
@@ -323,7 +332,7 @@ class TtsService {
     onStatus = null;
     _isSpeaking = false;
     try {
-      if (_tts != null) await _engine.stop();
+      OfflineAudioDispatcher.stopCurrentAudio();
     } catch (_) {
       // Plugin shutdown is best-effort.
     }
