@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
 import 'package:deutsch_bilarabi/core/l1_cache.dart';
+import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
 
 void main() {
   group('LruMemoryCache Core', () {
@@ -99,15 +100,15 @@ void main() {
         ]);
       }
 
-      // Should hit maxCapacity of 20
+      // Should hit maxCapacity of 50
       int count = 0;
       for (int i = 0; i < 100; i++) {
         final key = l1Cache.generateKey('lang$i', 'target', '1.0.0');
         if (l1Cache.has(key)) count++;
       }
 
-      expect(count, lessThanOrEqualTo(20));
-      expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(15 * 1024 * 1024));
+      expect(count, lessThanOrEqualTo(50));
+      expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(5 * 1024 * 1024));
     });
 
     test('Stale asynchronous mutations are correctly rejected', () {
@@ -136,9 +137,16 @@ void main() {
     });
 
     test('Entries are successfully invalidated after a content version update', () {
-      l1Cache.put(l1Cache.generateKey('de', 'ar', '1.0.0'), [{'w': '1'}]);
-      l1Cache.put(l1Cache.generateKey('en', 'ar', '1.0.0'), [{'w': '2'}]);
-      l1Cache.put(l1Cache.generateKey('fr', 'ar', '1.1.0'), [{'w': '3'}]); // New version
+      // Needs CacheIdentity context manually for invalidation since we're using generic put
+      l1Cache.putWithIdentity(
+        'de_ar_1.0.0', [{'w': '1'}], CacheIdentity(language: 'de', direction: 'ar', contentVersion: '1.0.0', pairEpoch: 0)
+      );
+      l1Cache.putWithIdentity(
+        'en_ar_1.0.0', [{'w': '2'}], CacheIdentity(language: 'en', direction: 'ar', contentVersion: '1.0.0', pairEpoch: 0)
+      );
+      l1Cache.putWithIdentity(
+        'fr_ar_1.1.0', [{'w': '3'}], CacheIdentity(language: 'fr', direction: 'ar', contentVersion: '1.1.0', pairEpoch: 0)
+      );
 
       expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.0.0')), isTrue);
       expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isTrue);
@@ -155,7 +163,7 @@ void main() {
     test('Oversized objects are rejected based on size estimator', () {
       final key = l1Cache.generateKey('de', 'ar', '1.0.0');
 
-      // Create a giant array to exceed 15MB limit.
+      // Create a giant array to exceed budget.
       // 150000 items * ~150 bytes = ~22.5MB
       final hugeList = List.generate(150000, (i) => {'word': 'very_long_word_$i'});
 
