@@ -1,136 +1,133 @@
-import 'package:deutsch_bilarabi/services/database_service.dart';
+import 'package:sqflite/sqflite.dart';
 
+import 'database_service.dart';
+
+/// One attested reverse-inflection hit, not a guessed morphological rule.
 class LemmaMatch {
+  const LemmaMatch({required this.lemma, this.lexiconId});
+
   final String lemma;
-  final String languageCode;
-  final String? senseId;
-  final String? partOfSpeech;
-  final String? packIdentity;
-
-  LemmaMatch({
-    required this.lemma,
-    required this.languageCode,
-    this.senseId,
-    this.partOfSpeech,
-    this.packIdentity,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is LemmaMatch &&
-          runtimeType == other.runtimeType &&
-          lemma == other.lemma &&
-          languageCode == other.languageCode &&
-          senseId == other.senseId &&
-          partOfSpeech == other.partOfSpeech &&
-          packIdentity == other.packIdentity;
-
-  @override
-  int get hashCode =>
-      lemma.hashCode ^ languageCode.hashCode ^ senseId.hashCode ^ partOfSpeech.hashCode ^ packIdentity.hashCode;
-
-  @override
-  String toString() {
-    return 'LemmaMatch{lemma: $lemma, languageCode: $languageCode, senseId: $senseId, partOfSpeech: $partOfSpeech, packIdentity: $packIdentity}';
-  }
+  final String? lexiconId;
 }
 
+typedef LemmatizationDictionarySearch = Future<List<Map<String, dynamic>>>
+    Function(
+  String query,
+  String languageCode,
+);
+
+/// Read-only reverse lookup against an indexed, installed SQLite content pack.
+///
+/// The composite index (inflected_form, language_code) supports point lookups
+/// without scanning all words. Results depend on pack data, not hardcoded
+/// English/German/French exceptions. Runtime below 2 ms must be benchmarked on
+/// a warmed database/device and cannot be promised by the SQL interface.
 class LemmatizationService {
-  final DatabaseService _dbService;
-  int _queryCounter = 0;
+  LemmatizationService({
+    Future<Database> Function(String)? openContentDb,
+  }) : _openContentDb = openContentDb ??
+            ((code) => DatabaseService.instance.getContentDb(code));
 
-  LemmatizationService({DatabaseService? dbService})
-      : _dbService = dbService ?? DatabaseService.instance;
+  static const int maxFormRunes = 96;
+  static const int maxMatches = 8;
+  static const int maxFallbackLemmas = 3;
 
-  Future<List<LemmaMatch>> resolveLemmas({
-      required String form,
-      required String languageCode,
-      required String packIdentity
-    }) async {
-    final currentQueryId = ++_queryCounter;
+  final Future<Database> Function(String) _openContentDb;
 
-    final db = await _dbService.contentDb;
-    final List<LemmaMatch> results = [];
+  static String _normalizeLanguage(String languageCode) {
+    final normalized = languageCode.trim().toLowerCase().replaceAll('_', '-');
+    if (!RegExp(r'^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$').hasMatch(normalized)) {
+      throw ArgumentError.value(
+        languageCode,
+        'languageCode',
+        'Invalid language tag',
+      );
+    }
+    return normalized.split('-').first;
+  }
 
-    // Check if morphology forms table exists
-    final tables = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='morphology_forms';");
+  /// Bounded indexed point lookup. Missing optional tables return no matches,
+  /// preserving compatibility with older, read-only content packs.
+  Future<List<LemmaMatch>> lookup(
+    String inflectedForm, {
+    String languageCode = 'de',
+    int limit = maxMatches,
+  }) async {
+    if (limit < 1 || limit > maxMatches) {
+      throw RangeError.range(limit, 1, maxMatches, 'limit');
+    }
+    final code = _normalizeLanguage(languageCode);
+    final word = inflectedForm.trim();
+    if (word.isEmpty || word.runes.length > maxFormRunes) {
+      return const <LemmaMatch>[];
+    }
 
-    // If a new query has started, abort processing this stale query
-    if (_queryCounter != currentQueryId) return results;
-
-    if (tables.isNotEmpty) {
-      // Assuming actual morphology_forms has part_of_speech and sense_id
-      final hasExtraColumns = await db.rawQuery("PRAGMA table_info(morphology_forms);");
-      final bool hasSenseId = hasExtraColumns.any((col) => col['name'] == 'sense_id');
-      final bool hasPoS = hasExtraColumns.any((col) => col['name'] == 'part_of_speech');
-
-      String selectClause = "lemma, lang as language_code";
-      if (hasSenseId) selectClause += ", sense_id";
-      if (hasPoS) selectClause += ", part_of_speech";
-
-      final morphologyResults = await db.rawQuery('''
-        SELECT $selectClause FROM morphology_forms
-        WHERE form = ? AND lang = ? LIMIT 20
-      ''', [form, languageCode]);
-
-      if (_queryCounter != currentQueryId) return [];
-
-      for (final r in morphologyResults) {
-        final match = LemmaMatch(
-          lemma: r['lemma'] as String,
-          languageCode: r['language_code'] as String,
-          senseId: hasSenseId ? r['sense_id'] as String? : null,
-          partOfSpeech: hasPoS ? r['part_of_speech'] as String? : null,
-          packIdentity: packIdentity,
-        );
-        if (!results.contains(match)) {
-            results.add(match);
-        }
+    final db = await _openContentDb(code);
+    try {
+      final rows = await db.rawQuery(
+        'SELECT lemma, lexicon_id FROM inflections_lookup '
+        'WHERE inflected_form = ? COLLATE NOCASE '
+        'AND language_code = ? COLLATE NOCASE '
+        'ORDER BY lemma LIMIT ?',
+        <Object?>[word, code, limit],
+      );
+      return List<LemmaMatch>.unmodifiable(rows.map((row) => LemmaMatch(
+            lemma: row['lemma']!.toString(),
+            lexiconId: row['lexicon_id']?.toString(),
+          )));
+    } on DatabaseException catch (error) {
+      if (error
+          .toString()
+          .toLowerCase()
+          .contains('no such table: inflections_lookup')) {
+        return const <LemmaMatch>[];
       }
+      rethrow;
     }
+  }
 
-    if (_queryCounter != currentQueryId) return [];
+  /// Return a single lemma only when that result is unambiguous.
+  /// Choosing the first lexeme by SQL order is not linguistic evidence.
+  Future<String?> resolve(
+    String inflectedForm, {
+    String languageCode = 'de',
+  }) async {
+    final matches = await lookup(
+      inflectedForm,
+      languageCode: languageCode,
+      limit: 2,
+    );
+    if (matches.isEmpty) return null;
+    if (matches.length > 1) return null;
+    return matches.single.lemma;
+  }
 
-    // If we already found it in morphology_forms, we can return it.
-    // To match actual test fixtures and objective cleanly without doubling results
-    // Let's only search lexemes directly if results is still empty or we want to augment
+  /// Intercept only unsuccessful normal searches, then retry attested lemmas.
+  /// No unbounded recursion or whole-lexicon scan is performed by this layer.
+  Future<List<Map<String, dynamic>>> searchWithLemmaFallback(
+    String query, {
+    String languageCode = 'de',
+    required LemmatizationDictionarySearch searchDictionary,
+  }) async {
+    final code = _normalizeLanguage(languageCode);
+    final originals = await searchDictionary(query, code);
+    if (originals.isNotEmpty) return originals;
 
-    // As a fallback or combined search, check the lexemes table directly.
-    final hasLexemesTable = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='lexemes';");
-
-    if (hasLexemesTable.isNotEmpty) {
-        // We know lexemes table schema from earlier checks
-        final hasExtraColumns = await db.rawQuery("PRAGMA table_info(lexemes);");
-        final bool hasSenseId = hasExtraColumns.any((col) => col['name'] == 'sense_id');
-        final bool hasPoS = hasExtraColumns.any((col) => col['name'] == 'part_of_speech');
-
-        String selectClause = "lemma, language_code";
-        if (hasSenseId) selectClause += ", sense_id";
-        if (hasPoS) selectClause += ", part_of_speech";
-
-        final lexemeResults = await db.rawQuery('''
-          SELECT $selectClause FROM lexemes
-          WHERE language_code = ? AND (lemma = ? OR display_text = ? OR plural = ?)
-          LIMIT 20
-        ''', [languageCode, form, form, form]);
-
-        if (_queryCounter != currentQueryId) return [];
-
-        for (final r in lexemeResults) {
-            final match = LemmaMatch(
-                lemma: r['lemma'] as String,
-                languageCode: r['language_code'] as String,
-                senseId: hasSenseId ? r['sense_id'] as String? : null,
-                partOfSpeech: hasPoS ? r['part_of_speech'] as String? : null,
-                packIdentity: packIdentity,
-            );
-            if (!results.contains(match)) {
-                results.add(match);
-            }
-        }
+    // Detect a fourth competing lemma rather than silently truncating
+    // ambiguity to the first three candidates.
+    final matches = await lookup(
+      query,
+      languageCode: code,
+      limit: maxFallbackLemmas + 1,
+    );
+    if (matches.length != 1) return originals;
+    final tried = <String>{query.trim().toLowerCase()};
+    for (final match in matches) {
+      final lemma = match.lemma.trim();
+      if (lemma.isEmpty || !tried.add(lemma.toLowerCase())) continue;
+      final results = await searchDictionary(lemma, code);
+      if (results.isNotEmpty) return results;
     }
-
-    return results;
+    return originals;
   }
 }

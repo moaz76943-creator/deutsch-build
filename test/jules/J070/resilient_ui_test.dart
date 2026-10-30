@@ -1,191 +1,153 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/ui/resilient_ui.dart';
-import 'package:deutsch_bilarabi/core/architecture/operation_result.dart';
+import 'package:deutsch_bilarabi/core/ui/contracts/ui_state_contract.dart';
+import 'package:deutsch_bilarabi/core/ui/components/resilient_async_builder.dart';
+import 'package:deutsch_bilarabi/core/ui/components/optional_media_widget.dart';
+import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
 
 void main() {
-  group('Resilient UI Component Tests', () {
-    testWidgets('ResilientStateBuilder gracefully wraps unconstrained heights in SingleChildScrollView', (WidgetTester tester) async {
+  group('Resilient UI Components', () {
+    testWidgets('ResilientAsyncBuilder handles success state', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            // Scaffold body has constrained height by default
-            // But let's wrap it in an unconstrained vertical space to test
-            body: UnconstrainedBox(
-              constrainedAxis: Axis.horizontal,
-              child: ResilientStateBuilder<String>(
-                state: UIState<String>.empty('Empty state'),
-                dataBuilder: (context, data) => Text(data),
-              ),
+            body: ResilientAsyncBuilder<String>(
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateSuccess('Success Data'),
+              builder: (context, data) => Text(data),
             ),
           ),
         ),
       );
 
-      // Verify empty text is rendered
-      expect(find.text('Empty state'), findsOneWidget);
-      // In unbounded environment, it should NOT wrap with SingleChildScrollView because constraints.hasBoundedHeight is false.
-      // Wait, let's test if it DOES wrap in constrained environments
+      await tester.pumpAndSettle();
+      expect(find.text('Success Data'), findsOneWidget);
     });
 
-    testWidgets('ResilientStateBuilder wraps constrained empty state in SingleChildScrollView to prevent overflow', (WidgetTester tester) async {
+    testWidgets('ResilientAsyncBuilder handles empty state', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SizedBox(
+            body: ResilientAsyncBuilder<String>(
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateEmpty('No Data Here'),
+              builder: (context, data) => Text(data),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('No Data Here'), findsOneWidget);
+    });
+
+    testWidgets('ResilientAsyncBuilder handles failed state', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ResilientAsyncBuilder<String>(
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateFailed('Error occurred', userMessage: 'Something went wrong'),
+              builder: (context, data) => Text(data),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Something went wrong'), findsOneWidget);
+    });
+
+    testWidgets('ResilientAsyncBuilder handles degraded state', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ResilientAsyncBuilder<String>(
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateDegraded('Stale Data', 'Warning: Offline mode'),
+              builder: (context, data) => Text(data),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('Warning: Offline mode'), findsOneWidget);
+      expect(find.text('Stale Data'), findsOneWidget);
+    });
+
+    testWidgets('OptionalMediaWidget falls back correctly when media missing', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: OptionalMediaWidget(
+              fetcher: () async => null,
+              semanticLabel: 'A beautiful tree',
+              width: 100,
               height: 100,
-              child: ResilientStateBuilder<String>(
-                state: UIState<String>.empty('A very long empty state message that would definitely overflow if not properly handled.'),
-                dataBuilder: (context, data) => Text(data),
-              ),
             ),
           ),
         ),
       );
 
-      // Verify empty text is rendered and SingleChildScrollView is present
-      expect(find.text('A very long empty state message that would definitely overflow if not properly handled.'), findsOneWidget);
-      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('A beautiful tree'), findsOneWidget);
+      expect(find.byIcon(Icons.image_not_supported), findsOneWidget);
     });
 
-    testWidgets('ResilientAsyncBuilder handles async completion', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              futureBuilder: (token) async {
-                await Future.delayed(const Duration(milliseconds: 50));
-                return 'Async Data Loaded';
-              },
-              dataBuilder: (context, data) => Text(data),
-            ),
-          ),
-        ),
-      );
+    testWidgets('ResilientAsyncBuilder scales text appropriately without overflowing in unbounded parents', (WidgetTester tester) async {
+      // Narrow screen
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1.0;
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Async Data Loaded'), findsOneWidget);
-    });
-
-    testWidgets('ResilientAsyncBuilder handles async errors natively', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResilientAsyncBuilder<String>(
-              futureBuilder: (token) async {
-                await Future.delayed(const Duration(milliseconds: 50));
-                throw Exception('Forced Error');
-              },
-              dataBuilder: (context, data) => Text(data),
-            ),
-          ),
-        ),
-      );
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('An unexpected error occurred.'), findsOneWidget);
-    });
-
-    testWidgets('ResilientOperationBuilder parses StorageFailure correctly', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResilientOperationBuilder<String>(
-              operation: (token) async {
-                await Future.delayed(const Duration(milliseconds: 50));
-                return const OperationResult<String>.failure(StorageFailure('err', 'Disk full'));
-              },
-              dataBuilder: (context, data) => Text(data),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Storage corruption detected.'), findsOneWidget);
-    });
-
-    testWidgets('RTL and mixed direction environments handle scaling correctly', (WidgetTester tester) async {
-      // 200% text scale test
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) {
             return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: const TextScaler.linear(2.0),
-              ),
-              child: Directionality(
-                textDirection: TextDirection.rtl,
-                child: child!,
-              ),
+              data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(2.0)),
+              child: child!,
             );
           },
           home: Scaffold(
-            body: ResilientStateBuilder<String>(
-              state: UIState<String>.empty('نص تجريبي للتأكد من عدم حدوث تجاوز للشاشة'),
-              dataBuilder: (context, data) => Text(data),
+            body: SingleChildScrollView(
+              child: ResilientAsyncBuilder<String>(
+                featureName: 'ScaleFeature',
+                fetcher: () async => const UiStateFailed('Error', userMessage: 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
+                builder: (context, data) => Text(data),
+              ),
             ),
           ),
         ),
       );
 
-      expect(find.text('نص تجريبي للتأكد من عدم حدوث تجاوز للشاشة'), findsOneWidget);
-      // Wait for layout
       await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull); // No overflow exception should be thrown
+      // Test will fail if there are layout overflows that go unhandled
+      expect(tester.takeException(), isNull);
+
+      // Reset
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
-    testWidgets('ResilientMediaContent displays semantic fallback correctly', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResilientMediaContent(
-              mediaFetcher: (token) async {
-                await Future.delayed(const Duration(milliseconds: 50));
-                return null; // Force empty state
-              },
-              fallbackSemanticLabel: 'Image unavailable',
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump(const Duration(milliseconds: 100));
-      final semantics = find.bySemanticsLabel('Image unavailable');
-      expect(semantics, findsWidgets); // Contains fallback
-    });
-
-    testWidgets('Token cancellation cancels state updates on disposal', (WidgetTester tester) async {
-      bool isCancelled = false;
+    testWidgets('ResilientAsyncBuilder supports RTL fallback text direction via AppDirectionalText', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
-              futureBuilder: (token) async {
-                await Future.delayed(const Duration(milliseconds: 100));
-                isCancelled = token.isCancelled;
-                return 'Late Data';
-              },
-              dataBuilder: (context, data) => Text(data),
+              featureName: 'TestFeature',
+              fetcher: () async => const UiStateSuccess('Data'),
+              builder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
             ),
           ),
         ),
       );
 
-      // Pump initial frame
-      await tester.pump();
-
-      // Navigate away/dispose the widget before future completes
-      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('New Screen'))));
-
-      // Let the future complete
-      await tester.pump(const Duration(milliseconds: 150));
-
-      // Token should have been cancelled when unmounted
-      expect(isCancelled, true);
+      await tester.pumpAndSettle();
+      expect(find.text('مرحبا بالعالم'), findsOneWidget);
+      // Wait for the tree to build Directionality from AppDirectionalText
+      final textWidgets = tester.widgetList<Directionality>(find.byType(Directionality));
+      final hasRtl = textWidgets.any((w) => w.textDirection == TextDirection.rtl);
+      expect(hasRtl, true);
     });
   });
 }

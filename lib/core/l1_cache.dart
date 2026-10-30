@@ -1,108 +1,99 @@
-import 'cache/lru_memory_cache.dart';
-
-class CacheIdentity {
-  final String language;
-  final String direction;
-  final int packVersion;
-
-  const CacheIdentity({
-    required this.language,
-    this.direction = 'unknown',
-    this.packVersion = 0,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CacheIdentity &&
-          runtimeType == other.runtimeType &&
-          language == other.language &&
-          direction == other.direction &&
-          packVersion == other.packVersion;
-
-  @override
-  int get hashCode =>
-      language.hashCode ^ direction.hashCode ^ packVersion.hashCode;
-
-  @override
-  String toString() {
-    return 'CacheIdentity(language: $language, direction: $direction, packVersion: $packVersion)';
-  }
-}
+import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
+import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
 
 class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
 
-  // Expose cache capacity for configuration if needed.
-  // Let's cap at 50 identities, and e.g., 5MB.
-  final LruMemoryCache<CacheIdentity, List<Map<String, dynamic>>> _memoryCache;
-
-  L1VocabularyCache._internal()
-      : _memoryCache = LruMemoryCache<CacheIdentity, List<Map<String, dynamic>>>(
-          maxCapacity: 50, // Enough for multiple languages/directions
-          maxMemoryBudget: 5 * 1024 * 1024, // 5MB total budget roughly estimated
-          sizeEstimator: (key, value) {
-            // Rough size estimator
-            int size = 0;
-            for (var item in value) {
-              size += 64; // Map overhead overhead per entry roughly
-              item.forEach((k, v) {
-                size += k.length * 2;
-                if (v is String) {
-                  size += v.length * 2;
-                } else if (v is int || v is double || v is bool) {
-                  size += 8;
-                }
-              });
-            }
-            return size;
-          },
-        );
-
-  void put(String langCode, List<Map<String, dynamic>> items, {String direction = 'unknown', int packVersion = 0}) {
-    final identity = CacheIdentity(
-      language: langCode,
-      direction: direction,
-      packVersion: packVersion,
+  L1VocabularyCache._internal() {
+    _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
+      maxCapacity: 100,
+      maxMemoryBytes: 10 * 1024 * 1024, // 10MB budget
+      onEvict: (key) {
+        _identities.remove(key);
+      },
     );
-    _memoryCache.put(identity, List.unmodifiable(items));
   }
 
-  List<Map<String, dynamic>>? get(String langCode, {String direction = 'unknown', int packVersion = 0}) {
-    final identity = CacheIdentity(
-      language: langCode,
-      direction: direction,
-      packVersion: packVersion,
-    );
-    return _memoryCache.get(identity);
+  late final LruMemoryCache<String, List<Map<String, dynamic>>> _memoryCache;
+
+  final Map<String, CacheIdentity> _identities = {};
+
+  int _measureSize(List<Map<String, dynamic>> items) {
+    int size = 0;
+    for (final item in items) {
+      for (final entry in item.entries) {
+        size += entry.key.length * 2; // ~2 bytes per char
+        if (entry.value is String) {
+          size += (entry.value as String).length * 2;
+        } else if (entry.value is num) {
+          size += 8; // 8 bytes for double/int
+        } else if (entry.value is bool) {
+          size += 1;
+        } else {
+          size += 16; // rough fallback
+        }
+      }
+    }
+    return size;
   }
 
-  bool has(String langCode, {String direction = 'unknown', int packVersion = 0}) {
-    final identity = CacheIdentity(
-      language: langCode,
-      direction: direction,
-      packVersion: packVersion,
-    );
-    return _memoryCache.containsKey(identity);
+  void putWithIdentity(String langCode, List<Map<String, dynamic>> items,
+      CacheIdentity identity) {
+    // Check if stale
+    if (_identities.containsKey(langCode)) {
+      final existingIdentity = _identities[langCode]!;
+      if (existingIdentity.language == identity.language &&
+          existingIdentity.direction == identity.direction &&
+          existingIdentity.contentVersion == identity.contentVersion &&
+          existingIdentity.pairEpoch > identity.pairEpoch) {
+        return; // Reject stale asynchronous update
+      }
+    }
+
+    _invalidateStale(identity);
+
+    final size = _measureSize(items);
+    _memoryCache.put(langCode, List.unmodifiable(items), itemSizeBytes: size);
+    _identities[langCode] = identity;
   }
 
-  void invalidateStale(String langCode, String direction, int currentPackVersion) {
-    final keysToRemove = _memoryCache.keys.where((k) =>
-        k.language == langCode &&
-        k.direction == direction &&
-        k.packVersion != currentPackVersion).toList();
-
-    for (var k in keysToRemove) {
+  void _invalidateStale(CacheIdentity newIdentity) {
+    final keysToRemove = <String>[];
+    for (final entry in _identities.entries) {
+      final id = entry.value;
+      if (id.language == newIdentity.language &&
+          id.direction == newIdentity.direction) {
+        if (id.contentVersion != newIdentity.contentVersion ||
+            id.pairEpoch < newIdentity.pairEpoch) {
+          keysToRemove.add(entry.key);
+        }
+      }
+    }
+    for (final k in keysToRemove) {
       _memoryCache.remove(k);
+      _identities.remove(k);
     }
   }
 
-  void onMemoryPressure() {
-    _memoryCache.onMemoryPressure();
+  // Legacy fallback
+  void put(String langCode, List<Map<String, dynamic>> items) {
+    _memoryCache.put(langCode, List.unmodifiable(items),
+        itemSizeBytes: _measureSize(items));
   }
+
+  List<Map<String, dynamic>>? get(String langCode) {
+    return _memoryCache.get(langCode);
+  }
+
+  bool has(String langCode) => _memoryCache.containsKey(langCode);
 
   void clear() {
     _memoryCache.clear();
+    // _identities is implicitly cleared via onEvict callbacks
+  }
+
+  void trimMemoryPressure() {
+    _memoryCache.trimMemoryPressure();
   }
 }

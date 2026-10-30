@@ -34,21 +34,12 @@ class PooledDatabaseManager {
   final LinkedHashMap<String, Database> _connections =
       LinkedHashMap<String, Database>();
   final Map<String, int> _leases = <String, int>{};
-  final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
+  final List<Completer<void>> _slotWaiters = <Completer<void>>[];
   Future<void> _mutexTail = Future<void>.value();
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
   List<String> get leastToMostRecentlyUsed =>
       List<String>.unmodifiable(_connections.keys);
-
-  void _notifyWaiters() {
-    for (final completer in _waitQueue) {
-      if (!completer.isCompleted) {
-        completer.complete();
-      }
-    }
-    _waitQueue.clear();
-  }
 
   Future<T> _locked<T>(Future<T> Function() operation) {
     final result = Completer<T>();
@@ -70,20 +61,15 @@ class PooledDatabaseManager {
     return code;
   }
 
-  Future<Database> open(String languageCode) async {
-    final code = _normalizeCode(languageCode);
-    while (true) {
-      final db = await _locked(() => _tryOpenLocked(code));
-      if (db != null) {
-        return db;
-      }
-      final completer = Completer<void>();
-      _waitQueue.add(completer);
-      await completer.future;
-    }
-  }
+  Future<Database> open(String languageCode) => _locked(() async {
+        try {
+          return await _openLocked(_normalizeCode(languageCode));
+        } on _PoolSaturated {
+          throw StateError('All pooled content databases are in use');
+        }
+      });
 
-  Future<Database?> _tryOpenLocked(String code) async {
+  Future<Database> _openLocked(String code) async {
     final existing = _connections.remove(code);
     if (existing != null && existing.isOpen) {
       _connections[code] = existing;
@@ -97,7 +83,7 @@ class PooledDatabaseManager {
         orElse: () => '',
       );
       if (evict.isEmpty) {
-        return null;
+        throw const _PoolSaturated();
       }
       await _closeLocked(evict);
     }
@@ -118,39 +104,48 @@ class PooledDatabaseManager {
   }
 
   /// Pins a handle for a bounded operation. Never evicts a leased handle.
+  ///
+  /// If every connection is already leased, the caller waits for a release
+  /// instead of failing the lesson read.
   Future<T> withDatabase<T>(
     String languageCode,
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    Database? db;
-    while (db == null) {
-      db = await _locked(() async {
-        final opened = await _tryOpenLocked(code);
-        if (opened != null) {
-          _leases[code] = (_leases[code] ?? 0) + 1;
-        }
-        return opened;
-      });
-      if (db == null) {
-        final completer = Completer<void>();
-        _waitQueue.add(completer);
-        await completer.future;
-      }
-    }
-
-    try {
-      return await action(db);
-    } finally {
+    while (true) {
+      final waiter = Completer<void>();
+      Database? leased;
+      var waiting = false;
       await _locked(() async {
-        final count = (_leases[code] ?? 1) - 1;
-        if (count == 0) {
-          _leases.remove(code);
-          _notifyWaiters();
-        } else {
-          _leases[code] = count;
+        try {
+          final opened = await _openLocked(code);
+          _leases[code] = (_leases[code] ?? 0) + 1;
+          leased = opened;
+        } on _PoolSaturated {
+          _slotWaiters.add(waiter);
+          waiting = true;
         }
       });
+      if (waiting) {
+        await waiter.future;
+        continue;
+      }
+      try {
+        return await action(leased!);
+      } finally {
+        await _locked(() async {
+          final count = (_leases[code] ?? 1) - 1;
+          if (count <= 0) {
+            _leases.remove(code);
+          } else {
+            _leases[code] = count;
+          }
+          if (_slotWaiters.isNotEmpty) {
+            final next = _slotWaiters.removeAt(0);
+            if (!next.isCompleted) next.complete();
+          }
+        });
+      }
     }
   }
 
@@ -173,7 +168,6 @@ class PooledDatabaseManager {
       }
       await db.close();
     }
-    _notifyWaiters();
   }
 
   /// Closes all open connections that are not currently leased by active operations.
@@ -198,4 +192,8 @@ class PooledDatabaseManager {
           await _closeLocked(code);
         }
       });
+}
+
+class _PoolSaturated implements Exception {
+  const _PoolSaturated();
 }

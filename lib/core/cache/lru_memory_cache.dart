@@ -2,20 +2,19 @@ import 'dart:collection';
 
 class LruMemoryCache<K, V> {
   final int maxCapacity;
-  final int? maxMemoryBudget;
-  final int Function(K key, V value)? sizeEstimator;
+  final int? maxMemoryBytes;
+  final void Function(K)? onEvict;
 
   final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
-  int _currentMemory = 0;
+  final Map<K, int> _sizes = {};
+
+  int _currentMemoryBytes = 0;
 
   LruMemoryCache({
     this.maxCapacity = 200,
-    this.maxMemoryBudget,
-    this.sizeEstimator,
-  }) : assert(
-          maxMemoryBudget == null || sizeEstimator != null,
-          'sizeEstimator is required if maxMemoryBudget is provided',
-        );
+    this.maxMemoryBytes,
+    this.onEvict,
+  });
 
   V? get(K key) {
     if (!_cache.containsKey(key)) return null;
@@ -24,77 +23,79 @@ class LruMemoryCache<K, V> {
     return value;
   }
 
-  bool put(K key, V value) {
-    int itemSize = sizeEstimator?.call(key, value) ?? 0;
-
-    // Reject oversized objects without uncontrolled allocation
-    if (maxMemoryBudget != null && itemSize > maxMemoryBudget!) {
-      return false;
+  void put(K key, V value, {int itemSizeBytes = 0}) {
+    if (maxMemoryBytes != null && itemSizeBytes > maxMemoryBytes!) {
+      return; // Reject oversized item without caching
     }
 
     if (_cache.containsKey(key)) {
-      final oldVal = _cache.remove(key) as V;
-      _currentMemory -= sizeEstimator?.call(key, oldVal) ?? 0;
+      _currentMemoryBytes -= _sizes[key] ?? 0;
+      _cache.remove(key);
     }
 
     _cache[key] = value;
-    _currentMemory += itemSize;
+    _sizes[key] = itemSizeBytes;
+    _currentMemoryBytes += itemSizeBytes;
 
-    _trim();
-
-    return true;
+    _evictToFit();
   }
 
-  void _trim() {
+  void remove(K key) {
+    if (_cache.containsKey(key)) {
+      _currentMemoryBytes -= _sizes[key] ?? 0;
+      _cache.remove(key);
+      _sizes.remove(key);
+    }
+  }
+
+  void _evictToFit() {
     while (_cache.isNotEmpty &&
         (_cache.length > maxCapacity ||
-            (maxMemoryBudget != null && _currentMemory > maxMemoryBudget!))) {
+            (maxMemoryBytes != null &&
+                _currentMemoryBytes > maxMemoryBytes!))) {
       final firstKey = _cache.keys.first;
-      _removeInternal(firstKey);
+      _currentMemoryBytes -= _sizes[firstKey] ?? 0;
+      _cache.remove(firstKey);
+      _sizes.remove(firstKey);
+      if (onEvict != null) {
+        onEvict!(firstKey);
+      }
     }
   }
 
-  void _removeInternal(K key) {
-    if (_cache.containsKey(key)) {
-      final val = _cache.remove(key) as V;
-      _currentMemory -= sizeEstimator?.call(key, val) ?? 0;
-    }
-  }
+  void trimMemoryPressure() {
+    if (_cache.isEmpty) return;
 
-  bool remove(K key) {
-    if (_cache.containsKey(key)) {
-      _removeInternal(key);
-      return true;
-    }
-    return false;
-  }
-
-  int get length => _cache.length;
-
-  int get currentMemory => _currentMemory;
-
-  Iterable<K> get keys => _cache.keys;
-
-  void clear() {
-    _cache.clear();
-    _currentMemory = 0;
-  }
-
-  bool containsKey(K key) => _cache.containsKey(key);
-
-  void onMemoryPressure() {
-    // Trim cache by half to simulate low-memory handling
     final targetCapacity = maxCapacity ~/ 2;
-    int targetMemory = 0;
-    if (maxMemoryBudget != null) {
-      targetMemory = maxMemoryBudget! ~/ 2;
-    }
+    int targetMemory = maxMemoryBytes != null ? maxMemoryBytes! ~/ 2 : 0;
 
     while (_cache.isNotEmpty &&
         (_cache.length > targetCapacity ||
-            (maxMemoryBudget != null && _currentMemory > targetMemory))) {
+            (maxMemoryBytes != null && _currentMemoryBytes > targetMemory))) {
       final firstKey = _cache.keys.first;
-      _removeInternal(firstKey);
+      _currentMemoryBytes -= _sizes[firstKey] ?? 0;
+      _cache.remove(firstKey);
+      _sizes.remove(firstKey);
+      if (onEvict != null) {
+        onEvict!(firstKey);
+      }
     }
   }
+
+  int get length => _cache.length;
+  int get currentMemoryBytes => _currentMemoryBytes;
+
+  void clear() {
+    final keys = List<K>.from(_cache.keys);
+    _cache.clear();
+    _sizes.clear();
+    _currentMemoryBytes = 0;
+    if (onEvict != null) {
+      for (final key in keys) {
+        onEvict!(key);
+      }
+    }
+  }
+
+  bool containsKey(K key) => _cache.containsKey(key);
 }

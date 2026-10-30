@@ -23,17 +23,16 @@ class StorageQuarantine {
     required String reason,
   }) {
     _enforceBoundedRetention();
-    _quarantine.add(
-      QuarantinedData(
-        id: id,
-        rawJson: rawJson,
-        diagnosticReason: reason,
-        timestampEpoch: DateTime.now().millisecondsSinceEpoch,
-      ),
-    );
+    _quarantine.add(QuarantinedData(
+      id: id,
+      rawJson: rawJson,
+      diagnosticReason: reason,
+      timestampEpoch: DateTime.now().millisecondsSinceEpoch,
+    ));
   }
 
   List<QuarantinedData> get isolatedItems => List.unmodifiable(_quarantine);
+
   void clearResolved(String id) {
     _quarantine.removeWhere((item) => item.id == id);
   }
@@ -41,8 +40,7 @@ class StorageQuarantine {
   void _enforceBoundedRetention() {
     final nowEpoch = DateTime.now().millisecondsSinceEpoch;
     const retentionMs = _retentionDays * 24 * 60 * 60 * 1000;
-    _quarantine.removeWhere(
-      (item) => (nowEpoch - item.timestampEpoch) > retentionMs,
-    );
+    _quarantine
+        .removeWhere((item) => (nowEpoch - item.timestampEpoch) > retentionMs);
   }
 }

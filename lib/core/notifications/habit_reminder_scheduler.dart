@@ -1,144 +1,135 @@
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:deutsch_bilarabi/services/database_service.dart';
-import 'package:sqflite/sqflite.dart';
+import 'reminder_preferences.dart';
+import 'reminder_storage.dart';
 
-/// مجدول إشعارات الأوفلاين (Inexact Local Notification Service)
-/// لا يتطلب إنترنت ويحترم أوقات نوم المستخدم.
+enum OSIntegrationStatus {
+  active,
+  blockedIntegration, // When OS-level alarms/scheduling are out of scope or unauthorized
+}
+
 class HabitReminderScheduler {
-  static const String _prefRemindersEnabled = 'reminders_enabled';
-  static const String _prefReminderHour = 'reminder_hour';
-  static const String _prefReminderMinute = 'reminder_minute';
-  static const String _prefLastReminderSentDate = 'last_reminder_sent_date';
+  final ReminderStorage _storage;
+  ReminderPreferences _preferences;
 
-  /// Save preferences for reminders
-  static Future<void> savePreferences({required bool enabled, required int hour, required int minute}) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefRemindersEnabled, enabled);
-    await prefs.setInt(_prefReminderHour, hour);
-    await prefs.setInt(_prefReminderMinute, minute);
+  /// Singleton approach or inject dependencies to replace the old static methods
+  static HabitReminderScheduler? _instance;
+
+  HabitReminderScheduler._internal(this._storage, this._preferences);
+
+  static void initialize({
+    required ReminderStorage storage,
+    ReminderPreferences preferences = const ReminderPreferences(),
+  }) {
+    _instance = HabitReminderScheduler._internal(storage, preferences);
   }
 
-  /// Get if reminders are enabled
-  static Future<bool> areRemindersEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_prefRemindersEnabled) ?? true;
-  }
-  
-  /// Get user preferred time (hour, minute)
-  static Future<Map<String, int>> getPreferredTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    return {
-      'hour': prefs.getInt(_prefReminderHour) ?? 20,
-      'minute': prefs.getInt(_prefReminderMinute) ?? 0,
-    };
+  static HabitReminderScheduler get instance {
+    _instance ??= HabitReminderScheduler._internal(
+        InMemoryReminderStorage(), const ReminderPreferences());
+    return _instance!;
   }
 
-  /// Check if user has due reviews (requires review right now or today)
-  static Future<bool> hasDueReviews(DateTime now) async {
-    try {
-      final db = await DatabaseService.instance.progressDb;
-      final currentTimeMs = now.millisecondsSinceEpoch;
-      final result = await db.rawQuery(
-        'SELECT COUNT(*) as count FROM srs_progress WHERE next_due_at <= ? AND status = ?',
-        [currentTimeMs, 'learning']
-      );
-      final count = Sqflite.firstIntValue(result) ?? 0;
-      return count > 0;
-    } catch (e) {
-      debugPrint("Error fetching due reviews: \$e");
-      return false;
+  /// The integration status of the actual OS level notifications.
+  static OSIntegrationStatus get osIntegrationStatus =>
+      OSIntegrationStatus.blockedIntegration;
+
+  /// Update preferences (e.g. opt in/out, quiet hours)
+  void updatePreferences(ReminderPreferences newPrefs) {
+    _preferences = newPrefs;
+  }
+
+  /// Cancels the scheduled reminder
+  Future<void> cancelReminder() async {
+    await _storage.saveNextReminder(null);
+  }
+
+  /// Schedule a daily reminder idempotently based on preferences.
+  /// Rejects duplicates for the same logical window.
+  /// Uses a provided `now` to make testing deterministic.
+  /// Changed back to static to keep original contract, delegating to instance.
+  static Future<void> scheduleDailyReminder(
+      {DateTime? srsDueDate, DateTime? now}) async {
+    return instance._scheduleDailyReminderImpl(
+        srsDueDate: srsDueDate, now: now);
+  }
+
+  Future<void> _scheduleDailyReminderImpl(
+      {DateTime? srsDueDate, DateTime? now}) async {
+    if (!_preferences.isOptedIn) {
+      await cancelReminder();
+      return;
     }
-  }
 
-  /// Check if reminder was already sent today
-  static Future<bool> alreadyRemindedToday(DateTime now) async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastSentStr = prefs.getString(_prefLastReminderSentDate);
-    if (lastSentStr == null) return false;
-    
-    final lastSent = DateTime.tryParse(lastSentStr);
-    if (lastSent == null) return false;
+    final currentTime = now ?? DateTime.now();
 
-    // Check if same local day
-    return lastSent.year == now.year &&
-           lastSent.month == now.month &&
-           lastSent.day == now.day;
-  }
-
-  /// Mark reminder as sent today
-  static Future<void> markReminderSentToday(DateTime now) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefLastReminderSentDate, now.toIso8601String());
-  }
-
-  /// إلغاء التذكيرات إذا اختار المستخدم ذلك
-  static Future<void> cancelAllReminders() async {
-    final prefs = await getPreferredTime();
-    await savePreferences(enabled: false, hour: prefs['hour']!, minute: prefs['minute']!);
-    debugPrint("تم إلغاء جميع التذكيرات المحلية.");
-  }
-
-  /// يحدد إذا ما كان الوقت مناسباً لإرسال إشعار بناءً على التفضيلات وأوقات الراحة.
-  @visibleForTesting
-  static bool isEligibleForReminder(
-    DateTime now,
-    bool remindersEnabled,
-    int preferredHour,
-    int preferredMinute,
-    bool hasDueReviews,
-    bool alreadyRemindedToday,
-  ) {
-    if (!remindersEnabled) return false;
-    if (alreadyRemindedToday) return false;
-    if (!hasDueReviews) return false;
-
-    // Quiet hours: 10 PM (22) to 8 AM (8)
-    if (now.hour >= 22 || now.hour < 8) return false;
-
-    // Check if current time is around or past the preferred time for today.
-    // We don't want to remind before the preferred time.
-    final preferredTimeMins = preferredHour * 60 + preferredMinute;
-    final nowMins = now.hour * 60 + now.minute;
-
-    if (nowMins < preferredTimeMins) return false;
-
-    return true;
-  }
-
-  /// جدولة أو تنفيذ التذكير بناءً على الحالة المحلية
-  static Future<void> scheduleDailyReminder() async {
-    final now = DateTime.now();
-    final enabled = await areRemindersEnabled();
-    final preferredTime = await getPreferredTime();
-    final hasDue = await hasDueReviews(now);
-    final alreadySent = await alreadyRemindedToday(now);
-
-    final eligible = isEligibleForReminder(
-      now,
-      enabled,
-      preferredTime['hour']!,
-      preferredTime['minute']!,
-      hasDue,
-      alreadySent
-    );
-
-    if (eligible) {
-      // In-app fallback since OS-level is missing dependencies
-      debugPrint("In-app fallback notification: You have due reviews! (BLOCKED_INTEGRATION for OS-level)");
-      await markReminderSentToday(now);
+    DateTime targetTime;
+    if (srsDueDate != null && srsDueDate.isAfter(currentTime)) {
+      targetTime = srsDueDate;
     } else {
-      debugPrint("Not eligible for reminder at this time.");
+      targetTime = DateTime(currentTime.year, currentTime.month,
+          currentTime.day, _preferences.preferredHour);
+      if (targetTime.isBefore(currentTime)) {
+        targetTime = targetTime.add(const Duration(days: 1));
+      }
+    }
+
+    targetTime = _adjustForQuietHours(targetTime);
+
+    final existing = await _storage.getNextReminder();
+    if (existing != null) {
+      if (existing.year == targetTime.year &&
+          existing.month == targetTime.month &&
+          existing.day == targetTime.day) {
+        return; // Idempotent
+      }
+    }
+
+    if (osIntegrationStatus == OSIntegrationStatus.blockedIntegration) {
+      await _storage.saveNextReminder(targetTime);
     }
   }
 
-  /// إنشاء تقرير النمو لليوم 30 أو 90 (Day-30 Retention)
+  DateTime _adjustForQuietHours(DateTime time) {
+    int hour = time.hour;
+    if (_preferences.quietHourStart > _preferences.quietHourEnd) {
+      if (hour >= _preferences.quietHourStart ||
+          hour < _preferences.quietHourEnd) {
+        if (hour >= _preferences.quietHourStart) {
+          return DateTime(
+              time.year, time.month, time.day + 1, _preferences.quietHourEnd);
+        } else {
+          return DateTime(
+              time.year, time.month, time.day, _preferences.quietHourEnd);
+        }
+      }
+    } else {
+      if (hour >= _preferences.quietHourStart &&
+          hour < _preferences.quietHourEnd) {
+        return DateTime(
+            time.year, time.month, time.day, _preferences.quietHourEnd);
+      }
+    }
+    return time;
+  }
+
+  Future<bool> evaluateForegroundEligibility({DateTime? now}) async {
+    if (!_preferences.isOptedIn) return false;
+    final existing = await _storage.getNextReminder();
+    if (existing == null) return false;
+
+    final currentTime = now ?? DateTime.now();
+
+    if (currentTime.isAfter(existing) &&
+        currentTime.difference(existing).inHours < 4) {
+      return true;
+    }
+    return false;
+  }
+
   static Future<void> generateGrowthReport(int daysActive) async {
     if (daysActive == 30) {
-      // عرض رسالة تحفيزية بإنجازات الشهر الأول
-      // "لقد أتقنت X كلمة في Y مجالات!"
+      // Display motivational message for first month
     } else if (daysActive == 90) {
-      // عرض تقرير الربع السنوي
+      // Display quarterly report
     }
   }
 }

@@ -5,7 +5,7 @@ enum DatabaseInstallStatus {
   replaced,
   alreadyExists,
   corrupted,
-  failed,
+  failed
 }
 
 class DatabaseInstallResult {
@@ -63,16 +63,17 @@ class AtomicDatabaseInstaller {
       // If this fails, the original targetFile is untouched.
       await tempFile.rename(targetPath);
 
-      return DatabaseInstallResult(
-        targetExists
-            ? DatabaseInstallStatus.replaced
-            : DatabaseInstallStatus.installed,
-      );
+      return DatabaseInstallResult(targetExists
+          ? DatabaseInstallStatus.replaced
+          : DatabaseInstallStatus.installed);
     } catch (e) {
       if (await tempFile.exists()) {
         await tempFile.delete();
       }
-      return DatabaseInstallResult(DatabaseInstallStatus.failed, e.toString());
+      return DatabaseInstallResult(
+        DatabaseInstallStatus.failed,
+        e.toString(),
+      );
     }
   }
 }

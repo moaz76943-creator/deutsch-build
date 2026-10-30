@@ -8,13 +8,14 @@ class DomainMasteryProjection {
   final String domainId;
   final String sourceLanguageId;
   final String targetLanguageId;
-  final int eligibleCardCount;   // إجمالي البطاقات المتاحة في المجال
+  final int eligibleCardCount; // إجمالي البطاقات المتاحة في المجال
   final int introducedCardCount; // البطاقات التي بدأ المستخدم بتعلمها
-  final int recalledCardCount;   // البطاقات التي تذكرها بنجاح مؤخراً
-  final int masteredCardCount;   // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
-  final int dueCardCount;        // البطاقات المستحقة للمراجعة الآن
-  final DateTime lastEvidenceUtc;// آخر نشاط حقيقي في هذا المجال
-  final int masteryRevision;     // رقم المراجعة لضمان التزامن
+  final int recalledCardCount; // البطاقات التي تذكرها بنجاح مؤخراً
+  final int
+      masteredCardCount; // البطاقات التي تجاوزت فترات مراجعة طويلة (متقنة)
+  final int dueCardCount; // البطاقات المستحقة للمراجعة الآن
+  final DateTime lastEvidenceUtc; // آخر نشاط حقيقي في هذا المجال
+  final int masteryRevision; // رقم المراجعة لضمان التزامن
 
   const DomainMasteryProjection({
     required this.domainId,
@@ -27,7 +28,12 @@ class DomainMasteryProjection {
     required this.dueCardCount,
     required this.lastEvidenceUtc,
     required this.masteryRevision,
-  });
+  })  : assert(eligibleCardCount >= 0, 'eligibleCardCount cannot be negative'),
+        assert(
+            introducedCardCount >= 0, 'introducedCardCount cannot be negative'),
+        assert(recalledCardCount >= 0, 'recalledCardCount cannot be negative'),
+        assert(masteredCardCount >= 0, 'masteredCardCount cannot be negative'),
+        assert(dueCardCount >= 0, 'dueCardCount cannot be negative');
 
   /// حساب نسبة الإتقان الحقيقية للمجال (0.0 إلى 1.0)
   double get masteryPercentage {
@@ -38,8 +44,11 @@ class DomainMasteryProjection {
 
   /// تقييم حالة شجرة الإتقان للمجال (مغلق، متاح، قيد التقدم، متقن)
   DomainMasteryState get masteryState {
-    if (introducedCardCount == 0) return DomainMasteryState.available;
-    if (masteredCardCount == eligibleCardCount && eligibleCardCount > 0) {
+    if (introducedCardCount <= 0) return DomainMasteryState.available;
+    // Require an approved mastery threshold before advancement. (e.g. 0.9 or 100%)
+    // The objective mentions "Require an approved mastery threshold before advancement."
+    // Let's use 0.9 as an arbitrary threshold, or 100%. "0.9 threshold for masteryState advancement" was in the review plan.
+    if (masteryPercentage >= 0.9 && eligibleCardCount > 0) {
       return DomainMasteryState.mastered;
     }
     return DomainMasteryState.inProgress;
@@ -59,7 +68,7 @@ class DomainMasteryProjection {
       throw ArgumentError('Eligible card count cannot be negative');
     }
 
-    final String targetPairKey = '${sourceLanguageId}_${targetLanguageId}';
+    final String targetPairKey = '${sourceLanguageId}_$targetLanguageId';
 
     // Deduplicate by reviewEventId, taking the first valid one we see.
     // Also ignore events outside the bounded replay window (e.g. in the future).
@@ -86,7 +95,7 @@ class DomainMasteryProjection {
         introducedCardCount: 0,
         recalledCardCount: 0,
         masteredCardCount: 0,
-        dueCardCount: 0, // Simplified for this task
+        dueCardCount: 0,
         lastEvidenceUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         masteryRevision: 1,
       );
@@ -101,14 +110,11 @@ class DomainMasteryProjection {
         lastEvidence = event.timestamp;
       }
 
-      // Determine rating threshold for success
       // If rating >= 3, it's a recall success.
       if (event.rating >= 3) {
         cardSuccessCount[event.learnerContentKey] =
             (cardSuccessCount[event.learnerContentKey] ?? 0) + 1;
       } else {
-        // Reset or just don't increment? Let's just track successful recalls
-        // For actual SRS it would reset, but let's assume we just need to see if it reached a threshold
         cardSuccessCount[event.learnerContentKey] = 0;
       }
     }
@@ -119,10 +125,9 @@ class DomainMasteryProjection {
 
     for (final count in cardSuccessCount.values) {
       if (count > 0) recalled++;
-      if (count >= 3) mastered++; // Threshold for mastery: 3 successful recalls in a row
+      if (count >= 3) mastered++;
     }
 
-    // clamp
     introduced = introduced.clamp(0, eligibleCardCount);
     recalled = recalled.clamp(0, eligibleCardCount);
     mastered = mastered.clamp(0, eligibleCardCount);
@@ -143,8 +148,8 @@ class DomainMasteryProjection {
 }
 
 enum DomainMasteryState {
-  locked,      // يتطلب إنجاز مجالات سابقة
-  available,   // متاح للبدء
-  inProgress,  // قيد التعلم
-  mastered     // تم إتقان جميع بطاقاته
+  locked, // يتطلب إنجاز مجالات سابقة
+  available, // متاح للبدء
+  inProgress, // قيد التعلم
+  mastered // تم إتقان جميع بطاقاته
 }

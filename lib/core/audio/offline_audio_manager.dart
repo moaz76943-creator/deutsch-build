@@ -8,13 +8,15 @@ class OfflineAudioManager {
   OfflineAudioManager._init() : _createTts = FlutterTts.new;
 
   /// Provides a deterministic lazy factory for focused unit tests.
-  OfflineAudioManager.forTesting({required FlutterTts Function() createTts})
-    : _createTts = createTts;
+  OfflineAudioManager.forTesting({
+    required FlutterTts Function() createTts,
+  }) : _createTts = createTts;
 
   final FlutterTts Function() _createTts;
   FlutterTts? _flutterTts;
   Future<void>? _initialization;
   String _currentLocale = 'de-DE';
+  final AudioGenerationTracker _generationTracker = AudioGenerationTracker();
 
   bool get isAudioInitialized => _flutterTts != null;
 

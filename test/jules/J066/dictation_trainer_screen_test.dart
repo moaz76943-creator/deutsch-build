@@ -4,110 +4,144 @@ import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
 void main() {
-  setUpAll(() {
+  setUp(() {
     LexicalRepository.initializeStore([
       const LexicalEntry(
-        id: 'test_dict_1',
-        domainId: 'dictation_practice',
-        sourceLocale: 'ar-SA',
-        targetLocale: 'de-DE',
-        targetTerm: 'Schule',
-        sourceMeaning: 'مدرسة',
-        targetExample: 'Die Schule ist groß.',
-        sourceExampleTranslation: 'المدرسة كبيرة.',
+        id: 'dict_test_01',
+        domainId: 'domain_01',
+        sourceLocale: 'ar',
+        targetLocale: 'de',
+        targetTerm: 'Verantwortung',
+        sourceMeaning: 'المسؤولية',
+        targetExample: 'Ich übernehme die Verantwortung.',
+        sourceExampleTranslation: 'أنا أتحمل المسؤولية.',
         partOfSpeech: 'noun',
       ),
       const LexicalEntry(
-        id: 'test_dict_2',
-        domainId: 'dictation_practice',
-        sourceLocale: 'ar-SA',
-        targetLocale: 'ru-RU',
-        targetTerm: 'Школа',
-        sourceMeaning: 'مدرسة',
-        targetExample: 'Школа большая.',
-        sourceExampleTranslation: 'المدرسة كبيرة.',
+        id: 'dict_test_02',
+        domainId: 'domain_01',
+        sourceLocale: 'en',
+        targetLocale: 'ar',
+        targetTerm: 'مَرْحَبًا',
+        sourceMeaning: 'Hello',
+        targetExample: 'مرحبا بك',
+        sourceExampleTranslation: 'Welcome',
         partOfSpeech: 'noun',
       ),
     ]);
   });
 
-  testWidgets('DictationTrainerScreen initialization test', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
-    expect(find.text('مدرب الاستماع والتهجئة (Dictation)'), findsOneWidget);
-    expect(find.textContaining('مدرسة'), findsOneWidget); // Shows meaning of first entry
+  Widget buildScreen({String source = 'ar', String target = 'de'}) {
+    return MaterialApp(
+      home: DictationTrainerScreen(
+        sourceLocale: source,
+        targetLocale: target,
+      ),
+    );
+  }
+
+  testWidgets('Screen shows missing state when no entries', (tester) async {
+    await tester.pumpWidget(buildScreen(source: 'fr', target: 'es'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('لا توجد مفردات متاحة للتدريب حالياً.'), findsOneWidget);
   });
 
-  testWidgets('Correct answer flow', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
+  testWidgets('Screen shows entry and falls back gracefully when TTS is missing', (tester) async {
+    await tester.pumpWidget(buildScreen(source: 'ar', target: 'de'));
+    await tester.pumpAndSettle();
 
-    // Type correct answer
-    await tester.enterText(find.byType(TextField), 'Schule');
+    expect(find.text('المعنى المساعد: المسؤولية'), findsOneWidget);
+  });
+
+  testWidgets('Entering correct answer displays success and disables input', (tester) async {
+    await tester.pumpWidget(buildScreen(source: 'ar', target: 'de'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'verantwortung');
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('تحقق من التهجئة'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('إجابة صحيحة تماماً! أحسنت 🚀'), findsOneWidget);
-  });
 
-  testWidgets('Incorrect answer flow and max attempts', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
-
-    // Attempt 1
-    await tester.enterText(find.byType(TextField), 'wrong');
-    await tester.tap(find.text('تحقق من التهجئة'));
-    await tester.pump();
-    expect(find.text('خطأ تهجئي، حاول مرة أخرى. الكلمة المطلوبة: Schule'), findsOneWidget);
-
-    // Attempt 2
-    await tester.enterText(find.byType(TextField), 'wrong2');
-    await tester.tap(find.text('تحقق من التهجئة'));
-    await tester.pump();
-
-    // Attempt 3
-    await tester.enterText(find.byType(TextField), 'wrong3');
-    await tester.tap(find.text('تحقق من التهجئة'));
-    await tester.pump();
-
-    expect(find.text('لقد استنفدت المحاولات. الكلمة هي: Schule'), findsOneWidget);
-
-    // Verify textfield is disabled
     final textField = tester.widget<TextField>(find.byType(TextField));
     expect(textField.enabled, isFalse);
   });
 
-  testWidgets('Offline audio absence behavior', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
-
-    // Tap play
-    await tester.tap(find.byIcon(Icons.play_circle_fill_rounded));
+  testWidgets('Entering incorrect answer displays fail state', (tester) async {
+    await tester.pumpWidget(buildScreen(source: 'ar', target: 'de'));
     await tester.pumpAndSettle();
 
-    // Assuming play works or fails silently, we just need to ensure the screen doesn't crash
-    expect(find.byType(DictationTrainerScreen), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Verantwordung');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('تحقق من التهجئة'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('خطأ تهجئي بسيط'), findsOneWidget);
   });
 
-  testWidgets('Non-Latin script input (Russian)', (WidgetTester tester) async {
-    // We clear the store and set it to only Russian to force loading the Russian entry
-    LexicalRepository.initializeStore([
-      const LexicalEntry(
-        id: 'test_dict_2',
-        domainId: 'dictation_practice',
-        sourceLocale: 'ar-SA',
-        targetLocale: 'ru-RU',
-        targetTerm: 'Школа',
-        sourceMeaning: 'مدرسة',
-        targetExample: 'Школа большая.',
-        sourceExampleTranslation: 'المدرسة كبيرة.',
-        partOfSpeech: 'noun',
-      ),
-    ]);
+  testWidgets('Supports non-Latin scripts properly with normalization', (tester) async {
+    await tester.pumpWidget(buildScreen(source: 'en', target: 'ar'));
+    await tester.pumpAndSettle();
 
-    await tester.pumpWidget(const MaterialApp(home: DictationTrainerScreen()));
+    await tester.enterText(find.byType(TextField), 'مرحبا');
+    await tester.pumpAndSettle();
 
-    // Type correct answer in Cyrillic
-    await tester.enterText(find.byType(TextField), 'Школа');
     await tester.tap(find.text('تحقق من التهجئة'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('إجابة صحيحة تماماً! أحسنت 🚀'), findsOneWidget);
+  });
+
+  testWidgets('Rapid actions do not allow multiple submissions', (tester) async {
+    await tester.pumpWidget(buildScreen(source: 'ar', target: 'de'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Verantwortung');
+    await tester.pumpAndSettle();
+
+    final submitButton = find.text('تحقق من التهجئة');
+
+    await tester.tap(submitButton);
+    await tester.pump();
+
+    final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+    expect(button.onPressed, isNull);
+  });
+
+  testWidgets('Interrupted navigation cleans up safely without crashing', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DictationTrainerScreen(),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DictationTrainerScreen), findsOneWidget);
+
+    Navigator.pop(tester.element(find.byType(DictationTrainerScreen)));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DictationTrainerScreen), findsNothing);
   });
 }

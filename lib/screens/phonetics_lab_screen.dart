@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
-import 'package:deutsch_bilarabi/core/linguistics/phonetic_token.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
 
 class PhoneticsLabScreen extends StatefulWidget {
   const PhoneticsLabScreen({super.key});
@@ -12,102 +13,80 @@ class PhoneticsLabScreen extends StatefulWidget {
 }
 
 class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
-  int? _activePlayingIndex;
-  double _speechRate = 0.8;
+  int? _currentlyPlayingIndex;
+  bool _isPlaying = false;
+  double _speechRate = 0.9;
 
   final List<Map<String, dynamic>> _sounds = [
     {
-      "token": const PhoneticToken(
-        rawText: "ä / ö / ü",
-        ipaRepresentation: "ɛ / ø / y",
-        audioAssetKey: "ä / ö / ü",
-      ),
+      "symbol": "ä / ö / ü",
+      "ipa": "[ɛː] / [øː] / [yː]",
       "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية",
       "lang": "الألمانية",
-      "locale": "de-DE",
-      "isVerified": true,
+      "langCode": "de-DE",
+      "hasAudio": true
     },
     {
-      "token": const PhoneticToken(
-        rawText: "ñ",
-        ipaRepresentation: "ɲ",
-        audioAssetKey: "ñ",
-      ),
+      "symbol": "ñ",
+      "ipa": "[ɲ]",
       "desc": "حرف النون المضخم في اللغة الإسبانية",
       "lang": "الإسبانية",
-      "locale": "es-ES",
-      "isVerified": true,
+      "langCode": "es-ES",
+      "hasAudio": true
     },
     {
-      "token": const PhoneticToken(
-        rawText: "ğ",
-        ipaRepresentation: "ː",
-        audioAssetKey: "ğ",
-      ),
+      "symbol": "ğ",
+      "ipa": "[ː]",
       "desc": "الحرف الصامت أو الناعم في اللغة التركية",
       "lang": "التركية",
-      "locale": "tr-TR",
-      "isVerified": true,
-    },
-    {
-      "token": const PhoneticToken(
-        rawText: "unverified",
-        ipaRepresentation: "?",
-        audioAssetKey: "none",
-      ),
-      "desc": "نطق غير مدعوم أو غير موثق بعد",
-      "lang": "مجهولة",
-      "locale": "un-UN",
-      "isVerified": false,
+      "langCode": "tr-TR",
+      "hasAudio": false
     },
   ];
 
   @override
   void dispose() {
-    if (_activePlayingIndex != null) {
-      OfflineAudioDispatcher.stopCurrentAudio();
-    }
+    OfflineAudioPool().stop();
     super.dispose();
   }
 
   Future<void> _playAudio(int index) async {
-    if (_activePlayingIndex != null) {
-      OfflineAudioDispatcher.stopCurrentAudio();
+    if (_isPlaying) {
+      OfflineAudioPool().stop();
+      if (_currentlyPlayingIndex == index) {
+        setState(() {
+          _isPlaying = false;
+          _currentlyPlayingIndex = null;
+        });
+        return;
+      }
     }
 
-    if (!mounted) return;
-
     setState(() {
-      _activePlayingIndex = index;
+      _isPlaying = true;
+      _currentlyPlayingIndex = index;
     });
 
-    try {
-      final locale = _sounds[index]['locale'] as String;
-      final rawText = (_sounds[index]['token'] as PhoneticToken).rawText;
+    final item = _sounds[index];
+    await OfflineAudioDispatcher.speakText(
+      text: item['symbol'] as String,
+      bcp47Locale: item['langCode'] as String,
+      speechRate: _speechRate,
+    );
 
-      await OfflineAudioDispatcher.speakText(
-        text: rawText,
-        bcp47Locale: locale,
-        speechRate: _speechRate,
-      );
-    } finally {
-      if (mounted && _activePlayingIndex == index) {
-        setState(() {
-          _activePlayingIndex = null;
-        });
-      }
+    if (mounted) {
+      setState(() {
+        if (_currentlyPlayingIndex == index) {
+          _isPlaying = false;
+          _currentlyPlayingIndex = null;
+        }
+      });
     }
   }
 
-  void _cycleSpeechRate() {
+  void _toggleSpeed() {
     setState(() {
-      if (_speechRate == 0.8) {
-        _speechRate = 0.5;
-      } else if (_speechRate == 0.5) {
-        _speechRate = 1.2;
-      } else {
-        _speechRate = 0.8;
-      }
+      _speechRate = _speechRate == 0.9 ? 0.45 : 0.9;
     });
   }
 
@@ -119,17 +98,16 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: Icon(
-              _speechRate == 1.2
-                  ? Icons.speed
-                  : _speechRate == 0.5
-                      ? Icons.slow_motion_video
-                      : Icons.play_circle_outline,
+          Tooltip(
+            message: 'تغيير سرعة النطق',
+            child: IconButton(
+              icon: Icon(
+                _speechRate == 0.9 ? Icons.speed : Icons.speed_outlined,
+                semanticLabel: 'تغيير سرعة النطق',
+              ),
+              onPressed: _toggleSpeed,
             ),
-            tooltip: 'تغيير سرعة النطق',
-            onPressed: _cycleSpeechRate,
-          ),
+          )
         ],
       ),
       extendBodyBehindAppBar: true,
@@ -142,44 +120,40 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
               itemCount: _sounds.length,
               itemBuilder: (context, index) {
                 final item = _sounds[index];
-                final PhoneticToken token = item['token'];
-                final bool isVerified = item['isVerified'];
-                final isActive = _activePlayingIndex == index;
-                final isAnyPlaying = _activePlayingIndex != null;
+                final hasAudio = item['hasAudio'] as bool;
+                final isCurrentPlaying =
+                    _currentlyPlayingIndex == index && _isPlaying;
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 14),
                   child: AppBaseGlassCard(
                     padding: const EdgeInsets.all(16),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isVerified
-                                ? const Color(0xFF34D399).withValues(alpha: 0.15)
-                                : Colors.redAccent.withValues(alpha: 0.15),
+                            color:
+                                const Color(0xFF34D399).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                token.rawText,
-                                style: TextStyle(
-                                  color: isVerified ? const Color(0xFF34D399) : Colors.redAccent,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                item['symbol'] as String,
+                                style: const TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                isVerified ? '[${token.ipaRepresentation}]' : 'غير متوفر',
-                                style: TextStyle(
-                                  color: (isVerified ? const Color(0xFF34D399) : Colors.redAccent).withValues(alpha: 0.8),
-                                  fontSize: 14,
-                                  fontFamily: 'Noto Sans',
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Text(
+                                  item['ipa'] as String,
+                                  style: const TextStyle(
+                                      color: Color(0xFF6EE7B7), fontSize: 14),
                                 ),
                               ),
                             ],
@@ -187,34 +161,48 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                item['lang']!,
-                                style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                item['desc']!,
-                                style: AppTypography.body.copyWith(color: Colors.white, fontSize: 14),
-                              ),
-                            ],
+                          child: Semantics(
+                            label: item['desc'] as String,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  item['lang'] as String,
+                                  style: const TextStyle(
+                                      color: Color(0xFF38BDF8), fontSize: 12),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item['desc'] as String,
+                                  style: AppTypography.body.copyWith(
+                                      color: Colors.white, fontSize: 14),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        if (isVerified)
+                        const SizedBox(width: 16),
+                        if (hasAudio)
                           AppAudioButton(
-                            semanticLabel: 'استمع إلى النطق',
-                            isActive: isActive,
-                            isBusy: isAnyPlaying && !isActive,
-                            onPressed: isAnyPlaying ? null : () => _playAudio(index),
+                            onPressed: () => _playAudio(index),
+                            semanticLabel: 'استمع للفظ الصحيح',
+                            isActive: isCurrentPlaying,
+                            icon: isCurrentPlaying
+                                ? FontAwesomeIcons.stop
+                                : FontAwesomeIcons.volumeHigh,
                           )
                         else
-                           const Tooltip(
-                             message: 'النطق غير متوفر',
-                             child: Icon(Icons.volume_off, color: Colors.white38),
-                           ),
+                          const Tooltip(
+                            message: 'النطق الصوتي غير متوفر حالياً',
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: FaIcon(
+                                FontAwesomeIcons.microphoneSlash,
+                                color: Colors.white38,
+                                size: 20,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
