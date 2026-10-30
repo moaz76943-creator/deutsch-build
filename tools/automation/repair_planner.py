@@ -56,13 +56,13 @@ class RepairPlanner:
             if path.startswith("/") or ".." in path.split("/"):
                 raise ValueError(f"Unsafe path detected: {path}")
 
-    def generate_plan(self, failure_signature: str, dry_run: bool = False) -> dict:
+    def generate_plan(self, failure_signature: str, dry_run: bool = False, new_input: bool = False) -> dict:
         category = self.classify_failure(failure_signature)
 
         target_paths = self._calculate_paths(category, failure_signature)
         self._validate_paths(target_paths)
 
-        if failure_signature in self._history:
+        if failure_signature in self._history and not new_input:
             raise ValueError("Duplicate attempt blocked")
         self._history[failure_signature] = True
 

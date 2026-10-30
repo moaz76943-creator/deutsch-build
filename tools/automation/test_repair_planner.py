@@ -44,6 +44,15 @@ class TestRepairPlanner(unittest.TestCase):
             self.planner.generate_plan(sig)
 
     @patch('tools.agent_contract.guard.ScopeGuard')
+    def test_duplicate_attempt_allowed_with_new_input(self, MockGuard):
+        sig = "Error: stale fts5 index detected"
+        self.planner.generate_plan(sig)
+
+        # Should not raise an exception when new_input=True
+        plan = self.planner.generate_plan(sig, new_input=True)
+        self.assertEqual(plan["category"], STALE_FTS5)
+
+    @patch('tools.agent_contract.guard.ScopeGuard')
     def test_unsafe_paths_rejected(self, MockGuard):
         # We need paths to be extracted correctly in regex
         # The regex in repair_planner is r"([a-zA-Z0-9_\-\./]+\.[a-zA-Z0-9]+)"
