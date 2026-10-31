@@ -1,5 +1,21 @@
 # DEVELOPMENT LOG — Deutsch بالعربي
 
+## Session: 2026-10-31 15:33 UTC (hourly Grok Build)
+
+- Read project structure (AGENTS.md not present in repo; followed session instructions). Auth/DB remain OFF.
+- Critical bug found: previous modularization (types/index/vocab-extra re-export) deleted content of vocab-extra.ts without creating verbs.ts / nouns.ts → test would FAIL (0 items).
+- Minimal safe fix: restored modular files `src/lib/deutsch/content/verbs.ts` and `nouns.ts` with core A1/A2 content (verbs with full ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux; nouns with der/die/das + plural + natural DE sentences + AR translations).
+- Added 20 new A1/A2 items (IDs v-extra-101 to v-extra-120):
+  - Verbs: finden, verstehen, zeigen, erzählen, brauchen, vergessen, stehen, sitzen, laufen, schwimmen.
+  - Nouns: Schule, Freund, Freundin, Familie, Arbeit, Bahnhof, Flughafen, Supermarkt, Universität, Zimmer.
+- All IDs unique. No automatic deletion of similar items (e.g. repeated Straße/Haus kept under distinct IDs where present historically).
+- Content integrity: präteritum present, all three articles present, export structure preserved.
+- Tests expected PASS after restore (unique IDs, required fields).
+- Preview: kept on approved port (no new process; offline content only).
+- Priority respected: prevent crashes first, then content correctness, then learning system.
+
+Status: COMPLETE
+
 ## Session: 2026-10-31 15:10 +03 (architecture review & modularization)
 
 - Read AGENTS.md and project instructions. Auth/DB remain OFF.
