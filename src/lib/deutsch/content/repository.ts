@@ -3,7 +3,10 @@
 // Auth/DB remain OFF. Offline content only. No secrets or network.
 
 import type { VocabExtraItem } from './types';
-import { vocabExtra } from './index';
+import { items as verbItems } from './verbs';
+import { items as nounItems } from './nouns';
+
+const allItems: VocabExtraItem[] = [...verbItems, ...nounItems];
 
 class VocabRepository {
   private readonly byId: Map<string, VocabExtraItem>;
@@ -44,6 +47,7 @@ class VocabRepository {
   }
 }
 
-export const vocabRepository = new VocabRepository(vocabExtra);
+export const vocabRepository = new VocabRepository(allItems);
+export const vocabExtra = allItems; // re-export for compatibility
 
 export { VocabRepository };
