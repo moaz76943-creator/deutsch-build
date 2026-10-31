@@ -1,0 +1,203 @@
+name: Presentation Performance Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'lib/**/presentation/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: none
+  checks: none
+  id-token: none
+
+concurrency:
+  group: perf-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Presentation performance guard
+    if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Collect changed presentation files
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -Eeuo pipefail
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" |
+            grep -E '^lib/(.*/)?presentation/.*\.dart$' > /tmp/perf-files || true
+
+      - name: Run static frame-safety guard
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          files = [Path(x) for x in Path('/tmp/perf-files').read_text().splitlines() if x]
+          marker = '<!-- deutsch-performance-guard -->'
+          blockers, tips = [], []
+
+          def clean(s):
+              token = re.compile(r'//[^\n]*|/\*.*?\*/|\'(?:\\.|[^\'\\])*\'|"(?:\\.|[^"\\])*"', re.S)
+              return token.sub(lambda m: re.sub(r'[^\n]', ' ', m.group()), s)
+
+          def line(s, pos):
+              return s.count('\n', 0, pos) + 1
+
+          def brace_end(s, start):
+              depth = 0
+              for i in range(start, len(s)):
+                  depth += s[i] == '{'
+                  depth -= s[i] == '}'
+                  if depth == 0:
+                      return i
+              return len(s)
+
+          def builds(s):
+              p = re.compile(r'\bbuild\s*\(\s*BuildContext\s+\w+\s*\)\s*(\{|=>)')
+              for m in p.finditer(s):
+                  if m.group(1) == '{':
+                      yield m.end(), brace_end(s, m.start(1))
+                  else:
+                      end = s.find(';', m.end())
+                      yield m.end(), len(s) if end < 0 else end
+
+          owned = re.compile(
+              r'\b(?P<name>[_A-Za-z]\w*)\s*=\s*(?:new\s+)?'
+              r'(?P<kind>[A-Z]\w*Controller)(?:\.\w+)?\s*\('
+          )
+          ctor = re.compile(r'\b(?P<kind>[A-Z]\w*Controller)(?:\.\w+)?\s*\(')
+          blocking = re.compile(
+              r'\b\w+Sync\s*\(|\bProcess\s*\.\s*runSync\s*\(|(?<!\.)\bsleep\s*\('
+              r'|\b(?:jsonDecode|base64Decode)\s*\(|\b(?:utf8|gzip|zlib)\s*\.\s*decode\s*\('
+          )
+          advisory = re.compile(r'\.\s*sort\s*\(|\bList\s*\.\s*generate\s*\(')
+
+          for path in files:
+              if not path.exists():
+                  blockers.append(f'`{path}` - file missing from checkout.')
+                  continue
+              code = clean(path.read_text(encoding='utf-8'))
+              allocations = list(owned.finditer(code))
+              owned_starts = {m.start('kind') for m in allocations}
+
+              for m in allocations:
+                  name, kind = m.group('name'), m.group('kind')
+                  if not re.search(rf'\b{re.escape(name)}\s*(?:\?\.|\.)\s*dispose\s*\(', code):
+                      blockers.append(
+                          f'`{path}:{line(code, m.start())}` - `{kind}` `{name}` has no `{name}.dispose()`.'
+                      )
+              if allocations and not re.search(r'\bsuper\s*\.\s*dispose\s*\(\s*\)', code):
+                  blockers.append(f'`{path}` - owned controller(s) exist but `super.dispose()` is missing.')
+
+              for m in ctor.finditer(code):
+                  if m.start('kind') not in owned_starts:
+                      blockers.append(
+                          f'`{path}:{line(code, m.start())}` - anonymous `{m.group("kind")}` '
+                          'allocation cannot be verified for disposal.'
+                      )
+
+              for start, end in builds(code):
+                  body = code[start:end]
+                  for m in blocking.finditer(body):
+                      call = re.sub(r'\s+', '', m.group())
+                      blockers.append(
+                          f'`{path}:{line(code, start + m.start())}` - blocking `{call}` inside `build()`.'
+                      )
+                  for m in advisory.finditer(body):
+                      tips.append(
+                          f'`{path}:{line(code, start + m.start())}` - precompute/cache sorting or '
+                          'eager list generation outside `build()` where possible.'
+                      )
+                  transforms = len(re.findall(r'\.\s*(?:map|where|expand|fold|reduce)\s*\(', body))
+                  if transforms >= 3:
+                      tips.append(
+                          f'`{path}:{line(code, start)}` - {transforms} collection transforms occur '
+                          'in one `build()` path; consider precomputing them.'
+                      )
+
+          blockers = list(dict.fromkeys(blockers))
+          tips = list(dict.fromkeys(tips))
+          result = 'fail' if blockers else 'pass'
+          report = [
+              marker,
+              '## Presentation Performance Guard',
+              '',
+              f'Scanned **{len(files)}** changed `presentation` Dart file(s).',
+              '',
+              '### Result',
+              '[FAIL] Blocking findings detected.' if blockers else
+              '[PASS] No deterministic controller leaks or blocking build-path calls detected.',
+          ]
+          if blockers:
+              report += ['', '### Blocking findings'] + [f'- {x}' for x in blockers]
+          if tips:
+              report += ['', '### Performance advisories'] + [f'- {x}' for x in tips]
+          report += [
+              '',
+              '### 60 FPS guidance',
+              '- Keep `build()` pure and cheap; move I/O, decoding, parsing, and expensive transforms out of the frame path.',
+              '- Move CPU-heavy work to the project persistent CPU worker/isolate, not the UI isolate.',
+              '- Dispose every controller owned by a `State` and call `super.dispose()`.',
+              '- Prefer lazy builders for growing lists/grids and narrow rebuild scope.',
+              '- Profile expensive screens against the ~16.7 ms frame budget; this static guard is not a profiler.',
+          ]
+          Path('performance_guard_report.md').write_text('\n'.join(report) + '\n')
+          Path('performance_guard_status.txt').write_text(result + '\n')
+          print('\n'.join(report))
+          PY
+
+      - name: Publish or refresh PR report
+        if: always()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- deutsch-performance-guard -->';
+            const body = fs.existsSync('performance_guard_report.md')
+              ? fs.readFileSync('performance_guard_report.md', 'utf8')
+              : `${marker}\n## Presentation Performance Guard\n\n[FAIL] Guard failed before report generation.`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number, per_page: 100 }
+            );
+            const current = comments.find(
+              c => c.user?.type === 'Bot' && c.body?.includes(marker)
+            );
+            if (current) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: current.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Enforce guard
+        if: always()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ -f performance_guard_status.txt ]] || exit 1
+          [[ "$(tr -d '[:space:]' < performance_guard_status.txt)" == "pass" ]] || exit 1

@@ -1,0 +1,48 @@
+class FreezeUsageRecord {
+  final DateTime usedAt;
+  final String reason;
+
+  const FreezeUsageRecord({required this.usedAt, required this.reason});
+}
+
+/// سجل محلي شفاف لحساب استهلاك دروع التجميد اليومية
+class StreakFreezeLedger {
+  final int totalShields;
+  final List<FreezeUsageRecord> usageHistory;
+
+  const StreakFreezeLedger({
+    this.totalShields = 2,
+    this.usageHistory = const [],
+  });
+
+  int get remainingShields => totalShields - usageHistory.length;
+  bool get canConsume => remainingShields > 0;
+
+  StreakFreezeLedger recordUsage(
+    String reason, {
+    DateTime? now,
+    DateTime? timestamp,
+  }) {
+    if (!canConsume) return this;
+    final currentTime = timestamp ?? now ?? DateTime.now();
+
+    // Validate freeze consumption and prevent duplicate freezes
+    for (final record in usageHistory) {
+      final currentLocal = currentTime.toLocal();
+      final recordLocal = record.usedAt.toLocal();
+      if (recordLocal.year == currentLocal.year &&
+          recordLocal.month == currentLocal.month &&
+          recordLocal.day == currentLocal.day) {
+        return this; // Duplicate freeze prevented
+      }
+    }
+
+    return StreakFreezeLedger(
+      totalShields: totalShields,
+      usageHistory: [
+        ...usageHistory,
+        FreezeUsageRecord(usedAt: currentTime, reason: reason),
+      ],
+    );
+  }
+}

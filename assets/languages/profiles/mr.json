@@ -1,0 +1,21 @@
+{
+  "isoCode": "mr",
+  "autonym": "मराठी",
+  "englishName": "Marathi",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Devanagari",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Direct", "Oblique", "Instrumental", "Locative"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasInclusiveWe": true,
+    "hasPostpositions": true,
+    "threeGenders": true
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "changed": [
+    "lib/services/conversation_engine.dart",
+    "lib/services/production_engine.dart",
+    "lib/services/verb_index.dart",
+    "lib/services/writing_analyzer.dart",
+    "lib/ui_v35/app.dart",
+    "lib/ui_v35/conversation_pages.dart"
+  ],
+  "risk": "HIGH",
+  "selected": [
+    "accessibility",
+    "architecture",
+    "full_regression",
+    "security",
+    "targeted"
+  ],
+  "skipped": [
+    "compiler_parity: SKIPPED — unaffected",
+    "content_quality: SKIPPED — unaffected",
+    "integration: SKIPPED — unaffected",
+    "privacy: SKIPPED — unaffected"
+  ],
+  "passed": [
+    "accessibility",
+    "architecture",
+    "full_regression",
+    "security",
+    "targeted"
+  ],
+  "failed": [],
+  "security": "PASS",
+  "content": "NOT RUN",
+  "compiler": "NOT RUN",
+  "warnings": [],
+  "cached": []
+}

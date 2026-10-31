@@ -1,0 +1,35 @@
+workflows:
+  signed-android-release:
+    name: Signed Android Release
+    # mac_mini_m2 is billed. Do not start it on push or pull_request.
+    # trigger_signed_build.yml is the explicit API path and stays opt-in.
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'codemagic-manual-only-*'
+          include: true
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      flutter: default
+      groups:
+        - keystore_credentials
+    scripts:
+      - name: Set up keystore
+        script: |
+          echo $CM_KEYSTORE_BASE64 | base64 --decode > /tmp/keystore.keystore
+          cat >> "$CM_BUILD_DIR/android/key.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=/tmp/keystore.keystore
+          EOF
+      - name: Build Signed APK and AAB
+        script: |
+          flutter pub get
+          flutter build apk --release
+          flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/app-release.aab

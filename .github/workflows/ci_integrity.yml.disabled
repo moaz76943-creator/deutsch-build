@@ -1,0 +1,56 @@
+# DISABLED 2026-10-25: this workflow is outside the 30-workflow zero-billing contract.
+# GitHub Actions cannot start ubuntu-latest jobs while billing is blocked
+# (run 40148304805, job 121034297378: payments failed or spending limit reached).
+# A billing failure is not a code failure and must not be required for merge.
+# Canonical manual gates that remain: quality_gate_ci.yml, build.yml, build_apk.yml, build_aab.yml.
+# Re-enable only by restoring a classified workflow that can actually run. Do not mark it green.
+
+name: CI Integrity & Code Quality Gate
+
+on:
+  push:
+    branches:
+      - main
+      - staging/v2-full-platform
+    paths-ignore:
+      # Workflow-only edits need YAML/contract review, not a Flutter SDK run.
+      # The manual dispatch remains available for full verification.
+      - '.github/**'
+      - 'docs/**'
+      - 'reports/**'
+      - 'tools/agents/state/**'
+      - 'README.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: تحميل المستودع (Checkout)
+        uses: actions/checkout@v4
+
+      - name: إعداد بيئة جافا (Java 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: إعداد Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: جلب المكتبات (Pub Get)
+        run: flutter pub get
+
+      - name: الفحص البرمجي للتحقق من الأخطاء (Dart Analyze)
+        run: dart analyze --no-fatal-warnings lib/
+
+      - name: تشغيل الفحص المسبق لقواعد البيانات والأصول
+        run: python3 deutsch_release_preflight.py

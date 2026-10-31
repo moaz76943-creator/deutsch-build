@@ -1,0 +1,37 @@
+{
+  "changed": [],
+  "risk": "HIGH",
+  "selected": [
+    "accessibility",
+    "architecture",
+    "compiler_parity",
+    "content_quality",
+    "full_regression",
+    "privacy",
+    "security"
+  ],
+  "skipped": [],
+  "passed": [
+    "accessibility",
+    "architecture",
+    "compiler_parity",
+    "content_quality",
+    "full_regression",
+    "privacy",
+    "security"
+  ],
+  "failed": [],
+  "security": "PASS",
+  "content": "PASS",
+  "compiler": "PASS",
+  "warnings": [],
+  "cached": [
+    "accessibility",
+    "architecture",
+    "compiler_parity",
+    "content_quality",
+    "privacy",
+    "security"
+  ],
+  "affected_files": []
+}

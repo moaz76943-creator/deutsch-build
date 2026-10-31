@@ -1,0 +1,23 @@
+{
+  "grammar": [],
+  "lexicon": [],
+  "localization": {
+    "pack.title": {
+      "bidiOverride": true,
+      "direction": "ltr",
+      "text": "Finnish"
+    }
+  },
+  "pack": {
+    "contractVersion": "1.0.0",
+    "displayName": "Finnish",
+    "id": "fi-core",
+    "languageCode": "fi",
+    "textDirection": "ltr",
+    "version": "1.0.0"
+  },
+  "requiredLocalizationKeys": [
+    "pack.title"
+  ],
+  "schemaVersion": 1
+}

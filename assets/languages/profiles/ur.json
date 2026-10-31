@@ -1,0 +1,22 @@
+{
+  "isoCode": "ur",
+  "autonym": "اردو",
+  "englishName": "Urdu",
+  "scriptDirection": "rtl",
+  "scriptFamily": "Perso-Arabic (Nastaliq)",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 3,
+  "caseNames": ["Direct", "Oblique", "Vocative"],
+  "genders": ["m", "f"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasSplitErgativity": true,
+    "hasPostpositions": true,
+    "hasAspiratedConsonants": true
+  }
+}

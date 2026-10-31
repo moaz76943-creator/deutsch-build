@@ -1,0 +1,25 @@
+name: Local Signed Release (Self-hosted Only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-signed-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'sali97m-cpu/deutsch-bilarabi' && github.ref_name == 'main' && vars.LOCAL_RELEASE_RUNNER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout canonical main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build and verify locally
+        shell: bash
+        run: bash scripts/local-release.sh

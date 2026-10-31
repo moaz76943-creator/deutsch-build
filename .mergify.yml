@@ -1,0 +1,42 @@
+# DEUTSCH بالعربي | private Flutter application
+# Mergify reads this file from the default branch (currently main).
+# Hosted GitHub Actions cannot start ubuntu-latest jobs while billing is
+# blocked (run 40148304805 / job 121034297378). architectural-guard is
+# opt-in and does not report; flutter-pr-merge-gate does not exist.
+# Those checks are not required here. Do not fabricate a status for them.
+# The queue merges only a staging PR that carries the explicit
+# mergify-approved label, is not a draft, and has no conflicts.
+# There is no review-count gate: one owner cannot stamp hundreds of PRs,
+# and fabricated approvals are forbidden.
+
+merge_queue:
+  mode: serial
+  max_parallel_checks: 1
+  reset_on_external_merge: always
+  skip_intermediate_results: false
+  queued_label: mergify-queued
+  dequeued_label: mergify-dequeued
+  status_comments: outcomes
+
+queue_rules:
+  - name: verified-private-staging
+    merge_method: squash
+    batch_size: 1
+    max_checks_retries: 0
+    queue_conditions:
+      - base = staging/v2-full-platform
+      - -draft
+      - -conflict
+      - label = mergify-approved
+    merge_conditions:
+      - base = staging/v2-full-platform
+      - -draft
+      - -conflict
+      - label = mergify-approved
+
+priority_rules:
+  - name: labeled-staging
+    conditions:
+      - label = mergify-priority-high
+      - label = mergify-approved
+    priority: high

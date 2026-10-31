@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "claim_id": "TOOLING-DISPATCHER-001",
+  "status_values": [
+    "PENDING",
+    "IN_PROGRESS",
+    "VERIFIED",
+    "MERGED"
+  ],
+  "dependency_complete_statuses": [
+    "VERIFIED",
+    "MERGED"
+  ],
+  "tasks": [
+    {
+      "task_id": "PHASE2_WIRING",
+      "domain": "UI",
+      "status": "IN_PROGRESS",
+      "branch": "phase2/core-wiring",
+      "prerequisites": [],
+      "external_prerequisites": [
+        "UI_V35_PHASE1"
+      ],
+      "allowed_paths": [
+        "lib/ui_v35/phase2/**",
+        "test/ui_v35/phase2/**"
+      ],
+      "goal": "Wire the verified UI v35 Phase 1 presentation layer to core/domain services without crossing ownership boundaries."
+    },
+    {
+      "task_id": "AUDIO_ENGINE_DOMAIN",
+      "domain": "Audio",
+      "status": "IN_PROGRESS",
+      "branch": "feature/offline-audio-engine",
+      "prerequisites": [],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "lib/core/audio/**",
+        "test/core/audio/**"
+      ],
+      "goal": "Implement the offline audio/TTS domain contracts and deterministic local driver behavior."
+    },
+    {
+      "task_id": "MATRIX_A1_CORE",
+      "domain": "DataMatrix",
+      "status": "IN_PROGRESS",
+      "branch": "tools/language-matrix-builder",
+      "prerequisites": [],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "tools/data_generator/**"
+      ],
+      "goal": "Produce and validate the first canonical A1 multilingual matrix seed with explicit directed-pair semantics."
+    },
+    {
+      "task_id": "LOCAL_PERSISTENCE_DRIFT",
+      "domain": "Database",
+      "status": "PENDING",
+      "branch": "feature/local-persistence-drift",
+      "prerequisites": [
+        "PHASE2_WIRING"
+      ],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "lib/core/persistence/**",
+        "test/core/persistence/**"
+      ],
+      "goal": "Detect and repair local persistence contract drift against the Phase 2 wiring boundary."
+    },
+    {
+      "task_id": "AUDIO_UI_INTEGRATION",
+      "domain": "Audio",
+      "status": "PENDING",
+      "branch": "feature/audio-ui-integration",
+      "prerequisites": [
+        "PHASE2_WIRING",
+        "AUDIO_ENGINE_DOMAIN"
+      ],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "lib/ui_v35/audio/**",
+        "test/ui_v35/audio/**"
+      ],
+      "goal": "Integrate verified offline audio capabilities into the Phase 2 UI surface without modifying the audio domain implementation."
+    },
+    {
+      "task_id": "SRS_SCHEDULER_WIRING",
+      "domain": "Database",
+      "status": "PENDING",
+      "branch": "feature/srs-scheduler-wiring",
+      "prerequisites": [
+        "PHASE2_WIRING",
+        "LOCAL_PERSISTENCE_DRIFT"
+      ],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "lib/core/srs/**",
+        "test/core/srs/**"
+      ],
+      "goal": "Wire spaced-repetition scheduling to the verified persistence contract with deterministic offline behavior."
+    },
+    {
+      "task_id": "MULTILINGUAL_PACK_INGESTION",
+      "domain": "DataMatrix",
+      "status": "PENDING",
+      "branch": "feature/multilingual-pack-ingestion",
+      "prerequisites": [
+        "MATRIX_A1_CORE",
+        "LOCAL_PERSISTENCE_DRIFT"
+      ],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "lib/core/language_packs/**",
+        "test/core/language_packs/**",
+        "assets/language_packs/**"
+      ],
+      "goal": "Ingest verified directed language-pack data into the offline runtime without implicit pivots or reverse-pair inference."
+    },
+    {
+      "task_id": "APP_PAYMENTS_BILLING",
+      "domain": "Payments",
+      "status": "PENDING",
+      "branch": "feature/app-payments-billing",
+      "prerequisites": [
+        "PHASE2_WIRING",
+        "LOCAL_PERSISTENCE_DRIFT"
+      ],
+      "external_prerequisites": [
+        "ENTITLEMENT_SECURITY_CONTRACT"
+      ],
+      "allowed_paths": [
+        "lib/core/payments/**",
+        "test/core/payments/**"
+      ],
+      "goal": "Implement the app billing/entitlement boundary after persistence and core wiring are verified; production credentials remain outside automation."
+    },
+    {
+      "task_id": "TASK-INT-001",
+      "domain": "Database",
+      "status": "PENDING",
+      "branch": "integration/foundational-domain-stack",
+      "prerequisites": [],
+      "external_prerequisites": [
+        "PR #106",
+        "PR #108",
+        "PR #110"
+      ],
+      "allowed_paths": [
+        "lib/core/storage/**",
+        "test/core/storage/**",
+        "lib/core/srs/**",
+        "test/core/srs/**",
+        "lib/core/deck/**",
+        "test/core/deck/**"
+      ],
+      "goal": "Merge the foundational domain stack from PRs #106, #108, and #110 into main while preserving their isolated storage, SRS, and deck contracts."
+    },
+    {
+      "task_id": "TASK-INT-002",
+      "domain": "Database",
+      "status": "PENDING",
+      "branch": "integration/session-coordinator-reconcile",
+      "prerequisites": [
+        "TASK-INT-001"
+      ],
+      "external_prerequisites": [
+        "PR #111"
+      ],
+      "allowed_paths": [
+        "lib/core/session/**",
+        "test/core/session/**"
+      ],
+      "goal": "Resolve PR #111's gated dependency block against the merged main foundation, reconcile any contract drift, and verify the study-session coordinator."
+    },
+    {
+      "task_id": "TASK-INT-003",
+      "domain": "DataMatrix",
+      "status": "PENDING",
+      "branch": "integration/full-matrix-regression",
+      "prerequisites": [
+        "TASK-INT-002"
+      ],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "tools/data_generator/**",
+        "tests/test_data_generator.py"
+      ],
+      "goal": "Run the full-matrix regression suite across all 20 language definitions and require zero schema, directionality, or directed-pair resolution regressions."
+    },
+    {
+      "task_id": "TASK-UI-001",
+      "domain": "UI",
+      "status": "PENDING",
+      "branch": "feature/presentation-direction-aware",
+      "prerequisites": [
+        "TASK-INT-002",
+        "TASK-INT-003"
+      ],
+      "external_prerequisites": [],
+      "allowed_paths": [
+        "lib/ui_v35/presentation/**",
+        "test/ui_v35/presentation/**"
+      ],
+      "goal": "Initialize the Presentation/UI layer with direction-aware rendering that respects explicit source and target language direction without implicit reverse or pivot behavior."
+    }
+  ]
+}

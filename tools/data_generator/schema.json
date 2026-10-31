@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deutsch-bilarabi.local/tools/data_generator/schema.json",
+  "title": "DEUTSCH 20-language matrix canonical dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "entries"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonical_key",
+          "cefr_level",
+          "source_text",
+          "target_text",
+          "pair_identity",
+          "phonetics",
+          "part_of_speech",
+          "bidirectional_flag",
+          "rtl_flag"
+        ],
+        "properties": {
+          "canonical_key": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          },
+          "cefr_level": {
+            "type": "string",
+            "enum": [
+              "A1",
+              "A2",
+              "B1",
+              "B2"
+            ]
+          },
+          "source_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pair_identity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "source_language",
+              "target_language",
+              "source_direction",
+              "target_direction"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(?:-[a-z0-9]{2,8})*->[a-z]{2,3}(?:-[a-z0-9]{2,8})*$"
+              },
+              "source_language": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$"
+              },
+              "target_language": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$"
+              },
+              "source_direction": {
+                "type": "string",
+                "enum": [
+                  "ltr",
+                  "rtl"
+                ]
+              },
+              "target_direction": {
+                "type": "string",
+                "enum": [
+                  "ltr",
+                  "rtl"
+                ]
+              },
+              "record_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reverse_record_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "phonetics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              }
+            }
+          },
+          "part_of_speech": {
+            "type": "string",
+            "enum": [
+              "noun",
+              "verb",
+              "adjective",
+              "adverb",
+              "pronoun",
+              "preposition",
+              "conjunction",
+              "interjection",
+              "determiner",
+              "numeral",
+              "phrase",
+              "other"
+            ]
+          },
+          "bidirectional_flag": {
+            "type": "boolean"
+          },
+          "rtl_flag": {
+            "type": "boolean"
+          },
+          "concept_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          },
+          "domain": {
+            "type": "string",
+            "enum": [
+              "workplace_healthcare",
+              "emergency",
+              "bureaucracy_registration",
+              "daily_essentials",
+              "healthcare_pharmacy",
+              "directions_transport",
+              "emergency_basic"
+            ]
+          },
+          "plural_form": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_rtl": {
+            "type": "boolean"
+          },
+          "target_rtl": {
+            "type": "boolean"
+          },
+          "example_sentence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "contextNote": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "partOfSpeech": {
+            "type": "string",
+            "enum": [
+              "noun",
+              "verb",
+              "adjective",
+              "adverb",
+              "pronoun",
+              "preposition",
+              "conjunction",
+              "interjection",
+              "determiner",
+              "numeral",
+              "phrase",
+              "other"
+            ]
+          },
+          "transliteration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "audioMarker": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "target"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "sourceLanguageDirection": {
+            "type": "string",
+            "enum": [
+              "ltr",
+              "rtl"
+            ]
+          },
+          "targetLanguageDirection": {
+            "type": "string",
+            "enum": [
+              "ltr",
+              "rtl"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

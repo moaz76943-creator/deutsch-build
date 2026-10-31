@@ -1,0 +1,176 @@
+name: Guarded Auto Merge
+
+on:
+  pull_request_target:
+    types: [labeled, reopened, ready_for_review, synchronize]
+  pull_request_review:
+    types: [submitted]
+  workflow_run:
+    workflows: ["Staging self-check", "Security Audit"]
+    types: [completed]
+
+permissions:
+  contents: read
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: guarded-auto-merge-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  enable-auto-merge:
+    if: >-
+      vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+      (
+        github.event_name != 'workflow_run' ||
+        github.event.workflow_run.pull_requests[0].base.ref == 'staging/v2-full-platform' ||
+        github.event.workflow_run.pull_requests[0].base.ref == 'main'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Resolve pull request
+        id: pr
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          case "$GITHUB_EVENT_NAME" in
+            pull_request_target|pull_request_review)
+              number="$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")"
+              ;;
+            workflow_run)
+              number="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
+
+              # GitHub may omit the associated PR list.
+              # Resolve using the exact run commit.
+              if [[ -z "$number" ]]; then
+                run_head="$(jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH")"
+
+                if [[ "$run_head" =~ ^[0-9a-f]{40}$ ]]; then
+                  candidates="$(gh api "repos/$GITHUB_REPOSITORY/commits/$run_head/pulls?per_page=100")"
+
+                  number="$(jq -r --arg sha "$run_head" '
+                    [.[] | select(
+                      .state == "open"
+                      and .head.sha == $sha
+                      and (
+                        .base.ref == "main"
+                        or .base.ref == "staging/v2-full-platform"
+                      )
+                    ) | .number]
+                    | if length == 1 then .[0] else empty end
+                  ' <<< "$candidates")"
+                fi
+              fi
+              ;;
+            *)
+              echo '::notice::Unsupported event; merge not attempted.'
+              exit 0
+              ;;
+          esac
+          if [[ -z "$number" ]]; then
+            echo '::notice::No pull request associated with this event; merge not attempted.'
+            exit 0
+          fi
+          printf 'number=%s\nurl=https://github.com/%s/pull/%s\n' \
+            "$number" "$GITHUB_REPOSITORY" "$number" >> "$GITHUB_OUTPUT"
+
+      - name: Verify exact-head gates, then squash
+        if: steps.pr.outputs.number != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -Eeuo pipefail
+
+          # The event may be stale after another agent edits the PR.
+          current="$(gh pr view "$PR_URL" --json state,isDraft,isCrossRepository,baseRefName,headRefOid,reviewDecision,labels)"
+          author_assoc="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.author_association // "NONE"')"
+          case "$author_assoc" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *)
+              echo '::notice::Author is not trusted; merge not attempted.'
+              exit 0
+              ;;
+          esac
+          pr_state="$(jq -r '.state' <<< "$current")"
+          draft="$(jq -r '.isDraft' <<< "$current")"
+          cross_repo="$(jq -r '.isCrossRepository' <<< "$current")"
+          base_ref="$(jq -r '.baseRefName' <<< "$current")"
+          head_sha="$(jq -r '.headRefOid' <<< "$current")"
+          review="$(jq -r '.reviewDecision // "NONE"' <<< "$current")"
+          if [[ "$pr_state" != OPEN || "$draft" != false || "$cross_repo" != false ]] ||
+             ! jq -e '.labels | any(.[]; .name == "automerge")' <<< "$current" >/dev/null; then
+            echo '::notice::PR state, repository, or opt-in label changed; merge not attempted.'
+            exit 0
+          fi
+          if [[ "$base_ref" != 'staging/v2-full-platform' && "$base_ref" != main ]]; then
+            echo '::notice::Unsupported integration target; merge not attempted.'
+            exit 0
+          fi
+          if [[ "$review" != APPROVED ]]; then
+            echo "::notice::Independent approval is missing ($review); merge not attempted."
+            exit 0
+          fi
+
+          # Existing required checks remain required. Empty protection rules are
+          # not sufficient: the two independent workflow receipts below are
+          # explicitly required for staging, on both the HEAD and latest base.
+          if ! gh pr checks "$PR_URL" --required >/dev/null; then
+            echo '::notice::Required GitHub checks are missing, pending or failing.'
+            exit 0
+          fi
+
+          owner="${GITHUB_REPOSITORY%%/*}"
+          repository="${GITHUB_REPOSITORY#*/}"
+          thread_data="$(gh api graphql -f query='query($owner:String!, $repository:String!, $number:Int!) { repository(owner:$owner, name:$repository) { pullRequest(number:$number) { reviewThreads(first:100) { pageInfo { hasNextPage } nodes { isResolved } } } } }' -F owner="$owner" -F repository="$repository" -F number="$PR_NUMBER")"
+          if ! jq -e '.data.repository.pullRequest.reviewThreads |
+            (.pageInfo.hasNextPage == false and all(.nodes[]; .isResolved == true))' <<< "$thread_data" >/dev/null; then
+            echo '::notice::Unresolved or unenumerated review threads; merge not attempted.'
+            exit 0
+          fi
+
+          # Re-fetch target HEAD: a previous successful run against an old
+          # integration base is STALE_CHECK even if the PR HEAD is unchanged.
+          base_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$base_ref" --jq '.object.sha')"
+          workflows=(security_audit.yml)
+          if [[ "$base_ref" == 'staging/v2-full-platform' ]]; then
+            workflows+=(staging_self_check.yml)
+          fi
+          for workflow in "${workflows[@]}"; do
+            if ! gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?head_sha=$head_sha&event=pull_request&per_page=100" |
+              jq -e --arg head "$head_sha" --arg base "$base_sha" --argjson number "$PR_NUMBER" '
+                any(.workflow_runs[]?;
+                  .status == "completed" and .conclusion == "success"
+                  and .head_sha == $head
+                  and any(.pull_requests[]?;
+                    .number == $number and .head.sha == $head and .base.sha == $base
+                  )
+                )' >/dev/null; then
+              echo "::notice::STALE_CHECK or missing exact-head/base success: $workflow"
+              echo "- Merge gate: BLOCKED (STALE_CHECK: $workflow)" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          done
+
+          # Serialize writers and refuse changes since the verified snapshot.
+          latest="$(gh pr view "$PR_URL" --json state,baseRefName,headRefOid,reviewDecision)"
+          latest_base="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$base_ref" --jq '.object.sha')"
+          if [[ "$latest_base" != "$base_sha" ]] ||
+             ! jq -e --arg head "$head_sha" --arg base "$base_ref" '
+               .state == "OPEN" and .baseRefName == $base
+               and .headRefOid == $head and .reviewDecision == "APPROVED"
+             ' <<< "$latest" >/dev/null; then
+            echo '::notice::HEAD, base or approval changed; merge not attempted.'
+            exit 0
+          fi
+          # Explicit opt-in + exact-head checks + approval + all required checks.
+          # Do not use --auto: the repository currently has auto-merge disabled.
+          gh pr merge "$PR_URL" --squash --match-head-commit "$head_sha"
+          echo "- Squash merge requested for approved PR #$PR_NUMBER, head $head_sha" >> "$GITHUB_STEP_SUMMARY"

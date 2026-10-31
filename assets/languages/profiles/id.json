@@ -1,0 +1,22 @@
+{
+  "isoCode": "id",
+  "autonym": "Bahasa Indonesia",
+  "englishName": "Indonesian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": false,
+  "hasDualNumber": false,
+  "features": {
+    "hasInclusiveExclusiveWe": true,
+    "hasPluralReduplication": true,
+    "hasCircumfixes": true,
+    "noGrammaticalGender": true
+  }
+}

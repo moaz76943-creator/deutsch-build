@@ -1,0 +1,22 @@
+{
+  "isoCode": "tr",
+  "autonym": "Türkçe",
+  "englishName": "Turkish",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 6,
+  "caseNames": ["Yalın", "Belirtme", "Yönelme", "Bulunma", "Ayrılma", "İlgi"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasVowelHarmony": true,
+    "hasExtensiveSuffixChaining": true,
+    "hasPostpositions": true
+  }
+}

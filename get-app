@@ -1,0 +1,41 @@
+#!/bin/bash
+python3 - << 'PYEOF'
+import urllib.request, json, os
+
+token_file = os.path.expanduser("~/deutsch-bilarabi/token.env")
+token = ""
+if os.path.exists(token_file):
+    with open(token_file, "r") as f:
+        token = f.read().strip()
+
+repo = "moaz76943-creator/deutsch-build"
+headers = {"User-Agent": "Termux"}
+if token:
+    headers["Authorization"] = f"token {token}"
+
+try:
+    print("⏳ جارٍ فحص وجود نسخة APK جاهزة...")
+    req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases/tags/latest", headers=headers)
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read().decode())
+        assets = [a for a in data.get("assets", []) if a["name"].endswith(".apk")]
+        if not assets:
+            print("⏳ السيرفر ما زال يجمع ملفات التطبيق، انتظر قليلاً.")
+            exit(0)
+
+        asset_url = assets[0]["url"]
+        target_path = os.path.expanduser("~/storage/downloads/deutsch-app.apk")
+
+        print("⬇ جارٍ تنزيل النسخة المحدثة...")
+        auth_header = f'-H "Authorization: token {token}"' if token else ''
+        cmd = f'curl -L -s {auth_header} -H "Accept: application/octet-stream" -o "{target_path}" "{asset_url}"'
+        os.system(cmd)
+
+        if os.path.exists(target_path) and os.path.getsize(target_path) > 1000000:
+            print("✔ تم التنزيل بنجاح! جارٍ فتح نافذة التثبيت...")
+            os.system(f'termux-open "{target_path}"')
+        else:
+            print("⚠️ تعذر التنزيل، تأكد من الاتصال أو التوكن المحلي.")
+except Exception as e:
+    print("⏳ النسخة قيد التجهيز على السيرفر، جرب بعد لحظات.")
+PYEOF

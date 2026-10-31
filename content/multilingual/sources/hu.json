@@ -1,0 +1,37 @@
+{
+  "capabilities": {
+    "grammar": {
+      "justification": "Template source",
+      "state": "blocked"
+    },
+    "morphology": {
+      "justification": "Template source",
+      "state": "blocked"
+    },
+    "verbConjugation": {
+      "justification": "Template source",
+      "state": "blocked"
+    },
+    "vocabulary": {
+      "justification": "Template source",
+      "state": "blocked"
+    }
+  },
+  "grammar": [],
+  "language": {
+    "code": "hu",
+    "direction": "ltr",
+    "family": "Uralic",
+    "name": "Hungarian"
+  },
+  "localization": {},
+  "provenance": {
+    "license": "UNSET",
+    "sourceName": "factory",
+    "sourceType": "template",
+    "version": "0"
+  },
+  "schemaVersion": 1,
+  "verbs": [],
+  "vocabulary": []
+}

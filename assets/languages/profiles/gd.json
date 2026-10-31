@@ -1,0 +1,21 @@
+{
+  "isoCode": "gd",
+  "autonym": "Gàidhlig",
+  "englishName": "Scottish Gaelic",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "VSO",
+  "morphologyType": "Fusional",
+  "casesCount": 4,
+  "caseNames": ["Ainmneach", "Gairmeach", "Geniteach", "Dathach"],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "verbInitialOrder": true,
+    "hasLenition": true,
+    "hasPrepositionalPronouns": true
+  }
+}

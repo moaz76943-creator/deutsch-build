@@ -1,0 +1,21 @@
+{
+  "isoCode": "hu",
+  "autonym": "Magyar",
+  "englishName": "Hungarian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 18,
+  "caseNames": ["Alanyeset", "Tárgyeset", "Részeshatározó", "Birtokos", "Helyhatározó-In", "Helyhatározó-On", "Helyhatározó-At", "Belső-Hely", "Külső-Hely", "Közeli-Hely", "Eszközhatározó", "Célhatározó", "Kifejező", "Hasonlító", "Állapot", "Eredmény", "Forma", "Időhatározó"],
+  "genders": ["none"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasVowelHarmony": true,
+    "hasDefiniteIndefiniteConjugation": true,
+    "hasPostpositions": true
+  }
+}

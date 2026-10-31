@@ -1,0 +1,68 @@
+name: deutsch_bilarabi
+description: "Offline-first German learning application in Arabic."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter_localizations:
+    sdk: flutter
+  flutter:
+    sdk: flutter
+  uuid: ^4.6.0
+  shared_preferences: ^2.5.6
+  flutter_tts: ^3.8.5
+  path_provider: ^2.1.6
+  flutter_riverpod: ^2.6.1
+  sqflite: ^2.4.2+1
+  path: ^1.9.1
+  # Native SQLite binary for ffi consumers; sqflite itself uses OS SQLite.
+  # Pin to the last native-bundling release (0.6.0+eol bundles nothing).
+  sqlite3_flutter_libs: 0.5.42
+  # Run content-only SQLite on a dedicated FFI worker where supported.
+  sqflite_common_ffi: '>=2.3.0 <2.4.0'
+  sqlite3: '>=2.3.0 <3.0.0'
+  crypto: ^3.0.7
+  http: ^1.6.0
+
+  archive: any
+  flutter_animate: any
+  font_awesome_flutter: any
+  cached_network_image: ^3.4.1
+  url_launcher: ^6.3.1
+
+  synchronized: any
+  characters: any
+dev_dependencies:
+  custom_lint: ^0.6.4
+  custom_lint_builder: ^0.6.4
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.2
+
+  sqflite_common_ffi: any
+
+flutter:
+  uses-material-design: true
+  # Runtime asset bundle only. A blanket `- assets/` entry packaged the whole
+  # tree, including unregistered font binaries and duplicate launcher PNGs.
+  # Nothing in lib/ loads those through rootBundle, and they are not declared
+  # under `fonts:`. The files stay in the repository. Offline packs, vocabulary
+  # JSON, and audio stay bundled. Locked by test/perf/asset_bundle_budget_test.dart.
+  assets:
+    - assets/audio/
+    - assets/content/
+    - assets/data/
+    - assets/database/
+    - assets/i18n/
+    - assets/l10n/
+    - assets/lang_data/
+    - assets/language_packs/
+    - assets/languages/
+    - assets/local_language_databases/
+    - assets/media/
+    - assets/packs/
+    - assets/polyglot_v2/
+    - assets/schemas/

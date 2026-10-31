@@ -1,0 +1,21 @@
+{
+  "isoCode": "gu",
+  "autonym": "ગુજરાતી",
+  "englishName": "Gujarati",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Gujarati",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 3,
+  "caseNames": ["Nominative", "Oblique", "Agentive"],
+  "genders": ["m", "f", "n"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "noTopLineInScript": true,
+    "threeGenders": true,
+    "hasSplitErgativity": true
+  }
+}

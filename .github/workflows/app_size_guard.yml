@@ -1,0 +1,33 @@
+name: App Size Guard
+
+on:
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+
+jobs:
+  check-size:
+    name: Check Assets Size
+    if: ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check Asset Folder Size
+        shell: bash
+        run: |
+          if [ ! -d "assets" ]; then
+            echo "::notice::No assets directory found."
+            exit 0
+          fi
+          TOTAL_SIZE=$(du -sm assets/ | cut -f1)
+          echo "Total assets size: ${TOTAL_SIZE}MB"
+          if [ "$TOTAL_SIZE" -gt 30 ]; then
+            echo "::error::Assets size exceeds 30MB limit (${TOTAL_SIZE}MB > 30MB)."
+            exit 1
+          fi
+          echo "Assets size is within safe limits (${TOTAL_SIZE}MB <= 30MB)."

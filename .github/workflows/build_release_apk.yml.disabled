@@ -1,0 +1,55 @@
+# DISABLED 2026-10-25: this workflow is outside the 30-workflow zero-billing contract.
+# GitHub Actions cannot start ubuntu-latest jobs while billing is blocked
+# (run 40148304805, job 121034297378: payments failed or spending limit reached).
+# A billing failure is not a code failure and must not be required for merge.
+# Canonical manual gates that remain: quality_gate_ci.yml, build.yml, build_apk.yml, build_aab.yml.
+# Re-enable only by restoring a classified workflow that can actually run. Do not mark it green.
+
+name: Manual Release APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout staging source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up stable Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze Dart sources
+        run: flutter analyze lib/
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deutsch-bilarabi-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 7

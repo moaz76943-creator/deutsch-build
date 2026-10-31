@@ -1,0 +1,705 @@
+{
+  "version": "1.0.0",
+  "packs": {
+    "ar": {
+      "size_bytes": 431608,
+      "sha256": "e07a9bd8da2ff1afcfefc80d2299322590f79d5adf388c625ae27f3d75cf7e66",
+      "total_concepts": 1206,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "de": {
+      "size_bytes": 2137579,
+      "sha256": "d1a83f20c1568348bc8987d4fa2413f19489546c602c36a187b930a5662c707e",
+      "total_concepts": 781,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "en": {
+      "size_bytes": 167601,
+      "sha256": "ace323934474e46a1cd8902fa5aced263e4ca627de55e7262be4e9018d85e683",
+      "total_concepts": 1206,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "es": {
+      "size_bytes": 167588,
+      "sha256": "daa2011185064184ba58dc525ed406bd140162fd2cf725a88d6cb34840d4fde3",
+      "total_concepts": 1206,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "fr": {
+      "size_bytes": 167554,
+      "sha256": "fcb410f05784d649fd160166501885e50c6d936defd0f8e86adb5594cd5aab18",
+      "total_concepts": 1206,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "it": {
+      "size_bytes": 81233,
+      "sha256": "ffc6de4e1c62abd4a4f31171b76dea6a8ce67239d8781ef28902a12f12202681",
+      "total_concepts": 1122,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "pt": {
+      "size_bytes": 81240,
+      "sha256": "9658320e0f56953841a1ea97dcf758f4e0828f221228188ba866da19e9696324",
+      "total_concepts": 1122,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "tr": {
+      "size_bytes": 81340,
+      "sha256": "84ce28e7728c5302488173a9a0148e2dbe36f2571b08d7e0f7750a6edf7fd603",
+      "total_concepts": 1122,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ru": {
+      "size_bytes": 81291,
+      "sha256": "bbcc56b7ff1fb1d5924b939fe8aa3ffc5776a4706081e3de88f790e7de0855fb",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "nl": {
+      "size_bytes": 81289,
+      "sha256": "9c67629fec4fe2196aceea86f048734c8e81990864a951f1885bea01f5ed637e",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "pl": {
+      "size_bytes": 74269,
+      "sha256": "6c56f82eba47044198efce1c65bbe5b219c50a375632692caf27b06e13a9db29",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "uk": {
+      "size_bytes": 74271,
+      "sha256": "942dd36f455a3bfe53217ad08ae0840348fdeb6252cda1f3295e0376be9d5eb5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ro": {
+      "size_bytes": 74269,
+      "sha256": "2520bb907ba2a5420059617df901589305a8d6a3b8e2f11c70ea475defb38994",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "el": {
+      "size_bytes": 74264,
+      "sha256": "827f53be6342ebb07f00674a95b67805fd681f3e5365ee94a3d266ebc04cef54",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "cs": {
+      "size_bytes": 74271,
+      "sha256": "e46be34c8d1d44a50efc87e990db4e47b15a58de1c4b8e31b1bca074656c1023",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sv": {
+      "size_bytes": 74271,
+      "sha256": "24d77dd0d6111da17876b96b165103c0ea66f61a5c4ea6b61945c47a4b20ae66",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "hu": {
+      "size_bytes": 74270,
+      "sha256": "c763b2e2956b5eb5413d2673a8f0894548ec2e1a2f3b072f9173ceb31cbfac67",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "bg": {
+      "size_bytes": 74271,
+      "sha256": "01daea181942e9ef6faed52ae70aa2b10fca8ebc8d1e8ffe47d2c84c58f403e6",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "da": {
+      "size_bytes": 74265,
+      "sha256": "d8ecce958ac10b7ecda357487c7a7e7e9966bc76cc50149c5ac53690458ee6c9",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "fi": {
+      "size_bytes": 74271,
+      "sha256": "8eafaa226a70e60d8b47a866b3ccac89d12eaf2ee533b9341e76e26ebccd0e87",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sk": {
+      "size_bytes": 74271,
+      "sha256": "346263a01565465ce217d1e2f165286eba89536057bda26719241a556fe8afe9",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "no": {
+      "size_bytes": 74271,
+      "sha256": "f83cad5b79f08ba1d26112317a08ede1bfa58e830857363cb95f67364608386d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "hr": {
+      "size_bytes": 74271,
+      "sha256": "cc59256c83d101acedd24b56ed2c2ba23a0e7bf913b4fa163610f122425acfbd",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "lt": {
+      "size_bytes": 74271,
+      "sha256": "e2ecfb792b8ab8c5c1afbb4f0040aa5b02207993bf338e9dd892383de64c934a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sl": {
+      "size_bytes": 74269,
+      "sha256": "49e9ebfddc714a428d526af7ca5b99d979e1f67c84e51cb9d5321c3691f0971b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "lv": {
+      "size_bytes": 74271,
+      "sha256": "5bc974e05ec0dba7a147e909934ef4b587b30726de4962c80c2f1bec36edc797",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "et": {
+      "size_bytes": 74270,
+      "sha256": "28f4981cbbe9d9aa414ca7880f1fbfb6040e54d79a23dc7671fa6f340f874c12",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ga": {
+      "size_bytes": 74266,
+      "sha256": "77ca9d4f9165bd0d8beb628f76d5c4f6a4c5f97f8a87521e00007a8d70e6ceac",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "mt": {
+      "size_bytes": 74271,
+      "sha256": "980d0bd3dfb04483363deea8ee532aae5f7d76c4f20e5cc2fa1edd2934529f26",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "is": {
+      "size_bytes": 74270,
+      "sha256": "6df83474f939fddb0c9198a5e3d91e55c2bb927058bdec68c2b4257cd32cc52e",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sq": {
+      "size_bytes": 74271,
+      "sha256": "65e0464ff081bddf76c2e88fb0acea1f685061191bcd3d292bcbed717cdb5b6c",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "bs": {
+      "size_bytes": 74271,
+      "sha256": "5bced3e2ebba648f734fffe7eaa255cee9c7a2140b070e2868f48640d6867b47",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "mk": {
+      "size_bytes": 74271,
+      "sha256": "561400f0226b74cf843f4e506d532e4754da0eff0dbffad445ff6f5ae89d8a42",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sr": {
+      "size_bytes": 74271,
+      "sha256": "c603f6963a2a0d67bfcea12a6e4df21738c83e723f6846473fb2663c2294e353",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "cy": {
+      "size_bytes": 74271,
+      "sha256": "e4ed1a5a2fb172cd35af5565209a62d1c8bd6377cbadc49fef17978498362d90",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "lb": {
+      "size_bytes": 74271,
+      "sha256": "97f5732cf8a1f57492209380c09f5dba9fe4381e15abdaa38ad30a6423e985f5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ca": {
+      "size_bytes": 74265,
+      "sha256": "4e9dcdd962d343a28a79ac8b40ce94be1a6171738b83da04190ca085c27da2ce",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "eu": {
+      "size_bytes": 74269,
+      "sha256": "6b20201ba722e9b56abd7e09fb1b95e35a35e3b9247c43a5d610a7263e9ff104",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "gl": {
+      "size_bytes": 74269,
+      "sha256": "05a4f0a72834bdf2bec254f6a39b62c2e24ece5195356e2c11d68f46ec9c8da9",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "fa": {
+      "size_bytes": 74262,
+      "sha256": "f925125e9bb8173f5214fdfe6ff025f32241964bda5f40963d5cf99bb7923f33",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ur": {
+      "size_bytes": 74269,
+      "sha256": "afbbeb1e8c86722533a04e42dbf87510550f2290016b5fe2267de266a194588d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "he": {
+      "size_bytes": 74261,
+      "sha256": "5f8daab915833bf808d9f079f32591f00d2e038170f3685cf0cce00ca8a7f3d5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ku": {
+      "size_bytes": 74267,
+      "sha256": "df0ca0c15bc2c942cff069f9eb08e57fa566dc58adbd34674aba8db216a711d4",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ps": {
+      "size_bytes": 74269,
+      "sha256": "e9e1315a42ffaa95a727372ef1266ff887c12fd46db74ecd6edb69436ba06259",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sd": {
+      "size_bytes": 74269,
+      "sha256": "5b28fd18b39e53598c394e3dd6d2bc9d1e682b1fc6206ed76675e57bd77d0668",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sw": {
+      "size_bytes": 74271,
+      "sha256": "8dbac907ae2d022dfff45d99985066e768565bfaf7fa3ee439c31ad80a6309f7",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "am": {
+      "size_bytes": 74270,
+      "sha256": "5666e99731c2c5793146c04f66fe4071a09a5d8411d0ccaf0063fabc21c17385",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ha": {
+      "size_bytes": 74260,
+      "sha256": "3653c8000d921a29302bf62381cee7d0dbb8c2c1cf92e43be48f943550eb5179",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "yo": {
+      "size_bytes": 74271,
+      "sha256": "f500d9905caa49c8eb1e8812abbbb83dfe76a4d39fb7feb750fd333f777ee09e",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ig": {
+      "size_bytes": 74271,
+      "sha256": "8b0586eddefad59d0ee29a4172d2e63beae90a06a37aadd5088f5efa964f8c15",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "om": {
+      "size_bytes": 74271,
+      "sha256": "ea134fd673e3400e26ddff450be93109203be37cddd4eabacf260bfe6d4b1bdd",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "so": {
+      "size_bytes": 74269,
+      "sha256": "c3f2856b89785663b98c731735cd6a8a6d0230edbe973b110213f637226fac35",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "zu": {
+      "size_bytes": 74269,
+      "sha256": "036c50fc2566e0b06efef860fadcd93d0a3750c2cf79fc7c0cff16a2a784286d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "xh": {
+      "size_bytes": 74271,
+      "sha256": "3b82aea1ea30ca72f49ff57a6d777bc525ceac3e6708ba900abd83fab844624b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "af": {
+      "size_bytes": 74270,
+      "sha256": "c69efbfee08016c38645e833307b5b7e09a4a72a611157f10c704d7089ba4185",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "rw": {
+      "size_bytes": 74271,
+      "sha256": "da7e4915bddfff5adc1c3d2a9edb6005d60d3cc7422c56bb4b2bc8eacf61879b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "mg": {
+      "size_bytes": 74271,
+      "sha256": "716c2928c5f2e99917b61e625f9af7f310ba624348319ea994ee8af972a6df8a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ny": {
+      "size_bytes": 74271,
+      "sha256": "2943d273f0135906d0384d1b0a6eef2e5e957a3c7e66fe43bbd0616320d30e1d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sn": {
+      "size_bytes": 74271,
+      "sha256": "bbcad441b24f558888d34e3cd3458c390fd9fd2500dddaa00381397b7d9c0507",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "st": {
+      "size_bytes": 74271,
+      "sha256": "1002c63bdadf220f1fcb55e1fa86b1bdb3f3550d8b779b0c017f21a00f5ccae9",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ti": {
+      "size_bytes": 74271,
+      "sha256": "9e26511043efd2d135b524dc6d9ff16eb1af9bbc58fee923679e787cdd696206",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "hi": {
+      "size_bytes": 74269,
+      "sha256": "8c2814384f03a5bc8454a37a355dea4524e30274321ff3a1b68f939613a8fbd8",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "bn": {
+      "size_bytes": 74271,
+      "sha256": "058fc92d7bba226edb3f07038ba6476569b4a832ba4368d987fc9905558cd3b3",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "pa": {
+      "size_bytes": 74266,
+      "sha256": "be54878bfacb5e56b56daf3c7475e29db82026e8589576cb5a67c9aad930bcb1",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "te": {
+      "size_bytes": 74264,
+      "sha256": "ae8644f3bccff064105966d627af772e006cd387719abb8180708f5d121a3a4c",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "mr": {
+      "size_bytes": 74271,
+      "sha256": "0f09bd89a37495727d672b020656c646ae756a0d3694f4366f15f92749825104",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ta": {
+      "size_bytes": 74265,
+      "sha256": "d8d55f52f49dc9374c617d2fbb0b44dd85b39ca4e848299a6d8cc4759e0f86b9",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "gu": {
+      "size_bytes": 74270,
+      "sha256": "dca8dc6045f9d8a02b72e8a5038e072b08182f7b31b040a7efb976bd1cf0e793",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "kn": {
+      "size_bytes": 74271,
+      "sha256": "12de4049a324eaecb2d2bf467faac8c1c54228328a15b3b1f7a8239dd66aab24",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ml": {
+      "size_bytes": 74269,
+      "sha256": "64abd0d1cc31670e94a5c533b07899737275ee711070b9426dcc0ecd2749e1b1",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "or": {
+      "size_bytes": 74271,
+      "sha256": "ccec32969e2251ebbda961015c395a1efc54929d12450fe01e77e76e55ec1e5c",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ne": {
+      "size_bytes": 74269,
+      "sha256": "7e6fb5e981ee659f16b251a5eef5e56333655f75fdc84387139966ab1af1bdfe",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "si": {
+      "size_bytes": 74271,
+      "sha256": "5b8a2fe1bec83d2a5549b4eff04c926113caf6cad2e52780bd5074da77c289e5",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "zh": {
+      "size_bytes": 74271,
+      "sha256": "0c551709930d17714eb900db6ab9860ffb6695503e4ccbbc2dd05076b32850bc",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ja": {
+      "size_bytes": 74266,
+      "sha256": "405cbadfd437e86ca8863bad325e08ff4868adeffb8b53bc0961ea6f1f17ab07",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ko": {
+      "size_bytes": 74271,
+      "sha256": "675898ec0e3e8b33518dfcd89361ca67beec0edc99cc50db7ea90d9b54c8f37c",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "vi": {
+      "size_bytes": 74271,
+      "sha256": "3865cb5975d1e751e7266d445cc407fe996b1851b077ea29645187b9ec41ec7e",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "id": {
+      "size_bytes": 74271,
+      "sha256": "e33d07cd7e2b767e08c76e790dd8db49cd43121dae7f61cc37a6bfb4e0e14b0b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ms": {
+      "size_bytes": 74271,
+      "sha256": "e3b829422a8962d27f4462b1580d905af281a282a18001a912d6f3541725d284",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "th": {
+      "size_bytes": 74271,
+      "sha256": "fc9ee9b45e8783dd9db8065a818d8b0bcf1eb82e842728adfd3a42f55d6356b2",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "my": {
+      "size_bytes": 74271,
+      "sha256": "2656deeacb7dfead5acbef5a37d295c7edc69fee7cef46fb002d6d745231021d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "km": {
+      "size_bytes": 74271,
+      "sha256": "435448cdbfd5eeb403fa0fedc6a5bf240977bd77c8dac57dfc7226606d0823b2",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "lo": {
+      "size_bytes": 74271,
+      "sha256": "4b0b91788395e7bacd40f6240ea4e9b1ae1bbaeb3d5d572be4f1bb457a3aff9b",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "tl": {
+      "size_bytes": 74269,
+      "sha256": "a4e07119f68a750c954a91805866ebd5c703b37fa9e75a28d90778e5d5954529",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ceb": {
+      "size_bytes": 74557,
+      "sha256": "fa228b16b7bfe6c73cd52f537806bcdcb49e45845db14e19b36f1d8902b15beb",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "jv": {
+      "size_bytes": 74271,
+      "sha256": "292512ef4bfeb730bc67c9375e3c74019a64fb4f9b99d942b6312789423cef71",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "su": {
+      "size_bytes": 74270,
+      "sha256": "ab6dfc2fd0d73a778b2e3b27a51429c0f8071d5d1441df9556711d9fa7a4086d",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "mn": {
+      "size_bytes": 74271,
+      "sha256": "c2dcdf9d2c7d1f06e5e555041e919e9e28c33c1d2ba6480ac31ba83e81719036",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "uz": {
+      "size_bytes": 74271,
+      "sha256": "6645af3336cad2fd4b831c4dc422122bd80c9fed8b063ac18fde4f8be8009a08",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "kk": {
+      "size_bytes": 74271,
+      "sha256": "907d04673a20e53e74cb006071d650c064a84a19fb89a5d9282df7ceb726a5bb",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "az": {
+      "size_bytes": 74271,
+      "sha256": "5b9ec19f81cd650cd7b19d12c0cee9f91fbd82fe9753e4dfa9191aebdf107076",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "hy": {
+      "size_bytes": 74271,
+      "sha256": "22f192445ba43390993db08c6b75327cb208991b14cf2f0723d70fa01996651c",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ka": {
+      "size_bytes": 74265,
+      "sha256": "6ffa176024ebb82f54da23b32e3838b76eb7de3fec2b59308d00c121248b5127",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "tg": {
+      "size_bytes": 74271,
+      "sha256": "08eebab94659488ce16a6854498996cb63f67497e216d11345a5a3dac759ddac",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "tk": {
+      "size_bytes": 74271,
+      "sha256": "92a69075c6deb520d778ffa7e30f070b48b41d1711aa47dea893be1b18d0f40a",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "ky": {
+      "size_bytes": 74271,
+      "sha256": "c8318b84c6c0ff750b027bc87e08db364e14e454c0033fdf310fd5e9463bcc38",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "tt": {
+      "size_bytes": 74271,
+      "sha256": "285a2d0db645321ff9044637d1b21a4f1c6d3875dc4111b8ed2dd670ed35f7fb",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "eo": {
+      "size_bytes": 74270,
+      "sha256": "eab32535f968cc3a63350d5e200c09f1479146eca383781c3fc1f1322447fda3",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "la": {
+      "size_bytes": 74266,
+      "sha256": "76c61a0eec67b47c797e55d51903813bfe5fcb0a4955f91dc4d99d4d54c737c2",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    },
+    "sm": {
+      "size_bytes": 74271,
+      "sha256": "9e2bedd211e379c1ffaf3772c74d963a1e95e7abcb524f7753c19974bae90d91",
+      "total_concepts": 1102,
+      "db_version": "1.0.0",
+      "license": "CC BY-SA 4.0"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "grammar": [],
+  "lexicon": [],
+  "localization": {
+    "pack.title": {
+      "bidiOverride": true,
+      "direction": "rtl",
+      "text": "Arabic"
+    }
+  },
+  "pack": {
+    "contractVersion": "1.0.0",
+    "displayName": "Arabic",
+    "id": "ar-core",
+    "languageCode": "ar",
+    "textDirection": "rtl",
+    "version": "1.0.0"
+  },
+  "requiredLocalizationKeys": [
+    "pack.title"
+  ],
+  "schemaVersion": 1
+}

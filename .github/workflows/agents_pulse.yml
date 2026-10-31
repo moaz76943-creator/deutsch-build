@@ -1,0 +1,69 @@
+name: Agents Pulse
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - staging/v2-full-platform
+    paths:
+      - 'lib/core/agents/**'
+      - 'lib/core/orchestration/**'
+  pull_request:
+    branches:
+      - main
+      - staging/v2-full-platform
+    paths:
+      - 'lib/core/agents/**'
+      - 'lib/core/orchestration/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agents-pulse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pulse:
+    if: >-
+      ${{ (github.event_name == 'workflow_dispatch' ||
+           vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true') &&
+          vars.AGENTS_PULSE_ENABLED == 'true' &&
+          vars.AGENTS_PULSE_ZERO_COST_APPROVED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Restore compiled headless pulse
+        id: pulse-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: .agent-pulse-cache/run_agents
+          key: agents-pulse-v1-dart-3.13.0-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tool/run_agents.dart', 'lib/core/orchestration/**/*.dart', 'lib/core/agents/**/*.dart') }}
+
+      - name: Setup Dart
+        if: steps.pulse-cache.outputs.cache-hit != 'true'
+        uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+        with:
+          sdk: '3.13.0'
+
+      - name: Compile pure Dart runner
+        if: steps.pulse-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .agent-pulse-cache
+          dart compile exe tool/run_agents.dart -o .agent-pulse-cache/run_agents
+
+      - name: Run headless agent pulse
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x .agent-pulse-cache/run_agents
+          ./.agent-pulse-cache/run_agents

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">تعلّم اللغات بذكاء</string>
+    <string name="process_text_label">ادرس النص المحدد</string>
+</resources>

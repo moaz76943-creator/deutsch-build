@@ -1,0 +1,71 @@
+{
+  "language": "zh",
+  "name": "الصينية",
+  "version": "1.0.0",
+  "items": [
+    {
+      "word": "早上好 (Zǎoshang hǎo)",
+      "article": "",
+      "meaning": "صباح الخير",
+      "example": "大家早上好！",
+      "exampleMeaning": "صباح الخير للجميع!",
+      "category": "Greeting"
+    },
+    {
+      "word": "谢谢 (Xièxie)",
+      "article": "",
+      "meaning": "شكراً جزيلاً",
+      "example": "非常感谢你的帮助。",
+      "exampleMeaning": "شكراً جزيلاً على مساعدتك.",
+      "category": "Common"
+    },
+    {
+      "word": "水 (Shuǐ)",
+      "article": "",
+      "meaning": "ماء",
+      "example": "多喝温水有益健康。",
+      "exampleMeaning": "شرب الماء الدافئ مفيد للصحة.",
+      "category": "Drink"
+    },
+    {
+      "word": "书 (Shū)",
+      "article": "",
+      "meaning": "كتاب",
+      "example": "开卷有益，读书明智。",
+      "exampleMeaning": "القراءة تفيد العقل وتوسع المدارك.",
+      "category": "Education"
+    },
+    {
+      "word": "朋友 (Péngyou)",
+      "article": "",
+      "meaning": "صديق ورفيق",
+      "example": "有朋自远方来，不亦乐乎。",
+      "exampleMeaning": "لقاء الأصدقاء القادمين يبعث السرور.",
+      "category": "People"
+    },
+    {
+      "word": "太阳 (Tàiyáng)",
+      "article": "",
+      "meaning": "الشمس",
+      "example": "太阳从东方升起。",
+      "exampleMeaning": "الشمس تشرق من جهة الشرق.",
+      "category": "Nature"
+    },
+    {
+      "word": "成功 (Chénggōng)",
+      "article": "",
+      "meaning": "النجاح والظفر",
+      "example": "坚持不懈终将获得成功。",
+      "exampleMeaning": "المثابرة تقود في النهاية إلى النجاح.",
+      "category": "Work"
+    },
+    {
+      "word": "智慧 (Zhìhuì)",
+      "article": "",
+      "meaning": "الحكمة والذكاء",
+      "example": "智慧引领美好未来。",
+      "exampleMeaning": "الحكمة تقود إلى مستقبل واعد.",
+      "category": "Mindset"
+    }
+  ]
+}

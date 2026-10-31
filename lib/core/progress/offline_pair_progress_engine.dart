@@ -1,0 +1,289 @@
+import '../../models/learner.dart';
+import '../models/language_catalog_models.dart';
+import '../packs/pack_models.dart';
+import '../srs_facets.dart';
+import '../srs_scheduler.dart';
+import '../storage/local_db/pair_progress_database.dart';
+import 'pair_progress_models.dart';
+
+final class OfflinePairProgressEngine {
+  const OfflinePairProgressEngine(this._store);
+
+  final PairProgressDatabase _store;
+
+  Future<void> recordCard({
+    required ResolvedLanguagePair pair,
+    required String cardId,
+    required bool learned,
+    required int level,
+    required int achievementDelta,
+    required bool correct,
+    required DateTime reviewedAt,
+  }) async {
+    final context = _validatePair(pair);
+    final normalizedCardId = _cardId(cardId);
+    _validateProgress(level, achievementDelta);
+
+    await _store.recordCard(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      cardId: normalizedCardId,
+      learned: learned,
+      level: level,
+      achievementDelta: achievementDelta,
+      correct: correct,
+      reviewedAt: reviewedAt,
+    );
+  }
+
+  Future<void> migrateLegacySnapshot({
+    required ResolvedLanguagePair pair,
+    required Iterable<ReviewCard> reviewCards,
+    required Set<String> learnedConceptIds,
+    required int achievementPoints,
+    int level = 0,
+  }) async {
+    final context = _validatePair(pair);
+    _validateProgress(level, achievementPoints);
+    final cards = reviewCards.toList(growable: false);
+    if (cards.any((card) => !card.facetKey.isValid)) {
+      throw ArgumentError('Invalid legacy review card.');
+    }
+    await _store.migrateLegacySnapshot(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      reviewCards: cards,
+      learnedConceptIds: learnedConceptIds,
+      achievementPoints: achievementPoints,
+      level: level,
+    );
+  }
+
+  Future<void> importReviewCard({
+    required ResolvedLanguagePair pair,
+    required ReviewCard reviewCard,
+    required bool learned,
+    int level = 0,
+    int achievementDelta = 0,
+  }) async {
+    final context = _validatePair(pair);
+    _validateProgress(level, achievementDelta);
+    if (!reviewCard.facetKey.isValid) {
+      throw ArgumentError('Invalid review card.');
+    }
+    await _store.importReviewCard(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      reviewCard: reviewCard,
+      learned: learned,
+      level: level,
+      achievementDelta: achievementDelta,
+    );
+  }
+
+  Future<void> persistScheduledReview({
+    required ResolvedLanguagePair pair,
+    required ReviewCard reviewCard,
+    required bool learned,
+    required int level,
+    required int achievementDelta,
+    required bool correct,
+    required DateTime reviewedAt,
+  }) async {
+    final context = _validatePair(pair);
+    _validateProgress(level, achievementDelta);
+    if (!reviewCard.facetKey.isValid) {
+      throw ArgumentError('Invalid review card.');
+    }
+    await _store.recordScheduledReview(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      reviewCard: reviewCard,
+      learned: learned,
+      level: level,
+      achievementDelta: achievementDelta,
+      correct: correct,
+      reviewedAt: reviewedAt,
+    );
+  }
+
+  Future<ReviewCard> scheduleReview({
+    required ResolvedLanguagePair pair,
+    required String conceptId,
+    ReviewFacetType facetType = ReviewFacetType.meaningRecall,
+    String? variantKey,
+    required bool correct,
+    required bool hinted,
+    required int level,
+    required int achievementDelta,
+    required DateTime reviewedAt,
+    SrsScheduler scheduler = unifiedSrsScheduler,
+  }) async {
+    final context = _validatePair(pair);
+    _validateProgress(level, achievementDelta);
+    final key = ReviewFacetKey(
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
+    );
+    if (!key.isValid) {
+      throw ArgumentError('Invalid review facet key.');
+    }
+
+    final current = await _store.loadReviewCard(
+          sourceLanguageId: context.source,
+          targetLanguageId: context.target,
+          cardId: key.storageKey,
+        ) ??
+        ReviewCard(
+          itemId: key.conceptId.trim(),
+          facetType: key.facetType,
+          variantKey: key.normalizedVariantKey,
+          dueAt: reviewedAt,
+        );
+    final updated = await scheduler.schedule(
+      current,
+      correct: correct,
+      hinted: hinted,
+      now: reviewedAt,
+    );
+
+    await _store.recordScheduledReview(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      reviewCard: updated,
+      learned: correct,
+      level: level,
+      achievementDelta: achievementDelta,
+      correct: correct,
+      reviewedAt: reviewedAt,
+    );
+    return updated;
+  }
+
+  Future<ReviewCard?> loadReviewCard(
+    ResolvedLanguagePair pair, {
+    required String conceptId,
+    ReviewFacetType facetType = ReviewFacetType.meaningRecall,
+    String? variantKey,
+  }) {
+    final context = _validatePair(pair);
+    final key = ReviewFacetKey(
+      conceptId: conceptId,
+      facetType: facetType,
+      variantKey: variantKey,
+    );
+    if (!key.isValid) {
+      throw ArgumentError('Invalid review facet key.');
+    }
+    return _store.loadReviewCard(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      cardId: key.storageKey,
+    );
+  }
+
+  Future<void> clearAll() => _store.clearAll();
+
+  Future<void> clearPair(ResolvedLanguagePair pair) {
+    final context = _validatePair(pair);
+    return _store.clearPair(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+    );
+  }
+
+  Future<PairProgressSnapshot> loadPair(
+    ResolvedLanguagePair pair,
+  ) {
+    final context = _validatePair(pair);
+    return _store.loadPair(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+    );
+  }
+
+  Future<PairProgressCard?> loadCard(
+    ResolvedLanguagePair pair,
+    String cardId,
+  ) {
+    final context = _validatePair(pair);
+    final normalizedCardId = _cardId(cardId);
+    return _store.loadCard(
+      sourceLanguageId: context.source,
+      targetLanguageId: context.target,
+      cardId: normalizedCardId,
+    );
+  }
+
+  _PairContext _validatePair(ResolvedLanguagePair pair) {
+    final source = _language(pair.source.id, 'pair.source.id');
+    final target = _language(pair.target.id, 'pair.target.id');
+    if (source == target) {
+      throw ArgumentError('Pair source and target must differ.');
+    }
+
+    final request = PackPairRequest(
+      sourceLanguageTag: source,
+      targetLanguageTag: target,
+    );
+    if (pair.pairKey != request.pairKey ||
+        pair.route.request.pairKey != request.pairKey) {
+      throw StateError('resolved_pair_context_mismatch');
+    }
+
+    return _PairContext(source: source, target: target);
+  }
+
+  static String _cardId(String raw) {
+    final normalized = raw.trim();
+    if (normalized.isEmpty || normalized.length > 1024) {
+      throw ArgumentError.value(
+        raw,
+        'cardId',
+        'must be 1..1024 characters',
+      );
+    }
+    return normalized;
+  }
+
+  static void _validateProgress(
+    int level,
+    int achievementDelta,
+  ) {
+    if (level < 0 || level > 100) {
+      throw ArgumentError.value(level, 'level', 'must be 0..100');
+    }
+    if (achievementDelta < 0 || achievementDelta > 100000) {
+      throw ArgumentError.value(
+        achievementDelta,
+        'achievementDelta',
+        'must be 0..100000',
+      );
+    }
+  }
+
+  static String _language(String raw, String field) {
+    final normalized =
+        raw.trim().replaceAll('_', '-').toLowerCase();
+    if (!RegExp(r'^[a-z]{2,8}(?:-[a-z0-9]{1,8})*$')
+        .hasMatch(normalized)) {
+      throw ArgumentError.value(
+        raw,
+        field,
+        'must be a valid language tag',
+      );
+    }
+    return normalized;
+  }
+}
+
+final class _PairContext {
+  const _PairContext({
+    required this.source,
+    required this.target,
+  });
+
+  final String source;
+  final String target;
+}

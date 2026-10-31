@@ -1,0 +1,50 @@
+name: Multilingual Pack Builder Engine
+
+on:
+  # Manual-only: do not schedule this legacy OpenAI API-backed generator.
+  # It is NOT part of the zero-additional-billing public factory.
+  workflow_dispatch:
+
+jobs:
+  build-and-expand:
+    # Zero-additional-billing invariant: this legacy script calls a paid API.
+    # Keep historical code available for audit, but do not execute it.
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Run Expansion Engine Safely
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python3 scripts/build_multilingual_packs.py
+
+      - name: Validate System Contracts
+        run: |
+          python3 scripts/verify_contracts.py
+
+      - name: Commit and Push Updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add assets/content/packs/
+          if git diff --staged --quiet; then
+            echo "لا توجد تعديلات جديدة للرفع."
+            exit 0
+          fi
+
+          git commit -m "feat(content): automated multilingual pack expansion"
+          git pull --rebase origin staging/v2-full-platform
+          git push origin staging/v2-full-platform

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "platformScope": "universal_multilingual_offline",
+  "catalogCapacity": 100,
+  "releaseStatus": "approved",
+  "distributionGate": "pass",
+  "lastUpdated": "2026-10-12",
+  "licenses": [
+    {
+      "id": "CC-BY-SA-4.0",
+      "name": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "shortName": "CC BY-SA 4.0",
+      "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "GFDL-1.3",
+      "name": "GNU Free Documentation License, Version 1.3",
+      "shortName": "GFDL",
+      "url": "https://www.gnu.org/licenses/fdl-1.3.html"
+    }
+  ],
+  "datasets": [
+    {
+      "id": "de-core-vocabulary",
+      "title": "German Core Vocabulary (1000 entries A1-B2)",
+      "languagePair": {
+        "source": "de",
+        "target": "ar"
+      },
+      "sources": [
+        {
+          "name": "Wiktionary (wiktionary.org)",
+          "creator": "Wiktionary contributors",
+          "url": "https://en.wiktionary.org/"
+        },
+        {
+          "name": "Kaikki.org (Wiktextract extract)",
+          "creator": "Tatu Ylönen and Wiktextract contributors",
+          "url": "https://kaikki.org/"
+        }
+      ],
+      "licenseIds": [
+        "CC-BY-SA-4.0",
+        "GFDL-1.3"
+      ],
+      "shareAlike": true,
+      "modified": true,
+      "status": "approved",
+      "entryCount": 1000
+    }
+  ],
+  "attribution": {
+    "en": "Lexical data adapted from Wiktionary contributors via Kaikki.org under CC BY-SA 4.0 / GFDL.",
+    "ar": "بيانات المعاجم مقتبسة من مساهمي ويكاموس عبر Kaikki.org بموجب رخصة CC BY-SA 4.0 و GFDL."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "isoCode": "et",
+  "autonym": "Eesti",
+  "englishName": "Estonian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 14,
+  "caseNames": ["Nimetav", "Omastav", "Osastav", "Sisseütlev", "Seesütlev", "Seestütlev", "Alaleütlev", "Alalütlev", "Alaltütlev", "Saav", "Rajav", "Olev", "Ilmaütlev", "Kaasaütlev"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "consonantGradation": true,
+    "threeDegreesOfLength": true
+  }
+}

@@ -1,0 +1,80 @@
+name: Sync Google Play store metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_play:
+        description: Upload validated listings to Google Play after generation
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: store-metadata-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-store-metadata:
+    name: Validate and generate store metadata
+    runs-on: ubuntu-latest
+    env:
+      CSV_PATH: Google_Play_Console_86_Localizations_Only-1.csv
+      EXPECTED_LOCALES: "87"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Require canonical localization CSV
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$CSV_PATH" ]]; then
+            echo "::error file=$CSV_PATH::Canonical Google Play localization CSV is missing."
+            exit 1
+          fi
+
+      - name: Run focused metadata contract tests
+        run: python3 -m unittest tests/test_sync_store_metadata.py
+
+      - name: Generate Fastlane Android metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/sync_store_metadata.py \
+            --csv "$CSV_PATH" \
+            --output fastlane/metadata/android \
+            --expected-locales "$EXPECTED_LOCALES" \
+            --api-bundle "$RUNNER_TEMP/google_play_listings.json"
+
+          actual_locales="$(
+            find fastlane/metadata/android \
+              -mindepth 1 -maxdepth 1 -type d \
+              -print | wc -l | tr -d '[:space:]'
+          )"
+          if [[ "$actual_locales" != "$EXPECTED_LOCALES" ]]; then
+            echo "::error::Expected $EXPECTED_LOCALES generated locale directories, found $actual_locales."
+            exit 1
+          fi
+
+      - name: Install Google auth dependency for explicit upload
+        if: ${{ inputs.upload_to_play }}
+        run: python3 -m pip install --disable-pip-version-check "google-auth[requests]==2.59.1"
+
+      - name: Upload validated listings to Google Play
+        if: ${{ inputs.upload_to_play }}
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_PLAY_PACKAGE_NAME: ${{ vars.GOOGLE_PLAY_PACKAGE_NAME }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/sync_store_metadata.py \
+            --csv "$CSV_PATH" \
+            --output fastlane/metadata/android \
+            --expected-locales "$EXPECTED_LOCALES" \
+            --api-bundle "$RUNNER_TEMP/google_play_listings.json" \
+            --upload-to-play

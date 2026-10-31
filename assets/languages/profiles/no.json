@@ -1,0 +1,20 @@
+{
+  "isoCode": "no",
+  "autonym": "Norsk",
+  "englishName": "Norwegian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f", "n"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasDoubleDefiniteness": true,
+    "verbSecondOrder": true
+  }
+}

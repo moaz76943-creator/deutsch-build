@@ -1,0 +1,87 @@
+{
+  "architecture_version": "3.0.0-master",
+  "supported_languages_count": 100,
+  "categories": [
+    "daily_life",
+    "travel",
+    "business",
+    "emergency",
+    "academic",
+    "emotions",
+    "technology",
+    "nature"
+  ],
+  "languages": [
+    {
+      "code": "de",
+      "native": "Deutsch",
+      "ar": "الألمانية",
+      "family": "Germanic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "en",
+      "native": "English",
+      "ar": "الإنجليزية",
+      "family": "Germanic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "es",
+      "native": "Español",
+      "ar": "الإسبانية",
+      "family": "Romance",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "fr",
+      "native": "Français",
+      "ar": "الفرنسية",
+      "family": "Romance",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "it",
+      "native": "Italiano",
+      "ar": "الإيطالية",
+      "family": "Romance",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "tr",
+      "native": "Türkçe",
+      "ar": "التركية",
+      "family": "Turkic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ru",
+      "native": "Русский",
+      "ar": "الروسية",
+      "family": "Slavic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ar",
+      "native": "العربية",
+      "ar": "العربية",
+      "family": "Semitic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "ja",
+      "native": "日本語",
+      "ar": "اليابانية",
+      "family": "Japonic",
+      "cefr": "A1-C2"
+    },
+    {
+      "code": "zh",
+      "native": "中文",
+      "ar": "الصينية",
+      "family": "Sinitic",
+      "cefr": "A1-C2"
+    }
+  ],
+  "status": "fully_integrated_structure"
+}

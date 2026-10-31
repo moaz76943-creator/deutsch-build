@@ -1,0 +1,23 @@
+{
+  "isoCode": "it",
+  "autonym": "Italiano",
+  "englishName": "Italian",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Fusional",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasArticulatedPrepositions": true,
+    "hasConsonantGemination": true,
+    "auxiliaries": ["essere", "avere"],
+    "hasSubjunctive": true
+  }
+}

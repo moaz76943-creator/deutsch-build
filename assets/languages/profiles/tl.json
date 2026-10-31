@@ -1,0 +1,21 @@
+{
+  "isoCode": "tl",
+  "autonym": "Tagalog",
+  "englishName": "Tagalog",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "VSO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 3,
+  "caseNames": ["Direct (Ang)", "Indirect (Ng)", "Oblique (Sa)"],
+  "genders": ["none"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "austronesianAlignmentFocus": true,
+    "hasInfixes": true,
+    "verbInitialTypology": true
+  }
+}

@@ -1,0 +1,234 @@
+name: Auto Release Tagger
+
+on:
+  pull_request_target:
+    branches: [main, staging/v2-full-platform]
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: none
+  checks: none
+  id-token: none
+
+concurrency:
+  group: auto-release-tagger-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Update changelog and publish release
+    if: >-
+      github.event.pull_request.merged == true &&
+      vars.GITHUB_ACTIONS_RELEASE_AUTOMATION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MERGED_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+
+    steps:
+      - name: Checkout canonical main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Synchronize main and tags
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          : "${MERGED_SHA:?Missing merged commit SHA}"
+
+          git fetch origin main --tags --force
+          git checkout -B main origin/main
+
+          git merge-base --is-ancestor "$MERGED_SHA" HEAD || {
+            echo "::error::Merged commit $MERGED_SHA is not reachable from main."
+            exit 1
+          }
+
+      - name: Prepare changelog entry and release metadata
+        id: release
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          APP_VERSION="$(awk '/^version:[[:space:]]*/ {print $2; exit}' pubspec.yaml)"
+          test -n "$APP_VERSION"
+
+          EXISTING_MARKER="$(grep -F "source:${MERGED_SHA}" CHANGELOG.md | head -n 1 || true)"
+          if [[ -n "$EXISTING_MARKER" ]]; then
+            TAG="$(printf '%s\n' "$EXISTING_MARKER" | sed -E 's/.*auto-release:([^ ]+) source:.*/\1/')"
+            if [[ ! "$TAG" =~ ^release-[0-9]{6}$ ]]; then
+              echo "::error::Existing auto-release marker is malformed."
+              exit 1
+            fi
+
+            RELEASE_SHA="$(git log -S "source:${MERGED_SHA}" --format='%H' -- CHANGELOG.md | head -n 1)"
+            test -n "$RELEASE_SHA"
+            NEEDS_CHANGELOG_COMMIT=false
+          else
+            CURRENT_MAIN="$(git rev-parse HEAD)"
+            if [[ "$CURRENT_MAIN" != "$MERGED_SHA" ]]; then
+              echo "::notice::main advanced beyond $MERGED_SHA; a newer merged-PR event will own the next release."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            MAX_SERIAL=0
+            while IFS= read -r EXISTING_TAG; do
+              SERIAL="${EXISTING_TAG#release-}"
+              VALUE=$((10#$SERIAL))
+              if (( VALUE > MAX_SERIAL )); then
+                MAX_SERIAL=$VALUE
+              fi
+            done < <(git tag -l 'release-[0-9][0-9][0-9][0-9][0-9][0-9]')
+
+            printf -v TAG 'release-%06d' "$((MAX_SERIAL + 1))"
+            RELEASE_SHA=""
+            NEEDS_CHANGELOG_COMMIT=true
+          fi
+
+          PREVIOUS_TAG="$(git tag -l 'release-[0-9][0-9][0-9][0-9][0-9][0-9]' --sort=-version:refname | head -n 1 || true)"
+          if [[ -n "$PREVIOUS_TAG" && "$PREVIOUS_TAG" != "$TAG" ]]; then
+            RANGE="${PREVIOUS_TAG}..${MERGED_SHA}"
+          else
+            RANGE="${MERGED_SHA}^1..${MERGED_SHA}"
+          fi
+
+          CHANGES_FILE="$RUNNER_TEMP/release_changes.md"
+          git log --no-merges --reverse --pretty=format:'- %s (`%h`)' "$RANGE" > "$CHANGES_FILE"
+          printf '\n' >> "$CHANGES_FILE"
+
+          if ! grep -q '^- ' "$CHANGES_FILE"; then
+            echo "::error::No non-merge commits were found for release range $RANGE."
+            exit 1
+          fi
+
+          RELEASE_DATE="$(date -u +%Y-%m-%d)"
+          if [[ "$NEEDS_CHANGELOG_COMMIT" == "true" ]]; then
+            export APP_VERSION TAG RELEASE_DATE CHANGES_FILE MERGED_SHA PR_NUMBER PR_TITLE
+            python3 <<'PY'
+          from pathlib import Path
+          import os
+
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text(encoding="utf-8")
+          tag = os.environ["TAG"]
+          source = os.environ["MERGED_SHA"]
+          marker = f"<!-- auto-release:{tag} source:{source} -->"
+
+          if marker in text:
+              raise SystemExit(0)
+
+          changes = Path(os.environ["CHANGES_FILE"]).read_text(encoding="utf-8").rstrip()
+          block = (
+              f"## Automated Release {tag} — {os.environ['RELEASE_DATE']}\n\n"
+              f"{marker}\n\n"
+              f"- App package version: `{os.environ['APP_VERSION']}`.\n"
+              f"- Source pull request: `#{os.environ['PR_NUMBER']}` — {os.environ['PR_TITLE']}.\n"
+              f"- Source merge: `{source}`.\n\n"
+              "### Changes\n\n"
+              f"{changes}\n\n"
+          )
+
+          insert_at = text.find("\n## ")
+          if insert_at == -1:
+              updated = text.rstrip() + "\n\n" + block
+          else:
+              updated = text[: insert_at + 1] + block + text[insert_at + 1 :]
+
+          changelog.write_text(updated, encoding="utf-8")
+          PY
+          fi
+
+          {
+            echo "tag=$TAG"
+            echo "app_version=$APP_VERSION"
+            echo "needs_changelog_commit=$NEEDS_CHANGELOG_COMMIT"
+            echo "release_sha=$RELEASE_SHA"
+            echo "changes_file=$CHANGES_FILE"
+            echo "skip=false"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit changelog to main
+        id: changelog
+        if: steps.release.outputs.skip != 'true' && steps.release.outputs.needs_changelog_commit == 'true'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          git diff --check
+          git diff --quiet -- CHANGELOG.md && {
+            echo "::error::Expected CHANGELOG.md to change."
+            exit 1
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add CHANGELOG.md
+          git commit -m "[skip ci] chore(release): update CHANGELOG for ${{ steps.release.outputs.tag }}"
+          git push origin HEAD:main
+
+          printf 'release_sha=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish Git tag and GitHub Release
+        if: steps.release.outputs.skip != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+
+          TAG="${{ steps.release.outputs.tag }}"
+          APP_VERSION="${{ steps.release.outputs.app_version }}"
+          RELEASE_SHA="${{ steps.changelog.outputs.release_sha || steps.release.outputs.release_sha }}"
+          CHANGES_FILE="${{ steps.release.outputs.changes_file }}"
+
+          test -n "$TAG"
+          test -n "$APP_VERSION"
+          test -n "$RELEASE_SHA"
+          test -s "$CHANGES_FILE"
+
+          NOTES_FILE="$RUNNER_TEMP/release_notes.md"
+          {
+            echo "# ${TAG}"
+            echo
+            echo "- App package version: \`${APP_VERSION}\`"
+            echo "- Source PR: #${PR_NUMBER} — ${PR_TITLE}"
+            echo "- Source merge: \`${MERGED_SHA}\`"
+            echo
+            echo "## Changes"
+            echo
+            cat "$CHANGES_FILE"
+          } > "$NOTES_FILE"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::notice::GitHub Release $TAG already exists; nothing to recreate."
+            exit 0
+          fi
+
+          gh release create "$TAG" \
+            --target "$RELEASE_SHA" \
+            --title "DEUTSCH بالعربي ${APP_VERSION} · ${TAG}" \
+            --notes-file "$NOTES_FILE"
+
+          git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}" --force
+          TAG_SHA="$(git rev-list -n 1 "$TAG")"
+          if [[ "$TAG_SHA" != "$RELEASE_SHA" ]]; then
+            echo "::error::Tag $TAG points to $TAG_SHA instead of $RELEASE_SHA."
+            exit 1
+          fi
+
+          {
+            echo "### Automated release published"
+            echo
+            echo "- Tag: \`${TAG}\`"
+            echo "- App version: \`${APP_VERSION}\`"
+            echo "- Release commit: \`${RELEASE_SHA}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

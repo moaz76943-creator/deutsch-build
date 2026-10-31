@@ -1,0 +1,111 @@
+name: Auto Rebase PRs
+
+on:
+  push:
+    branches: [main, staging/v2-full-platform]
+    paths-ignore:
+      - 'docs/project-record/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-rebase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rebase:
+    if: >-
+      (github.event_name == 'workflow_dispatch' ||
+       vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true') &&
+      vars.PR_AUTO_REBASE_ENABLED == 'true' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      MAX_PR_UPDATES: '12'
+    steps:
+      - name: Rebase eligible PRs safely
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+
+          target_base="${GITHUB_REF_NAME:-staging/v2-full-platform}"
+          if [[ "$target_base" != "main" && "$target_base" != "staging/v2-full-platform" ]]; then
+            target_base="staging/v2-full-platform"
+          fi
+          mapfile -t prs < <(
+            gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --base "$target_base" \
+              --state open \
+              --limit 500 \
+              --json number,isDraft,isCrossRepository,mergeStateStatus,mergeable,labels \
+              --jq '.[] |
+                select(
+                  .isDraft == false and
+                  .isCrossRepository == false and
+                  .mergeable == "MERGEABLE" and
+                  .mergeStateStatus == "BEHIND" and
+                  ([.labels[].name] | index("no-auto-rebase") | not)
+                ) |
+                .number' |
+            head -n "$MAX_PR_UPDATES"
+          )
+
+          if (( ${#prs[@]} == 0 )); then
+            echo "No eligible behind PRs require rebasing."
+            exit 0
+          fi
+
+          updated=0
+          skipped=0
+          timed_out=0
+
+          for pr in "${prs[@]}"; do
+            state="$(
+              gh pr view "$pr" \
+                --repo "$GITHUB_REPOSITORY" \
+                --json state,isDraft,isCrossRepository,mergeStateStatus,mergeable \
+                --jq '[.state, .isDraft, .isCrossRepository, .mergeStateStatus, .mergeable] | @tsv'
+            )"
+
+            IFS=$'\t' read -r pr_state is_draft is_cross merge_state mergeable <<< "$state"
+
+            if [[ "$pr_state" != "OPEN" ||
+                  "$is_draft" != "false" ||
+                  "$is_cross" != "false" ||
+                  "$merge_state" != "BEHIND" ||
+                  "$mergeable" != "MERGEABLE" ]]; then
+              skipped=$((skipped + 1))
+              echo "::notice::PR #$pr changed state after discovery; leaving it untouched."
+              continue
+            fi
+
+            echo "Updating PR #$pr onto $target_base without rewriting history"
+            set +e
+            timeout 45s gh pr update-branch "$pr" \
+              --repo "$GITHUB_REPOSITORY"
+            status=$?
+            set -e
+
+            case "$status" in
+              0)
+                updated=$((updated + 1))
+                ;;
+              124)
+                timed_out=$((timed_out + 1))
+                echo "::warning::PR #$pr rebase exceeded 45 seconds; leaving the PR open and untouched."
+                ;;
+              *)
+                skipped=$((skipped + 1))
+                echo "::warning::PR #$pr could not be rebased cleanly or changed state; leaving the PR open."
+                ;;
+            esac
+          done
+
+          echo "Auto Rebase summary: updated=$updated skipped=$skipped timed_out=$timed_out"

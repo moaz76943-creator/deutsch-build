@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "TASK 12 — Factory Freeze / safe-capacity scaling",
+  "baseline_main": "6d908b989b01b1eee4adb74fd4b00dcc4f84291f",
+  "freeze_version": "task12-factory-freeze-v1",
+  "freeze_state": "FROZEN",
+  "core_touch_zero": true,
+  "serial_mutation_baseline": 1,
+  "minimum_capacity_samples": 3,
+  "maximum_parallel_mutations": 25,
+  "core_touch_zero_prefixes": [
+    "lib/core/",
+    "lib/services/",
+    "lib/bootstrap/",
+    "lib/models/",
+    "lib/language/pair/",
+    "lib/language/quality/"
+  ],
+  "pack_owned_prefixes": {
+    "de": [
+      "lib/language/german/",
+      "content/german/"
+    ]
+  },
+  "frozen_interfaces": {
+    "lib/core/content_contract.dart": "ed8ce5849118c0ac169413dc3dc00d8f05dfe458",
+    "lib/core/orchestration/polyglot_language_pack.dart": "56ea523af508d51739ea0d5b496b92a308b35cc8",
+    "lib/language/language_capability.dart": "3a1892404a222e477b04d275bb7c7d32560c6fae",
+    "lib/language/language_content_intelligence.dart": "20c17a9a7767dcf46d88ed244065d72f34cdaac5",
+    "lib/language/language_content_pack.dart": "956af7e45892a7b3b9b136df4e1168cfa7cb7cd2",
+    "lib/language/language_content_quality.dart": "3481e0630aaea8077566a6c80aed3f58a8535a07",
+    "lib/language/language_exercise_strategy.dart": "30bb12c636310c2c91536c72f794454a4a0e3227",
+    "lib/language/language_identity.dart": "2af6f8697a995b6135c87c746be16fb90d2b0463",
+    "lib/language/language_pack.dart": "d07c92ec6bb86687fea8a066674b61d10816ce25",
+    "lib/language/language_presentation.dart": "370d35a082c0baf46542b7d6e7838a1510d54aff",
+    "lib/language/language_role.dart": "0ae2855208f4c8d55dd64a5b92cf2ec9e20ffe24",
+    "lib/language/language_role_status.dart": "4f559b204b7fbc3de3c0630c0e96e43efeb2e64d",
+    "lib/language/language_speech_profile.dart": "0a451d94a8b2700723e1367f75a800c12627802e",
+    "lib/language/language_text_normalizer.dart": "4b054a2d5c7cc97bd3ceb9598ef90e1193d06cbe",
+    "lib/language/language_use_context.dart": "211c0f5241727667724368000830578040e6e823",
+    "lib/language/runtime_language_pack.dart": "8b18bb766b24059b939cc497dbcf2aad41447a0d",
+    "lib/language/pair/pair_mechanics.dart": "e1d375b98df0b2f1261310402add428b8b8fcac5",
+    "lib/language/quality/mandatory_gate_reducer.dart": "ac80f50ecea27d5ad54d6c8d762b6efe4c86c90d",
+    "tool/elastic_worker_factory.py": "443588b2a5ca8f1ac63270cdcde9bde37880e237"
+  },
+  "capacity_measurements": {},
+  "task12_surfaces": [
+    "tool/task12_factory_freeze.py",
+    "tool/task12_factory_freeze.json",
+    "tests/quality_gate/test_task12_factory_freeze_capacity_contract.py",
+    "docs/TASK12_FACTORY_FREEZE.md"
+  ]
+}

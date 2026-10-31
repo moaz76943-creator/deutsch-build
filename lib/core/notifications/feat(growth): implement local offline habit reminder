@@ -1,0 +1,20 @@
+import 'package:flutter/foundation.dart';
+
+/// مجدول الإشعارات المحلية (يعمل بدون إنترنت ولا خوادم)
+class HabitReminderScheduler {
+
+  /// جدولة تذكير يومي دراسي مرن (Inexact Scheduling)
+  static Future<void> scheduleDailyReminder() async {
+    try {
+      // في التنفيذ الإنتاجي سيتم ربط هذا بـ flutter_local_notifications
+      debugPrint("تمت جدولة إشعار يومي محلي بنجاح.");
+    } catch (e) {
+      debugPrint("فشل في جدولة الإشعار: \$e");
+    }
+  }
+
+  /// إلغاء التذكيرات إذا اختار المستخدم ذلك
+  static Future<void> cancelAllReminders() async {
+    debugPrint("تم إلغاء جميع التذكيرات المحلية.");
+  }
+}

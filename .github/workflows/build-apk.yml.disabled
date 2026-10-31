@@ -1,0 +1,105 @@
+name: Build Release APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/project-record/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: none
+  checks: none
+  id-token: none
+  pull-requests: none
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    if: github.event.repository.private == true && (github.event_name != 'workflow_dispatch' || github.ref_name == 'main' || github.ref_name == 'master')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Read toolchain.lock
+        id: toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source toolchain.lock
+          printf 'flutter=%s\n' "$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          printf 'java=%s\n' "$JAVA_MAJOR" >> "$GITHUB_OUTPUT"
+          printf 'gradle=%s\n' "$GRADLE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "${{ steps.toolchain.outputs.java }}"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+        with:
+          gradle-version: "${{ steps.toolchain.outputs.gradle }}"
+          cache-disabled: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: "${{ steps.toolchain.outputs.flutter }}"
+          channel: stable
+          cache: true
+
+      - name: Install Python test tooling
+        run: python3 -m pip install --upgrade pip pytest
+
+      - name: Materialize verified Gradle wrapper
+        run: python3 tool/gradle_wrapper_bootstrap.py
+
+      - name: Verify immutable Gradle wrapper
+        run: python3 tool/gradle_wrapper_integrity.py
+
+      - name: Run canonical quality gate
+        run: bash scripts/local_quality_gate.sh
+
+      - name: Materialize release signing material
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          chmod 600 android/app/upload-keystore.jks
+
+      - name: Build and verify release APK
+        env:
+          ORG_GRADLE_PROJECT_releaseStoreFile: ${{ github.workspace }}/android/app/upload-keystore.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./scripts/build.sh release
+
+      - name: Upload private release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove CI-owned signing material
+        if: always()
+        run: rm -f android/app/upload-keystore.jks

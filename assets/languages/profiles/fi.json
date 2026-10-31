@@ -1,0 +1,22 @@
+{
+  "isoCode": "fi",
+  "autonym": "Suomi",
+  "englishName": "Finnish",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Latin",
+  "typology": "SVO",
+  "morphologyType": "Agglutinative",
+  "casesCount": 15,
+  "caseNames": ["Nominatiivi", "Genetiivi", "Partitiivi", "Essiivi", "Translatiivi", "Inessiivi", "Elatiivi", "Illatiivi", "Adessiivi", "Ablatiivi", "Allatiivi", "Abessiivi", "Komitatiivi", "Instruktiivi", "Akusatiivi"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasVowelHarmony": true,
+    "hasConsonantGradation": true,
+    "noFutureTense": true,
+    "noGrammaticalGender": true
+  }
+}

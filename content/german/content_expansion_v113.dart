@@ -1,0 +1,48 @@
+import 'package:deutsch_bilarabi/models/content.dart';
+
+const a1ExpansionV113 = <ContentItem>[
+  ContentItem(
+    id: 'w15841',
+    german: 'faxen',
+    arabic: 'يرسل بالفاكس',
+    sentence: 'Ich faxe das Dokument heute.',
+    sentenceAr: 'أرسل المستند بالفاكس اليوم.',
+    topic: 'الأفعال — faxen',
+    skill: 'production',
+    accepted: ['faxen'],
+  ),
+  ContentItem(
+    id: 'w15842',
+    german: 'siezen',
+    arabic: 'يخاطب بصيغة الاحترام «Sie»',
+    sentence: 'Im Büro siezen wir uns.',
+    sentenceAr: 'في المكتب نخاطب بعضنا بصيغة الاحترام.',
+    topic: 'الأفعال — siezen',
+    skill: 'transfer',
+    accepted: ['siezen'],
+  ),
+  ContentItem(
+    id: 'w15843',
+    german: 'die Hausordnung',
+    arabic: 'نظام / لائحة المبنى',
+    sentence: 'Bitte lesen Sie die Hausordnung.',
+    sentenceAr: 'يرجى قراءة لائحة المبنى.',
+    topic: 'السكن',
+    skill: 'recall',
+    article: 'die',
+    plural: 'Hausordnungen',
+    accepted: ['Hausordnung'],
+  ),
+  ContentItem(
+    id: 'w15844',
+    german: 'die Krankenkarte',
+    arabic: 'بطاقة التأمين الصحي',
+    sentence: 'Ich habe meine Krankenkarte dabei.',
+    sentenceAr: 'بطاقة التأمين الصحي معي.',
+    topic: 'الصحة',
+    skill: 'recall',
+    article: 'die',
+    plural: 'Krankenkarten',
+    accepted: ['Krankenkarte'],
+  ),
+];

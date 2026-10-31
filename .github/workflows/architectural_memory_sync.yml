@@ -1,0 +1,52 @@
+name: Architectural Memory Post-Merge Sync
+
+on:
+  push:
+    branches:
+      - main
+      - staging/v2-full-platform
+    paths-ignore:
+      - docs/architecture/DECISION_LOG.md
+
+permissions:
+  contents: read
+
+jobs:
+  sync-decision-ledger:
+    if: >-
+      ${{ vars.GITHUB_ACTIONS_NONESSENTIAL_AUTOMATION_ENABLED == 'true' &&
+          vars.ARCHITECTURE_LEDGER_SYNC_ENABLED == 'true' &&
+          vars.ARCHITECTURE_LEDGER_BILLING_APPROVED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout exact main head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Synchronize managed architecture memory
+        env:
+          MAIN_SHA: ${{ github.sha }}
+          MERGE_TITLE: ${{ github.event.head_commit.message }}
+          MERGED_AT: ${{ github.event.head_commit.timestamp }}
+        run: |
+          python3 tools/post_merge_decision_sync.py \
+            --repo-root . \
+            --main-sha "$MAIN_SHA" \
+            --pr-title "$MERGE_TITLE" \
+            --merged-at "$MERGED_AT"
+
+      - name: Commit synchronized ledger when changed
+        run: |
+          if git diff --quiet -- docs/architecture/DECISION_LOG.md; then
+            exit 0
+          fi
+          git config user.name "deutsch-bilarabi-architecture-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/architecture/DECISION_LOG.md
+          git commit -m "docs(architecture): sync decision ledger [skip ci]"
+          git push origin HEAD:main

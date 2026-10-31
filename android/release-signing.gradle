@@ -1,0 +1,40 @@
+// Shared by the app and an isolated Gradle regression fixture (no Android SDK needed).
+ext.resolveReleaseSigning = {
+    def keyProperties = new Properties()
+    def keyFile = rootProject.file('key.properties')
+    if (keyFile.isFile()) {
+        keyFile.withInputStream { keyProperties.load(it) }
+    }
+    def home = System.getenv('HOME') ?: System.getProperty('user.home')
+    def localKeystore = new File(home, '.gradle/release-key.jks')
+    def defaults = [
+        releaseStoreFile: localKeystore.isFile() ? localKeystore.absolutePath : null,
+        releaseStorePassword: null,
+        releaseKeyAlias: null,
+        releaseKeyPassword: null,
+    ]
+    def aliases = [
+        releaseStoreFile: ['RELEASE_KEYSTORE_PATH', 'storeFile'],
+        'releaseStorePassword': ['RELEASE_STORE_PASSWORD', 'storePassword'],
+        releaseKeyAlias: ['RELEASE_KEY_ALIAS', 'keyAlias'],
+        'releaseKeyPassword': ['RELEASE_KEY_PASSWORD', 'keyPassword'],
+    ]
+    def result = [:]
+    aliases.each { name, names ->
+        // CLI wins; exported values from the setup script override stale user properties.
+        def candidates = [
+            gradle.startParameter.projectProperties[name],
+            System.getenv("ORG_GRADLE_PROJECT_${name}"),
+            project.findProperty(name),
+            System.getenv(names[0]),
+            keyProperties.getProperty(name),
+            keyProperties.getProperty(names[1]),
+            defaults[name],
+        ]
+        result[name] = candidates.find { it != null && it.toString().trim() }?.toString()
+    }
+    if (result.releaseStoreFile?.startsWith('~/')) {
+        result.releaseStoreFile = new File(home, result.releaseStoreFile.substring(2)).path
+    }
+    result
+}

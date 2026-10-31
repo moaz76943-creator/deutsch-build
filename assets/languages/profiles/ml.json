@@ -1,0 +1,20 @@
+{
+  "isoCode": "ml",
+  "autonym": "മലയാളം",
+  "englishName": "Malayalam",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Malayalam",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 7,
+  "caseNames": ["Nirdeshika", "Prathigrahika", "Samyojika", "Uddeshika", "Prayojika", "Sambandhika", "Aadharika"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "noVerbAgreement": true,
+    "hasChillumCharacters": true
+  }
+}

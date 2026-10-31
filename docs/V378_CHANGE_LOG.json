@@ -1,0 +1,14 @@
+{
+  "version": "V378",
+  "release": "3.3.4+127",
+  "phase": "Architecture Boundary Hardening",
+  "changes": [
+    "Added dependency-direction architecture gate",
+    "Restricted shared_preferences ownership to PreferencesService",
+    "Integrated boundary checks into architecture audit",
+    "Added regression tests"
+  ],
+  "behavioral_scope": "architecture tooling only",
+  "security_sensitive_behavior_changed": false,
+  "flutter_verification": "unavailable in execution environment"
+}

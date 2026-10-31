@@ -1,0 +1,108 @@
+version: 2.1
+
+jobs:
+  quality-gate:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: medium
+    environment:
+      FLUTTER_HOME: /home/circleci/flutter-sdk
+      FLUTTER_LINUX_X64_SHA256: a9120fa4a01048bdef438ddc3a2d4b7389662ea98a95db86eeaf10382bc4efcb
+    steps:
+      - checkout
+
+      - run:
+          name: Install locked Flutter SDK
+          command: |
+            set -Eeuo pipefail
+            source toolchain.lock
+
+            if [[ ! -x "$FLUTTER_HOME/bin/flutter" ]]; then
+              rm -rf "$FLUTTER_HOME" "$HOME/flutter" /tmp/flutter.tar.xz
+              python3 - "$FLUTTER_VERSION" <<'PY'
+            import shutil
+            import sys
+            import tarfile
+            import urllib.request
+            from pathlib import Path
+
+            version = sys.argv[1]
+            archive = Path("/tmp/flutter.tar.xz")
+            url = (
+                "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/"
+                f"flutter_linux_{version}-stable.tar.xz"
+            )
+            with urllib.request.urlopen(url, timeout=120) as response, archive.open("wb") as out:
+                shutil.copyfileobj(response, out)
+            PY
+              printf '%s  %s\n' "$FLUTTER_LINUX_X64_SHA256" /tmp/flutter.tar.xz | sha256sum --check --status
+              python3 - <<'PY'
+            import tarfile
+            from pathlib import Path
+
+            archive = Path("/tmp/flutter.tar.xz")
+            with tarfile.open(archive, "r:xz") as bundle:
+                bundle.extractall(Path.home(), filter="data")
+            PY
+              mv "$HOME/flutter" "$FLUTTER_HOME"
+            fi
+
+            printf 'export PATH="%s/bin:$PATH"\n' "$FLUTTER_HOME" >> "$BASH_ENV"
+            source "$BASH_ENV"
+            flutter config --no-analytics >/dev/null
+            dart --disable-analytics >/dev/null 2>&1 || true
+
+            dart_version="$(dart --version 2>&1)"
+            printf '%s\n' "$dart_version"
+            [[ "$dart_version" == *"Dart SDK version: ${DART_VERSION} "* ]] || {
+              echo "Expected Dart ${DART_VERSION}, got: $dart_version" >&2
+              exit 1
+            }
+
+      - run:
+          name: Install Python test runner
+          command: |
+            set -Eeuo pipefail
+            python3 -m pip install --disable-pip-version-check --no-input pytest
+
+      - run:
+          name: Canonical local quality gate
+          command: |
+            set -Eeuo pipefail
+            source "$BASH_ENV"
+            bash scripts/local_quality_gate.sh
+
+  worker-contract:
+    docker:
+      - image: cimg/node:lts
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Validate Cloudflare webhook worker
+          command: |
+            set -Eeuo pipefail
+            node --check infra/cloudflare/codemagic-webhook/src/index.js
+            node --test infra/cloudflare/codemagic-webhook/test/index.test.mjs
+
+  required-quality-gate:
+    type: no-op
+
+workflows:
+  zero-cost-quality:
+    when: >-
+      pipeline.event.name == "api" or
+      (pipeline.event.name == "pull_request" and
+       pipeline.event.github.pull_request.base.ref == "main" and
+       pipeline.event.github.pull_request.draft == false and
+       (pipeline.event.action == "opened" or
+        pipeline.event.action == "synchronize" or
+        pipeline.event.action == "reopened" or
+        pipeline.event.action == "ready_for_review"))
+    jobs:
+      - quality-gate
+      - worker-contract
+      - required-quality-gate:
+          requires:
+            - quality-gate
+            - worker-contract

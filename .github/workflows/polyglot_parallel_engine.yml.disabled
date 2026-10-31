@@ -1,0 +1,54 @@
+# DISABLED 2026-10-25: manual duplicate outside the classified workflow set.
+# Dispatch would spend private Actions minutes. The budgeted check is staging_self_check.yml.
+
+name: Polyglot Parallel Engine (manual verified-only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: polyglot-v2-manual-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sqlite_contract_test:
+    name: Verify SQLite V2 contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Run deterministic SQLite V2 tests
+        run: python3 -m unittest discover -s tools/polyglot_v2 -p 'test_polyglot_v2.py' -v
+
+  db_factory_seeder:
+    name: Build reviewed German development fixture
+    needs: sqlite_contract_test
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Compile reviewed fixture only
+        run: |
+          python3 tools/polyglot_v2/create_pack_v2.py \
+            --source tools/polyglot_v2/source_de_train_v2.json \
+            --output build/packs
+      - name: Upload development pack artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: de-v2-development-fixture
+          path: |
+            build/packs/de.db.gz
+            build/packs/de.db.gz.sha256
+          if-no-files-found: error
+          retention-days: 3

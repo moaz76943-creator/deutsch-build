@@ -1,0 +1,96 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+apply from: '../release-signing.gradle'
+
+def releaseSigning = project.ext.resolveReleaseSigning()
+def hasReleaseSigning = releaseSigning.releaseStoreFile &&
+        releaseSigning.releaseStorePassword &&
+        releaseSigning.releaseKeyAlias &&
+        releaseSigning.releaseKeyPassword
+def releaseTaskRequested = gradle.startParameter.taskNames.any { taskName ->
+    taskName.toLowerCase().contains('release')
+}
+if (releaseTaskRequested && !hasReleaseSigning) {
+    throw new GradleException(
+        'Release signing is mandatory. Set releaseStoreFile, releaseStorePassword, releaseKeyAlias, and releaseKeyPassword.'
+    )
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+android {
+    signingConfigs {
+        secureRelease {
+            if (hasReleaseSigning) {
+                storeFile file(releaseSigning.releaseStoreFile)
+                storePassword releaseSigning.releaseStorePassword
+                keyAlias releaseSigning.releaseKeyAlias
+                keyPassword releaseSigning.releaseKeyPassword
+            }
+        }
+    }
+
+    namespace "com.deutschbilarabi.app"
+    compileSdk 36
+    ndkVersion = "28.2.13676358"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId "com.deutschbilarabi.app"
+        minSdkVersion flutter.minSdkVersion
+        targetSdk 36
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.secureRelease
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.google.android.play:integrity:1.4.0'
+}

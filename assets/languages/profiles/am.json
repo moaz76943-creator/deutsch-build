@@ -1,0 +1,21 @@
+{
+  "isoCode": "am",
+  "autonym": "አማርኛ",
+  "englishName": "Amharic",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Ge'ez (Ethiopic)",
+  "typology": "SOV",
+  "morphologyType": "Fusional",
+  "casesCount": 2,
+  "caseNames": ["Nominative", "Accusative"],
+  "genders": ["m", "f"],
+  "hasArticles": true,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "rootAndPatternMorphology": true,
+    "abugidaScript": true,
+    "hasSuffixedArticle": true
+  }
+}

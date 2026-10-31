@@ -1,0 +1,23 @@
+{
+  "grammar": [],
+  "lexicon": [],
+  "localization": {
+    "pack.title": {
+      "bidiOverride": true,
+      "direction": "ltr",
+      "text": "German"
+    }
+  },
+  "pack": {
+    "contractVersion": "1.0.0",
+    "displayName": "German",
+    "id": "de-core",
+    "languageCode": "de",
+    "textDirection": "ltr",
+    "version": "1.0.0"
+  },
+  "requiredLocalizationKeys": [
+    "pack.title"
+  ],
+  "schemaVersion": 1
+}

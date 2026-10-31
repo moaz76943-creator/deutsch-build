@@ -1,0 +1,22 @@
+{
+  "isoCode": "ko",
+  "autonym": "한국어",
+  "englishName": "Korean",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Hangul",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 0,
+  "caseNames": [],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": false,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "isProDrop": true,
+    "hasTopicSubjectMarkers": true,
+    "hasSpeechLevels": true,
+    "alphabeticSyllableBlocks": true
+  }
+}

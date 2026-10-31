@@ -1,0 +1,20 @@
+{
+  "isoCode": "kk",
+  "autonym": "Қазақша",
+  "englishName": "Kazakh",
+  "scriptDirection": "ltr",
+  "scriptFamily": "Cyrillic",
+  "typology": "SOV",
+  "morphologyType": "Agglutinative",
+  "casesCount": 7,
+  "caseNames": ["Атау", "Ілік", "Барыс", "Табыс", "Жатыс", "Шығыс", "Көмектес"],
+  "genders": ["none"],
+  "hasArticles": false,
+  "hasNounDeclension": true,
+  "hasVerbConjugation": true,
+  "hasDualNumber": false,
+  "features": {
+    "hasVowelHarmony": true,
+    "hasAgglutinativeSuffixes": true
+  }
+}

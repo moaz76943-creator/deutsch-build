@@ -1,0 +1,24 @@
+Objective:
+Harden shared application UI contracts against missing
+content, unsupported scripts, accessibility scaling and
+optional feature failures, preserving usable screen output.
+
+Implementation:
+1. Inspect current core UI contracts and token consumers.
+2. Preserve existing design-system import compatibility.
+3. Implement typed loading, empty, degraded and failed UI states.
+4. Provide reusable contracts for optional visual/media content.
+5. Distinguish missing content from unrecoverable data corruption.
+6. Ensure layout constraints cannot trigger common overflows.
+7. Support RTL/LTR and mixed direction semantic labels.
+8. Handle 200% and larger text scaling in representative fixtures.
+9. Provide accessible fallback text for unavailable imagery.
+10. Preserve keyboard navigation, focus order and tap targets.
+11. Avoid infinite loading states when optional futures fail.
+12. Cancel stale content operations on component disposal.
+13. Avoid expensive work during build() and layout phases.
+14. Reuse existing typography and theme tokens.
+15. Add widget tests for narrow screens, large text,
+    missing content, thrown async errors and RTL contexts.
+16. Provide an interface that app screens can adopt without
+    requiring modifications outside this task's scope.

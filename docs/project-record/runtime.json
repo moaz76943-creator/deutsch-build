@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "project": "DEUTSCH بالعربي",
+  "canonical_repository": "sali97m-cpu/deutsch-bilarabi",
+  "record_type": "runtime_evidence",
+  "record_status": "RECONCILIATION_REQUIRED",
+  "reconciliation_required": true,
+  "reconciliation_reason": "Recorded source commit is not an ancestor of current main; history/lineage changed.",
+  "last_source_commit": "792c75ee0ed5c4917aeeea744fcf21af94d84232",
+  "last_sync_at": "2026-09-30T15:25:03Z",
+  "last_sync_event": {
+    "trigger": "manual",
+    "workflow": "",
+    "run_id": "",
+    "conclusion": null
+  },
+  "last_ci": {
+    "event_key": "workflow:Engineering CI:36094482183",
+    "timestamp": "2026-09-25T04:35:56Z",
+    "source": "github_actions",
+    "type": "workflow_run",
+    "workflow": "Engineering CI",
+    "run_id": "36094482183",
+    "conclusion": "success",
+    "commit_sha": "792c75ee0ed5c4917aeeea744fcf21af94d84232",
+    "branch": "main"
+  },
+  "last_recovery_checkpoint_run": {
+    "event_key": "workflow:Recovery Checkpoint:36571038187",
+    "timestamp": "2026-09-29T12:52:34Z",
+    "source": "github_actions",
+    "type": "workflow_run",
+    "workflow": "Recovery Checkpoint",
+    "run_id": "36571038187",
+    "conclusion": "success",
+    "commit_sha": "e07d919fe3499fa0050c8d6b1843b6db1895a33d",
+    "branch": "main"
+  },
+  "observed_source_commit_count": 0,
+  "note": "Generated automatically. Goal/plan live in PROJECT_INTENT.md and must not be inferred from event history.",
+  "last_observed_head": "e3208766bcd742250852a32bbaf01dd62949fe49"
+}

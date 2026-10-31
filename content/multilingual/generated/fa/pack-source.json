@@ -1,0 +1,23 @@
+{
+  "grammar": [],
+  "lexicon": [],
+  "localization": {
+    "pack.title": {
+      "bidiOverride": true,
+      "direction": "rtl",
+      "text": "Persian"
+    }
+  },
+  "pack": {
+    "contractVersion": "1.0.0",
+    "displayName": "Persian",
+    "id": "fa-core",
+    "languageCode": "fa",
+    "textDirection": "rtl",
+    "version": "1.0.0"
+  },
+  "requiredLocalizationKeys": [
+    "pack.title"
+  ],
+  "schemaVersion": 1
+}
