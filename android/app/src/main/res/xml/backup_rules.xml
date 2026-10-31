@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<full-backup-content>
-    <exclude domain="sharedpref" path="." />
-    <exclude domain="file" path=".secure_session_credential" />
-    <exclude domain="file" path=".secure_session_credential.tmp" />
-</full-backup-content>

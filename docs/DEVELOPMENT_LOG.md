@@ -45,3 +45,18 @@ Status: COMPLETE
 
 Status: COMPLETE
 
+## Session: 2026-10-31 09:07 +03 (hourly Grok Build)
+
+- Read AGENTS.md and project instructions. Auth/DB remain OFF.
+- Ran `npm test` (test-vocab-extra.js): PASS initially (55 items, 55 unique IDs).
+- Fixed bug: missing comma after v-extra-35 (syntax error in TS array) with minimal safe edit.
+- Added 20 new A1/A2 items in `src/lib/deutsch/content/vocab-extra.ts` (IDs v-extra-56 to v-extra-75):
+  - Verbs with full conjugations (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): waschen, putzen, tanzen, singen, reisen, backen, finden, wissen, verstehen, stehen.
+  - Nouns with article (der/die/das) and plural: Wasser (das), Kaffee (der), Tee (der), Milch (die), Supermarkt (der), Bahnhof (der), Flughafen (der), Geld (das), Zeit (die), Arbeit (die).
+  - Natural German example sentences + accurate Arabic translations.
+- All IDs unique (no repeats). No automatic deletion of similar items.
+- Tests re-run: PASS (75 items, 75 unique IDs). Includes required präteritum and article der.
+- No additional bugs. Content integrity maintained. Offline-only learning system preserved.
+- Preview: kept on approved port (preview-proxy active, no new process started).
+
+Status: COMPLETE

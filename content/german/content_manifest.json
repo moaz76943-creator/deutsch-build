@@ -1,7 +1,0 @@
-{
-  "version": 1,
-  "languageCode": "de",
-  "contentItems": "../content_items.json",
-  "verbConjugations": "../verb_conjugations.json",
-  "audioManifest": "audio_manifest.json"
-}

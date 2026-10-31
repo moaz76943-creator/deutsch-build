@@ -564,7 +564,7 @@ export const vocabExtra: VocabExtraItem[] = [
     },
     exampleDe: 'Wir lernen Deutsch zusammen.',
     exampleAr: 'نتعلم الألمانية معاً.'
-  }
+  },
 
   {
     id: 'v-extra-36',
@@ -875,6 +875,316 @@ export const vocabExtra: VocabExtraItem[] = [
     plural: 'Schulen',
     exampleDe: 'Die Schule beginnt um acht Uhr.',
     exampleAr: 'المدرسة تبدأ في الساعة الثامنة.'
-  }
+  },
 
+  {
+    id: 'v-extra-56',
+    type: 'verb',
+    level: 'A1',
+    de: 'waschen',
+    ar: 'يغسل',
+    conjugations: {
+      ich: 'wasche',
+      du: 'wäschst',
+      er: 'wäscht',
+      wir: 'waschen',
+      ihr: 'wascht',
+      sie: 'waschen',
+      präteritum: 'wusch',
+      perfekt: 'gewaschen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich wasche die Wäsche am Wochenende.',
+    exampleAr: 'أغسل الملابس في عطلة نهاية الأسبوع.'
+  },
+  {
+    id: 'v-extra-57',
+    type: 'verb',
+    level: 'A1',
+    de: 'putzen',
+    ar: 'ينظف',
+    conjugations: {
+      ich: 'putze',
+      du: 'putzt',
+      er: 'putzt',
+      wir: 'putzen',
+      ihr: 'putzt',
+      sie: 'putzen',
+      präteritum: 'putzte',
+      perfekt: 'geputzt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir putzen das Haus jeden Samstag.',
+    exampleAr: 'ننظف المنزل كل يوم سبت.'
+  },
+  {
+    id: 'v-extra-58',
+    type: 'verb',
+    level: 'A2',
+    de: 'tanzen',
+    ar: 'يرقص',
+    conjugations: {
+      ich: 'tanze',
+      du: 'tanzt',
+      er: 'tanzt',
+      wir: 'tanzen',
+      ihr: 'tanzt',
+      sie: 'tanzen',
+      präteritum: 'tanzte',
+      perfekt: 'getanzt',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie tanzt gerne auf Partys.',
+    exampleAr: 'هي تحب الرقص في الحفلات.'
+  },
+  {
+    id: 'v-extra-59',
+    type: 'verb',
+    level: 'A1',
+    de: 'singen',
+    ar: 'يغني',
+    conjugations: {
+      ich: 'singe',
+      du: 'singst',
+      er: 'singt',
+      wir: 'singen',
+      ihr: 'singt',
+      sie: 'singen',
+      präteritum: 'sang',
+      perfekt: 'gesungen',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder singen ein Lied.',
+    exampleAr: 'الأطفال يغنون أغنية.'
+  },
+  {
+    id: 'v-extra-60',
+    type: 'verb',
+    level: 'A2',
+    de: 'reisen',
+    ar: 'يسافر',
+    conjugations: {
+      ich: 'reise',
+      du: 'reist',
+      er: 'reist',
+      wir: 'reisen',
+      ihr: 'reist',
+      sie: 'reisen',
+      präteritum: 'reiste',
+      perfekt: 'gereist',
+      aux: 'sein'
+    },
+    exampleDe: 'Wir reisen im Sommer nach Deutschland.',
+    exampleAr: 'نسافر في الصيف إلى ألمانيا.'
+  },
+  {
+    id: 'v-extra-61',
+    type: 'verb',
+    level: 'A2',
+    de: 'backen',
+    ar: 'يخبز',
+    conjugations: {
+      ich: 'backe',
+      du: 'bäckst',
+      er: 'bäckt',
+      wir: 'backen',
+      ihr: 'backt',
+      sie: 'backen',
+      präteritum: 'backte',
+      perfekt: 'gebacken',
+      aux: 'haben'
+    },
+    exampleDe: 'Meine Oma backt leckeren Kuchen.',
+    exampleAr: 'جدتي تخبز كعكة لذيذة.'
+  },
+  {
+    id: 'v-extra-62',
+    type: 'verb',
+    level: 'A1',
+    de: 'finden',
+    ar: 'يجد',
+    conjugations: {
+      ich: 'finde',
+      du: 'findest',
+      er: 'findet',
+      wir: 'finden',
+      ihr: 'findet',
+      sie: 'finden',
+      präteritum: 'fand',
+      perfekt: 'gefunden',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich finde meinen Schlüssel nicht.',
+    exampleAr: 'لا أجد مفتاحي.'
+  },
+  {
+    id: 'v-extra-63',
+    type: 'verb',
+    level: 'A1',
+    de: 'wissen',
+    ar: 'يعرف',
+    conjugations: {
+      ich: 'weiß',
+      du: 'weißt',
+      er: 'weiß',
+      wir: 'wissen',
+      ihr: 'wisst',
+      sie: 'wissen',
+      präteritum: 'wusste',
+      perfekt: 'gewusst',
+      aux: 'haben'
+    },
+    exampleDe: 'Weißt du die Antwort?',
+    exampleAr: 'هل تعرف الإجابة؟'
+  },
+  {
+    id: 'v-extra-64',
+    type: 'verb',
+    level: 'A2',
+    de: 'verstehen',
+    ar: 'يفهم',
+    conjugations: {
+      ich: 'verstehe',
+      du: 'verstehst',
+      er: 'versteht',
+      wir: 'verstehen',
+      ihr: 'versteht',
+      sie: 'verstehen',
+      präteritum: 'verstand',
+      perfekt: 'verstanden',
+      aux: 'haben'
+    },
+    exampleDe: 'Verstehst du den Lehrer?',
+    exampleAr: 'هل تفهم المعلم؟'
+  },
+  {
+    id: 'v-extra-65',
+    type: 'verb',
+    level: 'A1',
+    de: 'stehen',
+    ar: 'يقف',
+    conjugations: {
+      ich: 'stehe',
+      du: 'stehst',
+      er: 'steht',
+      wir: 'stehen',
+      ihr: 'steht',
+      sie: 'stehen',
+      präteritum: 'stand',
+      perfekt: 'gestanden',
+      aux: 'haben'
+    },
+    exampleDe: 'Das Auto steht vor dem Haus.',
+    exampleAr: 'السيارة تقف أمام المنزل.'
+  },
+  {
+    id: 'v-extra-66',
+    type: 'noun',
+    level: 'A1',
+    de: 'Wasser',
+    ar: 'ماء',
+    article: 'das',
+    plural: 'Wasser',
+    exampleDe: 'Ich trinke ein Glas Wasser.',
+    exampleAr: 'أشرب كأساً من الماء.'
+  },
+  {
+    id: 'v-extra-67',
+    type: 'noun',
+    level: 'A1',
+    de: 'Kaffee',
+    ar: 'قهوة',
+    article: 'der',
+    plural: 'Kaffees',
+    exampleDe: 'Der Kaffee ist heiß.',
+    exampleAr: 'القهوة ساخنة.'
+  },
+  {
+    id: 'v-extra-68',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tee',
+    ar: 'شاي',
+    article: 'der',
+    plural: 'Tees',
+    exampleDe: 'Möchtest du eine Tasse Tee?',
+    exampleAr: 'هل تريد فنجاناً من الشاي؟'
+  },
+  {
+    id: 'v-extra-69',
+    type: 'noun',
+    level: 'A1',
+    de: 'Milch',
+    ar: 'حليب',
+    article: 'die',
+    plural: 'Milche',
+    exampleDe: 'Die Milch ist frisch.',
+    exampleAr: 'الحليب طازج.'
+  },
+  {
+    id: 'v-extra-70',
+    type: 'noun',
+    level: 'A2',
+    de: 'Supermarkt',
+    ar: 'سوبرماركت',
+    article: 'der',
+    plural: 'Supermärkte',
+    exampleDe: 'Ich gehe zum Supermarkt.',
+    exampleAr: 'أذهب إلى السوبرماركت.'
+  },
+  {
+    id: 'v-extra-71',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bahnhof',
+    ar: 'محطة قطار',
+    article: 'der',
+    plural: 'Bahnhöfe',
+    exampleDe: 'Der Bahnhof ist in der Nähe.',
+    exampleAr: 'محطة القطار قريبة.'
+  },
+  {
+    id: 'v-extra-72',
+    type: 'noun',
+    level: 'A2',
+    de: 'Flughafen',
+    ar: 'مطار',
+    article: 'der',
+    plural: 'Flughäfen',
+    exampleDe: 'Wir fahren zum Flughafen.',
+    exampleAr: 'نقود إلى المطار.'
+  },
+  {
+    id: 'v-extra-73',
+    type: 'noun',
+    level: 'A1',
+    de: 'Geld',
+    ar: 'مال',
+    article: 'das',
+    plural: 'Gelder',
+    exampleDe: 'Hast du genug Geld?',
+    exampleAr: 'هل لديك مال كافٍ؟'
+  },
+  {
+    id: 'v-extra-74',
+    type: 'noun',
+    level: 'A1',
+    de: 'Zeit',
+    ar: 'وقت',
+    article: 'die',
+    plural: 'Zeiten',
+    exampleDe: 'Ich habe keine Zeit heute.',
+    exampleAr: 'ليس لدي وقت اليوم.'
+  },
+  {
+    id: 'v-extra-75',
+    type: 'noun',
+    level: 'A2',
+    de: 'Arbeit',
+    ar: 'عمل',
+    article: 'die',
+    plural: 'Arbeiten',
+    exampleDe: 'Die Arbeit beginnt um neun Uhr.',
+    exampleAr: 'العمل يبدأ في الساعة التاسعة.'
+  }
 ];

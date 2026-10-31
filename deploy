@@ -1,7 +1,0 @@
-#!/bin/bash
-git add .
-git commit -m "update: $(date +'%Y-%m-%d %H:%M:%S')" || true
-git push origin main
-echo ""
-echo "✔ تم رفع التعديلات بنجاح! بدأ البناء السحابي تلقائياً."
-echo "انتظر 4-5 دقائق ثم اكتب: ./get-app لجلب النسخة لهاتفك."

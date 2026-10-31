@@ -1,8 +1,0 @@
-========================================================
-DEUTSCH BILARABI - VISUAL CONTRACT LOCK (POSTV1-EXP-00B)
-========================================================
-- Home Dashboard Reference: Image 3 (Golden Visual Reference)
-- Screen Map Reference: Image 2 (UX / Screen Map)
-- Brand Direction Reference: Image 1 (Mood & Glassmorphism Theme)
-- Status: Locked and Ready for Design System Implementation
-========================================================

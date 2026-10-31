@@ -1,1 +1,0 @@
-$(cat /tmp/vocab_repo_new.dart)

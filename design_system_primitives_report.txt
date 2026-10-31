@@ -1,7 +1,0 @@
-========================================================
-DEUTSCH BILARABI - DESIGN SYSTEM PRIMITIVES (POSTV1-EXP-00C)
-========================================================
-- Component Primitives Defined: AppSurface, GlassCard, GradientActionCard, PrimaryGlowButton, MetricTile, LessonCard, SectionHeader, LanguageSelector, OfflinePackTile
-- Design Tokens: Spacing, Typography, Radii, Elevations, Gradients Locked
-- Status: Ready for Home Fidelity Proof Implementation
-========================================================

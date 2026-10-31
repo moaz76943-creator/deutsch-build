@@ -1,5 +1,0 @@
-# Legacy marker retained for historical compatibility only.
-# Fixed corpus cardinality and ID-set hashes are intentionally NOT admission
-# criteria. Current content integrity is established dynamically by schema,
-# uniqueness, signed pack SHA-256, SQLite metadata, and relational integrity.
-MODE=DYNAMIC_METADATA
