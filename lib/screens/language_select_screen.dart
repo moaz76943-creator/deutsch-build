@@ -84,6 +84,11 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
                 Expanded(
                   child: ListView.separated(
                     itemCount: filteredLangs.length,
+                    // Performance: bound pre-build area beyond the viewport.
+                    cacheExtent: 300,
+                    // Items are pure StatelessWidgets (AppBaseGlassCard) with no persistent
+                    // state that must survive scrolling off-screen. Selection lives in parent.
+                    addAutomaticKeepAlives: false,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final code = filteredLangs[index];
