@@ -107,6 +107,11 @@ class _DailyChallengesScreenState extends State<DailyChallengesScreen> {
                 Expanded(
                   child: ListView.builder(
                     itemCount: _challenges.length,
+                    // Performance: bound pre-build area beyond the viewport.
+                    cacheExtent: 300,
+                    // Pure card items; no persistent state to keep alive when off-screen.
+                    // Disabling reduces memory pressure if the challenge list grows.
+                    addAutomaticKeepAlives: false,
                     itemBuilder: (context, index) {
                       final item = _challenges[index];
                       final bool isDone = item['completed'] as bool;

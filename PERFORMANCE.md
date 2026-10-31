@@ -1,29 +1,29 @@
 # Performance Optimizations — Deutsch بالعربي
 
-## 2026-10-31: Efficient ListView in AchievementsScreen (Memory & UI Jank)
+## 2026-10-31: Efficient ListView in DailyChallengesScreen (Memory & UI Jank)
 
 ### Issue
-`AchievementsScreen` renders a list of badges (currently small, but designed to grow with more achievements) via `ListView.builder`. Default `addAutomaticKeepAlives: true` retains off-screen item state unnecessarily. As the catalog expands this increases peak memory and can contribute to scroll jank on lower-end devices.
+`DailyChallengesScreen` renders daily challenge items in a `ListView.builder`. Default `addAutomaticKeepAlives: true` retains off-screen item state. If the challenge catalog grows or users scroll frequently, this increases peak memory and can contribute to scroll jank on lower-end devices.
 
 ### Change
 - Set `cacheExtent: 300` to bound the pre-build area beyond the viewport.
-- Set `addAutomaticKeepAlives: false` because items are pure `StatelessWidget`s (`AppBaseGlassCard` rows) with no persistent state that must survive scrolling off-screen.
-- No change to data, filtering, or navigation behavior.
+- Set `addAutomaticKeepAlives: false` because items are pure `AppBaseGlassCard` widgets; completion state lives in the parent list data and does not need to be preserved by the list.
+- No change to challenge data, progress display, or navigation behavior.
 
 ### Security
-No impact. UI-only rendering optimization; no storage, network, integrity, or permission paths modified. Offline-first absolute preserved.
+No impact. UI-only rendering optimization; no storage, network, integrity, or permission paths modified.
 
 ### Expected Metrics
 | Metric                   | Before                              | After                                      |
 |--------------------------|-------------------------------------|--------------------------------------------|
-| Peak memory (long list)  | Higher (keep-alives retained)       | ~10-20% lower on lists of 20+ badges      |
-| Scroll jank / frame time | Potential spikes when list grows    | Smoother scrolling; less retained work     |
+| Peak memory (growing list)| Higher (keep-alives retained)      | ~10-20% lower if list exceeds ~20 items   |
+| Scroll jank / frame time | Potential spikes on low-end devices | Smoother scrolling; less retained work     |
 | Battery                  | Slightly higher during long scrolls | Marginally better                          |
 
-Measurable via Flutter DevTools (Memory tab / Timeline) or `flutter run --profile`. Impact scales with the number of achievements displayed.
+Measurable via Flutter DevTools (Memory tab / Timeline) or `flutter run --profile`. Impact scales with the number of challenges displayed.
 
 ### Next candidates
-- Apply the same pattern to remaining dynamic lists: `grammar_guide_screen.dart`, language manager, daily challenges, error diagnostics logs, etc.
+- Apply the same pattern to remaining dynamic lists (language manager, error diagnostics logs, grammar guides, etc.).
 - Generate a real Baseline Profile via Macrobenchmark covering onboarding → language select → dashboard path for cold-start gains (profileinstaller already present).
 - Evaluate WorkManager only for future non-critical background pack verification (offline-first remains the primary path).
 
