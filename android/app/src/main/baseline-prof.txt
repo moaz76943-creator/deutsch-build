@@ -1,0 +1,15 @@
+# Baseline Profile for Deutsch بالعربي Flutter app
+# Targets critical startup paths: Flutter engine, MainActivity, and bootstrap.
+# Generated as a starting point; refine with Macrobenchmark for production.
+# Security note: No changes to keep rules or permissions; R8 remains fully enabled.
+
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/engine/FlutterEngine;-><init>(Landroid/content/Context;)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->init()V
+HSPLio/flutter/plugins/GeneratedPluginRegistrant;->registerWith(Lio/flutter/embedding/engine/FlutterEngine;)V
+HSPLcom/deutschbilarabi/app/AndroidPackDatabaseKeyStore;-><init>()V
+HSPLcom/deutschbilarabi/app/AndroidSecureSessionStorage;-><init>()V
+# Additional critical methods from startup boundary and database service
+HSPLcom/deutschbilarabi/app/AndroidGamificationClockIntegritySource;-><init>()V
