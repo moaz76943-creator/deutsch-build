@@ -46,6 +46,8 @@ class AchievementsScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ListView.builder(
+              cacheExtent: 300,
+              addAutomaticKeepAlives: false,
               itemCount: badges.length,
               itemBuilder: (context, index) {
                 final badge = badges[index];
