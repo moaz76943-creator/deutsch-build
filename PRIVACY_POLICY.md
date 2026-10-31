@@ -1,6 +1,6 @@
 # Privacy Policy for Deutsch بالعربي
 
-**Last updated:** October 30, 2026
+**Last updated:** October 31, 2026
 
 **Developer / Entity:** moaz76943-creator (matches Google Play developer account listing)
 
@@ -10,7 +10,7 @@
 
 ## Introduction
 
-Deutsch بالعربي is an offline-first German language learning application designed for Arabic speakers. We prioritize user privacy. This policy explains how the app accesses, processes, and handles data in compliance with Google Play User Data policy, Data safety requirements, Core App Quality guidelines, and security standards.
+Deutsch بالعربي is an offline-first German language learning application designed for Arabic speakers. We prioritize user privacy. This policy explains how the app accesses, processes, and handles data in compliance with Google Play User Data policy, Data safety requirements, Core App Quality guidelines, and security standards (as of October 2026).
 
 The app is designed to function primarily without an internet connection. Most learning content, progress, and features operate entirely on your device.
 
@@ -73,6 +73,7 @@ Exact answers for the Play Console Data safety form (must match this policy):
 - Targets Android 16 (API level 36), meeting the August 31, 2026 requirement for new apps and updates. Existing apps need at least API 35 to remain available to new users on newer devices.
 - allowBackup="false"; usesCleartextTraffic="false"; data extraction rules configured; R8/ProGuard minification and resource shrinking enabled in release.
 - Prominent disclosure is shown in-app before any sensitive permission request (e.g., microphone).
+- FLAG_SECURE is set to prevent screenshots of sensitive learning content in the app switcher (disabled only in debug builds).
 
 ## Children's Privacy
 
@@ -88,4 +89,4 @@ For questions about this privacy policy or data practices, contact the developer
 
 ---
 
-**Compliance notes:** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36, signing, and integrity protections are in place for production readiness.
+**Compliance notes (updated October 31, 2026):** Link the public URL in Play Console App content (Privacy policy). Complete Data safety form accurately matching the answers above (no collection/sharing). Provide in-app link and prominent disclosure before RECORD_AUDIO. Ensure GitHub Pages is enabled for the public URL. Target SDK 36 (Android 16) is set, satisfying current Google Play requirements for new apps and updates. Signing uses Play App Signing; integrity protection via Play Integrity API is implemented. No policy violations identified for permissions, data safety, or Core App Quality guidelines. Ready for production release.
