@@ -1186,5 +1186,370 @@ export const vocabExtra: VocabExtraItem[] = [
     plural: 'Arbeiten',
     exampleDe: 'Die Arbeit beginnt um neun Uhr.',
     exampleAr: 'العمل يبدأ في الساعة التاسعة.'
+  },
+  {
+    id: 'v-extra-76',
+    type: 'verb',
+    level: 'A1',
+    de: 'lachen',
+    ar: 'يضحك',
+    conjugations: {
+      ich: 'lache',
+      du: 'lachst',
+      er: 'lacht',
+      wir: 'lachen',
+      ihr: 'lacht',
+      sie: 'lachen',
+      präteritum: 'lachte',
+      perfekt: 'gelacht',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder lachen laut im Garten.',
+    exampleAr: 'الأطفال يضحكون بصوت عالٍ في الحديقة.'
+  },
+  {
+    id: 'v-extra-77',
+    type: 'verb',
+    level: 'A1',
+    de: 'weinen',
+    ar: 'يبكي',
+    conjugations: {
+      ich: 'weine',
+      du: 'weinst',
+      er: 'weint',
+      wir: 'weinen',
+      ihr: 'weint',
+      sie: 'weinen',
+      präteritum: 'weinte',
+      perfekt: 'geweint',
+      aux: 'haben'
+    },
+    exampleDe: 'Warum weinst du?',
+    exampleAr: 'لماذا تبكي؟'
+  },
+  {
+    id: 'v-extra-78',
+    type: 'verb',
+    level: 'A1',
+    de: 'fragen',
+    ar: 'يسأل',
+    conjugations: {
+      ich: 'frage',
+      du: 'fragst',
+      er: 'fragt',
+      wir: 'fragen',
+      ihr: 'fragt',
+      sie: 'fragen',
+      präteritum: 'fragte',
+      perfekt: 'gefragt',
+      aux: 'haben'
+    },
+    exampleDe: 'Kann ich dich etwas fragen?',
+    exampleAr: 'هل يمكنني أن أسألك شيئاً؟'
+  },
+  {
+    id: 'v-extra-79',
+    type: 'verb',
+    level: 'A2',
+    de: 'antworten',
+    ar: 'يجيب',
+    conjugations: {
+      ich: 'antworte',
+      du: 'antwortest',
+      er: 'antwortet',
+      wir: 'antworten',
+      ihr: 'antwortet',
+      sie: 'antworten',
+      präteritum: 'antwortete',
+      perfekt: 'geantwortet',
+      aux: 'haben'
+    },
+    exampleDe: 'Bitte antworte auf meine Frage.',
+    exampleAr: 'من فضلك أجب على سؤالي.'
+  },
+  {
+    id: 'v-extra-80',
+    type: 'verb',
+    level: 'A1',
+    de: 'suchen',
+    ar: 'يبحث',
+    conjugations: {
+      ich: 'suche',
+      du: 'suchst',
+      er: 'sucht',
+      wir: 'suchen',
+      ihr: 'sucht',
+      sie: 'suchen',
+      präteritum: 'suchte',
+      perfekt: 'gesucht',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich suche meinen Schlüssel.',
+    exampleAr: 'أبحث عن مفتاحي.'
+  },
+  {
+    id: 'v-extra-81',
+    type: 'verb',
+    level: 'A2',
+    de: 'warten',
+    ar: 'ينتظر',
+    conjugations: {
+      ich: 'warte',
+      du: 'wartest',
+      er: 'wartet',
+      wir: 'warten',
+      ihr: 'wartet',
+      sie: 'warten',
+      präteritum: 'wartete',
+      perfekt: 'gewartet',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir warten auf den Bus.',
+    exampleAr: 'نحن ننتظر الحافلة.'
+  },
+  {
+    id: 'v-extra-82',
+    type: 'verb',
+    level: 'A2',
+    de: 'beginnen',
+    ar: 'يبدأ',
+    conjugations: {
+      ich: 'beginne',
+      du: 'beginnst',
+      er: 'beginnt',
+      wir: 'beginnen',
+      ihr: 'beginnt',
+      sie: 'beginnen',
+      präteritum: 'begann',
+      perfekt: 'begonnen',
+      aux: 'haben'
+    },
+    exampleDe: 'Der Unterricht beginnt um acht Uhr.',
+    exampleAr: 'الحصة تبدأ في الساعة الثامنة.'
+  },
+  {
+    id: 'v-extra-83',
+    type: 'verb',
+    level: 'A2',
+    de: 'tragen',
+    ar: 'يحمل / يرتدي',
+    conjugations: {
+      ich: 'trage',
+      du: 'trägst',
+      er: 'trägt',
+      wir: 'tragen',
+      ihr: 'tragt',
+      sie: 'tragen',
+      präteritum: 'trug',
+      perfekt: 'getragen',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie trägt eine rote Jacke.',
+    exampleAr: 'هي ترتدي سترة حمراء.'
+  },
+  {
+    id: 'v-extra-84',
+    type: 'verb',
+    level: 'A1',
+    de: 'legen',
+    ar: 'يضع',
+    conjugations: {
+      ich: 'lege',
+      du: 'legst',
+      er: 'legt',
+      wir: 'legen',
+      ihr: 'legt',
+      sie: 'legen',
+      präteritum: 'legte',
+      perfekt: 'gelegt',
+      aux: 'haben'
+    },
+    exampleDe: 'Leg das Buch auf den Tisch.',
+    exampleAr: 'ضع الكتاب على الطاولة.'
+  },
+  {
+    id: 'v-extra-85',
+    type: 'verb',
+    level: 'A2',
+    de: 'kennen',
+    ar: 'يعرف (شخصاً أو مكاناً)',
+    conjugations: {
+      ich: 'kenne',
+      du: 'kennst',
+      er: 'kennt',
+      wir: 'kennen',
+      ihr: 'kennt',
+      sie: 'kennen',
+      präteritum: 'kannte',
+      perfekt: 'gekannt',
+      aux: 'haben'
+    },
+    exampleDe: 'Kennst du diese Stadt?',
+    exampleAr: 'هل تعرف هذه المدينة؟'
+  },
+  {
+    id: 'v-extra-86',
+    type: 'noun',
+    level: 'A1',
+    de: 'Lehrer',
+    ar: 'معلم',
+    article: 'der',
+    plural: 'Lehrer',
+    exampleDe: 'Der Lehrer erklärt die Grammatik.',
+    exampleAr: 'المعلم يشرح القواعد.'
+  },
+  {
+    id: 'v-extra-87',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schülerin',
+    ar: 'تلميذة',
+    article: 'die',
+    plural: 'Schülerinnen',
+    exampleDe: 'Die Schülerin lernt fleißig.',
+    exampleAr: 'التلميذة تتعلم باجتهاد.'
+  },
+  {
+    id: 'v-extra-88',
+    type: 'noun',
+    level: 'A2',
+    de: 'Arzt',
+    ar: 'طبيب',
+    article: 'der',
+    plural: 'Ärzte',
+    exampleDe: 'Der Arzt arbeitet im Krankenhaus.',
+    exampleAr: 'الطبيب يعمل في المستشفى.'
+  },
+  {
+    id: 'v-extra-89',
+    type: 'noun',
+    level: 'A2',
+    de: 'Krankenhaus',
+    ar: 'مستشفى',
+    article: 'das',
+    plural: 'Krankenhäuser',
+    exampleDe: 'Das Krankenhaus ist groß und modern.',
+    exampleAr: 'المستشفى كبير وحديث.'
+  },
+  {
+    id: 'v-extra-90',
+    type: 'noun',
+    level: 'A2',
+    de: 'Apotheke',
+    ar: 'صيدلية',
+    article: 'die',
+    plural: 'Apotheken',
+    exampleDe: 'Ich kaufe Medikamente in der Apotheke.',
+    exampleAr: 'أشتري الدواء من الصيدلية.'
+  },
+  {
+    id: 'v-extra-91',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bäckerei',
+    ar: 'مخبز',
+    article: 'die',
+    plural: 'Bäckereien',
+    exampleDe: 'Die Bäckerei hat frisches Brot.',
+    exampleAr: 'المخبز لديه خبز طازج.'
+  },
+  {
+    id: 'v-extra-92',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bus',
+    ar: 'حافلة',
+    article: 'der',
+    plural: 'Busse',
+    exampleDe: 'Der Bus kommt in fünf Minuten.',
+    exampleAr: 'الحافلة تصل بعد خمس دقائق.'
+  },
+  {
+    id: 'v-extra-93',
+    type: 'noun',
+    level: 'A1',
+    de: 'Zug',
+    ar: 'قطار',
+    article: 'der',
+    plural: 'Züge',
+    exampleDe: 'Wir fahren mit dem Zug nach Berlin.',
+    exampleAr: 'نسافر بالقطار إلى برلين.'
+  },
+  {
+    id: 'v-extra-94',
+    type: 'noun',
+    level: 'A2',
+    de: 'Fahrrad',
+    ar: 'دراجة',
+    article: 'das',
+    plural: 'Fahrräder',
+    exampleDe: 'Ich fahre mit dem Fahrrad zur Arbeit.',
+    exampleAr: 'أذهب إلى العمل بالدراجة.'
+  },
+  {
+    id: 'v-extra-95',
+    type: 'noun',
+    level: 'A1',
+    de: 'Platz',
+    ar: 'ساحة / مكان',
+    article: 'der',
+    plural: 'Plätze',
+    exampleDe: 'Der Marktplatz ist voller Menschen.',
+    exampleAr: 'ساحة السوق مليئة بالناس.'
+  },
+  {
+    id: 'v-extra-96',
+    type: 'noun',
+    level: 'A2',
+    de: 'Kirche',
+    ar: 'كنيسة',
+    article: 'die',
+    plural: 'Kirchen',
+    exampleDe: 'Die Kirche ist im Zentrum der Stadt.',
+    exampleAr: 'الكنيسة في وسط المدينة.'
+  },
+  {
+    id: 'v-extra-97',
+    type: 'noun',
+    level: 'A2',
+    de: 'Moschee',
+    ar: 'مسجد',
+    article: 'die',
+    plural: 'Moscheen',
+    exampleDe: 'Die Moschee öffnet früh am Morgen.',
+    exampleAr: 'المسجد يفتح مبكراً في الصباح.'
+  },
+  {
+    id: 'v-extra-98',
+    type: 'noun',
+    level: 'A1',
+    de: 'Markt',
+    ar: 'سوق',
+    article: 'der',
+    plural: 'Märkte',
+    exampleDe: 'Am Samstag gehen wir auf den Markt.',
+    exampleAr: 'يوم السبت نذهب إلى السوق.'
+  },
+  {
+    id: 'v-extra-99',
+    type: 'noun',
+    level: 'A2',
+    de: 'Straße',
+    ar: 'شارع',
+    article: 'die',
+    plural: 'Straßen',
+    exampleDe: 'Die Straße ist sehr laut.',
+    exampleAr: 'الشارع صاخب جداً.'
+  },
+  {
+    id: 'v-extra-100',
+    type: 'noun',
+    level: 'A1',
+    de: 'Haus',
+    ar: 'بيت / منزل',
+    article: 'das',
+    plural: 'Häuser',
+    exampleDe: 'Unser Haus hat einen großen Garten.',
+    exampleAr: 'منزلنا لديه حديقة كبيرة.'
   }
 ];
