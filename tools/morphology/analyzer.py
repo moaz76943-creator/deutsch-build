@@ -27,10 +27,16 @@ class TurkishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        evaluations = 0
+
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            nonlocal evaluations
+            evaluations += 1
             if len(results) >= analyzer.max_results:
                 return
             if depth > analyzer.max_recursion_depth:
+                return
+            if evaluations > analyzer.max_evaluations:
                 return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
@@ -48,16 +54,30 @@ class TurkishProfile(LanguageProfile):
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
         back_vowels = set("aıouAIOU")
         front_vowels = set("eiöüEİÖÜ")
+        round_vowels = set("ouöüOUÖÜ")
+        unround_vowels = set("aeıiAEIİ")
+
         stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
         suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
         if not stem_vowels or not suffix_vowels:
             return True
+
         last_stem_vowel = stem_vowels[-1]
         first_suffix_vowel = suffix_vowels[0]
+
+        # 2-way harmony (a, e)
         if last_stem_vowel in back_vowels and first_suffix_vowel in front_vowels:
             return False
         if last_stem_vowel in front_vowels and first_suffix_vowel in back_vowels:
             return False
+
+        # 4-way harmony (ı, i, u, ü) for high vowel suffixes
+        if first_suffix_vowel in set("ıiuüIİUÜ"):
+            if last_stem_vowel in unround_vowels and first_suffix_vowel in round_vowels:
+                return False
+            if last_stem_vowel in round_vowels and first_suffix_vowel in unround_vowels:
+                return False
+
         return True
 
 class FinnishProfile(LanguageProfile):
@@ -71,10 +91,16 @@ class FinnishProfile(LanguageProfile):
 
     def analyze(self, word: str, analyzer: 'MorphologyAnalyzer') -> List[AnalysisResult]:
         results = []
+        evaluations = 0
+
         def decompose(current_word: str, current_tags: List[str], depth: int):
+            nonlocal evaluations
+            evaluations += 1
             if len(results) >= analyzer.max_results:
                 return
             if depth > analyzer.max_recursion_depth:
+                return
+            if evaluations > analyzer.max_evaluations:
                 return
 
             for nom in analyzer.lookup_nominal_lemma(current_word):
@@ -92,12 +118,16 @@ class FinnishProfile(LanguageProfile):
     def _check_vowel_harmony(self, stem: str, suffix: str) -> bool:
         back_vowels = set("aouAOU")
         front_vowels = set("äöyÄÖY")
-        stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels]
+        neutral_vowels = set("eiEI")
+
+        stem_vowels = [c for c in stem if c in back_vowels or c in front_vowels or c in neutral_vowels]
         suffix_vowels = [c for c in suffix if c in back_vowels or c in front_vowels]
         if not stem_vowels or not suffix_vowels:
             return True
+
         has_back = any(v in back_vowels for v in stem_vowels)
         has_front = any(v in front_vowels for v in stem_vowels)
+
         suffix_has_back = any(v in back_vowels for v in suffix_vowels)
         suffix_has_front = any(v in front_vowels for v in suffix_vowels)
 
@@ -105,6 +135,7 @@ class FinnishProfile(LanguageProfile):
             return False
         if has_front and not has_back and suffix_has_back:
             return False
+
         return True
 
 class GermanProfile(LanguageProfile):
@@ -116,31 +147,51 @@ class GermanProfile(LanguageProfile):
         for nf in analyzer.lookup_nominal_form(word):
             results.append(AnalysisResult(word, nf['lemma'], nf['id'], nf['part_of_speech'], [nf['grammatical_case'], nf['number'], nf['definiteness']]))
 
+        # Participles
         if word.startswith("ge") and word.endswith("t"):
             stem = word[2:-1]
             if len(stem) > 0:
-                for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
-                for v in analyzer.lookup_verb_lemma(stem + "n"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+                for v in analyzer.lookup_verb_lemma(stem + "en") + analyzer.lookup_verb_lemma(stem + "n"):
+                    # Weak verbs have regular past tense forms (typically ending in 'te', 'test', 'ten', 'tet').
+                    # We consider a verb weak if ALL its past forms end with these suffixes, or if we don't have past forms, we might assume weak.
+                    # But the task says "consider a verb strong if it has an irregular past tense entry in the DB; otherwise, it is weak (taking ge...t)".
+                    past_forms = analyzer._query_all("SELECT conjugated_form FROM verb_conjugations WHERE verb_id = ? AND tense = 'past'", (v['verb_id'],))
+
+                    is_strong = False
+                    if past_forms:
+                        for f in past_forms:
+                            form = f['conjugated_form']
+                            if not (form.endswith("te") or form.endswith("test") or form.endswith("ten") or form.endswith("tet")):
+                                is_strong = True
+                                break
+
+                    if not is_strong:
+                        results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
 
         if word.startswith("ge") and word.endswith("en"):
             stem = word[2:-2]
             if len(stem) > 0:
+                # Strong verbs form participle with ge...en
                 for v in analyzer.lookup_verb_lemma(stem + "en"):
-                    results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+                    past_forms = analyzer._query_all("SELECT conjugated_form FROM verb_conjugations WHERE verb_id = ? AND tense = 'past'", (v['verb_id'],))
 
-        if word.endswith("n"):
-            stem1 = word[:-1]
-            if len(stem1) > 0:
-                for n in analyzer.lookup_nominal_form(stem1):
-                    if n['number'] == 'pl':
-                        results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
-        if word.endswith("en"):
-            stem2 = word[:-2]
-            if len(stem2) > 0:
-                for n in analyzer.lookup_nominal_form(stem2):
-                    if n['number'] == 'pl':
+                    is_strong = False
+                    if past_forms:
+                        for f in past_forms:
+                            form = f['conjugated_form']
+                            if not (form.endswith("te") or form.endswith("test") or form.endswith("ten") or form.endswith("tet")):
+                                is_strong = True
+                                break
+
+                    if is_strong:
+                        results.append(AnalysisResult(word, v['infinitive'], v['verb_id'], 'verb', ["PART_PERF"]))
+
+        # Dative Plural: Nouns in dat pl get an extra 'n' if they don't already end in 'n' or 's' in nom pl
+        if word.endswith("n") and not word.endswith("nn") and not word.endswith("sn"):
+            stem = word[:-1]
+            if len(stem) > 0 and not stem.endswith("n") and not stem.endswith("s"):
+                for n in analyzer.lookup_nominal_form(stem):
+                    if n['number'] == 'pl' and n['grammatical_case'] == 'nom':
                         results.append(AnalysisResult(word, n['lemma'], n['id'], n['part_of_speech'], ["DAT", "PL"]))
 
         return results
@@ -153,6 +204,7 @@ class MorphologyAnalyzer:
         self.profile = profile
         self.max_recursion_depth = 4
         self.max_results = 50
+        self.max_evaluations = 500
 
     def close(self):
         for db in self.dbs:

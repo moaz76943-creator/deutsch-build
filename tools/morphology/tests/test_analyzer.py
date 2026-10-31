@@ -27,9 +27,11 @@ class TestAnalyzer(unittest.TestCase):
         self.ndb.close()
         self.tmp_dir.cleanup()
 
+
     def test_turkish_agglutinative(self):
         self.ndb.execute("INSERT INTO nominals VALUES ('ev1', 'ev', 'noun', 'none', 'sg')")
         self.ndb.execute("INSERT INTO nominals VALUES ('araba1', 'araba', 'noun', 'none', 'sg')")
+        self.ndb.execute("INSERT INTO nominals VALUES ('göz', 'göz', 'noun', 'none', 'sg')")
         self.ndb.commit()
 
         tr = get_profile("tr")
@@ -43,6 +45,17 @@ class TestAnalyzer(unittest.TestCase):
         # Test vowel harmony restriction
         res2 = analyzer.analyze("arabaler")
         self.assertEqual(len(res2), 0)
+
+        # 4-way harmony
+        res3 = analyzer.analyze("gözümüz")
+        self.assertEqual(len(res3), 1)
+        self.assertEqual(res3[0].lemma, "göz")
+
+        # false 4-way match
+        res4 = analyzer.analyze("gözümüz") # Wait, is "gözümüz" valid? 'göz' has 'ö' (round front). 'ümüz' has 'ü' (round front). Yes.
+        # "gözımız" is false. Let's check "gözımız". 'ı' is unround back.
+        res5 = analyzer.analyze("gözımız")
+        self.assertEqual(len(res5), 0)
 
         analyzer.close()
 
