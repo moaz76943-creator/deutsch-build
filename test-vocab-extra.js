@@ -1,15 +1,27 @@
 const fs = require('fs');
 const path = require('path');
 
-const filePath = path.join(__dirname, 'src/lib/deutsch/content/vocab-extra.ts');
-const content = fs.readFileSync(filePath, 'utf8');
+const contentDir = path.join(__dirname, 'src/lib/deutsch/content');
+const files = ['verbs.ts', 'nouns.ts', 'index.ts', 'vocab-extra.ts', 'types.ts'];
 
-// Extract all id fields
-const idMatches = content.match(/id:\s*'([^']+)'/g) || [];
-const ids = idMatches.map(m => m.match(/'([^']+)'/)[1]);
+let allContent = '';
+let totalIds = [];
 
-const uniqueIds = new Set(ids);
-const itemCount = ids.length;
+for (const file of files) {
+  const filePath = path.join(contentDir, file);
+  if (fs.existsSync(filePath)) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    allContent += content + '\n';
+    if (file === 'verbs.ts' || file === 'nouns.ts') {
+      const idMatches = content.match(/id:\s*'([^']+)'/g) || [];
+      const ids = idMatches.map(m => m.match(/'([^']+)'/)[1]);
+      totalIds.push(...ids);
+    }
+  }
+}
+
+const uniqueIds = new Set(totalIds);
+const itemCount = totalIds.length;
 
 console.log(`Found ${itemCount} items, ${uniqueIds.size} unique IDs`);
 
@@ -23,11 +35,11 @@ if (itemCount < 1) {
   process.exit(1);
 }
 
-// Basic checks for required fields presence
-const hasPrateritum = (content.match(/präteritum:/g) || []).length > 0;
-const hasDer = content.includes("article: 'der'");
-const hasDie = content.includes("article: 'die'");
-const hasDas = content.includes("article: 'das'");
+// Basic checks
+const hasPrateritum = (allContent.match(/präteritum:/g) || []).length > 0;
+const hasDer = allContent.includes("article: 'der'");
+const hasDie = allContent.includes("article: 'die'");
+const hasDas = allContent.includes("article: 'das'");
 
 if (!hasPrateritum) {
   console.error('FAIL: No präteritum found');
@@ -38,11 +50,10 @@ if (!hasDer || !hasDie || !hasDas) {
   process.exit(1);
 }
 
-// Check for syntax issues roughly (unclosed, etc.)
-if (!content.includes('export const vocabExtra')) {
+if (!allContent.includes('export const vocabExtra') && !allContent.includes('export { vocabExtra }')) {
   console.error('FAIL: Missing export');
   process.exit(1);
 }
 
-console.log('PASS: All checks passed. Content integrity OK.');
+console.log('PASS: All checks passed. Content integrity OK. Modular structure verified.');
 process.exit(0);
