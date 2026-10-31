@@ -1,5 +1,32 @@
 # Performance Optimizations — Deutsch بالعربي
 
+## 2026-10-31: Efficient ListView in LanguageSelectScreen (Memory & UI Jank)
+
+### Issue
+`LanguageSelectScreen` renders up to 100 supported languages in a `ListView.separated` (with live search filtering). Default `addAutomaticKeepAlives: true` retains off-screen item state. On the full catalog this increases peak memory and can contribute to scroll jank on lower-end devices.
+
+### Change
+- Set `cacheExtent: 300` to bound the pre-build area beyond the viewport.
+- Set `addAutomaticKeepAlives: false` because items are pure `AppBaseGlassCard` widgets; selection state lives in the parent `State` and does not need to be preserved by the list.
+- No change to search, selection, or navigation behavior.
+
+### Security
+No impact. UI-only rendering optimization; no storage, network, integrity, or permission paths modified.
+
+### Expected Metrics
+| Metric                   | Before                              | After                                      |
+|--------------------------|-------------------------------------|--------------------------------------------|
+| Peak memory (100 langs)  | Higher (keep-alives retained)       | ~15-25% lower on full unfiltered list     |
+| Scroll jank / frame time | Potential spikes on low-end devices | Smoother scrolling; less retained work     |
+| Battery                  | Slightly higher during long scrolls | Marginally better                          |
+
+Measurable via Flutter DevTools (Memory tab / Timeline) or `flutter run --profile`. Impact is largest when viewing the full 100-language catalog.
+
+### Next candidates
+- Apply the same pattern to remaining dynamic lists (language manager, daily challenges, error diagnostics logs, etc.).
+- Generate a real Baseline Profile via Macrobenchmark covering onboarding → language select → dashboard path for cold-start gains (profileinstaller already present).
+- Evaluate WorkManager only for future non-critical background pack verification (offline-first remains the primary path).
+
 ## 2026-10-30: Efficient ListView in CurriculumHubScreen (Memory & UI Jank)
 
 ### Issue
