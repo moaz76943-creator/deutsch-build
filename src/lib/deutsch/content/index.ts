@@ -1,5 +1,5 @@
 // Combined offline vocab for Deutsch بالعربي
-// Modular structure: easier to extend, test, and maintain
+// Modular structure + repository for speed, quality, and ease of development
 // Auth/DB remain OFF.
 
 import { items as verbItems } from './verbs';
@@ -9,3 +9,4 @@ import type { VocabExtraItem } from './types';
 export const vocabExtra: VocabExtraItem[] = [...verbItems, ...nounItems];
 
 export type { VocabExtraItem, VerbConjugation } from './types';
+export { vocabRepository, VocabRepository } from './repository';
