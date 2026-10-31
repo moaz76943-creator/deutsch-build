@@ -93,4 +93,7 @@ flutter {
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'
+    // Enables Baseline Profiles for AOT compilation of critical startup paths.
+    // Does not weaken security; purely a performance optimization.
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
 }
