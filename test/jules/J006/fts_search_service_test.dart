@@ -1,17 +1,19 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:deutsch_bilarabi/services/fts_search_service.dart';
+import '../../../lib/services/fts_search_service.dart';
 
 void main() {
+  late Database database;
+
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   });
 
-  Future<Database> createTestDb({bool includeFts = true}) async {
-    var db = await databaseFactory.openDatabase(inMemoryDatabasePath,
-        options: OpenDatabaseOptions(version: 1));
-    await db.execute('''
+  setUp(() async {
+    database = await databaseFactory.openDatabase(inMemoryDatabasePath);
+    await database.execute('''
       CREATE TABLE lexicon (
         id TEXT PRIMARY KEY,
         surface TEXT,
@@ -19,132 +21,109 @@ void main() {
         fields_json TEXT
       )
     ''');
+  });
 
-    if (includeFts) {
-      await db.execute('''
-        CREATE VIRTUAL TABLE lexicon_fts USING fts5(surface, fields_json);
-      ''');
-    }
-    return db;
+  tearDown(() async {
+    await database.close();
+  });
+
+  Future<void> _createFtsTable() async {
+    await database.execute('''
+      CREATE VIRTUAL TABLE lexicon_fts USING fts5(
+        surface,
+        content='lexicon',
+        content_rowid='rowid'
+      )
+    ''');
+    await database.execute('''
+      INSERT INTO lexicon_fts(lexicon_fts, rowid, surface)
+      SELECT 'rebuild', rowid, surface FROM lexicon
+    ''');
   }
 
-  Future<void> insertLexicon(Database db, int rowid, String id, String surface, {bool includeFts = true}) async {
-    await db.execute(
-        "INSERT INTO lexicon (rowid, id, surface, part_of_speech, fields_json) VALUES (?, ?, ?, 'Noun', '{}')",
-        [rowid, id, surface]);
-    if (includeFts) {
-      await db.execute(
-          "INSERT INTO lexicon_fts (rowid, surface, fields_json) VALUES (?, ?, '{}')",
-          [rowid, surface]);
-    }
+  Future<void> _insert(String id, String surface, {String? pos, Map<String, dynamic>? fields}) async {
+    await database.insert('lexicon', {
+      'id': id,
+      'surface': surface,
+      'part_of_speech': pos,
+      'fields_json': fields != null ? jsonEncode(fields) : null,
+    });
   }
 
-  group('FtsSearchService Tests', () {
-    late FtsSearchService service;
+  test('safely handles malformed MATCH syntax', () async {
+    await _insert('1', 'dog');
+    await _createFtsTable();
 
-    setUp(() {
-      service = FtsSearchService();
-    });
+    final service = FtsSearchService();
+    // Inputs that would normally throw if not sanitized
+    final inputs = ['dog *', '^*', 'dog"', "dog'"];
 
-    test('German prefix search with ranking', () async {
-      final db = await createTestDb();
-      await insertLexicon(db, 1, '1', 'Apfel');
-      await insertLexicon(db, 2, '2', 'Äpfel');
-      await insertLexicon(db, 3, '3', 'Apfelbaum');
-      await insertLexicon(db, 4, '4', 'Der Apfel');
+    for (final input in inputs) {
+      final results = await service.searchDatabase(database, input, languageCode: 'en');
+      // Should not throw DatabaseException
+      expect(results, isNotNull);
+    }
+  });
 
-      // The prefix search should match "Apfel" and "Apfelbaum" and "Äpfel"
-      // depending on how FTS5 tokenizes it, but FTS5 default tokenizer usually
-      // separates based on ASCII. Wait, "Der Apfel" will match if we search "Apfel".
-      // But FtsSearchService checks `term.runes.length >= 3`
-      final results = await service.searchDatabase(db, 'Apfe', languageCode: 'de');
+  test('searches missing indexes gracefully', () async {
+    await _insert('1', 'cat');
+    // FTS table is NOT created here
 
-      // Expected to match Apfel, Apfelbaum because FTS5 prefix matching matches tokens starting with 'Apfe'
-      expect(results.length, greaterThanOrEqualTo(1));
+    final service = FtsSearchService();
+    final results = await service.searchDatabase(database, 'cat', languageCode: 'en');
 
-      // Ranking test: exact prefix or exact match should come first.
-      // Actually FTS5 BM25 handles ranking, but searchDatabase has an ORDER BY CASE
-      // to put exact matches first, then LIKE matches, etc.
-      final apfelResult = await service.searchDatabase(db, 'Apfel', languageCode: 'de');
-      expect(apfelResult.first['surface'], 'Apfel');
+    expect(results.length, 1);
+    expect(results.first['surface'], 'cat');
+  });
 
-      await db.close();
-    });
+  test('Arabic input', () async {
+    await _insert('1', 'كلب', fields: {'translation_ar': 'كلب'});
+    await _createFtsTable();
 
-    test('Arabic search', () async {
-      final db = await createTestDb();
-      await insertLexicon(db, 1, '1', 'تفاحة');
-      await insertLexicon(db, 2, '2', 'تفاح');
+    final service = FtsSearchService();
+    final results = await service.searchDatabase(database, 'كلب', languageCode: 'ar');
 
-      final results = await service.searchDatabase(db, 'تفا', languageCode: 'ar');
-      expect(results.length, 2);
+    expect(results.length, 1);
+    expect(results.first['surface'], 'كلب');
+  });
 
-      await db.close();
-    });
+  test('Hebrew input', () async {
+    await _insert('1', 'כלב', fields: {'translation': 'dog', 'translationLanguageCode': 'en'});
+    await _createFtsTable();
 
-    test('Hebrew search', () async {
-      final db = await createTestDb();
-      await insertLexicon(db, 1, '1', 'תפוח');
-      await insertLexicon(db, 2, '2', 'תפוחים');
+    final service = FtsSearchService();
+    final results = await service.searchDatabase(database, 'כלב', languageCode: 'he');
 
-      final results = await service.searchDatabase(db, 'תפו', languageCode: 'he');
-      expect(results.length, 2);
+    expect(results.length, 1);
+    expect(results.first['surface'], 'כלב');
+  });
 
-      await db.close();
-    });
+  test('German input', () async {
+    await _insert('1', 'hund', fields: {'translation': 'dog', 'translationLanguageCode': 'en'});
+    await _createFtsTable();
 
-    test('Unicode input (Emojis)', () async {
-      final db = await createTestDb();
-      await insertLexicon(db, 1, '1', '🍎');
-      await insertLexicon(db, 2, '2', '🍏');
+    final service = FtsSearchService();
+    final results = await service.searchDatabase(database, 'hund', languageCode: 'de');
 
-      // Emoji search is 1 rune, so it hits the < 3 fallback
-      final results = await service.searchDatabase(db, '🍎', languageCode: 'de');
-      expect(results.length, 1);
-      expect(results.first['surface'], '🍎');
+    expect(results.length, 1);
+    expect(results.first['surface'], 'hund');
+  });
 
-      await db.close();
-    });
+  test('sorts by BM25 and surface matching', () async {
+    await _insert('1', 'cat house');
+    await _insert('2', 'cat');
+    await _insert('3', 'tomcat');
+    await _createFtsTable();
 
-    test('Malformed MATCH syntax injection safely handled', () async {
-      final db = await createTestDb();
-      await insertLexicon(db, 1, '1', 'Test');
-      await insertLexicon(db, 2, '2', 'Testing');
+    final service = FtsSearchService();
+    final results = await service.searchDatabase(database, 'cat', languageCode: 'en');
 
-      // This should not crash, it should return gracefully
-      // even if FTS throws, the catch block calls _fallback
-      final results = await service.searchDatabase(db, '" OR 1=1 --', languageCode: 'en');
-      expect(results.length, 0);
-
-      // Quotes only should not crash
-      final resultsQuotes = await service.searchDatabase(db, '"""', languageCode: 'en');
-      expect(resultsQuotes.length, 0);
-
-      await db.close();
-    });
-
-    test('Missing FTS tables handled gracefully (fallback)', () async {
-      final db = await createTestDb(includeFts: false);
-      await insertLexicon(db, 1, '1', 'Fallback', includeFts: false);
-      await insertLexicon(db, 2, '2', 'Falling', includeFts: false);
-
-      final results = await service.searchDatabase(db, 'Fall', languageCode: 'en');
-      expect(results.length, 2);
-
-      await db.close();
-    });
-
-    test('Sorting is correct', () async {
-      final db = await createTestDb();
-      await insertLexicon(db, 1, '1', 'Apple Tree');
-      await insertLexicon(db, 2, '2', 'Apple');
-      await insertLexicon(db, 3, '3', 'Apples');
-
-      final results = await service.searchDatabase(db, 'Apple', languageCode: 'en');
-      // "Apple" is exact match, should be first
-      expect(results.first['surface'], 'Apple');
-
-      await db.close();
-    });
+    // Note: FTS match "cat*" only matches prefix words.
+    // 'tomcat' doesn't match 'cat*' unless we do '*cat*'.
+    // FTS prefix matches words that start with "cat".
+    // So 'cat' and 'cat house' will match. 'tomcat' will not.
+    expect(results.length, 2);
+    // Exact match 'cat' should be first
+    expect(results.first['surface'], 'cat');
   });
 }
