@@ -14,8 +14,6 @@ class DirectedPairId {
   String get uniqueKey => '${sourceLocale}_${targetLocale}_$semanticVersion';
 
   bool get isReflexive => sourceLocale == targetLocale;
-<<<<<<< HEAD
-
   bool isValidForLearning() =>
       !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
 
@@ -69,7 +67,4 @@ class DirectedPairId {
       throw FormatException('Invalid DirectedPairId format: $serialized');
     }
   }
-=======
-  bool isValidForLearning() => !isReflexive && sourceLocale.isNotEmpty && targetLocale.isNotEmpty;
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 }
