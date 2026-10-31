@@ -1,12 +1,28 @@
 import 'dart:async';
 
+class WorkerQueueExhaustedException implements Exception {
+  const WorkerQueueExhaustedException(this.message);
+  final String message;
+
+  @override
+  String toString() => 'WorkerQueueExhaustedException: $message';
+}
+
 /// Master Constitution Section 10 Compliant CPU Worker:
 /// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
 /// execution timeout watchdog, and safe resource disposal to prevent leaks.
 class PersistentCpuWorker {
+  PersistentCpuWorker({this.maxQueueSize = 50, this.maxConcurrentTasks = 2});
+
+  final int maxQueueSize;
+  final int maxConcurrentTasks;
+
   int _activeGeneration = 0;
   bool _isDisposed = false;
-  Completer<dynamic>? _pendingCompleter;
+
+  int _activeTasks = 0;
+  final List<Future<void> Function()> _queue = [];
+  final Set<Completer<dynamic>> _activeCompleters = {};
 
   int get currentGeneration => _activeGeneration;
   bool get isDisposed => _isDisposed;
@@ -15,42 +31,82 @@ class PersistentCpuWorker {
   Future<T?> executeTask<T>({
     required Future<T> Function() computation,
     Duration timeout = const Duration(seconds: 5),
-  }) async {
+  }) {
     if (_isDisposed) {
       throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
     }
 
-    final generation = ++_activeGeneration;
-    final completer = Completer<T?>();
-    _pendingCompleter = completer;
+    if (_activeTasks + _queue.length >= maxQueueSize) {
+      throw WorkerQueueExhaustedException(
+        'Exceeded max queue size of $maxQueueSize',
+      );
+    }
 
-    try {
-      final result = await computation().timeout(timeout, onTimeout: () {
-        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
-      });
+    final generation = _activeGeneration;
+    final taskCompleter = Completer<T?>();
+    _activeCompleters.add(taskCompleter);
 
-      // Latest-Wins policy: drop result if generation has advanced
+    _queue.add(() async {
       if (_isDisposed || generation != _activeGeneration) {
-        return null;
+        _activeCompleters.remove(taskCompleter);
+        if (!taskCompleter.isCompleted) taskCompleter.complete(null);
+        return;
       }
 
-      completer.complete(result);
-      return result;
-    } catch (e, st) {
-      if (generation == _activeGeneration && !completer.isCompleted) {
-        completer.completeError(e, st);
+      _activeTasks++;
+      try {
+        final result = await computation().timeout(
+          timeout,
+          onTimeout: () {
+            throw TimeoutException(
+              'CPU task timed out after ${timeout.inSeconds}s (Gen $generation)',
+            );
+          },
+        );
+
+        if (_isDisposed || generation != _activeGeneration) {
+          if (!taskCompleter.isCompleted) taskCompleter.complete(null);
+        } else {
+          if (!taskCompleter.isCompleted) taskCompleter.complete(result);
+        }
+      } catch (e, st) {
+        if (generation == _activeGeneration && !taskCompleter.isCompleted) {
+          taskCompleter.completeError(e, st);
+        }
+      } finally {
+        _activeCompleters.remove(taskCompleter);
+        _activeTasks--;
+        _processQueue();
       }
-      return null;
+    });
+
+    _processQueue();
+
+    return taskCompleter.future;
+  }
+
+  void _processQueue() {
+    if (_isDisposed) {
+      _queue.clear();
+      return;
+    }
+    while (_activeTasks < maxConcurrentTasks && _queue.isNotEmpty) {
+      final task = _queue.removeAt(0);
+      task();
     }
   }
 
   /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
   void cancelActiveOperations() {
     _activeGeneration++;
-    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
-      _pendingCompleter!.complete(null);
-      _pendingCompleter = null;
+
+    for (final completer in _activeCompleters) {
+      if (!completer.isCompleted) {
+        completer.complete(null);
+      }
     }
+    _activeCompleters.clear();
+    _queue.clear();
   }
 
   /// Safe disposal freeing all worker references and cancelling subscriptions
