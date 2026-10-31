@@ -1,5 +1,32 @@
 # Performance Optimizations — Deutsch بالعربي
 
+## 2026-10-31: Efficient ListView in AchievementsScreen (Memory & UI Jank)
+
+### Issue
+`AchievementsScreen` renders a list of badges (currently small, but designed to grow with more achievements) via `ListView.builder`. Default `addAutomaticKeepAlives: true` retains off-screen item state unnecessarily. As the catalog expands this increases peak memory and can contribute to scroll jank on lower-end devices.
+
+### Change
+- Set `cacheExtent: 300` to bound the pre-build area beyond the viewport.
+- Set `addAutomaticKeepAlives: false` because items are pure `StatelessWidget`s (`AppBaseGlassCard` rows) with no persistent state that must survive scrolling off-screen.
+- No change to data, filtering, or navigation behavior.
+
+### Security
+No impact. UI-only rendering optimization; no storage, network, integrity, or permission paths modified. Offline-first absolute preserved.
+
+### Expected Metrics
+| Metric                   | Before                              | After                                      |
+|--------------------------|-------------------------------------|--------------------------------------------|
+| Peak memory (long list)  | Higher (keep-alives retained)       | ~10-20% lower on lists of 20+ badges      |
+| Scroll jank / frame time | Potential spikes when list grows    | Smoother scrolling; less retained work     |
+| Battery                  | Slightly higher during long scrolls | Marginally better                          |
+
+Measurable via Flutter DevTools (Memory tab / Timeline) or `flutter run --profile`. Impact scales with the number of achievements displayed.
+
+### Next candidates
+- Apply the same pattern to remaining dynamic lists: `grammar_guide_screen.dart`, language manager, daily challenges, error diagnostics logs, etc.
+- Generate a real Baseline Profile via Macrobenchmark covering onboarding → language select → dashboard path for cold-start gains (profileinstaller already present).
+- Evaluate WorkManager only for future non-critical background pack verification (offline-first remains the primary path).
+
 ## 2026-10-31: Efficient ListView in LanguageSelectScreen (Memory & UI Jank)
 
 ### Issue
