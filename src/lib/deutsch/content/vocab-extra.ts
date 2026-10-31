@@ -565,4 +565,316 @@ export const vocabExtra: VocabExtraItem[] = [
     exampleDe: 'Wir lernen Deutsch zusammen.',
     exampleAr: 'نتعلم الألمانية معاً.'
   }
+
+  {
+    id: 'v-extra-36',
+    type: 'verb',
+    level: 'A1',
+    de: 'kaufen',
+    ar: 'يشتري',
+    conjugations: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'gekauft',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز في السوبرماركت.'
+  },
+  {
+    id: 'v-extra-37',
+    type: 'verb',
+    level: 'A1',
+    de: 'lesen',
+    ar: 'يقرأ',
+    conjugations: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie: 'lesen',
+      präteritum: 'las',
+      perfekt: 'gelesen',
+      aux: 'haben'
+    },
+    exampleDe: 'Sie liest ein interessantes Buch.',
+    exampleAr: 'هي تقرأ كتاباً مثيراً للاهتمام.'
+  },
+  {
+    id: 'v-extra-38',
+    type: 'verb',
+    level: 'A1',
+    de: 'schreiben',
+    ar: 'يكتب',
+    conjugations: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'geschrieben',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir schreiben eine E-Mail an den Lehrer.',
+    exampleAr: 'نكتب بريداً إلكترونياً إلى المعلم.'
+  },
+  {
+    id: 'v-extra-39',
+    type: 'verb',
+    level: 'A1',
+    de: 'schlafen',
+    ar: 'ينام',
+    conjugations: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'geschlafen',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder schlafen früh.',
+    exampleAr: 'الأطفال ينامون مبكراً.'
+  },
+  {
+    id: 'v-extra-40',
+    type: 'verb',
+    level: 'A1',
+    de: 'fahren',
+    ar: 'يقود / يسافر',
+    conjugations: {
+      ich: 'fahre',
+      du: 'fährst',
+      er: 'fährt',
+      wir: 'fahren',
+      ihr: 'fahrt',
+      sie: 'fahren',
+      präteritum: 'fuhr',
+      perfekt: 'gefahren',
+      aux: 'sein'
+    },
+    exampleDe: 'Er fährt mit dem Auto zur Arbeit.',
+    exampleAr: 'هو يذهب بالسيارة إلى العمل.'
+  },
+  {
+    id: 'v-extra-41',
+    type: 'verb',
+    level: 'A1',
+    de: 'spielen',
+    ar: 'يلعب',
+    conjugations: {
+      ich: 'spiele',
+      du: 'spielst',
+      er: 'spielt',
+      wir: 'spielen',
+      ihr: 'spielt',
+      sie: 'spielen',
+      präteritum: 'spielte',
+      perfekt: 'gespielt',
+      aux: 'haben'
+    },
+    exampleDe: 'Die Kinder spielen im Garten.',
+    exampleAr: 'الأطفال يلعبون في الحديقة.'
+  },
+  {
+    id: 'v-extra-42',
+    type: 'verb',
+    level: 'A1',
+    de: 'wohnen',
+    ar: 'يسكن / يعيش',
+    conjugations: {
+      ich: 'wohne',
+      du: 'wohnst',
+      er: 'wohnt',
+      wir: 'wohnen',
+      ihr: 'wohnt',
+      sie: 'wohnen',
+      präteritum: 'wohnte',
+      perfekt: 'gewohnt',
+      aux: 'haben'
+    },
+    exampleDe: 'Wir wohnen in Berlin.',
+    exampleAr: 'نحن نعيش في برلين.'
+  },
+  {
+    id: 'v-extra-43',
+    type: 'verb',
+    level: 'A2',
+    de: 'kochen',
+    ar: 'يطبخ',
+    conjugations: {
+      ich: 'koche',
+      du: 'kochst',
+      er: 'kocht',
+      wir: 'kochen',
+      ihr: 'kocht',
+      sie: 'kochen',
+      präteritum: 'kochte',
+      perfekt: 'gekocht',
+      aux: 'haben'
+    },
+    exampleDe: 'Meine Mutter kocht leckeres Essen.',
+    exampleAr: 'أمي تطبخ طعاماً لذيذاً.'
+  },
+  {
+    id: 'v-extra-44',
+    type: 'verb',
+    level: 'A1',
+    de: 'öffnen',
+    ar: 'يفتح',
+    conjugations: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'geöffnet',
+      aux: 'haben'
+    },
+    exampleDe: 'Bitte öffne die Tür.',
+    exampleAr: 'من فضلك افتح الباب.'
+  },
+  {
+    id: 'v-extra-45',
+    type: 'verb',
+    level: 'A1',
+    de: 'schließen',
+    ar: 'يغلق',
+    conjugations: {
+      ich: 'schließe',
+      du: 'schließt',
+      er: 'schließt',
+      wir: 'schließen',
+      ihr: 'schließt',
+      sie: 'schließen',
+      präteritum: 'schloss',
+      perfekt: 'geschlossen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich schließe das Fenster, weil es kalt ist.',
+    exampleAr: 'أغلق النافذة لأنها باردة.'
+  },
+  {
+    id: 'v-extra-46',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    ar: 'طاولة',
+    article: 'der',
+    plural: 'Tische',
+    exampleDe: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة من الخشب.'
+  },
+  {
+    id: 'v-extra-47',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    ar: 'باب',
+    article: 'die',
+    plural: 'Türen',
+    exampleDe: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-48',
+    type: 'noun',
+    level: 'A1',
+    de: 'Fenster',
+    ar: 'نافذة',
+    article: 'das',
+    plural: 'Fenster',
+    exampleDe: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-49',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stuhl',
+    ar: 'كرسي',
+    article: 'der',
+    plural: 'Stühle',
+    exampleDe: 'Der Stuhl steht neben dem Tisch.',
+    exampleAr: 'الكرسي يقف بجانب الطاولة.'
+  },
+  {
+    id: 'v-extra-50',
+    type: 'noun',
+    level: 'A1',
+    de: 'Apfel',
+    ar: 'تفاحة',
+    article: 'der',
+    plural: 'Äpfel',
+    exampleDe: 'Der Apfel ist rot und süß.',
+    exampleAr: 'التفاحة حمراء وحلوة.'
+  },
+  {
+    id: 'v-extra-51',
+    type: 'noun',
+    level: 'A1',
+    de: 'Brot',
+    ar: 'خبز',
+    article: 'das',
+    plural: 'Brote',
+    exampleDe: 'Ich kaufe frisches Brot.',
+    exampleAr: 'أشتري خبزاً طازجاً.'
+  },
+  {
+    id: 'v-extra-52',
+    type: 'noun',
+    level: 'A1',
+    de: 'Hund',
+    ar: 'كلب',
+    article: 'der',
+    plural: 'Hunde',
+    exampleDe: 'Der Hund spielt im Park.',
+    exampleAr: 'الكلب يلعب في الحديقة.'
+  },
+  {
+    id: 'v-extra-53',
+    type: 'noun',
+    level: 'A1',
+    de: 'Katze',
+    ar: 'قطة',
+    article: 'die',
+    plural: 'Katzen',
+    exampleDe: 'Die Katze schläft auf dem Sofa.',
+    exampleAr: 'القطة تنام على الأريكة.'
+  },
+  {
+    id: 'v-extra-54',
+    type: 'noun',
+    level: 'A1',
+    de: 'Freund',
+    ar: 'صديق',
+    article: 'der',
+    plural: 'Freunde',
+    exampleDe: 'Mein Freund kommt heute Abend.',
+    exampleAr: 'صديقي يأتي هذا المساء.'
+  },
+  {
+    id: 'v-extra-55',
+    type: 'noun',
+    level: 'A1',
+    de: 'Schule',
+    ar: 'مدرسة',
+    article: 'die',
+    plural: 'Schulen',
+    exampleDe: 'Die Schule beginnt um acht Uhr.',
+    exampleAr: 'المدرسة تبدأ في الساعة الثامنة.'
+  }
+
 ];
