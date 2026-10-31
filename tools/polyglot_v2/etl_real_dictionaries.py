@@ -152,14 +152,21 @@ def process():
                 print(f"[{code}] INVALID build: {e}")
                 continue
 
-            bundle_dir = PACKS_DIR / code / "bundles"
+            bundle_dir = PACKS_DIR / code
             bundle_dir.mkdir(parents=True, exist_ok=True)
 
             dest_db = bundle_dir / f"{code}-1.0.0.pack.gz"
             dest_sha = bundle_dir / f"{code}-1.0.0.pack.gz.sha256"
 
             shutil.copy2(db_gz_path, dest_db)
-            shutil.copy2(str(db_gz_path) + ".sha256", dest_sha)
+
+            # Rewrite sha256 to reflect final filename
+            with open(str(db_gz_path) + ".sha256", 'r', encoding='ascii') as sf:
+                sha256_content = sf.read().strip()
+                digest = sha256_content.split()[0]
+
+            with open(dest_sha, 'w', encoding='ascii') as sf:
+                sf.write(f"{digest}  {code}-1.0.0.pack.gz\n")
 
             # Remove legacy sqlite schema files created by previous bad runs
             legacy_sqlite = PACKS_DIR / code / "sqlite" / f"{code}-1.0.0.sqlite"
