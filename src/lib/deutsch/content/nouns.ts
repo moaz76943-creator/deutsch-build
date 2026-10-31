@@ -367,5 +367,118 @@ export const items: VocabExtraItem[] = [
     plural: 'Zimmer',
     exampleDe: 'Das Zimmer ist hell und groß.',
     exampleAr: 'الغرفة مضيئة وكبيرة.'
+  },
+
+  // New A1/A2 nouns 131-140
+  {
+    id: 'v-extra-131',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tisch',
+    ar: 'طاولة',
+    article: 'der',
+    plural: 'Tische',
+    exampleDe: 'Der Tisch ist aus Holz.',
+    exampleAr: 'الطاولة من الخشب.'
+  },
+  {
+    id: 'v-extra-132',
+    type: 'noun',
+    level: 'A1',
+    de: 'Stuhl',
+    ar: 'كرسي',
+    article: 'der',
+    plural: 'Stühle',
+    exampleDe: 'Der Stuhl steht am Fenster.',
+    exampleAr: 'الكرسي يقف عند النافذة.'
+  },
+  {
+    id: 'v-extra-133',
+    type: 'noun',
+    level: 'A1',
+    de: 'Bett',
+    ar: 'سرير',
+    article: 'das',
+    plural: 'Betten',
+    exampleDe: 'Das Bett ist sehr bequem.',
+    exampleAr: 'السرير مريح جداً.'
+  },
+  {
+    id: 'v-extra-134',
+    type: 'noun',
+    level: 'A1',
+    de: 'Fenster',
+    ar: 'نافذة',
+    article: 'das',
+    plural: 'Fenster',
+    exampleDe: 'Das Fenster ist offen.',
+    exampleAr: 'النافذة مفتوحة.'
+  },
+  {
+    id: 'v-extra-135',
+    type: 'noun',
+    level: 'A1',
+    de: 'Tür',
+    ar: 'باب',
+    article: 'die',
+    plural: 'Türen',
+    exampleDe: 'Die Tür ist geschlossen.',
+    exampleAr: 'الباب مغلق.'
+  },
+  {
+    id: 'v-extra-136',
+    type: 'noun',
+    level: 'A1',
+    de: 'Küche',
+    ar: 'مطبخ',
+    article: 'die',
+    plural: 'Küchen',
+    exampleDe: 'In der Küche kochen wir das Essen.',
+    exampleAr: 'في المطبخ نطبخ الطعام.'
+  },
+  {
+    id: 'v-extra-137',
+    type: 'noun',
+    level: 'A1',
+    de: 'Uhr',
+    ar: 'ساعة',
+    article: 'die',
+    plural: 'Uhren',
+    exampleDe: 'Die Uhr zeigt acht Uhr.',
+    exampleAr: 'الساعة تشير إلى الثامنة.'
+  },
+  {
+    id: 'v-extra-138',
+    type: 'noun',
+    level: 'A1',
+    de: 'Handy',
+    ar: 'هاتف محمول',
+    article: 'das',
+    plural: 'Handys',
+    exampleDe: 'Mein Handy ist neu und schnell.',
+    exampleAr: 'هاتفي المحمول جديد وسريع.'
+  },
+  {
+    id: 'v-extra-139',
+    type: 'noun',
+    level: 'A1',
+    de: 'Restaurant',
+    ar: 'مطعم',
+    article: 'das',
+    plural: 'Restaurants',
+    exampleDe: 'Das Restaurant ist am Abend voll.',
+    exampleAr: 'المطعم ممتلئ في المساء.'
+  },
+  {
+    id: 'v-extra-140',
+    type: 'noun',
+    level: 'A1',
+    de: 'Café',
+    ar: 'مقهى',
+    article: 'das',
+    plural: 'Cafés',
+    exampleDe: 'Wir treffen uns im Café um drei Uhr.',
+    exampleAr: 'نلتقي في المقهى الساعة الثالثة.'
   }
+
 ];

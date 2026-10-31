@@ -604,5 +604,208 @@ export const items: VocabExtraItem[] = [
     },
     exampleDe: 'Im Sommer schwimme ich gerne im See.',
     exampleAr: 'في الصيف أحب السباحة في البحيرة.'
+  },
+
+  // New A1/A2 verbs 121-130
+  {
+    id: 'v-extra-121',
+    type: 'verb',
+    level: 'A1',
+    de: 'kaufen',
+    ar: 'يشتري',
+    conjugations: {
+      ich: 'kaufe',
+      du: 'kaufst',
+      er: 'kauft',
+      wir: 'kaufen',
+      ihr: 'kauft',
+      sie: 'kaufen',
+      präteritum: 'kaufte',
+      perfekt: 'gekauft',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich kaufe Brot im Supermarkt.',
+    exampleAr: 'أشتري الخبز في السوبرماركت.'
+  },
+  {
+    id: 'v-extra-122',
+    type: 'verb',
+    level: 'A1',
+    de: 'arbeiten',
+    ar: 'يعمل',
+    conjugations: {
+      ich: 'arbeite',
+      du: 'arbeitest',
+      er: 'arbeitet',
+      wir: 'arbeiten',
+      ihr: 'arbeitet',
+      sie: 'arbeiten',
+      präteritum: 'arbeitete',
+      perfekt: 'gearbeitet',
+      aux: 'haben'
+    },
+    exampleDe: 'Mein Vater arbeitet in einem Büro.',
+    exampleAr: 'أبي يعمل في مكتب.'
+  },
+  {
+    id: 'v-extra-123',
+    type: 'verb',
+    level: 'A1',
+    de: 'lernen',
+    ar: 'يتعلم',
+    conjugations: {
+      ich: 'lerne',
+      du: 'lernst',
+      er: 'lernt',
+      wir: 'lernen',
+      ihr: 'lernt',
+      sie: 'lernen',
+      präteritum: 'lernte',
+      perfekt: 'gelernt',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich lerne jeden Tag Deutsch.',
+    exampleAr: 'أتعلم الألمانية كل يوم.'
+  },
+  {
+    id: 'v-extra-124',
+    type: 'verb',
+    level: 'A1',
+    de: 'schlafen',
+    ar: 'ينام',
+    conjugations: {
+      ich: 'schlafe',
+      du: 'schläfst',
+      er: 'schläft',
+      wir: 'schlafen',
+      ihr: 'schlaft',
+      sie: 'schlafen',
+      präteritum: 'schlief',
+      perfekt: 'geschlafen',
+      aux: 'haben'
+    },
+    exampleDe: 'Das Kind schläft schon.',
+    exampleAr: 'الطفل نائم بالفعل.'
+  },
+  {
+    id: 'v-extra-125',
+    type: 'verb',
+    level: 'A1',
+    de: 'helfen',
+    ar: 'يساعد',
+    conjugations: {
+      ich: 'helfe',
+      du: 'hilfst',
+      er: 'hilft',
+      wir: 'helfen',
+      ihr: 'helft',
+      sie: 'helfen',
+      präteritum: 'half',
+      perfekt: 'geholfen',
+      aux: 'haben'
+    },
+    exampleDe: 'Kannst du mir bitte helfen?',
+    exampleAr: 'هل يمكنك مساعدتي من فضلك؟'
+  },
+  {
+    id: 'v-extra-126',
+    type: 'verb',
+    level: 'A1',
+    de: 'hören',
+    ar: 'يسمع / يستمع',
+    conjugations: {
+      ich: 'höre',
+      du: 'hörst',
+      er: 'hört',
+      wir: 'hören',
+      ihr: 'hört',
+      sie: 'hören',
+      präteritum: 'hörte',
+      perfekt: 'gehört',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich höre gerne Musik.',
+    exampleAr: 'أحب سماع الموسيقى.'
+  },
+  {
+    id: 'v-extra-127',
+    type: 'verb',
+    level: 'A1',
+    de: 'sehen',
+    ar: 'يرى',
+    conjugations: {
+      ich: 'sehe',
+      du: 'siehst',
+      er: 'sieht',
+      wir: 'sehen',
+      ihr: 'seht',
+      sie: 'sehen',
+      präteritum: 'sah',
+      perfekt: 'gesehen',
+      aux: 'haben'
+    },
+    exampleDe: 'Siehst du den Vogel im Baum?',
+    exampleAr: 'هل ترى الطائر في الشجرة؟'
+  },
+  {
+    id: 'v-extra-128',
+    type: 'verb',
+    level: 'A1',
+    de: 'lesen',
+    ar: 'يقرأ',
+    conjugations: {
+      ich: 'lese',
+      du: 'liest',
+      er: 'liest',
+      wir: 'lesen',
+      ihr: 'lest',
+      sie: 'lesen',
+      präteritum: 'las',
+      perfekt: 'gelesen',
+      aux: 'haben'
+    },
+    exampleDe: 'Ich lese ein Buch über Deutschland.',
+    exampleAr: 'أقرأ كتاباً عن ألمانيا.'
+  },
+  {
+    id: 'v-extra-129',
+    type: 'verb',
+    level: 'A1',
+    de: 'schreiben',
+    ar: 'يكتب',
+    conjugations: {
+      ich: 'schreibe',
+      du: 'schreibst',
+      er: 'schreibt',
+      wir: 'schreiben',
+      ihr: 'schreibt',
+      sie: 'schreiben',
+      präteritum: 'schrieb',
+      perfekt: 'geschrieben',
+      aux: 'haben'
+    },
+    exampleDe: 'Schreibst du einen Brief an deine Mutter?',
+    exampleAr: 'هل تكتب رسالة إلى أمك؟'
+  },
+  {
+    id: 'v-extra-130',
+    type: 'verb',
+    level: 'A1',
+    de: 'öffnen',
+    ar: 'يفتح',
+    conjugations: {
+      ich: 'öffne',
+      du: 'öffnest',
+      er: 'öffnet',
+      wir: 'öffnen',
+      ihr: 'öffnet',
+      sie: 'öffnen',
+      präteritum: 'öffnete',
+      perfekt: 'geöffnet',
+      aux: 'haben'
+    },
+    exampleDe: 'Bitte öffne die Tür.',
+    exampleAr: 'من فضلك افتح الباب.'
   }
+
 ];

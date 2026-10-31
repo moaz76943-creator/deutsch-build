@@ -1,3 +1,18 @@
+## Session: 2026-10-31 19:05 UTC (hourly Grok Build)
+
+- Read project structure (AGENTS.md not present; followed session instructions). Auth/DB remain OFF.
+- Ran `npm test`: PASS initially (63 items, 63 unique IDs).
+- Added 20 new A1/A2 items (IDs v-extra-121 to v-extra-140) to modular verbs.ts / nouns.ts (vocab-extra.ts re-exports):
+  - Verbs with full conjugations (ich/du/er/wir/ihr/sie + Präteritum + Perfekt + aux): kaufen, arbeiten, lernen, schlafen, helfen, hören, sehen, lesen, schreiben, öffnen.
+  - Nouns with article (der/die/das) and plural: Tisch (der/Tische), Stuhl (der/Stühle), Bett (das/Betten), Fenster (das/Fenster), Tür (die/Türen), Küche (die/Küchen), Uhr (die/Uhren), Handy (das/Handys), Restaurant (das/Restaurants), Café (das/Cafés).
+  - Natural German example sentences + accurate Arabic translations.
+- All IDs unique (no repeats). No automatic deletion of similar items.
+- Tests re-run: PASS (83 items, 83 unique IDs). Content integrity maintained (präteritum, all articles present). Offline-only learning system preserved.
+- No bugs found. Preview kept on approved port (offline content only, no new process).
+- Priority respected: prevent crashes first, then content correctness, then learning system.
+
+Status: COMPLETE
+
 # DEVELOPMENT LOG — Deutsch بالعربي
 
 ## Session: 2026-10-31 19:05 UTC (architecture optimization)
