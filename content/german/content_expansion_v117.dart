@@ -140,7 +140,7 @@ const a1ExpansionV117 = <ContentItem>[
     accepted: ['der Pass'],
   ),
   ContentItem(
-       id: 'w15947',
+    id: 'w15947',
     german: 'die Grenze',
     arabic: 'الحدود',
     sentence: 'An der Grenze kontrollieren sie die Pässe.',
