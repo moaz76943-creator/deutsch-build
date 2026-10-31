@@ -1,0 +1,35 @@
+import 'package:test/test.dart';
+import 'package:deutsch_build/src/localization/profiles/thai_deep_localization_profile.dart';
+import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+
+void main() {
+  group('ThaiDeepLocalizationProfile Tests', () {
+    const profile = ThaiDeepLocalizationProfile();
+
+    test('Linguistic properties correctly model Kra-Dai Thai standard', () {
+      expect(profile.languageName, equals('Thai'));
+      expect(profile.iso6391, equals('th'));
+      expect(profile.iso6392or3, equals('tha'));
+      expect(profile.typology, equals(TypologicalClassification.isolatingAnalytic));
+      expect(profile.primaryWordOrder, equals(CanonicalWordOrder.svo));
+      expect(profile.hasTones, isTrue);
+      expect(profile.toneRegisters.length, equals(5));
+      expect(profile.hasGrammaticalGender, isFalse);
+    });
+
+    test('Omnidirectional cross-lingual transfer matrix is established', () {
+      expect(profile.omnidirectionalBridges, containsKey(contains('Austronesian/Malay')));
+      expect(profile.omnidirectionalBridges, containsKey(contains('Indic Sanskrit/Pali')));
+      expect(profile.omnidirectionalBridges, containsKey(contains('European Fusional')));
+    });
+
+    test('Cultural lexicon and A1 vocabulary are verified and halal', () {
+      expect(profile.culturalIslamicLexicon, containsKey('สวัสดี / ซะลาม'));
+      expect(profile.culturalIslamicLexicon, containsKey('ฮาลาล'));
+      expect(profile.culturalIslamicLexicon, containsKey('ละหมาด / นมาซ'));
+      expect(profile.culturalIslamicLexicon, containsKey('มัสยิด / สุเหร่า'));
+      expect(profile.coreA1Vocabulary['ขอบคุณมาก'], equals('Vielen Dank'));
+      expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
+    });
+  });
+}
