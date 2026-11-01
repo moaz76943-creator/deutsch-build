@@ -1,24 +1,10 @@
-# Baseline Profile for Deutsch Bilarabi (Flutter)
-# Generated rules improve cold startup by enabling AOT compilation of hot paths.
-# Typical measured impact: 20-35% faster startup after ProfileInstaller runs (first launch after install/update).
-#
-# To generate a full, app-specific profile:
-# 1. Add a :baselineprofile module with Macrobenchmark (see Android docs).
-# 2. Define critical user journeys (startup + onboarding + first lesson).
-# 3. Run ./gradlew :app:generateBaselineProfile
-# 4. R8 automatically rewrites these rules for the minified release build.
-#
-# Placeholder rules covering Flutter embedding and common startup classes.
-# Expand with real traces for measurable gains.
-
-# Flutter engine / embedding startup paths
-Lio/flutter/embedding/android/FlutterActivity;
-Lio/flutter/embedding/android/FlutterFragmentActivity;
-Lio/flutter/embedding/engine/FlutterEngine;
-Lio/flutter/embedding/engine/dart/DartExecutor;
-
-# App entry
-Lcom/deutschbilarabi/app/MainActivity;
-
-# Hot methods (HSP = Hot Startup Profile style; expand after profiling)
-HSP**
+# Baseline profile for Deutsch بالعربي Flutter app
+# Focus on startup path: MainActivity, Flutter engine, initial screens
+# Generated placeholder; replace with real profile from Macrobenchmark for max impact
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J[Ljava/lang/String;)V
+HSPLlib/main.dart;main
+HSPLlib/bootstrap/production_bootstrap.dart;bootstrapDeutschApp
+HSPLlib/features/onboarding/fast_onboarding_screen.dart;_checkState
+# Add more hot paths after profiling (e.g. DatabaseService, ListViews if any)
