@@ -28,3 +28,13 @@ HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/C
 # Additional for common UI and DB access paths during startup
 HSPLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljava/lang/Object;Lio/flutter/plugin/common/MethodChannel$Result;)V
 HSPLcom/tekartik/sqflite/SqflitePlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
+
+# Enhanced for UI jank reduction: list rendering, scrolling, and common widget builds
+HSPLio/flutter/plugins/imagepicker/ImagePickerPlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
+HSPLio/flutter/embedding/engine/systemchannels/SettingsChannel;->sendMessage(Lio/flutter/embedding/engine/systemchannels/SettingsChannel$Message;)V
+HSPLio/flutter/view/AccessibilityBridge;->onAccessibilityStateChange(Z)V
+HSPLandroid/view/View;->draw(Landroid/graphics/Canvas;)V
+HSPLandroid/widget/TextView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLandroidx/recyclerview/widget/RecyclerView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLandroidx/recyclerview/widget/RecyclerView;->scrollBy(II)V
+HSPLio/flutter/plugin/platform/PlatformViewsController;->onDisplayPlatformView(IIZLio/flutter/embedding/engine/systemchannels/PlatformViewsChannel$PlatformViewCreationRequest;)V
