@@ -149,6 +149,18 @@ class TestGuard(unittest.TestCase):
         with open(self.report_path) as f:
             self.assertTrue(any("explicit release" in b for b in json.load(f)["blockers"]))
 
+    def test_crashed_agent_blocks_until_recovered(self):
+        original = {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time()} # Not expired
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": original}, f)
+
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM",
+                    "--paths", "AGENTS.md", "--recover-from", "T1", "--owner-evidence", "crashed",
+                    "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.ledger_path) as f:
+            self.assertEqual(json.load(f)["T1"]["state"], "ACTIVE")
+
     def test_expired_owner_does_not_block_independent_paths(self):
         owner = {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}
         with open(self.ledger_path, "w") as f:
