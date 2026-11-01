@@ -10,6 +10,7 @@
 HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
 HSPLcom/deutschbilarabi/app/MainActivity;->onResume()V
 HSPLcom/deutschbilarabi/app/MainActivity;->onStart()V
+HSPLcom/deutschbilarabi/app/MainActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
 HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
 HSPLio/flutter/embedding/android/FlutterActivity;->onStart()V
 HSPLio/flutter/embedding/android/FlutterActivity;->onResume()V
@@ -28,3 +29,11 @@ HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/C
 # Additional for common UI and DB access paths during startup
 HSPLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljava/lang/Object;Lio/flutter/plugin/common/MethodChannel$Result;)V
 HSPLcom/tekartik/sqflite/SqflitePlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
+# Further expansion for edge-to-edge, secure window, and process-text hot paths
+HSPLcom/deutschbilarabi/app/MainActivity;->onNewIntent(Landroid/content/Intent;)V
+HSPLcom/deutschbilarabi/app/MainActivity;->captureProcessText(Landroid/content/Intent;)V
+HSPLandroidx/core/view/WindowCompat;->enableEdgeToEdge(Landroid/view/Window;)V
+HSPLandroid/view/Window;->addFlags(I)V
+# Common Flutter first-frame and binding paths
+HSPLio/flutter/embedding/engine/FlutterEngine;->getDartExecutor()Lio/flutter/embedding/engine/dart/DartExecutor;
+HSPLio/flutter/embedding/android/FlutterActivity;->getFlutterEngine()Lio/flutter/embedding/engine/FlutterEngine;
