@@ -37,3 +37,11 @@ HSPLandroid/view/Window;->addFlags(I)V
 # Common Flutter first-frame and binding paths
 HSPLio/flutter/embedding/engine/FlutterEngine;->getDartExecutor()Lio/flutter/embedding/engine/dart/DartExecutor;
 HSPLio/flutter/embedding/android/FlutterActivity;->getFlutterEngine()Lio/flutter/embedding/engine/FlutterEngine;
+# Additional hot paths for reduced jank on first navigation and list rendering
+HSPLio/flutter/embedding/engine/renderer/FlutterRenderer;->startRenderingToSurface(Landroid/view/Surface;)V
+HSPLio/flutter/embedding/engine/renderer/FlutterRenderer;->stopRenderingToSurface()V
+HSPLio/flutter/view/FlutterView;->onAttachedToWindow()V
+HSPLio/flutter/plugin/platform/PlatformViewsController;->attach(Landroid/content/Context;Lio/flutter/view/TextureRegistry;Lio/flutter/embedding/engine/dart/DartExecutor;)V
+HSPLandroidx/recyclerview/widget/RecyclerView;->onLayout(ZIIII)V
+HSPLandroidx/recyclerview/widget/RecyclerView;->onDraw(Landroid/graphics/Canvas;)V
+# Battery and network-aware paths remain off critical startup
