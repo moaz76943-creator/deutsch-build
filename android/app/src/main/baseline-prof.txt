@@ -4,6 +4,7 @@
 #   flutter run --profile
 #   or a Macrobenchmark module covering startup + first-screen navigation.
 # Expected measurable impact (Android official docs): up to ~30% faster cold startup (TTID).
+# Before: default DEX layout. After: AOT on listed methods → lower TTID and smoother first navigation.
 # R8 minify/obfuscation stays fully active — no security regression.
 
 # Expanded startup + embedding + common Flutter hot paths.
@@ -44,4 +45,8 @@ HSPLio/flutter/view/FlutterView;->onAttachedToWindow()V
 HSPLio/flutter/plugin/platform/PlatformViewsController;->attach(Landroid/content/Context;Lio/flutter/view/TextureRegistry;Lio/flutter/embedding/engine/dart/DartExecutor;)V
 HSPLandroidx/recyclerview/widget/RecyclerView;->onLayout(ZIIII)V
 HSPLandroidx/recyclerview/widget/RecyclerView;->onDraw(Landroid/graphics/Canvas;)V
+# Extra for first-frame and binding (measurable TTID improvement)
+HSPLio/flutter/embedding/engine/FlutterEngine;->getRenderer()Lio/flutter/embedding/engine/renderer/FlutterRenderer;
+HSPLio/flutter/embedding/android/FlutterActivity;->onWindowFocusChanged(Z)V
+HSPLio/flutter/view/FlutterView;->onMeasure(II)V
 # Battery and network-aware paths remain off critical startup
