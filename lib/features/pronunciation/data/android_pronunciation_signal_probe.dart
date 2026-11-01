@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/privacy/microphone_disclosure.dart';
 import '../domain/pronunciation_models.dart';
 import '../domain/services/pronunciation_signal_probe.dart';
 
@@ -12,7 +14,13 @@ final class AndroidPronunciationSignalProbe
   );
 
   @override
-  Future<bool> requestPermission() async {
+  Future<bool> requestPermission([BuildContext? context]) async {
+    // Prominent in-app disclosure is required by Google Play User Data policy
+    // before requesting the RECORD_AUDIO runtime permission.
+    if (context != null) {
+      final accepted = await showMicrophoneDisclosure(context);
+      if (!accepted) return false;
+    }
     try {
       return await _channel.invokeMethod<bool>('requestPermission') ?? false;
     } on PlatformException {
