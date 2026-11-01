@@ -18,6 +18,19 @@ class PrivateCIMergeContractTest(unittest.TestCase):
             "if: steps.pr.outputs.number != ''", text
         )
 
+    def test_merge_workflow_has_one_unambiguous_permission_per_scope(self):
+        text = AUTOMERGE.read_text(encoding="utf-8")
+        self.assertEqual(text.count("\npermissions:\n"), 1)
+        permission_block = text.split("\npermissions:\n", 1)[1].split("\n\n", 1)[0]
+        lines = [line.strip() for line in permission_block.splitlines() if line.strip()]
+        keys = [line.split(":", 1)[0] for line in lines]
+        self.assertEqual(len(keys), len(set(keys)), "Duplicate YAML permission keys invalidate the workflow")
+        self.assertEqual(set(lines), {
+            "contents: write",
+            "pull-requests: write",
+            "actions: read",
+        })
+
     def test_ci_is_read_only_and_never_merges_on_one_green_check(self):
         text = STAGING.read_text(encoding="utf-8")
         self.assertIn("contents: read", text)
