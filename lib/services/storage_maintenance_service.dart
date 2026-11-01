@@ -287,6 +287,10 @@ class StorageMaintenanceService {
   }
 
   /// 'df -k' reports available capacity in 1024-byte blocks.
+  Future<void> cleanupTemporaryFiles() async {
+    await purgeOrphanedFiles();
+  }
+
   static int? _parseDfKilobytes(String output) {
     final lines = output
         .split('\n')
