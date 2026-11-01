@@ -40,3 +40,10 @@
     public static *** d(...);
     public static *** v(...);
 }
+
+# Flutter Native Plugins
+-keep class com.tundralabs.fluttertts.** { *; }
+-dontwarn com.tundralabs.fluttertts.**
+
+-keep class eu.simonbinder.sqlite3_flutter_libs.** { *; }
+-dontwarn eu.simonbinder.sqlite3_flutter_libs.**
