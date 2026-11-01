@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
+import 'package:flutter/services.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
 void main() {
   setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('com.deutschbilarabi.app/offline_voice_capability'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'getOfflineVoices') {
+          return ['de-local', 'ar-local'];
+        }
+        return null;
+      },
+    );
     LexicalRepository.initializeStore([
       const LexicalEntry(
         id: 'dict_test_01',
@@ -75,6 +85,14 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Verantwordung');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('تحقق من التهجئة'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('حاول مرة أخرى'), findsOneWidget);
+
+    await tester.tap(find.text('تحقق من التهجئة'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('تحقق من التهجئة'));
