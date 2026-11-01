@@ -19,11 +19,6 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
-    <!-- Optional normal permissions for Play Integrity API and optional content updates.
-         Core app remains fully offline-capable. No user data is collected. -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
