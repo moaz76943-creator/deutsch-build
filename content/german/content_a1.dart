@@ -16,6 +16,7 @@ import 'content_expansion_v182.dart';
 import 'content_expansion_v183.dart';
 import 'content_expansion_v184.dart';
 import 'content_expansion_v185.dart';
+import 'content_expansion_v186.dart';
 import 'content_expansion_v123.dart';
 import 'content_expansion_v125.dart';
 import 'content_a1_part_01.dart';
@@ -68,6 +69,7 @@ const a1 = <ContentItem>[
   ...a1ExpansionV183,
   ...a1ExpansionV184,
   ...a1ExpansionV185,
+  ...a1ExpansionV186,
   ...a1ExpansionV123,
   ...a1ExpansionV125,
 ];
