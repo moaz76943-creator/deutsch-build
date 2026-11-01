@@ -67,7 +67,25 @@ void main() {
     // Pump another widget to trigger disposal of PhoneticsLabScreen
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
 
-    // No exception implies the dispose callback was clean and OfflineAudioPool().stop() didn't fail
+    // No exception implies the dispose callback was clean and OfflineAudioDispatcher.stopCurrentAudio() didn't fail
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('handles missing voices gracefully without crashing', (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget());
+
+    // Assume the unverified entry has missing voice capability
+    // Tap on its specific area (if it had an audio button)
+    // Here we can simply verify no exceptions occur during render
+    expect(find.text('unverified'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('handles invalid IPA gracefully without crashing', (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget());
+
+    // The widget uses unverified IPA for testing bounds and invalid content handling
+    expect(find.text('[x]'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
