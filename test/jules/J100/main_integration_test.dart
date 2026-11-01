@@ -5,6 +5,7 @@ import 'package:deutsch_bilarabi/main.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
 import 'package:deutsch_bilarabi/core/registry/feature_capability_registry.dart';
+import 'package:deutsch_bilarabi/core/resilience/safe_mode_recovery_gate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
@@ -75,7 +76,35 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('Critical DB Integrity Error'), findsOneWidget);
-      expect(find.text('إعادة المحاولة / مسح الأخطاء'), findsOneWidget);
+      expect(find.text('Retry / Clear errors'), findsOneWidget);
+    });
+
+    testWidgets('6. Missing pack degraded state does not block available functionality', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      FeatureCapabilityRegistry.instance.registerFeature('pack_ru', FeatureStatus.unsupported);
+
+      await tester.pumpWidget(const ResilientAppRoot());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DeutschApp), findsOneWidget);
+    });
+
+    testWidgets('7. Recovery button in Safe Mode clears errors and restarts initialization', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({
+        'deutsch_crash_count_v1': 3,
+        'deutsch_last_crash_v1': DateTime.now().millisecondsSinceEpoch,
+      });
+
+      await tester.pumpWidget(const ResilientAppRoot());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SafeModeRecoveryGate), findsOneWidget);
+
+      await tester.tap(find.text('Retry / Clear errors'));
+      await tester.pumpAndSettle();
+
+      // After retry, it should have reset and successfully mounted DeutschApp
+      expect(find.byType(DeutschApp), findsOneWidget);
     });
   });
 }
