@@ -38,11 +38,13 @@ class IsolatedTaskQueue {
 
   int get length => _queue.length;
   int get activeTasksCount => _activeTasks.length;
+  int get availableCapacity => maxQueueSize - _queue.length;
 
   Future<T?> enqueue<T>({
     required String id,
     required int currentEpoch,
     required TaskPriority priority,
+    CancellationToken? token,
     required Future<T> Function() action,
   }) {
     // تحديث الجلسة النشطة
@@ -73,12 +75,12 @@ class IsolatedTaskQueue {
     }
 
     final completer = Completer<T?>();
-    final token = CancellationToken();
+    final cancellationToken = token ?? CancellationToken();
     final task = PrioritizedTask<T>(
       id: id,
       sessionEpoch: currentEpoch,
       priority: priority,
-      cancellationToken: token,
+      cancellationToken: cancellationToken,
       action: (CancellationToken? t) async {
         if (t?.isCancelled == true) {
           throw StateError('cancelled');
@@ -147,8 +149,7 @@ class IsolatedTaskQueue {
         final timer = Timer(task.timeout, () {
           if (!completerInternal.isCompleted) {
             t?.cancel();
-            completerInternal.completeError(
-                StateError('Operation was cancelled by user or timeout'));
+            completerInternal.completeError(TimeoutException('Operation was cancelled by user or timeout'));
           }
         });
 
@@ -157,7 +158,7 @@ class IsolatedTaskQueue {
             timer.cancel();
             completerInternal.complete(result);
           }
-        }).catchError((e) {
+        }).catchError((dynamic e) {
           if (!completerInternal.isCompleted) {
             timer.cancel();
             final Object failure =
@@ -210,7 +211,8 @@ class IsolatedTaskQueue {
     _isPaused = true;
   }
 
-  void resume() {
+  void resume([int? activeEpoch]) {
+    if (activeEpoch != null) _lastActiveEpoch = activeEpoch;
     if (!_isPaused) return;
     _isPaused = false;
     _processNext();
@@ -274,7 +276,7 @@ class IsolatedTaskQueue {
             (e.message.contains('cancelled') ||
                 e.message.contains('Operation was cancelled'))) {
           currentTask.completer.complete(null);
-        } else if (e is TimeoutException) {
+        } else if (e is TimeoutException || e.toString().contains('TimeoutException')) {
           currentTask.completer.complete(null);
         } else {
           currentTask.completer.completeError(e);
