@@ -31,6 +31,18 @@ class PrivateCIMergeContractTest(unittest.TestCase):
             "actions: read",
         })
 
+    def test_staging_checkout_has_one_with_mapping(self):
+        text = STAGING.read_text(encoding="utf-8")
+        checkout = text.split("- name: Checkout pull request", 1)[1].split(
+            "- name: Detect Flutter-impacting changes", 1
+        )[0]
+        self.assertEqual(
+            checkout.count("\n        with:"), 1,
+            "Duplicate 'with' keys make GitHub Actions refuse the entire workflow",
+        )
+        self.assertIn("fetch-depth: 0", checkout)
+        self.assertIn("persist-credentials: false", checkout)
+
     def test_ci_is_read_only_and_never_merges_on_one_green_check(self):
         text = STAGING.read_text(encoding="utf-8")
         self.assertIn("contents: read", text)
