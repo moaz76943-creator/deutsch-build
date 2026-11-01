@@ -165,4 +165,62 @@ void main() {
       expect(result.source, EvidenceSource.unsupported);
     });
   });
+
+  group('CefrClassifier - Evidence-based LexicalEntry Classification', () {
+    test('Returns explicit level when provided', () {
+      const evidenceA1 = LexicalEntryEvidence(
+        languageId: 'fr',
+        sourceProvidedCefr: CefrLevel.a1,
+      );
+      final resultA1 = CefrClassifier.classifyLexicalEntry(evidenceA1);
+      expect(resultA1.level, CefrLevel.a1);
+      expect(resultA1.method, CefrClassificationMethod.explicit);
+
+      const evidenceC2 = LexicalEntryEvidence(
+        languageId: 'en',
+        sourceProvidedCefr: CefrLevel.c2,
+      );
+      final resultC2 = CefrClassifier.classifyLexicalEntry(evidenceC2);
+      expect(resultC2.level, CefrLevel.c2);
+      expect(resultC2.method, CefrClassificationMethod.explicit);
+    });
+
+    test('Returns unknown when explicit level is missing, regardless of heuristics', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'de',
+        frequencyRank: 10,
+        charLength: 5,
+        isCompound: false,
+      );
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+  });
+
+  group('CefrClassifier - Evidence-based LearningExample Classification', () {
+    test('Returns explicit level when provided', () {
+      const evidenceB1 = LearningExampleEvidence(
+        languageId: 'es',
+        sourceProvidedCefr: CefrLevel.b1,
+      );
+      final resultB1 = CefrClassifier.classifyLearningExample(evidenceB1);
+      expect(resultB1.level, CefrLevel.b1);
+      expect(resultB1.method, CefrClassificationMethod.explicit);
+    });
+
+    test('Returns unknown when explicit level is missing, regardless of heuristics', () {
+      const evidence = LearningExampleEvidence(
+        languageId: 'it',
+        wordCount: 3,
+        clauseCount: 1,
+        maxWordFrequencyRank: 100,
+      );
+      final result = CefrClassifier.classifyLearningExample(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+  });
 }
