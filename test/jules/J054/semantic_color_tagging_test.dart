@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/features/semantic_color_tagging/semantic_presen
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 
-class MockGrammarProvider implements LanguageGrammarRuleProvider {
+class MockGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   final String languageCode;
 
@@ -16,6 +16,9 @@ class MockGrammarProvider implements LanguageGrammarRuleProvider {
   });
 
   @override
+  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(hasGender: true);
+
+  @override
   GrammaticalCategory determineCategory(String word, {String? article}) {
     return GrammaticalCategory.unknown;
   }
@@ -23,6 +26,43 @@ class MockGrammarProvider implements LanguageGrammarRuleProvider {
   @override
   GrammaticalGender determineGender(String word, {String? article}) {
     return determineGenderMock(word, article: article);
+  }
+
+  @override
+  bool isValidArticle(String word, String article) {
+    return false;
+  }
+}
+
+class MockVersionedProvider extends LanguageGrammarRuleProvider {
+  @override
+  final String languageCode = 'en';
+
+  @override
+  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+    hasGender: true,
+    hasCases: true,
+    hasNumber: true,
+  );
+
+  @override
+  GrammaticalCategory determineCategory(String word, {String? article}) {
+    return GrammaticalCategory.noun;
+  }
+
+  @override
+  GrammaticalGender determineGender(String word, {String? article}) {
+    return GrammaticalGender.masculine;
+  }
+
+  @override
+  GrammaticalCase? determineCase(String word, {String? context}) {
+    return GrammaticalCase.nominative;
+  }
+
+  @override
+  GrammaticalNumber? determineNumber(String word) {
+    return GrammaticalNumber.singular;
   }
 
   @override
@@ -71,21 +111,29 @@ void main() {
       expect(engine.getPresentationForWord('inconnu').color, AppColors.articleOther);
     });
 
-    test('Cache behaves correctly per instance', () {
-       final mockFr1 = MockGrammarProvider(
-        languageCode: 'fr',
-        determineGenderMock: (word, {article}) => GrammaticalGender.masculine,
-      );
+    test('Cache behaves correctly per instance and qualifies by pack version', () {
+      final mockProvider = MockVersionedProvider();
 
-      final engine1 = SemanticPresentationEngine(ruleProvider: mockFr1, packVersion: 'v1');
+      final engine1 = SemanticPresentationEngine(ruleProvider: mockProvider, packVersion: 'v1');
+      final engine2 = SemanticPresentationEngine(ruleProvider: mockProvider, packVersion: 'v2');
 
       final m1 = engine1.getPresentationForWord('test');
       final m1Cached = engine1.getPresentationForWord('test');
 
-      expect(m1.color, AppColors.primary);
-
-      // Ensure the same engine returns the exact identical cached object.
+      // Should be identical within the same engine instance
       expect(identical(m1, m1Cached), isTrue);
+
+      final m2 = engine2.getPresentationForWord('test');
+      // Across different engines (and versions), it should be recomputed and NOT identical
+      expect(identical(m1, m2), isFalse);
+    });
+
+    test('Labels correctly include determined capabilities if present', () {
+       final mockProvider = MockVersionedProvider();
+       final engine = SemanticPresentationEngine(ruleProvider: mockProvider, packVersion: 'v1');
+
+       final presentation = engine.getPresentationForWord('test');
+       expect(presentation.label, 'Masculine noun nominative singular');
     });
   });
 
