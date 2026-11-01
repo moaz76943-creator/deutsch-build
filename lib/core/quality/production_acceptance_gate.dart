@@ -12,6 +12,80 @@ enum PromotionEligibility {
   notVerified,
 }
 
+enum EligibilityState { approved, degraded, blocked, notVerified }
+
+class EvaluationResult {
+  final GateOutcome outcome;
+  final EligibilityState state;
+  final bool isReady;
+
+  const EvaluationResult(this.outcome, this.state, this.isReady);
+}
+
+class AcceptanceEvidence {
+  final bool isOfflineSafe;
+  final bool isStorageGuarded;
+  final bool isLifecycleManaged;
+  final bool hasCorruptedContent;
+  final bool isIntegrityEvidenceMissing;
+  final bool isStartupRecoveryFailed;
+  final bool isStale;
+  final List<String> verifiedLanguages;
+  final bool missingOptionalFeatures;
+  final bool hasRegressions;
+
+  const AcceptanceEvidence({
+    required this.isOfflineSafe,
+    required this.isStorageGuarded,
+    required this.isLifecycleManaged,
+    this.hasCorruptedContent = false,
+    this.isIntegrityEvidenceMissing = false,
+    this.isStartupRecoveryFailed = false,
+    this.isStale = false,
+    this.verifiedLanguages = const [],
+    this.missingOptionalFeatures = false,
+    this.hasRegressions = false,
+  });
+}
+
+class ReadinessContract {
+  final bool isOfflineSafe;
+  final bool isStorageGuarded;
+  final bool isLifecycleManaged;
+
+  final bool isContentCorrupted;
+  final bool isIntegrityEvidenceMissing;
+  final bool isStartupRecoveryFailed;
+  final bool isVerificationStale;
+
+  final Set<String> registeredLanguages;
+  final Set<String> verifiedDictionaries;
+
+  final bool hasOptionalAudio;
+  final bool hasExecutedTests;
+
+  final bool hasNewDartErrors;
+  final bool hasNormalStartup;
+  final bool hasSafeModeStartup;
+
+  const ReadinessContract({
+    required this.isOfflineSafe,
+    required this.isStorageGuarded,
+    required this.isLifecycleManaged,
+    this.isContentCorrupted = false,
+    this.isIntegrityEvidenceMissing = false,
+    this.isStartupRecoveryFailed = false,
+    this.isVerificationStale = false,
+    this.registeredLanguages = const {},
+    this.verifiedDictionaries = const {},
+    this.hasOptionalAudio = true,
+    this.hasExecutedTests = true,
+    this.hasNewDartErrors = false,
+    this.hasNormalStartup = true,
+    this.hasSafeModeStartup = true,
+  });
+}
+
 class J095VerificationResult {
   final GateOutcome outcome;
   final PromotionEligibility eligibility;
@@ -105,7 +179,7 @@ class ProductionAcceptanceGate {
     required bool isStorageGuarded,
     required bool isLifecycleManaged,
   }) {
-    final contract = J025StartupContract(
+    final contract = ReadinessContract(
       isOfflineSafe: isOfflineSafe,
       isStorageGuarded: isStorageGuarded,
       isLifecycleManaged: isLifecycleManaged,
@@ -114,8 +188,45 @@ class ProductionAcceptanceGate {
     return result.outcome == GateOutcome.passed;
   }
 
+  static EvaluationResult evaluateEvidence(AcceptanceEvidence? evidence) {
+    if (evidence == null) {
+      return const EvaluationResult(GateOutcome.notRun, EligibilityState.notVerified, false);
+    }
+
+    if (evidence.isStale) {
+      return const EvaluationResult(GateOutcome.notRun, EligibilityState.notVerified, false);
+    }
+
+    if (evidence.hasCorruptedContent) {
+      return const EvaluationResult(GateOutcome.blocked, EligibilityState.blocked, false);
+    }
+
+    if (evidence.hasRegressions) {
+      return const EvaluationResult(GateOutcome.blocked, EligibilityState.blocked, false);
+    }
+
+    if (evidence.isIntegrityEvidenceMissing || evidence.isStartupRecoveryFailed) {
+      return const EvaluationResult(GateOutcome.blocked, EligibilityState.blocked, false);
+    }
+
+    if (!evidence.isOfflineSafe || !evidence.isStorageGuarded || !evidence.isLifecycleManaged) {
+      return const EvaluationResult(GateOutcome.failed, EligibilityState.blocked, false);
+    }
+
+    if (evidence.verifiedLanguages.contains('fr')) {
+      return const EvaluationResult(GateOutcome.failed, EligibilityState.blocked, false);
+    }
+
+    if (evidence.missingOptionalFeatures) {
+      return const EvaluationResult(GateOutcome.passed, EligibilityState.degraded, true);
+    }
+
+    return const EvaluationResult(GateOutcome.passed, EligibilityState.approved, true);
+  }
+
+
   static J095VerificationResult evaluateReadiness(
-      J025StartupContract contract) {
+      ReadinessContract contract) {
     if (!contract.hasExecutedTests) {
       return const J095VerificationResult(
         outcome: GateOutcome.notRun,
