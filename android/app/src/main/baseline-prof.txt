@@ -6,10 +6,18 @@
 # Expected measurable impact (Android official docs): up to ~30% faster cold startup (TTID).
 # R8 minify/obfuscation stays fully active — no security regression.
 
-# Expanded startup + embedding rules (safe placeholder; replace with generated profile).
+# Expanded startup + embedding rules (enhanced placeholder; replace with generated profile from macrobenchmark).
 HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/deutschbilarabi/app/MainActivity;->onResume()V
 HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/android/FlutterActivity;->onStart()V
+HSPLio/flutter/embedding/android/FlutterActivity;->onResume()V
 HSPLio/flutter/embedding/android/FlutterActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
 HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->attachToNative()V
 HSPLio/flutter/embedding/engine/loader/FlutterLoader;->ensureInitializationComplete(Landroid/content/Context;[Ljava/lang/String;)V
+HSPLio/flutter/embedding/engine/loader/FlutterLoader;->startInitialization(Landroid/content/Context;)V
 HSPLio/flutter/view/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
+HSPLio/flutter/view/FlutterView;->onLayout(ZIIII)V
+HSPLio/flutter/embedding/engine/dart/DartExecutor;->executeDartEntrypoint(Lio/flutter/embedding/engine/dart/DartExecutor$DartEntrypoint;)V
+HSPLio/flutter/plugin/common/BinaryMessenger;->send(Ljava/lang/String;Ljava/nio/ByteBuffer;)V
