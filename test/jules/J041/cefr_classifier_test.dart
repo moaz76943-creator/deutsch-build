@@ -165,4 +165,131 @@ void main() {
       expect(result.source, EvidenceSource.unsupported);
     });
   });
+
+  group('CefrClassifier - LexicalEntryEvidence Classification Requirements', () {
+    test('A1 explicit source metadata respects language profile', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'fr',
+        sourceProvidedCefr: CefrLevel.a1,
+      );
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.a1);
+      expect(result.method, CefrClassificationMethod.explicit);
+      expect(result.confidence, CefrEvidenceConfidence.high);
+    });
+
+    test('A2 explicit source metadata', () {
+      const evidence = LexicalEntryEvidence(languageId: 'es', sourceProvidedCefr: CefrLevel.a2);
+      expect(CefrClassifier.classifyLexicalEntry(evidence).level, CefrLevel.a2);
+    });
+
+    test('B1 explicit source metadata', () {
+      const evidence = LexicalEntryEvidence(languageId: 'de', sourceProvidedCefr: CefrLevel.b1);
+      expect(CefrClassifier.classifyLexicalEntry(evidence).level, CefrLevel.b1);
+    });
+
+    test('B2 explicit source metadata', () {
+      const evidence = LexicalEntryEvidence(languageId: 'ja', sourceProvidedCefr: CefrLevel.b2);
+      expect(CefrClassifier.classifyLexicalEntry(evidence).level, CefrLevel.b2);
+    });
+
+    test('C1 explicit source metadata', () {
+      const evidence = LexicalEntryEvidence(languageId: 'ko', sourceProvidedCefr: CefrLevel.c1);
+      expect(CefrClassifier.classifyLexicalEntry(evidence).level, CefrLevel.c1);
+    });
+
+    test('C2 explicit source metadata', () {
+      const evidence = LexicalEntryEvidence(languageId: 'ar', sourceProvidedCefr: CefrLevel.c2);
+      expect(CefrClassifier.classifyLexicalEntry(evidence).level, CefrLevel.c2);
+    });
+
+    test('Returns unknown for ambiguous/missing explicit metadata', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'en',
+        sourceProvidedCefr: CefrLevel.unknown,
+        frequencyRank: 100,
+        charLength: 10,
+        isCompound: false,
+      );
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+
+    test('Returns unknown for null explicit metadata', () {
+      const evidence = LexicalEntryEvidence(
+        languageId: 'zh',
+        frequencyRank: 50,
+      );
+      final result = CefrClassifier.classifyLexicalEntry(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+  });
+
+  group('CefrClassifier - LearningExampleEvidence Classification Requirements', () {
+    test('A1 explicit source metadata respects language profile', () {
+      const evidence = LearningExampleEvidence(
+        languageId: 'fr',
+        sourceProvidedCefr: CefrLevel.a1,
+      );
+      final result = CefrClassifier.classifyLearningExample(evidence);
+      expect(result.level, CefrLevel.a1);
+      expect(result.method, CefrClassificationMethod.explicit);
+      expect(result.confidence, CefrEvidenceConfidence.high);
+    });
+
+    test('A2 explicit source metadata', () {
+      const evidence = LearningExampleEvidence(languageId: 'es', sourceProvidedCefr: CefrLevel.a2);
+      expect(CefrClassifier.classifyLearningExample(evidence).level, CefrLevel.a2);
+    });
+
+    test('B1 explicit source metadata', () {
+      const evidence = LearningExampleEvidence(languageId: 'de', sourceProvidedCefr: CefrLevel.b1);
+      expect(CefrClassifier.classifyLearningExample(evidence).level, CefrLevel.b1);
+    });
+
+    test('B2 explicit source metadata', () {
+      const evidence = LearningExampleEvidence(languageId: 'ja', sourceProvidedCefr: CefrLevel.b2);
+      expect(CefrClassifier.classifyLearningExample(evidence).level, CefrLevel.b2);
+    });
+
+    test('C1 explicit source metadata', () {
+      const evidence = LearningExampleEvidence(languageId: 'ko', sourceProvidedCefr: CefrLevel.c1);
+      expect(CefrClassifier.classifyLearningExample(evidence).level, CefrLevel.c1);
+    });
+
+    test('C2 explicit source metadata', () {
+      const evidence = LearningExampleEvidence(languageId: 'ar', sourceProvidedCefr: CefrLevel.c2);
+      expect(CefrClassifier.classifyLearningExample(evidence).level, CefrLevel.c2);
+    });
+
+    test('Returns unknown for ambiguous/missing explicit metadata', () {
+      const evidence = LearningExampleEvidence(
+        languageId: 'en',
+        sourceProvidedCefr: CefrLevel.unknown,
+        wordCount: 5,
+        maxWordFrequencyRank: 100,
+        clauseCount: 1,
+      );
+      final result = CefrClassifier.classifyLearningExample(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+
+    test('Returns unknown for null explicit metadata', () {
+      const evidence = LearningExampleEvidence(
+        languageId: 'zh',
+        wordCount: 10,
+        maxWordFrequencyRank: 50,
+      );
+      final result = CefrClassifier.classifyLearningExample(evidence);
+      expect(result.level, CefrLevel.unknown);
+      expect(result.method, CefrClassificationMethod.inferred);
+      expect(result.confidence, CefrEvidenceConfidence.none);
+    });
+  });
 }
