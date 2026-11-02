@@ -7,7 +7,14 @@ import 'package:deutsch_bilarabi/core/srs/bridge/srs_compat_bridge.dart';
 import 'package:flutter/services.dart';
 
 class DictationTrainerScreen extends StatefulWidget {
-  const DictationTrainerScreen({super.key});
+  final String? sourceLocale;
+  final String? targetLocale;
+
+  const DictationTrainerScreen({
+    super.key,
+    this.sourceLocale,
+    this.targetLocale,
+  });
 
   @override
   State<DictationTrainerScreen> createState() => _DictationTrainerScreenState();
@@ -33,9 +40,11 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   }
 
   Future<void> _loadEntry() async {
-    // Attempt to load an entry for Arabic to German or some default pair. We will just load ar-SA to de-DE for now as it doesn't receive language inputs.
+    final String source = widget.sourceLocale ?? 'ar-SA';
+    final String target = widget.targetLocale ?? 'de-DE';
+
     List<LexicalEntry> entries = LexicalRepository.getEntriesForPair(
-        sourceLocale: 'ar-SA', targetLocale: 'de-DE');
+        sourceLocale: source, targetLocale: target);
     if (entries.isEmpty) {
       // Fallback if empty
       if (mounted) {
@@ -97,7 +106,11 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
   // Basic unicode normalization for answer comparison
   String _normalizeString(String input) {
     // Basic normalization: trim and lowercase and remove extra spaces
-    return input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+    String normalized = input.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+
+    // Basic Arabic diacritics stripping
+    normalized = normalized.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+    return normalized;
   }
 
   void _checkAnswer() {
@@ -130,7 +143,7 @@ class _DictationTrainerScreenState extends State<DictationTrainerScreen> {
       return Scaffold(
         appBar: AppBar(title: const Text('مدرب الاستماع والتهجئة')),
         body: const Center(
-            child: Text('No content available for training.',
+            child: Text('لا توجد مفردات متاحة للتدريب حالياً.',
                 style: TextStyle(color: Colors.white))),
       );
     }

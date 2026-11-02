@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
@@ -29,6 +30,16 @@ void main() {
         partOfSpeech: 'noun',
       ),
     ]);
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('com.deutschbilarabi.app/offline_voice_capability'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'getOfflineVoices') {
+          return ['de', 'ar'];
+        }
+        return null;
+      },
+    );
   });
 
   Widget buildScreen({String source = 'ar', String target = 'de'}) {
@@ -48,6 +59,12 @@ void main() {
   });
 
   testWidgets('Screen shows entry and falls back gracefully when TTS is missing', (tester) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('com.deutschbilarabi.app/offline_voice_capability'),
+      (MethodCall methodCall) async {
+        return [];
+      },
+    );
     await tester.pumpWidget(buildScreen(source: 'ar', target: 'de'));
     await tester.pumpAndSettle();
 
@@ -80,6 +97,12 @@ void main() {
     await tester.tap(find.text('تحقق من التهجئة'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('تحقق من التهجئة'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('تحقق من التهجئة'));
+    await tester.pumpAndSettle();
+
     expect(find.textContaining('خطأ تهجئي بسيط'), findsOneWidget);
   });
 
@@ -92,6 +115,9 @@ void main() {
 
     await tester.tap(find.text('تحقق من التهجئة'));
     await tester.pumpAndSettle();
+
+    // wait slightly since unicode normalization logic
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('إجابة صحيحة تماماً! أحسنت 🚀'), findsOneWidget);
   });
