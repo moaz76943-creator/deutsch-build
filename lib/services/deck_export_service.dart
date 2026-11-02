@@ -16,6 +16,9 @@ class DeckExportWord {
     required this.front,
     required this.back,
     required this.tag,
+    this.example,
+    this.grammar,
+    this.cefr,
   });
 
   final String lexemeId;
@@ -23,6 +26,9 @@ class DeckExportWord {
   final String front;
   final String back;
   final String tag;
+  final String? example;
+  final String? grammar;
+  final String? cefr;
 }
 
 /// Local-only personal taxonomy and Anki 2.1 legacy package exporter.
@@ -183,12 +189,19 @@ class DeckExportService {
           }
           final back = (fields['translation_ar'] ?? fields['translation'] ?? '')
               .toString();
+          final isCefrVerified = fields['isCefrVerified'] == true;
+          final example = isCefrVerified ? fields['example_ar']?.toString() : null;
+          final grammar = isCefrVerified ? fields['grammar']?.toString() : null;
+          final cefr = isCefrVerified ? fields['cefr']?.toString() : null;
           words.add(DeckExportWord(
             lexemeId: row['id'].toString(),
             languageCode: item.key,
             front: front,
             back: back,
             tag: name.replaceAll(RegExp(r'\s+'), '_'),
+            example: example,
+            grammar: grammar,
+            cefr: cefr,
           ));
         }
       }
@@ -297,7 +310,10 @@ class DeckExportService {
           final word = words[i];
           final noteId = firstId + i * 2;
           final cardId = noteId + 1;
-          final fieldText = '${_html(word.front)}\u001f${_html(word.back)}';
+          final fieldText = '${_html(word.front)}\u001f${_html(word.back)}'
+              '\u001f${_html(word.example ?? '')}'
+              '\u001f${_html(word.grammar ?? '')}'
+              '\u001f${_html(word.cefr ?? '')}';
           final hash = sha1.convert(utf8.encode(word.front)).toString();
           final checksum = int.parse(hash.substring(0, 8), radix: 16);
           await txn.rawInsert(
@@ -349,15 +365,44 @@ class DeckExportService {
       db = null;
       final sqliteBytes = await collectionFile.readAsBytes();
       final mediaBytes = utf8.encode('{}');
+      final contentHash = sha1.convert(utf8.encode(
+          words.map((w) => w.front).join(''))).toString();
+      final manifestBytes = utf8.encode(jsonEncode(<String, Object?>{
+        'version': 1,
+        'checksum': contentHash,
+        'timestamp': DateTime.now().toIso8601String(),
+      }));
       final archive = Archive()
         ..addFile(
             ArchiveFile('collection.anki2', sqliteBytes.length, sqliteBytes))
-        ..addFile(ArchiveFile('media', mediaBytes.length, mediaBytes));
+        ..addFile(ArchiveFile('media', mediaBytes.length, mediaBytes))
+        ..addFile(ArchiveFile('manifest.json', manifestBytes.length, manifestBytes));
       final encoded = ZipEncoder().encode(archive);
       final directory = await _downloadsDirectory();
       await directory.create(recursive: true);
-      final output = File(p.join(directory.path, '${_fileStem(name)}.apkg'));
-      return output.writeAsBytes(encoded, flush: true);
+      final finalPath = p.join(directory.path, '${_fileStem(name)}.apkg');
+      final tempOutput = File('$finalPath.tmp');
+      try {
+        await tempOutput.writeAsBytes(encoded, flush: true);
+        // Verify archive structure
+        final verifyBytes = await tempOutput.readAsBytes();
+        final verifyArchive = ZipDecoder().decodeBytes(verifyBytes, verify: true);
+        if (verifyArchive.findFile('collection.anki2') == null ||
+            verifyArchive.findFile('media') == null ||
+            verifyArchive.findFile('manifest.json') == null) {
+          throw const FormatException('Archive verification failed');
+        }
+        final output = File(finalPath);
+        if (await output.exists()) {
+            await output.delete();
+        }
+        return await tempOutput.rename(finalPath);
+      } catch (e) {
+        if (await tempOutput.exists()) {
+          await tempOutput.delete();
+        }
+        rethrow;
+      }
     } finally {
       if (db != null && db.isOpen) await db.close();
       if (await scratch.exists()) await scratch.delete(recursive: true);
@@ -422,13 +467,37 @@ class DeckExportService {
             'font': 'Arial',
             'size': 20
           },
+          <String, Object?>{
+            'name': 'Example',
+            'ord': 2,
+            'sticky': false,
+            'rtl': true,
+            'font': 'Arial',
+            'size': 20
+          },
+          <String, Object?>{
+            'name': 'Grammar',
+            'ord': 3,
+            'sticky': false,
+            'rtl': false,
+            'font': 'Arial',
+            'size': 20
+          },
+          <String, Object?>{
+            'name': 'CEFR',
+            'ord': 4,
+            'sticky': false,
+            'rtl': false,
+            'font': 'Arial',
+            'size': 20
+          },
         ],
         'tmpls': <Map<String, Object?>>[
           <String, Object?>{
             'name': 'Card 1',
             'ord': 0,
             'qfmt': '{{Front}}',
-            'afmt': '{{FrontSide}}<hr id=answer>{{Back}}',
+            'afmt': '{{FrontSide}}<hr id=answer>{{Back}}<br>{{Example}}<br>{{Grammar}}<br>{{CEFR}}',
           },
         ],
         'req': <Object?>[
@@ -492,6 +561,9 @@ class DeckExportService {
 
   static String _validateName(String value) {
     final name = value.trim();
+    if (name.contains(RegExp(r'[/\\]')) || name.contains('.')) {
+      throw ArgumentError.value(value, 'deckName', 'Invalid characters in deck name');
+    }
     if (name.isEmpty || name.length > 80) {
       throw ArgumentError.value(value, 'deckName', 'Must be 1-80 characters');
     }
