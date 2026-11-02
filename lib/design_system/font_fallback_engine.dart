@@ -13,6 +13,8 @@ class FontFallbackEngine {
     'NotoSansGeorgian',
     'NotoSansArmenian',
     'NotoSansSC',
+    'NotoSansJP',
+    'NotoSansKR',
   ];
 
   /// Alternatively, a helper to apply only specific fallbacks based on text content
@@ -48,7 +50,18 @@ class FontFallbackEngine {
     if (RegExp(r'[\u0530-\u058F]').hasMatch(text)) {
       fallbacks.add('NotoSansArmenian');
     }
-    // CJK Unified Ideographs (4E00–9FFF)
+
+    // CJK Unified Ideographs - simplified logic using range,
+    // real scenarios might have more specific detection for SC/JP/KR
+    // Hiragana/Katakana for JP
+    if (RegExp(r'[\u3040-\u309F\u30A0-\u30FF]').hasMatch(text)) {
+      fallbacks.add('NotoSansJP');
+    }
+    // Hangul for KR
+    if (RegExp(r'[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]').hasMatch(text)) {
+      fallbacks.add('NotoSansKR');
+    }
+    // Han characters for SC or general CJK
     if (RegExp(r'[\u4E00-\u9FFF]').hasMatch(text)) {
       fallbacks.add('NotoSansSC');
     }

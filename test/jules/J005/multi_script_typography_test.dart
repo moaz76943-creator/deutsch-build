@@ -19,7 +19,7 @@ void main() {
     expect(textWidget.style?.fontFamilyFallback, contains('Cairo'));
   });
 
-  testWidgets('MultiScriptTypography handles CJK', (WidgetTester tester) async {
+  testWidgets('MultiScriptTypography handles CJK SC', (WidgetTester tester) async {
     const text = 'Hello 世界';
     await tester.pumpWidget(
       const MaterialApp(
