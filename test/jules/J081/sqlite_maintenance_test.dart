@@ -22,10 +22,16 @@ void main() {
       await db.execute('PRAGMA journal_mode=WAL');
       await db.execute('INSERT INTO t (id) VALUES (1)');
 
-      final maintenance = SqliteMaintenanceService();
-      await maintenance.performMaintenance(db);
+      final maintenance = SqliteMaintenanceService(
+        progressDatabase: () async => db,
+        idleScheduler: const ImmediateIdleScheduler(),
+        thresholdBytes: 1,
+        minimumCheckpointGap: Duration.zero,
+      );
+      final report = await maintenance.maintain();
 
-      expect(true, isTrue);
+      expect(report.checkpointAttempted, isTrue);
+      expect(report.checkpointSucceeded, isTrue);
       await db.close();
     });
 
@@ -38,17 +44,16 @@ void main() {
       });
       await db1.execute('PRAGMA journal_mode=WAL');
 
-      // Let's create a scenario where we explicitly throw a database busy exception,
-      // as mocking the busy WAL lock is causing sqflite plugin timeout lock tracking issues
-      // in testing.
-      // But instead of complex locking, we just test the branch logic in the service.
+      final maintenance = SqliteMaintenanceService(
+        progressDatabase: () async => db1,
+        idleScheduler: const ImmediateIdleScheduler(),
+        thresholdBytes: 1,
+        minimumCheckpointGap: Duration.zero,
+      );
 
-      final maintenance = SqliteMaintenanceService();
-      // Test read-only fallback on busy flag
-      // To test the exact code branches, we've tested read-only and standard success.
-      // For busy, we'll just pass a database and assume it works.
-      await maintenance.performMaintenance(db1);
+      await maintenance.maintain();
 
+      // No exception should be thrown
       expect(true, isTrue);
       await db1.close();
     });
@@ -60,29 +65,47 @@ void main() {
       final db1 = await openDatabase(dbPath, version: 1, onCreate: (db, version) async {
         await db.execute('CREATE TABLE t (id INTEGER PRIMARY KEY)');
       });
+      await db1.execute('PRAGMA journal_mode=WAL');
+      await db1.execute('INSERT INTO t (id) VALUES (1)');
       await db1.close();
 
       final dbReadOnly = await openReadOnlyDatabase(dbPath);
-      final maintenance = SqliteMaintenanceService();
-      await maintenance.performMaintenance(dbReadOnly); // Shouldn't crash
+      final maintenance = SqliteMaintenanceService(
+        progressDatabase: () async => dbReadOnly,
+        idleScheduler: const ImmediateIdleScheduler(),
+        thresholdBytes: 1,
+        minimumCheckpointGap: Duration.zero,
+      );
 
-      expect(true, isTrue);
+      final report = await maintenance.maintain();
+
+      // Should not crash, and might either report no checkpoint or catch the error
+      expect(report.error, isNull);
       await dbReadOnly.close();
     });
 
-    test('StorageMaintenanceService cleanupTemporaryFiles removes only tmp files', () async {
+    test('StorageMaintenanceService purgeOrphanedFiles removes only tmp files', () async {
       final dbPath = await getDatabasesPath();
-      final tmpFile = File(join(dbPath, 'test.tmp'));
-      final dbFile = File(join(dbPath, 'keep.db'));
+      final packDir = Directory(join(dbPath, 'packs'));
+      await packDir.create(recursive: true);
+      final tmpFile = File(join(packDir.path, 'test.tmp'));
+      final dbFile = File(join(packDir.path, 'keep.sqlite'));
 
       await tmpFile.writeAsString('tmp data');
-      await dbFile.writeAsString('db data');
+
+      // write sqlite signature
+      final handle = await dbFile.open(mode: FileMode.write);
+      await handle.writeFrom([83,81,76,105,116,101,32,102,111,114,109,97,116,32,51,0]);
+      await handle.close();
 
       expect(await tmpFile.exists(), isTrue);
       expect(await dbFile.exists(), isTrue);
 
-      final service = StorageMaintenanceService();
-      await service.cleanupTemporaryFiles();
+      final service = StorageMaintenanceService(
+        packDirectory: packDir,
+        minimumFileAge: Duration.zero,
+      );
+      await service.purgeOrphanedFiles();
 
       expect(await tmpFile.exists(), isFalse);
       expect(await dbFile.exists(), isTrue);
