@@ -99,7 +99,7 @@ void main() {
         ]);
       }
 
-      // Should hit maxCapacity of 20
+      // Should hit maxCapacity of 50
       int count = 0;
       for (int i = 0; i < 100; i++) {
         final key = l1Cache.generateKey('lang$i', 'target', '1.0.0');
@@ -107,7 +107,7 @@ void main() {
       }
 
       expect(count, lessThanOrEqualTo(50));
-      expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(15 * 1024 * 1024));
+      expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(5 * 1024 * 1024));
     });
 
     test('Stale asynchronous mutations are correctly rejected', () {
@@ -136,26 +136,31 @@ void main() {
     });
 
     test('Entries are successfully invalidated after a content version update', () {
-      l1Cache.put(l1Cache.generateKey('de', 'ar', '1.0.0'), [{'w': '1'}]);
-      l1Cache.put(l1Cache.generateKey('en', 'ar', '1.0.0'), [{'w': '2'}]);
-      l1Cache.put(l1Cache.generateKey('fr', 'ar', '1.1.0'), [{'w': '3'}]); // New version
+      // Using explicit cache keys for versioned storage check
+      final oldKeyDe = l1Cache.generateKey('de', 'ar', '1.0.0');
+      final oldKeyEn = l1Cache.generateKey('en', 'ar', '1.0.0');
+      final newKeyFr = l1Cache.generateKey('fr', 'ar', '1.1.0');
 
-      expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.0.0')), isTrue);
-      expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isTrue);
-      expect(l1Cache.has(l1Cache.generateKey('fr', 'ar', '1.1.0')), isTrue);
+      l1Cache.put(oldKeyDe, [{'w': '1'}]);
+      l1Cache.put(oldKeyEn, [{'w': '2'}]);
+      l1Cache.put(newKeyFr, [{'w': '3'}]); // New version
+
+      expect(l1Cache.has(oldKeyDe), isTrue);
+      expect(l1Cache.has(oldKeyEn), isTrue);
+      expect(l1Cache.has(newKeyFr), isTrue);
 
       // Invalidating all non-1.1.0 entries
       l1Cache.invalidateStaleVersions('1.1.0');
 
-      expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.0.0')), isFalse);
-      expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isFalse);
-      expect(l1Cache.has(l1Cache.generateKey('fr', 'ar', '1.1.0')), isTrue);
+      expect(l1Cache.has(oldKeyDe), isFalse);
+      expect(l1Cache.has(oldKeyEn), isFalse);
+      expect(l1Cache.has(newKeyFr), isTrue);
     });
 
     test('Oversized objects are rejected based on size estimator', () {
       final key = l1Cache.generateKey('de', 'ar', '1.0.0');
 
-      // Create a giant array to exceed 15MB limit.
+      // Create a giant array to exceed limit.
       // 150000 items * ~150 bytes = ~22.5MB
       final hugeList = List.generate(400000, (i) => {'word': 'very_long_word_$i'});
 
