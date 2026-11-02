@@ -49,6 +49,37 @@
       "id": "fi:metsä1", "lemma": "metsä", "part_of_speech": "noun",
       "gender": "none", "number": "sg",
       "declensions": []
+    },
+    {
+      "id": "tr:okul1", "lemma": "okul", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "fi:tie1", "lemma": "tie", "part_of_speech": "noun",
+      "gender": "none", "number": "sg",
+      "declensions": []
+    },
+    {
+      "id": "de:Koenig1", "lemma": "König", "part_of_speech": "noun",
+      "gender": "masc", "number": "sg",
+      "declensions": [
+        {"id": "de:Koenig1:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "König"}
+      ]
+    },
+    {
+      "id": "de:Haus1", "lemma": "Haus", "part_of_speech": "noun",
+      "gender": "neu", "number": "sg",
+      "declensions": [
+        {"id": "de:Haus1:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Haus"}
+      ]
+    },
+    {
+      "id": "de:Frau1", "lemma": "Frau", "part_of_speech": "noun",
+      "gender": "fem", "number": "sg",
+      "declensions": [
+        {"id": "de:Frau1:nom:sg", "grammatical_case": "nom", "number": "sg", "definiteness": "def", "inflected_form": "Frau"}
+      ]
     }
   ]
 }

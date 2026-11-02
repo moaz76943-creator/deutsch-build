@@ -138,6 +138,63 @@ class TestAnalyzer(unittest.TestCase):
 
         analyzer.close()
 
+    def test_turkish_4_way_harmony(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('okul1', 'okul', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        tr = get_profile("tr")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], tr)
+
+        res = analyzer.analyze("okulumuz")
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].lemma, "okul")
+        self.assertEqual(res[0].tags, ["POSS1P"])
+
+        res_invalid = analyzer.analyze("okulimiz")
+        self.assertEqual(len(res_invalid), 0)
+
+        analyzer.close()
+
+    def test_finnish_neutral_vowels(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('tie1', 'tie', 'noun', 'none', 'sg')")
+        self.ndb.commit()
+
+        fi = get_profile("fi")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], fi)
+
+        res = analyzer.analyze("tiessä")
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].lemma, "tie")
+        self.assertEqual(res[0].tags, ["INE"])
+
+        res_invalid = analyzer.analyze("tiessa")
+        self.assertEqual(len(res_invalid), 0)
+
+        analyzer.close()
+
+    def test_german_genitive_singular(self):
+        self.ndb.execute("INSERT INTO nominals VALUES ('Koenig1', 'König', 'noun', 'masc', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d1', 'Koenig1', 'nom', 'sg', 'def', 'König')")
+        self.ndb.execute("INSERT INTO nominals VALUES ('Haus1', 'Haus', 'noun', 'neu', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d2', 'Haus1', 'nom', 'sg', 'def', 'Haus')")
+        self.ndb.execute("INSERT INTO nominals VALUES ('Frau1', 'Frau', 'noun', 'fem', 'sg')")
+        self.ndb.execute("INSERT INTO nominal_declensions VALUES ('d3', 'Frau1', 'nom', 'sg', 'def', 'Frau')")
+        self.ndb.commit()
+
+        de = get_profile("de")
+        analyzer = MorphologyAnalyzer([self.noun_db_path], de)
+
+        res = analyzer.analyze("Königs")
+        self.assertTrue(any("GEN" in r.tags and "SG" in r.tags for r in res))
+
+        res2 = analyzer.analyze("Hauses")
+        self.assertTrue(any("GEN" in r.tags and "SG" in r.tags for r in res2))
+
+        res_invalid = analyzer.analyze("Fraus")
+        self.assertFalse(any("GEN" in r.tags and "SG" in r.tags for r in res_invalid))
+
+        analyzer.close()
+
 
 if __name__ == '__main__':
     unittest.main()
