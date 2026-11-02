@@ -1,13 +1,14 @@
-{}
 {
-  "tasks": {
-    "J001": {
-      "state": "ACTIVE",
-      "allowed_paths": [
-        "AGENTS.md",
-        "docs/project-record/**",
-        "tools/agent_contract/**"
-      ]
-    }
+  "J001": {
+    "state": "COMPLETE",
+    "paths": [
+      "AGENTS.md",
+      "docs/project-record/",
+      "tools/agent_contract/"
+    ],
+    "timestamp": 1793655138.348273
+  },
+  "_metadata": {
+    "latest_base_sha": "HEAD"
   }
 }

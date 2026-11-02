@@ -1,0 +1,9 @@
+{
+  "task_id": "J001",
+  "base_sha": "HEAD",
+  "result_sha": "HEAD",
+  "transition": "COMPLETE",
+  "permitted_paths": [],
+  "denied_paths": [],
+  "blockers": []
+}
