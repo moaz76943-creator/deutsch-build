@@ -40,6 +40,8 @@ class MainActivity : FlutterActivity() {
         offlineVoiceProbe = AndroidOfflineVoiceCapabilityProbe(this)
         MethodChannel(messenger, AndroidOfflineVoiceCapabilityProbe.CHANNEL_NAME)
             .setMethodCallHandler(offlineVoiceProbe)
+        MethodChannel(messenger, AndroidOfflineVoiceCapabilityProbe.PROBE_CHANNEL_NAME)
+            .setMethodCallHandler(offlineVoiceProbe)
 
         MethodChannel(messenger, AndroidPlayIntegrityManager.CHANNEL_NAME)
             .setMethodCallHandler(AndroidPlayIntegrityManager(this))

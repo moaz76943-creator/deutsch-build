@@ -21,14 +21,23 @@ internal data class VoiceCapabilitySnapshot(
     val features: Set<String>,
 )
 
+internal enum class VoiceState {
+    SUPPORTED, MISSING, UNAVAILABLE, UNKNOWN
+}
+
+internal fun classifyVoiceState(voice: VoiceCapabilitySnapshot): VoiceState {
+    if (voice.languageTag.isBlank()) return VoiceState.UNKNOWN
+    if (voice.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) return VoiceState.MISSING
+    if (voice.networkConnectionRequired) return VoiceState.UNAVAILABLE
+    return VoiceState.SUPPORTED
+}
+
 internal fun offlineVoiceLanguageTags(
     voices: Iterable<VoiceCapabilitySnapshot>?,
 ): List<String> {
     if (voices == null) return emptyList()
     return voices.mapNotNull { voice ->
-        val installedOffline = !voice.networkConnectionRequired &&
-            !voice.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)
-        if (installedOffline && voice.languageTag.isNotBlank()) {
+        if (classifyVoiceState(voice) == VoiceState.SUPPORTED) {
             voice.languageTag
         } else {
             null
@@ -36,36 +45,74 @@ internal fun offlineVoiceLanguageTags(
     }.distinct()
 }
 
+internal fun buildCapabilityReport(voices: Iterable<VoiceCapabilitySnapshot>?): String {
+    val b = StringBuilder()
+    b.append("{\"version\":\"1.0\",")
+    b.append("\"status\":")
+    if (voices == null) {
+        b.append("\"unavailable\",")
+        b.append("\"voices\":[]}")
+        return b.toString()
+    }
+    b.append("\"available\",")
+    b.append("\"voices\":[")
+
+    val voiceList = voices.toList()
+
+    // Group voices by tag, find the best state (SUPPORTED > MISSING > UNAVAILABLE > UNKNOWN)
+    val bestVoices = voiceList.groupBy { it.languageTag }.mapValues { (_, group) ->
+        group.map { classifyVoiceState(it) }.minByOrNull { it.ordinal } ?: VoiceState.UNKNOWN
+    }.toList()
+
+    for ((index, pair) in bestVoices.withIndex()) {
+        val (tag, state) = pair
+        b.append("{\"languageTag\":\"${tag}\",\"state\":\"${state.name.lowercase()}\"}")
+        if (index < bestVoices.size - 1) {
+            b.append(",")
+        }
+    }
+    b.append("]}")
+    return b.toString()
+}
+
 class AndroidOfflineVoiceCapabilityProbe(
     private val context: Context,
 ) : MethodChannel.MethodCallHandler {
     companion object {
         const val CHANNEL_NAME = "com.deutschbilarabi.app/offline_voice_capability"
+        const val PROBE_CHANNEL_NAME = "com.deutschbilarabi.app/tts_capability_probe"
         const val METHOD_GET_OFFLINE_VOICES = "getOfflineVoices"
+        const val METHOD_PROBE_CAPABILITIES = "probeCapabilities"
         private const val INIT_TIMEOUT_MS = 3000L
     }
 
     private var tts: TextToSpeech? = null
     private val isProbing = AtomicBoolean(false)
     private var pendingResult: MethodChannel.Result? = null
+    private var pendingMethod: String? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        if (call.method == METHOD_GET_OFFLINE_VOICES) {
-            probeOfflineVoices(result)
-        } else {
-            result.notImplemented()
+        when (call.method) {
+            METHOD_GET_OFFLINE_VOICES -> probeOfflineVoices(result, METHOD_GET_OFFLINE_VOICES)
+            METHOD_PROBE_CAPABILITIES -> probeOfflineVoices(result, METHOD_PROBE_CAPABILITIES)
+            else -> result.notImplemented()
         }
     }
 
-    private fun probeOfflineVoices(result: MethodChannel.Result) {
+    private fun probeOfflineVoices(result: MethodChannel.Result, method: String) {
         if (!isProbing.compareAndSet(false, true)) {
-            result.success(emptyList<String>())
+            if (method == METHOD_GET_OFFLINE_VOICES) {
+                result.success(emptyList<String>())
+            } else {
+                result.success(buildCapabilityReport(null))
+            }
             return
         }
 
         pendingResult = result
-        val timeoutRunnable = Runnable { finishProbe(emptyList()) }
+        pendingMethod = method
+        val timeoutRunnable = Runnable { finishProbe(null) }
         mainHandler.postDelayed(timeoutRunnable, INIT_TIMEOUT_MS)
 
         try {
@@ -76,44 +123,50 @@ class AndroidOfflineVoiceCapabilityProbe(
                     return@TextToSpeech
                 }
                 if (status == TextToSpeech.SUCCESS) {
-                    finishProbe(readOfflineVoices())
+                    finishProbe(readAllVoices())
                 } else {
-                    finishProbe(emptyList())
+                    finishProbe(null)
                 }
             }
         } catch (e: SecurityException) {
             mainHandler.removeCallbacks(timeoutRunnable)
-            finishProbe(emptyList())
+            finishProbe(null)
         } catch (e: Exception) {
             mainHandler.removeCallbacks(timeoutRunnable)
-            finishProbe(emptyList())
+            finishProbe(null)
         }
     }
 
-    private fun readOfflineVoices(): List<String> {
-        val engine = tts ?: return emptyList()
+    private fun readAllVoices(): List<VoiceCapabilitySnapshot>? {
+        val engine = tts ?: return null
         return try {
-            val voices = engine.voices ?: return emptyList()
-            offlineVoiceLanguageTags(
-                voices.mapNotNull { voice ->
-                    val tag = voice.locale?.toLanguageTag() ?: return@mapNotNull null
-                    VoiceCapabilitySnapshot(
-                        languageTag = tag,
-                        networkConnectionRequired = voice.isNetworkConnectionRequired,
-                        features = voice.features ?: emptySet(),
-                    )
-                },
-            )
+            val voices = engine.voices ?: return null
+            voices.mapNotNull { voice ->
+                val tag = voice.locale?.toLanguageTag() ?: return@mapNotNull null
+                VoiceCapabilitySnapshot(
+                    languageTag = tag,
+                    networkConnectionRequired = voice.isNetworkConnectionRequired,
+                    features = voice.features ?: emptySet(),
+                )
+            }
         } catch (e: Exception) {
-            emptyList()
+            null
         }
     }
 
-    private fun finishProbe(locales: List<String>) {
+    private fun finishProbe(voices: List<VoiceCapabilitySnapshot>?) {
         if (!isProbing.compareAndSet(true, false)) return
         val res = pendingResult
+        val method = pendingMethod
         pendingResult = null
-        mainHandler.post { res?.success(locales) }
+        pendingMethod = null
+        mainHandler.post {
+            if (method == METHOD_GET_OFFLINE_VOICES) {
+                res?.success(offlineVoiceLanguageTags(voices))
+            } else {
+                res?.success(buildCapabilityReport(voices))
+            }
+        }
         shutDownTts()
     }
 
@@ -132,8 +185,14 @@ class AndroidOfflineVoiceCapabilityProbe(
         mainHandler.removeCallbacksAndMessages(null)
         if (isProbing.compareAndSet(true, false)) {
             val res = pendingResult
+            val method = pendingMethod
             pendingResult = null
-            res?.success(emptyList<String>())
+            pendingMethod = null
+            if (method == METHOD_GET_OFFLINE_VOICES) {
+                res?.success(emptyList<String>())
+            } else {
+                res?.success(buildCapabilityReport(null))
+            }
         }
         shutDownTts()
     }
