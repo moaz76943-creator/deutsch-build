@@ -172,6 +172,42 @@ class TestGuard(unittest.TestCase):
             report = json.load(f)
             self.assertIn("Stale branch-base SHA detected. Base SHA is behind the latest completed merge.", report["blockers"])
 
+    def test_pr_accept_validates_files(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "COMPLETE", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
+
+        with patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md']):
+            res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "PR_ACCEPT", "--ledger", self.ledger_path, "--report", self.report_path])
+            self.assertEqual(res, 0)
+            with open(self.ledger_path) as f:
+                ledger = json.load(f)
+                self.assertEqual(ledger["T1"]["state"], "PR_ACCEPT")
+
+    def test_pr_accept_denies_unclaimed_files(self):
+        with open(self.ledger_path, "w") as f:
+            json.dump({"T1": {"state": "COMPLETE", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
+
+        with patch('tools.agent_contract.guard.get_changed_files', return_value=['AGENTS.md', 'tools/agent_contract/guard.py']):
+            res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "PR_ACCEPT", "--ledger", self.ledger_path, "--report", self.report_path])
+            self.assertEqual(res, 1)
+            with open(self.report_path) as f:
+                report = json.load(f)
+                self.assertTrue(any("tools/agent_contract/guard.py modified but not originally claimed." in b for b in report["blockers"]))
+
+    def test_stale_lock_recovery_with_evidence(self):
+        original = {"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}}
+        with open(self.ledger_path, "w") as f:
+            json.dump(original, f)
+
+        # Test with evidence
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM",
+                    "--paths", "AGENTS.md", "--ledger", self.ledger_path, "--report", self.report_path, "--recovery-evidence"])
+        self.assertEqual(res, 0)
+        with open(self.ledger_path) as f:
+            ledger = json.load(f)
+            self.assertEqual(ledger["T1"]["state"], "CANCELLED")
+            self.assertEqual(ledger["T2"]["state"], "CLAIM")
+
     def test_explicit_cancellation(self):
         with open(self.ledger_path, "w") as f:
             json.dump({"T1": {"state": "CLAIM", "paths": ["AGENTS.md"], "timestamp": time.time()}}, f)
