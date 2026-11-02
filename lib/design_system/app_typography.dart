@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/text/language_identity.dart';
+import 'multi_script_typography.dart';
 
 class AppTypography {
   /// Returns safe font settings based on the language profile with appropriate fallbacks
@@ -30,7 +31,7 @@ class AppTypography {
     switch (typographyProfile) {
       case 'cairo':
       case 'arabic':
-        return ['NotoSansArabic'];
+        return ['Cairo'];
       case 'hebrew':
         return ['NotoSansHebrew'];
       case 'devanagari':
@@ -56,7 +57,7 @@ class AppTypography {
       textDirection: identity.writingDirection == WritingDirection.rtl
           ? TextDirection.rtl
           : TextDirection.ltr,
-      child: Text(
+      child: ScriptAwareText(
         text,
         style: style ?? getSafeStyle(identity),
         textAlign: identity.writingDirection == WritingDirection.rtl
@@ -66,15 +67,7 @@ class AppTypography {
     );
   }
 
-  static const List<String> fallbackFontFamilies = [
-    'Noto Sans Arabic',
-    'Noto Sans Hebrew',
-    'Noto Sans Devanagari',
-    'Noto Sans Ethiopic',
-    'Noto Sans SC',
-    'Noto Sans Georgian',
-    'Noto Sans Armenian',
-  ];
+  static const List<String> fallbackFontFamilies = [];
 
   static const TextStyle label = TextStyle(
     fontFamily: 'Cairo',
