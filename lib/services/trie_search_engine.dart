@@ -1,9 +1,9 @@
-import 'dart:collection';
+
 import 'package:characters/characters.dart';
 
 class TrieNode {
   final Map<String, TrieNode> children = <String, TrieNode>{};
-  final Set<String> wordIds = LinkedHashSet<String>();
+  final Set<String> wordIds = <String>{};
 }
 
 /// A bounded, language-specific *search-key* index. It does not mutate or
@@ -13,6 +13,7 @@ class TrieSearchEngine {
   static const int maxIdCodeUnits = 128;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
+  int _contentVersion = 0;
 
   final String languageCode;
   final String? directedPairKey;
@@ -148,5 +149,11 @@ class TrieSearchEngine {
     _nodeCount = 1;
   }
 
+  void reset(int version) {
+    clear();
+    _contentVersion = version;
+  }
+
   int get currentNodeCount => _nodeCount;
+  int get contentVersion => _contentVersion;
 }
