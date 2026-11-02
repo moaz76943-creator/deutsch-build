@@ -1,3 +1,5 @@
+/// Define typed operation outcomes for success, unavailable,
+/// invalidInput, cancelled and incompatibleVersion.
 abstract class OperationFailure {
   final String code;
   final String message;
@@ -30,6 +32,7 @@ class IncompatibleVersionFailure extends OperationFailure {
   const IncompatibleVersionFailure(super.code, super.message, [super.cause]);
 }
 
+/// Typed operation outcomes retaining actionable causes.
 class OperationResult<T> {
   final T? _data;
   final OperationFailure? _failure;
@@ -69,3 +72,4 @@ class OperationResult<T> {
           [Object? cause]) =>
       OperationResult.failure(IncompatibleVersionFailure(code, message, cause));
 }
+// J028 Hardened Identity
