@@ -1,114 +1,126 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/security/offline_gate.dart';
-import 'package:deutsch_bilarabi/core/security/data_integrity_signer.dart';
+import '../../../lib/core/security/offline_gate.dart';
+import '../../../lib/core/security/storage_guard.dart';
+import '../../../lib/core/security/data_integrity_signer.dart';
 
 void main() {
-  group('J024 - Offline Security, Content Trust & Zero-Privilege Gate', () {
-
-    test('forged authorization rejection', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().add(const Duration(days: 1)),
-        signature: 'forged',
-      );
-      expect(auth.isAuthorized(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.download, auth),
-        throwsException,
-      );
+  group('OfflineGate', () {
+    test('Denies telemetry and unrestricted network', () {
+      expect(OfflineGate.isOperationPermitted(OperationType.telemetry), isFalse);
+      expect(OfflineGate.isOperationPermitted(OperationType.unrestrictedNetwork), isFalse);
     });
 
-    test('expired capabilities rejection', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().subtract(const Duration(days: 1)),
-        signature: 'valid_sig_but_expired',
-      );
-      expect(auth.isAuthorized(), isFalse);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.download, auth),
-        throwsException,
-      );
+    test('Allows local read and write', () {
+      expect(OfflineGate.isOperationPermitted(OperationType.localRead), isTrue);
+      expect(OfflineGate.isOperationPermitted(OperationType.localWrite), isTrue);
     });
 
-    test('network telemetry and general operations denial', () {
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.telemetry), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.telemetry),
-        throwsException,
-      );
+    test('Requires unexpired capability for download', () {
+      expect(OfflineGate.isOperationPermitted(OperationType.userRequestedDownload), isFalse);
 
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.general), isFalse);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.general),
-        throwsException,
+      final expired = DownloadCapability(
+        expiresAt: DateTime.now().millisecondsSinceEpoch - 1000,
+        contentId: 'test',
       );
+      expect(
+          OfflineGate.isOperationPermitted(OperationType.userRequestedDownload,
+              capability: expired),
+          isFalse);
+
+      final valid = DownloadCapability(
+        expiresAt: DateTime.now().millisecondsSinceEpoch + 10000,
+        contentId: 'test',
+      );
+      expect(
+          OfflineGate.isOperationPermitted(OperationType.userRequestedDownload,
+              capability: valid),
+          isTrue);
     });
 
-    test('valid authorized download success', () {
-      final auth = DownloadAuthorization(
-        expiresAt: DateTime.now().add(const Duration(days: 1)),
-        signature: 'valid_signature_123',
-      );
-      expect(auth.isAuthorized(), isTrue);
-      expect(OfflineGate.isNetworkRequestPermitted(NetworkOperation.download, auth), isTrue);
-      expect(
-        () => OfflineGate.assertZeroNetworkPolicy(NetworkOperation.download, auth),
-        returnsNormally,
-      );
+    test('assertOperationPolicy throws on denial', () {
+      expect(() => OfflineGate.assertOperationPolicy(OperationType.telemetry),
+          throwsA(isA<StateError>()));
+    });
+  });
+
+  group('StorageGuard', () {
+    test('Reflects offline gate policy', () {
+      expect(StorageGuard.hasPermission(StoragePermission.read), isTrue);
+      expect(StorageGuard.hasPermission(StoragePermission.write), isTrue);
     });
 
-    test('missing manifest rejection', () {
-      expect(DataIntegritySigner.verifyManifestIntegrity(null, 'payload'), isFalse);
+    test('Validates JSON integrity', () {
+      expect(StorageGuard.validateJsonIntegrity('{"a": 1}'), isTrue);
+      expect(StorageGuard.validateJsonIntegrity('[1, 2]'), isTrue);
+      expect(StorageGuard.validateJsonIntegrity('invalid'), isFalse);
     });
 
-    test('altered content hash mismatch rejection', () {
-      final payload = 'my secret payload';
-      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+    test('Validates manifest structure', () {
+      final valid = {
+        'algorithm': 'fnv1a',
+        'hash': 123,
+        'keyId': 'key-prod-ed25519-v1',
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(valid)), isTrue);
 
+      final invalid1 = {
+        'algorithm': 'fnv1a',
+        'hash': 123,
+      };
+      expect(StorageGuard.validateManifestStructure(jsonEncode(invalid1)), isFalse);
+      expect(StorageGuard.validateManifestStructure('invalid'), isFalse);
+    });
+  });
+
+  group('DataIntegritySigner', () {
+    test('Computes and verifies checksum', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
+      expect(DataIntegritySigner.verifyIntegrity(payload, hash), isTrue);
+      expect(DataIntegritySigner.verifyIntegrity(payload, hash + 1), isFalse);
+    });
+
+    test('Verifies valid manifest', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
       final manifest = {
-        'trustedKey': true,
-        'hash': expectedHash,
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
       };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, 'altered payload'), isFalse);
+      expect(DataIntegritySigner.verifyManifest(manifest, payload), isTrue);
     });
 
-    test('unsupported signing metadata rejection (trustedKey missing or false)', () {
-      final payload = 'my secret payload';
-      final expectedHash = DataIntegritySigner.computeChecksum(payload);
+    test('Rejects invalid algorithm or key', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
 
-      final manifest1 = {
-        'hash': expectedHash,
+      final badAlgo = {
+        'algorithm': 'sha256',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
       };
-      final manifest2 = {
-        'trustedKey': false,
-        'hash': expectedHash,
-      };
+      expect(DataIntegritySigner.verifyManifest(badAlgo, payload), isFalse);
 
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest1, payload), isFalse);
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest2, payload), isFalse);
+      final badKey = {
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': 'unknown-key',
+      };
+      expect(DataIntegritySigner.verifyManifest(badKey, payload), isFalse);
     });
 
-    test('missing hash in manifest rejection', () {
+    test('Rejects expired manifest', () {
+      final payload = 'test payload';
+      final hash = DataIntegritySigner.computeChecksum(payload);
       final manifest = {
-        'trustedKey': true,
+        'algorithm': 'fnv1a',
+        'hash': hash,
+        'keyId': DataIntegritySigner.approvedTrustedKey,
+        'expiresAt': DateTime.now().millisecondsSinceEpoch - 1000,
       };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, 'payload'), isFalse);
+      expect(DataIntegritySigner.verifyManifest(manifest, payload), isFalse);
     });
-
-    test('valid content integrity success', () {
-      final payload = 'my secret payload';
-      final expectedHash = DataIntegritySigner.computeChecksum(payload);
-
-      final manifest = {
-        'trustedKey': true,
-        'hash': expectedHash,
-      };
-
-      expect(DataIntegritySigner.verifyManifestIntegrity(manifest, payload), isTrue);
-    });
-
   });
 }

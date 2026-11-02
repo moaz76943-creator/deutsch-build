@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 class DataIntegritySigner {
+  static const String approvedTrustedKey = 'key-prod-ed25519-v1';
+
   static int computeChecksum(String payload) {
     final bytes = utf8.encode(payload);
     var hash = 0xcbf29ce484222325;
@@ -17,6 +19,10 @@ class DataIntegritySigner {
 
   static bool verifyManifest(Map<String, dynamic>? manifest, String? payload) {
     if (manifest == null || payload == null) return false;
+
+    // Check for approved key
+    final keyId = manifest['keyId'];
+    if (keyId != approvedTrustedKey) return false;
 
     // Check for required algorithm metadata
     final algorithm = manifest['algorithm'];

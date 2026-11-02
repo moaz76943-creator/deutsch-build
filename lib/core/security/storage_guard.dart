@@ -1,17 +1,38 @@
 import 'dart:convert';
+import 'offline_gate.dart';
 
 enum StoragePermission { read, write }
 
 class StorageGuard {
   static bool hasPermission(StoragePermission permission) {
-    // Explicitly allow local learning operations
-    return true;
+    if (permission == StoragePermission.read) {
+      return OfflineGate.isOperationPermitted(OperationType.localRead);
+    } else {
+      return OfflineGate.isOperationPermitted(OperationType.localWrite);
+    }
   }
+
+  static bool isLocalReadPermitted() => true;
+
+  static bool isLocalWritePermitted() => true;
 
   static bool validateJsonIntegrity(String rawJson) {
     try {
       final decoded = jsonDecode(rawJson);
       return decoded is List || decoded is Map;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static bool validateManifestStructure(String rawJson) {
+    try {
+      final decoded = jsonDecode(rawJson);
+      if (decoded is! Map) return false;
+      if (decoded['algorithm'] == null || decoded['hash'] == null || decoded['keyId'] == null) {
+        return false;
+      }
+      return true;
     } catch (_) {
       return false;
     }
@@ -31,8 +52,4 @@ class StorageGuard {
     }
     return safe;
   }
-
-  static bool isLocalReadPermitted() => true;
-
-  static bool isLocalWritePermitted() => true;
 }
