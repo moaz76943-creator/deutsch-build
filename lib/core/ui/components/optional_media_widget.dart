@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../../../design_system/design_system.dart';
 import '../contracts/ui_state_contract.dart';
 import 'resilient_async_builder.dart';
+import 'content_cancellation_token.dart';
 
 class OptionalMediaWidget extends StatelessWidget {
   final Future<Uint8List?> Function() fetcher;
@@ -22,7 +23,7 @@ class OptionalMediaWidget extends StatelessWidget {
     this.fallbackIcon,
   });
 
-  Future<UiState<Uint8List>> _loadMedia() async {
+  Future<UiState<Uint8List>> _loadMedia(ContentCancellationToken token) async {
     try {
       final data = await fetcher();
       if (data == null || data.isEmpty) {
@@ -54,7 +55,7 @@ class OptionalMediaWidget extends StatelessWidget {
         },
         emptyBuilder: (context, message) =>
             _buildFallback(context, isError: false),
-        errorBuilder: (context, error) =>
+        errorBuilder: (context, error, message) =>
             _buildFallback(context, isError: true),
       ),
     );

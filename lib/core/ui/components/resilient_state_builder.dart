@@ -54,7 +54,22 @@ class ResilientStateBuilder<T> extends StatelessWidget {
               state.data as T,
               state.message,
             ) ??
-            dataBuilder(context, state.data as T);
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (state.message != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      state.message!,
+                      style: const TextStyle(color: Colors.orange),
+                      textAlign: TextAlign.center,
+                      softWrap: true,
+                    ),
+                  ),
+                dataBuilder(context, state.data as T),
+              ],
+            );
         break;
       case UIStateType.failed:
       case UIStateType.corrupted:

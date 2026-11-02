@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/ui/contracts/ui_state_contract.dart';
 import 'package:deutsch_bilarabi/core/ui/components/resilient_async_builder.dart';
+import 'package:deutsch_bilarabi/core/ui/components/content_cancellation_token.dart';
 import 'package:deutsch_bilarabi/core/ui/components/optional_media_widget.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
 
@@ -13,7 +14,7 @@ void main() {
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
               featureName: 'TestFeature',
-              fetcher: () async => const UiStateSuccess('Success Data'),
+              fetcher: (_) async => const UiStateSuccess('Success Data'),
               builder: (context, data) => Text(data),
             ),
           ),
@@ -30,7 +31,7 @@ void main() {
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
               featureName: 'TestFeature',
-              fetcher: () async => const UiStateEmpty('No Data Here'),
+              fetcher: (_) async => const UiStateEmpty('No Data Here'),
               builder: (context, data) => Text(data),
             ),
           ),
@@ -47,7 +48,7 @@ void main() {
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
               featureName: 'TestFeature',
-              fetcher: () async => const UiStateFailed('Error occurred', userMessage: 'Something went wrong'),
+              fetcher: (_) async => const UiStateFailed('Error occurred', userMessage: 'Something went wrong'),
               builder: (context, data) => Text(data),
             ),
           ),
@@ -64,7 +65,7 @@ void main() {
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
               featureName: 'TestFeature',
-              fetcher: () async => const UiStateDegraded('Stale Data', 'Warning: Offline mode'),
+              fetcher: (_) async => const UiStateDegraded('Stale Data', 'Warning: Offline mode'),
               builder: (context, data) => Text(data),
             ),
           ),
@@ -112,7 +113,7 @@ void main() {
             body: SingleChildScrollView(
               child: ResilientAsyncBuilder<String>(
                 featureName: 'ScaleFeature',
-                fetcher: () async => const UiStateFailed('Error', userMessage: 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
+                fetcher: (_) async => const UiStateFailed('Error', userMessage: 'A very long error message that might cause overflow if not wrapped correctly without Flexible/Expanded'),
                 builder: (context, data) => Text(data),
               ),
             ),
@@ -135,7 +136,7 @@ void main() {
           home: Scaffold(
             body: ResilientAsyncBuilder<String>(
               featureName: 'TestFeature',
-              fetcher: () async => const UiStateSuccess('Data'),
+              fetcher: (_) async => const UiStateSuccess('Data'),
               builder: (context, data) => const AppDirectionalText('مرحبا بالعالم'),
             ),
           ),
