@@ -20,7 +20,8 @@ class AutoHealExecutor:
             self.guard.add_allowed_path(path)
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
         self.MAX_ATTEMPTS = 3
-        self.attempts_file = ".auto_heal_attempts.json"
+        self.attempts_file = os.environ.get("AUTO_HEAL_ATTEMPTS_FILE", ".auto_heal_attempts.json")
+        self.failures_file = os.environ.get("AUTO_HEAL_FAILURES_FILE", ".auto_heal_failures.json")
 
     def __del__(self):
         if hasattr(self, 'backup_dir') and os.path.exists(self.backup_dir):
@@ -100,7 +101,21 @@ class AutoHealExecutor:
 
         attempts = attempts_data.get(plan_id, 0)
         if attempts >= self.MAX_ATTEMPTS:
-            print(f"Failed: Max attempts ({self.MAX_ATTEMPTS}) reached for plan {plan_id}.")
+            failure_reason = f"Max attempts ({self.MAX_ATTEMPTS}) reached for plan {plan_id}."
+            print(f"Failed: {failure_reason}")
+
+            failures_data = {}
+            if os.path.exists(self.failures_file):
+                try:
+                    with open(self.failures_file, 'r') as f:
+                        failures_data = json.load(f)
+                except Exception:
+                    pass
+
+            failures_data[plan_id] = {"reason": failure_reason}
+            with open(self.failures_file, 'w') as f:
+                json.dump(failures_data, f)
+
             sys.exit(1)
 
         attempts_data[plan_id] = attempts + 1
@@ -178,8 +193,14 @@ class AutoHealExecutor:
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
-                    f.write(op.get("content", "regenerated"))
+                fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path))
+                try:
+                    with os.fdopen(fd, 'w') as f:
+                        f.write(op.get("content", "regenerated"))
+                    os.replace(tmp_path, path)
+                except Exception:
+                    os.remove(tmp_path)
+                    raise
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 
