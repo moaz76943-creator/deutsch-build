@@ -20,6 +20,12 @@
 # Method channels, Keystore wrappers, Play Integrity, and the voice probe.
 -keep class com.deutschbilarabi.app.** { *; }
 
+# Flutter Native Plugins (Memory Guidelines)
+-keep class com.tundralabs.fluttertts.** { *; }
+-keep class eu.simonbinder.sqlite3_flutter_libs.** { *; }
+-dontwarn com.tundralabs.fluttertts.**
+-dontwarn eu.simonbinder.sqlite3_flutter_libs.**
+
 # Optional Play Core
 -dontwarn com.google.android.play.core.**
 
