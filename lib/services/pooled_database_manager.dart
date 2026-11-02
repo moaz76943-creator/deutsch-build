@@ -124,6 +124,12 @@ class PooledDatabaseManager {
         } on _PoolSaturated {
           _slotWaiters.add(waiter);
           waiting = true;
+        } catch (e) {
+          if (_slotWaiters.isNotEmpty) {
+            final next = _slotWaiters.removeAt(0);
+            if (!next.isCompleted) next.complete();
+          }
+          rethrow;
         }
       });
       if (waiting) {
