@@ -1,40 +1,38 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 
-class MockJ025StartupContract implements J025StartupContract {
-  @override
-  final bool hasNewDartErrors;
-  @override
-  final bool hasNormalStartup;
-  @override
-  final bool hasSafeModeStartup;
-
+class MockJ025StartupContract extends J025StartupContract {
   MockJ025StartupContract({
-    this.hasNewDartErrors = false,
-    this.hasNormalStartup = true,
-    this.hasSafeModeStartup = true,
-  });
+    bool hasNewDartErrors = false,
+    bool hasNormalStartup = true,
+    bool hasSafeModeStartup = true,
+  }) : super(
+          isOfflineSafe: true,
+          isStorageGuarded: true,
+          isLifecycleManaged: true,
+          hasNewDartErrors: hasNewDartErrors,
+          hasNormalStartup: hasNormalStartup,
+          hasSafeModeStartup: hasSafeModeStartup,
+        );
 }
 
-class MockJ095VerificationResult implements J095VerificationResult {
-  @override
-  final bool hasMemoryRegression;
-  @override
-  final bool hasFTS5Regression;
-  @override
-  final bool isStorageCorrupt;
-  @override
-  final bool isEvidenceStale;
-  @override
-  final bool hasMissingMandatoryEvidence;
-
+class MockJ095VerificationResult extends J095VerificationResult {
   MockJ095VerificationResult({
-    this.hasMemoryRegression = false,
-    this.hasFTS5Regression = false,
-    this.isStorageCorrupt = false,
-    this.isEvidenceStale = false,
-    this.hasMissingMandatoryEvidence = false,
-  });
+    bool hasMemoryRegression = false,
+    bool hasFTS5Regression = false,
+    bool isStorageCorrupt = false,
+    bool isEvidenceStale = false,
+    bool hasMissingMandatoryEvidence = false,
+  }) : super(
+          outcome: GateOutcome.passed,
+          eligibility: PromotionEligibility.approved,
+          reason: 'mock',
+          hasMemoryRegression: hasMemoryRegression,
+          hasFTS5Regression: hasFTS5Regression,
+          isStorageCorrupt: isStorageCorrupt,
+          isEvidenceStale: isEvidenceStale,
+          hasMissingMandatoryEvidence: hasMissingMandatoryEvidence,
+        );
 }
 
 class MockLanguageReadinessEvidence implements LanguageReadinessEvidence {
