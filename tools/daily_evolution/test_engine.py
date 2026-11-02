@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import os
 import shutil
 import tempfile
@@ -26,7 +27,8 @@ class TestEvolutionEnginePart1(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    def test_no_source_data(self):
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_no_source_data(self, mock_check):
         engine = self.EngineClass(db_path=self.db_path, assets_dir=self.assets_dir)
 
         # No languages have asset packs created, so all new tasks should be BLOCKED
@@ -37,7 +39,8 @@ class TestEvolutionEnginePart1(unittest.TestCase):
         self.assertTrue(len(tasks) > 0)
         self.assertTrue(all(t.status == TaskStatus.BLOCKED for t in tasks))
 
-    def test_fair_rotation(self):
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_fair_rotation(self, mock_check):
         # Create asset packs for all 100 languages
         for lang in self.mock_languages:
             os.makedirs(os.path.join(self.assets_dir, lang))
@@ -85,7 +88,8 @@ class TestEvolutionEnginePart2(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    def test_failed_jobs_retries(self):
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_failed_jobs_retries(self, mock_check):
         engine = self.EngineClass(db_path=self.db_path, max_jobs=1, max_retries=2, assets_dir=self.assets_dir)
 
         dispatches = engine.schedule_tasks()
@@ -124,7 +128,8 @@ class TestEvolutionEnginePart2(unittest.TestCase):
 
         self.assertEqual(engine.tasks[1].status, TaskStatus.RUNNING)
 
-    def test_restart_recovery(self):
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_restart_recovery(self, mock_check):
         engine = self.EngineClass(db_path=self.db_path, max_jobs=2, assets_dir=self.assets_dir)
         engine.advance_cycle(2)
         engine.schedule_tasks()
@@ -138,7 +143,8 @@ class TestEvolutionEnginePart2(unittest.TestCase):
         self.assertEqual(len(engine_restarted.tasks), len(engine.tasks))
         self.assertEqual(engine_restarted.tasks[0].task_id, engine.tasks[0].task_id)
 
-    def test_quota_exhaustion(self):
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_quota_exhaustion(self, mock_check):
         engine = self.EngineClass(db_path=self.db_path, max_jobs=2, assets_dir=self.assets_dir)
 
         dispatches = engine.schedule_tasks()
@@ -159,7 +165,8 @@ class TestEvolutionEnginePart2(unittest.TestCase):
         self.assertEqual(len(dispatches_after_complete), 2)
         self.assertEqual(len(engine.tasks), 3)
 
-    def test_repeated_days_offline(self):
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_repeated_days_offline(self, mock_check):
         engine = self.EngineClass(db_path=self.db_path, max_jobs=5, assets_dir=self.assets_dir)
         engine.advance_cycle(7) # Skip offline days
         self.assertEqual(engine.state["current_day"], 7)
