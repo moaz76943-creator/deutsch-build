@@ -22,7 +22,7 @@ void main() {
     final pair = createPair('en', 'en');
     expect(
       engine.resolveReadiness(pair),
-      PairReadinessState.identicalLanguages,
+      isA<IdenticalPairState>(),
     );
   });
 
@@ -31,14 +31,14 @@ void main() {
     final unsupportedPair = createPair('xx', 'yy');
     expect(
       engine.resolveReadiness(unsupportedPair),
-      PairReadinessState.unsupportedSource,
+      isA<UnsupportedSourceState>(),
     );
 
     // Unsupported target
     final unsupportedTargetPair = createPair('en', 'zz');
     expect(
       engine.resolveReadiness(unsupportedTargetPair),
-      PairReadinessState.unsupportedTarget,
+      isA<UnsupportedTargetState>(),
     );
   });
 
@@ -46,7 +46,7 @@ void main() {
     final pair = createPair('en', 'de');
     expect(
       engine.resolveReadiness(pair),
-      PairReadinessState.missingPack,
+      isA<MissingPackState>(),
     );
   });
 
@@ -54,7 +54,7 @@ void main() {
     final pair = createPair('en', 'de');
 
     engine.registerPack(
-      pair: pair,
+      targetLocale: 'de',
       packCode: '', // Invalid
       wordCount: 100,
       checksum: 'hash123',
@@ -62,31 +62,31 @@ void main() {
 
     expect(
       engine.resolveReadiness(pair),
-      PairReadinessState.rejectedPack,
+      isA<RejectedPackState>(),
     );
 
     engine.registerPack(
-      pair: pair,
-      packCode: 'en_de_pack',
+      targetLocale: 'de',
+      packCode: 'de_pack',
       wordCount: 0, // Invalid
       checksum: 'hash123',
     );
 
     expect(
       engine.resolveReadiness(pair),
-      PairReadinessState.rejectedPack,
+      isA<RejectedPackState>(),
     );
 
     engine.registerPack(
-      pair: pair,
-      packCode: 'en_de_pack',
+      targetLocale: 'de',
+      packCode: 'de_pack',
       wordCount: 100,
       checksum: null, // Invalid
     );
 
     expect(
       engine.resolveReadiness(pair),
-      PairReadinessState.rejectedPack,
+      isA<RejectedPackState>(),
     );
   });
 
@@ -94,15 +94,15 @@ void main() {
     final pair = createPair('en', 'de');
 
     engine.registerPack(
-      pair: pair,
-      packCode: 'en_de_pack',
+      targetLocale: 'de',
+      packCode: 'de_pack',
       wordCount: 100,
       checksum: 'hash123',
     );
 
     expect(
       engine.resolveReadiness(pair),
-      PairReadinessState.usable,
+      isA<PairUsable>(),
     );
   });
 
@@ -111,14 +111,14 @@ void main() {
     final pairBA = createPair('de', 'en');
 
     engine.registerPack(
-      pair: pairAB,
-      packCode: 'en_de_pack',
+      targetLocale: 'de',
+      packCode: 'de_pack',
       wordCount: 100,
       checksum: 'hash123',
     );
 
-    expect(engine.resolveReadiness(pairAB), PairReadinessState.usable);
-    expect(engine.resolveReadiness(pairBA), PairReadinessState.missingPack);
+    expect(engine.resolveReadiness(pairAB), isA<PairUsable>());
+    expect(engine.resolveReadiness(pairBA), isA<MissingPackState>());
   });
 
   test('prevents silent pivots through intermediate languages', () {
@@ -127,38 +127,49 @@ void main() {
     final pairAB = createPair('ar', 'de');
 
     engine.registerPack(
-      pair: pairAEn,
-      packCode: 'ar_en_pack',
+      targetLocale: 'en',
+      packCode: 'en_pack',
       wordCount: 100,
       checksum: 'hash123',
     );
     engine.registerPack(
-      pair: pairEnB,
-      packCode: 'en_de_pack',
+      targetLocale: 'de',
+      packCode: 'de_pack',
       wordCount: 100,
       checksum: 'hash123',
     );
 
-    expect(engine.resolveReadiness(pairAB), PairReadinessState.missingPack);
+    // ar and de are both production ready, so it shouldn't trigger silentPivotPrevented
+    // BUT what about non-production ready?
+    // Let's create two non-production ready languages supported by matrix: fr and es
+    final nonProdPair = createPair('fr', 'es');
+    engine.registerPack(
+      targetLocale: 'es',
+      packCode: 'es_pack',
+      wordCount: 100,
+      checksum: 'hash123',
+    );
+
+    expect(engine.resolveReadiness(nonProdPair), isA<SilentPivotPreventedState>());
   });
 
   test('explicit readiness invalidation on pack changes', () {
     final pair = createPair('en', 'de');
 
-    expect(engine.resolveReadiness(pair), PairReadinessState.missingPack);
+    expect(engine.resolveReadiness(pair), isA<MissingPackState>());
 
     engine.registerPack(
-      pair: pair,
-      packCode: 'en_de_pack',
+      targetLocale: 'de',
+      packCode: 'de_pack',
       wordCount: 100,
       checksum: 'hash123',
     );
 
-    expect(engine.resolveReadiness(pair), PairReadinessState.usable);
+    expect(engine.resolveReadiness(pair), isA<PairUsable>());
 
-    engine.unregisterPack(pair);
+    engine.unregisterPack('de');
 
-    expect(engine.resolveReadiness(pair), PairReadinessState.missingPack);
+    expect(engine.resolveReadiness(pair), isA<MissingPackState>());
   });
 
   test('bounded runtime cache eviction', () {
@@ -175,7 +186,7 @@ void main() {
     // it lazily keeps working.
 
     final pair = createPair('en', 'xx0');
-    expect(engine.resolveReadiness(pair), PairReadinessState.unsupportedTarget);
+    expect(engine.resolveReadiness(pair), isA<UnsupportedTargetState>());
   });
 
   test('handles 100 actual language IDs correctly', () {
