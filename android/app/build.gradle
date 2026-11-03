@@ -38,6 +38,10 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def cloudProjectNumber = localProperties.getProperty('CLOUD_PROJECT_NUMBER')
+        ?: project.findProperty('CLOUD_PROJECT_NUMBER')
+        ?: '0'
+
 android {
     signingConfigs {
         secureRelease {
@@ -67,6 +71,10 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
         minSdkVersion flutter.minSdkVersion
@@ -74,6 +82,7 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        buildConfigField "long", "CLOUD_PROJECT_NUMBER", "${cloudProjectNumber}L"
     }
 
     buildTypes {

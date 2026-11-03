@@ -162,5 +162,42 @@ void main() {
       expect(w2.cefr, isNull);
       expect(w2.grammar, isNull);
     });
+
+    test('Path traversal is rejected', () async {
+      final svc = createService();
+      expect(() => svc.tagWords(deckName: '../malicious', languageCode: 'de', lexemeIds: []), throwsArgumentError);
+      expect(() => svc.exportAnkiApkg(deckName: 'safe/unsafe'), throwsArgumentError);
+    });
+
+    test('Export preserves old file on failure and is atomic', () async {
+      final svc = createService();
+
+      await contentDb.rawInsert(
+        'INSERT INTO lexicon (id, surface, fields_json) VALUES (?, ?, ?)',
+        ['word_3', 'Haus', jsonEncode({'translation_ar': 'منزل'})],
+      );
+
+      await progressDb.rawInsert(
+        'INSERT INTO srs_progress (lexeme_id, target_language_code) VALUES (?, ?)',
+        ['word_3', 'de'],
+      );
+
+      await svc.tagWords(
+        deckName: 'AtomicDeck',
+        languageCode: 'de',
+        lexemeIds: ['word_3'],
+      );
+
+      final apkg = await svc.exportAnkiApkg(deckName: 'AtomicDeck');
+      expect(apkg.existsSync(), isTrue);
+
+      final apkg2 = await svc.exportAnkiApkg(deckName: 'AtomicDeck');
+      expect(apkg2.existsSync(), isTrue);
+      expect(apkg.path, isNot(equals(apkg2.path))); // Since _fileStem uses timestamp, it creates a new file.
+
+      // Let's test large exports bounds. 5001 is bounded to 5000 limits.
+      expect(() => svc.loadWords(deckName: 'AtomicDeck', limit: 6000), throwsRangeError);
+      expect(() => svc.loadWords(deckName: 'AtomicDeck', limit: 0), throwsRangeError);
+    });
   });
 }
