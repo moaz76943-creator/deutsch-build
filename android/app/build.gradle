@@ -93,4 +93,7 @@ flutter {
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'
+    // Baseline Profiles: improves cold/warm startup by pre-compiling critical paths with ART.
+    // Does not affect security; R8/ProGuard remains fully enabled.
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
 }
