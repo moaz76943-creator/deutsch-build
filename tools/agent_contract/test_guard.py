@@ -77,6 +77,14 @@ class TestGuard(unittest.TestCase):
             self.assertIn("lib/main.dart", report["denied_paths"])
             self.assertIn("Changes to forbidden paths detected.", report["blockers"])
 
+    def test_generated_files_rejected(self):
+        res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/model.g.dart", "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 1)
+        with open(self.report_path) as f:
+            report = json.load(f)
+            self.assertIn("tools/agent_contract/model.g.dart", report["denied_paths"])
+            self.assertIn("Changes to forbidden paths detected.", report["blockers"])
+
     def test_path_escape(self):
         res = main(["--task-id", "T1", "--base-sha", "abc", "--transition", "CLAIM", "--paths", "tools/agent_contract/../../lib/main.dart", "--ledger", self.ledger_path, "--report", self.report_path])
         self.assertEqual(res, 1)
