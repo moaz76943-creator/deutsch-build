@@ -1,27 +1,42 @@
 import unittest
-import sys
-import os
+from typing import Optional
+from tools.morphology.tokenization.engine import TokenizationEngine
+from tools.morphology.tokenization.core import Lexicon
+from tools.morphology.tokenization.chinese import ChineseTokenizer
+from tools.morphology.tokenization.japanese import JapaneseTokenizer
+from tools.morphology.tokenization.thai import ThaiTokenizer
 
-sys.path.append(os.path.dirname(__file__))
-from engine import TokenizationEngine, TokenIdentity
+class MockLexicon(Lexicon):
+    def __init__(self, data: set):
+        # Using a set and returning the surface as ID if found for simplicity in testing
+        self.data = data
+
+    def lookup(self, surface: str) -> Optional[str]:
+        if surface in self.data:
+            return f"id-{surface}"
+        return None
 
 class TestTokenizationEngine(unittest.TestCase):
     def setUp(self):
-        # We inject mock dictionaries for test purposes
-        dictionaries = {
-            "zh": {"你好", "世界", "中华", "人民", "共和国", "中华人民", "中华人民共和国"},
-            "ja": {"東京", "スカイツリー", "こんにちは", "世界"},
-            "th": {"สวัสดี", "ครับ", "กับ"}
-        }
-        self.engine = TokenizationEngine(dictionaries=dictionaries)
+        zh_dict = {"你好", "世界", "中华", "人民", "共和国", "中华人民", "中华人民共和国"}
+        ja_dict = {"東京", "スカイツリー", "こんにちは", "世界"}
+        th_dict = {"สวัสดี", "ครับ", "กับ"}
+
+        self.engine = TokenizationEngine()
+        self.engine.register_tokenizer("zh", ChineseTokenizer(MockLexicon(zh_dict)))
+        self.engine.register_tokenizer("ja", JapaneseTokenizer(MockLexicon(ja_dict)))
+        self.engine.register_tokenizer("th", ThaiTokenizer(MockLexicon(th_dict)))
 
     def test_unsupported_language(self):
-        res = self.engine.segment("hello", "en")
-        self.assertEqual(res, "unavailableTokenization")
+        res = self.engine.tokenize("hello", "en")
+        self.assertTrue(res.unavailableTokenization)
+        self.assertEqual(len(res.tokens), 0)
 
     def test_chinese_segmentation(self):
         text = "你好世界"
-        tokens = self.engine.segment(text, "zh")
+        res = self.engine.tokenize(text, "zh")
+        self.assertFalse(res.unavailableTokenization)
+        tokens = res.tokens
         self.assertEqual(len(tokens), 2)
         self.assertEqual(tokens[0].surface, "你好")
         self.assertFalse(tokens[0].is_ambiguous)
@@ -32,13 +47,15 @@ class TestTokenizationEngine(unittest.TestCase):
 
     def test_chinese_ambiguity(self):
         text = "中华人民共和国"
-        tokens = self.engine.segment(text, "zh")
+        res = self.engine.tokenize(text, "zh")
+        tokens = res.tokens
         self.assertEqual("".join(t.surface for t in tokens), text)
         self.assertEqual(tokens[0].surface, "中华人民共和国")
 
     def test_chinese_fallback_ambiguity(self):
         text = "未知词语"
-        tokens = self.engine.segment(text, "zh")
+        res = self.engine.tokenize(text, "zh")
+        tokens = res.tokens
         # Should fallback to char-by-char with is_ambiguous=True
         self.assertEqual(len(tokens), 4)
         for t in tokens:
@@ -46,54 +63,62 @@ class TestTokenizationEngine(unittest.TestCase):
 
     def test_japanese_segmentation(self):
         text = "こんにちは世界"
-        tokens = self.engine.segment(text, "ja")
+        res = self.engine.tokenize(text, "ja")
+        tokens = res.tokens
         self.assertEqual(len(tokens), 2)
         self.assertEqual(tokens[0].surface, "こんにちは")
         self.assertEqual(tokens[1].surface, "世界")
 
     def test_japanese_mixed(self):
         text = "東京スカイツリー"
-        tokens = self.engine.segment(text, "ja")
+        res = self.engine.tokenize(text, "ja")
+        tokens = res.tokens
         self.assertEqual(len(tokens), 2)
         self.assertEqual(tokens[0].surface, "東京")
         self.assertEqual(tokens[1].surface, "スカイツリー")
 
     def test_thai_segmentation(self):
         text = "กับ"
-        tokens = self.engine.segment(text, "th")
+        res = self.engine.tokenize(text, "th")
+        tokens = res.tokens
         self.assertEqual(len(tokens), 1)
         self.assertEqual(tokens[0].surface, "กับ")
 
     def test_thai_continuous(self):
         text = "สวัสดีครับ"
-        tokens = self.engine.segment(text, "th")
+        res = self.engine.tokenize(text, "th")
+        tokens = res.tokens
         self.assertEqual(len(tokens), 2)
         self.assertEqual(tokens[0].surface, "สวัสดี")
         self.assertEqual(tokens[1].surface, "ครับ")
 
     def test_surrogate_pairs(self):
         text = "𠜎𠜱" # two characters outside BMP
-        tokens = self.engine.segment(text, "zh")
+        res = self.engine.tokenize(text, "zh")
+        tokens = res.tokens
         self.assertEqual(len(tokens), 2)
         self.assertEqual(tokens[0].surface, "𠜎")
         self.assertEqual(tokens[1].surface, "𠜱")
 
     def test_punctuation_malformed(self):
         text = "你好，世界！"
-        tokens = self.engine.segment(text, "zh")
+        res = self.engine.tokenize(text, "zh")
+        tokens = res.tokens
         self.assertEqual("".join(t.surface for t in tokens), text)
         self.assertTrue(any(t.surface == "，" for t in tokens))
         self.assertTrue(any(t.surface == "！" for t in tokens))
 
     def test_thai_punctuation_malformed(self):
         text = "สวัสดี!! ครับ?"
-        tokens = self.engine.segment(text, "th")
+        res = self.engine.tokenize(text, "th")
+        tokens = res.tokens
         self.assertEqual("".join(t.surface for t in tokens), text)
         self.assertTrue(any(t.surface == "!" for t in tokens))
 
     def test_ja_punctuation(self):
         text = "東京、スカイ。ツリー"
-        tokens = self.engine.segment(text, "ja")
+        res = self.engine.tokenize(text, "ja")
+        tokens = res.tokens
         self.assertEqual("".join(t.surface for t in tokens), text)
         surfaces = [t.surface for t in tokens]
         self.assertIn("、", surfaces)

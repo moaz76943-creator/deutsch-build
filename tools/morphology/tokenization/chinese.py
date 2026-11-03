@@ -65,6 +65,10 @@ class ChineseTokenizer(LanguageTokenizer):
             if len(valid_match_lengths) > 1:
                 ambiguous = True
 
+            # Mark out-of-vocabulary (OOV) character fallback as ambiguous
+            if longest_match_lexical_id is None:
+                ambiguous = True
+
             end_idx = boundaries[longest_match_end_i]
             tokens.append(Token(
                 surface=longest_match_surface,
