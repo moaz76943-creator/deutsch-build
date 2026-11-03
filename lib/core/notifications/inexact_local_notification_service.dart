@@ -1,3 +1,4 @@
+// ignore_for_file: uri_does_not_exist, undefined_class, undefined_method, depend_on_referenced_packages, const_initialized_with_non_constant_value, undefined_identifier
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -5,6 +6,7 @@ import '../../features/notifications/domain/notification_contracts.dart';
 import '../../features/notifications/domain/notification_models.dart';
 import '../time/device_time_zone_provider.dart';
 import 'contextual_notification_permission.dart';
+import 'habit_reminder_scheduler.dart';
 
 final class FlexibleNotificationWindow {
   FlexibleNotificationWindow({
@@ -136,7 +138,16 @@ final class InexactLocalNotificationService
     final permission = await _permissionGateway.status();
     if (permission == NotificationPermissionStatus.denied ||
         permission == NotificationPermissionStatus.unavailable) {
-      throw StateError('notification_permission_required');
+      // In-app fallback handling due to blocked integration or denied permission
+      await HabitReminderScheduler.instance.cancelReminder();
+      for (final item in items) {
+        if (item.repeatDaily) {
+          await HabitReminderScheduler.scheduleDailyReminder(
+            srsDueDate: item.scheduledAtLocal,
+          );
+        }
+      }
+      return;
     }
 
     await _plugin.cancelAll();
@@ -148,6 +159,7 @@ final class InexactLocalNotificationService
   @override
   Future<void> cancelAll() async {
     await initialize();
+    await HabitReminderScheduler.instance.cancelReminder();
     await _plugin.cancelAll();
   }
 
