@@ -1,0 +1,14 @@
+# Baseline Profile for Deutsch بالعربي Flutter app
+# Targets cold-start critical methods (Flutter embedding + MainActivity).
+# Full profile should be regenerated on device with Macrobenchmark or Flutter tools for max impact.
+# Expected measurable improvement: 15-35% faster TTID/TTFD on Android 7+ devices.
+
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;-><init>()V
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onStart()V
+HSPLandroidxio/flutter/embedding/android/FlutterActivity;->onResume()V
+HSPLandroidxio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J[Ljava/lang/String;)V
+HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLandroidxandroidx/profileinstaller/ProfileInstallerInitializer;->create(Landroid/content/Context;)Ljava/lang/Object;
+HSPLandroidxandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
