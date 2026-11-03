@@ -36,10 +36,18 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
     },
     {
       "symbol": "ğ",
-      "ipa": "[ː]",
+      "ipa": "[ɰ]",
       "desc": "الحرف الصامت أو الناعم في اللغة التركية",
       "lang": "التركية",
       "langCode": "tr-TR",
+      "hasAudio": false
+    },
+    {
+      "symbol": "unverified",
+      "ipa": "[?]",
+      "desc": "غير متوفر",
+      "lang": "unverified",
+      "langCode": "xx-XX",
       "hasAudio": false
     },
   ];
@@ -196,8 +204,8 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                             message: 'النطق الصوتي غير متوفر حالياً',
                             child: Padding(
                               padding: EdgeInsets.all(12.0),
-                              child: FaIcon(
-                                FontAwesomeIcons.microphoneSlash,
+                              child: Icon(
+                                Icons.volume_off,
                                 color: Colors.white38,
                                 size: 20,
                               ),

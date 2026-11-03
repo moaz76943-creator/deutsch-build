@@ -26,7 +26,7 @@ void main() {
   testWidgets('unverified or unavailable pronunciation explicitly shown without blocking explanations', (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget());
 
-    expect(find.byType(FaIcon).last, findsWidgets);
+    expect(find.byType(Icon).last, findsWidgets);
     expect(find.byTooltip('النطق الصوتي غير متوفر حالياً'), findsWidgets);
     expect(find.text('الحرف الصامت أو الناعم في اللغة التركية'), findsOneWidget);
   });
@@ -69,5 +69,10 @@ void main() {
 
     // No exception implies the dispose callback was clean and OfflineAudioPool().stop() didn't fail
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('renders invalid IPA gracefully', (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget());
+    expect(find.text('[?]'), findsOneWidget);
   });
 }
