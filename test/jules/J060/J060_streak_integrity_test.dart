@@ -10,16 +10,16 @@ void main() {
       const ledger = StreakFreezeLedger();
       final now = DateTime(2023, 10, 15, 12, 0);
 
-      final l1 = ledger.recordUsage('missed day', now: now);
+      final l1 = ledger.recordUsage('missed day', timestamp: now);
       expect(l1.remainingShields, 1);
 
       // Attempt repeated freeze on same day, different hour
-      final l2 = l1.recordUsage('missed day again', now: DateTime(2023, 10, 15, 23, 0));
+      final l2 = l1.recordUsage('missed day again', timestamp: DateTime(2023, 10, 15, 23, 0));
       expect(l2.remainingShields, 1); // should not consume another shield
       expect(l2.usageHistory.length, 1);
 
       // Next day allows consumption
-      final l3 = l2.recordUsage('missed next day', now: DateTime(2023, 10, 16, 8, 0));
+      final l3 = l2.recordUsage('missed next day', timestamp: DateTime(2023, 10, 16, 8, 0));
       expect(l3.remainingShields, 0);
       expect(l3.usageHistory.length, 2);
     });
@@ -32,8 +32,8 @@ void main() {
 
 
       // This test ensures it relies on the provided DateTime's year/month/day.
-      final l1 = ledger.recordUsage('tz1', now: DateTime(2023, 10, 15, 23, 0));
-      final l2 = l1.recordUsage('tz2', now: DateTime(2023, 10, 16, 1, 0));
+      final l1 = ledger.recordUsage('tz1', timestamp: DateTime(2023, 10, 15, 23, 0));
+      final l2 = l1.recordUsage('tz2', timestamp: DateTime(2023, 10, 16, 1, 0));
 
       expect(l2.remainingShields, 0); // Consumes both since they are different days
     });
@@ -74,7 +74,7 @@ void main() {
         eligibleContentKeys: eligible,
         events: events,
         masteryThreshold: 2,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       // Only 1 introduced, 1 success (others deduplicated)
@@ -97,7 +97,7 @@ void main() {
         eligibleContentKeys: eligible,
         events: events,
         masteryThreshold: 2,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       // It should only pick up en_es events
@@ -115,7 +115,7 @@ void main() {
         targetLanguageId: 'es',
         eligibleContentKeys: eligible,
         events: events,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       // Invalid card999 is ignored
@@ -136,7 +136,7 @@ void main() {
         targetLanguageId: 'es',
         eligibleContentKeys: eligible,
         events: events,
-        now: defaultTime, // `now` is before `futureTime`
+        timestamp: defaultTime, // `timestamp` is before `futureTime`
       );
 
       expect(projection.introducedCardCount, 0);
@@ -155,7 +155,7 @@ void main() {
         targetLanguageId: 'es',
         eligibleContentKeys: eligible,
         events: events,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
         boundedReplayWindow: const Duration(days: 365),
       );
 
@@ -178,7 +178,7 @@ void main() {
         eligibleContentKeys: {'card1', 'card2'},
         events: events,
         masteryThreshold: 2,
-        now: defaultTime.add(const Duration(days: 1)),
+        timestamp: defaultTime.add(const Duration(days: 1)),
       );
 
       expect(projection.introducedCardCount, 2);
