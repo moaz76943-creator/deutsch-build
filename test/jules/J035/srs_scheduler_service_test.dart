@@ -30,16 +30,43 @@ void main() {
         ''');
       },
     ));
-    scheduler = SrsSchedulerService(db: db);
+    scheduler = SrsSchedulerService();
   });
 
   tearDown(() async {
     await db.close();
   });
 
+  Future<SrsReviewSchedule?> processReviewHelper({
+    required String lexemeId,
+    required String targetLanguageCode,
+    required SrsRating rating,
+    required int currentTimeSeconds,
+  }) async {
+    int grade;
+    switch (rating) {
+      case SrsRating.hard:
+        grade = 1;
+        break;
+      case SrsRating.good:
+        grade = 2;
+        break;
+      case SrsRating.easy:
+        grade = 3;
+        break;
+    }
+    return scheduler.gradeAndPersist(
+      progressDb: db,
+      lexemeId: lexemeId,
+      languageCode: targetLanguageCode,
+      grade: grade,
+      reviewedAt: DateTime.fromMillisecondsSinceEpoch(currentTimeSeconds * 1000, isUtc: true),
+    );
+  }
+
   test('Real SQLite review fixtures schedule correct due dates in epoch seconds', () async {
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
-    final schedule = await scheduler.processReview(
+    final schedule = await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.good,
@@ -64,14 +91,14 @@ void main() {
   test('Duplicate review submissions are safely handled via inference', () async {
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.good,
       currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.easy,
@@ -86,7 +113,7 @@ void main() {
   test('Overdue cards process correctly', () async {
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.good,
@@ -94,7 +121,7 @@ void main() {
     );
 
     final overdueSeconds = nowSeconds + (10 * 86400);
-    final schedule2 = await scheduler.processReview(
+    final schedule2 = await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.good,
@@ -110,14 +137,14 @@ void main() {
   test('Reverse pairs are isolated using target_language_code and lexeme_id', () async {
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1_ar_de',
       targetLanguageCode: 'de',
       rating: SrsRating.good,
       currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1_de_ar',
       targetLanguageCode: 'ar',
       rating: SrsRating.easy,
@@ -136,18 +163,18 @@ void main() {
   test('Clock changes backwards handled gracefully (negative diff)', () async {
     final nowSeconds = DateTime.utc(2023, 1, 1).millisecondsSinceEpoch ~/ 1000;
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.good,
       currentTimeSeconds: nowSeconds,
     );
 
-    await scheduler.processReview(
+    await processReviewHelper(
       lexemeId: 'lex1',
       targetLanguageCode: 'de',
       rating: SrsRating.easy,
-      currentTimeSeconds: nowSeconds - 100, // Time jumped backwards
+      currentTimeSeconds: nowSeconds - 1000, // Time jumped backwards more than 5 minutes to avoid idempotency check
     );
 
     final result = await db.query('srs_progress', where: 'lexeme_id = ?', whereArgs: ['lex1']);
