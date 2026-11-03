@@ -30,7 +30,7 @@ class AppTypography {
     switch (typographyProfile) {
       case 'cairo':
       case 'arabic':
-        return ['NotoSansArabic'];
+        return ['Cairo', 'NotoSansArabic'];
       case 'hebrew':
         return ['NotoSansHebrew'];
       case 'devanagari':
@@ -67,13 +67,13 @@ class AppTypography {
   }
 
   static const List<String> fallbackFontFamilies = [
-    'Noto Sans Arabic',
-    'Noto Sans Hebrew',
-    'Noto Sans Devanagari',
-    'Noto Sans Ethiopic',
-    'Noto Sans SC',
-    'Noto Sans Georgian',
-    'Noto Sans Armenian',
+    'NotoSansArabic',
+    'NotoSansHebrew',
+    'NotoSansDevanagari',
+    'NotoSansEthiopic',
+    'NotoSansCJK',
+    'NotoSansGeorgian',
+    'NotoSansArmenian',
   ];
 
   static const TextStyle label = TextStyle(
