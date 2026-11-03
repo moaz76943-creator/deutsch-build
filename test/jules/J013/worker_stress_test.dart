@@ -85,13 +85,11 @@ void main() {
   test('Worker failure throws generic exception', () async {
     final worker = PersistentCpuWorker.instance;
 
-    // Create an invalid input that will cause a cast exception in heavySrsMath
+    // Create an invalid input that will cause an exception inside the isolate
     try {
-      await worker.executeTask<Map<String, dynamic>, double>(
+      await worker.executeTask<double, Map<String, dynamic>>(
         (data) {
-          // Intentional cast error
-          data['invalid'] as int;
-          return 0.0;
+          throw Exception('Intentional error');
         },
         {'invalid': 'string_value'}
       );

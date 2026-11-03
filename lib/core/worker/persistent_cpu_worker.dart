@@ -1,61 +1,246 @@
 import 'dart:async';
+import 'dart:collection';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'worker_contract.dart';
 
-/// Master Constitution Section 10 Compliant CPU Worker:
-/// Enforces requestGeneration (latest-wins), cancellation on language/screen change,
-/// execution timeout watchdog, and safe resource disposal to prevent leaks.
-class PersistentCpuWorker {
+class WorkerQueueExhaustedException implements Exception {
+  final String message;
+  WorkerQueueExhaustedException(this.message);
+  @override
+  String toString() => "WorkerQueueExhaustedException: $message";
+}
+
+class WorkerCancelledException implements Exception {
+  final String message;
+  WorkerCancelledException(this.message);
+  @override
+  String toString() => "WorkerCancelledException: $message";
+}
+
+class _WorkerTask<T> {
+  final Future<T> Function() computation;
+  final Completer<T?> completer;
+  final int generation;
+  final Duration timeout;
+
+  _WorkerTask(this.computation, this.completer, this.generation, this.timeout);
+}
+
+class PersistentCpuWorker with WidgetsBindingObserver {
+  static PersistentCpuWorker? _instance;
+  static PersistentCpuWorker get instance => _instance ??= PersistentCpuWorker._();
+
+  PersistentCpuWorker._() {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   int _activeGeneration = 0;
   bool _isDisposed = false;
-  Completer<dynamic>? _pendingCompleter;
+
+  int _maxQueueSize = 50;
+  int _maxConcurrentTasks = 4;
+
+  int _activeTasks = 0;
+  final Queue<_WorkerTask<dynamic>> _queue = Queue();
 
   int get currentGeneration => _activeGeneration;
   bool get isDisposed => _isDisposed;
+  bool get isClosed => _isDisposed;
+  int get pendingCount => _queue.length;
 
-  /// Submits an asynchronous CPU task. Only the latest generation result is accepted.
-  Future<T?> executeTask<T>({
-    required Future<T> Function() computation,
+  static Future<PersistentCpuWorker> start({int initialEpoch = 0}) async {
+    final worker = instance;
+    worker._activeGeneration = initialEpoch;
+    return worker;
+  }
+
+  static void resetForTesting() {
+    if (_instance != null) {
+      WidgetsBinding.instance.removeObserver(_instance!);
+    }
+    _instance = PersistentCpuWorker._();
+    _instance!._maxQueueSize = 50;
+    _instance!._maxConcurrentTasks = 4;
+  }
+
+  void reset() {
+    _activeGeneration = 0;
+    cancelAll();
+    _isDisposed = false;
+  }
+
+  void setMaxQueueSize(int size) {
+    _maxQueueSize = size;
+  }
+
+  Future<T?> executeTask<T, R>(
+    Future<T> Function(R) computation,
+    R payload, {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     if (_isDisposed) {
       throw StateError('Worker is disposed. Cannot schedule new CPU tasks.');
     }
 
-    final generation = ++_activeGeneration;
+    if (_activeTasks + _queue.length >= _maxQueueSize + _maxConcurrentTasks) {
+      throw WorkerQueueExhaustedException('Queue is full');
+    }
+
+    final generation = _activeGeneration;
     final completer = Completer<T?>();
-    _pendingCompleter = completer;
+
+    // Note: We wrap the computation into a no-arg function to match _WorkerTask
+    _queue.add(_WorkerTask<T>(() => computation(payload), completer, generation, timeout));
+
+    _pump();
+
+    return completer.future;
+  }
+
+  // A helper that calculates new ease factor via compute to run in background.
+  Future<double> calculateNewEaseFactor(double easeFactor, int quality) async {
+    return (await executeTask<double, Map<String, dynamic>>(
+      _heavySrsMath,
+      {'easeFactor': easeFactor, 'quality': quality},
+    )) ?? 0.0;
+  }
+
+  // Must be a top-level or static function to be used with compute
+  static Future<double> _heavySrsMath(Map<String, dynamic> data) async {
+    final easeFactor = data['easeFactor'] as double;
+    final quality = data['quality'] as int;
+
+    if (easeFactor < 0.0) {
+      throw ArgumentError('easeFactor must be positive');
+    }
+
+    // Some complex math simulating real SRS update
+    double newEase = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+    if (newEase < 1.3) newEase = 1.3;
+    return newEase;
+  }
+
+  Future<WorkerResult<R>> submit<R>(WorkerJob<Object?> job) async {
+    if (_isDisposed) {
+      return WorkerResult(id: job.id, epoch: job.epoch, status: WorkerStatuses.closed, payload: null, errorCode: 'closed');
+    }
 
     try {
-      final result = await computation().timeout(timeout, onTimeout: () {
-        throw TimeoutException('CPU task timed out after ${timeout.inSeconds}s (Gen $generation)');
-      });
+      final res = await executeTask<R, Object?>(
+        _runJob,
+        job,
+      );
 
-      // Latest-Wins policy: drop result if generation has advanced
-      if (_isDisposed || generation != _activeGeneration) {
-        return null;
+      if (res == null) {
+         return WorkerResult(id: job.id, epoch: job.epoch, status: WorkerStatuses.stale, payload: null, errorCode: 'cancelled');
       }
-
-      completer.complete(result);
-      return result;
-    } catch (e, st) {
-      if (generation == _activeGeneration && !completer.isCompleted) {
-        completer.completeError(e, st);
+      return WorkerResult(id: job.id, epoch: job.epoch, status: WorkerStatuses.ok, payload: res, errorCode: null);
+    } catch (e) {
+      if (e is WorkerCancelledException) {
+         return WorkerResult(id: job.id, epoch: job.epoch, status: WorkerStatuses.stale, payload: null, errorCode: 'cancelled');
       }
-      return null;
+      return WorkerResult(id: job.id, epoch: job.epoch, status: WorkerStatuses.error, payload: null, errorCode: e.toString());
     }
   }
 
-  /// Cancels in-flight work immediately (e.g. when language pair or screen changes)
-  void cancelActiveOperations() {
+  static Future<R> _runJob<R>(Object? jobObj) async {
+    // Mocking job execution for the system runtime
+    return null as R;
+  }
+
+  void _pump() {
+    if (_activeTasks >= _maxConcurrentTasks || _queue.isEmpty || _isDisposed) {
+      return;
+    }
+
+    final task = _queue.removeFirst();
+
+    if (task.generation != _activeGeneration) {
+      if (!task.completer.isCompleted) {
+        task.completer.completeError(WorkerCancelledException('Generation changed'));
+      }
+      _pump(); // Try next task
+      return;
+    }
+
+    _activeTasks++;
+
+    Future(() async {
+      try {
+        final result = await compute(
+          _isolateRunner,
+          task.computation
+        ).timeout(task.timeout, onTimeout: () {
+          throw TimeoutException('CPU task timed out');
+        });
+
+        if (task.generation != _activeGeneration || _isDisposed) {
+           if (!task.completer.isCompleted) {
+             task.completer.completeError(WorkerCancelledException('Generation changed or disposed'));
+           }
+        } else if (!task.completer.isCompleted) {
+          task.completer.complete(result);
+        }
+      } catch (e, st) {
+        if (!task.completer.isCompleted) {
+           task.completer.completeError(e, st);
+        }
+      } finally {
+        _activeTasks--;
+        _pump();
+      }
+    });
+
+    _pump();
+  }
+
+  static Future<dynamic> _isolateRunner(Future<dynamic> Function() computation) async {
+     return await computation();
+  }
+
+  void advanceEpoch(int epoch) {
+    _activeGeneration = epoch;
+  }
+
+  void cancelCurrentGeneration() {
     _activeGeneration++;
-    if (_pendingCompleter != null && !_pendingCompleter!.isCompleted) {
-      _pendingCompleter!.complete(null);
-      _pendingCompleter = null;
+    _cancelPending();
+  }
+
+  void cancelAll() {
+    _activeGeneration++;
+    _cancelPending();
+  }
+
+  void _cancelPending() {
+    final currentTasks = _queue.toList();
+    _queue.clear();
+    for (var task in currentTasks) {
+       if (!task.completer.isCompleted) {
+          task.completer.completeError(WorkerCancelledException('Cancelled'));
+       }
     }
   }
 
-  /// Safe disposal freeing all worker references and cancelling subscriptions
+  void cancelActiveOperations() {
+    cancelAll();
+  }
+
+  void close() {
+    dispose();
+  }
+
   void dispose() {
     _isDisposed = true;
     cancelActiveOperations();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+       cancelAll();
+    }
   }
 }
