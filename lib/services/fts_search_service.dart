@@ -167,6 +167,8 @@ class FtsSearchService {
 
     final term = query.trim();
     List<Map<String, Object?>> rows;
+    final sanitizedTerm = _sanitizeFts(term);
+
     if (term.isEmpty) {
       rows = await database.rawQuery('''
         SELECT rowid AS search_rowid, id, surface, part_of_speech, fields_json
@@ -174,22 +176,28 @@ class FtsSearchService {
         ORDER BY rowid
         LIMIT ?
       ''', <Object?>[limit]);
-    } else if (term.runes.length >= 3) {
+    } else if (term.runes.length >= 3 && sanitizedTerm.isNotEmpty) {
       try {
-        final phrase = '"${term.replaceAll('"', '""')}"';
-        rows = await database.rawQuery('''
-          SELECT l.rowid AS search_rowid, l.id, l.surface,
-                 l.part_of_speech, l.fields_json
-          FROM lexicon_fts
-          JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
-          WHERE lexicon_fts MATCH ?
-          ORDER BY CASE
-            WHEN l.surface = ? COLLATE NOCASE THEN 0
-            WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
-            ELSE 2
-          END, bm25(lexicon_fts), length(l.surface), l.rowid
-          LIMIT ?
-        ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+        final result = await database.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='lexicon_fts'");
+        if (result.isEmpty) {
+          rows = await _fallback(database, term, limit);
+        } else {
+          final phrase = '"$sanitizedTerm"*';
+          rows = await database.rawQuery('''
+            SELECT l.rowid AS search_rowid, l.id, l.surface,
+                   l.part_of_speech, l.fields_json
+            FROM lexicon_fts
+            JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
+            WHERE lexicon_fts MATCH ?
+            ORDER BY CASE
+              WHEN l.surface = ? COLLATE NOCASE THEN 0
+              WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
+              ELSE 2
+            END, bm25(lexicon_fts), length(l.surface), l.rowid
+            LIMIT ?
+          ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+        }
       } on DatabaseException catch (_) {
         // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
         // expression: parameterized LIKE stays available on vendor SQLite.
@@ -206,6 +214,12 @@ class FtsSearchService {
           .map((row) => Map<String, Object?>.from(row))
           .toList(growable: false),
     });
+  }
+
+  static String _sanitizeFts(String term) {
+    var s = term.replaceAll(RegExp(r'["' "'" r'`\*\#\^\(\)\+\-\~]'), ' ');
+    s = s.replaceAll(RegExp(r'\b(AND|OR|NOT)\b', caseSensitive: false), ' ');
+    return s.trim().replaceAll(RegExp(r'\s+'), ' ');
   }
 
   static String _escapeLike(String text) => text
