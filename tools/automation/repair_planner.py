@@ -1,6 +1,7 @@
 import re
 import uuid
 import sys
+import subprocess
 
 STALE_FTS5 = "STALE_FTS5"
 CORRUPTED_ARTIFACT = "CORRUPTED_ARTIFACT"
@@ -81,11 +82,18 @@ class RepairPlanner:
                     raise RuntimeError("Failed to acquire lock")
                 leases.append(path)
 
+        try:
+            base_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+        except Exception:
+            base_sha = "unknown"
+
         return {
             "plan_id": plan_id,
             "category": category,
-            "paths": target_paths,
-            "transformation": transformation,
+            "allowed_paths": target_paths,
+            "operations": [{"type": transformation, "path": p} for p in target_paths],
+            "signature": failure_signature,
+            "base_sha": base_sha,
             "rollback_metadata": {"original_state": "preserved"},
             "dry_run": dry_run
         }
