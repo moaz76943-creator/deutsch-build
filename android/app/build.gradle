@@ -38,6 +38,18 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// Play Integrity Cloud Project Number (from local.properties or env). Required for release.
+def cloudProjectNumber = localProperties.getProperty('CLOUD_PROJECT_NUMBER')
+        ?: System.getenv('CLOUD_PROJECT_NUMBER')
+        ?: project.findProperty('CLOUD_PROJECT_NUMBER')
+        ?: '0'
+if (releaseTaskRequested && (cloudProjectNumber == null || cloudProjectNumber == '0' || cloudProjectNumber.trim().isEmpty())) {
+    throw new GradleException(
+        'Play Integrity Cloud Project Number is mandatory for release builds. Set CLOUD_PROJECT_NUMBER in local.properties or as environment variable (get it from Play Console > App integrity > Play Integrity API).'
+    )
+}
+def cloudProjectNumberLong = cloudProjectNumber.toLong()
+
 android {
     signingConfigs {
         secureRelease {
@@ -74,6 +86,7 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        buildConfigField "long", "CLOUD_PROJECT_NUMBER", "${cloudProjectNumberLong}L"
     }
 
     buildTypes {
@@ -83,6 +96,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.secureRelease
         }
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 }
 
