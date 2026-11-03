@@ -158,7 +158,8 @@ void main() {
             setStateCallback = setState;
             return MaterialApp(
               home: WordBitCarouselScreen(
-                domainId: currentDomain,
+                sourceLocale: "ar-SA",
+domainId: currentDomain,
               ),
             );
           },

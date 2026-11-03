@@ -9,9 +9,10 @@ import '../../../core/srs/bridge/srs_compat_bridge.dart';
 class WordBitCarouselScreen extends StatefulWidget {
   final String sourceLocale;
   final String targetLocale;
+  final String? domainId;
 
   const WordBitCarouselScreen(
-      {super.key, this.sourceLocale = 'ar-SA', this.targetLocale = 'de-DE'});
+      {super.key, this.sourceLocale = 'ar-SA', this.targetLocale = 'de-DE', this.domainId});
 
   @override
   State<WordBitCarouselScreen> createState() => _WordBitCarouselScreenState();
@@ -35,17 +36,20 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
   void didUpdateWidget(WordBitCarouselScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.sourceLocale != widget.sourceLocale ||
-        oldWidget.targetLocale != widget.targetLocale) {
+        oldWidget.targetLocale != widget.targetLocale ||
+        oldWidget.domainId != widget.domainId) {
       OfflineAudioDispatcher.stopCurrentAudio();
       refreshCards();
     }
   }
 
   void refreshCards() {
-    final entries = LexicalRepository.getEntriesForPair(
-      sourceLocale: widget.sourceLocale,
-      targetLocale: widget.targetLocale,
-    );
+    final entries = widget.domainId != null
+        ? LexicalRepository.getEntriesByDomain(widget.domainId!)
+        : LexicalRepository.getEntriesForPair(
+            sourceLocale: widget.sourceLocale,
+            targetLocale: widget.targetLocale,
+          );
 
     setState(() {
       _cards = entries
@@ -243,8 +247,8 @@ class _WordBitCarouselScreenState extends State<WordBitCarouselScreen> {
                               size: 40,
                               semanticLabel: 'Concept illustration absent'),
                           const SizedBox(height: 8),
-                          Text(card.id,
-                              style: const TextStyle(
+                          const Text('صورة غير متوفرة',
+                              style: TextStyle(
                                   color: Colors.white38, fontSize: 10)),
                         ]))),
                 const SizedBox(height: 24),
