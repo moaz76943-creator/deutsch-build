@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:deutsch_bilarabi/design_system/design_system.dart';
 import 'package:deutsch_bilarabi/design_system/app_audio_button.dart';
 import 'package:deutsch_bilarabi/core/audio/offline_audio_dispatcher.dart';
-import 'package:deutsch_bilarabi/core/audio/offline_audio_pool.dart';
+import 'package:deutsch_bilarabi/core/audio/offline_audio_capability.dart';
 
 class PhoneticsLabScreen extends StatefulWidget {
   const PhoneticsLabScreen({super.key});
@@ -24,7 +24,8 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
       "desc": "حروف التملق (Umlaut) وكيفية تدوير الشفاه بالألمانية",
       "lang": "الألمانية",
       "langCode": "de-DE",
-      "hasAudio": true
+      "hasAudio": true,
+      "isVerified": true
     },
     {
       "symbol": "ñ",
@@ -32,27 +33,38 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
       "desc": "حرف النون المضخم في اللغة الإسبانية",
       "lang": "الإسبانية",
       "langCode": "es-ES",
-      "hasAudio": true
+      "hasAudio": true,
+      "isVerified": true
     },
     {
       "symbol": "ğ",
-      "ipa": "[ː]",
+      "ipa": "[ɰ]",
       "desc": "الحرف الصامت أو الناعم في اللغة التركية",
       "lang": "التركية",
       "langCode": "tr-TR",
-      "hasAudio": false
+      "hasAudio": false,
+      "isVerified": true
+    },
+    {
+      "symbol": "x",
+      "ipa": "[x]",
+      "desc": "غير متوفر",
+      "lang": "unverified",
+      "langCode": "xx",
+      "hasAudio": false,
+      "isVerified": false
     },
   ];
 
   @override
   void dispose() {
-    OfflineAudioPool().stop();
+    OfflineAudioDispatcher.stopCurrentAudio();
     super.dispose();
   }
 
   Future<void> _playAudio(int index) async {
     if (_isPlaying) {
-      OfflineAudioPool().stop();
+      OfflineAudioDispatcher.stopCurrentAudio();
       if (_currentlyPlayingIndex == index) {
         setState(() {
           _isPlaying = false;
@@ -62,15 +74,24 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
       }
     }
 
+    final item = _sounds[index];
+    final bcp47Locale = item['langCode'] as String;
+
+    // Check capability to prevent silent fallbacks
+    final fallbackLocale = OfflineAudioCapability.getFallbackLocale(bcp47Locale);
+    if (fallbackLocale == null) {
+      // Voice not supported or capable
+      return;
+    }
+
     setState(() {
       _isPlaying = true;
       _currentlyPlayingIndex = index;
     });
 
-    final item = _sounds[index];
     await OfflineAudioDispatcher.speakText(
       text: item['symbol'] as String,
-      bcp47Locale: item['langCode'] as String,
+      bcp47Locale: fallbackLocale,
       speechRate: _speechRate,
     );
 
@@ -121,6 +142,7 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
               itemBuilder: (context, index) {
                 final item = _sounds[index];
                 final hasAudio = item['hasAudio'] as bool;
+                final isVerified = (item['isVerified'] as bool?) ?? true;
                 final isCurrentPlaying =
                     _currentlyPlayingIndex == index && _isPlaying;
 
@@ -167,13 +189,13 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  item['lang'] as String,
+                                  isVerified ? item['lang'] as String : 'unverified',
                                   style: const TextStyle(
                                       color: Color(0xFF38BDF8), fontSize: 12),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  item['desc'] as String,
+                                  isVerified ? item['desc'] as String : 'غير متوفر',
                                   style: AppTypography.body.copyWith(
                                       color: Colors.white, fontSize: 14),
                                 ),
@@ -182,7 +204,19 @@ class _PhoneticsLabScreenState extends State<PhoneticsLabScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        if (hasAudio)
+                        if (!isVerified)
+                          const Tooltip(
+                            message: 'النطق الصوتي غير متوفر حالياً',
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Icon(
+                                Icons.volume_off,
+                                color: Colors.white38,
+                                size: 20,
+                              ),
+                            ),
+                          )
+                        else if (hasAudio)
                           AppAudioButton(
                             onPressed: () => _playAudio(index),
                             semanticLabel: 'استمع للفظ الصحيح',
