@@ -77,8 +77,10 @@ class TestRepairPlanner(unittest.TestCase):
 
         self.assertIn("plan_id", plan)
         self.assertEqual(plan["category"], RESOLVABLE_IMPORT)
-        self.assertEqual(plan["paths"], paths)
-        self.assertEqual(plan["transformation"], "fix_import_path")
+        self.assertEqual(plan["allowed_paths"], paths)
+        self.assertEqual(plan["operations"], [{"type": "fix_import_path", "path": "src/main.py"}])
+        self.assertEqual(plan["signature"], sig)
+        self.assertIn("base_sha", plan)
         self.assertIn("rollback_metadata", plan)
         self.assertFalse(plan["dry_run"])
 
