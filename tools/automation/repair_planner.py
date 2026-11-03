@@ -9,9 +9,9 @@ TOOLCHAIN_STATE = "TOOLCHAIN_STATE"
 MANIFEST_MISMATCH = "MANIFEST_MISMATCH"
 
 TRANSFORMATIONS = {
-    STALE_FTS5: "rebuild_fts5_index",
-    CORRUPTED_ARTIFACT: "clean_and_rebuild_artifact",
-    RESOLVABLE_IMPORT: "fix_import_path",
+    STALE_FTS5: "rebuild_fts5",
+    CORRUPTED_ARTIFACT: "regenerate_artifact",
+    RESOLVABLE_IMPORT: "repair_import",
     TOOLCHAIN_STATE: "reset_toolchain",
     MANIFEST_MISMATCH: "update_manifest"
 }
@@ -81,11 +81,40 @@ class RepairPlanner:
                     raise RuntimeError("Failed to acquire lock")
                 leases.append(path)
 
+        import subprocess
+        try:
+            base_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+        except Exception:
+            base_sha = "any"
+
+        operations = []
+        for path in target_paths:
+            op = {"type": transformation, "path": path}
+            if transformation == "repair_import":
+                # Look for patterns like: 'old_module' -> 'new_module'
+                import_match = re.search(r"'([^']+)'\s*(?:->|to)\s*'([^']+)'", failure_signature)
+                if import_match:
+                    op["old_import"] = import_match.group(1)
+                    op["new_import"] = import_match.group(2)
+                else:
+                    # Look for fallback like: replace A with B
+                    replace_match = re.search(r"replace\s+['\"]?([^'\"\s]+)['\"]?\s+with\s+['\"]?([^'\"\s]+)['\"]?", failure_signature, re.IGNORECASE)
+                    if replace_match:
+                        op["old_import"] = replace_match.group(1)
+                        op["new_import"] = replace_match.group(2)
+                    else:
+                        op["old_import"] = "UNKNOWN_OLD"
+                        op["new_import"] = "UNKNOWN_NEW"
+            operations.append(op)
+
         return {
             "plan_id": plan_id,
+            "signature": failure_signature,
+            "base_sha": base_sha,
             "category": category,
-            "paths": target_paths,
-            "transformation": transformation,
+            "allowed_paths": target_paths,
+            "operations": operations,
             "rollback_metadata": {"original_state": "preserved"},
-            "dry_run": dry_run
+            "dry_run": dry_run,
+            "commit": True
         }
