@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/sundanese_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/sundanese_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('SundaneseDeepLocalizationProfile Tests', () {
@@ -17,16 +17,16 @@ void main() {
     });
 
     test('Speech level honorific bridges (Loma/Lemes) map to German address', () {
-      expect(profile.speechLevelHonorificBridge, containsKey(contains('Loma')));
-      expect(profile.speechLevelHonorificBridge, containsKey(contains('Lemes')));
+      expect(profile.speechLevelHonorificBridge.keys, contains(contains('Loma')));
+      expect(profile.speechLevelHonorificBridge.keys, contains(contains('Lemes')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('C / c')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sy / sy')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('wilujeng / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('masjid'));
+      expect(profile.culturalIslamicLexicon.keys, contains('wilujeng / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('masjid'));
       expect(profile.coreA1Vocabulary['Hatur nuhun pisan'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

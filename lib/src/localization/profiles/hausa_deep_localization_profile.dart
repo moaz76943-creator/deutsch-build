@@ -24,7 +24,7 @@ class HausaDeepLocalizationProfile {
   final Map<String, String> germanPhoneticBridges;
   final Map<String, String> grammaticalCaseMapping;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const HausaDeepLocalizationProfile({
     this.languageName = 'Hausa',

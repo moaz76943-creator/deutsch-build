@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/lingala_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/lingala_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('LingalaDeepLocalizationProfile Tests', () {
@@ -20,15 +20,15 @@ void main() {
     });
 
     test('Paired noun class bridge and preposition traits are verified', () {
-      expect(profile.nounClassPairBridge, containsKey(contains('Paired Noun')));
-      expect(profile.nounClassPairBridge, containsKey(contains('Prepositional')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Pitch Modulation'), isNotEmpty));
+      expect(profile.nounClassPairBridge.keys, contains(contains('Paired Noun')));
+      expect(profile.nounClassPairBridge.keys, contains(contains('Prepositional')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Pitch Modulation')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('mbote / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('ndako ya nzambe / misiti'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mbote / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ndako ya nzambe / misiti'));
       expect(profile.coreA1Vocabulary['Matondi mingi'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

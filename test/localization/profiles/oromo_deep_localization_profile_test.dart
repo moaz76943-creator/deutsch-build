@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/oromo_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/oromo_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('OromoDeepLocalizationProfile Tests', () {
@@ -31,13 +31,13 @@ void main() {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ch')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('Ts')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Vowel Length'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Vowel Length')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('akkam / nagaa / salaam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halaala'));
-      expect(profile.culturalIslamicLexicon, containsKey('masjiida'));
+      expect(profile.culturalIslamicLexicon.keys, contains('akkam / nagaa / salaam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halaala'));
+      expect(profile.culturalIslamicLexicon.keys, contains('masjiida'));
       expect(profile.coreA1Vocabulary['Baay\'ee galatoomi'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

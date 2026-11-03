@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/spanish_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/spanish_deep_localization_profile.dart';
 
 void main() {
   group('SpanishDeepLocalizationProfile Tests', () {
@@ -28,17 +28,17 @@ void main() {
     });
 
     test('Phonetic bridge identifies native match for letter J to German ach-Laut', () {
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('100% Native Identity')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('100% Native Identity'))));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('t+s')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Prothetic E'), isNotEmpty));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Subjunctive'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Prothetic E')).having((entry) => entry.value, 'value', isNotEmpty)));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Subjunctive')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('hola / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('ojalá'));
-      expect(profile.culturalIslamicLexicon, containsKey('mezquita'));
+      expect(profile.culturalIslamicLexicon.keys, contains('hola / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ojalá'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mezquita'));
       expect(profile.coreA1Vocabulary['Muchas gracias'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

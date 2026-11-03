@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/amharic_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/amharic_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('AmharicDeepLocalizationProfile Tests', () {
@@ -19,9 +19,9 @@ void main() {
     });
 
     test('Semitic cognates link Amharic and Arabic lexical roots', () {
-      expect(profile.semiticCognateBridges, containsPair(contains('selam'), contains('Salam')));
-      expect(profile.semiticCognateBridges, containsPair(contains('bēt'), contains('Bayt')));
-      expect(profile.semiticCognateBridges, containsPair(contains('dem'), contains('Blut')));
+      expect(profile.semiticCognateBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('selam')).having((entry) => entry.value, 'value', contains('Salam'))));
+      expect(profile.semiticCognateBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('bēt')).having((entry) => entry.value, 'value', contains('Bayt'))));
+      expect(profile.semiticCognateBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('dem')).having((entry) => entry.value, 'value', contains('Blut'))));
     });
 
     test('Case and preposition alignment maps to German declensions', () {
@@ -34,9 +34,9 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('ሰላም / እንዴት ነዎት'));
-      expect(profile.culturalIslamicLexicon, containsKey('ሀላል'));
-      expect(profile.culturalIslamicLexicon, containsKey('መስጊድ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ሰላም / እንዴት ነዎት'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ሀላል'));
+      expect(profile.culturalIslamicLexicon.keys, contains('መስጊድ'));
       expect(profile.coreA1Vocabulary['በጣም አመሰግናለሁ'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -1,3 +1,5 @@
+export 'widgets/app_directional_text.dart';
+
 import 'package:flutter/material.dart';
 import '../core/text/language_identity.dart';
 

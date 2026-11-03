@@ -32,7 +32,6 @@ class WelshDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final String primaryScript = 'Latin (Welsh alphabet with circumflex accents)';
   final List<String> specialDigraphs = const ['ch', 'dd', 'ff', 'ng', 'll', 'ph', 'rh', 'th'];
 
-  @override
   final Map<String, String> ipaPhoneticInventory = const {
     'll /ɬ/': 'Voiceless alveolar lateral fricative (e.g. llyfr, llan).',
     'ch /x/': 'Voiceless velar fricative (e.g. chwaer, uwch).',
@@ -43,7 +42,6 @@ class WelshDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     'Treiglad Llaes (Aspirate Mutation)': 'Spirantization (c->ch, p->ph, t->th).',
   };
 
-  @override
   final Map<UniversalGrammaticalRole, String> universalRoleMapping = const {
     UniversalGrammaticalRole.subjectOrAgent: 'Goddrych (Subject in VSO: Mae\'r dyn yn darllen = The man is reading).',
     UniversalGrammaticalRole.directObjectOrPatient: 'Gwrthrych uniongyrchol (Direct object with soft mutation after verb).',
@@ -56,7 +54,6 @@ class WelshDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     UniversalGrammaticalRole.vocativeAddress: 'Vocative with soft mutation (O ffrind!).',
   };
 
-  @override
   final Map<String, String> universalLexicon = const {
     'greeting': 'Helo / Shwmae / Sut mae',
     'thanks': 'Diolch / Diolch yn fawr',
@@ -78,7 +75,7 @@ class WelshDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     'placeOfWorship': 'Mosg / Eglwys',
   };
 
-  final List> practicalDialoguePhrases = const [
+  final List<Map<String, String>> practicalDialoguePhrases = const [
     {
       'welsh': 'Shwmae! Sut dych chi?',
       'arabic': 'مرحباً! كيف حالك؟',

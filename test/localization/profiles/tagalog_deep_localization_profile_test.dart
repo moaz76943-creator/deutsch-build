@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/tagalog_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/tagalog_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('TagalogDeepLocalizationProfile Tests', () {
@@ -19,21 +19,21 @@ void main() {
 
     test('Voice focus system and particle alignment are accurately configured', () {
       expect(profile.voiceFocusSystemAlignment.length, greaterThanOrEqualTo(5));
-      expect(profile.voiceFocusSystemAlignment, containsPair(contains('Actor Focus'), contains('active voice')));
-      expect(profile.voiceFocusSystemAlignment, containsPair(contains('Patient/Object'), contains('Akkusativ')));
-      expect(profile.voiceFocusSystemAlignment, containsPair(contains('Particle "ng"'), contains('Genitiv')));
+      expect(profile.voiceFocusSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Actor Focus')).having((entry) => entry.value, 'value', contains('active voice'))));
+      expect(profile.voiceFocusSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Patient/Object')).having((entry) => entry.value, 'value', contains('Akkusativ'))));
+      expect(profile.voiceFocusSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Particle "ng"')).having((entry) => entry.value, 'value', contains('Genitiv'))));
     });
 
     test('Omnidirectional cross-lingual transfer matrix is established', () {
-      expect(profile.omnidirectionalBridges, containsKey(contains('Austronesian Western Matrix')));
-      expect(profile.omnidirectionalBridges, containsKey(contains('Hispanic Romance')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Austronesian Western Matrix')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Hispanic Romance')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('kamusta / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('salamat / maraming salamat'));
-      expect(profile.culturalIslamicLexicon, containsKey('moske / masjid'));
+      expect(profile.culturalIslamicLexicon.keys, contains('kamusta / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('salamat / maraming salamat'));
+      expect(profile.culturalIslamicLexicon.keys, contains('moske / masjid'));
       expect(profile.coreA1Vocabulary['Maraming salamat'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

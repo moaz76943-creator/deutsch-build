@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/thai_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/thai_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('ThaiDeepLocalizationProfile Tests', () {
@@ -18,16 +18,16 @@ void main() {
     });
 
     test('Omnidirectional cross-lingual transfer matrix is established', () {
-      expect(profile.omnidirectionalBridges, containsKey(contains('Austronesian/Malay')));
-      expect(profile.omnidirectionalBridges, containsKey(contains('Indic Sanskrit/Pali')));
-      expect(profile.omnidirectionalBridges, containsKey(contains('European Fusional')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Austronesian/Malay')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('Indic Sanskrit/Pali')));
+      expect(profile.omnidirectionalBridges.keys, contains(contains('European Fusional')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('สวัสดี / ซะลาม'));
-      expect(profile.culturalIslamicLexicon, containsKey('ฮาลาล'));
-      expect(profile.culturalIslamicLexicon, containsKey('ละหมาด / นมาซ'));
-      expect(profile.culturalIslamicLexicon, containsKey('มัสยิด / สุเหร่า'));
+      expect(profile.culturalIslamicLexicon.keys, contains('สวัสดี / ซะลาม'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ฮาลาล'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ละหมาด / นมาซ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('มัสยิด / สุเหร่า'));
       expect(profile.coreA1Vocabulary['ขอบคุณมาก'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

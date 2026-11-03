@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/pashto_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/pashto_deep_localization_profile.dart';
 
 void main() {
   group('PashtoDeepLocalizationProfile Tests', () {
@@ -29,13 +29,13 @@ void main() {
     test('Case system and circumposition alignment are accurately defined', () {
       expect(profile.getCaseBridge('Direct'), contains('Nominativ'));
       expect(profile.getCaseBridge('Oblique'), contains('Akkusativ'));
-      expect(profile.caseSystemAlignment, containsPair(contains('Circumpositions'), contains('Dativ')));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Circumpositions')).having((entry) => entry.value, 'value', contains('Dativ'))));
     });
 
     test('Islamic cultural lexicon and core vocabulary are verified', () {
-      expect(profile.culturalIslamicLexicon, containsKey('سلام'));
-      expect(profile.culturalIslamicLexicon, containsKey('حلال'));
-      expect(profile.culturalIslamicLexicon, containsKey('لمونځ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('سلام'));
+      expect(profile.culturalIslamicLexicon.keys, contains('حلال'));
+      expect(profile.culturalIslamicLexicon.keys, contains('لمونځ'));
       expect(profile.coreA1Vocabulary['ډېره مننه'], equals('Vielen Dank'));
       expect(profile.coreA1Vocabulary['هو'], equals('Ja'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));

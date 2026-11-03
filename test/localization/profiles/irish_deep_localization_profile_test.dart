@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/irish_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/irish_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('IrishDeepLocalizationProfile Tests', () {
@@ -18,8 +18,8 @@ void main() {
     });
 
     test('Initial mutations and universal roles are established', () {
-      expect(profile.ipaPhoneticInventory, containsKey(contains('Séimhiú')));
-      expect(profile.ipaPhoneticInventory, containsKey(contains('Urú')));
+      expect(profile.ipaPhoneticInventory.keys, contains(contains('Séimhiú')));
+      expect(profile.ipaPhoneticInventory.keys, contains(contains('Urú')));
       expect(profile.universalRoleMapping[UniversalGrammaticalRole.subjectOrAgent], contains('Ainmneach'));
       expect(profile.universalRoleMapping[UniversalGrammaticalRole.genitivePossessor], contains('Ginideach'));
     });

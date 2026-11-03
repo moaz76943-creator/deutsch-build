@@ -18,7 +18,7 @@ class BasqueDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   @override
   final String iso6392or3 = 'eus';
   @override
-  final TypologicalClassification typology = TypologicalClassification.languageIsolate;
+  final TypologicalClassification typology = TypologicalClassification.agglutinative;
   @override
   final CanonicalWordOrder primaryWordOrder = CanonicalWordOrder.sov;
   @override
@@ -32,7 +32,6 @@ class BasqueDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final String primaryScript = 'Latin (Basque alphabet)';
   final int nominalCaseCount = 17;
 
-  @override
   final Map<String, String> ipaPhoneticInventory = const {
     'tz /ts̻/': 'Laminal voiceless alveolar affricate (e.g. zortzi).',
     'ts /ts̺/': 'Apical voiceless alveolar affricate (e.g. etsi).',
@@ -41,7 +40,6 @@ class BasqueDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     'j /x/': 'Voiceless velar fricative in standard Batua (e.g. joan).',
   };
 
-  @override
   final Map<UniversalGrammaticalRole, String> universalRoleMapping = const {
     UniversalGrammaticalRole.subjectOrAgent: 'Ergatiboa (-k): Gizona-k ogia jan du (The man ate the bread).',
     UniversalGrammaticalRole.directObjectOrPatient: 'Absolutiboa (zero): Gizona etorri da / Ogia jan du.',
@@ -54,7 +52,6 @@ class BasqueDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     UniversalGrammaticalRole.vocativeAddress: 'Bokatiboa (unmarked / intonation).',
   };
 
-  @override
   final Map<String, String> universalLexicon = const {
     'greeting': 'Kaixo / Agur',
     'thanks': 'Eskerrik asko / Mila esker',
@@ -76,7 +73,7 @@ class BasqueDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
     'placeOfWorship': 'Meskita / Eliza',
   };
 
-  final List> practicalDialoguePhrases = const [
+  final List<Map<String, String>> practicalDialoguePhrases = const [
     {
       'basque': 'Kaixo! Nola zaude?',
       'arabic': 'مرحباً! كيف حالك؟',

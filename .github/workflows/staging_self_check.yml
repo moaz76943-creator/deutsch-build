@@ -125,6 +125,8 @@ jobs:
           test/jules/J008/pooled_database_manager_test.dart
           test/jules/J049/trie_search_engine_test.dart
           test/jules/WS16/
+          test/localization/
+          test/design_system/app_directional_text_test.dart
           test/offline_gate_test.dart
 
       # Classification only; do not grant this workflow merge credentials.

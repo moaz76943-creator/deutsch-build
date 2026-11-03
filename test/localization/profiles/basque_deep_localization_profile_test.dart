@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/basque_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/basque_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('BasqueDeepLocalizationProfile Tests', () {
@@ -10,7 +10,7 @@ void main() {
       expect(profile.languageName, equals('Basque'));
       expect(profile.iso6391, equals('eu'));
       expect(profile.iso6392or3, equals('eus'));
-      expect(profile.typology, equals(TypologicalClassification.languageIsolate));
+      expect(profile.typology, equals(TypologicalClassification.agglutinative));
       expect(profile.primaryWordOrder, equals(CanonicalWordOrder.sov));
       expect(profile.alignment, equals(GrammaticalAlignment.ergativeAbsolutive));
       expect(profile.nominalCaseCount, equals(17));
@@ -21,8 +21,8 @@ void main() {
       expect(profile.universalRoleMapping[UniversalGrammaticalRole.subjectOrAgent], contains('Ergatiboa'));
       expect(profile.universalRoleMapping[UniversalGrammaticalRole.directObjectOrPatient], contains('Absolutiboa'));
       expect(profile.universalRoleMapping[UniversalGrammaticalRole.indirectObjectOrRecipient], contains('Datiboa'));
-      expect(profile.ipaPhoneticInventory, containsKey('tx /tʃ/'));
-      expect(profile.ipaPhoneticInventory, containsKey('tz /ts̻/'));
+      expect(profile.ipaPhoneticInventory.keys, contains('tx /tʃ/'));
+      expect(profile.ipaPhoneticInventory.keys, contains('tz /ts̻/'));
     });
 
     test('Universal lexicon and dialogue samples are verified and halal', () {

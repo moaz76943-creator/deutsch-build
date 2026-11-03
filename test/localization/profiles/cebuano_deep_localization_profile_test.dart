@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/cebuano_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/cebuano_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('CebuanoDeepLocalizationProfile Tests', () {
@@ -19,15 +19,15 @@ void main() {
 
     test('Voice trigger alignment and particle mapping are verified', () {
       expect(profile.voiceTriggerSystemAlignment.length, greaterThanOrEqualTo(5));
-      expect(profile.voiceTriggerSystemAlignment, containsPair(contains('Actor Trigger'), contains('active voice')));
-      expect(profile.voiceTriggerSystemAlignment, containsPair(contains('Particle "ang"'), contains('Nominativ')));
+      expect(profile.voiceTriggerSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Actor Trigger')).having((entry) => entry.value, 'value', contains('active voice'))));
+      expect(profile.voiceTriggerSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Particle "ang"')).having((entry) => entry.value, 'value', contains('Nominativ'))));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ts / ts')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('kumusta / maayong adlaw / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('salamat / daghang salamat'));
+      expect(profile.culturalIslamicLexicon.keys, contains('kumusta / maayong adlaw / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('salamat / daghang salamat'));
       expect(profile.coreA1Vocabulary['Daghang salamat'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

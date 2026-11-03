@@ -18,7 +18,7 @@ class DanishDeepLocalizationProfile {
   final String primaryScript;
   final List<String> specialCharacters;
   final bool hasV2WordOrder;
-  final bool hasStødPhenomenon; // Glottalization / stød
+  final bool hasStoedPhenomenon; // Glottalization / stød
   final bool hasNativeGermanUmlauts; // æ, ø, y match German ä, ö, ü!
   final String wordOrder;
   final Map<String, String> genderEquivalenceMap;
@@ -26,7 +26,7 @@ class DanishDeepLocalizationProfile {
   final Map<String, String> culturalIslamicLexicon;
   final Map<String, String> germanPhoneticBridges;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const DanishDeepLocalizationProfile({
     this.languageName = 'Danish',
@@ -39,7 +39,7 @@ class DanishDeepLocalizationProfile {
     this.primaryScript = 'Latin (Danish alphabet)',
     this.specialCharacters = const ['æ', 'ø', 'å'],
     this.hasV2WordOrder = true,
-    this.hasStødPhenomenon = true,
+    this.hasStoedPhenomenon = true,
     this.hasNativeGermanUmlauts = true, // æ, ø, y = ä, ö, ü!
     this.wordOrder = 'V2 (main) / SVO (subordinate)',
     this.genderEquivalenceMap = const {

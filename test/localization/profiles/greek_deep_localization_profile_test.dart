@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/greek_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/greek_deep_localization_profile.dart';
 
 void main() {
   group('GreekDeepLocalizationProfile Tests', () {
@@ -15,9 +15,9 @@ void main() {
       expect(profile.hasExactPreposedArticleMirror, isTrue);
       expect(profile.wordOrder, equals('SVO'));
       expect(profile.articleEquivalenceMap.length, equals(3));
-      expect(profile.articleEquivalenceMap, containsPair(contains('Ο / ο'), contains('der')));
-      expect(profile.articleEquivalenceMap, containsPair(contains('Η / η'), contains('die')));
-      expect(profile.articleEquivalenceMap, containsPair(contains('Το / το'), contains('das')));
+      expect(profile.articleEquivalenceMap.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Ο / ο')).having((entry) => entry.value, 'value', contains('der'))));
+      expect(profile.articleEquivalenceMap.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Η / η')).having((entry) => entry.value, 'value', contains('die'))));
+      expect(profile.articleEquivalenceMap.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Το / το')).having((entry) => entry.value, 'value', contains('das'))));
     });
 
     test('Case system alignment maps 4 Greek cases and Dative bridge to German', () {
@@ -32,13 +32,13 @@ void main() {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('ch /x/ (ach-Laut)', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('ch /ç/ (ich-Laut)', contains('100% Native Identity')));
-      expect(profile.grecoGermanCognateBridges, containsPair(contains('philosophia'), contains('Philosophie')));
+      expect(profile.grecoGermanCognateBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('philosophia')).having((entry) => entry.value, 'value', contains('Philosophie'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('γεια σας / σελάμ'));
-      expect(profile.culturalIslamicLexicon, containsKey('χαλάλ'));
-      expect(profile.culturalIslamicLexicon, containsKey('τζαμί'));
+      expect(profile.culturalIslamicLexicon.keys, contains('γεια σας / σελάμ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('χαλάλ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('τζαμί'));
       expect(profile.coreA1Vocabulary['Ευχαριστώ πολύ'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/uzbek_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/uzbek_deep_localization_profile.dart';
 
 void main() {
   group('UzbekDeepLocalizationProfile Tests', () {
@@ -21,11 +21,13 @@ void main() {
 
     test('Case system alignment links 6 Uzbek cases to German equivalents', () {
       expect(profile.caseSystemAlignment.length, equals(6));
+      // Native locative/ablative cases map to German prepositions with Dativ;
+      // German itself has four cases, without a Lokativ or Ablativ case.
       expect(profile.getGermanCaseBridge('Tushum'), contains('Akkusativ'));
       expect(profile.getGermanCaseBridge('Qaratqich'), contains('Genitiv'));
       expect(profile.getGermanCaseBridge('Joʻnalish'), contains('Dativ'));
-      expect(profile.getGermanCaseBridge('Oʻrin-payt'), contains('Lokativ'));
-      expect(profile.getGermanCaseBridge('Chiqish'), contains('Ablativ'));
+      expect(profile.getGermanCaseBridge('Oʻrin-payt'), contains('Dativ'));
+      expect(profile.getGermanCaseBridge('Chiqish'), contains('Dativ'));
     });
 
     test('Cultural and Islamic lexicon contains verified shared heritage', () {
@@ -37,8 +39,8 @@ void main() {
     });
 
     test('Phonetic bridge accurately assists German sound acquisition', () {
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('yaxshi')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('/ts/'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('yaxshi'))));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('/ts/')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Dialogue and core vocabulary are complete and high quality', () {

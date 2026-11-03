@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/dutch_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/dutch_deep_localization_profile.dart';
 
 void main() {
   group('DutchDeepLocalizationProfile Tests', () {
@@ -26,21 +26,21 @@ void main() {
     });
 
     test('False friend mitigation warns against deceptive cognates', () {
-      expect(profile.falseFriendMitigation, containsKey('bellen'));
-      expect(profile.falseFriendMitigation, containsKey('monster'));
-      expect(profile.falseFriendMitigation, containsKey('slim'));
+      expect(profile.falseFriendMitigation.keys, contains('bellen'));
+      expect(profile.falseFriendMitigation.keys, contains('monster'));
+      expect(profile.falseFriendMitigation.keys, contains('slim'));
     });
 
     test('Phonetic bridge identifies native match for letter G/CH to ach-Laut', () {
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('100% Native Identity')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('100% Native Identity'))));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('t+s')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Sister Language Acceleration'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Sister Language Acceleration')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('hallo / goedendag / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('moskee'));
+      expect(profile.culturalIslamicLexicon.keys, contains('hallo / goedendag / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('moskee'));
       expect(profile.coreA1Vocabulary['Dank u wel / Heel erg bedankt'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

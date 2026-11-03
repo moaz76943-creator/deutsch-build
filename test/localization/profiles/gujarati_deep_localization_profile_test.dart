@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/gujarati_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/gujarati_deep_localization_profile.dart';
 
 void main() {
   group('GujaratiDeepLocalizationProfile Tests', () {
@@ -14,27 +14,27 @@ void main() {
       expect(profile.hasThreeGenders, isTrue);
       expect(profile.matchesGermanThreeGenders(), isTrue);
       expect(profile.wordOrder, equals('SOV'));
-      expect(profile.genderEquivalenceMap, containsPair(contains('Puling'), contains('Maskulinum')));
-      expect(profile.genderEquivalenceMap, containsPair(contains('Striling'), contains('Femininum')));
-      expect(profile.genderEquivalenceMap, containsPair(contains('Napunsakling'), contains('Neutrum')));
+      expect(profile.genderEquivalenceMap.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Puling')).having((entry) => entry.value, 'value', contains('Maskulinum'))));
+      expect(profile.genderEquivalenceMap.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Striling')).having((entry) => entry.value, 'value', contains('Femininum'))));
+      expect(profile.genderEquivalenceMap.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Napunsakling')).having((entry) => entry.value, 'value', contains('Neutrum'))));
     });
 
     test('Phonetic bridge accurately assists German sound acquisition', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('શ')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('ત્સ')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('3-Gender'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('3-Gender')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Case system alignment links postpositions to German cases', () {
-      expect(profile.caseSystemAlignment, containsPair(contains('Direct'), contains('Nominativ')));
-      expect(profile.caseSystemAlignment, containsPair(contains('Genitive'), contains('Genitiv')));
-      expect(profile.caseSystemAlignment, containsPair(contains('Locative'), contains('in')));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Direct')).having((entry) => entry.value, 'value', contains('Nominativ'))));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Genitive')).having((entry) => entry.value, 'value', contains('Genitiv'))));
+      expect(profile.caseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Locative')).having((entry) => entry.value, 'value', contains('in'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('સલામ'));
-      expect(profile.culturalIslamicLexicon, containsKey('હલાલ'));
-      expect(profile.culturalIslamicLexicon, containsKey('નમાઝ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('સલામ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('હલાલ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('નમાઝ'));
       expect(profile.coreA1Vocabulary['ખૂબ ખૂબ આભાર'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

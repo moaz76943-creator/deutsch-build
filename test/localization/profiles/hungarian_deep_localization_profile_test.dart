@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/hungarian_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/hungarian_deep_localization_profile.dart';
 
 void main() {
   group('HungarianDeepLocalizationProfile Tests', () {
@@ -34,13 +34,13 @@ void main() {
     test('Phonetic bridge identifies native match for letter C to Z and S to SCH', () {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('100% Native Identity')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ö /ø/'), contains('100% Native Identity')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ö /ø/')).having((entry) => entry.value, 'value', contains('100% Native Identity'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('jó napot / szalam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('ima / namaz'));
+      expect(profile.culturalIslamicLexicon.keys, contains('jó napot / szalam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ima / namaz'));
       expect(profile.coreA1Vocabulary['Köszönöm szépen'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

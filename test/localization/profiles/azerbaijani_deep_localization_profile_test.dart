@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/azerbaijani_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/azerbaijani_deep_localization_profile.dart';
 
 void main() {
   group('AzerbaijaniDeepLocalizationProfile Tests', () {
@@ -22,9 +22,9 @@ void main() {
 
     test('Native German umlaut capability is recognized', () {
       expect(profile.hasNativeGermanUmlauts(), isTrue);
-      expect(profile.germanPhoneticBridges, containsPair(contains('ö /ø/'), contains('1:1')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ö /ø/')).having((entry) => entry.value, 'value', contains('1:1'))));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('ş')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('x')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', equals('ch /x/')).having((entry) => entry.value, 'value', contains('x'))));
     });
 
     test('6-case system maps precisely to German case-preposition network', () {
@@ -32,15 +32,15 @@ void main() {
       expect(profile.getGermanCaseEquivalent('Təsirlik'), contains('Akkusativ'));
       expect(profile.getGermanCaseEquivalent('Yiyəlik'), contains('Genitiv'));
       expect(profile.getGermanCaseEquivalent('Yönlük'), contains('Dativ'));
-      expect(profile.getGermanCaseEquivalent('Yerlik'), contains('Lokativ'));
-      expect(profile.getGermanCaseEquivalent('Çıxış'), contains('Ablativ'));
+      expect(profile.getGermanCaseEquivalent('Yerlik'), contains('Dativ'));
+      expect(profile.getGermanCaseEquivalent('Çıxış'), contains('Dativ'));
     });
 
     test('Islamic cultural lexicon and A1 vocabulary are verified', () {
-      expect(profile.culturalIslamicLexicon, containsKey('salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('təşəkkür'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('ədalət'));
+      expect(profile.culturalIslamicLexicon.keys, contains('salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('təşəkkür'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ədalət'));
       expect(profile.coreA1Vocabulary['Salam'], equals('Hallo / Guten Tag'));
       expect(profile.coreA1Vocabulary['Bəli'], equals('Ja'));
       expect(profile.coreA1Vocabulary['Xeyr'], equals('Nein'));
