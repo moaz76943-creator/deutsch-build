@@ -175,24 +175,32 @@ class FtsSearchService {
         LIMIT ?
       ''', <Object?>[limit]);
     } else if (term.runes.length >= 3) {
-      try {
-        final phrase = '"${term.replaceAll('"', '""')}"';
-        rows = await database.rawQuery('''
-          SELECT l.rowid AS search_rowid, l.id, l.surface,
-                 l.part_of_speech, l.fields_json
-          FROM lexicon_fts
-          JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
-          WHERE lexicon_fts MATCH ?
-          ORDER BY CASE
-            WHEN l.surface = ? COLLATE NOCASE THEN 0
-            WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
-            ELSE 2
-          END, bm25(lexicon_fts), length(l.surface), l.rowid
-          LIMIT ?
-        ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
-      } on DatabaseException catch (_) {
-        // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
-        // expression: parameterized LIKE stays available on vendor SQLite.
+      final ftsCheck = await database.rawQuery(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='lexicon_fts' LIMIT 1"
+      );
+      if (ftsCheck.isNotEmpty) {
+        try {
+          final escapedTerm = term.replaceAll('"', '""');
+          final phrase = '"$escapedTerm"*';
+          rows = await database.rawQuery('''
+            SELECT l.rowid AS search_rowid, l.id, l.surface,
+                   l.part_of_speech, l.fields_json
+            FROM lexicon_fts
+            JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
+            WHERE lexicon_fts MATCH ?
+            ORDER BY CASE
+              WHEN l.surface = ? COLLATE NOCASE THEN 0
+              WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
+              ELSE 2
+            END, bm25(lexicon_fts), length(l.surface), l.rowid
+            LIMIT ?
+          ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+        } on DatabaseException catch (_) {
+          // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
+          // expression: parameterized LIKE stays available on vendor SQLite.
+          rows = await _fallback(database, term, limit);
+        }
+      } else {
         rows = await _fallback(database, term, limit);
       }
     } else {
