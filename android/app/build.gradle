@@ -67,6 +67,15 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    // Google Play 16 KB page size requirement (apps targeting API 35+).
+    // AGP 8.5+ + NDK r28 align native libraries for 16 KB pages by default.
+    // Explicit packaging ensures Flutter engine and plugin .so files are not legacy-packed.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
         minSdkVersion flutter.minSdkVersion
