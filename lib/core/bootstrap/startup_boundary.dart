@@ -25,6 +25,13 @@ class StartupOutcome {
   final bool contentAvailable;
 }
 
+/// Delegate interface connecting the startup pipeline to the application entrypoint (e.g. J100).
+abstract class AppEntrypointIntegrationDelegate {
+  void onPipelineInitialized(StartupOutcome outcome);
+  void onCriticalFailure(Object error);
+  void onSafeModeActivated();
+}
+
 /// Allows deterministic widget tests without touching learner storage.
 abstract class StartupOperations {
   Future<StartupOutcome> start();
@@ -36,10 +43,12 @@ abstract class StartupOperations {
 /// Reuses existing crash-loop, database and session contracts. No pack
 /// downloader, TTS, network request or bulk 100-language loading occurs here.
 class DeviceStartupOperations implements StartupOperations {
-  DeviceStartupOperations({CrashLoopGuard? guard})
-      : _guard = guard ?? CrashLoopGuard.instance;
+  DeviceStartupOperations({CrashLoopGuard? guard, IsolatedBootstrapPipeline? testPipeline})
+      : _guard = guard ?? CrashLoopGuard.instance,
+        _testPipeline = testPipeline;
 
   final CrashLoopGuard _guard;
+  final IsolatedBootstrapPipeline? _testPipeline;
   Future<bool>? _bootFuture;
 
   @override
@@ -68,11 +77,13 @@ class DeviceStartupOperations implements StartupOperations {
 
     late final List<BootstrapStepResult> results;
     try {
-      results = await IsolatedBootstrapPipeline([
+      final pipeline = _testPipeline ?? IsolatedBootstrapPipeline([
         _LocalSessionStep(preferences),
         _ActiveContentStep(),
         _LifecycleStep(),
-      ], defaultStepTimeout: const Duration(seconds: 1))
+      ], defaultStepTimeout: const Duration(seconds: 1));
+
+      results = await pipeline
           .runPipeline()
           .timeout(const Duration(seconds: 10));
     } catch (_) {
@@ -97,12 +108,27 @@ class DeviceStartupOperations implements StartupOperations {
       (r) => r.status == BootstrapStepStatus.recoverableFailure,
     );
     if (hasOptionalFailure || !contentAvailable) {
+      // Track repeated optional feature failures to avoid an uncontrolled crash loop.
+      final failedCount =
+          (preferences.getInt('optional_failure_count') ?? 0) + 1;
+      await preferences.setInt('optional_failure_count', failedCount);
+
+      if (failedCount >= 3) {
+        return StartupOutcome(
+          StartupState.SAFE_MODE,
+          contentAvailable: contentAvailable,
+        );
+      }
+
       // Keep the last-known-good marker; never replace it with a failed boot.
       return StartupOutcome(
         StartupState.DEGRADED,
         contentAvailable: contentAvailable,
       );
     }
+
+    // Success: clear the consecutive optional failure counter.
+    await preferences.remove('optional_failure_count');
 
     try {
       // Startup-only marker, kept separate from all existing learner settings.

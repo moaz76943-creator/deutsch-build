@@ -73,6 +73,74 @@ class _MockOptionalStep extends BootstrapStep {
   }
 }
 
+class _MockAudioStep extends BootstrapStep {
+  @override
+  String get name => 'mock_audio';
+
+  @override
+  bool get isCritical => false;
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    return const BootstrapStepResult(
+      stepName: 'mock_audio',
+      status: BootstrapStepStatus.recoverableFailure,
+    );
+  }
+}
+
+class _MockCorruptedPackStep extends BootstrapStep {
+  @override
+  String get name => 'mock_corrupted_pack';
+
+  @override
+  bool get isCritical => false;
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    return const BootstrapStepResult(
+      stepName: 'mock_corrupted_pack',
+      status: BootstrapStepStatus.recoverableFailure,
+    );
+  }
+}
+
+class _MockActiveContentStep extends BootstrapStep {
+  @override
+  String get name => 'active_content';
+
+  @override
+  bool get isCritical => false;
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    return const BootstrapStepResult(
+      stepName: 'active_content',
+      status: BootstrapStepStatus.success,
+    );
+  }
+}
+
+class _MockSlowWorkerStep extends BootstrapStep {
+  @override
+  String get name => 'mock_slow_worker';
+
+  @override
+  bool get isCritical => false;
+
+  @override
+  Duration get timeout => const Duration(milliseconds: 50);
+
+  @override
+  Future<BootstrapStepResult> execute() async {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    return const BootstrapStepResult(
+      stepName: 'mock_slow_worker',
+      status: BootstrapStepStatus.success,
+    );
+  }
+}
+
 class _MockCrashLoopGuard extends CrashLoopGuard {
   bool forceSafeMode = false;
 
@@ -125,6 +193,38 @@ void main() {
       final results = await pipeline.runPipeline();
       expect(results.single.status, BootstrapStepStatus.fatalFailure);
     });
+
+    test('Missing audio fault injection returns recoverable failure', () async {
+      final pipeline = IsolatedBootstrapPipeline([
+        _MockCriticalStep(shouldSucceed: true),
+        _MockAudioStep(),
+      ]);
+
+      final results = await pipeline.runPipeline();
+      expect(results.length, 2);
+      expect(results[1].status, BootstrapStepStatus.recoverableFailure);
+    });
+
+    test('Corrupted optional pack fault injection returns recoverable failure', () async {
+      final pipeline = IsolatedBootstrapPipeline([
+        _MockCriticalStep(shouldSucceed: true),
+        _MockCorruptedPackStep(),
+      ]);
+
+      final results = await pipeline.runPipeline();
+      expect(results.length, 2);
+      expect(results[1].status, BootstrapStepStatus.recoverableFailure);
+    });
+
+    test('Slow worker fault injection resolves to recoverable failure after timeout', () async {
+      final pipeline = IsolatedBootstrapPipeline([
+        _MockSlowWorkerStep(),
+      ]);
+
+      final results = await pipeline.runPipeline();
+      expect(results.single.status, BootstrapStepStatus.recoverableFailure);
+      expect(results.single.message, 'Phase timed out');
+    });
   });
 
   group('DeviceStartupOperations', () {
@@ -155,6 +255,69 @@ void main() {
       final outcome = await ops.start();
 
       expect(outcome.state, StartupState.SAFE_MODE);
+    });
+
+    test('Repeated optional failure triggers Safe Mode', () async {
+      final mockGuard = _MockCrashLoopGuard();
+      final ops = DeviceStartupOperations(guard: mockGuard);
+
+      // Attempt 1 -> DEGRADED
+      final outcome1 = await ops.start();
+      expect(outcome1.state, StartupState.DEGRADED);
+
+      // Attempt 2 -> DEGRADED
+      final outcome2 = await ops.start();
+      expect(outcome2.state, StartupState.DEGRADED);
+
+      // Attempt 3 -> SAFE_MODE
+      final outcome3 = await ops.start();
+      expect(outcome3.state, StartupState.SAFE_MODE);
+    });
+
+    test('Recovery after restart clears the failure counter', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('optional_failure_count', 3);
+
+      final mockGuard = _MockCrashLoopGuard();
+
+      // Inject a successful pipeline (no optional failures, and content is available)
+      final successPipeline = IsolatedBootstrapPipeline([
+        _MockCriticalStep(shouldSucceed: true),
+        _MockActiveContentStep(),
+      ]);
+
+      final ops = DeviceStartupOperations(guard: mockGuard, testPipeline: successPipeline);
+
+      final outcome = await ops.start();
+      expect(outcome.state, StartupState.READY);
+      expect(prefs.getInt('optional_failure_count'), null);
+    });
+  });
+
+  group('StartupBoundary Widget', () {
+    testWidgets('Cancelled startup avoids stale completions', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+
+      final mockGuard = _MockCrashLoopGuard();
+      final ops = DeviceStartupOperations(guard: mockGuard);
+
+      // Mount and immediately unmount to trigger disposal
+      await tester.pumpWidget(MaterialApp(
+        home: StartupBoundary(
+          operations: ops,
+          child: const Text('Ready'),
+        ),
+      ));
+
+      // Destroy the widget before boot finishes
+      await tester.pumpWidget(const SizedBox());
+
+      // Advance time enough to clear all pending futures/timers from the pipeline.
+      await tester.pump(const Duration(seconds: 25));
+      await tester.pumpAndSettle();
+
+      // No unhandled errors or stale setState should occur
+      expect(find.text('Ready'), findsNothing);
     });
   });
 }
