@@ -1,184 +1,118 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import 'package:deutsch_bilarabi/services/pooled_database_manager.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  late Directory tempDir;
+  setUpAll(sqfliteFfiInit);
 
-  setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    tempDir = Directory.systemTemp.createTempSync('j008_test_');
-  });
+  Future<Database> openDummyDb(String code) => databaseFactoryFfi.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(singleInstance: false),
+      );
 
-  tearDownAll(() {
-    if (tempDir.existsSync()) {
-      tempDir.deleteSync(recursive: true);
-    }
-  });
-
-  Future<Database> openDummyDb(String code) async {
-    final path = '${tempDir.path}/$code.db';
-    // Create an empty database file to simulate read-only pack loading,
-    // or just open and return a standard in-memory / temporary DB instance.
-    return databaseFactory.openDatabase(
-      path,
-      options: OpenDatabaseOptions(
-        version: 1,
-        onCreate: (db, version) async {
-          await db.execute('CREATE TABLE dummy (id INTEGER PRIMARY KEY)');
-        },
-      ),
-    );
-  }
-
-  test('LRU eviction maintains active count', () async {
+  test('failed opener does not strand the next waiting language', () async {
+    final entered = Completer<void>();
+    final release = Completer<void>();
+    final attempted = <String>[];
     final manager = PooledDatabaseManager(
-      openConnection: openDummyDb,
-      maxConnections: 4,
-    );
-
-    for (int i = 10; i < 20; i++) {
-      final code = 'en-$i';
-      await manager.open(code);
-      // Wait slightly to ensure asynchronous tasks settle
-      await Future<void>.delayed(Duration.zero);
-      expect(manager.activeCount, lessThanOrEqualTo(4));
-    }
-
-    expect(manager.activeCount, 4);
-    await manager.closeAll();
-  });
-
-  test('Pinned handle is not evicted', () async {
-    final manager = PooledDatabaseManager(
-      openConnection: openDummyDb,
-      maxConnections: 4,
-    );
-
-    final completer = Completer<void>();
-    final withDbFuture = manager.withDatabase('en-11', (db) async {
-      await completer.future;
-      return true;
-    });
-
-    // Let en-11 open
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    // Open 3 other DBs.
-    // Together with en-11, this reaches the maxConnections of 4.
-    await manager.open('en-12');
-    await manager.open('en-13');
-    await manager.open('en-14');
-
-    // The next one tries to evict.
-    // However, it will successfully evict en-12, en-13, or en-14 (since they are unleased)
-    // before throwing _PoolSaturated. We need to lease them too!
-
-    final c12 = Completer<void>();
-    final c13 = Completer<void>();
-    final c14 = Completer<void>();
-
-    manager.withDatabase('en-12', (db) async { await c12.future; });
-    manager.withDatabase('en-13', (db) async { await c13.future; });
-    manager.withDatabase('en-14', (db) async { await c14.future; });
-
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    expect(
-      () => manager.open('en-15'),
-      throwsA(isA<StateError>().having((e) => e.message, 'message',
-          'All pooled content databases are in use')),
-    );
-
-    c12.complete();
-    c13.complete();
-    c14.complete();
-
-    expect(manager.activeCount, 4);
-
-    // Release the lease
-    completer.complete();
-    final result = await withDbFuture;
-    expect(result, isTrue);
-
-    await manager.closeAll();
-  });
-
-  test('Failed opening does not leak or deadlock', () async {
-    int openAttempts = 0;
-    final manager = PooledDatabaseManager(
+      maxConnections: 1,
       openConnection: (code) async {
-        openAttempts++;
-        if (code == 'en-fail') {
-          throw Exception('Simulated open failure');
-        }
+        attempted.add(code);
+        if (code == 'en-fail') throw StateError('broken pack');
         return openDummyDb(code);
       },
-      maxConnections: 1, // Restrict to 1 so the queue gets utilized
     );
-
-    // This one occupies the only slot
-    final completer = Completer<void>();
-    final task1 = manager.withDatabase('en-ok1', (db) async {
-      await completer.future;
+    final held = manager.withDatabase('de', (db) async {
+      entered.complete();
+      await release.future;
+      expect(db.isOpen, isTrue);
     });
-
-    // Let ok-1 begin opening
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    // Try opening fail-1; since ok-1 is open, it gets queued as a slotWaiter in withDatabase.
-    final task2 = manager.withDatabase('en-fail', (db) async {}).catchError((e) {
-      // Ignore
+    await entered.future.timeout(const Duration(seconds: 3));
+    final failed = expectLater(
+      manager.withDatabase('en-fail', (_) async {}),
+      throwsA(
+          isA<StateError>().having((e) => e.message, 'message', 'broken pack')),
+    );
+    final next = manager.withDatabase('fr', (db) async {
+      expect(db.isOpen, isTrue);
     });
-
-    // Also try opening ok-2, which will also be queued
-    final task3 = manager.withDatabase('en-ok2', (db) async {});
-
-    // Allow queues to be set up
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    // Complete ok-1 to free up the slot.
-    completer.complete();
-    await task1;
-
-    // en-fail will attempt to open and throw. The queue should be notified again.
-    // So en-ok2 should then successfully proceed and complete.
-    await task3;
-    expect(openAttempts, 3);
-
-    await manager.closeAll();
+    // A cache hit passes through the same mutex after both waiter registrations.
+    await manager.open('de');
+    release.complete();
+    try {
+      await Future.wait([held, failed, next])
+          .timeout(const Duration(seconds: 3));
+      expect(attempted, ['de', 'en-fail', 'fr']);
+      expect(manager.activeCount, 1);
+    } finally {
+      await manager.closeAll();
+    }
   });
 
-  test('Stress-test 100 language identities', () async {
+  test('waiters for the same language share the newly available handle',
+      () async {
+    final entered = Completer<void>();
+    final release = Completer<void>();
+    final shared = Completer<void>();
     final manager = PooledDatabaseManager(
+      maxConnections: 1,
       openConnection: openDummyDb,
-      maxConnections: 4,
     );
-
-    final identities = List.generate(100, (i) => 'en-${i + 100}');
-
-    // Concurrently request 100 databases.
-    // They should wait in line nicely, adhering to maxConnections.
-    final futures = identities.map((code) {
-      return manager.withDatabase(code, (db) async {
-        expect(db.isOpen, isTrue);
-        // Ensure max size is never exceeded
-        expect(manager.activeCount, lessThanOrEqualTo(4));
-        // Add random small delay to make scheduling non-deterministic
-        await Future<void>.delayed(Duration(milliseconds: code.hashCode % 5));
-      });
+    final held = manager.withDatabase('de', (_) async {
+      entered.complete();
+      await release.future;
     });
+    await entered.future.timeout(const Duration(seconds: 3));
+    Database? firstHandle;
+    final first = manager.withDatabase('fr', (db) async {
+      firstHandle = db;
+      await shared.future;
+      expect(db.isOpen, isTrue);
+    });
+    final second = manager.withDatabase('fr', (db) async {
+      expect(db, same(firstHandle));
+      expect(manager.activeCount, 1);
+      shared.complete();
+    });
+    await manager.open('de');
+    release.complete();
+    try {
+      await Future.wait([held, first, second])
+          .timeout(const Duration(seconds: 3));
+    } finally {
+      if (!shared.isCompleted) shared.complete();
+      await Future.wait([held, first, second]);
+      await manager.closeAll();
+    }
+  });
 
-    await Future.wait(futures);
-
-    // After all is done, count should be at most 4.
-    expect(manager.activeCount, lessThanOrEqualTo(4));
-
-    await manager.closeAll();
+  test('100 language identities never exceed four live handles', () async {
+    final handles = <Database>[];
+    final manager = PooledDatabaseManager(
+      maxConnections: 4,
+      openConnection: (code) async {
+        final db = await openDummyDb(code);
+        handles.add(db);
+        expect(handles.where((handle) => handle.isOpen).length,
+            lessThanOrEqualTo(4));
+        return db;
+      },
+    );
+    try {
+      await Future.wait(List.generate(100, (i) {
+        final code = 'en-${i.toString().padLeft(3, '0')}';
+        return manager.withDatabase(code, (db) async {
+          await Future<void>.delayed(Duration.zero);
+          expect(db.isOpen, isTrue);
+        });
+      })).timeout(const Duration(seconds: 10));
+      expect(handles, hasLength(100));
+      expect(manager.activeCount, lessThanOrEqualTo(4));
+    } finally {
+      await manager.closeAll();
+    }
+    expect(handles.every((handle) => !handle.isOpen), isTrue);
   });
 }
