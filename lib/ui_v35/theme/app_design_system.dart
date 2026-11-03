@@ -45,6 +45,13 @@ abstract final class AppDesignSystem {
       secondary: isDark ? AppPalette.secondaryDark : AppPalette.secondary,
       tertiary: isDark ? AppPalette.tertiaryDark : AppPalette.tertiary,
       surface: surface,
+      // Slightly stronger outlines for better contrast in dark mode
+      outline: isDark
+          ? generated.outline.withValues(alpha: 0.85)
+          : generated.outline,
+      outlineVariant: isDark
+          ? generated.outlineVariant.withValues(alpha: 0.70)
+          : generated.outlineVariant,
     );
 
     final base = ThemeData(
@@ -53,6 +60,16 @@ abstract final class AppDesignSystem {
       colorScheme: scheme,
       scaffoldBackgroundColor: background,
       visualDensity: VisualDensity.standard,
+      // Smoother MD3-style page transitions
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        },
+      ),
     );
 
     final textTheme = base.textTheme.copyWith(
@@ -80,7 +97,7 @@ abstract final class AppDesignSystem {
     );
 
     final cardBorder = scheme.outlineVariant.withValues(
-      alpha: isDark ? 0.42 : 0.55,
+      alpha: isDark ? 0.50 : 0.55,
     );
 
     return base.copyWith(
@@ -97,8 +114,8 @@ abstract final class AppDesignSystem {
       cardTheme: CardThemeData(
         color: surface,
         surfaceTintColor: Colors.transparent,
-        elevation: 1,
-        shadowColor: Colors.black.withValues(alpha: isDark ? 0.30 : 0.07),
+        elevation: isDark ? 2 : 1,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.40 : 0.07),
         margin: const EdgeInsets.symmetric(vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
@@ -173,7 +190,7 @@ abstract final class AppDesignSystem {
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.55),
+        color: scheme.outlineVariant.withValues(alpha: isDark ? 0.65 : 0.55),
         thickness: 1,
         space: 1,
       ),
