@@ -4,46 +4,59 @@ import 'package:deutsch_bilarabi/repositories/vocabulary_repository.dart';
 
 final vocabularyRepositoryProvider = Provider((ref) => VocabularyRepository());
 
+/// Optimized AsyncNotifier for vocabulary list.
+/// - Provides loading/error/data states out of the box (AsyncValue).
+/// - Lazy loads on first watch.
+/// - Better error propagation without blocking UI.
+/// - Easier testing with overrides.
 final vocabularyListProvider =
-    StateNotifierProvider<VocabularyNotifier, List<VocabularyItem>>((ref) {
-  final repo = ref.watch(vocabularyRepositoryProvider);
-  return VocabularyNotifier(repo);
-});
+    AsyncNotifierProvider<VocabularyNotifier, List<VocabularyItem>>(
+  VocabularyNotifier.new,
+);
 
-class VocabularyNotifier extends StateNotifier<List<VocabularyItem>> {
-  final VocabularyRepository _repository;
+class VocabularyNotifier extends AsyncNotifier<List<VocabularyItem>> {
+  VocabularyRepository get _repository => ref.read(vocabularyRepositoryProvider);
 
-  VocabularyNotifier(this._repository) : super([]) {
-    loadItems();
-  }
-
-  Future<void> loadItems() async {
+  @override
+  Future<List<VocabularyItem>> build() async {
     final rawList = await _repository.getVocabularyList();
-    state = rawList.map((e) => VocabularyItem.fromJson(e)).toList();
+    return rawList.map((e) => VocabularyItem.fromJson(e)).toList();
   }
 
   Future<void> addItem(VocabularyItem item) async {
-    state = [item, ...state];
-    await _save();
+    final current = state.valueOrNull ?? [];
+    state = AsyncData([item, ...current]);
+    await _save([item, ...current]);
   }
 
   Future<void> removeItem(int index) async {
-    state = [
-      for (int i = 0; i < state.length; i++)
-        if (i != index) state[i]
+    final current = state.valueOrNull ?? [];
+    if (index < 0 || index >= current.length) return;
+    final updated = [
+      for (int i = 0; i < current.length; i++)
+        if (i != index) current[i]
     ];
-    await _save();
+    state = AsyncData(updated);
+    await _save(updated);
   }
 
-  Future<void> updateItem(int index, VocabularyItem updated) async {
-    state = [
-      for (int i = 0; i < state.length; i++) i == index ? updated : state[i]
+  Future<void> updateItem(int index, VocabularyItem updatedItem) async {
+    final current = state.valueOrNull ?? [];
+    if (index < 0 || index >= current.length) return;
+    final updated = [
+      for (int i = 0; i < current.length; i++) i == index ? updatedItem : current[i]
     ];
-    await _save();
+    state = AsyncData(updated);
+    await _save(updated);
   }
 
-  Future<void> _save() async {
-    final rawList = state.map((e) => e.toJson()).toList();
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(build);
+  }
+
+  Future<void> _save(List<VocabularyItem> items) async {
+    final rawList = items.map((e) => e.toJson()).toList();
     await _repository.saveVocabularyList(rawList);
   }
 }

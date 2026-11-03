@@ -30,6 +30,10 @@ class StableFlow extends AdaptationReason {
   const StableFlow();
 }
 
+class UnverifiedCefrBlock extends AdaptationReason {
+  const UnverifiedCefrBlock();
+}
+
 class AdaptationDecision {
   final AdaptationAction action;
   final AdaptationReason reason;
@@ -122,8 +126,14 @@ class AdaptiveCognitiveEngine {
       });
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        decision = const AdaptationDecision(
-            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        final isVerified = recentWindow.every((m) => m.isCefrVerified);
+        if (isVerified) {
+          decision = const AdaptationDecision(
+              AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        } else {
+          decision = const AdaptationDecision(
+              AdaptationAction.maintainFlow, UnverifiedCefrBlock());
+        }
       } else {
         decision = const AdaptationDecision(
             AdaptationAction.maintainFlow, StableFlow());
