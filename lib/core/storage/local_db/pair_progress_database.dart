@@ -2,7 +2,7 @@ import 'package:sqflite_common/sqlite_api.dart';
 
 import '../../../models/learner.dart';
 import '../../progress/pair_progress_models.dart';
-import '../../srs_facets.dart';
+
 
 final class PairProgressDatabase {
   PairProgressDatabase._(this._database);
@@ -181,7 +181,7 @@ final class PairProgressDatabase {
             'incorrect_count': card.failures,
             'facet_type': card.facetType.wireName,
             'variant_key':
-                card.facetKey.normalizedVariantKey ?? '',
+                card.facetKey.variantKey,
             'repetitions': card.repetitions,
             'interval_days': card.intervalDays,
             'lapses': card.lapses,
@@ -243,7 +243,7 @@ final class PairProgressDatabase {
           'incorrect_count': reviewCard.failures,
           'facet_type': reviewCard.facetType.wireName,
           'variant_key':
-              reviewCard.facetKey.normalizedVariantKey ?? '',
+              reviewCard.facetKey.variantKey,
           'repetitions': reviewCard.repetitions,
           'interval_days': reviewCard.intervalDays,
           'lapses': reviewCard.lapses,
@@ -377,7 +377,7 @@ final class PairProgressDatabase {
         row.addAll(<String, Object?>{
           'facet_type': reviewCard.facetType.wireName,
           'variant_key':
-              reviewCard.facetKey.normalizedVariantKey ?? '',
+              reviewCard.facetKey.variantKey,
           'repetitions': reviewCard.repetitions,
           'interval_days': reviewCard.intervalDays,
           'lapses': reviewCard.lapses,
@@ -531,7 +531,7 @@ final class PairProgressDatabase {
   }
 
   static String _conceptId(String storageKey) =>
-      ReviewFacetKey.fromStorageKey(storageKey).conceptId.trim();
+      storageKey.split(':').first.trim();
 
   Future<void> close() => _database.close();
 }
