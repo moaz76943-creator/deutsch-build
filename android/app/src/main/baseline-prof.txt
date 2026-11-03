@@ -1,0 +1,15 @@
+# Baseline Profile for Deutsch بالعربي Flutter app
+# Consumed by androidx.profileinstaller to AOT-compile hot paths on first launch.
+# Generate a full profile with:
+#   flutter run --profile
+#   or a Macrobenchmark module covering startup + first-screen navigation.
+# Expected measurable impact (Android official docs): up to ~30% faster cold startup (TTID).
+# R8 minify/obfuscation stays fully active — no security regression.
+
+# Expanded startup + embedding rules (safe placeholder; replace with generated profile).
+HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLio/flutter/embedding/android/FlutterActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
+HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V
+HSPLio/flutter/embedding/engine/loader/FlutterLoader;->ensureInitializationComplete(Landroid/content/Context;[Ljava/lang/String;)V
+HSPLio/flutter/view/FlutterView;->onDraw(Landroid/graphics/Canvas;)V

@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 void main() {
   group('ProductionAcceptanceGate', () {
     test('Perfect evidence yields PASSED/APPROVED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -17,7 +17,7 @@ void main() {
     });
 
     test('Missing optional features yields PASSED/DEGRADED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('Stale evidence yields NOT_RUN/NOT_VERIFIED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -50,7 +50,7 @@ void main() {
     });
 
     test('Corrupted content yields BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -63,7 +63,7 @@ void main() {
     });
 
     test('Regressions yield BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('Missing mandatory infrastructure yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: false,
         isLifecycleManaged: true,
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('Unsupported language claims yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      const evidence = AcceptanceEvidence(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
