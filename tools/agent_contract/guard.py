@@ -19,7 +19,8 @@ VALID_TRANSITIONS = {
     "CLAIM": ["ACTIVE", "BLOCKED", "CANCELLED"],
     "ACTIVE": ["COMPLETE", "BLOCKED", "CANCELLED"],
     "BLOCKED": ["ACTIVE", "CANCELLED"],
-    "COMPLETE": [],
+    "COMPLETE": ["PR_ACCEPT"],
+    "PR_ACCEPT": [],
     "CANCELLED": []
 }
 
@@ -96,7 +97,8 @@ def paths_overlap(p1, p2):
     length = min(len(parts1), len(parts2))
     return parts1[:length] == parts2[:length]
 
-def check_overlapping_claims(ledger, task_id, requested_paths, now):
+def check_overlapping_claims(parsed, ledger, task_id, requested_paths, now):
+    cancelled_tasks = []
     for other_task, data in list(ledger.items()):
         if other_task == task_id or other_task == "_metadata":
             continue
@@ -109,11 +111,16 @@ def check_overlapping_claims(ledger, task_id, requested_paths, now):
             for p in requested_paths:
                 for op in other_paths:
                     if paths_overlap(p, op):
-                        reason = f"Path {p} overlaps with {op} claimed by {other_task}"
-                        if expired:
-                            reason += "; expired claim requires explicit release after owner reconciliation"
-                        return True, reason
-    return False, ""
+                        if expired and getattr(parsed, "recovery_evidence", None):
+                            # We can cancel this stale task lock if evidence is provided
+                            if other_task not in cancelled_tasks:
+                                cancelled_tasks.append(other_task)
+                        else:
+                            reason = f"Path {p} overlaps with {op} claimed by {other_task}"
+                            if expired:
+                                reason += "; expired claim requires explicit release after owner reconciliation (or --recovery-evidence)"
+                            return True, reason, []
+    return False, "", cancelled_tasks
 
 def is_stale_base_sha(ledger, base_sha):
     latest_completed = ledger.get("_metadata", {}).get("latest_base_sha")
@@ -156,7 +163,7 @@ def process_ledger(parsed, f):
         else:
             report["blockers"].append("Paths must be provided for initial CLAIM.")
             return 1, report, ledger
-    elif parsed.transition in ["ACTIVE", "COMPLETE"]:
+    elif parsed.transition in ["ACTIVE", "COMPLETE", "PR_ACCEPT"]:
         try:
             requested_paths = get_changed_files(parsed.base_sha, parsed.result_sha)
         except ValueError as e:
@@ -172,7 +179,7 @@ def process_ledger(parsed, f):
     if report["denied_paths"]:
         report["blockers"].append("Changes to forbidden paths detected.")
 
-    if parsed.transition == "COMPLETE" or parsed.transition == "ACTIVE":
+    if parsed.transition in ["ACTIVE", "COMPLETE", "PR_ACCEPT"]:
         for p in report["permitted_paths"]:
             if p not in current_paths:
                 covered = any(paths_overlap(p, cp) for cp in current_paths)
@@ -198,7 +205,7 @@ def process_ledger(parsed, f):
                 report["blockers"].append(f"Task depends on {dep} which is in state {dep_state}")
 
     now = time.time()
-    overlap, overlap_msg = check_overlapping_claims(ledger, parsed.task_id, report["permitted_paths"], now)
+    overlap, overlap_msg, cancelled_tasks = check_overlapping_claims(parsed, ledger, parsed.task_id, report["permitted_paths"], now)
     if overlap:
         report["blockers"].append(overlap_msg)
 
@@ -215,7 +222,11 @@ def process_ledger(parsed, f):
 
     ledger[parsed.task_id] = ledger_entry
 
-    if parsed.transition == "COMPLETE":
+    for t in cancelled_tasks:
+        if t in ledger:
+            ledger[t]["state"] = "CANCELLED"
+
+    if parsed.transition in ["COMPLETE", "PR_ACCEPT"]:
         if "_metadata" not in ledger:
             ledger["_metadata"] = {}
         ledger["_metadata"]["latest_base_sha"] = parsed.result_sha
@@ -230,9 +241,10 @@ def main(args=None):
     parser.add_argument("--task-id", required=True)
     parser.add_argument("--base-sha", required=True)
     parser.add_argument("--result-sha", default="HEAD")
-    parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "BLOCKED", "CANCELLED"], required=True)
+    parser.add_argument("--transition", choices=["CLAIM", "ACTIVE", "COMPLETE", "PR_ACCEPT", "BLOCKED", "CANCELLED"], required=True)
     parser.add_argument("--paths", nargs="*", help="List of files/dirs to claim")
     parser.add_argument("--depends-on", nargs="*", help="List of task IDs this task depends on")
+    parser.add_argument("--recovery-evidence", help="Evidence URL or reasoning to recover stale locks")
     parser.add_argument("--ledger", default=str(default_state_dir() / "task_ledger.json"))
     parser.add_argument("--report", default=str(default_state_dir() / "evidence_report.json"))
 

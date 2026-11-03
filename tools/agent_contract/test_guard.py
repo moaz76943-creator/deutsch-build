@@ -147,7 +147,23 @@ class TestGuard(unittest.TestCase):
         with open(self.ledger_path) as f:
             self.assertEqual(f.read(), original)
         with open(self.report_path) as f:
-            self.assertTrue(any("explicit release" in b for b in json.load(f)["blockers"]))
+            report_data = json.load(f)
+            self.assertTrue(any("explicit release" in b for b in report_data["blockers"]))
+            self.assertTrue(any("--recovery-evidence" in b for b in report_data["blockers"]))
+
+    def test_expired_claim_can_be_stolen_with_recovery_evidence(self):
+        original = {"T1": {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}}
+        with open(self.ledger_path, "w") as f:
+            json.dump(original, f)
+        res = main(["--task-id", "T2", "--base-sha", "abc", "--transition", "CLAIM",
+                    "--paths", "AGENTS.md", "--recovery-evidence", "issue was abandoned",
+                    "--ledger", self.ledger_path, "--report", self.report_path])
+        self.assertEqual(res, 0)
+        with open(self.ledger_path) as f:
+            ledger = json.load(f)
+            self.assertEqual(ledger["T1"]["state"], "CANCELLED")
+            self.assertEqual(ledger["T2"]["state"], "CLAIM")
+            self.assertIn("AGENTS.md", ledger["T2"]["paths"])
 
     def test_expired_owner_does_not_block_independent_paths(self):
         owner = {"state": "ACTIVE", "paths": ["AGENTS.md"], "timestamp": time.time() - 4000}
