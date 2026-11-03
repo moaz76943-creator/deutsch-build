@@ -154,6 +154,15 @@ class FtsSearchService {
     );
   }
 
+  static String _sanitizeFtsTerm(String term) {
+    // Strip characters that have special meaning in FTS5 syntax
+    // to prevent syntax errors on injection-like inputs.
+    return term.replaceAll(RegExp(r'[#\*^"''\''r'\(\)\+\-\~]'), ' ')
+        .replaceAll(RegExp(r'\b(AND|OR|NOT)\b', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
   /// Database-injected entry point for pack-level tests and isolated workers.
   Future<List<Map<String, dynamic>>> searchDatabase(
     Database database,
@@ -175,25 +184,36 @@ class FtsSearchService {
         LIMIT ?
       ''', <Object?>[limit]);
     } else if (term.runes.length >= 3) {
-      try {
-        final phrase = '"${term.replaceAll('"', '""')}"';
-        rows = await database.rawQuery('''
-          SELECT l.rowid AS search_rowid, l.id, l.surface,
-                 l.part_of_speech, l.fields_json
-          FROM lexicon_fts
-          JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
-          WHERE lexicon_fts MATCH ?
-          ORDER BY CASE
-            WHEN l.surface = ? COLLATE NOCASE THEN 0
-            WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
-            ELSE 2
-          END, bm25(lexicon_fts), length(l.surface), l.rowid
-          LIMIT ?
-        ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
-      } on DatabaseException catch (_) {
-        // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
-        // expression: parameterized LIKE stays available on vendor SQLite.
+      final ftsCheck = await database.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type='table' AND name='lexicon_fts' LIMIT 1");
+      if (ftsCheck.isEmpty) {
         rows = await _fallback(database, term, limit);
+      } else {
+        try {
+          final sanitized = _sanitizeFtsTerm(term);
+          if (sanitized.isEmpty) {
+            rows = await _fallback(database, term, limit);
+          } else {
+            final phrase = '"$sanitized"*';
+            rows = await database.rawQuery('''
+              SELECT l.rowid AS search_rowid, l.id, l.surface,
+                     l.part_of_speech, l.fields_json
+              FROM lexicon_fts
+              JOIN lexicon AS l ON l.rowid = lexicon_fts.rowid
+              WHERE lexicon_fts MATCH ?
+              ORDER BY CASE
+                WHEN l.surface = ? COLLATE NOCASE THEN 0
+                WHEN l.surface LIKE ? ESCAPE '\\' THEN 1
+                ELSE 2
+              END, bm25(lexicon_fts), length(l.surface), l.rowid
+              LIMIT ?
+            ''', <Object?>[phrase, term, '${_escapeLike(term)}%', limit]);
+          }
+        } on DatabaseException catch (_) {
+          // Invalid MATCH syntax, unsupported trigram tokenizer or oversized
+          // expression: parameterized LIKE stays available on vendor SQLite.
+          rows = await _fallback(database, term, limit);
+        }
       }
     } else {
       rows = await _fallback(database, term, limit);
