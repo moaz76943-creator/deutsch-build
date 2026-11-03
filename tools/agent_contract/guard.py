@@ -70,6 +70,11 @@ def is_path_allowed(path_str):
             return False
 
         normalized = path.as_posix()
+
+        # Explicitly reject indirect generated files.
+        if normalized.endswith((".g.dart", ".freezed.dart", ".pb.dart", ".pb.go", ".gen.dart")) or "generated" in normalized.lower():
+            return False
+
         if not (
             normalized == "AGENTS.md"
             or normalized == "docs/project-record"
