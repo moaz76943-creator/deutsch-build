@@ -180,9 +180,9 @@ jobs:
                   (r"\bFirebaseAnalytics\b", "Firebase Analytics"),
                   (r"\bSentryFlutter\b", "Sentry telemetry"),
                   (r"\bMixpanel\b", "Mixpanel analytics"),
-                  (r"\bAmplitude\b", "Amplitude analytics"),
+                  (r"package:(?:amplitude_flutter|amplitude_dart)/|\bAmplitude\s*(?:\(|\.\s*getInstance\s*\()", "Amplitude analytics"),
                   (r"\bAppsFlyer", "AppsFlyer attribution"),
-                  (r"\bAdjust\b", "Adjust attribution"),
+                  (r"package:adjust_sdk/|\bAdjust\s*\.\s*(?:start|initSdk|trackEvent)\s*\(", "Adjust attribution"),
                   (r"\bPosthog\b|\bPostHog\b", "PostHog analytics"),
               ),
           }
