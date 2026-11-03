@@ -61,6 +61,13 @@ class PooledDatabaseManager {
     return code;
   }
 
+  void _wakeNextWaiter() {
+    if (_slotWaiters.isNotEmpty) {
+      final next = _slotWaiters.removeAt(0);
+      if (!next.isCompleted) next.complete();
+    }
+  }
+
   Future<Database> open(String languageCode) => _locked(() async {
         try {
           return await _openLocked(_normalizeCode(languageCode));
@@ -93,6 +100,7 @@ class PooledDatabaseManager {
       opened = await _openConnection(code);
     } catch (e) {
       // If opening fails, do not add to connections, let the error propagate
+      _wakeNextWaiter();
       rethrow;
     }
 
@@ -124,10 +132,15 @@ class PooledDatabaseManager {
         } on _PoolSaturated {
           _slotWaiters.add(waiter);
           waiting = true;
+        } catch (e) {
+          _wakeNextWaiter();
+          rethrow;
         }
       });
       if (waiting) {
-        await waiter.future;
+        try {
+          await waiter.future;
+        } catch (_) {}
         continue;
       }
       try {
@@ -140,10 +153,7 @@ class PooledDatabaseManager {
           } else {
             _leases[code] = count;
           }
-          if (_slotWaiters.isNotEmpty) {
-            final next = _slotWaiters.removeAt(0);
-            if (!next.isCompleted) next.complete();
-          }
+          _wakeNextWaiter();
         });
       }
     }
