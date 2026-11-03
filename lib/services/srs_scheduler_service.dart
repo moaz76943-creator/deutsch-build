@@ -67,12 +67,15 @@ class SrsSchedulerService {
     if (grade < 0 || grade > 4) {
       throw RangeError.range(grade, 0, 4, 'grade');
     }
-    if (previous.repetitionCount < 0 || previous.intervalDays < 0 ||
-        !previous.easeFactor.isFinite || previous.easeFactor < minimumEaseFactor) {
+    if (previous.repetitionCount < 0 ||
+        previous.intervalDays < 0 ||
+        !previous.easeFactor.isFinite ||
+        previous.easeFactor < minimumEaseFactor) {
       throw ArgumentError.value(previous, 'previous', 'Invalid SRS state');
     }
     if (facetMultiplier <= 0) {
-      throw ArgumentError.value(facetMultiplier, 'facetMultiplier', 'Must be positive');
+      throw ArgumentError.value(
+          facetMultiplier, 'facetMultiplier', 'Must be positive');
     }
 
     const qualities = <int>[0, 2, 3, 4, 5];
@@ -94,10 +97,13 @@ class SrsSchedulerService {
       // Overdue recovery: if actual elapsed days exceed scheduled interval,
       // factor in a fraction of true retention memory span.
       var baseInterval = previous.intervalDays;
-      if (successful && elapsedDays != null && elapsedDays > previous.intervalDays) {
+      if (successful &&
+          elapsedDays != null &&
+          elapsedDays > previous.intervalDays) {
         baseInterval = math.max(
           previous.intervalDays,
-          (previous.intervalDays + (elapsedDays - previous.intervalDays) * 0.25).round(),
+          (previous.intervalDays + (elapsedDays - previous.intervalDays) * 0.25)
+              .round(),
         );
       }
       interval = math.max(1, (baseInterval * ease * facetMultiplier).round());
@@ -176,6 +182,7 @@ class SrsSchedulerService {
     if (lexemeId.trim().isEmpty || languageCode.trim().isEmpty) {
       throw ArgumentError('A lexeme ID and language code are required');
     }
+    final eventId = reviewEventId?.trim();
     return progressDb.transaction((txn) async {
       // Ensure review events table for idempotency
       await txn.execute('''
@@ -188,57 +195,52 @@ class SrsSchedulerService {
         )
       ''');
 
-      final reviewed = (reviewedAt != null)
-          ? reviewedAt.toUtc()
-          : _clockGuard.getEffectiveUtcTime();
-      final nowEpoch = reviewed.millisecondsSinceEpoch ~/ 1000;
-
-      // Check idempotency via explicit ID or temporal inference (debounce 5 mins)
-      bool isDuplicate = false;
-      if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
+      // Check idempotency if a unique review event ID was supplied
+      if (eventId != null && eventId.isNotEmpty) {
         final existingEvent = await txn.query(
           'srs_review_events',
           where: 'review_event_id = ?',
-          whereArgs: <Object>[reviewEventId.trim()],
+          whereArgs: <Object>[eventId],
           limit: 1,
         );
         if (existingEvent.isNotEmpty) {
-          isDuplicate = true;
-        }
-      } else {
-        // Temporal inference
-        final recentEvents = await txn.query(
-          'srs_review_events',
-          where: 'lexeme_id = ? AND target_language_code = ? AND created_at >= ? AND created_at <= ?',
-          whereArgs: <Object>[lexemeId, languageCode, nowEpoch - 300, nowEpoch],
-          limit: 1,
-        );
-        if (recentEvents.isNotEmpty) {
-          isDuplicate = true;
-        }
-      }
-
-      if (isDuplicate) {
-        // Idempotent: already processed. Return current schedule without mutating state.
-        final existing = await txn.query(
-          'srs_progress',
-          where: 'lexeme_id = ? AND target_language_code = ?',
-          whereArgs: <Object>[lexemeId, languageCode],
-          limit: 1,
-        );
-        if (existing.isNotEmpty) {
-          return SrsReviewSchedule(
-            repetitionCount: _readPersistedCounter(existing.first['repetition_count'], 'repetition_count'),
-            intervalDays: _readPersistedCounter(existing.first['interval_days'], 'interval_days'),
-            easeFactor: (existing.first['ease_factor'] as num).toDouble(),
-            nextReviewEpoch: existing.first['next_due_at'] is num ? (existing.first['next_due_at'] as num).toInt() : 0,
+          final recorded = existingEvent.single;
+          if (recorded['lexeme_id'] != lexemeId ||
+              recorded['target_language_code'] != languageCode ||
+              recorded['grade'] != grade) {
+            throw StateError('Review event ID belongs to a different review');
+          }
+          // Idempotent: already processed. Return current schedule without mutating state.
+          final existing = await txn.query(
+            'srs_progress',
+            where: 'lexeme_id = ? AND target_language_code = ?',
+            whereArgs: <Object>[lexemeId, languageCode],
+            limit: 1,
           );
+          if (existing.isNotEmpty) {
+            return SrsReviewSchedule(
+              repetitionCount: _readPersistedCounter(
+                  existing.first['repetition_count'], 'repetition_count'),
+              intervalDays: _readPersistedCounter(
+                  existing.first['interval_days'], 'interval_days'),
+              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+              nextReviewEpoch: existing.first['next_due_at'] is num
+                  ? (existing.first['next_due_at'] as num).toInt()
+                  : 0,
+            );
+          }
+          throw StateError('Recorded review has no persisted progress');
         }
       }
 
       final existing = await txn.query(
         'srs_progress',
-        columns: <String>['repetition_count', 'interval_days', 'ease_factor', 'next_due_at'],
+        columns: <String>[
+          'repetition_count',
+          'interval_days',
+          'ease_factor',
+          'next_due_at'
+        ],
         where: 'lexeme_id = ? AND target_language_code = ?',
         whereArgs: <Object>[lexemeId, languageCode],
         limit: 1,
@@ -247,19 +249,26 @@ class SrsSchedulerService {
           ? const SrsReviewState()
           : SrsReviewState(
               repetitionCount: _readPersistedCounter(
-                existing.first['repetition_count'], 'repetition_count',
+                existing.first['repetition_count'],
+                'repetition_count',
               ),
               intervalDays: _readPersistedCounter(
-                existing.first['interval_days'], 'interval_days',
+                existing.first['interval_days'],
+                'interval_days',
               ),
               easeFactor: (existing.first['ease_factor'] as num).toDouble(),
             );
 
+      final reviewed = (reviewedAt != null)
+          ? reviewedAt.toUtc()
+          : _clockGuard.getEffectiveUtcTime();
       int? elapsedDays;
       if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
         final lastDueEpoch = (existing.first['next_due_at'] as num).toInt();
+        final nowEpoch = reviewed.millisecondsSinceEpoch ~/ 1000;
         if (nowEpoch > lastDueEpoch) {
-          elapsedDays = (nowEpoch - lastDueEpoch) ~/ secondsPerDay + state.intervalDays;
+          elapsedDays =
+              (nowEpoch - lastDueEpoch) ~/ secondsPerDay + state.intervalDays;
         }
       }
 
@@ -295,18 +304,21 @@ class SrsSchedulerService {
         );
       }
 
-      // Record review event for idempotency & audit ledger
-      final effectiveEventId = (reviewEventId != null && reviewEventId.trim().isNotEmpty)
-          ? reviewEventId.trim()
-          : 'auto_${lexemeId}_${languageCode}_$nowEpoch';
-
-      await txn.insert('srs_review_events', <String, Object?>{
-        'review_event_id': effectiveEventId,
-        'lexeme_id': lexemeId,
-        'target_language_code': languageCode,
-        'grade': grade,
-        'created_at': nowEpoch,
-      });
+      // A missing ID denotes a distinct review, even within the same second.
+      // Only an explicit stable event ID can prove that a submission is a retry.
+      // Generate an audit identity inside the same transaction; never debounce
+      // legitimate reviews by elapsed time or overwrite a prior event.
+      await txn.rawInsert("""
+        INSERT INTO srs_review_events
+          (review_event_id, lexeme_id, target_language_code, grade, created_at)
+        VALUES (COALESCE(?, 'auto_' || lower(hex(randomblob(16)))), ?, ?, ?, ?)
+      """, <Object?>[
+        eventId == null || eventId.isEmpty ? null : eventId,
+        lexemeId,
+        languageCode,
+        grade,
+        reviewed.millisecondsSinceEpoch ~/ 1000,
+      ]);
 
       return result;
     });

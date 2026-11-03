@@ -20,6 +20,7 @@ void main() {
       expect(journal.hasMigrated('v2_schema_migration'), isTrue);
       expect(journal.hasMigrated('v3_future_migration'), isFalse);
 
+      journal.recordMigration('v2_schema_migration');
       final records = journal.history;
       expect(records, hasLength(1));
       expect(records.first.migrationId, 'v2_schema_migration');
