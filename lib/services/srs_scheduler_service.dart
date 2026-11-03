@@ -32,6 +32,9 @@ class SrsReviewSchedule {
     this.isLeech = false,
   });
 
+  DateTime get nextReviewDate =>
+      DateTime.fromMillisecondsSinceEpoch(nextReviewEpoch * 1000, isUtc: true);
+
   SrsReviewState asState() => SrsReviewState(
         repetitionCount: repetitionCount,
         intervalDays: intervalDays,
@@ -188,16 +191,51 @@ class SrsSchedulerService {
         )
       ''');
 
+      final reviewed = (reviewedAt != null)
+          ? reviewedAt.toUtc()
+          : _clockGuard.getEffectiveUtcTime();
+      final nowEpoch = reviewed.millisecondsSinceEpoch ~/ 1000;
+
       // Check idempotency if a unique review event ID was supplied
+      String actualEventId = (reviewEventId != null && reviewEventId.trim().isNotEmpty)
+          ? reviewEventId.trim()
+          : 'fallback_${lexemeId}_${languageCode}_$nowEpoch';
+
       if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
         final existingEvent = await txn.query(
           'srs_review_events',
           where: 'review_event_id = ?',
-          whereArgs: <Object>[reviewEventId.trim()],
+          whereArgs: <Object>[actualEventId],
           limit: 1,
         );
         if (existingEvent.isNotEmpty) {
           // Idempotent: already processed. Return current schedule without mutating state.
+          final existing = await txn.query(
+            'srs_progress',
+            where: 'lexeme_id = ? AND target_language_code = ?',
+            whereArgs: <Object>[lexemeId, languageCode],
+            limit: 1,
+          );
+          if (existing.isNotEmpty) {
+            return SrsReviewSchedule(
+              repetitionCount: _readPersistedCounter(existing.first['repetition_count'], 'repetition_count'),
+              intervalDays: _readPersistedCounter(existing.first['interval_days'], 'interval_days'),
+              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+              nextReviewEpoch: existing.first['next_due_at'] is num ? (existing.first['next_due_at'] as num).toInt() : 0,
+            );
+          }
+        }
+      } else {
+        // Idempotent inference: check if a recent review event exists within the last 5 minutes (300 seconds).
+        final recentEvents = await txn.query(
+          'srs_review_events',
+          where: 'lexeme_id = ? AND target_language_code = ? AND created_at >= ? AND created_at <= ?',
+          whereArgs: <Object>[lexemeId, languageCode, nowEpoch - 300, nowEpoch],
+          limit: 1,
+        );
+
+        if (recentEvents.isNotEmpty) {
+          // Idempotent by inference: already processed recently. Return current schedule without mutating state.
           final existing = await txn.query(
             'srs_progress',
             where: 'lexeme_id = ? AND target_language_code = ?',
@@ -234,13 +272,9 @@ class SrsSchedulerService {
               easeFactor: (existing.first['ease_factor'] as num).toDouble(),
             );
 
-      final reviewed = (reviewedAt != null)
-          ? reviewedAt.toUtc()
-          : _clockGuard.getEffectiveUtcTime();
       int? elapsedDays;
       if (existing.isNotEmpty && existing.first['next_due_at'] != null) {
         final lastDueEpoch = (existing.first['next_due_at'] as num).toInt();
-        final nowEpoch = reviewed.millisecondsSinceEpoch ~/ 1000;
         if (nowEpoch > lastDueEpoch) {
           elapsedDays = (nowEpoch - lastDueEpoch) ~/ secondsPerDay + state.intervalDays;
         }
@@ -279,15 +313,13 @@ class SrsSchedulerService {
       }
 
       // Record review event for idempotency & audit ledger
-      if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
-        await txn.insert('srs_review_events', <String, Object?>{
-          'review_event_id': reviewEventId.trim(),
-          'lexeme_id': lexemeId,
-          'target_language_code': languageCode,
-          'grade': grade,
-          'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
-        });
-      }
+      await txn.insert('srs_review_events', <String, Object?>{
+        'review_event_id': actualEventId,
+        'lexeme_id': lexemeId,
+        'target_language_code': languageCode,
+        'grade': grade,
+        'created_at': nowEpoch,
+      });
 
       return result;
     });
