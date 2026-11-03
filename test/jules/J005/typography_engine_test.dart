@@ -42,7 +42,7 @@ void main() {
       final fallbacks = MultiScriptTypography.getFallbacksForText(text);
       expect(fallbacks, contains(MultiScriptTypography.arabicFallback));
       expect(fallbacks, contains(MultiScriptTypography.jpFallback));
-      expect(fallbacks.length, 2); // Arabic and JP, standard text needs no explicit fallback here
+      expect(fallbacks.length, 3); // Cairo, Arabic and JP, standard text needs no explicit fallback here
     });
 
     test('returns empty fallbacks for pure Latin text', () {
