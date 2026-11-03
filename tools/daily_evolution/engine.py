@@ -130,8 +130,14 @@ class EvolutionEngine:
 
     def _enforce_scope_guard(self, target_scope: str) -> bool:
         # Prevent overlapping mutable scope claims (one mutable scope has one owner).
-        # In a real system, we'd check active claims.json. For this scheduler,
-        # we check if any RUNNING task has the same language_id.
+        from tools.automation.scope_guard import ScopeGuard
+        sg = ScopeGuard(owner="evolution-engine")
+        sg.add_allowed_path(f"assets/content/packs/{target_scope}/**")
+
+        # Enforce ScopeGuard before dispatching any task.
+        if not sg.check(f"assets/content/packs/{target_scope}/content.json"):
+            return False
+
         for t in self.tasks:
             if t.status == TaskStatus.RUNNING and t.language_id == target_scope:
                 return False
@@ -159,7 +165,8 @@ class EvolutionEngine:
             "toolchain_or_validator_version": "v1",
             "input_revision": "v1",
             "output_evidence_revision": "v1",
-            "mutable_scope": [f"assets/content/packs/{task.language_id}/"]
+            "mutable_scope": [f"assets/content/packs/{task.language_id}/"],
+            "instructions": "Never fabricate unavailable vocabulary or CEFR labels."
         }
 
     def advance_cycle(self, days_to_advance: int = 1) -> None:

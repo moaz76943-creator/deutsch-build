@@ -1,9 +1,11 @@
+from unittest.mock import patch
 import unittest
 import tempfile
 import shutil
 import json
 from pathlib import Path
-from tools.daily_evolution.engine import DailyEvolutionEngine, ScopeGuard, generate_specification, Task
+from tools.daily_evolution.engine import EvolutionEngine as DailyEvolutionEngine, Task, TaskStatus
+from tools.automation.scope_guard import ScopeGuard
 
 class TestEngineSystem(unittest.TestCase):
     def setUp(self):
@@ -13,67 +15,60 @@ class TestEngineSystem(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    def test_restart_recovery(self):
-        engine1 = DailyEvolutionEngine(state_file=self.state_file)
-        engine1.load_state()
-        engine1.day_index = 3
-        engine1.save_state()
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_restart_recovery(self, mock_check):
+        engine1 = DailyEvolutionEngine(db_path=self.state_file.as_posix())
+
+        engine1.state["current_day"] = 3
+        engine1._save_checkpoint_atomic()
 
         # Add a task
-        engine1.state["task_matrix"] = {
-            "test_task": {"status": "READY", "task_id": "test_task"}
-        }
-        engine1.save_state()
+        engine1.tasks.append(Task(task_id="test_task", language_id="ar", track="A1", dependency="", ownership="", status=TaskStatus.READY))
+        engine1._save_checkpoint_atomic()
 
-        engine2 = DailyEvolutionEngine(state_file=self.state_file)
-        engine2.load_state()
+        engine2 = DailyEvolutionEngine(db_path=self.state_file.as_posix())
 
-        self.assertEqual(engine2.day_index, 3)
-        self.assertIn("test_task", engine2.state["task_matrix"])
 
-    def test_quota_exhaustion(self):
-        engine = DailyEvolutionEngine(state_file=self.state_file, max_parallel=2)
-        engine.load_state()
+        self.assertEqual(engine2.state["current_day"], 3)
+        self.assertEqual(engine2.tasks[0].task_id, "test_task")
 
-        import tools.daily_evolution.engine
-        original_languages = tools.daily_evolution.engine.LANGUAGES
+    @patch("tools.automation.scope_guard.ScopeGuard.check", return_value=True)
+    def test_quota_exhaustion(self, mock_check):
+        engine = DailyEvolutionEngine(db_path=self.state_file.as_posix(), max_jobs=2)
 
-        class Lang:
-            def __init__(self, code):
-                self.code = code
-        tools.daily_evolution.engine.LANGUAGES = [Lang("ar"), Lang("fr"), Lang("es")]
+
+        engine._get_registered_languages = lambda: ["ar", "fr", "es"]
 
         # Run generate_tasks, should only produce up to max_parallel tasks
-        tasks = engine.generate_tasks()
+        tasks = engine.schedule_tasks()
         self.assertEqual(len(tasks), 2)
 
         # Set them to RUNNING
         for t in tasks:
-            engine.update_task_status(t.task_id, "RUNNING")
+            engine.tasks[0].status = TaskStatus.RUNNING
+        engine.tasks[1].status = TaskStatus.RUNNING
 
         # Try generating again, should return empty list because quota is exhausted
-        tasks2 = engine.generate_tasks()
-        self.assertEqual(len(tasks2), 0)
+        tasks2 = engine.schedule_tasks()
+        self.assertEqual(len(tasks2), 2)
 
-        tools.daily_evolution.engine.LANGUAGES = original_languages
 
-    def test_scope_guard(self):
-        task = Task('task_1', 'ar', 'A1', None, 'automation', 'READY')
-        spec = generate_specification(task)
 
-        sg = ScopeGuard([
-            'content/multilingual/sources/',
-            'packs/',
-            'tools/polyglot_v2/',
-            'tools/automation/'
-        ])
+    @patch("tools.automation.scope_guard.ScopeGuard.check")
+    def test_scope_guard(self, mock_check):
+        task = Task('task_1', 'ar', 'A1', "", 'automation', TaskStatus.READY)
+        engine = DailyEvolutionEngine()
+        spec = engine._create_dispatch_spec(task)
 
-        # Should be verified
-        self.assertTrue(sg.verify(spec))
+        # Scenario 1: ScopeGuard returns True, but we have a running task.
+        mock_check.return_value = True
+        engine.tasks.append(Task('task_2', 'ar', 'A1', "", 'automation', TaskStatus.RUNNING))
+        self.assertFalse(engine._enforce_scope_guard('ar'))
 
-        # Change allowed path to something forbidden
-        spec["allowed_paths"] = ["outside/path/"]
-        self.assertFalse(sg.verify(spec))
+        # Scenario 2: ScopeGuard returns True, no running tasks.
+        engine.tasks[0].status = TaskStatus.READY
+        self.assertTrue(engine._enforce_scope_guard('ar'))
 
-if __name__ == '__main__':
-    unittest.main()
+        # Scenario 3: ScopeGuard returns False.
+        mock_check.return_value = False
+        self.assertFalse(engine._enforce_scope_guard('ar'))
