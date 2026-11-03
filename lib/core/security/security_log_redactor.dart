@@ -24,7 +24,7 @@ class SecurityLogRedactor {
     // تعتيم رموز Bearer
     sanitized = sanitized.replaceAllMapped(_bearerPattern, (match) {
       final prefix = match.group(1) ?? 'Bearer ';
-      return '${prefix}[REDACTED_TOKEN]';
+      return '$prefix[REDACTED_TOKEN]';
     });
 
     // تعتيم أزواج المفتاح والقيمة الحساسة
