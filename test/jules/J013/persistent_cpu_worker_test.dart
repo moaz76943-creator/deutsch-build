@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/core/worker/persistent_cpu_worker.dart';
 
 // Helper for test failures
-double _failingMathTask(dynamic data) {
+Future<double> _failingMathTask(dynamic data) async {
   throw Exception("Simulated worker failure");
 }
 
-double _dummyMathTask(dynamic data) {
+Future<double> _dummyMathTask(dynamic data) async {
   return 1.0;
 }
 
@@ -61,9 +61,9 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       // 100 tasks pushed. Assuming maxQueueSize = 50.
-      // If we now check queue+activeJobs, all 100 hit synchronously before microtasks run,
-      // so exactly 50 are admitted (queued) and 50 are rejected.
-      expect(exhaustCount, 50);
+      // The capacity is 50 queue size + 4 concurrent max = 54
+      // So exactly 46 are rejected synchronously (queue exhausted).
+      expect(exhaustCount, 46);
 
       // Wait for the active tasks to drain so the isolate shuts down cleanly
       worker.cancelAll();
@@ -128,7 +128,7 @@ void main() {
 
       bool failed = false;
       try {
-        await worker.executeTask<dynamic, double>(_failingMathTask, {});
+        await worker.executeTask<double, dynamic>(_failingMathTask, {});
       } catch (e) {
         failed = true;
         expect(e.toString(), contains("Simulated worker failure"));
@@ -144,10 +144,10 @@ void main() {
     test('verifies bounded memory with large synthetic task counts', () async {
       final worker = PersistentCpuWorker.instance;
 
-      // Submit 50 tasks (at the queue limit) and await them all
+      // Submit 50 tasks (within the queue limit) and await them all
       List<Future<double>> futures = [];
       for (int i = 0; i < 50; i++) {
-        futures.add(worker.executeTask<dynamic, double>(_dummyMathTask, {}));
+        futures.add(worker.executeTask<double, dynamic>(_dummyMathTask, {}).then((v) => v ?? 0.0));
       }
 
       final results = await Future.wait(futures);

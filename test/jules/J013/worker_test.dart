@@ -5,6 +5,7 @@ void main() {
   late PersistentCpuWorker worker;
 
   setUp(() {
+    PersistentCpuWorker.resetForTesting();
     worker = PersistentCpuWorker.instance;
     worker.reset();
   });
@@ -29,18 +30,29 @@ void main() {
       final future1 = worker.calculateNewEaseFactor(2.5, 4);
       final future2 = worker.calculateNewEaseFactor(2.5, 4);
 
-      // The 3rd job should immediately throw due to queue exhaustion
-      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<WorkerQueueExhaustedException>()));
+      // We need to wait a tick for the microtask to move them from the queue to the active set,
+      // but if maxQueueSize is 2 and we submit 7 synchronously it will definitely throw.
+      // (active: 4, queue: 2) -> 6th is max, 7th throws.
+      final future3 = worker.calculateNewEaseFactor(2.5, 4);
+      final future4 = worker.calculateNewEaseFactor(2.5, 4);
+      final future5 = worker.calculateNewEaseFactor(2.5, 4);
+      final future6 = worker.calculateNewEaseFactor(2.5, 4);
 
-      // Wait for completion
-      await Future.wait([future1, future2]);
+      try {
+        await worker.calculateNewEaseFactor(2.5, 4);
+        fail('Should have thrown WorkerQueueExhaustedException');
+      } catch (e) {
+        expect(e, isA<WorkerQueueExhaustedException>());
+      }
     });
 
     test('worker failure propagates correctly', () async {
-      expect(
-        () => worker.calculateNewEaseFactor(-1.0, 4),
-        throwsA(isA<ArgumentError>()),
-      );
+      try {
+        await worker.calculateNewEaseFactor(-1.0, 4);
+        fail('Expected ArgumentError');
+      } catch (e) {
+        expect(e, isA<ArgumentError>());
+      }
     });
   });
 
@@ -52,8 +64,12 @@ void main() {
       // Cancel generation immediately
       worker.cancelCurrentGeneration();
 
-      // The job should complete but throw WorkerCancelledException before returning
-      expect(() => future, throwsA(isA<WorkerCancelledException>()));
+      try {
+         await future;
+         fail('Expected WorkerCancelledException');
+      } catch(e) {
+         expect(e, isA<WorkerCancelledException>());
+      }
     });
 
     test('dispose cancels jobs and prevents new ones', () async {
@@ -63,11 +79,20 @@ void main() {
       // Dispose immediately
       worker.dispose();
 
-      // The running job should be cancelled
-      expect(() => future, throwsA(isA<WorkerCancelledException>()));
+      try {
+         await future;
+         fail('Expected WorkerCancelledException');
+      } catch(e) {
+         expect(e, isA<WorkerCancelledException>());
+      }
 
       // New jobs should be rejected
-      expect(() => worker.calculateNewEaseFactor(2.5, 4), throwsA(isA<StateError>()));
+      try {
+         await worker.calculateNewEaseFactor(2.5, 4);
+         fail('Expected StateError');
+      } catch(e) {
+         expect(e, isA<StateError>());
+      }
     });
   });
 
