@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 
 class SemanticPresentationMetadata {
-  final Color color;
+  final Color? color;
   final String label;
 
   const SemanticPresentationMetadata({required this.color, required this.label});
@@ -28,58 +28,123 @@ class SemanticPresentationEngine {
       return _cache[cacheKey]!;
     }
 
+    final profile = ruleProvider.capabilityProfile;
+
+    Color? color;
+    final List<String> labelParts = [];
+
+    // Gender
     final gender = ruleProvider.determineGender(word, article: article);
-    final category = ruleProvider.determineCategory(word, article: article);
-
-    Color color;
-    String label;
-
-    // We add more data from the provider to the label to respect Requirement #5 partially
-    // Although the provider doesn't currently expose number/case, we use category
-    // to build a richer semantic label.
-    final categoryString = category == GrammaticalCategory.unknown ? '' : category.name;
-
-    if (ruleProvider.languageCode == 'de') {
-      switch (gender) {
-        case GrammaticalGender.masculine:
-          color = AppColors.articleDer;
-          label = 'Masculine (der) $categoryString';
-          break;
-        case GrammaticalGender.feminine:
-          color = AppColors.articleDie;
-          label = 'Feminine (die) $categoryString';
-          break;
-        case GrammaticalGender.neuter:
-          color = AppColors.articleDas;
-          label = 'Neuter (das) $categoryString';
-          break;
-        case GrammaticalGender.common:
-        case GrammaticalGender.none:
-          color = AppColors.articleOther;
-          label = 'Other $categoryString';
-          break;
-      }
-    } else {
-      switch (gender) {
-        case GrammaticalGender.masculine:
-          color = AppColors.primary;
-          label = 'Masculine $categoryString';
-          break;
-        case GrammaticalGender.feminine:
-          color = AppColors.secondary;
-          label = 'Feminine $categoryString';
-          break;
-        case GrammaticalGender.neuter:
-          color = AppColors.tertiary;
-          label = 'Neuter $categoryString';
-          break;
-        case GrammaticalGender.common:
-        case GrammaticalGender.none:
-          color = AppColors.articleOther;
-          label = 'Other $categoryString';
-          break;
+    if (profile.hasGender && gender != GrammaticalGender.none) {
+      if (ruleProvider.languageCode == 'de') {
+        switch (gender) {
+          case GrammaticalGender.masculine:
+            color = AppColors.articleDer;
+            labelParts.add('Masculine');
+            break;
+          case GrammaticalGender.feminine:
+            color = AppColors.articleDie;
+            labelParts.add('Feminine');
+            break;
+          case GrammaticalGender.neuter:
+            color = AppColors.articleDas;
+            labelParts.add('Neuter');
+            break;
+          case GrammaticalGender.common:
+            color = AppColors.articleOther;
+            labelParts.add('Common');
+            break;
+          case GrammaticalGender.none:
+            break;
+        }
+      } else {
+        switch (gender) {
+          case GrammaticalGender.masculine:
+            color = AppColors.primary;
+            labelParts.add('Masculine');
+            break;
+          case GrammaticalGender.feminine:
+            color = AppColors.secondary;
+            labelParts.add('Feminine');
+            break;
+          case GrammaticalGender.neuter:
+            color = AppColors.tertiary;
+            labelParts.add('Neuter');
+            break;
+          case GrammaticalGender.common:
+            color = AppColors.articleOther;
+            labelParts.add('Common');
+            break;
+          case GrammaticalGender.none:
+            break;
+        }
       }
     }
+
+    // Noun Class
+    if (profile.hasNounClasses) {
+      final nounClass = ruleProvider.determineNounClass(word);
+      if (nounClass != null && nounClass.isNotEmpty) {
+        labelParts.add('Class $nounClass');
+        color ??= AppColors.primary; // Assign fallback color if no gender color
+      }
+    }
+
+    // Category
+    final category = ruleProvider.determineCategory(word, article: article);
+    if (category != GrammaticalCategory.unknown) {
+      labelParts.add(category.name);
+    }
+
+    // Number
+    if (profile.hasNumber) {
+      final number = ruleProvider.determineNumber(word);
+      if (number != null && number != GrammaticalNumber.unknown && number != GrammaticalNumber.none) {
+        labelParts.add(number.name);
+      }
+    }
+
+    // Case
+    if (profile.hasCases) {
+      final gramCase = ruleProvider.determineCase(word);
+      if (gramCase != null && gramCase != GrammaticalCase.unknown && gramCase != GrammaticalCase.none) {
+        labelParts.add(gramCase.name);
+      }
+    }
+
+    // Person
+    if (profile.hasPerson) {
+      final person = ruleProvider.determinePerson(word);
+      if (person != null && person != GrammaticalPerson.unknown && person != GrammaticalPerson.none) {
+        labelParts.add(person.name);
+      }
+    }
+
+    // Tense
+    if (profile.hasTense) {
+      final tense = ruleProvider.determineTense(word);
+      if (tense != null && tense != Tense.unknown && tense != Tense.none) {
+        labelParts.add(tense.name);
+      }
+    }
+
+    // Aspect
+    if (profile.hasAspect) {
+      final aspect = ruleProvider.determineAspect(word);
+      if (aspect != null && aspect != Aspect.unknown && aspect != Aspect.none) {
+        labelParts.add(aspect.name);
+      }
+    }
+
+    // Mood
+    if (profile.hasMood) {
+      final mood = ruleProvider.determineMood(word);
+      if (mood != null && mood != Mood.unknown && mood != Mood.none) {
+        labelParts.add(mood.name);
+      }
+    }
+
+    final label = labelParts.isEmpty ? word : labelParts.join(' ');
 
     final metadata = SemanticPresentationMetadata(color: color, label: label.trim());
     _cache[cacheKey] = metadata;
@@ -111,7 +176,9 @@ class SemanticWordText extends StatelessWidget {
         textDirection: Directionality.of(context),
         child: Text(
           word,
-          style: (baseStyle ?? AppTypography.body).copyWith(color: metadata.color),
+          style: metadata.color != null
+              ? (baseStyle ?? AppTypography.body).copyWith(color: metadata.color)
+              : (baseStyle ?? AppTypography.body),
         ),
       ),
     );
