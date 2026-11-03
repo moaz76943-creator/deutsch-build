@@ -267,79 +267,12 @@ class CefrClassifier {
       );
     }
 
-    if (evidence.frequencyRank == null) {
-      return const CefrClassification(
-        level: CefrLevel.unknown,
-        grouping: CefrGrouping.unknown,
-        method: CefrClassificationMethod.inferred,
-        confidence: CefrEvidenceConfidence.none,
-        details: 'Insufficient evidence',
-      );
-    }
-
-    // Language-specific profiles for inferred level based on frequency and traits
-    final lang = evidence.languageId.toLowerCase();
-    CefrLevel inferred;
-    CefrEvidenceConfidence conf = CefrEvidenceConfidence.medium;
-
-    // Very basic mapping for fallback, treating languages differently.
-    int rank = evidence.frequencyRank!;
-    bool compound = evidence.isCompound ?? false;
-
-    if (lang == 'de') {
-      if (rank <= 500) {
-        inferred = CefrLevel.a1;
-      } else if (rank <= 2000)
-        inferred = CefrLevel.a2;
-      else if (rank <= 4000)
-        inferred = CefrLevel.b1;
-      else if (rank <= 8000)
-        inferred = CefrLevel.b2;
-      else
-        inferred = CefrLevel.c1;
-
-      if (compound && inferred == CefrLevel.a1) {
-        inferred = CefrLevel.a2; // Compounds are generally harder
-      }
-    } else if (lang == 'ar') {
-      if (rank <= 600) {
-        inferred = CefrLevel.a1;
-      } else if (rank <= 2500)
-        inferred = CefrLevel.a2;
-      else if (rank <= 5000)
-        inferred = CefrLevel.b1;
-      else if (rank <= 10000)
-        inferred = CefrLevel.b2;
-      else
-        inferred = CefrLevel.c1;
-    } else {
-      // Generic fallback
-      if (rank <= 1000) {
-        inferred = CefrLevel.a1;
-      } else if (rank <= 3000)
-        inferred = CefrLevel.a2;
-      else if (rank <= 6000)
-        inferred = CefrLevel.b1;
-      else if (rank <= 10000)
-        inferred = CefrLevel.b2;
-      else
-        inferred = CefrLevel.c1;
-      conf = CefrEvidenceConfidence.low;
-    }
-
-    // If length is extremely long but rank is high, could bump difficulty
-    if (evidence.charLength != null && evidence.charLength! > 15) {
-      if (inferred == CefrLevel.a1) {
-        inferred = CefrLevel.a2;
-      } else if (inferred == CefrLevel.a2) inferred = CefrLevel.b1;
-    }
-
-    return CefrClassification(
-      level: inferred,
-      grouping: getGrouping(inferred),
+    return const CefrClassification(
+      level: CefrLevel.unknown,
+      grouping: CefrGrouping.unknown,
       method: CefrClassificationMethod.inferred,
-      confidence: conf,
-      details: 'Inferred from frequency profile',
+      confidence: CefrEvidenceConfidence.none,
+      details: 'Insufficient evidence',
     );
   }
 
@@ -356,41 +289,12 @@ class CefrClassifier {
       );
     }
 
-    if (evidence.wordCount == null && evidence.maxWordFrequencyRank == null) {
-      return const CefrClassification(
-        level: CefrLevel.unknown,
-        grouping: CefrGrouping.unknown,
-        method: CefrClassificationMethod.inferred,
-        confidence: CefrEvidenceConfidence.none,
-        details: 'Insufficient evidence',
-      );
-    }
-
-    CefrLevel inferred = CefrLevel.unknown;
-
-    // Determine complexity based on word count and max frequency rank
-    int wc = evidence.wordCount ?? 0;
-    int clauses = evidence.clauseCount ?? 1;
-    int maxRank = evidence.maxWordFrequencyRank ?? 1000;
-
-    if (maxRank <= 500 && wc <= 5 && clauses == 1) {
-      inferred = CefrLevel.a1;
-    } else if (maxRank <= 2000 && wc <= 10 && clauses <= 2) {
-      inferred = CefrLevel.a2;
-    } else if (maxRank <= 5000 && wc <= 15) {
-      inferred = CefrLevel.b1;
-    } else if (maxRank <= 10000) {
-      inferred = CefrLevel.b2;
-    } else {
-      inferred = CefrLevel.c1;
-    }
-
-    return CefrClassification(
-      level: inferred,
-      grouping: getGrouping(inferred),
+    return const CefrClassification(
+      level: CefrLevel.unknown,
+      grouping: CefrGrouping.unknown,
       method: CefrClassificationMethod.inferred,
-      confidence: CefrEvidenceConfidence.medium,
-      details: 'Inferred from example complexity',
+      confidence: CefrEvidenceConfidence.none,
+      details: 'Insufficient evidence',
     );
   }
 
