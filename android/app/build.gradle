@@ -74,6 +74,9 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        // Set real Cloud Project Number from Play Console for production Play Integrity checks.
+        // Default 0 keeps the check fail-closed until configured.
+        buildConfigField "long", "CLOUD_PROJECT_NUMBER", "0L"
     }
 
     buildTypes {
