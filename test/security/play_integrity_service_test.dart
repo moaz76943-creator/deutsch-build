@@ -30,9 +30,9 @@ void main() {
     );
     expect(activity.contains('AndroidPlayIntegrityManager.CHANNEL_NAME'), isTrue);
     expect(activity.contains('AndroidPlayIntegrityManager(this)'), isTrue);
-    // Unset project number must keep minting fail-closed until Play Console
-    // wiring exists. A configured build updates this assertion on purpose.
-    expect(kotlin.contains('CLOUD_PROJECT_NUMBER = 0L'), isTrue);
+    // Project number is injected via BuildConfig; release builds fail if unset.
+    expect(kotlin.contains('BuildConfig.CLOUD_PROJECT_NUMBER'), isTrue);
+    expect(kotlin.contains('CLOUD_PROJECT_NUMBER == 0L'), isTrue);
   });
 
   test('forwards the server nonce and returns the token', () async {
