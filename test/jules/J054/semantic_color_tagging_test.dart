@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/features/semantic_color_tagging/semantic_presen
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 
-class MockGrammarProvider implements LanguageGrammarRuleProvider {
+class MockGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   final String languageCode;
 
@@ -14,6 +14,11 @@ class MockGrammarProvider implements LanguageGrammarRuleProvider {
     required this.languageCode,
     required this.determineGenderMock,
   });
+
+  @override
+  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+    hasGender: true,
+  );
 
   @override
   GrammaticalCategory determineCategory(String word, {String? article}) {
@@ -29,6 +34,58 @@ class MockGrammarProvider implements LanguageGrammarRuleProvider {
   bool isValidArticle(String word, String article) {
     return false;
   }
+}
+
+class MockFullGrammarProvider extends LanguageGrammarRuleProvider {
+  @override
+  String get languageCode => 'ru';
+
+  @override
+  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile(
+    hasGender: true,
+    hasCases: true,
+    hasNumber: true,
+    hasTense: true,
+    hasPerson: true,
+  );
+
+  @override
+  GrammaticalGender determineGender(String word, {String? article}) => GrammaticalGender.feminine;
+
+  @override
+  GrammaticalCategory determineCategory(String word, {String? article}) => GrammaticalCategory.noun;
+
+  @override
+  bool isValidArticle(String word, String article) => false;
+
+  @override
+  GrammaticalCase? determineCase(String word, {String? context}) => GrammaticalCase.accusative;
+
+  @override
+  GrammaticalNumber? determineNumber(String word) => GrammaticalNumber.plural;
+
+  @override
+  GrammaticalPerson? determinePerson(String word) => GrammaticalPerson.third;
+
+  @override
+  Tense? determineTense(String word) => Tense.present;
+}
+
+class MockMissingGrammarProvider extends LanguageGrammarRuleProvider {
+  @override
+  String get languageCode => 'en';
+
+  @override
+  GrammarCapabilityProfile get capabilityProfile => const GrammarCapabilityProfile();
+
+  @override
+  GrammaticalGender determineGender(String word, {String? article}) => GrammaticalGender.none;
+
+  @override
+  GrammaticalCategory determineCategory(String word, {String? article}) => GrammaticalCategory.unknown;
+
+  @override
+  bool isValidArticle(String word, String article) => false;
 }
 
 void main() {
@@ -49,7 +106,7 @@ void main() {
       expect(engine.getPresentationForWord('Hund').color, AppColors.articleDer);
       expect(engine.getPresentationForWord('Freiheit').color, AppColors.articleDie);
       expect(engine.getPresentationForWord('Mädchen').color, AppColors.articleDas);
-      expect(engine.getPresentationForWord('Unbekannt').color, AppColors.articleOther);
+      expect(engine.getPresentationForWord('Unbekannt').color, isNull);
     });
 
     test('Non-German colors use standard primary/secondary/tertiary colors', () {
@@ -68,7 +125,21 @@ void main() {
       expect(engine.getPresentationForWord('chien').color, AppColors.primary);
       expect(engine.getPresentationForWord('liberté').color, AppColors.secondary);
       expect(engine.getPresentationForWord('neuter_word').color, AppColors.tertiary);
-      expect(engine.getPresentationForWord('inconnu').color, AppColors.articleOther);
+      expect(engine.getPresentationForWord('inconnu').color, isNull);
+    });
+
+    test('All capabilities are appended to label', () {
+       final mockRu = MockFullGrammarProvider();
+       final engine = SemanticPresentationEngine(ruleProvider: mockRu, packVersion: 'v1');
+
+       final metadata = engine.getPresentationForWord('test');
+       expect(metadata.label, contains('Feminine'));
+       expect(metadata.label, contains('noun'));
+       expect(metadata.label, contains('accusative'));
+       expect(metadata.label, contains('plural'));
+       expect(metadata.label, contains('third'));
+       expect(metadata.label, contains('present'));
+       expect(metadata.color, AppColors.secondary);
     });
 
     test('Cache behaves correctly per instance', () {
@@ -122,6 +193,32 @@ void main() {
       expect(textWidget.style?.color, AppColors.secondary);
 
       final semanticsFinder = find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'Feminine');
+      expect(semanticsFinder, findsOneWidget);
+    });
+
+    testWidgets('Absent capabilities and unknown word degrades to readable uncolored text', (WidgetTester tester) async {
+      final mockMissing = MockMissingGrammarProvider();
+      final engine = SemanticPresentationEngine(ruleProvider: mockMissing, packVersion: 'v1');
+      const word = 'unknown_word';
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SemanticWordText(
+              word: word,
+              engine: engine,
+            ),
+          ),
+        ),
+      );
+
+      final textFinder = find.text('unknown_word');
+      expect(textFinder, findsOneWidget);
+
+      final textWidget = tester.widget<Text>(textFinder);
+      expect(textWidget.style?.color, isNull);
+
+      final semanticsFinder = find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == 'unknown_word');
       expect(semanticsFinder, findsOneWidget);
     });
   });
