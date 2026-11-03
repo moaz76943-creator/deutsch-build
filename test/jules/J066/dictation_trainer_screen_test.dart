@@ -3,8 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deutsch_bilarabi/screens/dictation_trainer_screen.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 
+import 'package:flutter/services.dart';
 void main() {
   setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('com.deutschbilarabi.app/offline_voice_capability'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'getOfflineVoices') {
+          return ['de', 'ar'];
+        }
+        return null;
+      },
+    );
     LexicalRepository.initializeStore([
       const LexicalEntry(
         id: 'dict_test_01',
