@@ -34,9 +34,49 @@ void main() {
   Future<File> createValidDatabase(String filename) async {
     final path = '${tempDir.path}/$filename';
     final db = await databaseFactoryFfi.openDatabase(path);
-    await db.execute('PRAGMA user_version = 1');
-    await db.execute('CREATE TABLE data (id INTEGER PRIMARY KEY, value TEXT)');
-    await db.insert('data', {'value': 'test'});
+    await db.execute('PRAGMA user_version = 2');
+
+    await db.execute('CREATE TABLE schema_migrations (id INTEGER PRIMARY KEY)');
+    await db.execute('CREATE TABLE concepts (id INTEGER PRIMARY KEY)');
+    await db.execute('CREATE TABLE translations (id INTEGER PRIMARY KEY)');
+    await db.execute('CREATE TABLE lexical_relations (id INTEGER PRIMARY KEY)');
+    await db.execute('CREATE TABLE grammar (id INTEGER PRIMARY KEY)');
+
+    await db.execute('CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)');
+    await db.execute('''CREATE TABLE lexicon (
+      id TEXT PRIMARY KEY,
+      surface TEXT,
+      sort_key TEXT,
+      language_code TEXT,
+      cefr_level TEXT,
+      part_of_speech TEXT,
+      fields_json TEXT
+    )''');
+    await db.execute('''CREATE TABLE senses (
+      sense_id TEXT PRIMARY KEY,
+      lexeme_id TEXT,
+      concept_id TEXT,
+      payload_json TEXT
+    )''');
+    await db.execute('''CREATE TABLE examples (
+      example_id TEXT PRIMARY KEY,
+      lexeme_id TEXT,
+      language_code TEXT,
+      text TEXT
+    )''');
+
+    await db.execute('CREATE VIEW lexemes AS SELECT 1 AS id');
+    await db.execute('CREATE VIRTUAL TABLE lexicon_fts USING fts5(surface)');
+
+    await db.insert('metadata', {'key': 'mapping_version', 'value': '2.0.0'});
+    await db.insert('metadata', {'key': 'contract_version', 'value': '1.0.0'});
+    await db.insert('metadata', {'key': 'language_code', 'value': 'de'});
+
+    await db.insert('lexicon', {
+        'id': '1', 'surface': 'test', 'sort_key': 'test', 'language_code': 'de',
+        'cefr_level': 'A1', 'part_of_speech': 'noun', 'fields_json': '{}'
+    });
+
     await db.close();
     return File(path);
   }
@@ -67,6 +107,7 @@ void main() {
       stagedFile: stagedDb,
       expectedHash: hash,
       targetPath: targetPath,
+      languageCode: 'de',
     );
     expect(result, isTrue);
     expect(await File(targetPath).exists(), isTrue);
@@ -79,6 +120,7 @@ void main() {
       stagedFile: stagedDb2,
       expectedHash: hash2,
       targetPath: targetPath,
+      languageCode: 'de',
       allowReplacement: true,
     );
     expect(result2, isTrue);
@@ -94,6 +136,7 @@ void main() {
       stagedFile: corruptFile,
       expectedHash: hash,
       targetPath: targetPath,
+      languageCode: 'de',
     );
 
     expect(result, isFalse);
@@ -110,6 +153,7 @@ void main() {
       stagedFile: stagedDb,
       expectedHash: wrongHash,
       targetPath: targetPath,
+      languageCode: 'de',
     );
 
     expect(result, isFalse);
@@ -131,6 +175,7 @@ void main() {
       stagedFile: stagedDb,
       expectedHash: hash,
       targetPath: targetPath,
+      languageCode: 'de',
     );
 
     expect(result, isTrue);
@@ -147,6 +192,7 @@ void main() {
       stagedFile: stagedDb,
       expectedHash: hash,
       targetPath: targetPath,
+      languageCode: 'de',
     );
 
     expect(result, isFalse);
@@ -163,6 +209,7 @@ void main() {
       stagedFile: stagedDb,
       expectedHash: hash,
       targetPath: targetPath,
+      languageCode: 'de',
     );
 
     expect(result, isFalse);
