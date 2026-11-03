@@ -38,12 +38,14 @@ class IsolatedTaskQueue {
 
   int get length => _queue.length;
   int get activeTasksCount => _activeTasks.length;
+  int get availableCapacity => maxConcurrentTasks - _activeTasks.length;
 
   Future<T?> enqueue<T>({
     required String id,
     required int currentEpoch,
     required TaskPriority priority,
     required Future<T> Function() action,
+    CancellationToken? token,
   }) {
     // تحديث الجلسة النشطة
     _lastActiveEpoch = currentEpoch;
@@ -73,12 +75,12 @@ class IsolatedTaskQueue {
     }
 
     final completer = Completer<T?>();
-    final token = CancellationToken();
+    final taskToken = token ?? CancellationToken();
     final task = PrioritizedTask<T>(
       id: id,
       sessionEpoch: currentEpoch,
       priority: priority,
-      cancellationToken: token,
+      cancellationToken: taskToken,
       action: (CancellationToken? t) async {
         if (t?.isCancelled == true) {
           throw StateError('cancelled');
@@ -105,6 +107,7 @@ class IsolatedTaskQueue {
     required WorkerTask<T> task,
     required int currentEpoch,
     required TaskPriority priority,
+    CancellationToken? token,
   }) {
     _lastActiveEpoch = currentEpoch;
 
@@ -133,13 +136,13 @@ class IsolatedTaskQueue {
     }
 
     final completer = Completer<T?>();
-    final token = CancellationToken();
+    final taskToken = token ?? CancellationToken();
 
     final pTask = PrioritizedTask<T>(
       id: task.taskId,
       sessionEpoch: currentEpoch,
       priority: priority,
-      cancellationToken: token,
+      cancellationToken: taskToken,
       completer: completer,
       action: (CancellationToken? t) async {
         final completerInternal = Completer<T>();
@@ -147,8 +150,7 @@ class IsolatedTaskQueue {
         final timer = Timer(task.timeout, () {
           if (!completerInternal.isCompleted) {
             t?.cancel();
-            completerInternal.completeError(
-                StateError('Operation was cancelled by user or timeout'));
+            completerInternal.completeError(TimeoutException('Operation was cancelled by timeout'));
           }
         });
 
@@ -157,7 +159,7 @@ class IsolatedTaskQueue {
             timer.cancel();
             completerInternal.complete(result);
           }
-        }).catchError((e) {
+        }).catchError((dynamic e) {
           if (!completerInternal.isCompleted) {
             timer.cancel();
             final Object failure =
@@ -210,7 +212,10 @@ class IsolatedTaskQueue {
     _isPaused = true;
   }
 
-  void resume() {
+  void resume([int? activeEpoch]) {
+    if (activeEpoch != null) {
+      _lastActiveEpoch = activeEpoch;
+    }
     if (!_isPaused) return;
     _isPaused = false;
     _processNext();
@@ -273,8 +278,6 @@ class IsolatedTaskQueue {
         if (e is StateError &&
             (e.message.contains('cancelled') ||
                 e.message.contains('Operation was cancelled'))) {
-          currentTask.completer.complete(null);
-        } else if (e is TimeoutException) {
           currentTask.completer.complete(null);
         } else {
           currentTask.completer.completeError(e);
