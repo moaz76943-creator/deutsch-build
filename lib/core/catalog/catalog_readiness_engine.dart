@@ -3,8 +3,7 @@ import 'language_pack_gate.dart';
 import 'language_readiness_matrix.dart';
 import 'dart:collection';
 
-enum PairReadinessState {
-  usable,
+enum UnavailableReason {
   unsupportedSource,
   unsupportedTarget,
   identicalLanguages,
@@ -13,7 +12,36 @@ enum PairReadinessState {
   silentPivotPrevented,
 }
 
+abstract class PairReadinessState {}
+
+class PairUsable extends PairReadinessState {}
+
+class UnsupportedSourceState extends PairReadinessState {
+  final UnavailableReason reason = UnavailableReason.unsupportedSource;
+}
+
+class UnsupportedTargetState extends PairReadinessState {
+  final UnavailableReason reason = UnavailableReason.unsupportedTarget;
+}
+
+class IdenticalPairState extends PairReadinessState {
+  final UnavailableReason reason = UnavailableReason.identicalLanguages;
+}
+
+class MissingPackState extends PairReadinessState {
+  final UnavailableReason reason = UnavailableReason.missingPack;
+}
+
+class RejectedPackState extends PairReadinessState {
+  final UnavailableReason reason = UnavailableReason.rejectedPack;
+}
+
+class SilentPivotPreventedState extends PairReadinessState {
+  final UnavailableReason reason = UnavailableReason.silentPivotPrevented;
+}
+
 class CatalogReadinessEngine {
+  // To keep catalog state O(N), track admitted packs by targetLocale
   final Map<String, LanguagePackGateResult> _admittedPacks = {};
 
   // Bounded LRU cache to avoid allocating 9,900 pairs in memory.
@@ -43,38 +71,39 @@ class CatalogReadinessEngine {
 
   PairReadinessState _evaluate(DirectedPairId pair) {
     if (pair.isReflexive) {
-      return PairReadinessState.identicalLanguages;
+      return IdenticalPairState();
     }
 
     final sourceTier = LanguageReadinessMatrix.getTier(pair.sourceLocale);
     if (sourceTier == LanguageReadinessTier.nominal) {
-      return PairReadinessState.unsupportedSource;
+      return UnsupportedSourceState();
     }
 
     final targetTier = LanguageReadinessMatrix.getTier(pair.targetLocale);
     if (targetTier == LanguageReadinessTier.nominal) {
-      return PairReadinessState.unsupportedTarget;
+      return UnsupportedTargetState();
     }
 
     if (sourceTier != LanguageReadinessTier.productionReady &&
         targetTier != LanguageReadinessTier.productionReady) {
-      return PairReadinessState.silentPivotPrevented;
+      return SilentPivotPreventedState();
     }
 
-    final packResult = _admittedPacks[pair.uniqueKey];
+    // Since pack installation depends only on target language
+    final packResult = _admittedPacks[pair.targetLocale];
     if (packResult == null) {
-      return PairReadinessState.missingPack;
+      return MissingPackState();
     }
 
     if (packResult.status != PackGateStatus.approved) {
-      return PairReadinessState.rejectedPack;
+      return RejectedPackState();
     }
 
-    return PairReadinessState.usable;
+    return PairUsable();
   }
 
   void registerPack({
-    required DirectedPairId pair,
+    required String targetLocale,
     required String packCode,
     required int wordCount,
     required String? checksum,
@@ -85,12 +114,30 @@ class CatalogReadinessEngine {
       checksum: checksum,
     );
 
-    _admittedPacks[pair.uniqueKey] = result;
-    _evaluatedPairs.remove(pair.uniqueKey);
+    _admittedPacks[targetLocale] = result;
+
+    // Invalidate affected cache items (any pair with this targetLocale)
+    _evaluatedPairs.removeWhere((key, _) {
+      try {
+        final pair = DirectedPairId.parse(key);
+        return pair.targetLocale == targetLocale;
+      } catch (_) {
+        return false;
+      }
+    });
   }
 
-  void unregisterPack(DirectedPairId pair) {
-    _admittedPacks.remove(pair.uniqueKey);
-    _evaluatedPairs.remove(pair.uniqueKey);
+  void unregisterPack(String targetLocale) {
+    _admittedPacks.remove(targetLocale);
+
+    // Invalidate affected cache items
+    _evaluatedPairs.removeWhere((key, _) {
+      try {
+        final pair = DirectedPairId.parse(key);
+        return pair.targetLocale == targetLocale;
+      } catch (_) {
+        return false;
+      }
+    });
   }
 }
