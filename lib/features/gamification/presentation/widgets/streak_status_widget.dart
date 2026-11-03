@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/design_system.dart';
+import '../../../../design_system/app_colors.dart';
+import '../../../../design_system/app_glass_card.dart';
 import '../../domain/achievement_models.dart';
 
 final class StreakStatusWidget extends StatelessWidget {
