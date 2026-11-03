@@ -41,6 +41,13 @@ class PooledDatabaseManager {
   List<String> get leastToMostRecentlyUsed =>
       List<String>.unmodifiable(_connections.keys);
 
+  void _wakeWaiters() {
+    for (final waiter in _slotWaiters) {
+      if (!waiter.isCompleted) waiter.complete();
+    }
+    _slotWaiters.clear();
+  }
+
   Future<T> _locked<T>(Future<T> Function() operation) {
     final result = Completer<T>();
     _mutexTail = _mutexTail.then((_) async {
@@ -92,7 +99,8 @@ class PooledDatabaseManager {
     try {
       opened = await _openConnection(code);
     } catch (e) {
-      // If opening fails, do not add to connections, let the error propagate
+      // If opening fails, a slot might have been freed, so wake waiters
+      _wakeWaiters();
       rethrow;
     }
 
@@ -140,17 +148,17 @@ class PooledDatabaseManager {
           } else {
             _leases[code] = count;
           }
-          if (_slotWaiters.isNotEmpty) {
-            final next = _slotWaiters.removeAt(0);
-            if (!next.isCompleted) next.complete();
-          }
+          _wakeWaiters();
         });
       }
     }
   }
 
   Future<void> close(String languageCode) =>
-      _locked(() => _closeLocked(_normalizeCode(languageCode)));
+      _locked(() async {
+        await _closeLocked(_normalizeCode(languageCode));
+        _wakeWaiters();
+      });
 
   Future<void> _closeLocked(String code) async {
     if ((_leases[code] ?? 0) != 0) {
@@ -181,6 +189,9 @@ class PooledDatabaseManager {
           await _closeLocked(code);
           closedCount++;
         }
+        if (closedCount > 0) {
+          _wakeWaiters();
+        }
         return closedCount;
       });
 
@@ -191,6 +202,7 @@ class PooledDatabaseManager {
         for (final code in _connections.keys.toList(growable: false)) {
           await _closeLocked(code);
         }
+        _wakeWaiters();
       });
 }
 
