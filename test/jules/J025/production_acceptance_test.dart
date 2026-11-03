@@ -4,100 +4,103 @@ import 'package:deutsch_bilarabi/core/quality/production_acceptance_gate.dart';
 void main() {
   group('ProductionAcceptanceGate', () {
     test('Perfect evidence yields PASSED/APPROVED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        verifiedLanguages: ['en', 'de'],
+        registeredLanguages: {'en', 'de'}, verifiedDictionaries: {'en', 'de'},
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.approved);
-      expect(result.isReady, isTrue);
+      expect(result.eligibility, PromotionEligibility.approved);
+
     });
 
     test('Missing optional features yields PASSED/DEGRADED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        missingOptionalFeatures: true,
+        hasOptionalAudio: false,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.passed);
-      expect(result.state, EligibilityState.degraded);
-      expect(result.isReady, isTrue);
+      expect(result.eligibility, PromotionEligibility.degraded);
+
     });
 
-    test('Missing evidence (null) yields NOT_RUN/NOT_VERIFIED', () {
-      final result = ProductionAcceptanceGate.evaluateEvidence(null);
+    test('Missing evidence (hasExecutedTests false) yields NOT_RUN/NOT_VERIFIED', () {
+      final evidence = J025StartupContract(
+        isOfflineSafe: true,
+        isStorageGuarded: true,
+        isLifecycleManaged: true,
+        hasExecutedTests: false,
+      );
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.notRun);
-      expect(result.state, EligibilityState.notVerified);
-      expect(result.isReady, isFalse);
+      expect(result.eligibility, PromotionEligibility.notVerified);
     });
 
     test('Stale evidence yields NOT_RUN/NOT_VERIFIED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        isStale: true,
+        isVerificationStale: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.notRun);
-      expect(result.state, EligibilityState.notVerified);
-      expect(result.isReady, isFalse);
+      expect(result.eligibility, PromotionEligibility.notVerified);
+
     });
 
-    test('Corrupted content yields BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+    test('Corrupted content yields FAILED/BLOCKED', () {
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasCorruptedContent: true,
+        isContentCorrupted: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
     });
 
-    test('Regressions yield BLOCKED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+    test('Regressions yield FAILED/BLOCKED', () {
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        hasRegressions: true,
+        isStartupRecoveryFailed: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
-      expect(result.outcome, GateOutcome.blocked);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
+      expect(result.outcome, GateOutcome.failed);
+      expect(result.eligibility, PromotionEligibility.blocked);
     });
 
     test('Missing mandatory infrastructure yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: false,
         isLifecycleManaged: true,
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      expect(result.eligibility, PromotionEligibility.blocked);
+
     });
 
     test('Unsupported language claims yields FAILED/BLOCKED', () {
-      final evidence = AcceptanceEvidence(
+      final evidence = J025StartupContract(
         isOfflineSafe: true,
         isStorageGuarded: true,
         isLifecycleManaged: true,
-        verifiedLanguages: ['fr'], // 'fr' is assetsReady, not productionReady
+        registeredLanguages: {'fr'}, verifiedDictionaries: {}, // 'fr' is assetsReady, not productionReady
       );
-      final result = ProductionAcceptanceGate.evaluateEvidence(evidence);
+      final result = ProductionAcceptanceGate.evaluateReadiness(evidence);
       expect(result.outcome, GateOutcome.failed);
-      expect(result.state, EligibilityState.blocked);
-      expect(result.isReady, isFalse);
+      expect(result.eligibility, PromotionEligibility.blocked);
+
     });
 
     test('Legacy verifyAppReadiness acts as adapter', () {
