@@ -3,7 +3,7 @@ import 'curriculum_models.dart';
 final class LearningPathEngine {
   LearningPathEngine(List<CurriculumTask> tasks)
       : _tasks = List<CurriculumTask>.unmodifiable(
-          [...tasks]..sort((a, b) => a.order.compareTo(b.order)),
+          <CurriculumTask>[...tasks]..sort((a, b) => a.order.compareTo(b.order)),
         ),
         _byId = <String, CurriculumTask>{
           for (final task in tasks) task.id: task,
