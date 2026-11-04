@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-<<<<<<< HEAD
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Existing local imports
 import 'features/onboarding/fast_onboarding_screen.dart';
 import 'package:deutsch_bilarabi/core/bootstrap/isolated_bootstrap_pipeline.dart';
 import 'package:deutsch_bilarabi/core/recovery/session_recovery_manager.dart';
@@ -64,80 +61,11 @@ class SafeModeRecoveryGate extends StatelessWidget {
   final String? message;
 
   const SafeModeRecoveryGate({super.key, required this.onRetry, this.message});
-=======
-import 'features/onboarding/fast_onboarding_screen.dart';
-
-void main() async {
-  // 1. ضمان استقرار محرك الرسوميات وربط النظام
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // 2. تثبيت اتجاه الشاشة وتحسين مظهر شريط الحالة
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  // 3. مصيدة الأخطاء الشفافة لحماية التطبيق من الانهيار المفاجئ
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
-  };
-
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Material(
-      color: const Color(0xFF0F172A),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
-                    SizedBox(width: 8),
-                    Text(
-                      "STARTUP ISSUE DETECTED",
-                      style: TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  details.exceptionAsString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: "monospace"),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  details.stack.toString(),
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontFamily: "monospace"),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  };
-
-  // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
-  runApp(
-    const ProviderScope(
-      child: DeutschApp(),
-    ),
-  );
-}
-
-class DeutschApp extends StatelessWidget {
-  const DeutschApp({super.key});
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-<<<<<<< HEAD
       home: Scaffold(
         body: Center(
           child: Padding(
@@ -147,10 +75,27 @@ class DeutschApp extends StatelessWidget {
               children: [
                 const Icon(Icons.shield_rounded, size: 64, color: Color(0xFFEF4444)),
                 const SizedBox(height: 16),
-                const Text('Safe Mode', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text(message ?? 'Repeated startup failures detected. Data is protected.', textAlign: TextAlign.center),
-                const SizedBox(height: 24),
+                const Text(
+                  'تم اكتشاف مشكلة متكررة أثناء التشغيل. تم تفعيل وضعية الاسترداد لحماية بياناتك من التلف.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                if (message != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      message!,
+                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12, fontFamily: 'monospace'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: onRetry,
                   child: const Text('Retry / Clear errors', style: TextStyle(color: Colors.white)),
@@ -158,70 +103,50 @@ class DeutschApp extends StatelessWidget {
               ],
             ),
           ),
-=======
-      title: 'Deutsch بالعربي',
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.blue,
-        fontFamily: 'Cairo',
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3B82F6),
-          brightness: Brightness.light,
->>>>>>> origin/staging/v2-full-platform-1792367411258400957
         ),
       ),
-      // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
-      home: const FastOnboardingScreen(),
     );
   }
 }
 
 void main() async {
-  // 1. ضمان استقرار محرك الرسوميات وربط النظام
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. تثبيت اتجاه الشاشة وتحسين مظهر شريط الحالة
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // 3. مصيدة الأخطاء الشفافة لحماية التطبيق من الانهيار المفاجئ
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    // Log only exception, not full stack in production to avoid data leaks
     debugPrint("[DBA][FLUTTER_ERROR] ${details.exceptionAsString()}");
   };
 
   ErrorWidget.builder = (FlutterErrorDetails details) {
+    // Sanitize for UI: no full stack traces to prevent information disclosure
     return Material(
       color: const Color(0xFF0F172A),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: SingleChildScrollView(
+          child: Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
-                    SizedBox(width: 8),
-                    Text(
-                      "STARTUP ISSUE DETECTED",
-                      style: TextStyle(color: Color(0xFFEF4444), fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  "حدث خطأ غير متوقع",
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
-                  details.exceptionAsString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: "monospace"),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  details.stack.toString(),
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontFamily: "monospace"),
+                  details.exceptionAsString().length > 200
+                      ? '${details.exceptionAsString().substring(0, 200)}...'
+                      : details.exceptionAsString(),
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -231,7 +156,6 @@ void main() async {
     );
   };
 
-  // 4. تشغيل التطبيق محاطاً بـ ProviderScope لضمان عمل كل مزودات الحالة
   runApp(const ResilientAppRoot());
 }
 
@@ -267,11 +191,11 @@ class DeutschApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
       ),
-      // نقطة الانطلاق إلى شاشة البداية الكاملة لتطبيقك
       home: const FastOnboardingScreen(),
     );
   }
 }
+
 // --- ResilientAppRoot ---
 class ResilientAppRoot extends StatefulWidget {
   const ResilientAppRoot({super.key});
@@ -296,20 +220,23 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
       final persistence = await SharedPreferencesAdapter.create();
       final guard = CrashLoopGuard(persistence);
 
-      if (await guard.isCrashLoopDetected()) {
-        setState(() {
-          isSafeMode = true;
-          isBootstrapping = false;
-        });
+      if (guard.isCrashLoopDetected()) {
+        if (mounted) {
+          setState(() {
+            isSafeMode = true;
+            isBootstrapping = false;
+          });
+        }
         return;
       }
 
-      await guard.recordFailure(); // Optimistic failure, reset on success
+      await guard.recordFailure();
 
-      // 5. Connect the canonical isolated bootstrap pipeline.
       final pipeline = IsolatedBootstrapPipeline([
         _ProductionAcceptanceStep(),
-        _SessionRecoveryStep(prefs), _FeatureRegistryStep(), _LifecycleRegistryStep(),
+        _SessionRecoveryStep(prefs),
+        _FeatureRegistryStep(),
+        _LifecycleRegistryStep(),
       ]);
 
       final results = await pipeline.runPipeline();
@@ -331,24 +258,30 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
       }
 
       if (hasFatal) {
+        if (mounted) {
+          setState(() {
+            isSafeMode = true;
+            isBootstrapping = false;
+            errorMessage = fatalMsg;
+          });
+        }
+      } else {
+        await guard.recordSuccess();
+        if (mounted) {
+          setState(() {
+            isSafeMode = false;
+            isBootstrapping = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           isSafeMode = true;
           isBootstrapping = false;
-          errorMessage = fatalMsg;
-        });
-      } else {
-        await guard.recordSuccess();
-        setState(() {
-          isSafeMode = false;
-          isBootstrapping = false;
+          errorMessage = e.toString().length > 100 ? '${e.toString().substring(0, 100)}...' : e.toString();
         });
       }
-    } catch (e) {
-      setState(() {
-        isSafeMode = true;
-        isBootstrapping = false;
-        errorMessage = e.toString();
-      });
     }
   }
 
@@ -356,6 +289,7 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
     setState(() {
       isBootstrapping = true;
       errorMessage = null;
+      isSafeMode = false;
     });
     bootstrap();
   }
@@ -443,7 +377,6 @@ class _FeatureRegistryStep extends BootstrapStep {
   @override
   Future<BootstrapStepResult> execute() async {
     final registry = FeatureCapabilityRegistry.instance;
-    // Register basic features without eager loading all databases
     registry.registerFeature('core_offline', FeatureStatus.ready);
     return const BootstrapStepResult(
       stepName: 'FeatureRegistry',
@@ -458,7 +391,6 @@ class _LifecycleRegistryStep extends BootstrapStep {
 
   @override
   Future<BootstrapStepResult> execute() async {
-    // Ensuring lifecycle registry is initialized
     final lifecycle = RuntimeLifecycleRegistry.instance;
     if (lifecycle.isDisposed) {
       return const BootstrapStepResult(
