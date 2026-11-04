@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../core/security/monotonic_clock_guard.dart';
+import '../core/srs/production_srs_engine.dart';
 
 /// The existing user_progress_v2.db ledger uses next_due_at (epoch seconds).
 /// No content pack is ever modified by this service.
@@ -32,6 +34,9 @@ class SrsReviewSchedule {
     this.isLeech = false,
   });
 
+  DateTime get nextReviewDate =>
+      DateTime.fromMillisecondsSinceEpoch(nextReviewEpoch * 1000, isUtc: true);
+
   SrsReviewState asState() => SrsReviewState(
         repetitionCount: repetitionCount,
         intervalDays: intervalDays,
@@ -51,9 +56,108 @@ class SrsSchedulerService {
   static const int secondsPerDay = 86400;
 
   final MonotonicClockGuard _clockGuard;
+  final Database? db;
 
-  SrsSchedulerService({MonotonicClockGuard? clockGuard})
+  SrsSchedulerService({MonotonicClockGuard? clockGuard, this.db})
       : _clockGuard = clockGuard ?? MonotonicClockGuard();
+
+  static SrsCardReviewResult _processReviewTask(Map<String, dynamic> args) {
+    return ProductionSrsEngine.processReview(
+      currentIntervalDays: args['interval_days'] as int,
+      currentEaseFactor: args['ease_factor'] as double,
+      currentRepetitions: args['repetition_count'] as int,
+      rating: args['rating'] as SrsRating,
+      currentTime: args['current_time'] as DateTime,
+    );
+  }
+
+  Future<SrsReviewSchedule?> processReview({
+    required String lexemeId,
+    required String targetLanguageCode,
+    required SrsRating rating,
+    required int currentTimeSeconds,
+  }) async {
+    if (db == null) throw StateError('Database not initialized in SrsSchedulerService');
+
+    return db!.transaction((txn) async {
+      final existing = await txn.query(
+        'srs_progress',
+        columns: <String>['repetition_count', 'interval_days', 'ease_factor', 'next_due_at'],
+        where: 'lexeme_id = ? AND target_language_code = ?',
+        whereArgs: <Object>[lexemeId, targetLanguageCode],
+        limit: 1,
+      );
+
+      int repetitionCount = 0;
+      int intervalDays = 1;
+      double easeFactor = 2.5;
+
+      if (existing.isNotEmpty) {
+        repetitionCount = _readPersistedCounter(existing.first['repetition_count'], 'repetition_count');
+        intervalDays = _readPersistedCounter(existing.first['interval_days'], 'interval_days');
+        easeFactor = (existing.first['ease_factor'] as num).toDouble();
+
+        // Duplicate inference: if we're reviewing it and it was just due
+        if (existing.first['next_due_at'] != null) {
+          final nextDueAt = (existing.first['next_due_at'] as num).toInt();
+          final impliedLastReview = nextDueAt - intervalDays * 86400;
+          if (currentTimeSeconds >= impliedLastReview && (currentTimeSeconds - impliedLastReview) < 300) {
+            // Treat as duplicate
+            return SrsReviewSchedule(
+              repetitionCount: repetitionCount,
+              intervalDays: intervalDays,
+              easeFactor: easeFactor,
+              nextReviewEpoch: nextDueAt,
+            );
+          }
+        }
+      }
+
+      final result = await compute(_processReviewTask, {
+        'interval_days': intervalDays,
+        'ease_factor': easeFactor,
+        'repetition_count': repetitionCount,
+        'rating': rating,
+        'current_time': DateTime.fromMillisecondsSinceEpoch(currentTimeSeconds * 1000, isUtc: true),
+      });
+
+      final nextReviewEpoch = result.nextReviewDate.millisecondsSinceEpoch ~/ 1000;
+      final isLeech = result.repetitionCount > 0 && result.easeFactor <= (minimumEaseFactor + 0.15) && rating != SrsRating.good && rating != SrsRating.easy;
+
+      final values = <String, Object?>{
+        'target_language_code': targetLanguageCode,
+        'repetition_count': result.repetitionCount,
+        'interval_days': result.nextIntervalDays,
+        'ease_factor': result.easeFactor,
+        'next_due_at': nextReviewEpoch,
+        'status': isLeech
+            ? 'leech'
+            : (result.repetitionCount > 1 ? 'review' : 'learning'),
+      };
+
+      if (existing.isEmpty) {
+        await txn.insert('srs_progress', <String, Object?>{
+          'lexeme_id': lexemeId,
+          ...values,
+        });
+      } else {
+        await txn.update(
+          'srs_progress',
+          values,
+          where: 'lexeme_id = ? AND target_language_code = ?',
+          whereArgs: <Object>[lexemeId, targetLanguageCode],
+        );
+      }
+
+      return SrsReviewSchedule(
+        repetitionCount: result.repetitionCount,
+        intervalDays: result.nextIntervalDays,
+        easeFactor: result.easeFactor,
+        nextReviewEpoch: nextReviewEpoch,
+        isLeech: isLeech,
+      );
+    });
+  }
 
   SrsReviewSchedule calculate({
     required int grade,
