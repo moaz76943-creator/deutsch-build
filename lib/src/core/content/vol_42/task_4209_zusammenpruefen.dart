@@ -1,0 +1,24 @@
+// Sovereign Polyglot Core - Task 4209 (Supply Chain)
+class Task4209Engine {
+  static const int taskId = 4209;
+  static const String domain = 'Supply Chain';
+  static const String verbInfinitive = 'zusammenpruefen';
+  static const String praeteritum = 'pruefte zusammen';
+  static const String perfekt = 'hat zusammengeprueft';
+  static const String arabicTranslation = 'تجميع / توحيد التدقيق (سلاسل الإمداد)';
+  static const String ipaTranscription = '[zusammenˈˈpʁyːfn̩]';
+  static const String valencyCase = 'Akkusativ';
+  static const String cefrLevel = 'B2';
+  static const String audioAssetPath = 'assets/audio/de/task_4209_zusammenpruefen.ogg';
+  static const String exampleGerman = 'Wir muessen den Prozess in der Logistikzentrale zusammenpruefen.';
+  static const String exampleArabic = 'يجب علينا تجميع / توحيد التدقيق في مركز العمليات اللوجستية.';
+
+  static Map<String, dynamic> toDescriptor() => {
+    'taskId': taskId, 'domain': domain, 'verb': verbInfinitive,
+    'praeteritum': praeteritum, 'perfekt': perfekt, 'arabic': arabicTranslation,
+    'ipa': ipaTranscription, 'case': valencyCase, 'cefr': cefrLevel,
+    'audio': audioAssetPath, 'example_de': exampleGerman, 'example_ar': exampleArabic
+  };
+
+  static bool validateSyntax() => verbInfinitive.isNotEmpty && audioAssetPath.endsWith('.ogg');
+}

@@ -1,0 +1,24 @@
+// Sovereign Polyglot Core - Task 4173 (Supply Chain)
+class Task4173Engine {
+  static const int taskId = 4173;
+  static const String domain = 'Supply Chain';
+  static const String verbInfinitive = 'aufplanen';
+  static const String praeteritum = 'plante auf';
+  static const String perfekt = 'hat aufgeplant';
+  static const String arabicTranslation = 'رفع / فتح التخطيط (سلاسل الإمداد)';
+  static const String ipaTranscription = '[aufˈˈplaːnən]';
+  static const String valencyCase = 'Akkusativ';
+  static const String cefrLevel = 'B2';
+  static const String audioAssetPath = 'assets/audio/de/task_4173_aufplanen.ogg';
+  static const String exampleGerman = 'Wir muessen den Prozess in der Logistikzentrale aufplanen.';
+  static const String exampleArabic = 'يجب علينا رفع / فتح التخطيط في مركز العمليات اللوجستية.';
+
+  static Map<String, dynamic> toDescriptor() => {
+    'taskId': taskId, 'domain': domain, 'verb': verbInfinitive,
+    'praeteritum': praeteritum, 'perfekt': perfekt, 'arabic': arabicTranslation,
+    'ipa': ipaTranscription, 'case': valencyCase, 'cefr': cefrLevel,
+    'audio': audioAssetPath, 'example_de': exampleGerman, 'example_ar': exampleArabic
+  };
+
+  static bool validateSyntax() => verbInfinitive.isNotEmpty && audioAssetPath.endsWith('.ogg');
+}

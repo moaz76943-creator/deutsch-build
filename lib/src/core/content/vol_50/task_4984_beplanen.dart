@@ -1,0 +1,24 @@
+// Sovereign Polyglot Core - Task 4984 (Civil Infrastructure)
+class Task4984Engine {
+  static const int taskId = 4984;
+  static const String domain = 'Civil Infrastructure';
+  static const String verbInfinitive = 'beplanen';
+  static const String praeteritum = 'beplante';
+  static const String perfekt = 'hat beplant';
+  static const String arabicTranslation = 'تأكيد / تزويد التخطيط (الهندسة المدنية)';
+  static const String ipaTranscription = '[beˈˈplaːnən]';
+  static const String valencyCase = 'Akkusativ';
+  static const String cefrLevel = 'B1';
+  static const String audioAssetPath = 'assets/audio/de/task_4984_beplanen.ogg';
+  static const String exampleGerman = 'Wir muessen den Prozess auf der Projektbaustelle beplanen.';
+  static const String exampleArabic = 'يجب علينا تأكيد / تزويد التخطيط في موقع المشروع الهندسي.';
+
+  static Map<String, dynamic> toDescriptor() => {
+    'taskId': taskId, 'domain': domain, 'verb': verbInfinitive,
+    'praeteritum': praeteritum, 'perfekt': perfekt, 'arabic': arabicTranslation,
+    'ipa': ipaTranscription, 'case': valencyCase, 'cefr': cefrLevel,
+    'audio': audioAssetPath, 'example_de': exampleGerman, 'example_ar': exampleArabic
+  };
+
+  static bool validateSyntax() => verbInfinitive.isNotEmpty && audioAssetPath.endsWith('.ogg');
+}
