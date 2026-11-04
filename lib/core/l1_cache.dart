@@ -5,6 +5,9 @@ class L1VocabularyCache {
   static final L1VocabularyCache _instance = L1VocabularyCache._internal();
   factory L1VocabularyCache() => _instance;
 
+  late final LruMemoryCache<String, List<Map<String, dynamic>>> _memoryCache;
+  final Map<String, CacheIdentity> _identities = {};
+
   L1VocabularyCache._internal() {
     _memoryCache = LruMemoryCache<String, List<Map<String, dynamic>>>(
       maxCapacity: 100,
@@ -14,10 +17,6 @@ class L1VocabularyCache {
       },
     );
   }
-
-  late final LruMemoryCache<String, List<Map<String, dynamic>>> _memoryCache;
-
-  final Map<String, CacheIdentity> _identities = {};
 
   int _measureSize(List<Map<String, dynamic>> items) {
     int size = 0;
