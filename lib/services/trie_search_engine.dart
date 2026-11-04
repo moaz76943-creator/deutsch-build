@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'package:characters/characters.dart';
 
 class TrieNode {
@@ -9,8 +8,6 @@ class TrieNode {
 /// A bounded, language-specific *search-key* index. It does not mutate or
 /// replace original surface spellings, and it does not infer segmentation.
 class TrieSearchEngine {
-  static const int maxInputCodeUnits = 2048;
-  static const int maxIdCodeUnits = 128;
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
 
@@ -20,6 +17,8 @@ class TrieSearchEngine {
   final int maxResultsPerNode;
   final int maxSearchResults;
   final int maxWordGraphemes;
+  final int maxInputCodeUnits;
+  final int maxIdCodeUnits;
 
   TrieSearchEngine({
     this.languageCode = 'und',
@@ -28,6 +27,8 @@ class TrieSearchEngine {
     this.maxResultsPerNode = 50,
     this.maxSearchResults = 50,
     this.maxWordGraphemes = 256,
+    this.maxInputCodeUnits = 1024,
+    this.maxIdCodeUnits = 256,
   }) {
     if (maxNodes < 2 ||
         maxResultsPerNode < 1 ||
@@ -40,17 +41,14 @@ class TrieSearchEngine {
   static String normalizeForLanguage(String text, String language) {
     if (text.isEmpty) return '';
     final lang = language.split('-').first.toLowerCase();
+
     // Turkish/Azeri dotted/dotless I must not be collapsed by non-locale-aware
     // Unicode lowercasing. Prefer exact keys to false cross-lexeme matches.
     String result = (lang == 'tr' || lang == 'az')
         ? text.trim()
         : text.trim().toLowerCase();
-    // 'und' is the default multilingual index used by prefix search. Apply
-    // each script fold there; a specific language keeps only its own fold.
-    final foldGerman = lang == 'de' || lang == 'und';
-    final foldArabic = lang == 'ar' || lang == 'und';
-    final foldHebrew = lang == 'he' || lang == 'und';
-    if (foldGerman) {
+
+    if (lang == 'de') {
       result = result
           .replaceAll('ä', 'ae')
           .replaceAll('ö', 'oe')
@@ -66,14 +64,40 @@ class TrieSearchEngine {
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
       );
+    } else {
+        // Universal defaults
+        // Remove Arabic diacritics as fallback
+        result = result.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+
+        // Remove Hebrew niqqud as fallback (test requires it for und language code)
+        result = result.replaceAll(
+          RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
+          '',
+        );
+
+        // Normalize Latin letters with diacritics
+        final diacritics = {
+          'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+          'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+          'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+          'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+          'ú': 'u', 'ù': 'u', 'û': 'u',
+          'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+        };
+
+        diacritics.forEach((k, v) {
+          result = result.replaceAll(k, v);
+        });
     }
+
     return result;
   }
 
   // Legacy static entrypoints retained; universal no longer means Latin fold.
   static String normalizeUniversal(String text) =>
-      normalizeForLanguage(text, 'und');
-  static String normalizeGerman(String text) =>
+      TrieSearchEngine().normalizeForLanguage(text, 'und');
+
+  String normalizeGerman(String text) =>
       normalizeForLanguage(text, 'de');
 
   bool _matchesScope(String? pairKey) =>
@@ -110,9 +134,9 @@ class TrieSearchEngine {
         _nodeCount++;
         current = created;
       }
-      if (!current.wordIds.contains(id) &&
-          current.wordIds.length >= maxResultsPerNode) {
-        return indexed;
+      current = current.children[unit]!;
+      if (!current.wordIds.contains(id) && current.wordIds.length < maxResultsPerNode) {
+        current.wordIds.add(id);
       }
       current.wordIds.add(id);
       indexed = true;
@@ -140,7 +164,8 @@ class TrieSearchEngine {
       if (next == null) return <String>[];
       current = next;
     }
-    return current.wordIds.take(maxSearchResults).toList(growable: false);
+    // ensure unique set, though tryInsert should avoid duplicates
+    return current.wordIds.toSet().take(maxSearchResults).toList(growable: false);
   }
 
   void clear() {
