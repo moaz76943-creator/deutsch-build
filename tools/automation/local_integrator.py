@@ -263,6 +263,29 @@ def _perform_integration(
     fast_forward = _is_ancestor(repository, original_head, candidate_head)
     merge_mode = "fast-forward" if fast_forward else "merge"
 
+    return _attempt_integration(
+        repository=repository,
+        original_head=original_head,
+        candidate=candidate,
+        candidate_head=candidate_head,
+        fast_forward=fast_forward,
+        merge_mode=merge_mode,
+        preflight=preflight,
+        gatekeeper_command=gatekeeper_command,
+    )
+
+
+def _attempt_integration(
+    *,
+    repository: Path,
+    original_head: str,
+    candidate: dict[str, Any],
+    candidate_head: str,
+    fast_forward: bool,
+    merge_mode: str,
+    preflight: dict[str, Any],
+    gatekeeper_command: Sequence[str] | None,
+) -> dict[str, Any]:
     merge_args = (
         ("merge", "--ff-only", candidate_head)
         if fast_forward
