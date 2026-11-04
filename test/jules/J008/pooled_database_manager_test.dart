@@ -15,8 +15,12 @@ void main() {
     final manager = PooledDatabaseManager(
       maxConnections: 5,
       openConnection: (code) async {
-        opened.add(code);
-        return await databaseFactory.openDatabase(inMemoryDatabasePath);
+        openCalls++;
+        final db = await databaseFactory.openDatabase(
+          inMemoryDatabasePath,
+          options: OpenDatabaseOptions(singleInstance: false),
+        );
+        return db;
       },
     );
 

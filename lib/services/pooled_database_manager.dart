@@ -62,8 +62,13 @@ class PooledDatabaseManager {
     return code;
   }
 
-  Future<Database> open(String languageCode) =>
-      _acquire(_normalizeCode(languageCode), lease: false);
+  Future<Database> open(String languageCode) => _locked(() async {
+        try {
+          return await _openLocked(_normalizeCode(languageCode));
+        } on _PoolSaturated {
+          throw StateError('All pooled content databases are in use');
+        }
+      });
 
   /// Opens [code], waiting while every slot is leased.
   /// Eviction still never closes a leased handle, so the open count stays
@@ -99,7 +104,9 @@ class PooledDatabaseManager {
         (key) => (_leases[key] ?? 0) == 0,
         orElse: () => '',
       );
-      if (evict.isEmpty) return null;
+      if (evict.isEmpty) {
+        throw const _PoolSaturated();
+      }
       await _closeLocked(evict);
     }
 
@@ -127,20 +134,18 @@ class PooledDatabaseManager {
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    final db = await _acquire(code, lease: true);
-
-    try {
-      return await action(db);
-    } finally {
+    while (true) {
+      final waiter = Completer<void>();
+      Database? leased;
+      var waiting = false;
       await _locked(() async {
-        final count = (_leases[code] ?? 1) - 1;
-        if (count == 0) {
-          _leases.remove(code);
-          final released = _slotReleased;
-          _slotReleased = null;
-          released?.complete();
-        } else {
-          _leases[code] = count;
+        try {
+          final opened = await _openLocked(code);
+          _leases[code] = (_leases[code] ?? 0) + 1;
+          leased = opened;
+        } on _PoolSaturated {
+          _slotWaiters.add(waiter);
+          waiting = true;
         }
       });
       if (waiting) {
@@ -214,7 +219,6 @@ class PooledDatabaseManager {
       });
 }
 
-class _SlotWait {
-  _SlotWait(this.gate);
-  final Future<void> gate;
+class _PoolSaturated implements Exception {
+  const _PoolSaturated();
 }
