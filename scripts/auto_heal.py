@@ -7,12 +7,73 @@ import fcntl
 from pathlib import PurePosixPath
 import sys
 import tempfile
-from tools.automation.scope_guard import ScopeGuard
+import time
+
+class ScopeGuard:
+    def __init__(self, ledger_path=".scope_guard_ledger.json"):
+        self.ledger_path = ledger_path
+        self.lock_fd = None
+
+    def _acquire_lock(self):
+        if not os.path.exists(self.ledger_path):
+            with open(self.ledger_path, 'w') as f:
+                json.dump({"leases": {}}, f)
+        self.lock_fd = open(self.ledger_path, 'r+')
+        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
+
+    def _release_lock(self):
+        if self.lock_fd:
+            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
+            self.lock_fd.close()
+            self.lock_fd = None
+
+    def claim(self, agent_id, paths):
+        self._acquire_lock()
+        try:
+            self.lock_fd.seek(0)
+            try:
+                data = json.load(self.lock_fd)
+            except json.JSONDecodeError:
+                data = {"leases": {}}
+
+            for path in paths:
+                p = PurePosixPath(path)
+                for leased_path, lease_info in data.get("leases", {}).items():
+                    lp = PurePosixPath(leased_path)
+                    if lease_info["status"] in ["CLAIM", "ACTIVE"] and lease_info["agent_id"] != agent_id:
+                        if p.is_relative_to(lp) or lp.is_relative_to(p):
+                            raise ValueError(f"Path collision: {path} conflicts with {leased_path}")
+            for path in paths:
+                data.setdefault("leases", {})[path] = {"agent_id": agent_id, "status": "CLAIM"}
+            self.lock_fd.seek(0)
+            self.lock_fd.truncate()
+            json.dump(data, self.lock_fd)
+        finally:
+            self._release_lock()
+
+    def update_status(self, agent_id, paths, status):
+        self._acquire_lock()
+        try:
+            self.lock_fd.seek(0)
+            try:
+                data = json.load(self.lock_fd)
+            except json.JSONDecodeError:
+                data = {"leases": {}}
+            for path in paths:
+                if path in data.get("leases", {}) and data["leases"][path]["agent_id"] == agent_id:
+                    data["leases"][path]["status"] = status
+            self.lock_fd.seek(0)
+            self.lock_fd.truncate()
+            json.dump(data, self.lock_fd)
+        finally:
+            self._release_lock()
 
 
 class AutoHealExecutor:
-    def __init__(self, plan_path, failures_ledger_path=".auto_heal_failures.json"):
+    def __init__(self, plan_path, attempts_file=".auto_heal_attempts.json", failures_file=".auto_heal_failures.json"):
         self.plan_path = plan_path
+        self.attempts_file = attempts_file
+        self.failures_file = failures_file
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard()
@@ -111,6 +172,27 @@ class AutoHealExecutor:
         for op in self.plan.get("operations", []):
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
+    def _check_and_increment_attempts(self, max_attempts=3):
+        plan_id = self.plan.get("plan_id")
+        if not plan_id:
+            return
+
+        attempts = {}
+        if os.path.exists(self.attempts_file):
+            try:
+                with open(self.attempts_file, 'r') as f:
+                    attempts = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
+        count = attempts.get(plan_id, 0)
+        if count >= max_attempts:
+            raise RuntimeError(f"Plan {plan_id} has reached maximum attempt limit of {max_attempts}.")
+
+        attempts[plan_id] = count + 1
+        with open(self.attempts_file, 'w') as f:
+            json.dump(attempts, f)
+
     def execute(self):
         print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
         try:
@@ -120,6 +202,13 @@ class AutoHealExecutor:
             sys.exit(1)
 
         self._verify_base_sha()
+
+        try:
+            self._check_and_increment_attempts()
+        except RuntimeError as e:
+            print(f"BLOCKED: {e}")
+            sys.exit(1)
+
         paths = self.plan.get("allowed_paths", [])
 
         attempts_data = {}
@@ -178,6 +267,19 @@ class AutoHealExecutor:
         print("Rolling back isolated repair delta...")
         self._restore_files()
 
+        plan_id = self.plan.get("plan_id")
+        if plan_id:
+            failures = []
+            if os.path.exists(self.failures_file):
+                try:
+                    with open(self.failures_file, 'r') as f:
+                        failures = json.load(f)
+                except json.JSONDecodeError:
+                    pass
+            failures.append({"plan_id": plan_id, "timestamp": time.time()})
+            with open(self.failures_file, 'w') as f:
+                json.dump(failures, f)
+
     def _apply_operation(self, op):
         op_type = op.get("type")
         path = op.get("path")
@@ -211,8 +313,10 @@ class AutoHealExecutor:
         elif op_type == "regenerate_artifact":
             if path:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                with open(path, 'w') as f:
-                    f.write(op.get("content", "regenerated"))
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, dir=os.path.dirname(path)) as tmp_f:
+                    tmp_f.write(op.get("content", "regenerated"))
+                    tmp_path = tmp_f.name
+                os.replace(tmp_path, path)
         else:
             raise ValueError(f"Unknown operation type: {op_type}")
 

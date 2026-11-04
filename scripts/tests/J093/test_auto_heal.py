@@ -12,6 +12,8 @@ import auto_heal
 class TestAutoHeal(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
+        self.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
+        self.failures_file = os.path.join(self.test_dir, ".auto_heal_failures.json")
         self.ledger_path = os.path.join(self.test_dir, ".scope_guard_ledger.json")
         self.failures_ledger_path = os.path.join(self.test_dir, ".auto_heal_failures.json")
         self.plan_path = os.path.join(self.test_dir, "plan.json")
@@ -45,14 +47,14 @@ class TestAutoHeal(unittest.TestCase):
         shutil.rmtree(self.test_dir)
 
     def test_dry_run(self):
-        executor = auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.dry_run()
 
     @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
     @patch('auto_heal.AutoHealExecutor._run_gate')
     def test_execute_success(self, mock_gate, mock_ownership):
         mock_gate.return_value = True
-        executor = auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         executor.execute()
@@ -65,7 +67,7 @@ class TestAutoHeal(unittest.TestCase):
     @patch('auto_heal.AutoHealExecutor._run_gate')
     def test_execute_failure_rollback(self, mock_gate, mock_ownership):
         mock_gate.return_value = False
-        executor = auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         with self.assertRaises(SystemExit):
@@ -76,7 +78,7 @@ class TestAutoHeal(unittest.TestCase):
         self.assertIn("bad_path", content)
 
     def test_blocked_if_gate_missing(self):
-        executor = auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
 
         with patch('os.path.exists', side_effect=lambda p: False if p == "scripts/verify_contracts.py" else True):
             self.assertFalse(executor._run_gate())
@@ -87,7 +89,7 @@ class TestAutoHeal(unittest.TestCase):
             json.dump(self.plan_data, f)
 
         with self.assertRaises(Exception) as context:
-            auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+            auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         self.assertIn("Missing signature", str(context.exception))
 
     @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
@@ -101,7 +103,7 @@ class TestAutoHeal(unittest.TestCase):
         with open(self.plan_path, 'w') as f:
             json.dump(self.plan_data, f)
 
-        executor = auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
         executor.execute()
@@ -111,8 +113,57 @@ class TestAutoHeal(unittest.TestCase):
         self.assertEqual(calls[1][0][0], ["git", "add", self.target_file])
         self.assertEqual(calls[2][0][0], ["git", "commit", "-m", "Fix(J093-TEST): Auto-heal repair [skip ci]"])
 
+    def test_bounded_attempts_limit_reached(self):
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        # Force max attempts
+        with open(self.attempts_file, 'w') as f:
+            json.dump({self.plan_data["plan_id"]: 3}, f)
+
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit
+            with self.assertRaises(SystemExit):
+                executor.execute()
+
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_persistent_failure_evidence(self, mock_gate):
+        mock_gate.return_value = False
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+        executor.guard.ledger_path = self.ledger_path
+
+        if os.path.exists(self.failures_file):
+            os.remove(self.failures_file)
+
+        with self.assertRaises(SystemExit):
+            executor.execute()
+
+        self.assertTrue(os.path.exists(self.failures_file))
+        with open(self.failures_file, 'r') as f:
+            failures = json.load(f)
+        self.assertTrue(any(f["plan_id"] == "J093-TEST" for f in failures))
+
+    def test_regenerate_artifact_atomic(self):
+        self.plan_data["operations"] = [
+            {
+                "type": "regenerate_artifact",
+                "path": self.target_file,
+                "content": "new_content"
+            }
+        ]
+        with open(self.plan_path, 'w') as f:
+            json.dump(self.plan_data, f)
+
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
+
+        # we can't easily intercept os.replace without mocking but we can verify it doesn't fail
+        # and creates the target file.
+        executor._apply_operation(self.plan_data["operations"][0])
+
+        with open(self.target_file, 'r') as f:
+            content = f.read()
+        self.assertEqual(content, "new_content")
+
     def test_scope_guard_collision(self):
-        executor = auto_heal.AutoHealExecutor(self.plan_path, self.failures_ledger_path)
+        executor = auto_heal.AutoHealExecutor(self.plan_path, self.attempts_file, self.failures_file)
         executor.guard.ledger_path = self.ledger_path
 
     @patch('auto_heal.AutoHealExecutor._run_gate')
