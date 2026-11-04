@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:deutsch_bilarabi/core/worker/persistent_cpu_worker.dart';
+import 'package:test/test.dart';
+import 'package:deutsch_app/core/worker/persistent_cpu_worker.dart';
 
 void main() {
   group('PersistentCpuWorker Lifecycle & Concurrency Tests', () {
@@ -14,9 +14,7 @@ void main() {
       worker.dispose();
     });
 
-    test(
-        'Enforces latest-wins policy: drops outdated task results when new generation starts',
-        () async {
+    test('Enforces latest-wins policy: drops outdated task results when new generation starts', () async {
       // 1. Task 1 is slow (simulating heavy parsing)
       final task1 = worker.executeTask<String>(
         computation: () async {
@@ -40,8 +38,7 @@ void main() {
       expect(results[1], equals('fresh_result_from_task_2'));
     });
 
-    test('Explicit cancellation voids pending task without crashing worker',
-        () async {
+    test('Explicit cancellation voids pending task without crashing worker', () async {
       final task = worker.executeTask<String>(
         computation: () async {
           await Future.delayed(const Duration(milliseconds: 40));
@@ -56,8 +53,7 @@ void main() {
       expect(result, isNull);
     });
 
-    test('Safe dispose prevents zombie executions and rejects new tasks',
-        () async {
+    test('Safe dispose prevents zombie executions and rejects new tasks', () async {
       worker.dispose();
       expect(worker.isDisposed, isTrue);
 
