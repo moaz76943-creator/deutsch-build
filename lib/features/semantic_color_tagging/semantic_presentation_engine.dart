@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 import 'package:deutsch_bilarabi/design_system/app_typography.dart';
 
 class SemanticPresentationMetadata {
-  final Color color;
+  final Color? color;
   final String label;
 
   const SemanticPresentationMetadata({required this.color, required this.label});
@@ -31,57 +31,96 @@ class SemanticPresentationEngine {
     final gender = ruleProvider.determineGender(word, article: article);
     final category = ruleProvider.determineCategory(word, article: article);
 
-    Color color;
-    String label;
+    final capability = ruleProvider.capabilityProfile;
 
-    // We add more data from the provider to the label to respect Requirement #5 partially
-    // Although the provider doesn't currently expose number/case, we use category
-    // to build a richer semantic label.
-    final categoryString = category == GrammaticalCategory.unknown ? '' : category.name;
+    Color? color;
+    List<String> labelParts = [];
+
+    // Noun classes for languages like Swahili
+    if (capability.hasNounClasses) {
+      final nounClass = ruleProvider.determineNounClass(word);
+      if (nounClass != null) {
+        labelParts.add('Class $nounClass');
+      }
+    }
 
     if (ruleProvider.languageCode == 'de') {
       switch (gender) {
         case GrammaticalGender.masculine:
           color = AppColors.articleDer;
-          label = 'Masculine (der) $categoryString';
+          labelParts.add('Masculine (der)');
           break;
         case GrammaticalGender.feminine:
           color = AppColors.articleDie;
-          label = 'Feminine (die) $categoryString';
+          labelParts.add('Feminine (die)');
           break;
         case GrammaticalGender.neuter:
           color = AppColors.articleDas;
-          label = 'Neuter (das) $categoryString';
+          labelParts.add('Neuter (das)');
           break;
         case GrammaticalGender.common:
         case GrammaticalGender.none:
-          color = AppColors.articleOther;
-          label = 'Other $categoryString';
+          // Keep uncolored unless we want it to be 'Other' explicitly based on category presence.
           break;
       }
     } else {
       switch (gender) {
         case GrammaticalGender.masculine:
           color = AppColors.primary;
-          label = 'Masculine $categoryString';
+          labelParts.add('Masculine');
           break;
         case GrammaticalGender.feminine:
           color = AppColors.secondary;
-          label = 'Feminine $categoryString';
+          labelParts.add('Feminine');
           break;
         case GrammaticalGender.neuter:
           color = AppColors.tertiary;
-          label = 'Neuter $categoryString';
+          labelParts.add('Neuter');
           break;
         case GrammaticalGender.common:
         case GrammaticalGender.none:
-          color = AppColors.articleOther;
-          label = 'Other $categoryString';
           break;
       }
     }
 
-    final metadata = SemanticPresentationMetadata(color: color, label: label.trim());
+    if (category != GrammaticalCategory.unknown) {
+        labelParts.add(category.name);
+    }
+
+
+    if (capability.hasCases) {
+      final gCase = ruleProvider.determineCase(word);
+      if (gCase != null && gCase != GrammaticalCase.unknown && gCase != GrammaticalCase.none) {
+        labelParts.add(gCase.name);
+      }
+    }
+
+    if (capability.hasAspect) {
+      final aspect = ruleProvider.determineAspect(word);
+      if (aspect != null && aspect != Aspect.unknown && aspect != Aspect.none) {
+        labelParts.add(aspect.name);
+      }
+    }
+
+    if (capability.hasNumber) {
+      final number = ruleProvider.determineNumber(word);
+      if (number != null && number != GrammaticalNumber.unknown && number != GrammaticalNumber.none) {
+        labelParts.add(number.name);
+      }
+    }
+
+
+    if (labelParts.isEmpty) {
+        labelParts.add(word);
+    } else if (gender == GrammaticalGender.none || gender == GrammaticalGender.common) {
+        if (labelParts.isNotEmpty && labelParts.first != word) {
+            color = AppColors.articleOther;
+        }
+    }
+
+    String label = labelParts.join(' ').trim();
+
+    final metadata = SemanticPresentationMetadata(color: color, label: label);
     _cache[cacheKey] = metadata;
     return metadata;
   }

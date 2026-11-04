@@ -4,7 +4,7 @@ import 'package:deutsch_bilarabi/features/semantic_color_tagging/semantic_presen
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 
-class MockGrammarProvider implements LanguageGrammarRuleProvider {
+class MockGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   final String languageCode;
 
@@ -17,6 +17,7 @@ class MockGrammarProvider implements LanguageGrammarRuleProvider {
 
   @override
   GrammaticalCategory determineCategory(String word, {String? article}) {
+    // Return unknown to simulate no category unless we mock it.
     return GrammaticalCategory.unknown;
   }
 
@@ -49,7 +50,9 @@ void main() {
       expect(engine.getPresentationForWord('Hund').color, AppColors.articleDer);
       expect(engine.getPresentationForWord('Freiheit').color, AppColors.articleDie);
       expect(engine.getPresentationForWord('Mädchen').color, AppColors.articleDas);
-      expect(engine.getPresentationForWord('Unbekannt').color, AppColors.articleOther);
+
+      // Unbekannt has no gender and no category -> color should be null for uncolored degradation
+      expect(engine.getPresentationForWord('Unbekannt').color, isNull);
     });
 
     test('Non-German colors use standard primary/secondary/tertiary colors', () {
@@ -68,7 +71,9 @@ void main() {
       expect(engine.getPresentationForWord('chien').color, AppColors.primary);
       expect(engine.getPresentationForWord('liberté').color, AppColors.secondary);
       expect(engine.getPresentationForWord('neuter_word').color, AppColors.tertiary);
-      expect(engine.getPresentationForWord('inconnu').color, AppColors.articleOther);
+
+      // inconnu has no gender and no category -> color should be null
+      expect(engine.getPresentationForWord('inconnu').color, isNull);
     });
 
     test('Cache behaves correctly per instance', () {
