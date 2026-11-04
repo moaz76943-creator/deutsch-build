@@ -19,6 +19,9 @@ class TestAutoHeal(unittest.TestCase):
         with open(self.target_file, 'w') as f:
             f.write("import 'bad_path';\n")
 
+        if os.path.exists(".auto_heal_attempts.json"):
+            os.remove(".auto_heal_attempts.json")
+
         self.plan_data = {
             "plan_id": "J093-TEST",
             "signature": "valid",
@@ -44,11 +47,11 @@ class TestAutoHeal(unittest.TestCase):
         executor = auto_heal.AutoHealExecutor(self.plan_path)
         executor.dry_run()
 
-    @patch('auto_heal.AutoHealExecutor._run_gate')
     @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
-    def test_execute_success(self, mock_request_ownership, mock_gate):
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_execute_success(self, mock_gate, mock_ownership):
         mock_gate.return_value = True
-        mock_request_ownership.return_value = True
+        mock_ownership.return_value = True
         executor = auto_heal.AutoHealExecutor(self.plan_path)
         executor.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
 
@@ -58,11 +61,11 @@ class TestAutoHeal(unittest.TestCase):
             content = f.read()
         self.assertIn("good_path", content)
 
-    @patch('auto_heal.AutoHealExecutor._run_gate')
     @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
-    def test_execute_failure_rollback(self, mock_request_ownership, mock_gate):
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    def test_execute_failure_rollback(self, mock_gate, mock_ownership):
         mock_gate.return_value = False
-        mock_request_ownership.return_value = True
+        mock_ownership.return_value = True
         executor = auto_heal.AutoHealExecutor(self.plan_path)
         executor.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
 
@@ -88,12 +91,12 @@ class TestAutoHeal(unittest.TestCase):
             auto_heal.AutoHealExecutor(self.plan_path)
         self.assertIn("Missing signature", str(context.exception))
 
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
     @patch('auto_heal.subprocess.check_call')
     @patch('auto_heal.AutoHealExecutor._run_gate')
-    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
-    def test_commit(self, mock_request_ownership, mock_gate, mock_check_call):
+    def test_commit(self, mock_gate, mock_check_call, mock_ownership):
         mock_gate.return_value = True
-        mock_request_ownership.return_value = True
+        mock_ownership.return_value = True
         self.plan_data["commit"] = True
         self.plan_data["branch"] = "test-branch"
         with open(self.plan_path, 'w') as f:
@@ -110,28 +113,27 @@ class TestAutoHeal(unittest.TestCase):
         self.assertEqual(calls[2][0][0], ["git", "commit", "-m", "Fix(J093-TEST): Auto-heal repair [skip ci]"])
 
     @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
-    def test_scope_guard_collision(self, mock_request_ownership):
-        mock_request_ownership.return_value = False
+    def test_scope_guard_collision(self, mock_ownership):
+        mock_ownership.return_value = False
         executor = auto_heal.AutoHealExecutor(self.plan_path)
-        executor.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
+        with self.assertRaises(SystemExit):
+            executor.execute()
 
-        with patch('sys.exit') as mock_exit:
-            mock_exit.side_effect = Exception("SystemExit")
-            with self.assertRaises(Exception):
-                executor.execute()
-
-    def test_bounded_attempts_limit(self):
+    @patch('auto_heal.AutoHealExecutor._run_gate')
+    @patch('tools.automation.scope_guard.ScopeGuard.request_ownership')
+    def test_bounded_attempts(self, mock_ownership, mock_gate):
+        mock_ownership.return_value = True
+        mock_gate.return_value = True
         executor = auto_heal.AutoHealExecutor(self.plan_path)
-        executor.attempts_file = os.path.join(self.test_dir, ".auto_heal_attempts.json")
 
-        # Max attempts reached
-        with open(executor.attempts_file, 'w') as f:
-            json.dump({"J093-TEST": 3}, f)
+        for _ in range(3):
+            executor.execute()
 
-        with patch('sys.exit') as mock_exit:
-            mock_exit.side_effect = Exception("SystemExit")
-            with self.assertRaises(Exception):
-                executor.execute()
+        with self.assertRaises(SystemExit):
+            executor.execute()
+
+        if os.path.exists(".auto_heal_attempts.json"):
+            os.remove(".auto_heal_attempts.json")
 
 if __name__ == '__main__':
     unittest.main()

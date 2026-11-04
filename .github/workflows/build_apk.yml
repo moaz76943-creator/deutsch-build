@@ -65,7 +65,7 @@ jobs:
           sha256sum deutsch-app.apk > deutsch-app.apk.sha256
           sha256sum --check deutsch-app.apk.sha256
       - name: Publish Direct APK Release
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
+        uses: ncipollo/release-action@v1
         with:
           artifacts: "deutsch-app.apk,deutsch-app.apk.sha256"
           tag: "latest"

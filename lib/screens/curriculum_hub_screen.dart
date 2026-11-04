@@ -45,6 +45,11 @@ class _CurriculumHubScreenState extends State<CurriculumHubScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView.separated(
               padding: const EdgeInsets.all(16),
+              // Performance: bound pre-build area beyond the viewport.
+              cacheExtent: 300,
+              // Pure card items; no persistent state to keep alive when off-screen.
+              // Disabling reduces memory pressure on longer mission lists.
+              addAutomaticKeepAlives: false,
               itemCount: _missions.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {

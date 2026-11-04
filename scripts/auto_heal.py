@@ -7,8 +7,8 @@ import fcntl
 from pathlib import PurePosixPath
 import sys
 import tempfile
-
 from tools.automation.scope_guard import ScopeGuard
+
 
 class AutoHealExecutor:
     def __init__(self, plan_path):
@@ -16,8 +16,8 @@ class AutoHealExecutor:
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
         self.guard = ScopeGuard(owner=self.agent_id)
-        for path in self.plan.get("allowed_paths", []):
-            self.guard.add_allowed_path(path)
+        self.attempts_file = ".auto_heal_attempts.json"
+        self.max_attempts = 3
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
         self.MAX_ATTEMPTS = 3
         self.attempts_file = ".auto_heal_attempts.json"
@@ -89,28 +89,26 @@ class AutoHealExecutor:
         self._verify_base_sha()
         paths = self.plan.get("allowed_paths", [])
 
-        # Bounded attempts logic
         attempts_data = {}
         if os.path.exists(self.attempts_file):
-            try:
-                with open(self.attempts_file, 'r') as f:
-                    attempts_data = json.load(f)
-            except Exception:
-                pass
+            with open(self.attempts_file, 'r') as f:
+                attempts_data = json.load(f)
 
+        plan_id = self.plan.get("plan_id", "unknown")
         attempts = attempts_data.get(plan_id, 0)
-        if attempts >= self.MAX_ATTEMPTS:
-            print(f"Failed: Max attempts ({self.MAX_ATTEMPTS}) reached for plan {plan_id}.")
+
+        if attempts >= self.max_attempts:
+            print(f"Execution blocked: Maximum attempts ({self.max_attempts}) reached for plan {plan_id}.")
             sys.exit(1)
 
         attempts_data[plan_id] = attempts + 1
         with open(self.attempts_file, 'w') as f:
             json.dump(attempts_data, f)
 
-        # Path ownership logic
         for path in paths:
+            self.guard.add_allowed_path(path)
             if not self.guard.request_ownership(path):
-                print(f"Failed to claim lease for path: {path}")
+                print(f"Failed to claim lease for {path}")
                 sys.exit(1)
 
         self._backup_files()

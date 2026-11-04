@@ -3,7 +3,7 @@ import 'package:deutsch_bilarabi/services/play_integrity_service.dart';
 import 'isolated_bootstrap_pipeline.dart';
 
 /// Bootstrap step that requests a Play Integrity token for app/device attestation.
-///
+/// 
 /// Non-critical by default (recoverable) so offline/dev builds can start.
 /// In production, treat failed attestation as recoverable and gate premium/backend features.
 /// Always verify the token on a backend before trusting it.
@@ -12,8 +12,7 @@ class IntegrityBootstrapStep extends BootstrapStep {
   String get name => 'PlayIntegrityAttestation';
 
   @override
-  bool get isCritical =>
-      false; // Keep startup resilient; gate features separately.
+  bool get isCritical => false; // Keep startup resilient; gate features separately.
 
   @override
   Duration get timeout => const Duration(seconds: 8);
@@ -23,8 +22,7 @@ class IntegrityBootstrapStep extends BootstrapStep {
     try {
       final token = await PlayIntegrityService.requestIntegrityToken();
       if (token == null || token.isEmpty) {
-        debugPrint(
-            '[DBA][INTEGRITY] No token received (not configured or failed). Premium features will be gated.');
+        debugPrint('[DBA][INTEGRITY] No token received (not configured or failed). Premium features will be gated.');
         return const BootstrapStepResult(
           stepName: 'PlayIntegrityAttestation',
           status: BootstrapStepStatus.recoverableFailure,
@@ -34,8 +32,7 @@ class IntegrityBootstrapStep extends BootstrapStep {
 
       // Store token securely for later use (e.g. with backend calls).
       // In a real app, send to backend immediately or cache encrypted.
-      debugPrint(
-          '[DBA][INTEGRITY] Token obtained (length=${token.length}). Verify server-side before sensitive ops.');
+      debugPrint('[DBA][INTEGRITY] Token obtained (length=${token.length}). Verify server-side before sensitive ops.');
       return const BootstrapStepResult(
         stepName: 'PlayIntegrityAttestation',
         status: BootstrapStepStatus.success,
