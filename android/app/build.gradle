@@ -93,4 +93,6 @@ flutter {
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'
+    // Enables Baseline Profiles on API 24-28 and local verification
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
 }
