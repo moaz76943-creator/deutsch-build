@@ -35,34 +35,53 @@ abstract class BootstrapStep {
   Duration? get timeout => null;
 }
 
-/// Runs startup phases with a hard time budget.
-///
-/// A hung optional service (TTS, audio, session metadata) cannot freeze the
-/// splash, and thrown exception text is never copied into the result. Callers
-/// render only the stable [BootstrapStepResult.message] they choose to show.
+/// Bounded sequential bootstrap: each dependency is probed once, and a fatal
+/// failure prevents dependent steps from running. Timeouts do not cancel the
+/// underlying future; callers must ignore obsolete results after disposal.
 class IsolatedBootstrapPipeline {
-  /// Budget used when a step does not override [BootstrapStep.timeout].
-  /// Long enough for a local preferences read, short enough that a stuck
-  /// phase cannot hold the splash open.
-  static const Duration startupStepBudget = Duration(seconds: 8);
-
   final List<BootstrapStep> steps;
   final Duration defaultStepTimeout;
 
   IsolatedBootstrapPipeline(
     this.steps, {
-    this.defaultStepTimeout = startupStepBudget,
+    this.defaultStepTimeout = const Duration(seconds: 6),
   });
 
   Future<List<BootstrapStepResult>> runPipeline() async {
     final results = <BootstrapStepResult>[];
-
     for (final step in steps) {
-      final result = await _runBounded(step);
-      results.add(result);
-      if (result.status == BootstrapStepStatus.fatalFailure) {
-        break;
+      BootstrapStepResult result;
+      try {
+        final received = await step.execute().timeout(
+              step.timeout ?? defaultStepTimeout,
+            );
+        result = BootstrapStepResult(
+          stepName: step.name,
+          status: !step.isCritical &&
+                  received.status == BootstrapStepStatus.fatalFailure
+              ? BootstrapStepStatus.recoverableFailure
+              : received.status,
+          message: received.message,
+        );
+      } on TimeoutException {
+        result = BootstrapStepResult(
+          stepName: step.name,
+          status: step.isCritical
+              ? BootstrapStepStatus.fatalFailure
+              : BootstrapStepStatus.recoverableFailure,
+          message: 'Phase timed out',
+        );
+      } catch (_) {
+        result = BootstrapStepResult(
+          stepName: step.name,
+          status: step.isCritical
+              ? BootstrapStepStatus.fatalFailure
+              : BootstrapStepStatus.recoverableFailure,
+          message: 'Phase failed',
+        );
       }
+      results.add(result);
+      if (result.status == BootstrapStepStatus.fatalFailure) break;
     }
     return results;
   }
