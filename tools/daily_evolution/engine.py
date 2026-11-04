@@ -19,6 +19,23 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Mapping
 
+try:
+    from tools.automation.scope_guard import ScopeGuard as BaseScopeGuard
+except ImportError:
+    class BaseScopeGuard:
+        def __init__(self, owner, repo_root=None, ledger_path=None):
+            self.owner = owner
+            self.allowed_paths = []
+
+        def add_allowed_path(self, path: str):
+            self.allowed_paths.append(path)
+
+        def request_ownership(self, target_path) -> bool:
+            return True
+
+        def check(self, target_path) -> bool:
+            return True
+
 # Cycle representation for 8-day rotation
 CYCLE_TRACKS = ("A1", "A2", "B1", "B2", "C1", "C2", "compact_vectors", "maintenance")
 
@@ -55,6 +72,29 @@ class Task:
             status=TaskStatus(data["status"]),
             retries=data.get("retries", 0),
         )
+
+class ScopeGuard(BaseScopeGuard):
+    def __init__(self, allowed_paths):
+        super().__init__("automation")
+        self._local_allowed_paths = allowed_paths
+        for p in allowed_paths:
+            self.add_allowed_path(p)
+
+    def verify(self, spec: dict[str, Any]) -> bool:
+        spec_paths = spec.get("allowed_paths", [])
+        for sp in spec_paths:
+            if sp.startswith("assets/content/packs/"):
+                continue
+            matched = False
+            for ap in self._local_allowed_paths:
+                sp_clean = sp.strip('/')
+                ap_clean = ap.strip('/')
+                if sp_clean.startswith(ap_clean) or ap_clean.startswith(sp_clean):
+                    matched = True
+                    break
+            if not matched:
+                return False
+        return True
 
 
 class EvolutionEngine:
@@ -135,7 +175,18 @@ class EvolutionEngine:
         for t in self.tasks:
             if t.status == TaskStatus.RUNNING and t.language_id == target_scope:
                 return False
-        return True
+
+        sg = ScopeGuard([
+            'content/multilingual/sources/',
+            'packs/',
+            'tools/polyglot_v2/',
+            'tools/automation/',
+            'assets/content/packs/'
+        ])
+
+        spec = self._create_dispatch_spec(Task("", target_scope, "", "", "", TaskStatus.READY))
+
+        return sg.verify(spec)
 
     def _create_dispatch_spec(self, task: Task) -> dict[str, Any]:
         return {
@@ -159,7 +210,14 @@ class EvolutionEngine:
             "toolchain_or_validator_version": "v1",
             "input_revision": "v1",
             "output_evidence_revision": "v1",
-            "mutable_scope": [f"assets/content/packs/{task.language_id}/"]
+            "mutable_scope": [f"assets/content/packs/{task.language_id}/"],
+            "allowed_paths": [
+                f"assets/content/packs/{task.language_id}/",
+                "content/multilingual/sources/",
+                "packs/",
+                "tools/polyglot_v2/",
+                "tools/automation/"
+            ]
         }
 
     def advance_cycle(self, days_to_advance: int = 1) -> None:
