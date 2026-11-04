@@ -30,6 +30,10 @@ class StableFlow extends AdaptationReason {
   const StableFlow();
 }
 
+class UnverifiedCefrBlock extends AdaptationReason {
+  const UnverifiedCefrBlock();
+}
+
 class AdaptationDecision {
   final AdaptationAction action;
   final AdaptationReason reason;
@@ -120,10 +124,16 @@ class AdaptiveCognitiveEngine {
         final latency = m.responseLatency.inMilliseconds;
         return latency >= 0 && latency < 2000;
       });
+      final allVerified = recentWindow.every((m) => m.isCefrVerified);
 
       if (allCorrect && isFast && recentWindow.length >= 3) {
-        decision = const AdaptationDecision(
-            AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        if (!allVerified) {
+          decision = const AdaptationDecision(
+              AdaptationAction.maintainFlow, UnverifiedCefrBlock());
+        } else {
+          decision = const AdaptationDecision(
+              AdaptationAction.deepenLinguisticChallenge, ConsistentMastery());
+        }
       } else {
         decision = const AdaptationDecision(
             AdaptationAction.maintainFlow, StableFlow());
