@@ -11,13 +11,12 @@ from tools.automation.scope_guard import ScopeGuard
 
 
 class AutoHealExecutor:
-    def __init__(self, plan_path):
+    def __init__(self, plan_path, failures_ledger_path=".auto_heal_failures.json"):
         self.plan_path = plan_path
         self.plan = self._load_plan()
         self.agent_id = "AutoHeal_J093"
-        self.guard = ScopeGuard(owner=self.agent_id)
-        self.attempts_file = ".auto_heal_attempts.json"
-        self.max_attempts = 3
+        self.guard = ScopeGuard()
+        self.failures_ledger_path = failures_ledger_path
         self.backup_dir = tempfile.mkdtemp(prefix="auto_heal_backup_")
         self.MAX_ATTEMPTS = 3
         self.attempts_file = ".auto_heal_attempts.json"
@@ -47,6 +46,35 @@ class AutoHealExecutor:
                 print(f"Warning: Current SHA {current_sha} does not match plan BASE_SHA {self.plan['base_sha']}")
         except Exception:
             pass
+
+    def _check_bounded_attempts(self, max_attempts=3):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        if not os.path.exists(self.failures_ledger_path):
+            return
+        try:
+            with open(self.failures_ledger_path, 'r') as f:
+                data = json.load(f)
+            attempts = data.get("failures", {}).get(plan_id, 0)
+            if attempts >= max_attempts:
+                raise RuntimeError(f"Execution blocked: Plan {plan_id} has already failed {attempts} times (max {max_attempts}).")
+        except json.JSONDecodeError:
+            pass
+
+    def _record_failure(self):
+        plan_id = self.plan.get('plan_id', 'unknown')
+        data = {"failures": {}}
+        if os.path.exists(self.failures_ledger_path):
+            try:
+                with open(self.failures_ledger_path, 'r') as f:
+                    data = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
+        data.setdefault("failures", {})
+        data["failures"][plan_id] = data["failures"].get(plan_id, 0) + 1
+
+        with open(self.failures_ledger_path, 'w') as f:
+            json.dump(data, f)
 
     def _backup_files(self):
         for path in self.plan.get("allowed_paths", []):
@@ -84,8 +112,13 @@ class AutoHealExecutor:
             print(f"Would execute: {op.get('type')} on {op.get('path', 'unknown')}")
 
     def execute(self):
-        plan_id = self.plan.get('plan_id', 'unknown')
-        print(f"Executing plan: {plan_id}")
+        print(f"Executing plan: {self.plan.get('plan_id', 'unknown')}")
+        try:
+            self._check_bounded_attempts()
+        except RuntimeError as e:
+            print(e)
+            sys.exit(1)
+
         self._verify_base_sha()
         paths = self.plan.get("allowed_paths", [])
 
@@ -119,6 +152,7 @@ class AutoHealExecutor:
 
             if not self._run_gate():
                 print("Verification failed. Rolling back...")
+                self._record_failure()
                 self.rollback()
                 sys.exit(1)
 
@@ -129,6 +163,7 @@ class AutoHealExecutor:
 
         except Exception as e:
             print(f"Error during execution: {e}. Rolling back...")
+            self._record_failure()
             self.rollback()
             sys.exit(1)
 
