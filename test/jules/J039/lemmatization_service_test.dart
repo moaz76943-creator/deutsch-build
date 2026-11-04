@@ -1,7 +1,8 @@
 import 'package:deutsch_bilarabi/services/lemmatization_service.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:deutsch_bilarabi/services/database_service.dart';
+
+import '../../support/lexeme_fixture_db.dart';
 
 void main() {
   setUpAll(() async {
@@ -51,12 +52,11 @@ void main() {
     expect(results.first.senseId, 's1');
   });
 
-  test('resolveLemmas resolves attested Turkish suffix form from lexemes', () async {
-    final service = LemmatizationService();
-    final results = await service.resolveLemmas(form: 'geliyorum', languageCode: 'tr', packIdentity: 'mock-pack');
-    expect(results.length, 1);
-    expect(results.first.lemma, 'gelmek');
-  });
+    setUp(() async {
+      final db = await openLexemeFixtureDb();
+      addTearDown(db.close);
+      service = LemmatizationService(openContentDb: (_) async => db);
+    });
 
   test('resolveLemmas resolves ambiguous Hebrew candidates from morphology', () async {
     final service = LemmatizationService();

@@ -48,10 +48,10 @@ void main() {
           return const AgglutinativeSuffixStripper();
         }),
       ],
-      child: const MyApp(),
+      child: const DeutschApp(),
     ));
 
-    expect(find.byType(MyApp), findsOneWidget);
+    expect(find.byType(DeutschApp), findsOneWidget);
     expect(storage.manifestReads, 0);
     expect(storage.integrityScans, 0);
     expect(linguisticAllocations, 0);
@@ -62,7 +62,7 @@ void main() {
     expect(storage.manifestReads, 0);
     expect(storage.integrityScans, 0);
 
-    final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
+    final container = ProviderScope.containerOf(tester.element(find.byType(DeutschApp)));
     final suffix = container.read(agglutinativeSuffixStripperProvider);
     expect(suffix, isA<AgglutinativeSuffixStripper>());
     expect(linguisticAllocations, 1);

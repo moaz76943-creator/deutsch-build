@@ -354,28 +354,44 @@ class _StartupBoundaryState extends State<StartupBoundary> {
       case StartupState.READY:
         return widget.child;
       case StartupState.DEGRADED:
-        if (_contentAvailable) {
-          return Column(
-            children: [
-              Material(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text(
-                      'بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'),
-                ),
-              ),
-              Expanded(child: widget.child),
-            ],
+        // Explicit crash-recovery sessions may expose only verified content.
+        // A normal zero-pack first launch is still allowed below.
+        if (_safeSession && !_contentAvailable) {
+          return _recoveryScreen(
+            icon: Icons.health_and_safety_outlined,
+            title: 'لا تتوفر حزمة محلية موثوقة',
+            description: 'يظل الوضع الآمن مفعلًا ولا يمكن فتح محتوى غير متحقق منه. '
+                'بيانات التقدّم محفوظة.',
+            retry: null,
           );
         }
-        return _recoveryScreen(
-          icon: Icons.menu_book_outlined,
-          title: 'المحتوى غير متاح حاليًا',
-          description:
-              'تعذر التحقق من حزمة اللغة المحلية. بيانات التعلّم محفوظة. '
-              'يمكنك المحاولة مجددًا بعد التأكد من تثبيت الحزمة.',
-          retry: _manualRetries < 1 && !_safeSession ? _retry : null,
+        // Missing optional content is not a broken learner database.
+        // Keep offline onboarding/settings reachable with zero packs.
+        // Feature-specific repositories must still reject missing packs.
+        return Column(
+          children: [
+            Material(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      _contentAvailable
+                          ? 'بعض الميزات الاختيارية غير متاحة. يمكنك المتابعة دون اتصال.'
+                          : 'حزمة اللغة غير متاحة حاليًا. يمكنك فتح التطبيق دون اتصال؛ '
+                              'التعلّم بهذا المحتوى يتطلب حزمة محلية متحققًا منها. '
+                              'بيانات التقدّم محفوظة.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(child: widget.child),
+          ],
         );
       case StartupState.SAFE_MODE:
         return _recoveryScreen(
@@ -410,36 +426,46 @@ class _StartupBoundaryState extends State<StartupBoundary> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Directionality(
-                textDirection: TextDirection.rtl,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 52),
-                    const SizedBox(height: 20),
-                    Text(title, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 12),
-                    Text(description, textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
-                    if (retry != null)
-                      FilledButton(
-                        onPressed: retry,
-                        child: const Text('إعادة المحاولة مرة واحدة'),
-                      ),
-                    if (secondaryAction != null) ...[
-                      const SizedBox(height: 8),
-                      OutlinedButton(
-                        onPressed: secondaryAction,
-                        child: Text(secondaryLabel ?? 'متابعة دون اتصال'),
-                      ),
-                    ],
-                    if (retry == null && secondaryAction == null)
-                      const Text('لا توجد محاولات استعادة إضافية لهذه الجلسة.'),
-                  ],
+          // A recovery message must remain operable on a small phone, with
+          // accessibility text scaling or the keyboard open. Never clip the
+          // retry and safe-offline actions during an error.
+          child: SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, size: 52),
+                        const SizedBox(height: 20),
+                        Text(title,
+                            style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 12),
+                        Text(description, textAlign: TextAlign.center),
+                        const SizedBox(height: 24),
+                        if (retry != null)
+                          FilledButton(
+                            onPressed: retry,
+                            child: const Text('إعادة المحاولة مرة واحدة'),
+                          ),
+                        if (secondaryAction != null) ...[
+                          const SizedBox(height: 8),
+                          OutlinedButton(
+                            onPressed: secondaryAction,
+                            child: Text(
+                                secondaryLabel ?? 'متابعة دون اتصال'),
+                          ),
+                        ],
+                        if (retry == null && secondaryAction == null)
+                          const Text(
+                              'لا توجد محاولات استعادة إضافية لهذه الجلسة.'),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

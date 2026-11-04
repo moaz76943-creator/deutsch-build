@@ -23,6 +23,33 @@ void main() {
     OfflineAudioPool().stop();
   });
 
+  const MethodChannel channel = MethodChannel('flutter_tts');
+
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      switch (methodCall.method) {
+        case 'awaitSpeakCompletion':
+          return 1;
+        case 'setLanguage':
+          final language = '${methodCall.arguments}';
+          if (language.toLowerCase().startsWith('zz')) return 0;
+          return 1;
+        case 'setSpeechRate':
+        case 'speak':
+        case 'stop':
+          return 1;
+        default:
+          return null;
+      }
+    });
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  });
+
   test('OfflineAudioDispatcher prevents stale callbacks on fast stops', () async {
     // We expect the speakText to return false on stop before completion,
     // or properly handle MissingPluginException in headless.

@@ -11,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private lateinit var pronunciationSignalProbe: AndroidPronunciationSignalProbe
+    private lateinit var offlineVoiceProbe: AndroidOfflineVoiceCapabilityProbe
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -43,17 +44,17 @@ class MainActivity : FlutterActivity() {
             AndroidPronunciationSignalProbe.CHANNEL_NAME,
         ).setMethodCallHandler(pronunciationSignalProbe)
 
-        // Play Integrity API for app and device attestation (required for production integrity protection)
+        offlineVoiceProbe = AndroidOfflineVoiceCapabilityProbe(this)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             AndroidPlayIntegrityManager.CHANNEL_NAME,
         ).setMethodCallHandler(AndroidPlayIntegrityManager(this))
 
-        // Root and debugger detection
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            AndroidRootDetector.CHANNEL_NAME,
-        ).setMethodCallHandler(AndroidRootDetector(this))
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::offlineVoiceProbe.isInitialized) {
+            offlineVoiceProbe.destroy()
+        }
     }
 
     override fun onRequestPermissionsResult(

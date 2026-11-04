@@ -1,249 +1,119 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/testing.dart';
 import 'package:deutsch_bilarabi/services/pack_downloader_service.dart';
 
-// Mock MockHttpClient implementation
-class MockHttpClient extends http.BaseClient {
-  final Map<String, List<int>> resources;
-  final Map<String, String> etags;
-  final bool simulateNetworkFailure;
-  int retryCount = 0;
-
-  MockHttpClient({
-    required this.resources,
-    required this.etags,
-    this.simulateNetworkFailure = false,
-  });
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    if (simulateNetworkFailure) {
-      retryCount++;
-      if (retryCount <= 3) { // Force retry to fail all attempts
-        throw SocketException("Network failed");
-      }
-    }
-
-    final urlStr = request.url.toString();
-    final resource = resources[urlStr];
-    if (resource == null) {
-      return http.StreamedResponse(Stream.value([]), 404);
-    }
-
-    final etag = etags[urlStr];
-    int start = 0;
-    int status = 200;
-
-    if (request.headers.containsKey('Range')) {
-      final rangeStr = request.headers['Range']!;
-      if (rangeStr.startsWith('bytes=')) {
-        start = int.parse(rangeStr.substring(6).split('-').first);
-        if (start >= resource.length) {
-          return http.StreamedResponse(Stream.value([]), 416);
-        }
-        status = 206;
-      }
-    }
-
-    final chunk = resource.sublist(start);
-    final stream = Stream.fromIterable([chunk]);
-    final headers = <String, String>{};
-    if (etag != null) {
-      headers['etag'] = etag;
-    }
-
-    return http.StreamedResponse(stream, status, headers: headers);
-  }
-}
-
+/// Regression tests against the current requestDownload API. In particular,
+/// text or checksum-valid non-SQLite bytes are never installed as content.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences.setMockInitialValues({});
+  late Directory support;
 
-  setUpAll(() {
+  setUpAll(() async {
+    support = await Directory.systemTemp.createTemp('j015_pack_guard_');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-            const MethodChannel('plugins.flutter.io/path_provider'),
-            (MethodCall methodCall) async {
-      if (methodCall.method == 'getApplicationSupportDirectory') {
-        return '.';
-      }
-      return null;
-    });
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory') {
+          return support.path;
+        }
+        return null;
+      },
+    );
   });
 
-  setUp(() async {
-    await PackDownloaderService.resetForTest();
-    if (File('./fr.staged').existsSync()) File('./fr.staged').deleteSync();
-    if (File('./fr.etag').existsSync()) File('./fr.etag').deleteSync();
+  tearDownAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      null,
+    );
+    if (await support.exists()) await support.delete(recursive: true);
   });
 
-  tearDown(() async {
-    await PackDownloaderService.resetForTest();
+  test('Legacy download without a URL cannot claim success', () async {
+    expect(await PackDownloaderService.downloadPack('fr'), isFalse);
+    expect(PackDownloaderService.getDownloadState('fr'), isNull);
   });
 
-  test('Requires explicit user intent', () async {
-    expect(
-      () => PackDownloaderService.requestDownload(
-        languageCode: 'de',
-        downloadUrl: 'http://test/pack',
-        expectedHash: 'xyz',
-        userIntent: false,
+  test('An unknown archive is not reported as usable content', () async {
+    expect(await PackDownloaderService.isPackDownloaded('nl'), isFalse);
+  });
+
+  test('Empty language ID cannot trigger a download', () async {
+    await expectLater(
+      PackDownloaderService.requestDownload(
+        '', 'https://example.invalid/pack', '0000000000000000000000000000000000000000000000000000000000000000',
       ),
-      throwsA(isA<ArgumentError>()),
+      throwsArgumentError,
     );
   });
 
-  test('Successful download and validation', () async {
-    final bytes = utf8.encode('test dictionary data');
-    final expectedHash = sha256.convert(bytes).toString();
-
-    final client = MockHttpClient(
-      resources: {'http://test/pack': bytes},
-      etags: {'http://test/pack': 'etag123'},
+  test('Parent path traversal is rejected before any file creation',
+      () async {
+    const malicious = '../user_progress';
+    await expectLater(
+      PackDownloaderService.requestDownload(
+        malicious, 'https://example.invalid/pack', '0000000000000000000000000000000000000000000000000000000000000000',
+      ),
+      throwsArgumentError,
     );
-    PackDownloaderService.setHttpClientForTest(client);
-
-    await PackDownloaderService.requestDownload(
-      languageCode: 'fr',
-      downloadUrl: 'http://test/pack',
-      expectedHash: expectedHash,
-      userIntent: true,
-    );
-
-    final isDownloaded = await PackDownloaderService.isPackDownloaded('fr');
-    expect(isDownloaded, isTrue);
-    expect(PackDownloaderService.getPackState('fr'), PackDownloadState.installed);
+    expect(PackDownloaderService.getDownloadState(malicious), isNull);
   });
 
-  test('Rejected hash fails validation and cleans up', () async {
-    final bytes = utf8.encode('bad dictionary data');
-    final expectedHash = sha256.convert(utf8.encode('different')).toString();
-
-    final client = MockHttpClient(
-      resources: {'http://test/pack': bytes},
-      etags: {'http://test/pack': 'etag123'},
-    );
-    PackDownloaderService.setHttpClientForTest(client);
-
-    await PackDownloaderService.requestDownload(
-      languageCode: 'ru',
-      downloadUrl: 'http://test/pack',
-      expectedHash: expectedHash,
-      userIntent: true,
-    );
-
-    final isDownloaded = await PackDownloaderService.isPackDownloaded('ru');
-    expect(isDownloaded, isFalse);
-    expect(PackDownloaderService.getPackState('ru'), PackDownloadState.rejected);
+  test('Whitespace and dotted language names are rejected', () async {
+    for (final code in <String>[' fr', 'fr/../de', 'de.sqlite']) {
+      await expectLater(
+        PackDownloaderService.requestDownload(
+          code, 'https://example.invalid/pack', '0000000000000000000000000000000000000000000000000000000000000000',
+        ),
+        throwsArgumentError,
+      );
+      expect(PackDownloaderService.getDownloadState(code), isNull);
+    }
   });
 
-  test('Resumes download with same ETag', () async {
-    final bytes = utf8.encode('test dictionary data');
-    final expectedHash = sha256.convert(bytes).toString();
+  test('A matching SHA-256 of text is not a valid SQLite pack', () async {
+    final data = <int>[1, 2, 3, 4];
+    final hash = sha256.convert(data).toString();
+    final client = MockClient((_) async => http.Response.bytes(data, 200));
 
-    // Simulate partial download
-    File('./es.staged').writeAsBytesSync(bytes.sublist(0, 5));
-    File('./es.etag').writeAsStringSync('etag123');
-
-    final client = MockHttpClient(
-      resources: {'http://test/pack': bytes},
-      etags: {'http://test/pack': 'etag123'},
+    final success = await PackDownloaderService.requestDownload(
+      'nl', 'https://example.invalid/nl', hash, client: client,
     );
-    PackDownloaderService.setHttpClientForTest(client);
-
-    await PackDownloaderService.requestDownload(
-      languageCode: 'es',
-      downloadUrl: 'http://test/pack',
-      expectedHash: expectedHash,
-      userIntent: true,
-    );
-
-    expect(PackDownloaderService.getPackState('es'), PackDownloadState.installed);
+    expect(success, isFalse);
+    expect(PackDownloaderService.getDownloadState('nl'),
+        PackDownloadState.rejected);
+    expect(await PackDownloaderService.isPackDownloaded('nl'), isFalse);
   });
 
-  test('Restarts download with different ETag', () async {
-    final bytes = utf8.encode('test dictionary data');
-    final expectedHash = sha256.convert(bytes).toString();
+  test('Mismatched SHA-256 does not produce an installed pack', () async {
+    final client = MockClient((_) async =>
+        http.Response.bytes(<int>[1, 2, 3, 4], 200));
 
-    // Simulate partial download with old ETag
-    File('./it.staged').writeAsBytesSync(bytes.sublist(0, 5));
-    File('./it.etag').writeAsStringSync('old_etag');
-
-    final client = MockHttpClient(
-      resources: {'http://test/pack': bytes},
-      etags: {'http://test/pack': 'new_etag'},
+    final result = await PackDownloaderService.requestDownload(
+      'pl', 'https://example.invalid/pl', '0000000000000000000000000000000000000000000000000000000000000000', client: client,
     );
-    PackDownloaderService.setHttpClientForTest(client);
-
-    await PackDownloaderService.requestDownload(
-      languageCode: 'it',
-      downloadUrl: 'http://test/pack',
-      expectedHash: expectedHash,
-      userIntent: true,
-    );
-
-    expect(PackDownloaderService.getPackState('it'), PackDownloadState.installed);
+    expect(result, isFalse);
+    expect(PackDownloaderService.getDownloadState('pl'),
+        PackDownloadState.rejected);
   });
 
-  test('Network failure bounds retries and fails', () async {
-    final bytes = utf8.encode('test dictionary data');
-    final expectedHash = sha256.convert(bytes).toString();
+  test('A valid BCP-47 region identifier is not a pack admission', () async {
+    final data = <int>[1, 2, 3, 4];
+    final hash = sha256.convert(data).toString();
+    final client = MockClient((_) async => http.Response.bytes(data, 200));
 
-    final client = MockHttpClient(
-      resources: {'http://test/pack': bytes},
-      etags: {'http://test/pack': 'etag123'},
-      simulateNetworkFailure: true,
+    final success = await PackDownloaderService.requestDownload(
+      'nl-NL', 'https://example.invalid/nl-NL', hash, client: client,
     );
-    PackDownloaderService.setHttpClientForTest(client);
-
-    await PackDownloaderService.requestDownload(
-      languageCode: 'tr',
-      downloadUrl: 'http://test/pack',
-      expectedHash: expectedHash,
-      userIntent: true,
-    );
-
-    expect(PackDownloaderService.getPackState('tr'), PackDownloadState.failed);
-    expect(client.retryCount, 3); // Max retries
-  });
-
-  test('Cancellation cleans up temporary files', () async {
-     // Start a download, cancel it quickly, check states.
-     // In a mock test without real async streams, we might just mock the state or let the stream run but cancel before starting.
-     // Let's pre-set state to cancelled and ensure it bails and cleans up.
-     final bytes = utf8.encode('test dictionary data');
-     final expectedHash = sha256.convert(bytes).toString();
-
-     File('./zh.staged').writeAsBytesSync(bytes.sublist(0, 5));
-     File('./zh.etag').writeAsStringSync('etag123');
-
-     final client = MockHttpClient(
-       resources: {'http://test/pack': bytes},
-       etags: {'http://test/pack': 'etag123'},
-     );
-     PackDownloaderService.setHttpClientForTest(client);
-
-     // We simulate cancellation by running requestDownload but immediately calling cancelDownload.
-     final downloadFuture = PackDownloaderService.requestDownload(
-       languageCode: 'zh',
-       downloadUrl: 'http://test/pack',
-       expectedHash: expectedHash,
-       userIntent: true,
-     );
-
-     await PackDownloaderService.cancelDownload('zh');
-     await downloadFuture;
-
-     expect(PackDownloaderService.getPackState('zh'), PackDownloadState.cancelled);
-     expect(File('./zh.staged').existsSync(), isFalse);
-     expect(File('./zh.etag').existsSync(), isFalse);
+    expect(success, isFalse);
+    expect(PackDownloaderService.getDownloadState('nl-NL'),
+        PackDownloadState.rejected);
   });
 }

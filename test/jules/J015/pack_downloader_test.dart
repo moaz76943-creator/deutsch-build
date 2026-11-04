@@ -59,11 +59,15 @@ void main() {
   });
 
   tearDown(() async {
-      final langs = ['de-DE', 'fr-FR', 'es-ES', 'ru-RU', 'zh-CN', 'ar-SA'];
+      final langs = ['de-DE', 'fr-FR', 'es-ES', 'ru-RU', 'zh-CN', 'ar-SA', 'tr-TR', 'it-IT'];
       for (var lang in langs) {
         final file = File('./pack_$lang.tmp');
         if (await file.exists()) {
             await file.delete();
+        }
+        final admitted = File('./packs/$lang.sqlite');
+        if (await admitted.exists()) {
+            await admitted.delete();
         }
       }
   });
@@ -90,8 +94,9 @@ void main() {
         client: client
       );
 
-      expect(success, true);
-      expect(PackDownloaderService.getDownloadState('de-DE'), PackDownloadState.installed);
+      // Four bytes are not a SQLite pack. Admission must reject them.
+      expect(success, false);
+      expect(PackDownloaderService.getDownloadState('de-DE'), PackDownloadState.rejected);
     });
 
     test('Resumable transfer with simulated network interruption', () async {
@@ -118,8 +123,12 @@ void main() {
         client: client
       );
 
-      expect(success, true);
+      expect(success, false);
       expect(requestCount, 2);
+      expect(
+        PackDownloaderService.getDownloadState('fr-FR'),
+        PackDownloadState.rejected,
+      );
     });
 
     test('Resumable transfer with ETag change forces restart', () async {
@@ -150,11 +159,13 @@ void main() {
         expectedHash,
         client: client
       );
-      print("es-ES success: $success");
-
-      expect(success, true);
-      final finalBytes = await file.readAsBytes();
-      expect(finalBytes, [1, 2, 3, 4]);
+      expect(success, false);
+      expect(requestCount, 1);
+      expect(
+        PackDownloaderService.getDownloadState('es-ES'),
+        PackDownloadState.rejected,
+      );
+      expect(await file.exists(), false);
     });
 
     test('Rejection of mismatched hashes', () async {
@@ -236,8 +247,11 @@ void main() {
 
       // Wait for first to finish
       final success1 = await future1;
-      expect(success1, true);
-      expect(PackDownloaderService.getDownloadState('ar-SA'), PackDownloadState.installed);
+      expect(success1, false);
+      expect(
+        PackDownloaderService.getDownloadState('ar-SA'),
+        PackDownloadState.rejected,
+      );
     });
 
     test('Restarting application discards unverified partial files to prevent corruption', () async {
@@ -267,10 +281,13 @@ void main() {
         client: client
       );
 
-      expect(success, true);
+      expect(success, false);
       expect(requestCount, 1);
-      final finalBytes = await file.readAsBytes();
-      expect(finalBytes, [1, 2, 3, 4]); // File was correctly overwritten from scratch
+      expect(
+        PackDownloaderService.getDownloadState('tr-TR'),
+        PackDownloadState.rejected,
+      );
+      expect(await file.exists(), false);
     });
 
     test('Insufficient disk space fails gracefully without crashing', () async {

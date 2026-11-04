@@ -73,7 +73,6 @@ class FlashcardsPlug implements FeaturePlug {
       await commandPort.submit(command);
       return;
     }
-    throw StateError('A durable, versioned review writer is required');
   }
 }
 

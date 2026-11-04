@@ -85,7 +85,7 @@ bash "$ROOT/scripts/build_guard.sh"
 (cd "$ROOT/android" && ./gradlew --version)
 
 snapshot_lockfile
-flutter pub get --enforce-lockfile
+with_retry flutter pub get --enforce-lockfile || fatal --code "$ERR_DEP" "Failed to get dependencies"
 assert_lockfile_unchanged
 # Reuse tracked generated content; materialize it only in checkouts where it is absent.
 if [[ ! -f "$ROOT/lib/data/generated/content_items_generated.dart" || ! -f "$ROOT/lib/data/generated/verb_conjugations_generated.dart" ]]; then
@@ -109,7 +109,7 @@ fi
 flutter build apk "--$MODE" --no-pub \
   --target-platform android-arm64 \
   --dart-define="DEUTSCH_JSON_CONTENT=${DEUTSCH_JSON_CONTENT:-false}" \
-  "${build_options[@]}"
+  "${build_options[@]}" || fatal --code "$ERR_COMP" "Flutter build failed"
 assert_lockfile_unchanged
 
 APK="$ROOT/build/app/outputs/flutter-apk/app-${MODE}.apk"

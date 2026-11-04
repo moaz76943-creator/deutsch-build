@@ -86,7 +86,7 @@ class ProfileHubScreen extends StatelessWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const OfflineStorageScreen()));
+                        builder: (_) => const LanguageManagerScreen()));
               },
               child: const Row(
                 children: <Widget>[

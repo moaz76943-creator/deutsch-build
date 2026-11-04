@@ -50,17 +50,6 @@ class SrsSchedulerService {
   static const double minimumEaseFactor = 1.3;
   static const int secondsPerDay = 86400;
 
-  // A legacy caller without an event ID still represents a durable review.
-  // Generate an isolate/restart-independent identity so its timestamp is
-  // retained in the existing journal without pretending retries deduplicate.
-  static String _newAnonymousReviewEventId() {
-    final random = math.Random.secure();
-    final nonce = List<int>.generate(16, (_) => random.nextInt(256))
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-        .join();
-    return 'LEGACY_ANON_$nonce';
-  }
-
   final MonotonicClockGuard _clockGuard;
 
   SrsSchedulerService({MonotonicClockGuard? clockGuard})
@@ -195,26 +184,9 @@ class SrsSchedulerService {
     String? reviewEventId,
     bool alignToCircadianDay = false,
   }) async {
-    // Persisted keys are exact identities. Accepting leading/trailing whitespace
-    // silently creates a second progress row for the same learner content.
-    // Reject malformed keys instead of trimming or migrating existing rows.
-    if (lexemeId.trim().isEmpty ||
-        languageCode.trim().isEmpty ||
-        lexemeId != lexemeId.trim() ||
-        languageCode != languageCode.trim()) {
-      throw ArgumentError('Invalid lexeme ID or language code');
+    if (lexemeId.trim().isEmpty || languageCode.trim().isEmpty) {
+      throw ArgumentError('A lexeme ID and language code are required');
     }
-    // A supplied event ID must never silently become a non-idempotent write.
-    // In particular, whitespace-only IDs previously bypassed the journal
-    // and could advance the same learner review on every retry. Preserve the
-    // existing null (legacy/no-ID) API without normalizing distinct IDs.
-    if (reviewEventId != null &&
-        (reviewEventId.trim().isEmpty ||
-            reviewEventId != reviewEventId.trim())) {
-      throw ArgumentError.value(
-        reviewEventId, 'reviewEventId', 'Invalid review event identity');
-    }
-    final durableEventId = reviewEventId ?? _newAnonymousReviewEventId();
     return progressDb.transaction((txn) async {
       // Ensure review events table for idempotency
       await txn.execute('''
@@ -236,59 +208,21 @@ class SrsSchedulerService {
           limit: 1,
         );
         if (existingEvent.isNotEmpty) {
-          // The review ID is an immutable command identity, not just a
-          // duplicate counter. A replay for a different card, target language
-          // or grade must never be acknowledged as the original review.
-          final committed = existingEvent.single;
-          if (committed['lexeme_id'] != lexemeId ||
-              committed['target_language_code'] != languageCode ||
-              committed['grade'] != grade) {
-            throw StateError('Review event ID reused with a conflicting payload');
-          }
-
-          // The committed review instant is immutable as well. A retry that
-          // supplies a different explicit timestamp must not be acknowledged
-          // as the original learning action. Old INTEGER-second journals
-          // cannot distinguish instants within that second; preserve their
-          // legacy replay semantics without changing the database schema.
-          final committedAt = committed['created_at'];
-          if (committedAt is! num ||
-              !committedAt.isFinite ||
-              committedAt < 0) {
-            throw StateError('Committed review has invalid timestamp');
-          }
-          if (reviewedAt != null) {
-            final attemptedMicros = reviewedAt.toUtc().microsecondsSinceEpoch;
-            final sameInstant = committedAt is int
-                ? attemptedMicros ~/ Duration.microsecondsPerSecond == committedAt
-                : (committedAt * Duration.microsecondsPerSecond).round() ==
-                    attemptedMicros;
-            if (!sameInstant) {
-              throw StateError('Review event ID reused with a conflicting timestamp');
-            }
-          }
-
-          // Idempotent: return the current durable schedule without advancing
-          // it. If the progress row is missing, fail closed rather than
-          // resurrecting a committed review and risking duplicate XP/SRS.
+          // Idempotent: already processed. Return current schedule without mutating state.
           final existing = await txn.query(
             'srs_progress',
             where: 'lexeme_id = ? AND target_language_code = ?',
             whereArgs: <Object>[lexemeId, languageCode],
             limit: 1,
           );
-          if (existing.isEmpty) {
-            throw StateError('Committed review is missing its progress row');
+          if (existing.isNotEmpty) {
+            return SrsReviewSchedule(
+              repetitionCount: _readPersistedCounter(existing.first['repetition_count'], 'repetition_count'),
+              intervalDays: _readPersistedCounter(existing.first['interval_days'], 'interval_days'),
+              easeFactor: (existing.first['ease_factor'] as num).toDouble(),
+              nextReviewEpoch: existing.first['next_due_at'] is num ? (existing.first['next_due_at'] as num).toInt() : 0,
+            );
           }
-          return SrsReviewSchedule(
-            repetitionCount: _readPersistedCounter(
-                existing.first['repetition_count'], 'repetition_count'),
-            intervalDays: _readPersistedCounter(
-                existing.first['interval_days'], 'interval_days'),
-            easeFactor: _readPersistedEaseFactor(existing.first['ease_factor']),
-            nextReviewEpoch: _readPersistedCounter(
-                existing.first['next_due_at'], 'next_due_at'),
-          );
         }
       }
 
@@ -400,20 +334,16 @@ class SrsSchedulerService {
         );
       }
 
-      // Every successful review contributes to the durable stale-review
-      // watermark. Previously null-ID calls left no journal entry, allowing
-      // older anonymous writes after restart and lost-row resurrection.
-      // Only caller-supplied IDs are eligible for exact replay deduplication.
-      await txn.insert('srs_review_events', <String, Object?>{
-        'review_event_id': durableEventId,
-        'lexeme_id': lexemeId,
-        'target_language_code': languageCode,
-        'grade': grade,
-        // Preserve subsecond ordering without changing the existing table.
-        // Legacy INTEGER epoch-second rows remain readable and comparable.
-        'created_at':
-            reviewed.microsecondsSinceEpoch / Duration.microsecondsPerSecond,
-      });
+      // Record review event for idempotency & audit ledger
+      if (reviewEventId != null && reviewEventId.trim().isNotEmpty) {
+        await txn.insert('srs_review_events', <String, Object?>{
+          'review_event_id': reviewEventId.trim(),
+          'lexeme_id': lexemeId,
+          'target_language_code': languageCode,
+          'grade': grade,
+          'created_at': reviewed.millisecondsSinceEpoch ~/ 1000,
+        });
+      }
 
       return result;
     });

@@ -1,20 +1,23 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:deutsch_bilarabi/core/lexical_repository.dart';
 import 'package:deutsch_bilarabi/design_system/widgets/app_directional_text.dart';
-import 'package:deutsch_bilarabi/features/flashcards/card_physics_helper.dart';
-import 'dart:math';
 
+import 'card_physics_helper.dart';
+
+/// Screen-independent, multiscript flashcard. Review mutations stay in the session.
 class FlashcardWidget extends StatelessWidget {
   final LexicalEntry entry;
   final Animation<double> animation;
   final VoidCallback onFlip;
 
   const FlashcardWidget({
-    Key? key,
+    super.key,
     required this.entry,
     required this.animation,
-    required this.onFlip,
-  }) : super(key: key);
+    this.onFlip,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,23 +47,33 @@ class FlashcardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildFrontSide() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+  List<Widget> _front() => <Widget>[
         AppDirectionalText(
           entry.targetTerm,
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
-          forceDirection: TextDirection.ltr,
         ),
-        if (entry.partOfSpeech.isNotEmpty) ...[
+        if (entry.partOfSpeech.trim().isNotEmpty) ...<Widget>[
+          const SizedBox(height: 12),
+          AppDirectionalText(entry.partOfSpeech, textAlign: TextAlign.center),
+        ],
+      ];
+
+  List<Widget> _back() => <Widget>[
+        AppDirectionalText(
+          entry.sourceMeaning,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        if (entry.targetExample.trim().isNotEmpty) ...<Widget>[
+          const SizedBox(height: 12),
+          AppDirectionalText(entry.targetExample, textAlign: TextAlign.center),
+        ],
+        if (entry.sourceExampleTranslation.trim().isNotEmpty) ...<Widget>[
           const SizedBox(height: 8),
           AppDirectionalText(
-            entry.partOfSpeech,
-            style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.grey),
+            entry.sourceExampleTranslation,
             textAlign: TextAlign.center,
-            forceDirection: TextDirection.ltr,
           ),
         ],
         const Spacer(),

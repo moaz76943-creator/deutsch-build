@@ -1,6 +1,12 @@
 package com.deutschbilarabi.app
 
 import android.content.Context
+import android.speech.tts.TextToSpeech
+import android.speech.tts.Voice
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
@@ -48,25 +54,37 @@ class AndroidOfflineVoiceCapabilityProbe(
     private var tts: TextToSpeech? = null
     private val isProbing = AtomicBoolean(false)
     private var pendingResult: MethodChannel.Result? = null
-    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        if (call.method == METHOD_GET_OFFLINE_VOICES) {
-            probeOfflineVoices(result)
+        if (call.method == "probe") {
+            probe(result)
         } else {
             result.notImplemented()
         }
     }
 
-    private fun probeOfflineVoices(result: MethodChannel.Result) {
+    private fun probe(result: MethodChannel.Result) {
         if (!isProbing.compareAndSet(false, true)) {
             result.success(emptyList<String>())
             return
         }
 
         pendingResult = result
-        val timeoutRunnable = Runnable { finishProbe(emptyList()) }
-        mainHandler.postDelayed(timeoutRunnable, INIT_TIMEOUT_MS)
+
+        val handler = Handler(Looper.getMainLooper())
+        val timeoutRunnable = Runnable {
+            if (isProbing.get()) {
+                finishProbe(
+                    mapOf(
+                        "version" to 1,
+                        "status" to "unavailable",
+                        "reason" to "tts_initialization_timeout"
+                    )
+                )
+            }
+        }
+
+        handler.postDelayed(timeoutRunnable, 3000)
 
         try {
             tts = TextToSpeech(context) { status ->

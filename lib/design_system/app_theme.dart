@@ -3,39 +3,30 @@ import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
-  // Use fromSeed for harmonious MD3 color schemes while keeping brand colors
-  static ThemeData get lightTheme => ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    fontFamily: 'Cairo',
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+  /// Canonical light theme for entrypoint and feature shells.
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
       brightness: Brightness.light,
-      primary: AppColors.primary,
-      secondary: AppColors.secondary,
-      tertiary: AppColors.tertiary,
-      surface: AppColors.lightSurface,
-      // MD3 surface containers for better hierarchy
-      surfaceContainerLowest: AppColors.lightBackground,
-      surfaceContainerLow: const Color(0xFFF7F2FA),
-      surfaceContainer: AppColors.lightSurface,
-      surfaceContainerHigh: const Color(0xFFECE6F0),
-      surfaceContainerHighest: const Color(0xFFE6E0E9),
-    ),
-    scaffoldBackgroundColor: AppColors.lightBackground,
-    textTheme: _textTheme,
-    appBarTheme: const AppBarTheme(
-      elevation: 0,
-      centerTitle: true,
-      backgroundColor: Colors.transparent,
-      foregroundColor: Color(0xFF1C1B1F),
-      surfaceTintColor: Colors.transparent,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(48, 48), // Accessibility: min 48dp touch target
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      fontFamily: 'Cairo',
+      scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF3B82F6),
+        brightness: Brightness.light,
+      ),
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF0B1F4D),
+      fontFamily: 'Cairo',
+      useMaterial3: true,
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFF38BDF8),
+        secondary: Color(0xFFF39C6B),
+        surface: Color(0xFF1E3A8A),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(

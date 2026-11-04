@@ -36,6 +36,7 @@ class PooledDatabaseManager {
   final Map<String, int> _leases = <String, int>{};
   final List<Completer<void>> _slotWaiters = <Completer<void>>[];
   Future<void> _mutexTail = Future<void>.value();
+  Completer<void>? _slotReleased;
 
   int get activeCount => _connections.values.where((db) => db.isOpen).length;
   List<String> get leastToMostRecentlyUsed =>
@@ -61,30 +62,44 @@ class PooledDatabaseManager {
     return code;
   }
 
-  Future<Database> open(String languageCode) => _locked(() async {
-        try {
-          return await _openLocked(_normalizeCode(languageCode));
-        } on _PoolSaturated {
-          throw StateError('All pooled content databases are in use');
-        }
-      });
+  Future<Database> open(String languageCode) =>
+      _acquire(_normalizeCode(languageCode), lease: false);
 
-  Future<Database> _openLocked(String code) async {
+  /// Opens [code], waiting while every slot is leased.
+  /// Eviction still never closes a leased handle, so the open count stays
+  /// within [maxConnections].
+  Future<Database> _acquire(String code, {required bool lease}) async {
+    while (true) {
+      final pending = await _locked<Object>(() async {
+        final opened = await _tryOpenLocked(code);
+        if (opened == null) {
+          _slotReleased ??= Completer<void>();
+          return _SlotWait(_slotReleased!.future);
+        }
+        if (lease) {
+          _leases[code] = (_leases[code] ?? 0) + 1;
+        }
+        return opened;
+      });
+      if (pending is Database) return pending;
+      await (pending as _SlotWait).gate;
+    }
+  }
+
+  Future<Database?> _tryOpenLocked(String code) async {
     final existing = _connections.remove(code);
     if (existing != null && existing.isOpen) {
       _connections[code] = existing;
       return existing;
     }
 
-    // Close excess idle connections before opening a new one
+    // Close excess idle connections before opening a new one.
     while (_connections.length >= maxConnections) {
       final evict = _connections.keys.firstWhere(
         (key) => (_leases[key] ?? 0) == 0,
         orElse: () => '',
       );
-      if (evict.isEmpty) {
-        throw const _PoolSaturated();
-      }
+      if (evict.isEmpty) return null;
       await _closeLocked(evict);
     }
 
@@ -112,18 +127,20 @@ class PooledDatabaseManager {
     Future<T> Function(Database database) action,
   ) async {
     final code = _normalizeCode(languageCode);
-    while (true) {
-      final waiter = Completer<void>();
-      Database? leased;
-      var waiting = false;
+    final db = await _acquire(code, lease: true);
+
+    try {
+      return await action(db);
+    } finally {
       await _locked(() async {
-        try {
-          final opened = await _openLocked(code);
-          _leases[code] = (_leases[code] ?? 0) + 1;
-          leased = opened;
-        } on _PoolSaturated {
-          _slotWaiters.add(waiter);
-          waiting = true;
+        final count = (_leases[code] ?? 1) - 1;
+        if (count == 0) {
+          _leases.remove(code);
+          final released = _slotReleased;
+          _slotReleased = null;
+          released?.complete();
+        } else {
+          _leases[code] = count;
         }
       });
       if (waiting) {
@@ -158,6 +175,9 @@ class PooledDatabaseManager {
     }
     final db = _connections.remove(code);
     if (db == null) return;
+    final stillReferenced =
+        _connections.values.any((other) => identical(other, db));
+    if (stillReferenced) return;
     if (db.isOpen) {
       if (_beforeClose != null) {
         try {
@@ -194,6 +214,7 @@ class PooledDatabaseManager {
       });
 }
 
-class _PoolSaturated implements Exception {
-  const _PoolSaturated();
+class _SlotWait {
+  _SlotWait(this.gate);
+  final Future<void> gate;
 }
