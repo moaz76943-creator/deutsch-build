@@ -1,0 +1,26 @@
+[
+  {
+    "inf": "verstehen",
+    "past": "verstand",
+    "perf": "hat verstanden",
+    "ar": "يفهم / يستوعب",
+    "ipa": "/fɛɐ̯ˈʃteːən/",
+    "level": "A1"
+  },
+  {
+    "inf": "entwickeln",
+    "past": "entwickelte",
+    "perf": "hat entwickelt",
+    "ar": "يطوّر / ينمّي",
+    "ipa": "/ɛntˈvɪkln̩/",
+    "level": "B1"
+  },
+  {
+    "inf": "entscheiden",
+    "past": "entschied",
+    "perf": "hat entschieden",
+    "ar": "يقرر / يحسم",
+    "ipa": "/ɛntˈʃaɪ̯dn̩/",
+    "level": "B2"
+  }
+]
