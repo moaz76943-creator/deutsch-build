@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-<<<<<<< HEAD
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'features/onboarding/fast_onboarding_screen.dart';
@@ -74,7 +73,21 @@ class SafeModeRecoveryGate extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.shield_rounded, size: 64, color: Color(0xFFEF4444)),
+                const Icon(
+                  Icons.build_circle_outlined,
+                  color: Color(0xFFF59E0B),
+                  size: 64,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'وضعية الاسترداد الآمن (Safe Mode)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'تم اكتشاف مشكلة متكررة أثناء التشغيل. تم تفعيل وضعية الاسترداد لحماية بياناتك من التلف.',
@@ -91,15 +104,31 @@ class SafeModeRecoveryGate extends StatelessWidget {
                     ),
                     child: Text(
                       message!,
-                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12, fontFamily: 'monospace'),
-                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                      ),
                     ),
                   ),
                 ],
                 const SizedBox(height: 32),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   onPressed: onRetry,
-                  child: const Text('Retry / Clear errors', style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    'إعادة المحاولة / مسح الأخطاء',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -135,19 +164,41 @@ void main() async {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 48),
-                const SizedBox(height: 16),
-                const Text(
-                  "حدث خطأ غير متوقع",
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFEF4444),
+                      size: 28,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "STARTUP ISSUE DETECTED",
+                      style: TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  details.exceptionAsString().length > 200
-                      ? '${details.exceptionAsString().substring(0, 200)}...'
-                      : details.exceptionAsString(),
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                  textAlign: TextAlign.center,
+                  details.exceptionAsString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontFamily: "monospace",
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  details.stack.toString(),
+                  style: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 10,
+                    fontFamily: "monospace",
+                  ),
                 ),
               ],
             ),
@@ -193,11 +244,7 @@ class DeutschApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('ar'),
-        Locale('en'),
-        Locale('de'),
-      ],
+      supportedLocales: const [Locale('ar'), Locale('en'), Locale('de')],
       theme: ThemeData(
         useMaterial3: true,
         primarySwatch: Colors.blue,
@@ -332,15 +379,10 @@ class _ResilientAppRootState extends State<ResilientAppRoot> {
     }
 
     if (isSafeMode) {
-      return SafeModeRecoveryGate(
-        onRetry: retry,
-        message: errorMessage,
-      );
+      return SafeModeRecoveryGate(onRetry: retry, message: errorMessage);
     }
 
-    return const ProviderScope(
-      child: DeutschApp(),
-    );
+    return const ProviderScope(child: DeutschApp());
   }
 }
 
