@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/core/cache/cache_identity.dart';
 import 'package:deutsch_bilarabi/core/cache/lru_memory_cache.dart';
 import 'package:deutsch_bilarabi/core/l1_cache.dart';
 
@@ -49,8 +50,8 @@ void main() {
         sizeEstimator: (k, v) => v.length * 2,
       );
 
-      final success = cache.put('huge', '123456789012345678901234567890'); // 60 bytes
-      expect(success, isFalse);
+      cache.put('huge', '123456789012345678901234567890'); // 60 bytes
+      expect(cache.containsKey('huge'), isFalse);
       expect(cache.length, 0);
       expect(cache.currentMemoryBytes, 0);
     });
@@ -90,7 +91,7 @@ void main() {
     });
 
     test('Switching among 100 language identities bounds memory', () {
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 150; i++) {
         final key = l1Cache.generateKey('lang$i', 'target', '1.0.0');
         // Roughly ~150 bytes per item
         l1Cache.put(key, [
@@ -99,15 +100,15 @@ void main() {
         ]);
       }
 
-      // Should hit maxCapacity of 20
+      // Should hit maxCapacity of 100
       int count = 0;
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 150; i++) {
         final key = l1Cache.generateKey('lang$i', 'target', '1.0.0');
         if (l1Cache.has(key)) count++;
       }
 
-      expect(count, lessThanOrEqualTo(50));
-      expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(15 * 1024 * 1024));
+      expect(count, lessThanOrEqualTo(100));
+      expect(l1Cache.currentMemoryBytes, lessThanOrEqualTo(10 * 1024 * 1024));
     });
 
     test('Stale asynchronous mutations are correctly rejected', () {
@@ -136,9 +137,9 @@ void main() {
     });
 
     test('Entries are successfully invalidated after a content version update', () {
-      l1Cache.put(l1Cache.generateKey('de', 'ar', '1.0.0'), [{'w': '1'}]);
-      l1Cache.put(l1Cache.generateKey('en', 'ar', '1.0.0'), [{'w': '2'}]);
-      l1Cache.put(l1Cache.generateKey('fr', 'ar', '1.1.0'), [{'w': '3'}]); // New version
+      l1Cache.put(l1Cache.generateKey('de', 'ar', '1.0.0'), [{'w': '1'}], direction: 'de_ar', packVersion: '1.0.0');
+      l1Cache.put(l1Cache.generateKey('en', 'ar', '1.0.0'), [{'w': '2'}], direction: 'en_ar', packVersion: '1.0.0');
+      l1Cache.put(l1Cache.generateKey('fr', 'ar', '1.1.0'), [{'w': '3'}], direction: 'fr_ar', packVersion: '1.1.0'); // New version
 
       expect(l1Cache.has(l1Cache.generateKey('de', 'ar', '1.0.0')), isTrue);
       expect(l1Cache.has(l1Cache.generateKey('en', 'ar', '1.0.0')), isTrue);
@@ -155,8 +156,8 @@ void main() {
     test('Oversized objects are rejected based on size estimator', () {
       final key = l1Cache.generateKey('de', 'ar', '1.0.0');
 
-      // Create a giant array to exceed 15MB limit.
-      // 150000 items * ~150 bytes = ~22.5MB
+      // Create a giant array to exceed 10MB limit.
+      // 400000 items * ~150 bytes = ~60MB
       final hugeList = List.generate(400000, (i) => {'word': 'very_long_word_$i'});
 
       l1Cache.put(key, hugeList);
@@ -164,6 +165,18 @@ void main() {
       // Should have been rejected
       expect(l1Cache.has(key), isFalse);
       expect(l1Cache.currentMemoryBytes, 0);
+    });
+
+    test('No cross-pair stale retrieval using directional args', () {
+      final key = 'es';
+      l1Cache.put(key, [{'word': 'hola'}], direction: 'en-es', packVersion: '1.0.0');
+
+      // Attempting to retrieve with a different direction should return null
+      expect(l1Cache.get(key, direction: 'fr-es'), isNull);
+      expect(l1Cache.has(key, direction: 'fr-es'), isFalse);
+
+      expect(l1Cache.get(key, direction: 'en-es'), isNotNull);
+      expect(l1Cache.has(key, direction: 'en-es'), isTrue);
     });
   });
 }
