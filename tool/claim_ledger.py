@@ -234,7 +234,9 @@ def _claim_id(task_id: str, owner_role: str, epoch: int, head_sha: str) -> str:
     # Fixed-length identity: valid maximum-length task IDs must not make the
     # generated claim_id violate this module's own 128-character ID contract.
     digest = hashlib.sha256(f"{task_id}\0{owner_role}\0{epoch}\0{head_sha}".encode()).hexdigest()[:24]
-    return f"claim/{epoch}/{digest}"
+    suffix = f"/{epoch}/{digest}"
+    limit = 128 - len("claim/") - len(suffix)
+    return f"claim/{task_id[:limit]}{suffix}"
 
 
 def acquire(
