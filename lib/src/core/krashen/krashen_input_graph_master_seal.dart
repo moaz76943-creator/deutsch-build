@@ -18,9 +18,14 @@ import 'pragmatic_speech_act_classifier.dart';
 import 'implicit_grammar_induction_engine.dart';
 import 'dynamic_story_world_simulator.dart';
 
-/// Sovereign Master Certification Seal for Volume 2 - Pillar 3 (Krashen Input Graph v2).
+/// Local component self-check results for the Krashen input graph.
+///
+/// These checks use ephemeral fixtures, not licensed production content or a
+/// connected learning pipeline, and cannot certify end-to-end readiness.
 class KrashenInputGraphMasterSeal {
-  static const String sealCertificateId = 'POLYGLOT_KRASHEN_INPUT_GRAPH_V2_MASTER_SEAL_CERTIFIED';
+  // Legacy identifier retained for callers; its value is not proof of certification.
+  static const String sealCertificateId =
+      'POLYGLOT_KRASHEN_INPUT_GRAPH_V2_MASTER_SEAL_CERTIFIED';
   static const int totalTasksInPillar = 20; // Tasks 541 to 560
   static const String version = '2.0.0-krashen-graph';
 
@@ -90,52 +95,60 @@ class KrashenInputGraphMasterSeal {
       isStorySimulatorVerified &&
       isEndToEndPipelineVerified;
 
-  /// Executes comprehensive end-to-end integration benchmark certifying all 20 Pillar 3 components.
+  /// Runs local smoke checks against the current component APIs.
+  ///
+  /// The method name is retained for compatibility. Component flags describe
+  /// only these bounded checks; end-to-end verification needs real evidence.
   static Future<KrashenInputGraphMasterSeal> executeFullCertification() async {
-    // 1. BKT
-    final bkt = BayesianKnowledgeTracingEngineV2();
-    var bktState = bkt.initializeSkill(skillId: 's1', modality: SkillModality.syntax, targetLanguage: 'ar');
-    bktState = bkt.updateMastery(currentState: bktState, isCorrect: true);
-    final bktOk = bktState.posteriorMastery > 0.10;
+    // All fixtures remain local to this call and are never production content.
+    const bkt = BayesianKnowledgeTracingEngineV2();
+    final bktOk = bkt.updateMastery(bkt.pL0, true) > bkt.pL0 &&
+        bkt.updateMastery(bkt.pL0, true) > bkt.updateMastery(bkt.pL0, false);
 
-    // 2. Affective Filter
     const aff = AffectiveFilterMonitor();
-    final affOk = aff.evaluateState(const InteractionMetrics(
-      responseLatencyMs: 1000,
-      expectedBaselineLatencyMs: 1000,
-      hesitationFillerCount: 0,
-      consecutiveErrorCount: 0,
-      sessionDurationSeconds: 100,
-    )).isOptimalReception;
+    final affOk = aff
+            .evaluateState(const InteractionMetrics(
+              responseLatencyMs: 1000,
+              expectedBaselineLatencyMs: 1000,
+              hesitationFillerCount: 0,
+              consecutiveErrorCount: 0,
+              sessionDurationSeconds: 100,
+            ))
+            .isOptimalReception &&
+        !aff
+            .evaluateState(const InteractionMetrics(
+              responseLatencyMs: 3000,
+              expectedBaselineLatencyMs: 1000,
+              hesitationFillerCount: 4,
+              consecutiveErrorCount: 3,
+              sessionDurationSeconds: 2000,
+            ))
+            .isOptimalReception;
 
-    // 3. UD Evaluator
     const ud = UniversalDependencyComplexityEvaluator();
-    final udOk = ud.evaluateSentence([
-      const UdTokenNode(id: 1, form: 'قرأ', upos: 'VERB', headId: 0, deprel: 'root'),
-    ]).tokenCount == 1;
+    final udOk = ud.evaluateDepth([0, 1, 2]) == 2 && ud.evaluateDepth([]) == 0;
 
-    // 4. Scaffolder
     const scaff = DynamicIPlusOneScaffolder();
-    final scaffOk = scaff.scaffold(baselineSentence: 'ذهب الطالب', languageCode: 'ar').isNotEmpty;
+    final scaffOk = scaff.scaffold('ذهب الطالب.', 'ar') ==
+        'ذهب الطالب في هدوء وسكينة تامة.';
 
-    // 5. FSRS v5
     const fsrs = FsrsV5SpacedRepetitionEngine();
-    final fsrsOk = fsrs.initializeNewItem('item1', FsrsRating.good, 1000).stability > 0;
+    final item = fsrs.initializeNewItem('item1', FsrsRating.good, 1000);
+    final lapse = fsrs.reviewItem(item, FsrsRating.again, item.dueEpochMs);
+    final fsrsOk = item.stability > 0 &&
+        item.dueEpochMs > 1000 &&
+        lapse.lapses == item.lapses + 1 &&
+        lapse.state == CardState.relearning &&
+        lapse.stability < item.stability;
 
-    // 6. Lexical Pacer
     final pacer = LexicalFrequencyPacerZipf();
-    pacer.registerLemmaRank('ar', 'كتاب', 100);
-    final pacerOk = pacer.analyzeText(text: 'كتاب', languageCode: 'ar').totalTokens == 1;
+    pacer.registerRank('كتاب', 100);
+    final pacerOk = pacer.getTier('كتاب') == 1 && pacer.getTier('unknown') == 4;
 
-    // 7. Input Verifier
     const verifier = ComprehensibleInputVerifier();
-    final verOk = verifier.verifyComprehensibility(
-      text: 'سلام عليكم',
-      learnerKnownLemmas: {'سلام', 'عليكم'},
-      modality: DiscourseModality.spokenDialogue,
-    ).isApprovedForDelivery || true;
+    final verOk = verifier.isComprehensible('سلام عليكم', {'سلام', 'عليكم'}) &&
+        !verifier.isComprehensible('سلام عليكم', {'سلام'});
 
-    // 8. Transfer Facilitator
     final trans = CrossLingualTransferFacilitator();
     trans.registerPair(const CrossLingualTransferPair(
       sourceLemma: 'علم',
@@ -143,61 +156,126 @@ class KrashenInputGraphMasterSeal {
       sourceLang: 'ar',
       targetLang: 'tr',
       type: CrossLingualTransferType.positiveCognateLoan,
-      pedagogicalExplanationAr: 'loan',
+      pedagogicalExplanationAr: 'local smoke fixture',
       exampleUsage: 'ilim',
     ));
-    final transOk = trans.analyzeTransfer(targetWord: 'ilim', targetLang: 'tr', learnerKnownLanguages: {'ar'}).isNotEmpty;
+    final transOk = trans.analyzeTransfer(
+              targetWord: 'ilim',
+              targetLang: 'tr',
+              learnerKnownLanguages: {'ar'},
+            ).length ==
+            1 &&
+        trans.analyzeTransfer(
+          targetWord: 'علم',
+          targetLang: 'ar',
+          learnerKnownLanguages: {'tr'},
+        ).isEmpty;
 
-    // 9. Fossilization
     final foss = FossilizationRemediationEngine();
-    foss.recordMistake(errorPatternKey: 'p1', ruleTitle: 'r1', sessionIndex: 1, nowEpochMs: 1000);
-    final fossOk = foss.trackedPatternCount == 1;
+    for (var i = 0; i < 4; i++) {
+      foss.recordMistake('p1');
+    }
+    final belowFossilizationThreshold = !foss.isFossilized('p1');
+    foss.recordMistake('p1');
+    final fossOk = belowFossilizationThreshold &&
+        foss.isFossilized('p1') &&
+        !foss.isFossilized('unseen');
 
-    // 10. Natural Order
     final ord = NaturalOrderCurriculumSequencer();
-    ord.registerMilestone(const GrammarMilestone(milestoneId: 'm1', languageCode: 'ar', stage: AcquisitionOrderStage.stage2CanonicalWordOrder, titleAr: 't'));
-    final ordOk = ord.evaluateAdmission(milestoneId: 'm1', learnerMasteredMilestones: {}, currentLearnerStage: AcquisitionOrderStage.stage2CanonicalWordOrder).isAdmissible;
+    ord.registerPrereq('m1');
+    final ordOk = !ord.isAdmissible('m2', {}) && ord.isAdmissible('m2', {'m1'});
 
-    // 11. Noticing Highlighter
     const notic = NoticingHypothesisFeatureHighlighter();
-    final noticOk = notic.highlightTargetFeatures(sentence: 'ذهب', targetMorphemes: ['ذ'], grammarRuleTitle: 'r').spans.isNotEmpty;
+    final highlighted = notic.highlightTargetFeatures(
+      sentence: 'ذهب',
+      targetMorphemes: ['ذ'],
+      grammarRuleTitle: 'r',
+    );
+    final noticOk = highlighted.spans.length == 1 &&
+        highlighted.renderedMarkup == '**ذ**هب' &&
+        notic
+            .highlightTargetFeatures(
+              sentence: 'ذهب',
+              targetMorphemes: ['x'],
+              grammarRuleTitle: 'r',
+            )
+            .spans
+            .isEmpty;
 
-    // 12. Incidental Tracker
     final inc = IncidentalVocabularyTracker();
-    inc.recordEncounter(const WordEncounterLog(lemma: 'l', languageCode: 'ar', contextType: DiscourseContextType.extensiveReading, surroundingSentence: 's', timestampEpochMs: 1000));
-    final incOk = inc.trackedWordsCount == 1;
+    for (var i = 0; i < 9; i++) {
+      inc.recordEncounter('word');
+    }
+    final belowProductiveThreshold = !inc.isProductiveReady('word');
+    inc.recordEncounter('word');
+    final incOk = belowProductiveThreshold &&
+        inc.isProductiveReady('word') &&
+        !inc.isProductiveReady('unseen');
 
-    // 13. Clue Injector
     final clue = DynamicContextualClueInjector();
-    clue.registerClue(ContextualClueEntry(targetLemma: 'x', languageCode: 'ar', strategy: ContextualClueStrategy.appositiveExplanation, cluePhrase: 'c', sentenceFormatter: (s) => '$s clue'));
-    final clueOk = clue.injectClue(baseSentence: 'base', targetLemma: 'x', languageCode: 'ar').wasInjected;
+    clue.registerClue('x', 'c');
+    final clueOk = clue.inject('base', 'x') == 'base (c)' &&
+        clue.inject('base', 'unknown') == 'base';
 
-    // 14. Narrow Reading
     final nr = NarrowReadingCurriculumGenerator();
-    nr.registerArticle(const NarrowReadingArticle(id: 'a1', domain: ThematicDomain.travelAndGeography, title: 't', passageText: 'p', targetThematicLemmas: ['w'], languageCode: 'ar'));
-    final nrOk = nr.buildCluster(domain: ThematicDomain.travelAndGeography, languageCode: 'ar').articles.isNotEmpty;
+    nr.registerArticle(const NarrowReadingArticle(
+      id: 'a1',
+      domain: ThematicDomain.travelAndGeography,
+      title: 'local fixture',
+      passageText: 'p',
+      targetThematicLemmas: ['w'],
+      languageCode: 'ar',
+    ));
+    final cluster = nr.buildCluster(
+      domain: ThematicDomain.travelAndGeography,
+      languageCode: 'ar',
+    );
+    final nrOk = cluster.articles.length == 1 &&
+        cluster.articles.first.id == 'a1' &&
+        nr
+            .buildCluster(
+              domain: ThematicDomain.travelAndGeography,
+              languageCode: 'tr',
+            )
+            .articles
+            .isEmpty;
 
-    // 15. Bimodal Sync
-    final sync = BimodalInputSynchronizer(timeline: [const WordAlignmentTimestamp(index: 0, word: 'w', startMs: 0, endMs: 100)]);
-    final syncOk = sync.getPlaybackStateAt(50).activeWord == 'w';
+    const sync =
+        BimodalInputSynchronizer(words: ['w', 'x'], timestampsMs: [100, 200]);
+    const emptySync = BimodalInputSynchronizer(words: [], timestampsMs: []);
+    final syncOk = sync.getActiveIndex(50) == 0 &&
+        sync.getActiveIndex(150) == 1 &&
+        emptySync.getActiveIndex(50) == null;
 
-    // 16. Intonation Feedback
     const into = SpeechIntonationFeedbackAligner();
-    final intoOk = into.evaluateIntonation(learnerF0: [100.0, 150.0], referenceF0: [100.0, 150.0]).isIntonationAcceptable;
+    final intoOk = into.isRisingQuestion([100.0, 150.0]) &&
+        !into.isRisingQuestion([150.0, 100.0]) &&
+        !into.isRisingQuestion([]);
 
-    // 17. Speech Act
     const act = PragmaticSpeechActClassifier();
-    final actOk = act.classifyUtterance(text: 'شكراً', languageCode: 'ar').primaryAct == SpeechActCategory.gratitudeAppreciation;
+    final actOk = act
+                .classifyUtterance(
+                  text: 'شكراً',
+                  languageCode: 'ar',
+                )
+                .primaryAct ==
+            SpeechActCategory.gratitudeAppreciation &&
+        act
+                .classifyUtterance(
+                  text: 'unmarked fixture',
+                  languageCode: 'ar',
+                )
+                .primaryAct ==
+            SpeechActCategory.assertionFact;
 
-    // 18. Implicit Grammar Induction
     final imp = ImplicitGrammarInductionEngine();
-    imp.observeSequence(['A', 'B']);
-    final impOk = imp.transitionalProbability('A', 'B') > 0;
+    imp.observe('A', 'B');
+    final impOk = imp.frequency('A', 'B') == 1 && imp.frequency('B', 'A') == 0;
 
-    // 19. Dynamic Story Simulator
-    final story = DynamicStoryWorldSimulator(initialNodeId: 's1');
-    story.registerScene(const StorySceneNode(nodeId: 's1', sceneTitle: 't', narrativeText: 'n', languageCode: 'ar', embeddedIPlusOneConcepts: [], choices: []));
-    final storyOk = story.startEpisode('ep1').activeNode.nodeId == 's1';
+    final story = DynamicStoryWorldSimulator();
+    story.registerScene('s1', 'local narrative fixture');
+    final storyOk = story.getScene('s1') == 'local narrative fixture' &&
+        story.getScene('missing') == null;
 
     return KrashenInputGraphMasterSeal(
       isBktVerified: bktOk,
@@ -219,7 +297,8 @@ class KrashenInputGraphMasterSeal {
       isSpeechActVerified: actOk,
       isImplicitGrammarVerified: impOk,
       isStorySimulatorVerified: storyOk,
-      isEndToEndPipelineVerified: true,
+      // No licensed content, connected pipeline, or device evidence is checked.
+      isEndToEndPipelineVerified: false,
     );
   }
 }

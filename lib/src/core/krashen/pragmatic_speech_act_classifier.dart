@@ -39,25 +39,95 @@ class PragmaticSpeechActClassifier {
 
   static final Map<String, Map<SpeechActCategory, List<String>>> _markers = {
     'ar': {
-      SpeechActCategory.politeRequest: ['من فضلك', 'لو سمحت', 'أرجو', 'تكرمت', 'هل بالإمكان'],
-      SpeechActCategory.gratitudeAppreciation: ['شكراً', 'جزاك الله خيراً', 'أشكرك', 'ممتن', 'تسلم'],
-      SpeechActCategory.apologyRestitution: ['أعتذر', 'عفواً', 'أرجو المعذرة', 'سامحني', 'آسف'],
-      SpeechActCategory.courtesyGreeting: ['السلام عليكم', 'أهلاً وسهلاً', 'صباح الخير', 'مرحباً'],
-      SpeechActCategory.inquiryClarification: ['هل', 'كيف', 'ماذا', 'أين', 'لماذا'],
+      SpeechActCategory.politeRequest: [
+        'من فضلك',
+        'لو سمحت',
+        'أرجو',
+        'تكرمت',
+        'هل بالإمكان'
+      ],
+      SpeechActCategory.gratitudeAppreciation: [
+        'شكراً',
+        'جزاك الله خيراً',
+        'أشكرك',
+        'ممتن',
+        'تسلم'
+      ],
+      SpeechActCategory.apologyRestitution: [
+        'أعتذر',
+        'عفواً',
+        'أرجو المعذرة',
+        'سامحني',
+        'آسف'
+      ],
+      SpeechActCategory.courtesyGreeting: [
+        'السلام عليكم',
+        'أهلاً وسهلاً',
+        'صباح الخير',
+        'مرحباً'
+      ],
+      SpeechActCategory.inquiryClarification: [
+        'هل',
+        'كيف',
+        'ماذا',
+        'أين',
+        'لماذا'
+      ],
     },
     'tr': {
-      SpeechActCategory.politeRequest: ['lütfen', 'rica etsem', 'mümkünse', 'alabilir miyim'],
-      SpeechActCategory.gratitudeAppreciation: ['teşekkür ederim', 'sağ olun', 'çok teşekkürler'],
-      SpeechActCategory.apologyRestitution: ['özür dilerim', 'kusura bakmayın', 'afedersiniz'],
-      SpeechActCategory.courtesyGreeting: ['merhaba', 'günaydın', 'selamün aleyküm', 'hoş geldiniz'],
-      SpeechActCategory.inquiryClarification: ['nasıl', 'nerede', 'acaba', 'ne zaman'],
+      SpeechActCategory.politeRequest: [
+        'lütfen',
+        'rica etsem',
+        'mümkünse',
+        'alabilir miyim'
+      ],
+      SpeechActCategory.gratitudeAppreciation: [
+        'teşekkür ederim',
+        'sağ olun',
+        'çok teşekkürler'
+      ],
+      SpeechActCategory.apologyRestitution: [
+        'özür dilerim',
+        'kusura bakmayın',
+        'afedersiniz'
+      ],
+      SpeechActCategory.courtesyGreeting: [
+        'merhaba',
+        'günaydın',
+        'selamün aleyküm',
+        'hoş geldiniz'
+      ],
+      SpeechActCategory.inquiryClarification: [
+        'nasıl',
+        'nerede',
+        'acaba',
+        'ne zaman'
+      ],
     },
     'id': {
-      SpeechActCategory.politeRequest: ['tolong', 'mohon', 'silakan', 'bisa tolong'],
-      SpeechActCategory.gratitudeAppreciation: ['terima kasih', 'makasih', 'terima kasih banyak'],
+      SpeechActCategory.politeRequest: [
+        'tolong',
+        'mohon',
+        'silakan',
+        'bisa tolong'
+      ],
+      SpeechActCategory.gratitudeAppreciation: [
+        'terima kasih',
+        'makasih',
+        'terima kasih banyak'
+      ],
       SpeechActCategory.apologyRestitution: ['maaf', 'mohon maaf', 'permisi'],
-      SpeechActCategory.courtesyGreeting: ['selamat pagi', 'halo', 'assalamu alaikum'],
-      SpeechActCategory.inquiryClarification: ['bagaimana', 'apakah', 'di mana', 'kenapa'],
+      SpeechActCategory.courtesyGreeting: [
+        'selamat pagi',
+        'halo',
+        'assalamu alaikum'
+      ],
+      SpeechActCategory.inquiryClarification: [
+        'bagaimana',
+        'apakah',
+        'di mana',
+        'kenapa'
+      ],
     },
   };
 
@@ -68,7 +138,17 @@ class PragmaticSpeechActClassifier {
     bool isFormalSetting = true,
   }) {
     final clean = text.toLowerCase().trim();
-    final langMarkers = _markers[languageCode] ?? _markers['ar']!;
+    final langMarkers = _markers[languageCode];
+    if (langMarkers == null) {
+      return const SpeechActClassification(
+        primaryAct: SpeechActCategory.assertionFact,
+        register: PolitenessRegister.neutralRespectful,
+        confidenceScore: 0,
+        detectedIllocutionaryMarkers: [],
+        isPragmaticallyAppropriate: false,
+        pragmaticAdviceAr: 'لا تتوفر بيانات موثقة لهذه اللغة.',
+      );
+    }
 
     SpeechActCategory bestAct = SpeechActCategory.assertionFact;
     final foundMarkers = <String>[];
@@ -90,16 +170,23 @@ class PragmaticSpeechActClassifier {
 
     // Determine Politeness Register
     PolitenessRegister reg = PolitenessRegister.neutralRespectful;
-    if (foundMarkers.any((m) => m.contains('تكرمت') || m.contains('kusura bakmayın') || m.contains('mohon'))) {
+    if (foundMarkers.any((m) =>
+        m.contains('تكرمت') ||
+        m.contains('kusura bakmayın') ||
+        m.contains('mohon'))) {
       reg = PolitenessRegister.formalHonorific;
-    } else if (foundMarkers.isEmpty && !clean.contains('؟') && !clean.contains('?')) {
-      reg = PolitenessRegister.informalCasual;
+    } else if (foundMarkers.isEmpty &&
+        !clean.contains('؟') &&
+        !clean.contains('?')) {
+      reg = PolitenessRegister.informalFamiliar;
     }
 
-    final isAppropriate = isFormalSetting ? reg != PolitenessRegister.informalCasual : true;
+    final isAppropriate =
+        isFormalSetting ? reg != PolitenessRegister.informalFamiliar : true;
     String advice = 'الصيغة البراغماتية متوازنة وتؤدي الغرض التواصلي بلباقة.';
     if (!isAppropriate) {
-      advice = 'في المواقف الرسمية يُفضل استخدام عبارات التلطيف والرجاء (مثل: من فضلك / lütfen).';
+      advice =
+          'في المواقف الرسمية يُفضل استخدام عبارات التلطيف والرجاء (مثل: من فضلك / lütfen).';
     }
 
     return SpeechActClassification(

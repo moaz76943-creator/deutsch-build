@@ -1,9 +1,9 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/core/krashen/krashen_input_graph_master_seal.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/core/krashen/krashen_input_graph_master_seal.dart';
 
 void main() {
   group('KrashenInputGraphMasterSeal Suite', () {
-    test('Certifies all 20 subsystems of Volume 2 - Pillar 3 under Master Seal', () async {
+    test('Reports the bounded local checks for all 19 components', () async {
       final seal = await KrashenInputGraphMasterSeal.executeFullCertification();
 
       expect(seal.isBktVerified, isTrue);
@@ -25,10 +25,17 @@ void main() {
       expect(seal.isSpeechActVerified, isTrue);
       expect(seal.isImplicitGrammarVerified, isTrue);
       expect(seal.isStorySimulatorVerified, isTrue);
-      expect(seal.isEndToEndPipelineVerified, isTrue);
+    });
 
-      expect(seal.isPillarFullyCertified, isTrue);
-      expect(KrashenInputGraphMasterSeal.sealCertificateId, equals('POLYGLOT_KRASHEN_INPUT_GRAPH_V2_MASTER_SEAL_CERTIFIED'));
+    test('Local fixtures cannot certify the production end-to-end pipeline',
+        () async {
+      final seal = await KrashenInputGraphMasterSeal.executeFullCertification();
+
+      // Smoke fixtures provide no licensed-content or connected-device evidence.
+      expect(seal.isEndToEndPipelineVerified, isFalse);
+      expect(seal.isPillarFullyCertified, isFalse);
+      expect(KrashenInputGraphMasterSeal.sealCertificateId,
+          equals('POLYGLOT_KRASHEN_INPUT_GRAPH_V2_MASTER_SEAL_CERTIFIED'));
     });
   });
 }
