@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/audio/offline_audio_capability.dart';
 import 'language_pack_manager.dart';
 import 'tts_service.dart';
 
@@ -51,7 +52,7 @@ class HybridAudioService {
     void Function(String message)? onUnavailable,
   }) async {
     if (text.trim().isEmpty) return false;
-    final tag = LanguagePackManager.resolveTtsLocale(languageCode);
+    final tag = OfflineAudioCapability.getFallbackLocale(languageCode);
     void unavailable() {
       final message = fallbackMessage(languageCode, ipa: ipa);
       try {
@@ -69,7 +70,7 @@ class HybridAudioService {
       }
     }
 
-    if (tag.isEmpty || _busy) {
+    if (tag == null || tag.isEmpty || _busy) {
       unavailable();
       return false;
     }
