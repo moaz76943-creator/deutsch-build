@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/burmese_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/burmese_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('BurmeseDeepLocalizationProfile Tests', () {
@@ -28,13 +28,13 @@ void main() {
 
     test('Phonetic bridge identifies native match and SOV subordinate mirror', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('ရှ')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('SOV Verb-Final'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('SOV Verb-Final')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('မင်္ဂလာပါ / စလာမ်'));
-      expect(profile.culturalIslamicLexicon, containsKey('ဟလာလ်'));
-      expect(profile.culturalIslamicLexicon, containsKey('ဗလီ / မတ်စ်ဂျစ်ဒ်'));
+      expect(profile.culturalIslamicLexicon.keys, contains('မင်္ဂလာပါ / စလာမ်'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ဟလာလ်'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ဗလီ / မတ်စ်ဂျစ်ဒ်'));
       expect(profile.coreA1Vocabulary['ကျေးဇူးအများကြီးတင်ပါတယ်'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

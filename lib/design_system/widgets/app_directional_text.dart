@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../core/language_bidi_helper.dart';
+
+/// Shared locale direction API for typography and dashboard consumers.
+class AppTextDirection {
+  static TextDirection forLanguageCode(String languageCode) =>
+      LanguageBiDiHelper.getDirection(languageCode.trim().replaceAll('_', '-'));
+}
 
 /// مكوّن نصوص يضمن عزل اتجاه النصوص المتعددة اللغات دون التأثير على اتجاه الصفحة
 class AppDirectionalText extends StatelessWidget {
   final String text;
+  final String? languageCode;
   final TextStyle? style;
   final TextDirection? forceDirection;
   final TextAlign? textAlign;
@@ -13,6 +21,7 @@ class AppDirectionalText extends StatelessWidget {
     this.text, {
     super.key,
     this.style,
+    this.languageCode,
     this.forceDirection,
     this.textAlign,
     this.maxLines,
@@ -27,8 +36,11 @@ class AppDirectionalText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final code = languageCode?.trim().replaceAll('_', '-');
     final effectiveDirection = forceDirection ??
-        (_isRTL(text) ? TextDirection.rtl : TextDirection.ltr);
+        (code != null && code.isNotEmpty
+            ? AppTextDirection.forLanguageCode(code)
+            : (_isRTL(text) ? TextDirection.rtl : TextDirection.ltr));
 
     return Directionality(
       textDirection: effectiveDirection,

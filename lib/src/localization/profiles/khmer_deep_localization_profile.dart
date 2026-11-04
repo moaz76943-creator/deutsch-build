@@ -35,7 +35,7 @@ class KhmerDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final Map<String, String> caseSystemAlignment;
   final Map<String, String> culturalIslamicLexicon;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const KhmerDeepLocalizationProfile({
     this.languageName = 'Khmer',

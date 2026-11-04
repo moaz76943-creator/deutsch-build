@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_100_language_master_seal.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_100_language_master_seal.dart';
 
 void main() {
   group('Universal100LanguageMasterSeal Tests', () {

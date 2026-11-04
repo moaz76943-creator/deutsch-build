@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/lithuanian_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/lithuanian_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('LithuanianDeepLocalizationProfile Tests', () {
@@ -22,12 +22,12 @@ void main() {
 
     test('7-case system alignment maps directly to German declensions', () {
       expect(profile.sevenCaseSystemAlignment.length, equals(7));
-      expect(profile.sevenCaseSystemAlignment, containsPair(contains('Vardininkas'), contains('Nominativ')));
-      expect(profile.sevenCaseSystemAlignment, containsPair(contains('Kilmininkas'), contains('Genitiv')));
-      expect(profile.sevenCaseSystemAlignment, containsPair(contains('Naudininkas'), contains('Dativ')));
-      expect(profile.sevenCaseSystemAlignment, containsPair(contains('Galininkas'), contains('Akkusativ')));
-      expect(profile.sevenCaseSystemAlignment, containsPair(contains('Įnagininkas'), contains('mit')));
-      expect(profile.sevenCaseSystemAlignment, containsPair(contains('Vietininkas'), contains('in')));
+      expect(profile.sevenCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Vardininkas')).having((entry) => entry.value, 'value', contains('Nominativ'))));
+      expect(profile.sevenCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Kilmininkas')).having((entry) => entry.value, 'value', contains('Genitiv'))));
+      expect(profile.sevenCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Naudininkas')).having((entry) => entry.value, 'value', contains('Dativ'))));
+      expect(profile.sevenCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Galininkas')).having((entry) => entry.value, 'value', contains('Akkusativ'))));
+      expect(profile.sevenCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Įnagininkas')).having((entry) => entry.value, 'value', contains('mit'))));
+      expect(profile.sevenCaseSystemAlignment.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Vietininkas')).having((entry) => entry.value, 'value', contains('in'))));
     });
 
     test('Phonetic bridge identifies 100% native matches for C, Š, and Č', () {
@@ -37,9 +37,9 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('labas / laba diena / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('mečetė'));
+      expect(profile.culturalIslamicLexicon.keys, contains('labas / laba diena / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mečetė'));
       expect(profile.coreA1Vocabulary['Labai ačiū'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/korean_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/korean_deep_localization_profile.dart';
 
 void main() {
   group('KoreanDeepLocalizationProfile Tests', () {
@@ -28,13 +28,13 @@ void main() {
     test('Phonetic bridge identifies matches and verb-final bridge', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('시/쉬')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('ㅊ')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Verb-Final'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Verb-Final')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('안녕하세요 / 살람'));
-      expect(profile.culturalIslamicLexicon, containsKey('할랄'));
-      expect(profile.culturalIslamicLexicon, containsKey('예배 / 살라트'));
+      expect(profile.culturalIslamicLexicon.keys, contains('안녕하세요 / 살람'));
+      expect(profile.culturalIslamicLexicon.keys, contains('할랄'));
+      expect(profile.culturalIslamicLexicon.keys, contains('예배 / 살라트'));
       expect(profile.coreA1Vocabulary['대단히 감사합니다'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

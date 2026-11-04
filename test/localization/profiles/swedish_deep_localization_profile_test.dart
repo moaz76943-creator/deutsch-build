@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/swedish_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/swedish_deep_localization_profile.dart';
 
 void main() {
   group('SwedishDeepLocalizationProfile Tests', () {
@@ -23,20 +23,20 @@ void main() {
       expect(profile.genderEquivalenceMap.length, equals(2));
       expect(profile.getGermanGenderBridge('Utrum'), contains('Maskulinum'));
       expect(profile.getGermanGenderBridge('Neutrum'), contains('Neutrum'));
-      expect(profile.doubleDefinitenessBridge, containsPair(contains('Dubbel'), contains('große')));
+      expect(profile.doubleDefinitenessBridge.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Dubbel')).having((entry) => entry.value, 'value', contains('große'))));
     });
 
     test('Phonetic bridge identifies 100% native matches for Ä, Ö, and Y to German Ü', () {
       expect(profile.germanPhoneticBridges, containsPair('ä /ɛ/ & ö /ø/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('ü /y/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('t+s')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('V2 Acceleration'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('V2 Acceleration')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('hej / hejsan / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('moské'));
+      expect(profile.culturalIslamicLexicon.keys, contains('hej / hejsan / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('moské'));
       expect(profile.coreA1Vocabulary['Tack så mycket'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/luganda_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/luganda_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('LugandaDeepLocalizationProfile Tests', () {
@@ -18,14 +18,14 @@ void main() {
     });
 
     test('Initial augment definiteness bridge is established', () {
-      expect(profile.initialAugmentArticleBridge, containsKey(contains('Augment Pre-Prefix')));
+      expect(profile.initialAugmentArticleBridge.keys, contains(contains('Augment Pre-Prefix')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('C / c')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('ki kati / oli otya / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('omuzikiti'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ki kati / oli otya / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('omuzikiti'));
       expect(profile.coreA1Vocabulary['Weebale nnyo'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

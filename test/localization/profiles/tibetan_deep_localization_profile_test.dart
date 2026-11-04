@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/tibetan_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/tibetan_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('TibetanDeepLocalizationProfile Tests', () {
@@ -17,7 +17,7 @@ void main() {
     });
 
     test('Zhe-sa honorific registers and postpositional cases are established', () {
-      expect(profile.zhesaHonorificBridge, containsKey(contains('Zhe-sa')));
+      expect(profile.zhesaHonorificBridge.keys, contains(contains('Zhe-sa')));
       expect(profile.postpositionalCaseAlignment.length, equals(5));
       expect(profile.getGermanCaseBridge('Genitive'), contains('Genitiv'));
       expect(profile.getGermanCaseBridge('Dative'), contains('Dativ'));
@@ -31,9 +31,9 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('བཀྲ་ཤིས་བདེ་ལེགས / སަލཱམ'));
-      expect(profile.culturalIslamicLexicon, containsKey('ཧ་ལཱལ'));
-      expect(profile.culturalIslamicLexicon, containsKey('ཁ་ཆེའི་ལྷ་ཁང / མསྗིད'));
+      expect(profile.culturalIslamicLexicon.keys, contains('བཀྲ་ཤིས་བདེ་ལེགས / སަލཱམ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ཧ་ལཱལ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ཁ་ཆེའི་ལྷ་ཁང / མསྗིད'));
       expect(profile.coreA1Vocabulary['ཐུགས་རྗེ་ཆེ་ཞུ'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

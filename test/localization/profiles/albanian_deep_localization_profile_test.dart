@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/albanian_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/albanian_deep_localization_profile.dart';
 
 void main() {
   group('AlbanianDeepLocalizationProfile Tests', () {
@@ -37,10 +37,10 @@ void main() {
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('selam / përshëndetje'));
-      expect(profile.culturalIslamicLexicon, containsKey('hallall'));
-      expect(profile.culturalIslamicLexicon, containsKey('namaz / falje'));
-      expect(profile.culturalIslamicLexicon, containsKey('xhami'));
+      expect(profile.culturalIslamicLexicon.keys, contains('selam / përshëndetje'));
+      expect(profile.culturalIslamicLexicon.keys, contains('hallall'));
+      expect(profile.culturalIslamicLexicon.keys, contains('namaz / falje'));
+      expect(profile.culturalIslamicLexicon.keys, contains('xhami'));
       expect(profile.coreA1Vocabulary['Shumë faleminderit'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

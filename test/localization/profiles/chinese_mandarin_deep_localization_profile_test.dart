@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/chinese_mandarin_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/chinese_mandarin_deep_localization_profile.dart';
 
 void main() {
   group('ChineseMandarinDeepLocalizationProfile Tests', () {
@@ -19,7 +19,7 @@ void main() {
     });
 
     test('TeKaMoLo and case alignment map Chinese structures to German syntax', () {
-      expect(profile.tekamoloSyntacticBridge, containsPair(contains('Temporal-Locative'), contains('TeKaMoLo')));
+      expect(profile.tekamoloSyntacticBridge.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Temporal-Locative')).having((entry) => entry.value, 'value', contains('TeKaMoLo'))));
       expect(profile.getGermanCaseBridge('主格'), contains('Nominativ'));
       expect(profile.getGermanCaseBridge('与格'), contains('Dativ'));
       expect(profile.getGermanCaseBridge('属格'), contains('Genitiv'));
@@ -30,14 +30,14 @@ void main() {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('ü /y/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ich-Laut'), contains('X / x')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ich-Laut')).having((entry) => entry.value, 'value', contains('X / x'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('你好 / 色兰'));
-      expect(profile.culturalIslamicLexicon, containsKey('清真 / 哈俩里'));
-      expect(profile.culturalIslamicLexicon, containsKey('礼拜 / 乃玛孜'));
-      expect(profile.culturalIslamicLexicon, containsKey('清真寺'));
+      expect(profile.culturalIslamicLexicon.keys, contains('你好 / 色兰'));
+      expect(profile.culturalIslamicLexicon.keys, contains('清真 / 哈俩里'));
+      expect(profile.culturalIslamicLexicon.keys, contains('礼拜 / 乃玛孜'));
+      expect(profile.culturalIslamicLexicon.keys, contains('清真寺'));
       expect(profile.coreA1Vocabulary['非常感谢'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

@@ -28,6 +28,9 @@ class SlovenianDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   @override
   final bool hasGrammaticalGender;
 
+  /// This profile's documented gender inventory is masculine, feminine, neuter.
+  bool get hasThreeGenders => hasGrammaticalGender;
+
   final String writingDirection;
   final String primaryScript;
   final bool hasDualGrammaticalNumber; // Dvojina!
@@ -36,7 +39,7 @@ class SlovenianDeepLocalizationProfile extends OmnidirectionalLanguageProfile {
   final Map<String, String> culturalIslamicLexicon;
   final Map<String, String> germanPhoneticBridges;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const SlovenianDeepLocalizationProfile({
     this.languageName = 'Slovenian',

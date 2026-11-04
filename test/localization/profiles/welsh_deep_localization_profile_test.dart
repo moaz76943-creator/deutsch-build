@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/welsh_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/welsh_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('WelshDeepLocalizationProfile Tests', () {
@@ -19,9 +19,9 @@ void main() {
     });
 
     test('Initial mutations and universal roles are established', () {
-      expect(profile.ipaPhoneticInventory, containsKey(contains('Soft Mutation')));
-      expect(profile.ipaPhoneticInventory, containsKey(contains('Nasal Mutation')));
-      expect(profile.ipaPhoneticInventory, containsKey(contains('Aspirate Mutation')));
+      expect(profile.ipaPhoneticInventory.keys, contains(contains('Soft Mutation')));
+      expect(profile.ipaPhoneticInventory.keys, contains(contains('Nasal Mutation')));
+      expect(profile.ipaPhoneticInventory.keys, contains(contains('Aspirate Mutation')));
       expect(profile.universalRoleMapping[UniversalGrammaticalRole.subjectOrAgent], contains('Goddrych'));
     });
 

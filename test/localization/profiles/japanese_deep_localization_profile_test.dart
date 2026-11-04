@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/japanese_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/japanese_deep_localization_profile.dart';
 
 void main() {
   group('JapaneseDeepLocalizationProfile Tests', () {
@@ -29,13 +29,13 @@ void main() {
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Ch')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Verb-Final'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Verb-Final')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('こんにちは / セラーム'));
-      expect(profile.culturalIslamicLexicon, containsKey('ハラール'));
-      expect(profile.culturalIslamicLexicon, containsKey('礼拝 / ナマズ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('こんにちは / セラーム'));
+      expect(profile.culturalIslamicLexicon.keys, contains('ハラール'));
+      expect(profile.culturalIslamicLexicon.keys, contains('礼拝 / ナマズ'));
       expect(profile.coreA1Vocabulary['ありがとうございます'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

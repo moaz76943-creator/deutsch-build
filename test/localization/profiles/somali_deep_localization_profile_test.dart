@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import '../../../lib/src/localization/profiles/somali_deep_localization_profile.dart';
 
 void main() {

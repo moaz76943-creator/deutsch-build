@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/malagasy_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/malagasy_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('MalagasyDeepLocalizationProfile Tests', () {
@@ -16,15 +16,15 @@ void main() {
     });
 
     test('Rare VOS word order bridge is established', () {
-      expect(profile.vosWordOrderBridge, containsKey(contains('Default VOS')));
-      expect(profile.vosWordOrderBridge, containsKey(contains('Symmetric Voice')));
+      expect(profile.vosWordOrderBridge.keys, contains(contains('Default VOS')));
+      expect(profile.vosWordOrderBridge.keys, contains(contains('Symmetric Voice')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Tr / tr')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('manao ahoana / salama'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('mousqué / masjid'));
+      expect(profile.culturalIslamicLexicon.keys, contains('manao ahoana / salama'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('mousqué / masjid'));
       expect(profile.coreA1Vocabulary['Misaotra betsaka'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

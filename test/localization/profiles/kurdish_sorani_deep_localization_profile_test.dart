@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/kurdish_sorani_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/kurdish_sorani_deep_localization_profile.dart';
 
 void main() {
   group('KurdishSoraniDeepLocalizationProfile Tests', () {
@@ -32,15 +32,15 @@ void main() {
     test('Phonetic bridge identifies native matches for consonants', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('ش')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('چ')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('خ')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('خ'))));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('ت+س')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('سڵاو / سڵاوی خواتان لێ بێت'));
-      expect(profile.culturalIslamicLexicon, containsKey('حەڵاڵ'));
-      expect(profile.culturalIslamicLexicon, containsKey('نوێژ / سەڵات'));
-      expect(profile.culturalIslamicLexicon, containsKey('مزگەوت'));
+      expect(profile.culturalIslamicLexicon.keys, contains('سڵاو / سڵاوی خواتان لێ بێت'));
+      expect(profile.culturalIslamicLexicon.keys, contains('حەڵاڵ'));
+      expect(profile.culturalIslamicLexicon.keys, contains('نوێژ / سەڵات'));
+      expect(profile.culturalIslamicLexicon.keys, contains('مزگەوت'));
       expect(profile.coreA1Vocabulary['زۆر سوپاس'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

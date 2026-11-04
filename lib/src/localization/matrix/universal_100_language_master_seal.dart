@@ -1,5 +1,4 @@
 import 'package:meta/meta.dart';
-import 'universal_cross_lingual_matrix.dart';
 
 /// Grand Sovereign Master Seal for Volume 1 (Tasks 401 to 500).
 ///

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/kyrgyz_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/kyrgyz_deep_localization_profile.dart';
 
 void main() {
   group('KyrgyzDeepLocalizationProfile Tests', () {
@@ -30,15 +30,15 @@ void main() {
     });
 
     test('Phonetic bridge identifies native umlaut and labial harmony alignment', () {
-      expect(profile.germanPhoneticBridges, containsPair(contains('Ө /ө/'), contains('100% Native')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Ө /ө/')).having((entry) => entry.value, 'value', contains('100% Native'))));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('ш')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Labial Harmony'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Labial Harmony')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('салам / ассалому алейкум'));
-      expect(profile.culturalIslamicLexicon, containsKey('адал / халал'));
-      expect(profile.culturalIslamicLexicon, containsKey('намаз'));
+      expect(profile.culturalIslamicLexicon.keys, contains('салам / ассалому алейкум'));
+      expect(profile.culturalIslamicLexicon.keys, contains('адал / халал'));
+      expect(profile.culturalIslamicLexicon.keys, contains('намаз'));
       expect(profile.coreA1Vocabulary['Чоң рахмат'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

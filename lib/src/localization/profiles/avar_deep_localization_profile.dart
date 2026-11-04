@@ -25,7 +25,7 @@ class AvarDeepLocalizationProfile {
   final Map<String, String> culturalIslamicLexicon;
   final Map<String, String> germanPhoneticBridges;
   final Map<String, String> coreA1Vocabulary;
-  final List> practicalDialoguePhrases;
+  final List<Map<String, String>> practicalDialoguePhrases;
 
   const AvarDeepLocalizationProfile({
     this.languageName = 'Avar',
@@ -36,7 +36,7 @@ class AvarDeepLocalizationProfile {
     this.branch = 'Avar-Andic',
     this.writingDirection = 'ltr',
     this.primaryScript = 'Cyrillic (with palochka ӏ) / historic Ajami',
-    this.specialCharacters = const ['ӏ', 'гъ', 'гь', 'къ', 'кь', 'лъ', 'тӏ', 'хъ', 'хь', 'хӏ', 'цӏ', 'чӏ'],
+    this.specialCharacters = const ['ӏ', 'гӏ', 'гъ', 'гь', 'къ', 'кь', 'лъ', 'тӏ', 'хъ', 'хь', 'хӏ', 'цӏ', 'чӏ'],
     this.hasErgativeAlignment = true,
     this.hasSpatialCaseMatrix = true, // 5 local orientations x 4 directional forms
     this.wordOrder = 'SOV',

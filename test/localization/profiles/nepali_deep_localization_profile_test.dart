@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/nepali_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/nepali_deep_localization_profile.dart';
 
 void main() {
   group('NepaliDeepLocalizationProfile Tests', () {
@@ -14,8 +14,8 @@ void main() {
       expect(profile.hasErgativeMarker, isTrue);
       expect(profile.hasFormalPronounDistinction, isTrue);
       expect(profile.wordOrder, equals('SOV'));
-      expect(profile.honorificPronounBridge, containsPair(contains('Tapaaĩ'), contains('Sie')));
-      expect(profile.honorificPronounBridge, containsPair(contains('Timi'), contains('du')));
+      expect(profile.honorificPronounBridge.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Tapaaĩ')).having((entry) => entry.value, 'value', contains('Sie'))));
+      expect(profile.honorificPronounBridge.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Timi')).having((entry) => entry.value, 'value', contains('du'))));
     });
 
     test('Case system alignment maps 7 cases to German prepositions & declensions', () {
@@ -29,13 +29,13 @@ void main() {
     test('Phonetic bridge accurately assists German sound acquisition', () {
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('श')));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('त्+स')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Honorific Register'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Honorific Register')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('नमस्ते / सलाम'));
-      expect(profile.culturalIslamicLexicon, containsKey('हलाल / शुद्ध'));
-      expect(profile.culturalIslamicLexicon, containsKey('नमाज / प्रार्थना'));
+      expect(profile.culturalIslamicLexicon.keys, contains('नमस्ते / सलाम'));
+      expect(profile.culturalIslamicLexicon.keys, contains('हलाल / शुद्ध'));
+      expect(profile.culturalIslamicLexicon.keys, contains('नमाज / प्रार्थना'));
       expect(profile.coreA1Vocabulary['धेरै धेरै धन्यवाद'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

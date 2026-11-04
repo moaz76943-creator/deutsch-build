@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/finnish_deep_localization_profile.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/finnish_deep_localization_profile.dart';
 
 void main() {
   group('FinnishDeepLocalizationProfile Tests', () {
@@ -33,13 +33,13 @@ void main() {
     test('Phonetic bridge identifies native match for Ä, Ö, and Y to German Ü', () {
       expect(profile.germanPhoneticBridges, containsPair('ä /ɛ/ & ö /ø/', contains('100% Native Identity')));
       expect(profile.germanPhoneticBridges, containsPair('ü /y/', contains('100% Native Identity')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('Phonemic Quantity'), isNotEmpty));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('Phonemic Quantity')).having((entry) => entry.value, 'value', isNotEmpty)));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('hei / päivää / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('rukous / namaz'));
+      expect(profile.culturalIslamicLexicon.keys, contains('hei / päivää / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('rukous / namaz'));
       expect(profile.coreA1Vocabulary['Paljon kiitoksia'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

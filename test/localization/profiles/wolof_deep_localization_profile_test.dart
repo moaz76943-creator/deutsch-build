@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/wolof_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/wolof_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('WolofDeepLocalizationProfile Tests', () {
@@ -18,15 +18,15 @@ void main() {
     });
 
     test('Spatial determiner and phonetic bridges are established', () {
-      expect(profile.spatialDeterminerBridge, containsKey(contains('Spatial Determiner')));
+      expect(profile.spatialDeterminerBridge.keys, contains(contains('Spatial Determiner')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('C / c')));
-      expect(profile.germanPhoneticBridges, containsPair(contains('ach-Laut'), contains('X / x')));
+      expect(profile.germanPhoneticBridges.entries, contains(isA<MapEntry<String, String>>().having((entry) => entry.key, 'key', contains('ach-Laut')).having((entry) => entry.value, 'value', contains('X / x'))));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('salaam alaykum / na nga def'));
-      expect(profile.culturalIslamicLexicon, containsKey('halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('jàkka / jumaa'));
+      expect(profile.culturalIslamicLexicon.keys, contains('salaam alaykum / na nga def'));
+      expect(profile.culturalIslamicLexicon.keys, contains('halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('jàkka / jumaa'));
       expect(profile.coreA1Vocabulary['Jërëjëf lool'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

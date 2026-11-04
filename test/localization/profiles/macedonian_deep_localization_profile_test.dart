@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/macedonian_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/macedonian_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('MacedonianDeepLocalizationProfile Tests', () {
@@ -19,15 +19,15 @@ void main() {
     });
 
     test('3-way spatial article bridge and analytical cases are verified', () {
-      expect(profile.threeWayArticleBridge, containsKey(contains('3-Way Spatial Article')));
+      expect(profile.threeWayArticleBridge.keys, contains(contains('3-Way Spatial Article')));
       expect(profile.analyticalPrepositionalBridge.length, equals(5));
       expect(profile.germanPhoneticBridges, containsPair('z /ts/', contains('100% Native Identity')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('здраво / добар ден / селам'));
-      expect(profile.culturalIslamicLexicon, containsKey('халал'));
-      expect(profile.culturalIslamicLexicon, containsKey('џамија'));
+      expect(profile.culturalIslamicLexicon.keys, contains('здраво / добар ден / селам'));
+      expect(profile.culturalIslamicLexicon.keys, contains('халал'));
+      expect(profile.culturalIslamicLexicon.keys, contains('џамија'));
       expect(profile.coreA1Vocabulary['Многу благодарам'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });

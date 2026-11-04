@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
-import 'package:deutsch_build/src/localization/profiles/zulu_deep_localization_profile.dart';
-import 'package:deutsch_build/src/localization/matrix/universal_cross_lingual_matrix.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:deutsch_bilarabi/src/localization/profiles/zulu_deep_localization_profile.dart';
+import 'package:deutsch_bilarabi/src/localization/matrix/universal_cross_lingual_matrix.dart';
 
 void main() {
   group('ZuluDeepLocalizationProfile Tests', () {
@@ -18,15 +18,15 @@ void main() {
     });
 
     test('15 noun class concord and click consonant traits are verified', () {
-      expect(profile.nounClassConcordBridge, containsKey(contains('15-Noun-Class')));
+      expect(profile.nounClassConcordBridge.keys, contains(contains('15-Noun-Class')));
       expect(profile.germanPhoneticBridges, containsPair('sch /ʃ/', contains('Sh')));
       expect(profile.germanPhoneticBridges, containsPair('tsch /tʃ/', contains('Tsh')));
     });
 
     test('Cultural lexicon and A1 vocabulary are verified and halal', () {
-      expect(profile.culturalIslamicLexicon, containsKey('sawubona / sanibonani / salam'));
-      expect(profile.culturalIslamicLexicon, containsKey('i-halal'));
-      expect(profile.culturalIslamicLexicon, containsKey('i-mosque / i-masjid'));
+      expect(profile.culturalIslamicLexicon.keys, contains('sawubona / sanibonani / salam'));
+      expect(profile.culturalIslamicLexicon.keys, contains('i-halal'));
+      expect(profile.culturalIslamicLexicon.keys, contains('i-mosque / i-masjid'));
       expect(profile.coreA1Vocabulary['Ngiyabonga kakhulu'], equals('Vielen Dank'));
       expect(profile.practicalDialoguePhrases.length, greaterThanOrEqualTo(4));
     });
