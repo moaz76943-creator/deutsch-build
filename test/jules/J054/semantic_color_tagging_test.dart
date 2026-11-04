@@ -4,16 +4,21 @@ import 'package:deutsch_bilarabi/features/semantic_color_tagging/semantic_presen
 import 'package:deutsch_bilarabi/core/language_intelligence/language_grammar_rule_provider.dart';
 import 'package:deutsch_bilarabi/design_system/app_colors.dart';
 
-class MockGrammarProvider implements LanguageGrammarRuleProvider {
+class MockGrammarProvider extends LanguageGrammarRuleProvider {
   @override
   final String languageCode;
 
   final GrammaticalGender Function(String word, {String? article}) determineGenderMock;
+  final GrammarCapabilityProfile profile;
 
   MockGrammarProvider({
     required this.languageCode,
     required this.determineGenderMock,
+    this.profile = const GrammarCapabilityProfile(hasGender: true),
   });
+
+  @override
+  GrammarCapabilityProfile get capabilityProfile => profile;
 
   @override
   GrammaticalCategory determineCategory(String word, {String? article}) {
@@ -49,7 +54,7 @@ void main() {
       expect(engine.getPresentationForWord('Hund').color, AppColors.articleDer);
       expect(engine.getPresentationForWord('Freiheit').color, AppColors.articleDie);
       expect(engine.getPresentationForWord('Mädchen').color, AppColors.articleDas);
-      expect(engine.getPresentationForWord('Unbekannt').color, AppColors.articleOther);
+      expect(engine.getPresentationForWord('Unbekannt').color, isNull);
     });
 
     test('Non-German colors use standard primary/secondary/tertiary colors', () {
@@ -68,7 +73,7 @@ void main() {
       expect(engine.getPresentationForWord('chien').color, AppColors.primary);
       expect(engine.getPresentationForWord('liberté').color, AppColors.secondary);
       expect(engine.getPresentationForWord('neuter_word').color, AppColors.tertiary);
-      expect(engine.getPresentationForWord('inconnu').color, AppColors.articleOther);
+      expect(engine.getPresentationForWord('inconnu').color, isNull);
     });
 
     test('Cache behaves correctly per instance', () {
@@ -89,6 +94,20 @@ void main() {
     });
   });
 
+
+    test('Degrades to uncolored readable text if grammar metadata is missing or none', () {
+      final mockEn = MockGrammarProvider(
+        languageCode: 'en',
+        determineGenderMock: (word, {article}) => GrammaticalGender.none,
+        profile: const GrammarCapabilityProfile(hasGender: false),
+      );
+
+      final engine = SemanticPresentationEngine(ruleProvider: mockEn, packVersion: 'v1');
+      final metadata = engine.getPresentationForWord('dog');
+
+      expect(metadata.color, isNull);
+      expect(metadata.label, isEmpty);
+    });
   group('SemanticWordText Widget Tests', () {
     testWidgets('RTL layout and accessibility label are present', (WidgetTester tester) async {
       final mockAr = MockGrammarProvider(

@@ -129,121 +129,26 @@ class GrammarCapabilityProfile extends GrammarProfile {
   final bool? _hasNounClasses;
 
   const GrammarCapabilityProfile({
-    bool? hasGender,
-    bool? hasCases,
-    bool? hasNumber,
-    bool? hasPerson,
-    bool? hasTense,
-    bool? hasAspect,
-    bool? hasMood,
-    bool? hasRootPatternMorphology,
-    bool? isAgglutinative,
-    bool? isAnalytic,
-    bool? hasNounClasses,
-    super.languageCode,
-    super.capabilities,
-    super.supportedFeatures,
-    super.supportedGenders,
-    super.supportedNumbers,
-    super.supportedCases,
-    super.morphologyType,
-    super.supportsAgreement,
-  })  : _hasGender = hasGender,
-        _hasCases = hasCases,
-        _hasNumber = hasNumber,
-        _hasPerson = hasPerson,
-        _hasTense = hasTense,
-        _hasAspect = hasAspect,
-        _hasMood = hasMood,
-        _hasRootPatternMorphology = hasRootPatternMorphology,
-        _isAgglutinative = isAgglutinative,
-        _isAnalytic = isAnalytic,
-        _hasNounClasses = hasNounClasses;
-
-  bool get hasGender =>
-      _hasGender ?? super.supportsFeature(GrammarFeature.gender);
-  bool get hasCases =>
-      _hasCases ?? super.supportsFeature(GrammarFeature.caseSystem);
-  bool get hasNumber =>
-      _hasNumber ?? super.supportsFeature(GrammarFeature.number);
-  bool get hasPerson =>
-      _hasPerson ?? super.supportsFeature(GrammarFeature.person);
-  bool get hasTense => _hasTense ?? super.supportsFeature(GrammarFeature.tense);
-  bool get hasAspect =>
-      _hasAspect ?? super.supportsFeature(GrammarFeature.aspect);
-  bool get hasMood => _hasMood ?? super.supportsFeature(GrammarFeature.mood);
-  bool get hasRootPatternMorphology =>
-      _hasRootPatternMorphology ??
-      super.supportsFeature(GrammarFeature.rootPattern);
-  bool get isAgglutinative =>
-      _isAgglutinative ?? super.supportsFeature(GrammarFeature.agglutinative);
-  bool get isAnalytic =>
-      _isAnalytic ?? super.supportsFeature(GrammarFeature.analytic);
-  bool get hasNounClasses =>
-      _hasNounClasses ?? super.supportsFeature(GrammarFeature.nounClasses);
-
-  @override
-  bool supportsFeature(GrammarFeature feature) {
-    switch (feature) {
-      case GrammarFeature.gender:
-        return hasGender;
-      case GrammarFeature.grammaticalCase:
-      case GrammarFeature.caseSystem:
-        return hasCases;
-      case GrammarFeature.number:
-        return hasNumber;
-      case GrammarFeature.person:
-        return hasPerson;
-      case GrammarFeature.tense:
-        return hasTense;
-      case GrammarFeature.aspect:
-        return hasAspect;
-      case GrammarFeature.mood:
-        return hasMood;
-      case GrammarFeature.rootPattern:
-        return hasRootPatternMorphology;
-      case GrammarFeature.agglutinative:
-        return isAgglutinative;
-      case GrammarFeature.analytic:
-        return isAnalytic;
-      case GrammarFeature.nounClasses:
-        return hasNounClasses;
-      default:
-        return super.supportsFeature(feature);
-    }
-  }
+    this.hasGender = false,
+    this.hasCases = false,
+    this.hasNumber = false,
+    this.hasPerson = false,
+    this.hasTense = false,
+    this.hasAspect = false,
+    this.hasMood = false,
+    this.hasRootPatternMorphology = false,
+    this.isAgglutinative = false,
+    this.isAnalytic = false,
+    this.hasNounClasses = false,
+  });
 }
 
 abstract class LanguageGrammarRuleProvider {
   String get languageCode;
 
-  /// The legacy nullable contract remains the default for existing providers.
-  GrammarProfile get profile => const GrammarCapabilityProfile();
-
-  GrammarCapabilityProfile get capabilityProfile {
-    final declared = profile;
-    if (declared is GrammarCapabilityProfile) return declared;
-    return GrammarCapabilityProfile(
-      languageCode: declared.languageCode,
-      capabilities: declared.capabilities,
-      supportedFeatures: declared.supportedFeatures,
-      supportedGenders: declared.supportedGenders,
-      supportedNumbers: declared.supportedNumbers,
-      supportedCases: declared.supportedCases,
-      morphologyType: declared.morphologyType,
-      supportsAgreement: declared.supportsAgreement,
-    );
-  }
-
-  bool supportsFeature(GrammarFeature feature) =>
-      capabilityProfile.supportsFeature(feature);
-
-  VerifiedGrammarEvidence getVerifiedEvidence(String word) =>
-      const VerifiedGrammarEvidence.unsupported();
-
-  // Declarative profiles use the explicit `none` fallback. Legacy boolean
-  // providers retain null (unavailable) and unknown (supported, unclassified).
-  bool get _usesDeclarativeProfile => profile is! GrammarCapabilityProfile;
+  /// Returns the grammar capability profile for the specific language
+  GrammarCapabilityProfile get capabilityProfile =>
+      const GrammarCapabilityProfile();
 
   /// استنتاج الجنس النحوي للكلمة
   GrammaticalGender determineGender(String word, {String? article});
