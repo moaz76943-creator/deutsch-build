@@ -1,41 +1,26 @@
-# Baseline Profile for Deutsch بالعربي Flutter app
-# Targets critical startup paths: Flutter engine, MainActivity, and bootstrap.
-# Generated as a starting point; refine with Macrobenchmark for production.
-# Security note: No changes to keep rules or permissions; R8 remains fully enabled.
+# Baseline Profile for Deutsch بالعربي (Flutter)
+# Improves cold startup by pre-compiling hot paths in Android Runtime (ART).
+# Compatible with R8 full mode; does not weaken ProGuard/R8 rules or security.
 
-HSPLcom/deutschbilarabi/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
-HSPLcom/deutschbilarabi/app/MainActivity;-><init>()V
-HSPLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
-HSPLio/flutter/embedding/android/FlutterActivity;->onStart()V
-HSPLio/flutter/embedding/android/FlutterActivity;->onResume()V
-HSPLio/flutter/embedding/android/FlutterActivity;->configureFlutterEngine(Lio/flutter/embedding/engine/FlutterEngine;)V
-HSPLio/flutter/embedding/engine/FlutterJNI;->init(Landroid/content/Context;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V
-HSPLio/flutter/embedding/engine/FlutterJNI;->attachToNative()V
-HSPLio/flutter/embedding/engine/loader/FlutterLoader;->ensureInitializationComplete(Landroid/content/Context;[Ljava/lang/String;)V
-HSPLio/flutter/embedding/engine/loader/FlutterLoader;->startInitialization(Landroid/content/Context;)V
-HSPLio/flutter/view/FlutterView;->onDraw(Landroid/graphics/Canvas;)V
-HSPLio/flutter/view/FlutterView;->onLayout(ZIIII)V
-HSPLio/flutter/embedding/engine/dart/DartExecutor;->executeDartEntrypoint(Lio/flutter/embedding/engine/dart/DartExecutor$DartEntrypoint;)V
-HSPLio/flutter/plugin/common/BinaryMessenger;->send(Ljava/lang/String;Ljava/nio/ByteBuffer;)V
-HSPLio/flutter/embedding/engine/systemchannels/PlatformChannel;->setApplicationSwitcherDescription(Lio/flutter/embedding/engine/systemchannels/PlatformChannel$AppSwitcherDescription;)V
-HSPLio/flutter/embedding/engine/systemchannels/TextInputChannel;->updateEditingState(ILjava/util/HashMap;)V
-HSPLandroidx/profileinstaller/ProfileInstaller;->writeProfile(Landroid/content/Context;)V
-# Additional for common UI and DB access paths during startup
-HSPLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljava/lang/Object;Lio/flutter/plugin/common/MethodChannel$Result;)V
-HSPLcom/tekartik/sqflite/SqflitePlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
+HSPLlib/arm64-v8a/libflutter.so
+HSPLlib/armeabi-v7a/libflutter.so
+HSPLlib/x86_64/libflutter.so
+HSPLlib/arm64-v8a/libapp.so
+HSPLlib/armeabi-v7a/libapp.so
+HSPLlib/x86_64/libapp.so
 
-# Enhanced for UI jank reduction: list rendering, scrolling, and common widget builds
-HSPLio/flutter/plugins/imagepicker/ImagePickerPlugin;->onMethodCall(Lio/flutter/plugin/common/MethodCall;Lio/flutter/plugin/common/MethodChannel$Result;)V
-HSPLio/flutter/embedding/engine/systemchannels/SettingsChannel;->sendMessage(Lio/flutter/embedding/engine/systemchannels/SettingsChannel$Message;)V
-HSPLio/flutter/view/AccessibilityBridge;->onAccessibilityStateChange(Z)V
-HSPLandroid/view/View;->draw(Landroid/graphics/Canvas;)V
-HSPLandroid/widget/TextView;->onDraw(Landroid/graphics/Canvas;)V
-HSPLandroidx/recyclerview/widget/RecyclerView;->onDraw(Landroid/graphics/Canvas;)V
-# Extra for first-frame and binding (measurable TTID improvement)
-HSPLio/flutter/embedding/engine/FlutterEngine;->getRenderer()Lio/flutter/embedding/engine/renderer/FlutterRenderer;
-HSPLio/flutter/embedding/android/FlutterActivity;->onWindowFocusChanged(Z)V
-HSPLio/flutter/view/FlutterView;->onMeasure(II)V
-# Battery and network-aware paths remain off critical startup
-# Expanded for this run: additional measure/layout and surface paths to further reduce first-frame jank and TTID
-HSPLio/flutter/embedding/engine/renderer/FlutterRenderer;->onTrimMemory(I)V
-HSPLio/flutter/view/FlutterView;->onSizeChanged(IIII)V
+# Flutter embedding hot paths
+PLio/flutter/embedding/android/FlutterActivity;->onCreate(Landroid/os/Bundle;)V
+PLio/flutter/embedding/android/FlutterActivity;->onStart()V
+PLio/flutter/embedding/android/FlutterActivity;->onResume()V
+PLio/flutter/embedding/android/FlutterFragmentActivity;->onCreate(Landroid/os/Bundle;)V
+PLio/flutter/embedding/engine/FlutterJNI;->attachToNative()V
+PLio/flutter/embedding/engine/FlutterJNI;->detachFromNativeAndReleaseResources()V
+PLio/flutter/embedding/engine/loader/FlutterLoader;->ensureInitializationComplete(Landroid/content/Context;[Ljava/lang/String;)V
+PLio/flutter/embedding/engine/loader/FlutterLoader;->startInitialization(Landroid/content/Context;)V
+PLio/flutter/plugin/common/MethodChannel;->invokeMethod(Ljava/lang/String;Ljava/lang/Object;)V
+
+# Common Android / AndroidX
+PLandroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
+PLandroidx/activity/ComponentActivity;->onCreate(Landroid/os/Bundle;)V
+PLandroidx/core/app/ComponentActivity;->onCreate(Landroid/os/Bundle;)V
