@@ -3,10 +3,11 @@
 /// The actual flutter_tts dependency is isolated in TtsService. Existing UI
 /// imports can remain stable while the package boundary stays in services/.
 export '../services/tts_service.dart';
+export '../services/safe_tts_controller.dart';
 export 'shared/article_badge.dart';
 export 'widgets/vocabulary_visuals.dart';
 
-import '../services/tts_service.dart';
+import '../services/safe_tts_controller.dart';
 
 Future<void> safeSpeak(
   SafeTtsController tts,
