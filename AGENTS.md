@@ -17,10 +17,11 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 ## Mutation and Handoff Protocol
 
 Before any mutation:
-1. Inspect live branch/PR/CI state.
-2. Reconcile task ownership and mutable scope.
-3. Reuse the existing TASK_ID when work is already active.
-4. Treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
+1. verify this is the private application repository `moaz76943-creator/deutsch-build` (integration target `staging/v2-full-platform`); use `moaz76943-creator/-offline-packs-store` only for the separate public content factory (`main`);
+2. inspect live branch/PR/CI state;
+3. reconcile task ownership and mutable scope;
+4. reuse the existing TASK_ID when work is already active;
+5. treat another owner’s branch/PR/path as READ-ONLY until durable handoff.
 
 After meaningful movement:
 - Leave durable evidence (commits, PR comments, issue updates).

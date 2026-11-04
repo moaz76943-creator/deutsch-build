@@ -27,30 +27,29 @@ REPO_ROOT = str(Path(__file__).resolve().parents[2])
 LOCK_TTL_SECONDS = 3600
 
 
-class TaskLedger:
-    def __init__(self, ledger_path):
-        self.ledger_path = ledger_path
-        self.lock_path = ledger_path + ".lock"
-        self.lock_fd = None
+def default_state_dir():
+    """Keep mutable agent state outside the source-controlled repository."""
+    base = os.environ.get("XDG_STATE_HOME")
+    return (Path(base) if base else Path.home() / ".local" / "state") / "deutsch-agent-contract"
 
-    def acquire(self):
-        self.lock_fd = open(self.lock_path, "w")
-        fcntl.flock(self.lock_fd, fcntl.LOCK_EX)
-        if os.path.exists(self.ledger_path):
-            with open(self.ledger_path, "r") as f:
-                return f.read()
-        return ""
 
-    def commit(self, data):
-        tmp_path = self.ledger_path + ".tmp"
-        with open(tmp_path, "w") as f:
-            json.dump(data, f, indent=2)
-            f.write("\n")
-        os.rename(tmp_path, self.ledger_path)
-        if self.lock_fd:
-            fcntl.flock(self.lock_fd, fcntl.LOCK_UN)
-            self.lock_fd.close()
-            self.lock_fd = None
+def write_json_atomic(path, value):
+    """Durably replace JSON under the caller's stable sibling-file lock."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(prefix=".agent-state-", dir=target.parent)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(value, stream, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
 
 def get_changed_files(base_sha, result_sha="HEAD"):
     cmd = ["git", "diff", "--name-only", f"{base_sha}...{result_sha}"]
@@ -258,24 +257,9 @@ def main(args=None):
                       "blockers": ["Invalid ledger JSON/schema: existing state preserved"]}
             updated_ledger = None
 
-    ledger_manager = TaskLedger(parsed.ledger)
-    content = ledger_manager.acquire()
-
-    try:
-        result_code, report, updated_ledger = process_ledger(parsed, content)
-
-        os.makedirs(os.path.dirname(os.path.abspath(parsed.report)), exist_ok=True)
-        with open(parsed.report, "w") as rf:
-            json.dump(report, rf, indent=2)
-
-        ledger_manager.commit(updated_ledger)
-    except Exception as e:
-        # If an exception happens, still release lock gracefully
-        if ledger_manager.lock_fd:
-            fcntl.flock(ledger_manager.lock_fd, fcntl.LOCK_UN)
-            ledger_manager.lock_fd.close()
-            ledger_manager.lock_fd = None
-        raise e
+        write_json_atomic(parsed.report, report)
+        if result_code == 0:
+            write_json_atomic(ledger_path, updated_ledger)
 
     if report["blockers"]:
         print("Blockers found:", file=sys.stderr)

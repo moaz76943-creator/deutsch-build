@@ -63,8 +63,16 @@ android {
     }
 
     namespace "com.deutschbilarabi.app"
-    compileSdk 36
+<<<<<<< HEAD
+<<<<<<< HEAD
+    compileSdk 36 // استخدام إصدار مستقر
     ndkVersion = "28.2.13676358"
+=======
+    compileSdk = 36
+>>>>>>> pr-179
+=======
+    compileSdk 34 // استخدام إصدار مستقر
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -85,21 +93,87 @@ android {
 
     defaultConfig {
         applicationId "com.deutschbilarabi.app"
+        // نرفع الإصدار لـ 21 فقط لدعم SQLite و TTS
         minSdkVersion flutter.minSdkVersion
-        targetSdk 36
+        targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+
+        // تفعيل Multidex بأبسط شكل ممكن
         multiDexEnabled true
         buildConfigField "long", "CLOUD_PROJECT_NUMBER", "${cloudProjectNumberLong}L"
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+    // Read signing config via external gradle script
+    apply from: rootProject.file('release-signing.gradle')
+    def releaseSigningConfig = resolveReleaseSigning()
+
+    if (releaseSigningConfig.releaseStoreFile) {
+        signingConfigs {
+            release {
+                storeFile file(releaseSigningConfig.releaseStoreFile)
+                storePassword releaseSigningConfig.releaseStorePassword
+                keyAlias releaseSigningConfig.releaseKeyAlias
+                keyPassword releaseSigningConfig.releaseKeyPassword
+            }
+        }
+=======
+            signingConfigs {
+        secureRelease {
+            def keystorePropertiesFile = rootProject.file('key.properties')
+            def keystoreProperties = new Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystorePropertiesFile.withInputStream { stream ->
+                    keystoreProperties.load(stream)
+                }
+            }
+            def keyFilePath = project.findProperty('releaseStoreFile') ?: keystoreProperties['storeFile']
+            if (keyFilePath) {
+                def keyFile = file(keyFilePath)
+                if (!keyFile.exists() && rootProject.file(keyFilePath).exists()) {
+                    keyFile = rootProject.file(keyFilePath)
+                }
+                storeFile keyFile
+                storePassword (project.findProperty('releaseStorePassword') ?: keystoreProperties['storePassword'])
+                keyAlias (project.findProperty('releaseKeyAlias') ?: keystoreProperties['keyAlias'])
+                keyPassword (project.findProperty('releaseKeyPassword') ?: keystoreProperties['keyPassword'])
+            }
+        }
+        release {
+            initWith(signingConfigs.secureRelease)
+        }
+>>>>>>> pr-179
+    }
+
+=======
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
     buildTypes {
         release {
             minifyEnabled false
             shrinkResources false
+<<<<<<< HEAD
+<<<<<<< HEAD
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
+<<<<<<< HEAD
             signingConfig signingConfigs.secureRelease
+=======
+            if (releaseSigningConfig.releaseStoreFile) {
+                signingConfig signingConfigs.release
+            } else {
+                // Task Definition of Done: No release debug-signing fallback.
+                signingConfig null
+            }
+>>>>>>> pr-45
+=======
+>>>>>>> pr-179
+=======
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            signingConfig signingConfigs.debug
+>>>>>>> origin/staging/v2-full-platform-1792367411258400957
         }
     }
 
@@ -113,9 +187,6 @@ flutter {
 }
 
 dependencies {
+    // نعتمد فقط على multidex الأساسي بدون مكتبات Desugaring المعقدة
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.google.android.play:integrity:1.4.0'
-    // Baseline Profile installer for AOT compilation of hot paths (startup, navigation).
-    // Expected impact: up to ~30% faster cold startup on first launch (Android docs).
-    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
 }

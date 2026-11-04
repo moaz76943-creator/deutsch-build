@@ -26,7 +26,6 @@ dependencies:
   sqlite3: '>=2.3.0 <3.0.0'
   crypto: ^3.0.7
   http: ^1.6.0
-  speech_to_text: ^6.6.2  # Offline pronunciation scoring support
 
   # Pinned for reproducibility, security, and stable builds (previously 'any').
   archive: ^3.6.1
