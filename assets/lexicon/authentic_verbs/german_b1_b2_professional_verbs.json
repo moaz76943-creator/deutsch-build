@@ -1,0 +1,102 @@
+[
+  {
+    "verb": "entwickeln",
+    "past": "entwickelte",
+    "perfekt": "hat entwickelt",
+    "ar": "يطوّر / ينمّي",
+    "ipa": "/ɛntˈvɪkln̩/",
+    "level": "B1",
+    "example_de": "Das Team entwickelt ein innovatives System.",
+    "example_ar": "الفريق يطور نظاماً مبتكراً."
+  },
+  {
+    "verb": "entscheiden",
+    "past": "entschied",
+    "perfekt": "hat entschieden",
+    "ar": "يقرر / يحسم",
+    "ipa": "/ɛntˈʃaɪ̯dn̩/",
+    "level": "B1",
+    "example_de": "Die Geschäftsführung entschied weise.",
+    "example_ar": "الإدارة قررت بحكمة."
+  },
+  {
+    "verb": "verhandeln",
+    "past": "verhandelte",
+    "perfekt": "hat verhandelt",
+    "ar": "يتفاوض",
+    "ipa": "/fɛɐ̯ˈhandl̩n/",
+    "level": "B2",
+    "example_de": "Wir verhandeln über faire Konditionen.",
+    "example_ar": "نحن نتفاوض حول شروط عادلة."
+  },
+  {
+    "verb": "überzeugen",
+    "past": "überzeugte",
+    "perfekt": "hat überzeugt",
+    "ar": "يقنع / يبرهن",
+    "ipa": "/yːbɐˈtsɔɪ̯ɡn̩/",
+    "level": "B2",
+    "example_de": "Seine ehrlichen Argumente haben uns überzeugt.",
+    "example_ar": "حججه الصادقة أقنعتنا تماماً."
+  },
+  {
+    "verb": "verbessern",
+    "past": "verbesserte",
+    "perfekt": "hat verbessert",
+    "ar": "يحسّن / يجوّد",
+    "ipa": "/fɛɐ̯ˈbɛsɐn/",
+    "level": "B1",
+    "example_de": "Ständige Übung verbessert die Aussprache.",
+    "example_ar": "التدريب المستمر يحسّن مخارج النطق."
+  },
+  {
+    "verb": "organisieren",
+    "past": "organisierte",
+    "perfekt": "hat organisiert",
+    "ar": "ينظم / يرتّب",
+    "ipa": "/ɔʁɡaniˈziːʁən/",
+    "level": "B1",
+    "example_de": "Sie organisiert die Konferenz vorbildlich.",
+    "example_ar": "هي تنظم المؤتمر بصورة نموذجية."
+  },
+  {
+    "verb": "erreichen",
+    "past": "erreichte",
+    "perfekt": "hat erreicht",
+    "ar": "يبلغ / يحقق هدفاً",
+    "ipa": "/ɛɐ̯ˈʁaɪ̯çn̩/",
+    "level": "B1",
+    "example_de": "Mit Geduld erreicht man seine Ziele.",
+    "example_ar": "بالصبر يبلغ الإنسان أهدافه."
+  },
+  {
+    "verb": "kooperieren",
+    "past": "kooperierte",
+    "perfekt": "hat kooperiert",
+    "ar": "يتعاون بنزاهة",
+    "ipa": "/koʔɔpəˈʁiːʁən/",
+    "level": "B2",
+    "example_de": "Beide Universitäten kooperieren in der Forschung.",
+    "example_ar": "الجامعتان تتعاونان في البحث العلمي."
+  },
+  {
+    "verb": "berücksichtigen",
+    "past": "berücksichtigte",
+    "perfekt": "hat berücksichtigt",
+    "ar": "يأخذ بعين الاعتبار / يراعي",
+    "ipa": "/bəˈʁʏkzɪçtɪɡn̩/",
+    "level": "B2",
+    "example_de": "Wir müssen alle ethischen Standards berücksichtigen.",
+    "example_ar": "يجب أن نراعي جميع المعايير الأخلاقية."
+  },
+  {
+    "verb": "unterstützen",
+    "past": "unterstützte",
+    "perfekt": "hat unterstützt",
+    "ar": "يساند / يدعم",
+    "ipa": "/ʊntɐˈʃtʏtsn̩/",
+    "level": "B1",
+    "example_de": "Gute Projekte sollte man immer unterstützen.",
+    "example_ar": "المشاريع الصالحة والنافعة ينبغي دعمها دائماً."
+  }
+]
