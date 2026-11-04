@@ -6,6 +6,9 @@ on:
     paths-ignore:
       - docs/project-record/runtime.json
       - docs/project-record/events.ndjson
+  # Event-driven push sync remains primary; one daily sweep repairs missed events.
+  schedule:
+    - cron: "31 3 * * *"
   workflow_dispatch:
 
 permissions:
