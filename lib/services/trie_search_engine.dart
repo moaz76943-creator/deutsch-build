@@ -10,15 +10,14 @@ class TrieNode {
 class TrieSearchEngine {
   TrieNode _root = TrieNode();
   int _nodeCount = 1;
-
   final String languageCode;
   final String? directedPairKey;
   final int maxNodes;
   final int maxResultsPerNode;
   final int maxSearchResults;
   final int maxWordGraphemes;
-  final int maxInputCodeUnits;
-  final int maxIdCodeUnits;
+  static const int maxInputCodeUnits = 1024;
+  static const int maxIdCodeUnits = 128;
 
   TrieSearchEngine({
     this.languageCode = 'und',
@@ -54,40 +53,30 @@ class TrieSearchEngine {
           .replaceAll('ö', 'oe')
           .replaceAll('ü', 'ue')
           .replaceAll('ß', 'ss');
-    }
-    if (foldArabic) {
+    } else if (lang == 'ar') {
+      // Remove Arabic Tashkeel
       result = result.replaceAll(
           RegExp(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]'), '');
-    }
-    if (foldHebrew) {
+    } else if (lang == 'he') {
+      // Remove Hebrew Niqqud
       result = result.replaceAll(
         RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
         '',
       );
     } else {
-        // Universal defaults
-        // Remove Arabic diacritics as fallback
-        result = result.replaceAll(RegExp(r'[\u064B-\u065F\u0670]'), '');
+      // Default Latin Diacritics and Umlauts
+      final diacritics = {
+        'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
+        'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u',
+        'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
+      };
 
-        // Remove Hebrew niqqud as fallback (test requires it for und language code)
-        result = result.replaceAll(
-          RegExp(r'[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]'),
-          '',
-        );
-
-        // Normalize Latin letters with diacritics
-        final diacritics = {
-          'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss',
-          'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-          'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
-          'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o',
-          'ú': 'u', 'ù': 'u', 'û': 'u',
-          'ñ': 'n', 'ç': 'c', 'ı': 'i', 'ğ': 'g', 'ş': 's',
-        };
-
-        diacritics.forEach((k, v) {
-          result = result.replaceAll(k, v);
-        });
+      diacritics.forEach((k, v) {
+        result = result.replaceAll(k, v);
+      });
     }
 
     return result;
@@ -122,9 +111,8 @@ class TrieSearchEngine {
     for (final unit in units) {
       final existing = current.children[unit];
       if (existing != null) {
-        if (!existing.wordIds.contains(id) &&
-            existing.wordIds.length >= maxResultsPerNode) {
-          return indexed;
+        if (!existing.wordIds.contains(id)) {
+          if (existing.wordIds.length >= maxResultsPerNode) return indexed;
         }
         current = existing;
       } else {
@@ -134,11 +122,10 @@ class TrieSearchEngine {
         _nodeCount++;
         current = created;
       }
-      current = current.children[unit]!;
-      if (!current.wordIds.contains(id) && current.wordIds.length < maxResultsPerNode) {
+      if (!current.wordIds.contains(id)) {
+        if (current.wordIds.length >= maxResultsPerNode) return indexed;
         current.wordIds.add(id);
       }
-      current.wordIds.add(id);
       indexed = true;
     }
     return indexed;
@@ -164,7 +151,7 @@ class TrieSearchEngine {
       if (next == null) return <String>[];
       current = next;
     }
-    // ensure unique set, though tryInsert should avoid duplicates
+    // Convert to Set first to guarantee deduplication if somehow duplicates exist
     return current.wordIds.toSet().take(maxSearchResults).toList(growable: false);
   }
 

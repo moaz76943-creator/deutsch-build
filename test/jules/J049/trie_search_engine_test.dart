@@ -4,26 +4,26 @@ import 'package:deutsch_bilarabi/services/trie_search_engine.dart';
 void main() {
   group('TrieSearchEngine Tests', () {
     test('German Umlauts', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'de');
       engine.insert('Mädchen', '1');
       expect(engine.searchPrefix('madchen'), isEmpty);
       expect(engine.searchPrefix('maed'), ['1']);
     });
 
     test('Arabic Tashkeel', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'ar');
       engine.insert('مُعَلِّم', '1');
       expect(engine.searchPrefix('معل'), ['1']);
     });
 
     test('Hebrew Niqqud', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'he');
       engine.insert('שָׁלוֹם', '1'); // Shalom with Niqqud
       expect(engine.searchPrefix('שלום'), ['1']);
     });
 
     test('CJK Multibyte and Graphemes', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'und');
       engine.insert('こんにちは', '1');
       expect(engine.searchPrefix('こん'), ['1']);
 
@@ -33,14 +33,14 @@ void main() {
     });
 
     test('Deduplication', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'und');
       engine.insert('Test', '1');
       engine.insert('Test', '1');
       expect(engine.searchPrefix('Tes').length, 1);
     });
 
     test('Empty queries', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'und');
       engine.insert('word', '1');
       expect(engine.searchPrefix(''), isEmpty);
 
@@ -70,7 +70,7 @@ void main() {
     });
 
     test('Stale cache clearing', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'und');
       engine.insert('word', '1');
       expect(engine.searchPrefix('word'), ['1']);
 
@@ -79,7 +79,7 @@ void main() {
     });
 
     test('Measure lookup latency and peak memory', () {
-      final engine = TrieSearchEngine();
+      final engine = TrieSearchEngine(languageCode: 'und');
       final stopwatch = Stopwatch()..start();
 
       // Insert fixed fixtures
