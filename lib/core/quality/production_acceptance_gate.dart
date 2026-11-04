@@ -19,32 +19,25 @@ class AcceptanceResult {
   });
 }
 
-abstract class J095VerificationContract {
-  bool get hasMandatoryEvidence;
-  bool get hasStaleEvidence;
-  bool get hasNewDartErrors;
-  bool get hasMemoryRegression;
-  bool get hasFTS5Regression;
-  bool get hasCorruptStorage;
-  bool get isNormalStartupVerified;
-  bool get isSafeModeBehaviorVerified;
-}
-
-/// بوابة قبول الجاهزية للإنتاج والمتجر الرسمي
-enum PromotionEligibility { approved, degraded, blocked, notVerified }
-
-abstract class J025StartupContract {
-  bool get hasNewDartErrors;
-  bool get hasNormalStartup;
-  bool get hasSafeModeStartup;
-}
-
 abstract class J095VerificationResult {
   bool get hasMemoryRegression;
   bool get hasFTS5Regression;
   bool get isStorageCorrupt;
   bool get isEvidenceStale;
   bool get hasMissingMandatoryEvidence;
+}
+
+enum PromotionEligibility {
+  approved,
+  degraded,
+  blocked,
+  notVerified,
+}
+
+abstract class J025StartupContract {
+  bool get hasNewDartErrors;
+  bool get hasNormalStartup;
+  bool get hasSafeModeStartup;
 }
 
 abstract class LanguageReadinessEvidence {
