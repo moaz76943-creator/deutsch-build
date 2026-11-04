@@ -21,10 +21,31 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
   final SafeTtsController _tts = SafeTtsController();
   final Set<String> _favorites = <String>{};
 
+  // Precomputed flat list for efficient ListView.builder (headers + cards).
+  // Avoids materializing every card up front.
+  late final List<_VerbListItem> _items;
+
   @override
   void initState() {
     super.initState();
     _loadFavorites();
+    _items = _buildItems();
+  }
+
+  List<_VerbListItem> _buildItems() {
+    final groups = widget.verbIndex.groups;
+    final ks = groups.keys.toList()..sort();
+    final items = <_VerbListItem>[];
+    items.add(const _HeaderItem());
+    for (final g in ks) {
+      items.add(_GroupHeaderItem(g));
+      for (final infinitive in groups[g] ?? const <String>[]) {
+        for (final v in widget.verbIndex.rowsFor(infinitive)) {
+          items.add(_VerbCardItem(v));
+        }
+      }
+    }
+    return items;
   }
 
   Future<void> _loadFavorites() async {
@@ -174,8 +195,6 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
 
   @override
   Widget build(BuildContext c) {
-    final groups = widget.verbIndex.groups;
-    final ks = groups.keys.toList()..sort();
     final uniqueVerbs = widget.verbIndex.infinitives.length;
     return Scaffold(
       appBar: AppBar(
@@ -201,34 +220,36 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
           ),
         ],
       ),
-      body: ListView(
+      body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Text(
-                'كل ضمير مستقل: ich، du، er، sie (هي)، es، wir، ihr، sie (هم)، Sie. لكل تصريف نطق مستقل، ماضٍ، ومثال حاضر ومثال ماضٍ مع الترجمة. عدد الأفعال: $uniqueVerbs',
+        itemCount: _items.length,
+        itemBuilder: (context, index) {
+          final item = _items[index];
+          if (item is _HeaderItem) {
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Text(
+                  'كل ضمير مستقل: ich، du، er، sie (هي)، es، wir، ihr، sie (هم)، Sie. لكل تصريف نطق مستقل، ماضٍ، ومثال حاضر ومثال ماضٍ مع الترجمة. عدد الأفعال: $uniqueVerbs',
+                ),
               ),
-            ),
-          ),
-          for (final g in ks) ...[
-            Padding(
+            );
+          } else if (item is _GroupHeaderItem) {
+            return Padding(
               padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
               child: Text(
-                g,
+                item.group,
                 style: Theme.of(c)
                     .textTheme
                     .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
-            ),
-            for (final infinitive in groups[g] ?? const <String>[])
-              ...widget.verbIndex
-                  .rowsFor(infinitive)
-                  .map((v) => _verbCard(c, v)),
-          ],
-        ],
+            );
+          } else if (item is _VerbCardItem) {
+            return _verbCard(c, item.verb);
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
@@ -238,6 +259,23 @@ class _VerbConjugationPageState extends State<VerbConjugationPage> {
     _tts.dispose();
     super.dispose();
   }
+}
+
+// Sealed-like item model for the builder (keeps the file self-contained).
+abstract class _VerbListItem {}
+
+class _HeaderItem extends _VerbListItem {
+  const _HeaderItem();
+}
+
+class _GroupHeaderItem extends _VerbListItem {
+  final String group;
+  const _GroupHeaderItem(this.group);
+}
+
+class _VerbCardItem extends _VerbListItem {
+  final VerbConjugation verb;
+  const _VerbCardItem(this.verb);
 }
 
 class VerbFavoritesPage extends StatelessWidget {
