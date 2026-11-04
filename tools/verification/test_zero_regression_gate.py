@@ -2,15 +2,18 @@ import unittest
 import os
 import json
 import subprocess
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import tools.verification.zero_regression_gate as gate
 
 class TestZeroRegressionGate(unittest.TestCase):
 
+    def setUp(self):
+        self.root = Path(".")
+
     @patch('tools.verification.zero_regression_gate.run_command')
     def test_analyzer_failure_blocks_acceptance(self, mock_run):
-        # 15. Add tests proving failures block acceptance.
         mock_run.return_value = (1, "error • Something is wrong", "")
         res = gate.run_dart_analyzer()
         self.assertEqual(res.status, gate.STATUS_FAIL)
@@ -21,18 +24,28 @@ class TestZeroRegressionGate(unittest.TestCase):
         res = gate.run_dart_analyzer()
         self.assertEqual(res.status, gate.STATUS_PASS)
 
-    @patch('tools.verification.zero_regression_gate.run_command')
-    def test_missing_sqlite_tests_not_run(self, mock_run):
-        # 12. Reject missing critical benchmarks as NOT_RUN or BLOCKED.
-        mock_run.return_value = (1, "", "Could not find file")
-        res = gate.run_sqlite_check()
+    @patch('pathlib.Path.rglob')
+    def test_missing_sqlite_tests_not_run(self, mock_rglob):
+        mock_rglob.return_value = iter([])
+        res = gate.run_sqlite_check(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.rglob')
+    def test_missing_benchmark_fts5_not_run(self, mock_rglob):
+        mock_rglob.return_value = iter([])
+        res = gate.run_benchmark_fts5(self.root)
+        self.assertEqual(res.status, gate.STATUS_BLOCKED)
+
+    @patch('pathlib.Path.exists')
+    def test_missing_memory_benchmark_not_run(self, mock_exists):
+        mock_exists.return_value = False
+        res = gate.run_benchmark_memory(self.root)
         self.assertEqual(res.status, gate.STATUS_NOT_RUN)
 
-    @patch('tools.verification.zero_regression_gate.run_command')
-    def test_missing_benchmark_tests_not_run(self, mock_run):
-        # 12. Reject missing critical benchmarks as NOT_RUN or BLOCKED.
-        mock_run.return_value = (1, "", "Could not find file")
-        res = gate.run_benchmark_check()
+    @patch('pathlib.Path.exists')
+    def test_missing_startup_tests_not_run(self, mock_exists):
+        mock_exists.return_value = False
+        res = gate.run_startup_tests(self.root)
         self.assertEqual(res.status, gate.STATUS_NOT_RUN)
 
     def test_manifest_generation(self):
@@ -49,6 +62,7 @@ class TestZeroRegressionGate(unittest.TestCase):
             data = json.load(f)
             self.assertEqual(data["overall_status"], gate.STATUS_FAIL)
             self.assertEqual(data["results"]["benchmarks"]["status"], gate.STATUS_FAIL)
+            self.assertIn("hash", data)
 
         if os.path.exists(test_file):
             os.remove(test_file)
@@ -64,9 +78,8 @@ class TestZeroRegressionGate(unittest.TestCase):
         with open(b_file, "w") as f:
              json.dump({
                  "results": {
-                     "benchmarks": {
+                     "benchmark_memory": {
                          "details": {
-                             "p50_latency_ms": 30.0,
                              "peak_memory_mb": 50.0
                          }
                      }
@@ -76,10 +89,9 @@ class TestZeroRegressionGate(unittest.TestCase):
         with open(c_file, "w") as f:
              json.dump({
                  "results": {
-                     "benchmarks": {
+                     "benchmark_memory": {
                          "details": {
-                             "p50_latency_ms": 35.0, # Regression > 10%
-                             "peak_memory_mb": 50.0
+                             "peak_memory_mb": 70.0 # Regression > 20%
                          }
                      }
                  }
@@ -87,34 +99,28 @@ class TestZeroRegressionGate(unittest.TestCase):
 
         res = gate.compare_baselines(c_file, b_file)
         self.assertEqual(res.status, gate.STATUS_FAIL)
+        self.assertIn("Regressions detected", res.message)
 
         if os.path.exists(b_file): os.remove(b_file)
         if os.path.exists(c_file): os.remove(c_file)
 
+    @patch('pathlib.Path.exists')
     @patch('tools.verification.zero_regression_gate.run_command')
-    def test_benchmark_tolerances(self, mock_run):
-        output = """
-        ⏱️ زمن استرجاع L1 Cache لـ 100 عنصر: 25.0 ms
-        ⏱️ زمن تفكيك الـ JSON لـ 50 مهمة: 120.0 ms
-        """
-        mock_run.return_value = (0, output, "")
-
-        res = gate.run_benchmark_check(threshold_p50=20.0)
+    def test_benchmark_memory_fails_on_exceeding_limit(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (0, "MEMORY_PEAK_MB: 300.0", "")
+        res = gate.run_benchmark_memory(self.root, limit_mb=256.0)
         self.assertEqual(res.status, gate.STATUS_FAIL)
-        self.assertIn("exceeds tolerance", res.message)
+        self.assertIn("exceeds limit", res.message)
 
-        res_pass = gate.run_benchmark_check(threshold_p50=30.0)
-        self.assertEqual(res_pass.status, gate.STATUS_PASS)
-
+    @patch('pathlib.Path.exists')
     @patch('tools.verification.zero_regression_gate.run_command')
-    def test_startup_tests(self, mock_run):
-        mock_run.return_value = (0, "output", "")
-        res = gate.run_startup_tests()
-        self.assertEqual(res.status, gate.STATUS_PASS)
-
-        mock_run.return_value = (1, "output", "No such file or directory")
-        res2 = gate.run_startup_tests()
-        self.assertEqual(res2.status, gate.STATUS_NOT_RUN)
+    def test_startup_tests_fails_on_exceeding_threshold(self, mock_run, mock_exists):
+        mock_exists.return_value = True
+        mock_run.return_value = (0, "STARTUP_TIME_MS: 2000.0", "")
+        res = gate.run_startup_tests(self.root, threshold_ms=1500.0)
+        self.assertEqual(res.status, gate.STATUS_FAIL)
+        self.assertIn("exceeds threshold", res.message)
 
 if __name__ == "__main__":
     unittest.main()
