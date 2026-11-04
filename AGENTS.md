@@ -6,15 +6,12 @@ All agents, coding assistants, OpenCode sessions, and automation working in this
 - `docs/project-record/PROJECT_INTENT.md`
 - `.github/SYSTEM_RULES.md` (offline-first absolute, no direct SharedPreferences outside ports, quality gate required)
 
-## Commit and CI policy (effective 2026-10-15)
+## Commit and CI policy (updated 2026-10-24)
 
-- Never add CI-skip tokens (including `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`) or `skip-checks: true` to **new** commit messages, whether created by Jules, Gemini, Antigravity, or an automated workflow.
-- Do not skip mandatory GitHub Actions or treat `SKIPPED` / `NOT_RUN` as a passing test. Optimize costs with focused tests, caching, and bounded concurrency, not commit-level suppression.
-- Keep historical commits unchanged. For older PRs with skip directives, use a reviewed, non-skipping integration tip and validate the exact head before merge; never force-push branches to rewrite their history.
-- Follow the repository's actual branch and task CI contracts; this notice does not activate disabled workflows or authorize paid services.
-- Canonical working repository for this instance: `moaz76943-creator/deutsch-build`. Cross-check against any upstream if needed, but operate here.
-
-## Mutation and Handoff Protocol
+- Commit messages may include `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]` or `skip-checks: true` when chosen by the author. Their presence alone does not reject a PR or invalidate tested code.
+- GitHub may suppress automatic `push` and `pull_request` workflow runs for these markers. Never misreport an absent, skipped or stale required check as PASS; use an eligible manually verified or non-skipping integration tip when GitHub needs to run a required check, preserving original commits.
+- Keep existing branch protection, relevant exact-SHA quality tests, signing, learner data and licensing checks. Do not bypass them or authorize paid services; use focused testing to conserve time.
+- Preserve history without force-pushing merely to remove a message marker. Keep PR and SHA receipts in the existing workflow, avoiding duplicate approval paperwork.
 
 Before any mutation:
 1. verify this is the private application repository `moaz76943-creator/deutsch-build` (integration target `staging/v2-full-platform`); use `moaz76943-creator/-offline-packs-store` only for the separate public content factory (`main`);
