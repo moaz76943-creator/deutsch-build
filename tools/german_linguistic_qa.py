@@ -789,7 +789,11 @@ def _validate_verb(
             "inseparable prefix must be a prefix of infinitive",
         )
 
-    frames = verb.get("valencyFrames", [])
+    _validate_valency_frames(verb.get("valencyFrames", []), path, issues)
+    _validate_verb_forms(verb.get("forms", []), path, issues)
+
+
+def _validate_valency_frames(frames: Any, path: str, issues: list[QaIssue]) -> None:
     if isinstance(frames, list):
         seen_frames: set[str] = set()
         for index, raw_frame in enumerate(frames):
@@ -848,7 +852,8 @@ def _validate_verb(
                     "valency frame requires case or preposition government",
                 )
 
-    forms = verb.get("forms", [])
+
+def _validate_verb_forms(forms: Any, path: str, issues: list[QaIssue]) -> None:
     if isinstance(forms, list):
         seen_forms: set[tuple[str, str]] = set()
         for index, raw_form in enumerate(forms):
