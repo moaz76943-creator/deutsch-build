@@ -59,11 +59,16 @@ class GrammarQuiz {
   });
 
   factory GrammarQuiz.fromMap(Map<String, dynamic> map) {
+    final Object? decoded = json.decode(map['options_json'] as String);
+    if (decoded is! List || decoded.any((value) => value is! String)) {
+      throw const FormatException(
+          'Grammar quiz options must be a string list.');
+    }
     return GrammarQuiz(
       id: map['id'] as int?,
       topicId: map['topic_id'] as String,
       question: map['question'] as String,
-      options: List<String>.from(json.decode(map['options_json'] as String)),
+      options: decoded.cast<String>().toList(growable: false),
       correctIndex: map['correct_index'] as int,
       explanation: map['explanation'] as String,
     );

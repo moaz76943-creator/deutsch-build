@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import '../../../language/german/german_speech_profile.dart';
-import '../../../services/tts_service.dart';
+import '../../../core/infrastructure/audio/flutter_tts_audio_engine.dart';
 import '../domain/entities/audio_playback_state.dart';
 import '../domain/entities/audio_request.dart';
 import '../domain/services/i_audio_service.dart';
