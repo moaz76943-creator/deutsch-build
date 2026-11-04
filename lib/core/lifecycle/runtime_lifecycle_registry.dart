@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
 /// مسجل مركزي لدورة حياة الموارد المؤقتة والاشتراكات لمنع تسريبات الذاكرة
@@ -19,10 +18,18 @@ class RuntimeLifecycleRegistry {
 
   void registerSubscription(StreamSubscription<dynamic> sub,
       {String owner = 'global'}) {
+    if (_isDisposed) {
+      sub.cancel();
+      return;
+    }
     registerCleanup(() => sub.cancel(), owner: owner);
   }
 
   void registerTimer(Timer timer, {String owner = 'global'}) {
+    if (_isDisposed) {
+      timer.cancel();
+      return;
+    }
     registerCleanup(() {
       timer.cancel();
     }, owner: owner);
@@ -30,8 +37,8 @@ class RuntimeLifecycleRegistry {
 
   void registerCleanup(FutureOr<void> Function() cleanup,
       {String owner = 'global'}) {
-    if (isOwnerDisposed(owner)) {
-      _safeCleanup(cleanup);
+    if (isOwnerDisposed(owner) || _isDisposed) {
+      safeCleanup(cleanup);
       return;
     }
     _cleanups.putIfAbsent(owner, () => []).add(cleanup);
@@ -40,11 +47,10 @@ class RuntimeLifecycleRegistry {
   Future<void> disposeOwner(String owner) async {
     if (isOwnerDisposed(owner)) return;
     _disposedOwners.add(owner);
-    await _disposeOwnerResources(owner);
+    await disposeOwnerResources(owner);
   }
 
   Future<void> disposeAll() async {
-    if (_isDisposed) return;
     _isDisposed = true;
 
     final owners = _cleanups.keys.toList().reversed;
@@ -67,11 +73,11 @@ class RuntimeLifecycleRegistry {
     _cleanups.remove(owner); // clear before execution to handle race conditions
 
     for (final cleanup in callbacks) {
-      await _safeCleanup(cleanup);
+      await safeCleanup(cleanup);
     }
   }
 
-  Future<void> _safeCleanup(FutureOr<void> Function() cleanup) async {
+  Future<void> safeCleanup(FutureOr<void> Function() cleanup) async {
     try {
       final result = cleanup();
       if (result is Future) {

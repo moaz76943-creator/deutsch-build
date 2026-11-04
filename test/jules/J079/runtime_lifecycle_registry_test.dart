@@ -143,5 +143,14 @@ void main() {
 
       expect(order, ['C_1', 'B_1', 'A_2', 'A_1']);
     });
+
+    test('Registering after global dispose immediately executes cleanup', () async {
+      int count = 0;
+      await registry.disposeAll();
+      registry.registerCleanup(() {
+        count++;
+      }, owner: 'featureX');
+      expect(count, 1);
+    });
   });
 }
