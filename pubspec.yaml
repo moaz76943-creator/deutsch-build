@@ -36,6 +36,9 @@ dependencies:
   synchronized: any
   characters: any
   cryptography: ^2.9.0
+  encrypt: ^5.0.3
+  timezone: ^0.10.1
+  percent_indicator: ^4.2.5
 dev_dependencies:
   custom_lint: ^0.6.4
   custom_lint_builder: ^0.6.4
