@@ -1,6 +1,34 @@
 # Performance Improvements
 
-## 2026-10-28: Memory-bounded Image Caching for Vocabulary Cards (Memory / UI Jank / Battery)
+## 2026-10-28: Memory-Aware LRU Cache (Memory / Battery)
+
+### Issue
+`LruMemoryCache` contained unresolved merge-conflict markers and only enforced a count-based capacity. Under memory pressure (large vocabulary images, audio metadata, or long sessions) the cache could grow unbounded in bytes, increasing RSS, GC pressure, and battery drain from frequent collections.
+
+### Change
+- Resolved the merge conflict by adopting the enhanced implementation that tracks approximate item size in bytes.
+- Added optional `maxMemoryBytes` limit and `onEvict` callback.
+- `put` now rejects oversized items, updates size accounting, and evicts oldest entries to stay under both count and byte limits.
+- Added `trimMemoryPressure()` for explicit low-memory callbacks.
+- No change to public API for existing callers that omit the optional size argument; security and offline behavior unchanged.
+
+### Expected Metrics
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Peak RSS during long sessions | Unbounded by bytes | Capped by `maxMemoryBytes` | Lower peak memory (device-dependent) |
+| GC frequency / pause time | Higher under pressure | Reduced | Smoother UI, lower battery |
+| Cache hit rate | Same for capacity-limited case | Same or better (size-aware) | Neutral to positive |
+
+### How to measure
+1. Instrument callers to pass realistic `itemSizeBytes`.
+2. DevTools Memory tab: compare RSS and GC events before/after a long vocabulary/review session.
+3. Android Profiler Memory: force low-memory and observe trim.
+
+Security note: Pure in-memory data structure. No network, permissions, or persistence changes. Eviction is deterministic and does not leak data.
+
+---
+
+## 2026-10-28: Deferred Imports for Dashboard Feature Screens (Startup Time)
 
 ### Issue
 Vocabulary cards (and zoomed view) used `CachedNetworkImage` without size constraints. Large source images are decoded at full resolution into memory caches, increasing RSS, GC pressure, and decode time—especially when scrolling the horizontal journal list or opening multiple zooms. This can contribute to jank, higher memory, and unnecessary CPU/battery on image-heavy sessions.
