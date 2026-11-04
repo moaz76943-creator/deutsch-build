@@ -107,5 +107,22 @@ void main() {
       final pair = DirectedPairId(sourceLocale: 'de', targetLocale: 'lang50', semanticVersion: '1.0.0');
       expect(readiness.resolvePairStatus(pair), isA<PairUsable>());
     });
+
+    test('can resolve 100 languages', () {
+       readiness.registerLanguage('de');
+       for (var i = 0; i < 100; i++) {
+         readiness.registerLanguage('lang$i');
+         readiness.markInstalled('lang$i', 100, 'sum');
+       }
+
+       int usableCount = 0;
+       for(var i = 0; i < 100; i++) {
+         final pair = DirectedPairId(sourceLocale: 'de', targetLocale: 'lang$i', semanticVersion: '1.0.0');
+         if (readiness.resolvePairStatus(pair) is PairUsable) {
+            usableCount++;
+         }
+       }
+       expect(usableCount, 100);
+    });
   });
 }
