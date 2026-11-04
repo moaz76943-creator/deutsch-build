@@ -20,13 +20,15 @@ import kotlinx.coroutines.withContext
  * Requires dependency:
  * implementation 'com.google.android.play:integrity:1.4.0'
  *
- * Cloud Project Number is read from BuildConfig (set via CLOUD_PROJECT_NUMBER
- * Gradle property, local.properties, or CI environment for production builds).
+ * Cloud Project Number is injected at build time from local.properties or
+ * environment (CLOUD_PROJECT_NUMBER). Release builds fail if it is unset or 0.
  */
 class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.MethodCallHandler {
 
     companion object {
         const val CHANNEL_NAME = "com.deutschbilarabi.app/play_integrity"
+        // Injected via BuildConfig from Gradle (local.properties / env)
+        private val CLOUD_PROJECT_NUMBER: Long = BuildConfig.CLOUD_PROJECT_NUMBER
     }
 
     private val integrityManager by lazy {
@@ -43,8 +45,7 @@ class AndroidPlayIntegrityManager(private val context: Context) : MethodChannel.
     }
 
     private fun requestIntegrityToken(call: MethodCall, result: MethodChannel.Result) {
-        val projectNumber = BuildConfig.CLOUD_PROJECT_NUMBER
-        if (projectNumber == 0L) {
+        if (CLOUD_PROJECT_NUMBER == 0L) {
             result.error("not_configured", "Cloud project number not set. Configure CLOUD_PROJECT_NUMBER for production integrity checks.", null)
             return
         }
